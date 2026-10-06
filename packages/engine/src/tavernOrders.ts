@@ -38,7 +38,8 @@ export const FESTIVAL_EFFECT_ID = 'festival';
  *
  * Aceita, cobra o preço de agora (com o desconto de um Carismático no feudo), tira a oferta da
  * lista e põe o herói no feudo, com o soldo contando desde este instante. O evento leva o preço
- * pago e o cheio.
+ * pago e o cheio, e **não leva o modelo do candidato**: o servidor entrega `data` inteiro a quem
+ * joga, e o modelo é o que diria os pesos do sorteio.
  */
 export function hireHero(
   draft: GameState,
@@ -81,7 +82,6 @@ export function hireHero(
     {
       heroId: hero.id,
       offerId: offer.offerId,
-      templateId: template.id,
       classId: hero.classId,
       price,
       fullPrice: full,

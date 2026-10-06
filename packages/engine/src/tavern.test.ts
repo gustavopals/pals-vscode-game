@@ -339,7 +339,6 @@ describe('contratar (hireHero)', () => {
         data: {
           heroId: 'hero-1',
           offerId: 'offer-1',
-          templateId: 'trackerArcher',
           classId: 'archer',
           price: 100,
           fullPrice: 100,
@@ -347,6 +346,10 @@ describe('contratar (hireHero)', () => {
         },
       },
     ]);
+    // O modelo do candidato não sai no evento: o servidor entrega `data` inteiro, e o modelo
+    // diria os pesos do sorteio (névoa; revisão da Fase C, M-R4).
+    expect(JSON.stringify(hired.events)).not.toContain('trackerArcher');
+    expect(JSON.stringify(hired.events)).not.toContain('templateId');
     // A ordem não sorteia e não gasta identificador de oferta: só o do herói.
     expect(hired.state.rng).toStrictEqual(state.rng);
     expect(hired.state.ids).toEqual({ offer: 2, hero: 1 });

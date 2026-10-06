@@ -477,6 +477,19 @@ describe('a Taverna: contratar com duplo clique, em duas abas, no limite e sem o
     ]);
     const goldAfter = original.body.view.resources.find((row) => row.id === 'gold')?.stock ?? 0;
     expect(goldAfter).toBe(goldBefore - first.price);
+    // Nem a resposta da ordem nem os eventos dela levam o modelo do candidato (névoa: é ele
+    // que diria os pesos do sorteio).
+    expect(JSON.stringify(original.body)).not.toContain('templateId');
+    const hiredEvents = await call<EventsResponse>(server, 'GET', `/games/${gameId}/events`, {
+      token: player.token,
+    });
+    expect(hiredEvents.status).toBe(200);
+    expect(hiredEvents.body.events.map((event) => event.type)).toContain('heroHired');
+    expect(JSON.stringify(hiredEvents.body)).not.toContain('templateId');
+    const hiredChronicle = await call<unknown>(server, 'GET', `/games/${gameId}/chronicle`, {
+      token: player.token,
+    });
+    expect(JSON.stringify(hiredChronicle.body)).not.toContain('templateId');
 
     // O duplo clique: a mesma ordem, com o mesmo commandId, devolve o recibo sem reaplicar.
     server.clock.advance(10 * MINUTE);
