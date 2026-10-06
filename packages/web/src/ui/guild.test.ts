@@ -245,12 +245,34 @@ describe('a Guilda na árvore (GDD §13.2)', () => {
   it('o herói prometido tem a linha dele, com o prazo, e nenhum botão', () => {
     const nodes = tree(heroPromisedView);
     expect(find(nodes, 'guild')?.description).toBe('nenhum herói · 1 a caminho');
-    const arriving = find(nodes, 'arriving:0');
+    const arriving = find(nodes, 'arriving:Rolf');
     expect(arriving).toMatchObject({
       label: 'Rolf',
       description: 'Arqueiro · chega em 1 h 27 min',
     });
     expect(arriving === undefined ? [] : rowActions(arriving)).toEqual([]);
+  });
+
+  // Revisão da Fase C (A-R4): com a posição no id, quando o primeiro prometido chegava a linha
+  // do segundo herdava o id dele, e com o id o foco e a seleção da árvore.
+  it('a linha de quem está a caminho é do herói, não da posição: quando o primeiro chega, a do segundo continua a mesma', () => {
+    const [rolf] = heroPromisedView.guild.arriving;
+    if (rolf === undefined) {
+      throw new Error('O golden deixou de ter um herói a caminho.');
+    }
+    const edda = { ...rolf, name: 'Edda', classLabel: 'Guerreira', arrivesInSeconds: 9000 };
+    const both = {
+      ...heroPromisedView,
+      guild: { ...heroPromisedView.guild, arriving: [rolf, edda] },
+    };
+    const later = { ...heroPromisedView, guild: { ...heroPromisedView.guild, arriving: [edda] } };
+    const ids = (view: ViewState) =>
+      (find(tree(view), 'guild')?.children ?? []).map((child) => [child.id, child.label]);
+    expect(ids(both)).toEqual([
+      ['arriving:Rolf', 'Rolf'],
+      ['arriving:Edda', 'Edda'],
+    ]);
+    expect(ids(later)).toEqual([['arriving:Edda', 'Edda']]);
   });
 
   it('a Taverna de pé ganha a linha dela, com os candidatos, o preço de cada um e os botões', () => {

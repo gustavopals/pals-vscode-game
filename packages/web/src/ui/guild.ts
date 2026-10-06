@@ -28,6 +28,8 @@ export const TAVERN_SECTION = 'tavern';
 /** Os prefixos das linhas da árvore: o comando tira deles o herói e o candidato. */
 export const HERO_NODE = 'hero:';
 export const OFFER_NODE = 'offer:';
+/** A linha de um herói prometido que ainda não chegou, seguida do nome dele. */
+export const ARRIVING_NODE = 'arriving:';
 
 /** "1 herói", "3 heróis", "nenhum herói". */
 export function heroCount(count: number): string {

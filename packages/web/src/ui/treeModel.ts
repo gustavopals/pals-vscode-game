@@ -38,6 +38,7 @@ import {
   festivalCost,
   GUILD_ICON,
   guildLines,
+  ARRIVING_NODE,
   guildTreeLine,
   wageAlert,
   HERO_ICON,
@@ -452,8 +453,10 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
       command: open,
       actionHints: { 'lords.dismissHero': 'pede confirmação' },
     })),
-    ...guild.arriving.map((arriving, index): TreeNode => ({
-      id: `arriving:${index}`,
+    // O id é do herói (o nome: um prometido não se repete), não da posição na lista: quando o
+    // primeiro chega, a linha do segundo continua sendo a dele, com o foco e a seleção.
+    ...guild.arriving.map((arriving): TreeNode => ({
+      id: `${ARRIVING_NODE}${arriving.name}`,
       label: arriving.name,
       description: `${arriving.classLabel} · ${arrivalLine(arriving, elapsedSeconds)}`,
       tooltip: [...traitLines(arriving.traits), arriving.blockedReason]
