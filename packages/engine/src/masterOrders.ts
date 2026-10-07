@@ -56,7 +56,7 @@ export function assignMaster(
       draft,
       nowMs,
       'masterAssigned',
-      { masterId: master.id, master: master.masterId, from: left },
+      { masterId: master.id, masterDefId: master.masterId, from: left },
       { mestre: label },
       masterTemplates.released,
     );
@@ -90,7 +90,7 @@ export function assignMaster(
     'masterAssigned',
     {
       masterId: master.id,
-      master: master.masterId,
+      masterDefId: master.masterId,
       building,
       ...(from === null ? {} : { from }),
     },

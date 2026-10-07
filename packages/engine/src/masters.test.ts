@@ -91,7 +91,7 @@ describe('a chegada (V3E-T3.3)', () => {
     expect(draft.settlement.mastersWaiting).toEqual([]);
     expect(draft.ids.master).toBe(1);
     expect(types(events)).toEqual(['masterArrived']);
-    expect(events[0]?.data).toEqual({ masterId: 'master-1', master: 'odo', masters: 1 });
+    expect(events[0]?.data).toEqual({ masterId: 'master-1', masterDefId: 'odo', masters: 1 });
     expect(events[0]?.text).toBe(
       'No 4º dia da Primavera, Mestre Odo chegou a Pedra Alta para ficar. Espera que o senhor lhe dê um edifício.',
     );
@@ -298,7 +298,7 @@ describe('a chegada (V3E-T3.3)', () => {
     draft.settlement.buildings.housing = 4;
     const events: GameEvent[] = [];
     settleMasterArrivals(draft, draft.lastProcessedAt, events);
-    expect(events.map((event) => event.data.master)).toEqual(ids.slice(1));
+    expect(events.map((event) => event.data.masterDefId)).toEqual(ids.slice(1));
     expect(draft.settlement.masters.map((entry) => entry.id)).toEqual([
       'master-1',
       'master-2',
@@ -519,7 +519,7 @@ describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
     expect(types(ordered.events)).toEqual(['masterAssigned']);
     expect(ordered.events[0]?.data).toEqual({
       masterId: 'master-1',
-      master: 'odo',
+      masterDefId: 'odo',
       building: 'quarry',
     });
     expect(ordered.events[0]?.text).toBe(
@@ -604,7 +604,7 @@ describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
     const moved = accept(start, masterOrder('master-1', 'goldMine'));
     expect(moved.events[0]?.data).toEqual({
       masterId: 'master-1',
-      master: 'odo',
+      masterDefId: 'odo',
       building: 'goldMine',
       from: 'quarry',
     });
@@ -638,7 +638,11 @@ describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
     expect(freed.events[0]?.text).toBe(
       'No 4º dia da Primavera, Mestre Odo deixou o ofício por ordem do senhor de Pedra Alta e aguarda outro.',
     );
-    expect(freed.events[0]?.data).toEqual({ masterId: 'master-1', master: 'odo', from: 'quarry' });
+    expect(freed.events[0]?.data).toEqual({
+      masterId: 'master-1',
+      masterDefId: 'odo',
+      from: 'quarry',
+    });
     expect(productionRate(freed.state, 'quarry')).toBe(10_000);
     const back = accept(freed.state, masterOrder('master-1', 'quarry')).state;
     expect(back.settlement.masters[0]?.adaptingUntilMs).toBe(start.lastProcessedAt + ADAPT);

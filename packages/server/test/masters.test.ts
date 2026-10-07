@@ -112,7 +112,7 @@ describe('alocar um Mestre e reenviar a ordem', () => {
     expect(original.body.events.map((event) => event.type)).toEqual(['masterAssigned']);
     expect(original.body.events[0]?.data).toEqual({
       masterId: 'master-1',
-      master: 'odo',
+      masterDefId: 'odo',
       building: 'quarry',
     });
     expect(original.body.events[0]?.text).toContain('Mestre Odo tomou a seu cargo a Pedreira');

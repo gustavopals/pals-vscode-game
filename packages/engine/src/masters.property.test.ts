@@ -254,7 +254,7 @@ describe('a divisão de intervalo com Mestres chegando, esperando e trocando de 
             }
             if (event.type === 'masterArrived') {
               admitted += 1;
-              found += event.data.master === 'odo' ? 1 : 0;
+              found += event.data.masterDefId === 'odo' ? 1 : 0;
             }
             if (event.type === 'villagerLeft' || event.type === 'villagerDeserted') {
               lost += 1;

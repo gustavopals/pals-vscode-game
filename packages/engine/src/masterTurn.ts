@@ -48,7 +48,7 @@ export function deliverMaster(
       draft,
       atMs,
       'masterWaiting',
-      { masterId: id, master: masterId, waiting: settlement.mastersWaiting.length },
+      { masterId: id, masterDefId: masterId, waiting: settlement.mastersWaiting.length },
       { mestre: masterLabel(masterId) },
     );
   }
@@ -102,7 +102,7 @@ export function settleMasterArrivals(
       draft,
       atMs,
       'masterArrived',
-      { masterId: next.id, master: next.masterId, masters: settlement.masters.length },
+      { masterId: next.id, masterDefId: next.masterId, masters: settlement.masters.length },
       { mestre: masterLabel(next.masterId) },
       waited ? masterTemplates.admitted : undefined,
     );
