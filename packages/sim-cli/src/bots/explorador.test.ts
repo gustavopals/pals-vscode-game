@@ -50,6 +50,7 @@ describe('bot explorador', () => {
       'equipar o melhor item',
       'enviar expedições',
       'alocar por demanda',
+      'alocar o Mestre',
       'mandar caravana',
       'vender o excedente',
       'erguer o Mercado',

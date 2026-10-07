@@ -102,11 +102,16 @@ function perWorker(view: ViewState, resource: ResourceId): number {
  */
 function eatenPerVillager(view: ViewState): number | null {
   const food = view.resources.find((row) => row.id === 'food');
-  const { villagers } = view.population;
-  if (food === undefined || villagers === 0) {
+  const mouths = mouthsOf(view);
+  if (food === undefined || mouths === 0) {
     return null;
   }
-  return (workplace(view, 'food').grossPerHour - food.perHour) / villagers;
+  return (workplace(view, 'food').grossPerHour - food.perHour) / mouths;
+}
+
+/** Quem come no feudo: os aldeões e os Mestres (GDD §5.4). */
+function mouthsOf(view: ViewState): number {
+  return view.population.villagers + view.population.masters;
 }
 
 /** Horas que os braços de um edifício levariam, um a um, para render `amount`. */
@@ -1447,7 +1452,8 @@ function ableHands(view: ViewState): number {
 }
 
 async function allocate(view: ViewState, act: Act, awayHours: number): Promise<ViewState> {
-  const { villagers, inTraining } = view.population;
+  const { inTraining } = view.population;
+  const villagers = mouthsOf(view);
   const able = ableHands(view);
   const eaten = eatenPerVillager(view);
   if (eaten === null) {
@@ -1456,7 +1462,10 @@ async function allocate(view: ViewState, act: Act, awayHours: number): Promise<V
   const farm = workplace(view, 'food');
   const farmYield = farm.perWorkerPerHour;
   const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
-  const feeding = farmYield > 0 ? Math.ceil(demand / farmYield - EPSILON) : 0;
+  // A Mestra que já rende inteiro na Fazenda é um braço a menos que a conta pede dos aldeões.
+  const masterArm = farm.master !== null && !farm.master.adapting ? 1 : 0;
+  const feeding =
+    farmYield > 0 ? Math.max(0, Math.ceil(demand / farmYield - EPSILON) - masterArm) : 0;
   // Com vaga nas Habitações, um lavrador a mais: é a sobra de comida que paga os recrutas.
   // Sem ela o feudo come o que planta e para de crescer. Com a despensa cheia e a comida
   // indo ao chão, a sobra já existe: o lavrador a mais só aumentaria o desperdício.
@@ -1563,12 +1572,12 @@ export const comidaPrimeiro: Policy = {
   name: 'comida primeiro',
   run: async (view, act) => {
     const farm = workplace(view, 'food');
-    const { villagers, inTraining, free } = view.population;
+    const { inTraining, free } = view.population;
     const eaten = eatenPerVillager(view);
     if (eaten === null || farm.perWorkerPerHour <= 0) {
       return view;
     }
-    const mouthsPerHour = eaten * (villagers + inTraining);
+    const mouthsPerHour = eaten * (mouthsOf(view) + inTraining);
     const farmers = Math.min(
       ableHands(view),
       Math.ceil(mouthsPerHour / farm.perWorkerPerHour - EPSILON),
@@ -1731,6 +1740,36 @@ export const mandarCaravana: Policy = {
         return current;
       }
     }
+  },
+};
+
+/**
+ * Dá um edifício a cada Mestre que ainda não tem (V3E-T3): aquele em que a visão diz que ele
+ * rende mais por hora depois da adaptação (`masters[].options[].gainPerHour`), entre os que a
+ * ordem aceitaria. O bot **não o muda de lugar depois**: cada troca custa uma adaptação, e o
+ * jogador que a tela descreve move o Mestre quando a estação vira, o que o bot não faz. Vem
+ * depois da alocação dos aldeões: o que o Mestre soma depende de quantos braços o edifício tem.
+ */
+export const alocarMestre: Policy = {
+  name: 'alocar o Mestre',
+  run: async (view, act) => {
+    let current = view;
+    for (const { id } of view.masters) {
+      const master = current.masters.find((entry) => entry.id === id);
+      if (master === undefined || master.building !== null) {
+        continue;
+      }
+      let best: (typeof master.options)[number] | null = null;
+      for (const option of master.options) {
+        if (option.blockedReason === null && option.gainPerHour > (best?.gainPerHour ?? 0)) {
+          best = option;
+        }
+      }
+      if (best !== null) {
+        current = await act('assignMaster', { masterId: id, building: best.building });
+      }
+    }
+    return current;
   },
 };
 

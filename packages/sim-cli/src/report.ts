@@ -16,6 +16,7 @@ import {
   type ExpeditionCounts,
   type HourRow,
   type MarketCounts,
+  type MasterCounts,
   noExpeditions,
   noMarket,
   type RaidCounts,
@@ -390,6 +391,11 @@ const MEASURED_COLUMNS: Partial<
     hour: (row) => row.market.caravansAmbushed,
     run: (summary) => summary.market.caravansAmbushed,
   },
+  // Os Mestres (V3E-T3), lidos da visão: os que moram no feudo naquela hora, e no fim.
+  masters: {
+    hour: (row) => row.masters.count,
+    run: (summary) => summary.masters.count,
+  },
 };
 
 /** Quanto do volume que o Mercado ofereceu foi negociado, em por cento com uma casa; `null` sem Mercado. */
@@ -611,6 +617,12 @@ export type Summary = {
     volumeUsedPercent: number | null;
     mineGold: number;
   };
+  /**
+   * Os Mestres da partida (GDD §5.4), como a última hora os mostra: quantos, quantos à porta,
+   * onde cada um trabalha e quantos dão o bônus; a hora real em que o primeiro chegou (`null`
+   * se nenhum chegou) e as horas com ao menos um Mestre no feudo sem edifício.
+   */
+  masters: MasterCounts & { atHour: number | null; idleHours: number };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -757,8 +769,29 @@ export function summarize(result: SimulationResult): Summary {
         .reduce((sum, event) => sum + Number(event.data.gained_gold ?? 0), 0),
     },
     market: marketOf(result),
+    masters: {
+      ...(rows.at(-1)?.masters ?? { count: 0, waiting: 0, at: [], active: 0 }),
+      atHour: rows.find((row) => row.masters.count + row.masters.waiting > 0)?.hour ?? null,
+      idleHours: rows.filter((row) => row.masters.at.includes(null)).length,
+    },
     stock,
   };
+}
+
+/**
+ * "Mestres: 1 no feudo (Pedreira), 1 com o bônus, o primeiro na hora 61 · 0 à porta · 2 h com
+ * Mestre sem edifício". Sem Mestre, diz isso.
+ */
+function mastersLine({ masters }: Summary): string {
+  if (masters.atHour === null) {
+    return 'Mestres: nenhum';
+  }
+  const places = masters.at.map((building) => building ?? 'sem edifício').join(', ');
+  return [
+    `Mestres: ${masters.count} no feudo${masters.count === 0 ? '' : ` (${places})`}, ${masters.active} com o bônus, o primeiro na hora ${masters.atHour}`,
+    `${masters.waiting} à porta`,
+    `${masters.idleHours} h com Mestre sem edifício`,
+  ].join(' · ');
 }
 
 function marketOf({ rows }: SimulationResult): Summary['market'] {
@@ -996,6 +1029,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     raidsLine(summary),
     guildLine(summary),
     marketLine(summary),
+    mastersLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []

@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import { botFor, strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
+  alocarMestre,
   mandarCaravana,
   contratar,
   darFestival,
@@ -187,6 +188,8 @@ describe('um bot é uma lista de políticas', () => {
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
       // ergue o Mercado ou o melhora; e compra lenha antes de mandar braços à Serraria.
       alocarPorDemanda,
+      // O Mestre (V3E-T3) recebe edifício depois de os aldeões estarem no lugar.
+      alocarMestre,
       mandarCaravana,
       venderExcedente,
       erguerMercado,

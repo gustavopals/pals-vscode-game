@@ -149,6 +149,11 @@ export type HourRow = {
    * dia dos três recursos).
    */
   market: MarketCounts & { level: number };
+  /**
+   * Os Mestres nesta hora (GDD §5.4), como a visão os mostra: quantos moram no feudo, quantos
+   * esperam à porta e em que edifício cada um trabalha (`null` para quem está sem edifício).
+   */
+  masters: MasterCounts;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -348,6 +353,16 @@ export type MarketCounts = {
   caravanLost: number;
 };
 
+/** Os Mestres de uma hora: os do feudo, os da porta e onde cada um trabalha. */
+export type MasterCounts = {
+  count: number;
+  waiting: number;
+  /** O edifício de cada Mestre do feudo, na ordem em que entraram; `null` é "sem edifício". */
+  at: Array<ViewState['masters'][number]['building']>;
+  /** Quantos deles já dão o bônus (têm edifício e passaram da adaptação). */
+  active: number;
+};
+
 /** O começo da contagem: nada negociado, nada oferecido. */
 export function noMarket(): MarketCounts {
   return {
@@ -497,6 +512,12 @@ function rowAt(
       sold: { ...market.sold },
       bought: { ...market.bought },
       level: view.market.level,
+    },
+    masters: {
+      count: view.masters.length,
+      waiting: view.mastersWaiting.count,
+      at: view.masters.map((master) => master.building),
+      active: view.masters.filter((master) => master.bonusActive).length,
     },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },

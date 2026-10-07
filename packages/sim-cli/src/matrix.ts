@@ -224,6 +224,8 @@ export type MatrixCell = {
   expeditions: ExpeditionTotals;
   /** O Mercado da célula, somado nas sementes: ver `MarketTotals`. */
   market: MarketTotals;
+  /** Os Mestres da célula, somados nas sementes: ver `MasterTotals`. */
+  masters: MasterTotals;
   /** `null` quando não há faixa para a célula (outra dificuldade, ritmo fora do conteúdo). */
   band: Band | null;
   /** Uma frase por problema, com quantas sementes o tiveram; vazio quando a célula está dentro. */
@@ -293,6 +295,90 @@ export type MarketTotals = {
   /** O que a Mina de Ouro produziu, somado nas sementes: a comparação do ouro por fonte. */
   mineGold: number;
 };
+
+/**
+ * Os Mestres de uma célula (GDD §5.4; V3E-T3), somados nas sementes: quantas partidas terminaram
+ * com ao menos um, quantos Mestres ao todo, em que edifício cada um terminou (`idle` é sem
+ * edifício), quantos esperavam à porta, a hora real da primeira chegada (a mediana entre as
+ * partidas que tiveram uma) e as horas com Mestre sem edifício.
+ */
+export type MasterTotals = {
+  runs: number;
+  runsWithMaster: number;
+  count: number;
+  waiting: number;
+  at: Record<'farm' | 'lumberMill' | 'quarry' | 'goldMine' | 'idle', number>;
+  firstAtHour: number | null;
+  idleHours: number;
+};
+
+function masterTotalsOf(summaries: Summary[]): MasterTotals {
+  const totals: MasterTotals = {
+    runs: summaries.length,
+    runsWithMaster: 0,
+    count: 0,
+    waiting: 0,
+    at: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0, idle: 0 },
+    firstAtHour: null,
+    idleHours: 0,
+  };
+  const hours: number[] = [];
+  for (const { masters } of summaries) {
+    totals.runsWithMaster += masters.count + masters.waiting > 0 ? 1 : 0;
+    totals.count += masters.count;
+    totals.waiting += masters.waiting;
+    totals.idleHours += masters.idleHours;
+    for (const building of masters.at) {
+      totals.at[building ?? 'idle'] += 1;
+    }
+    if (masters.atHour !== null) {
+      hours.push(masters.atHour);
+    }
+  }
+  hours.sort((a, b) => a - b);
+  totals.firstAtHour = hours[Math.floor(hours.length / 2)] ?? null;
+  return totals;
+}
+
+/**
+ * A tabela dos Mestres (V3E-T3): em quantas partidas um chegou, quando, e **onde o bot o pôs**.
+ * É a medida que o ADR 0018 pede ("o bônus torna um edifício obrigatório?"): um edifício que
+ * leva todos os Mestres de todas as partidas é a resposta "sim".
+ */
+export function mastersTable(cells: readonly MatrixCell[]): string {
+  return table(
+    [
+      'Ritmo',
+      'Perfil',
+      'Partidas com Mestre',
+      'Mestres no fim',
+      'Primeiro Mestre (hora real, mediana)',
+      'Onde terminaram (Fazenda · Serraria · Pedreira · Mina · sem edifício)',
+      'À porta no fim',
+      'Horas com Mestre sem edifício, por partida com Mestre',
+    ],
+    cells.map(({ paceLabel, profile, masters }) => [
+      paceLabel,
+      profile.label,
+      `${masters.runsWithMaster} de ${masters.runs}`,
+      formatInt(masters.count),
+      masters.firstAtHour === null ? '—' : formatInt(masters.firstAtHour),
+      [
+        masters.at.farm,
+        masters.at.lumberMill,
+        masters.at.quarry,
+        masters.at.goldMine,
+        masters.at.idle,
+      ]
+        .map((total) => formatInt(total))
+        .join(' · '),
+      formatInt(masters.waiting),
+      masters.runsWithMaster === 0
+        ? '—'
+        : formatDecimal(Math.round((masters.idleHours * 10) / masters.runsWithMaster) / 10),
+    ]),
+  );
+}
 
 function marketTotalsOf(summaries: Summary[]): MarketTotals {
   const levels = summaries.map(({ market }) => market.level);
@@ -613,6 +699,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
           measure: measureOf(summaries),
           expeditions: expeditionTotalsOf(profile, summaries),
           market: marketTotalsOf(summaries),
+          masters: masterTotalsOf(summaries),
           band,
           violations: band === null ? [] : violationsOf(key, band, summaries, seeds),
         });
@@ -992,6 +1079,7 @@ export function formatMatrix(result: MatrixResult): string {
       `### Guilda: ${window.label.toLowerCase()}\n\n${guild}`,
       `### Expedições: ${window.label.toLowerCase()}\n\n${expeditionTables(cells)}`,
       `### Mercado: ${window.label.toLowerCase()}\n\n${marketTable(cells)}`,
+      `### Mestres: ${window.label.toLowerCase()}\n\n${mastersTable(cells)}`,
     ].join('\n\n');
   });
 

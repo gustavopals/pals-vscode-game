@@ -115,6 +115,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       atHour: null,
       volumeUsedPercent: null,
     },
+    masters: { count: 0, waiting: 0, at: [], active: 0, atHour: null, idleHours: 0 },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };

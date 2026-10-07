@@ -463,9 +463,9 @@ describe('CSV da matriz', () => {
     // As colunas das mecânicas: o desperdício por recurso, o frio e a moral são medidos (o
     // total, as horas e a menor moral da partida); as outras saem vazias até a tarefa de cada
     // uma. Hoje as reservadas são as da Guilda.
-    // Com as expedições medidas (V3D-T1), o Mercado (V3E-T1) e as caravanas (V3E-T2), ficam o
-    // soldo pago e os Mestres.
-    expect(RESERVED_COLUMNS).toHaveLength(2);
+    // Com as expedições medidas (V3D-T1), o Mercado (V3E-T1), as caravanas (V3E-T2) e os
+    // Mestres (V3E-T3), fica o soldo pago.
+    expect(RESERVED_COLUMNS).toHaveLength(1);
     const header = (lines[0] ?? '').split(',');
     for (const line of lines.slice(1)) {
       const cells = line.split(',');

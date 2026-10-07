@@ -162,6 +162,8 @@ describe('CSV de uma partida', () => {
       // As das caravanas, medidas desde V3E-T2.
       'caravans_sent',
       'caravans_ambushed',
+      // A dos Mestres, medida desde V3E-T3.
+      'masters',
     ]);
     // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
     // dos objetivos (V2E-T4) já nasceu medida. As da Guilda (roadmap da v0.3, V3B-T2.2) vêm
@@ -177,9 +179,8 @@ describe('CSV de uma partida', () => {
     expect(reserved).toEqual([
       // O jogo não conta o soldo pago em lugar nenhum: fica reservada.
       'wages_paid',
-      'masters',
     ]);
-    expect(RESERVED_COLUMNS.map((column) => column.task)).toEqual(['V3C-T1', 'V3E-T3']);
+    expect(RESERVED_COLUMNS.map((column) => column.task)).toEqual(['V3C-T1']);
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
     for (const line of lines) {
@@ -650,7 +651,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 
