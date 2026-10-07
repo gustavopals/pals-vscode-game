@@ -1,6 +1,7 @@
 import {
   balance,
   buildings,
+  caravanTemplates,
   chronicleTemplates,
   coldReliefs,
   councilCards,
@@ -51,6 +52,7 @@ import { canonicalJson } from './canonical';
  * Dos heróis entram as classes, os traços, os rótulos de estado, os heróis com nome que as
  * cartas entregam, os modelos de candidato e os nomes da Taverna (na ordem do sorteio) e as frases do fim do soldo em atraso; os números (soldo, prazos, nível, experiência, poder) estão em `balance.heroes`.
  * Do Mercado entram as frases da compra, da venda e do preço que cruza uma marca; os números (preços-base, margem, volume, passeio, estação, marcas) estão em `balance.market`.
+ * Das caravanas entram as frases da partida e da chegada com escolta; as outras linhas estão em `chronicleTemplates` e os números, em `balance.market.caravan`.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -81,6 +83,7 @@ function hashedContent(): Record<string, unknown> {
     heroNames,
     wageArrearsReliefs,
     marketTemplates,
+    caravanTemplates,
   };
 }
 

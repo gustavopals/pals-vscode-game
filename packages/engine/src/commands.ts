@@ -9,6 +9,7 @@ import {
   startConstruction,
   unplanConstruction,
 } from './construction';
+import { sendCaravan } from './caravanOrders';
 import { answerCard } from './council';
 import { equipItem, unequipItem } from './equipment';
 import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
@@ -94,6 +95,15 @@ function dispatch(
         payload.direction,
         payload.amount,
         payload.quoteDay,
+        nowMs,
+        events,
+      );
+    case 'sendCaravan':
+      return sendCaravan(
+        draft,
+        payload.resource,
+        payload.amount,
+        payload.escortHeroId,
         nowMs,
         events,
       );

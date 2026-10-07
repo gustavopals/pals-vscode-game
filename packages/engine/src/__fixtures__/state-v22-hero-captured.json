@@ -1,0 +1,322 @@
+{
+ "schemaVersion": 22,
+ "seed": "fixture-hero-captured",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 367200321,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 367200321,
+ "rng": {},
+ "ids": {
+  "hero": 3,
+  "item": 2,
+  "expedition": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 995000,
+   "wood": 2800000,
+   "stone": 1000000,
+   "gold": 0
+  },
+  "accumulators": {
+   "food": -1605000,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 1,
+   "market": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 5,
+  "discovered": [
+   "ruins"
+  ]
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "cleric",
+    "level": 1,
+    "xp": 0,
+    "traits": [],
+    "status": "captured",
+    "injury": null,
+    "captivity": {
+     "sinceMs": 364200000,
+     "modelId": "ruins"
+    },
+    "equipment": {
+     "weapon": {
+      "id": "item-1",
+      "defId": "huntingSpear"
+     },
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 363600000,
+    "freedAtMs": null,
+    "discontent": false
+   },
+   {
+    "id": "hero-2",
+    "name": "Rolf",
+    "gender": "m",
+    "classId": "cleric",
+    "level": 1,
+    "xp": 15,
+    "traits": [
+     "tracker"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": {
+      "id": "item-2",
+      "defId": "paddedJerkin"
+     },
+     "accessory": null
+    },
+    "joinedAtMs": 363600000,
+    "freedAtMs": null,
+    "discontent": true
+   },
+   {
+    "id": "hero-3",
+    "name": "Brann",
+    "gender": "m",
+    "classId": "warrior",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "loyal"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 363600000,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": {
+   "sinceMs": 363600000,
+   "carriedMs": 0,
+   "departed": 0
+  },
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": [
+   {
+    "expeditionId": "expedition-1",
+    "modelId": "ruins",
+    "variant": 0,
+    "heroNames": [
+     "Rolf",
+     "Edda"
+    ],
+    "posture": "balanced",
+    "sentAtMs": 363600000,
+    "returnedAtMs": 366900000,
+    "log": [
+     {
+      "nodeId": "stoneGuardian",
+      "atMs": 364200000,
+      "outcome": "disaster",
+      "optionId": null,
+      "decidedBy": null,
+      "gained": {
+       "food": 0,
+       "wood": 0,
+       "stone": 0,
+       "gold": 0
+      },
+      "xp": 15,
+      "harm": {
+       "heroName": "Edda",
+       "kind": "captured"
+      },
+      "leveled": [],
+      "found": [],
+      "revealed": null,
+      "cleared": null,
+      "rescued": null,
+      "lootLost": false,
+      "standout": "Edda",
+      "lesson": {
+       "kind": "class",
+       "heroName": null,
+       "posture": null
+      }
+     }
+    ],
+    "loot": {
+     "resources": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "items": []
+    },
+    "wasted": {
+     "food": 0,
+     "wood": 0,
+     "stone": 0,
+     "gold": 0
+    },
+    "sold": [],
+    "lost": false
+   }
+  ]
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0
+  },
+  "caravans": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
+  ]
+ },
+ "stats": {
+  "expeditionsSent:ruins": 3,
+  "expeditionsSent": 1,
+  "heroesCaptured": 1,
+  "expeditionsReturned": 1
+ }
+}

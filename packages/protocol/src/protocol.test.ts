@@ -18,6 +18,7 @@ import {
   injuryTemplates,
   MARKET_RESOURCE_IDS,
   marketTemplates,
+  caravanTemplates,
   moraleBandTemplates,
   namedHeroes,
   objectives,
@@ -139,6 +140,16 @@ describe('CommandSchema', () => {
       commandId: uuid,
       type: 'trade',
       payload: { resource: 'wood', direction: 'sell', amount: 140, quoteDay: 37 },
+    },
+    {
+      commandId: uuid,
+      type: 'sendCaravan',
+      payload: { resource: 'stone', amount: 300, escortHeroId: 'hero-2' },
+    },
+    {
+      commandId: uuid,
+      type: 'sendCaravan',
+      payload: { resource: 'food', amount: 40, escortHeroId: null },
     },
   ];
 
@@ -348,6 +359,58 @@ describe('CommandSchema', () => {
         commandId: uuid,
         type: 'trade',
         payload: { resource: 'wood', direction: 'sell', amount: 10, quoteDay: '3' },
+      },
+    ],
+    [
+      'caravana sem dizer se vai com escolta',
+      { commandId: uuid, type: 'sendCaravan', payload: { resource: 'wood', amount: 10 } },
+    ],
+    [
+      'caravana de ouro',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'gold', amount: 10, escortHeroId: null },
+      },
+    ],
+    [
+      'caravana de meia unidade',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 1.5, escortHeroId: null },
+      },
+    ],
+    [
+      'caravana com o preço escolhido pelo cliente',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, unitPrice: 9000 },
+      },
+    ],
+    [
+      'caravana com o desfecho escolhido pelo cliente',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, ambushed: false },
+      },
+    ],
+    [
+      'caravana com a chegada escolhida pelo cliente',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, arrivesAtMs: 1 },
+      },
+    ],
+    [
+      'caravana com duas escoltas',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 10, escortHeroId: ['hero-1', 'hero-2'] },
       },
     ],
     [
@@ -1644,6 +1707,80 @@ describe('ViewStateSchema', () => {
     ).toMatchObject({ ok: false, code: 'MARKET_REQUIRED' });
   });
 
+  it('aceita a visão e os eventos de uma partida com caravanas: o envio, a estrada e a chegada', () => {
+    const HOUR = 3_600_000;
+    const order = (type: Command['type'], payload: unknown) =>
+      ({ commandId: uuid, type, payload }) as Command;
+    let state = createInitialState('caravanas', settings);
+    Object.assign(state.settlement.buildings, { townHall: 3, market: 4, watchtower: 1 });
+    Object.assign(state.settlement.resources, {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 300_000,
+    });
+    const told: Array<{ type: string; atMs: number; text: string; data: unknown }> = [];
+    const run = (command: Command) => {
+      const result = applyCommand(state, command, state.lastProcessedAt);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      told.push(...result.events);
+    };
+    // Sem herói e sem Mercado no nível, a oferta já passa pelo contrato.
+    expect(
+      ViewStateSchema.safeParse(deriveViewState(createInitialState('s', settings), 0)).error,
+    ).toBeUndefined();
+    run(order('sendCaravan', { resource: 'wood', amount: 300, escortHeroId: null }));
+    run(order('sendCaravan', { resource: 'stone', amount: 45, escortHeroId: null }));
+    const onTheRoad = deriveViewState(state, state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(onTheRoad).error).toBeUndefined();
+    expect(onTheRoad.market.caravans).toHaveLength(2);
+    expect(onTheRoad.market.caravanOffer).toMatchObject({ available: false, slotsInUse: 2 });
+    expect(
+      applyCommand(
+        state,
+        order('sendCaravan', { resource: 'food', amount: 5, escortHeroId: null }),
+        0,
+      ),
+    ).toMatchObject({ ok: false, code: 'CARAVAN_LIMIT' });
+    expect(
+      applyCommand(
+        createInitialState('s', settings),
+        order('sendCaravan', { resource: 'food', amount: 5, escortHeroId: null }),
+        0,
+      ),
+    ).toMatchObject({ ok: false, code: 'MARKET_LEVEL_REQUIRED' });
+    const step = advanceTo(state, 4 * HOUR);
+    state = step.state;
+    told.push(...step.events);
+    const arrived = deriveViewState(state, 4 * HOUR);
+    expect(ViewStateSchema.safeParse(arrived).error).toBeUndefined();
+    expect(arrived.market.caravans).toEqual([]);
+    const caravanEvents = told.filter((event) => event.type.startsWith('caravan'));
+    expect(caravanEvents.map((event) => event.type).slice(0, 2)).toEqual([
+      'caravanSent',
+      'caravanSent',
+    ]);
+    expect(caravanEvents).toHaveLength(4);
+    for (const [index, event] of caravanEvents.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-06T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    expect(
+      GameEventSchema.safeParse({
+        seq: 9,
+        at: '2026-10-06T12:00:00.000Z',
+        type: 'caravanAmbushed',
+        atMs: 0,
+        text: 'x',
+        data: { caravanId: 'caravan-1', resource: 'wood', amount: 300, lost: 150, sold: 150 },
+      }).error,
+    ).toBeUndefined();
+  });
+
   it('recusa no Mercado o que não é para o jogador ver: o preço de amanhã, o de ontem e o gerador', () => {
     const view = deriveViewState(createInitialState('s', settings), 0);
     const row = {
@@ -1673,9 +1810,47 @@ describe('ViewStateSchema', () => {
     expect(parse({ ...view.market, previousPrices: { wood: 1230 } })).toBe(false);
     expect(parse({ ...view.market, nextPrices: { wood: 1300 } })).toBe(false);
     expect(parse({ ...view.market, rng: [1, 2, 3, 4] })).toBe(false);
-    // O que é de outra tarefa não entra antes dela: caravanas (V3E-T2) e efeitos de carta (V3F-T1).
-    expect(parse({ ...view.market, caravans: [] })).toBe(false);
+    // O que é de outra tarefa não entra antes dela: os efeitos de carta (V3F-T1).
     expect(parse({ ...view.market, effects: [] })).toBe(false);
+    // As caravanas (V3E-T2): a lista e a oferta existem sempre, e o desfecho não cabe em uma
+    // caravana na estrada, nem o instante da chegada em tempo de jogo, nem o gerador.
+    const caravan = {
+      id: 'caravan-1',
+      resource: 'wood',
+      amount: 300,
+      cargoText: '300 de madeira',
+      unitPrice: 1428,
+      unitPriceText: '1,428',
+      goldText: '428,4',
+      destination: 'Porto do Rio',
+      arrivesInSeconds: 3600,
+      escortName: null,
+      text: 'A caminho de Porto do Rio.',
+    };
+    expect(parse({ ...view.market, caravans: [caravan] })).toBe(true);
+    expect(parse({ ...view.market, caravans: [{ ...caravan, escortName: 'Edda' }] })).toBe(true);
+    for (const leak of [
+      { ambushed: true },
+      { outcome: 'ambushed' },
+      { lost: 150 },
+      { arrivesAtMs: 14_400_000 },
+      { roll: 3 },
+      { escortHeroId: 'hero-1' },
+    ]) {
+      expect(parse({ ...view.market, caravans: [{ ...caravan, ...leak }] })).toBe(false);
+    }
+    expect(parse({ ...view.market, caravans: [{ ...caravan, resource: 'gold' }] })).toBe(false);
+    const without = (key: string) =>
+      Object.fromEntries(Object.entries(view.market).filter(([name]) => name !== key));
+    expect(parse(without('caravans'))).toBe(false);
+    expect(parse(without('caravanOffer'))).toBe(false);
+    const offer = view.market.caravanOffer;
+    expect(
+      parse({ ...view.market, caravanOffer: { ...offer, priceRatio: { num: 7, den: 5 } } }),
+    ).toBe(false);
+    expect(parse({ ...view.market, caravanOffer: { ...offer, ambush: { basePercent: 10 } } })).toBe(
+      false,
+    );
     const withoutMarket = Object.fromEntries(
       Object.entries(view).filter(([key]) => key !== 'market'),
     );
@@ -2323,6 +2498,7 @@ describe('contentHash', () => {
         heroNames,
         wageArrearsReliefs,
         marketTemplates,
+        caravanTemplates,
       }),
     ]);
   });
@@ -2337,6 +2513,7 @@ describe('contentHash', () => {
     expect(Object.keys(parsed)).toEqual([
       'balance',
       'buildings',
+      'caravanTemplates',
       'chronicleTemplates',
       'coldReliefs',
       'councilCards',

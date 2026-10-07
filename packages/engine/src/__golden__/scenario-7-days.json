@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -760,7 +760,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -790,7 +791,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -970,7 +971,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -1016,7 +1018,7 @@
    "day": 3,
    "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1223,7 +1225,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -1276,7 +1279,7 @@
    "day": 4,
    "eventsSoFar": 176,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1492,7 +1495,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -1548,7 +1552,7 @@
    "day": 5,
    "eventsSoFar": 224,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1758,7 +1762,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -1818,7 +1823,7 @@
    "day": 6,
    "eventsSoFar": 272,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2051,7 +2056,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [
@@ -2115,7 +2121,7 @@
    "day": 7,
    "eventsSoFar": 323,
    "state": {
-    "schemaVersion": 21,
+    "schemaVersion": 22,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2326,7 +2332,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0
-     }
+     },
+     "caravans": []
     },
     "objectives": {
      "active": [

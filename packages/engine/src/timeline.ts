@@ -1,3 +1,4 @@
+import { nextCaravanArrivalAt } from './caravans';
 import { nextDayBoundary } from './clock';
 import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
@@ -27,7 +28,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
  * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício,
  * uma incursão que chega, o aviso da Torre de Vigia, a troca dos candidatos da Taverna, o fim de um nó de expedição, o
- * prazo de uma encruzilhada, um ferido que sara, um herói ferido que sara, o momento em que a
+ * prazo de uma encruzilhada, a chegada de uma caravana, um ferido que sara, um herói ferido que sara, o momento em que a
  * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
  * a pagar, aquele em que um estoque chega ao limite ou aquele em que uma planejada automática
  * junta o custo. As consequências do soldo em atraso são cobradas na virada do dia. Nunca devolve um instante
@@ -80,6 +81,11 @@ export function nextEventAt(state: GameState): number | null {
   const expedition = nextExpeditionEventAt(state);
   if (expedition !== null) {
     candidates.push(expedition);
+  }
+  // As caravanas: a chegada. É nesse instante, e só nele, que uma caravana sem escolta sorteia.
+  const caravan = nextCaravanArrivalAt(state);
+  if (caravan !== null) {
+    candidates.push(caravan);
   }
   // O ferido que sara volta ao ofício: a taxa do edifício dele muda nesse instante.
   const recovery = nextRecoveryAt(state);

@@ -170,6 +170,21 @@ export const TradeCommandSchema = command(
   }),
 );
 
+/**
+ * O envio de uma caravana: um recurso, uma quantidade e quem a escolta (`null` para mandá-la sem
+ * escolta). O preço por unidade é o que a visão mostrava em `market.caravanOffer.resources[]`,
+ * e fica fixado nesta ordem. O protocolo só confere a forma; se há lugar na estrada, se a carga
+ * cabe e existe, e se o herói pode ir é com o motor.
+ */
+export const SendCaravanCommandSchema = command(
+  'sendCaravan',
+  z.strictObject({
+    resource: z.enum(MARKET_RESOURCE_IDS),
+    amount: z.number().int().min(-1_000_000).max(1_000_000),
+    escortHeroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE).nullable(),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -189,6 +204,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   EquipItemCommandSchema,
   UnequipItemCommandSchema,
   TradeCommandSchema,
+  SendCaravanCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

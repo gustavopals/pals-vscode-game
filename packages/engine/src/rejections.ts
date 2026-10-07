@@ -140,7 +140,8 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `remedy` é o que abre o destino, sem ponto: "pede a Guilda dos Aventureiros no nível 3".
   EXPEDITION_LOCKED: ({ remedy = 'a Guilda não conhece esse caminho' }) =>
     `Esse destino ainda não está ao alcance do feudo: ${remedy}.`,
-  // `label` é o nome do herói; `remedy`, o motivo: "já está em expedição".
+  // `label` é o nome do herói; `remedy`, o motivo: "já está em expedição", "já escolta uma
+  // caravana". Vale para a expedição e para a escolta de uma caravana.
   HERO_UNAVAILABLE: ({ label = 'Esse herói', remedy = 'está fora do feudo' }) =>
     `${label} não pode partir agora: ${remedy}.`,
   // `label` é o destino; `remedy`, o que falta: "vai 1 herói", "falta um Mago".
@@ -183,6 +184,18 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       amount === 0
         ? 'está cheio'
         : `só ${amount === 1 ? 'cabe mais 1 unidade' : `cabem mais ${thousands(amount)}`}`
+    }.`,
+  // As caravanas (GDD §5.9; ADR 0018, decisão 17). `label` é o Mercado com artigo; `level`, o
+  // nível que as caravanas pedem; `count`, o nível do Mercado do feudo (0 sem ele).
+  MARKET_LEVEL_REQUIRED: ({ label = 'o Mercado', level = 0, count = 0 }) =>
+    `As caravanas pedem ${label} no nível ${level}: ${
+      count === 0 ? 'o feudo ainda não o tem' : `o do feudo está no nível ${count}`
+    }.`,
+  // `label` é o Mercado com o nível ("Mercado Nv2"); `count`, quantas caravanas ele mantém na
+  // estrada; `remedy`, o que mantém mais uma: "no nível 4, 2 caravanas".
+  CARAVAN_LIMIT: ({ label = 'Mercado', count = 0, remedy }) =>
+    `O ${label} mantém ${count === 1 ? '1 caravana' : `${count} caravanas`} na estrada por vez: espere a chegada${
+      remedy === undefined ? '' : `, ou amplie o Mercado (${remedy})`
     }.`,
 };
 

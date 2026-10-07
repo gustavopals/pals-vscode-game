@@ -10,6 +10,7 @@ import {
   positive,
   type Shape,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { settlementV12Fields } from './v12';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
@@ -37,12 +38,13 @@ const each = (keys: readonly string[], shape: Shape) =>
  * piso e o teto são do conteúdo, que pode mudar sem que a forma mude, e por isso a guarda não
  * os confere (um preço fora deles volta para dentro no passeio seguinte).
  */
-const market: Shape = exactObject({
+export const marketV21Fields: Readonly<Record<string, Shape>> = {
   prices: each(MARKET_RESOURCE_IDS_V21, positive),
   previousPrices: each(MARKET_RESOURCE_IDS_V21, positive),
   quoteDay: natural,
   tradedToday: each(MARKET_RESOURCE_IDS_V21, natural),
-});
+};
+const market: Shape = exactObject(marketV21Fields);
 
 type MarketWithin = {
   settlement: { buildings: { market: number } };
@@ -98,8 +100,7 @@ export const marketWithinState: Shape = (value, path) => {
  *   unidade), o dia de jogo da cotação e o que já foi negociado nele.
  * - `rng` aceita o fluxo fixo `market`, o do preço de cada dia. `ids` não muda de forma.
  *
- * Quem subir `schemaVersion` para 22 acrescenta aqui o passo `v21ToV22`, com esta forma como
- * entrada, e escreve a forma nova em `v22.ts`.
+ * O passo que sai daqui é o `v21ToV22`, abaixo; a forma da versão 22 está em `v22.ts`.
  */
 export const settlementV21Fields: Readonly<Record<string, Shape>> = {
   ...settlementV12Fields,
@@ -140,3 +141,27 @@ export const stateV21: Shape = (value, path) =>
   outcomesWithinState(value, path) ??
   freedWithinState(value, path) ??
   marketWithinState(value, path);
+
+/**
+ * Versão 21 → 22: as caravanas (V3E-T2; ADR 0018, decisão 17).
+ *
+ * - `market` ganha `caravans`, vazia: ninguém tinha caravana na estrada. Quem já tem o Mercado
+ *   no nível das caravanas pode mandar uma logo depois da migração.
+ * - O herói passa a poder estar em escolta (`escort`); nenhum está, e nenhum muda de estado.
+ *
+ * **O passo não cria prazo nenhum**, e por isso não usa a fronteira. Não emite evento, não dá
+ * identificador a ninguém e não toca o gerador: o contador `ids.caravan` nasce com a primeira
+ * caravana enviada, e o fluxo `caravan:<id>`, na chegada dela.
+ */
+export const v21ToV22: MigrationStep = {
+  from: 21,
+  summary: 'entram as caravanas: nenhuma na estrada, nenhum herói em escolta',
+  shape: stateV21,
+  migrate(state) {
+    return {
+      ...state,
+      schemaVersion: 22,
+      market: { ...(state.market as StoredState), caravans: [] },
+    };
+  },
+};

@@ -90,13 +90,16 @@ type HeroV18 = {
  * pronto não tem nenhum (quem se fere em uma expedição continua nela, com o ferimento).
  */
 export const heroShapeOf =
-  (extra: Readonly<Record<string, Shape>> = {}): Shape =>
+  (
+    extra: Readonly<Record<string, Shape>> = {},
+    statuses: readonly string[] = HERO_STATUS_IDS_V18,
+  ): Shape =>
   (value, path) => {
     const found = exactObject({
       ...heroV14Fields,
       ...extra,
       gender: oneOf(HERO_GENDER_IDS_V15),
-      status: oneOf(HERO_STATUS_IDS_V18),
+      status: oneOf(statuses),
       injury: nullable(exactObject({ severity: oneOf(INJURY_SEVERITY_IDS_V18), untilMs: natural })),
       captivity: nullable(exactObject({ sinceMs: natural, modelId: contentKey })),
       equipment: exactObject(
@@ -119,6 +122,10 @@ export const heroShapeOf =
     }
     if (entry.status === 'idle' && entry.injury !== null) {
       return `${where(path)}.injury: herói pronto com ferimento`;
+    }
+    // Só da versão 22 em diante o estado `escort` cabe na lista: quem escolta partiu pronto.
+    if (entry.status === 'escort' && entry.injury !== null) {
+      return `${where(path)}.injury: herói em escolta com ferimento`;
     }
     return null;
   };

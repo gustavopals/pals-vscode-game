@@ -1,6 +1,7 @@
 import {
   balance,
   buildings,
+  caravanTexts,
   equipmentTexts,
   guildTexts,
   heroAttributes,
@@ -15,6 +16,7 @@ import {
   wageArrearsTexts,
 } from '@lotg/content';
 
+import { caravanOf } from './caravans';
 import { buildingWithArticle } from './construction';
 import { type ExpeditionsView, expeditionsView, guildReadyText } from './expeditionsView';
 import { expeditionLabel, guildLevel } from './expeditions';
@@ -131,6 +133,12 @@ function statusText(state: GameState, hero: Hero, timeScale: number): string {
   }
   if (hero.status === 'expedition' && hero.injury !== null) {
     return guildTexts.injuredAway;
+  }
+  const caravan = hero.status === 'escort' ? caravanOf(state, hero) : null;
+  if (caravan !== null) {
+    return fillText(caravanTexts.escorting, {
+      prazo: durationText(realSecondsCeil(caravan.arrivesAtMs - state.lastProcessedAt, timeScale)),
+    });
   }
   return heroStatuses[hero.status].label;
 }

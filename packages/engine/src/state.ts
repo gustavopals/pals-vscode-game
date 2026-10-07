@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 21,
+    schemaVersion: 22,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -110,6 +110,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       previousPrices: { ...balance.market.basePrice },
       quoteDay: 0,
       tradedToday: { food: 0, wood: 0, stone: 0 },
+      caravans: [],
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

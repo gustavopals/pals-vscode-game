@@ -129,11 +129,12 @@ describe('o Mercado como edifício (GDD §6.1; ADR 0018, decisão 16)', () => {
       view(tavernSite()).constructions.available.find((entry) => entry.building === 'market')
         ?.effect,
     ).toBe('Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas.');
+    // Do nível 2 em diante a obra também diz as caravanas (V3E-T2).
     expect(effectAt(1)).toBe(
-      'Negocia até 400 de cada recurso por dia de jogo, entre compras e vendas.',
+      'Negocia até 400 de cada recurso por dia de jogo, entre compras e vendas, e mantém 1 caravana na estrada para Porto do Rio.',
     );
     expect(effectAt(4)).toBe(
-      'Negocia até 1.000 de cada recurso por dia de jogo, entre compras e vendas.',
+      'Negocia até 1.000 de cada recurso por dia de jogo, entre compras e vendas, e mantém 2 caravanas na estrada para Porto do Rio.',
     );
   });
 });
@@ -234,6 +235,7 @@ describe('o preço que anda (V3E-T1.2)', () => {
       previousPrices: { food: 1000, wood: 1200, stone: 2000 },
       quoteDay: 0,
       tradedToday: { food: 0, wood: 0, stone: 0 },
+      caravans: [],
     });
     expect(later.rng.market).toBeUndefined();
   });
@@ -793,7 +795,10 @@ describe('comprar barato e vender caro', () => {
 
 describe('o Mercado na visão (V3E-T1.6)', () => {
   it('existe sempre: sem o edifício diz como obtê-lo, e não mostra preço nenhum', () => {
-    const early = view(newGame()).market;
+    // As caravanas têm os testes delas (`market.caravans.test.ts`).
+    const { caravans, caravanOffer, ...early } = view(newGame()).market;
+    expect(caravans).toEqual([]);
+    expect(caravanOffer.available).toBe(false);
     expect(early).toEqual({
       building: 'market',
       level: 0,
@@ -998,6 +1003,8 @@ describe('a névoa do Mercado (roadmap §0.7, "Visão e privacidade")', () => {
       'nextChangeInSeconds',
       'dailyVolume',
       'prices',
+      'caravans',
+      'caravanOffer',
     ]);
     for (const resource of RESOURCES) {
       const price = tomorrow.market.prices[resource];

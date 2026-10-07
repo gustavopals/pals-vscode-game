@@ -63,6 +63,8 @@ export const REJECTION_CODES = [
   'PRICE_CHANGED',
   'DAILY_VOLUME_EXCEEDED',
   'STORAGE_FULL',
+  'MARKET_LEVEL_REQUIRED',
+  'CARAVAN_LIMIT',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -668,6 +670,67 @@ const MarketSchema = z.strictObject({
       sellBlockedReason: z.string().nullable(),
     }),
   ),
+  /**
+   * As caravanas na estrada, em ordem de envio: a carga, o preço fixado no envio e a chegada.
+   * **O desfecho de nenhuma sai antes da chegada**: a emboscada só é sorteada nela.
+   */
+  caravans: z.array(
+    z.strictObject({
+      id: z.string(),
+      resource: z.enum(MARKET_RESOURCE_IDS),
+      amount: z.number(),
+      /** "300 de madeira". */
+      cargoText: z.string(),
+      /** O preço por unidade fixado no envio, em milésimos de ouro. */
+      unitPrice: z.number(),
+      unitPriceText: z.string(),
+      /** O ouro que a carga inteira rende a esse preço, se chegar inteira. */
+      goldText: z.string(),
+      destination: z.string(),
+      /** Segundos reais até a chegada. */
+      arrivesInSeconds: z.number(),
+      /** Quem a escolta, pelo nome; `null` sem escolta. */
+      escortName: z.string().nullable(),
+      text: z.string(),
+    }),
+  ),
+  /**
+   * O que uma caravana enviada agora levaria, pagaria e arriscaria. Existe sempre: sem o Mercado
+   * no nível das caravanas, `available` é falso, `blockedReason` diz por quê e `resources` e
+   * `eligibleEscortIds` vêm vazias. O risco é o de agora, e vale com a Torre de Vigia que o
+   * feudo tiver na chegada. `eligibleEscortIds` são os heróis que a ordem `sendCaravan` aceita
+   * como escolta: quem decide é o motor.
+   */
+  caravanOffer: z.strictObject({
+    available: z.boolean(),
+    blockedReason: z.string().nullable(),
+    destination: z.string(),
+    maxUnits: z.number(),
+    priceRatioText: z.string(),
+    /** Segundos reais de viagem. */
+    tripSeconds: z.number(),
+    /** A chance de emboscada sem escolta, em pontos percentuais. */
+    riskPercent: z.number(),
+    riskText: z.string(),
+    /** "10% na estrada, −5 pela Torre de Vigia Nv1; com escolta, nenhum." */
+    riskBreakdown: z.string(),
+    lossText: z.string(),
+    slots: z.number(),
+    slotsInUse: z.number(),
+    resources: z.array(
+      z.strictObject({
+        resource: z.enum(MARKET_RESOURCE_IDS),
+        label: z.string(),
+        /** O preço por unidade que a caravana fixaria agora, em milésimos de ouro. */
+        unitPrice: z.number(),
+        unitPriceText: z.string(),
+        breakdown: z.string(),
+        /** A maior carga que seria aceita agora; 0 sem lugar na estrada. */
+        maxSendable: z.number(),
+      }),
+    ),
+    eligibleEscortIds: z.array(z.string()),
+  }),
 });
 
 /**

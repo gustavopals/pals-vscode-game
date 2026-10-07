@@ -237,7 +237,8 @@ export type Hero = {
   traits: HeroTraitId[];
   /**
    * O que ele está fazendo: no feudo e pronto (`idle`), em uma expedição (`expedition`), no
-   * feudo se recuperando de um ferimento (`injured`) ou em cativeiro (`captured`).
+   * feudo se recuperando de um ferimento (`injured`), em cativeiro (`captured`) ou na escolta de
+   * uma caravana (`escort`), de onde volta na chegada dela.
    */
   status: HeroStatusId;
   /**
@@ -404,6 +405,26 @@ export type ExpeditionReport = {
 };
 
 /**
+ * Uma caravana na estrada (GDD §5.9; ADR 0018, decisão 17). Só existe enquanto viaja: na chegada
+ * a carga vira ouro, o herói da escolta volta ao feudo e ela sai da lista. **O desfecho não está
+ * aqui**: a emboscada é sorteada na chegada, no fluxo `caravan:<id>`, e antes disso não existe
+ * em lugar nenhum.
+ */
+export type Caravan = {
+  /** `caravan-<n>`, de `nextId(draft, 'caravan')`: nunca reutilizado. */
+  id: string;
+  resource: MarketResourceId;
+  /** Unidades inteiras que saíram do estoque no envio. */
+  amount: number;
+  /** O preço por unidade, em milésimos de ouro, **fixado no envio**: o do Mercado pode andar. */
+  unitPrice: number;
+  /** Quando chega, em ms de jogo: é um instante da linha do tempo. */
+  arrivesAtMs: number;
+  /** O herói que a escolta, ou `null`: com escolta não há emboscada, nem sorteio. */
+  escortHeroId: string | null;
+};
+
+/**
  * O Mercado (GDD §5.9; ADR 0018, decisão 16). Os preços são o **passeio**, em milésimos de ouro
  * por unidade, sem o fator da estação: o que o jogador paga e recebe é derivado (`market.ts`).
  *
@@ -430,6 +451,11 @@ export type MarketState = {
    * venda**. Zera junto com o passeio do preço.
    */
   tradedToday: Record<MarketResourceId, number>;
+  /**
+   * As caravanas na estrada, em ordem de identificador, nunca mais do que os lugares do Mercado
+   * (ADR 0018, decisão 17). A carga delas não conta em `tradedToday`.
+   */
+  caravans: Caravan[];
 };
 
 /**
@@ -441,7 +467,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 21;
+  schemaVersion: 22;
   seed: string;
   settings: GameSettings;
   /**
@@ -753,6 +779,16 @@ export type Command =
         amount: number;
         quoteDay: number;
       };
+    }
+  /**
+   * Manda uma caravana vender longe (GDD §5.9; ADR 0018, decisão 17): um recurso, `amount`
+   * unidades inteiras, pelo preço de venda de agora vezes a fração do conteúdo, fixado nesta
+   * ordem. `escortHeroId` é o herói que vai com ela, ou `null` para mandá-la sem escolta.
+   */
+  | {
+      commandId: string;
+      type: 'sendCaravan';
+      payload: { resource: MarketResourceId; amount: number; escortHeroId: string | null };
     };
 
 export type CommandType = Command['type'];
@@ -803,6 +839,8 @@ export const REJECTION_CODES = [
   'PRICE_CHANGED',
   'DAILY_VOLUME_EXCEEDED',
   'STORAGE_FULL',
+  'MARKET_LEVEL_REQUIRED',
+  'CARAVAN_LIMIT',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1724,6 +1762,81 @@ export type MarketPriceView = {
   sellBlockedReason: string | null;
 };
 
+/** Uma caravana na estrada, como a tela a mostra. Não diz, nem deixa deduzir, como ela termina. */
+export type CaravanView = {
+  id: string;
+  resource: MarketResourceId;
+  /** Unidades que ela leva. */
+  amount: number;
+  /** "300 de madeira". */
+  cargoText: string;
+  /** O preço por unidade fixado no envio, em milésimos de ouro. */
+  unitPrice: number;
+  /** "1,428". */
+  unitPriceText: string;
+  /** O ouro que a carga inteira rende a esse preço, se chegar inteira: "428,4". */
+  goldText: string;
+  /** "Porto do Rio". */
+  destination: string;
+  /** Segundos reais até a chegada. */
+  arrivesInSeconds: number;
+  /** Quem a escolta, pelo nome; `null` sem escolta. */
+  escortName: string | null;
+  /** "A caminho de Porto do Rio com 300 de madeira, a 1,428 de ouro a unidade. Sem escolta." */
+  text: string;
+};
+
+/** Um recurso na oferta de caravana: o preço que ela pagaria hoje e quanto dá para mandar. */
+export type CaravanResourceView = {
+  resource: MarketResourceId;
+  /** "Madeira". */
+  label: string;
+  /** O preço por unidade que uma caravana enviada agora fixaria, em milésimos de ouro. */
+  unitPrice: number;
+  /** "1,428". */
+  unitPriceText: string;
+  /** "1,428 = 1,02 (venda de hoje) × 1,4." */
+  breakdown: string;
+  /** A maior carga que seria aceita agora: o teto da caravana e o estoque; 0 sem lugar na estrada. */
+  maxSendable: number;
+};
+
+/**
+ * O que uma caravana enviada agora levaria, pagaria e arriscaria (GDD §5.9; ADR 0018, decisão
+ * 17). Existe sempre: sem o Mercado no nível pedido, `available` é falso, `blockedReason` diz
+ * por quê e `resources` vem vazia. O risco é o de **agora**: a chance vale com a Torre de Vigia
+ * que o feudo tiver na chegada.
+ */
+export type CaravanOfferView = {
+  /** Uma caravana pode partir agora (há Mercado no nível pedido e lugar na estrada). */
+  available: boolean;
+  /** Por que nenhuma pode partir agora; `null` quando pode. */
+  blockedReason: string | null;
+  /** "Porto do Rio". */
+  destination: string;
+  /** O máximo de unidades de uma caravana. */
+  maxUnits: number;
+  /** "O preço de venda do dia × 1,4, fixado no envio." */
+  priceRatioText: string;
+  /** Segundos reais de viagem, no ritmo da partida. */
+  tripSeconds: number;
+  /** A chance de emboscada de uma caravana sem escolta, em pontos percentuais, com a Torre de agora. */
+  riskPercent: number;
+  /** "5% de chance de emboscada sem escolta; com escolta, nenhuma. …" */
+  riskText: string;
+  /** "10% na estrada, −5 pela Torre de Vigia Nv1; com escolta, nenhum." */
+  riskBreakdown: string;
+  /** "A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado." */
+  lossText: string;
+  /** Quantas caravanas o Mercado mantém na estrada, no nível de agora. */
+  slots: number;
+  /** Quantas estão na estrada. */
+  slotsInUse: number;
+  resources: CaravanResourceView[];
+  /** Os heróis que podem escoltar agora, na ordem da lista do feudo: quem decide é o motor. */
+  eligibleEscortIds: string[];
+};
+
 /**
  * O Mercado na visão (GDD §5.9). Existe sempre: sem o edifício, `level` é zero, `text` diz como
  * erguê-lo e `prices` vem vazia. Só sai o preço **de hoje**: o de amanhã ainda não foi sorteado,
@@ -1742,6 +1855,10 @@ export type MarketView = {
   /** Unidades por recurso que o Mercado negocia por dia de jogo, no nível de agora; 0 sem ele. */
   dailyVolume: number;
   prices: MarketPriceView[];
+  /** As caravanas na estrada, em ordem de envio. O desfecho de nenhuma sai antes da chegada. */
+  caravans: CaravanView[];
+  /** O que uma caravana enviada agora levaria, pagaria e arriscaria. */
+  caravanOffer: CaravanOfferView;
 };
 
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */

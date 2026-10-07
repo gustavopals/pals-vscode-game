@@ -190,10 +190,11 @@ describe('um identificador nunca se repete', () => {
           // A forma gravada: desde a versão 17 o fluxo de uma expedição só cabe com ela em
           // curso em `guild.expeditions`, o que este roteiro sintético não tem
           // (`expeditions.property.test.ts` prova o mesmo com expedições de verdade). Aqui a
-          // conferência vale para o resto: os contadores e os fluxos das caravanas vivas.
+          // conferência vale para o resto: os contadores. Desde a versão 22 o de uma caravana
+          // também só cabe com ela na estrada (`market.caravans.property.test.ts`).
           const stored = throughBank(state);
           for (const stream of Object.keys(stored.rng)) {
-            if (stream.startsWith('expedition:')) {
+            if (stream.startsWith('expedition:') || stream.startsWith('caravan:')) {
               delete stored.rng[stream];
             }
           }
@@ -249,8 +250,13 @@ describe('quem não cria identidades', () => {
       nextId(state, kind);
     }
     // O fluxo de uma expedição só cabe na forma com ela em curso (versão 17): os retratos
-    // `expedition-*` trazem as de verdade, vivas e com o fluxo em uso. Aqui sorteia a caravana.
-    nextInt(state, entityStream('caravan', 'caravan-1'), 6);
+    // `expedition-*` trazem as de verdade, vivas e com o fluxo em uso. O de uma caravana só
+    // cabe com ela na estrada (versão 22): nos retratos `caravan*` sorteia a que está viva (no
+    // jogo o fluxo só existe dentro do instante da chegada; aqui ele fica em uso de propósito).
+    const [caravan] = state.market.caravans;
+    if (caravan !== undefined) {
+      nextInt(state, entityStream('caravan', caravan.id), 6);
+    }
     return state;
   };
 

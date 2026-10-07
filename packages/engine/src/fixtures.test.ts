@@ -6,6 +6,8 @@ import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
+  caravanEscortScenario,
+  caravanScenario,
   command,
   councilScenario,
   heroPromisedScenario,
@@ -466,6 +468,15 @@ const scenarios: Record<string, () => GameState> = {
   // O Mercado em dia de feira, no outono e no ritmo 3: os preços longe da base, o de ontem
   // guardado, o fluxo `market` em uso e o volume de hoje em parte gasto, na compra e na venda.
   market: () => marketDayScenario(),
+
+  // Uma caravana sem escolta na estrada (versão 22), com o Mercado no nível 2 e a Torre no 1:
+  // a carga fora do estoque, o preço fixado, o dia já virado uma vez no caminho, e nenhum fluxo
+  // `caravan:<id>` (ele só nasce na chegada).
+  caravan: () => caravanScenario(),
+
+  // Duas caravanas na estrada, no ritmo 3, com o Mercado no nível 4: uma com Edda de escolta
+  // (o herói em `escort`, com o soldo correndo) e outra sem ninguém.
+  'caravan-escort': () => caravanEscortScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -934,8 +945,48 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(fair.market.tradedToday).toEqual({ food: 150, wood: 0, stone: 35 });
     expect(fair.rng.market).toBeDefined();
     expect(fair.stats).toMatchObject({ sold_food: 150, bought_stone: 35 });
+    // As caravanas (versão 22). Uma sem escolta, com o dia já virado no caminho: o preço dela
+    // é o do envio, o do Mercado já andou, e o fluxo dela não existe.
+    const road = of('caravan');
+    expect(road.settlement.buildings).toMatchObject({ market: 2, watchtower: 1 });
+    expect(road.market.caravans).toEqual([
+      {
+        id: 'caravan-1',
+        resource: 'wood',
+        amount: 300,
+        unitPrice: 1428,
+        arrivesAtMs: 30 * DAY + 5 * HOUR + 40 * MINUTE,
+        escortHeroId: null,
+      },
+    ]);
+    expect(road.market.caravans[0]?.arrivesAtMs).toBeGreaterThan(road.lastProcessedAt);
+    expect(road.market.quoteDay).toBeGreaterThan(0);
+    expect(road.market.tradedToday).toEqual({ food: 0, wood: 0, stone: 0 });
+    expect(road.ids.caravan).toBe(1);
+    expect(road.stats.caravansSent).toBe(1);
+    // Duas na estrada, uma com escolta: Edda fora do feudo, Rolf nele.
+    const escorted = of('caravan-escort');
+    expect(escorted.settings.timeScale).toBe(3);
+    expect(escorted.settlement.buildings.market).toBe(4);
+    expect(escorted.market.caravans.map((entry) => [entry.id, entry.escortHeroId])).toEqual([
+      ['caravan-1', 'hero-1'],
+      ['caravan-2', null],
+    ]);
+    expect(escorted.guild.heroes.map((hero) => hero.status)).toEqual(['escort', 'idle']);
+    expect(escorted.ids).toMatchObject({ caravan: 2, hero: 2 });
+    for (const state of [road, escorted]) {
+      expect(Object.keys(state.rng).filter((key) => key.startsWith('caravan:'))).toEqual([]);
+    }
+    // Nos outros retratos não há caravana na estrada, nem herói em escolta.
+    for (const state of all0().filter((entry) => entry !== road && entry !== escorted)) {
+      expect(state.market.caravans).toEqual([]);
+      expect(state.ids.caravan).toBeUndefined();
+      expect(state.guild.heroes.some((hero) => hero.status === 'escort')).toBe(false);
+    }
     // Nos outros retratos o Mercado não existe, e nada dele andou.
-    for (const state of all0().filter((entry) => entry !== opening && entry !== fair)) {
+    for (const state of all0().filter(
+      (entry) => entry !== opening && entry !== fair && entry !== road && entry !== escorted,
+    )) {
       expect(state.settlement.buildings.market).toBe(0);
       expect(state.market).toEqual(of('fresh').market);
       expect(state.rng.market).toBeUndefined();

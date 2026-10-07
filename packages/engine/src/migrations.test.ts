@@ -75,11 +75,13 @@ import {
 import { EXPEDITION_LESSON_KINDS_V19 } from './migrations/v19';
 import { EXPEDITION_LESSON_KINDS_V20, MARKET_BASE_PRICES_V21 } from './migrations/v20';
 import { BUILDING_IDS_V21, MARKET_RESOURCE_IDS_V21, RNG_FIXED_STREAMS_V21 } from './migrations/v21';
+import { CARAVAN_SLOTS_CAP_V22, HERO_STATUS_IDS_V22 } from './migrations/v22';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
   addHero,
+  caravanEscortScenario,
   command,
   eventsOfType,
   famineSince,
@@ -843,6 +845,46 @@ const FROZEN: Record<string, string> = {
   'state-v20-wage-arrears-resumed.json': 'bab1e9a7',
   'state-v20-wage-arrears.json': '7e223b12',
   'state-v20-week-scripted.json': 'bdf68300',
+  'state-v21-cold.json': '082346e4',
+  'state-v21-construction.json': '355c4205',
+  'state-v21-council-hidden.json': '265c53e0',
+  'state-v21-council.json': 'b3517d2e',
+  'state-v21-crafts.json': 'c13b0b3b',
+  'state-v21-den-cleared.json': '62c2113f',
+  'state-v21-expedition-crossroads.json': '816bf1f8',
+  'state-v21-expedition-returning.json': 'e54bec4a',
+  'state-v21-expedition.json': '63cdbae2',
+  'state-v21-famine-3x.json': '8258d84d',
+  'state-v21-famine-ended.json': '87146113',
+  'state-v21-famine-half.json': '1f99fca6',
+  'state-v21-famine-resumed.json': '191e2795',
+  'state-v21-famine.json': 'c6a39e47',
+  'state-v21-fresh.json': 'c9209736',
+  'state-v21-guild.json': '605b3436',
+  'state-v21-hero-captured.json': '6227a4e6',
+  'state-v21-hero-injured.json': '5f4a8f54',
+  'state-v21-hero-promised.json': 'f10e9abd',
+  'state-v21-iron-king-half.json': 'eed8f754',
+  'state-v21-market-opening.json': '9c0c8367',
+  'state-v21-market.json': 'ad4c304b',
+  'state-v21-migrated-3x.json': 'baacfc11',
+  'state-v21-migrated-iron-king-half.json': 'a294819f',
+  'state-v21-migrated-peasant-3x.json': 'f7653776',
+  'state-v21-morale.json': '8b1b6467',
+  'state-v21-objectives.json': '6a3b7d89',
+  'state-v21-palisade.json': 'dc977a67',
+  'state-v21-peasant-3x.json': 'd2fc4a83',
+  'state-v21-queues.json': '22bcff0d',
+  'state-v21-raid-announced.json': '362c62b8',
+  'state-v21-raid.json': '27417f67',
+  'state-v21-storage.json': '94a106b7',
+  'state-v21-tavern-busy.json': '0c078f5d',
+  'state-v21-tavern.json': 'db1c10c8',
+  'state-v21-threat.json': '851609d0',
+  'state-v21-wage-arrears-ended.json': 'd365d1cc',
+  'state-v21-wage-arrears-resumed.json': 'c4b11c60',
+  'state-v21-wage-arrears.json': '9b237011',
+  'state-v21-week-scripted.json': '91e53259',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -1353,7 +1395,14 @@ describe('a forma da versão atual', () => {
     ],
     // Os estados de quem está fora entram com as tarefas deles.
     ['um herói em expedição', (state) => withHero(state, (hero) => (hero.status = 'expedition'))],
-    ['um herói em escolta', (state) => withHero(state, (hero) => (hero.status = 'escort'))],
+    [
+      'um herói em escolta sem caravana',
+      (state) => withHero(state, (hero) => (hero.status = 'escort')),
+    ],
+    [
+      'um herói em um estado que não existe',
+      (state) => withHero(state, (hero) => (hero.status = 'siege')),
+    ],
     [
       'um herói em recuperação sem ferimento',
       (state) => withHero(state, (hero) => (hero.status = 'injured')),
@@ -1509,8 +1558,10 @@ describe('a forma da versão atual', () => {
     expect(HERO_GENDER_IDS_V15).toEqual([...HERO_GENDER_IDS]);
     expect(HERO_ARRIVING_CAP_V15).toBe(balance.heroes.arrivingCap);
     // Os estados de herói desta versão: no feudo e em expedição (versão 17), em recuperação e
-    // em cativeiro (versão 18); a escolta entra com a tarefa dela.
-    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured']);
+    // em cativeiro (versão 18), e na escolta de uma caravana (versão 22).
+    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured', 'escort']);
+    expect(HERO_STATUS_IDS_V22).toEqual([...HERO_STATUS_IDS]);
+    expect(CARAVAN_SLOTS_CAP_V22).toBe(Math.max(...balance.market.caravan.slotsByLevel));
   });
 
   it('aceita a guilda cheia: o teto de heróis, de todas as classes, todos os traços e níveis, com o atraso aberto', () => {
@@ -1552,8 +1603,12 @@ describe('a forma da versão atual', () => {
     expect(broken((state) => withHero(state, (hero) => (hero.level = 11)))).toBe(
       'guild.heroes.0.level: esperado um nível de 1 a 10',
     );
+    expect(broken((state) => withHero(state, (hero) => (hero.status = 'siege')))).toBe(
+      'guild.heroes.0.status: esperado um de idle, expedition, injured, captured, escort, veio texto',
+    );
+    // Desde a versão 22 a escolta é um estado, mas só de quem escolta uma caravana.
     expect(broken((state) => withHero(state, (hero) => (hero.status = 'escort')))).toBe(
-      'guild.heroes.0.status: esperado um de idle, expedition, injured, captured, veio texto',
+      'guild.heroes.0.status: herói em escolta sem caravana',
     );
     expect(broken((state) => withHero(state, (hero) => (hero.status = 'captured')))).toBe(
       'guild.heroes.0.captivity: só o herói em cativeiro tem cativeiro',
@@ -1662,10 +1717,17 @@ describe('a forma da versão atual', () => {
     // Mercado conferem o caso de verdade): nesta partida os preços nunca andaram.
     expect(currentShape(saved, '')).toBe('rng.market: fluxo do Mercado sem cotação feita');
     delete saved.rng.market;
+    // E o de uma caravana só cabe com ela na estrada (versão 22; no jogo ele nasce e é apagado
+    // na chegada, e nunca chega a ser gravado).
+    expect(currentShape(saved, '')).toBe(
+      'rng.caravan:caravan-1: fluxo de uma caravana que não está na estrada',
+    );
+    delete saved.rng['caravan:caravan-1'];
+    delete saved.rng['caravan:caravan-2'];
     expect(currentShape(saved, '')).toBeNull();
     // O maior valor de cada palavra e um contador em zero também cabem.
     const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
-    edge.rng = { council: [0xffff_ffff, 0, 0, 0], 'caravan:caravan-120': [0, 0, 0, 1] };
+    edge.rng = { council: [0xffff_ffff, 0, 0, 0] };
     edge.ids = { caravan: 120, masterBuilder: 0 };
     expect(currentShape(edge, '')).toBeNull();
   });
@@ -1702,7 +1764,8 @@ describe('a forma da versão atual', () => {
     expect(broken((state) => (state.rng = { 'caravan:caravan-1': [1, 2, 3, 4] }))).toBe(
       'rng.caravan:caravan-1: fluxo de uma entidade além do contador de ids.caravan',
     );
-    // Dentro do contador, mas sem a expedição em curso: desde a versão 17 também não cabe.
+    // Dentro do contador, mas sem a expedição em curso: desde a versão 17 também não cabe. O
+    // de uma caravana, desde a versão 22, só com ela na estrada.
     expect(
       broken((state) => {
         state.ids = { expedition: 5 };
@@ -1714,7 +1777,7 @@ describe('a forma da versão atual', () => {
         state.ids = { caravan: 5 };
         state.rng = { 'caravan:caravan-5': [1, 2, 3, 4] };
       }),
-    ).toBeNull();
+    ).toBe('rng.caravan:caravan-5: fluxo de uma caravana que não está na estrada');
     expect(broken((state) => (state.ids = { 'hero-1': 3 }))).toBe(
       'ids.hero-1: chave fora do esperado (um tipo de entidade, só letras, começando por minúscula)',
     );
@@ -4809,6 +4872,8 @@ describe('versão 20 → 21', () => {
     previousPrices: { food: 1000, wood: 1200, stone: 2000 },
     quoteDay: 0,
     tradedToday: { food: 0, wood: 0, stone: 0 },
+    // As caravanas são da versão 22: toda partida antiga chega sem nenhuma na estrada.
+    caravans: [],
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
@@ -4964,7 +5029,7 @@ describe('versão 20 → 21', () => {
     );
     expect(broken((state) => (state.market.quoteDay = -1))).toMatch(/market\.quoteDay/);
     expect(broken((state) => (state.market.effects = []))).toMatch(/market\.effects/);
-    expect(broken((state) => (state.market.caravans = []))).toMatch(/market\.caravans/);
+    expect(broken((state) => delete state.market.caravans)).toMatch(/market\.caravans/);
     // Sem o edifício nada andou: nem cotação, nem negociação, nem preço diferente do de ontem.
     expect(broken((state) => (state.market.quoteDay = 3))).toBe(
       'market.quoteDay: cotação sem Mercado',
@@ -4996,5 +5061,194 @@ describe('versão 20 → 21', () => {
         state.rng.market = [1, 2, 3, 4];
       }),
     ).toBeNull();
+  });
+});
+
+describe('versão 21 → 22', () => {
+  const version21 = fixtures.filter((fixture) => fixture.version === 21);
+  /** Um estado da versão atual como a versão 21 o gravava: sem a lista de caravanas. */
+  const asVersion21 = (state: GameState): Draft => {
+    const old = JSON.parse(JSON.stringify(state)) as Draft;
+    old.schemaVersion = 21;
+    delete old.market.caravans;
+    return old;
+  };
+
+  it('há retratos da versão 21 com o Mercado de pé, com heróis e com expedição em curso', () => {
+    expect(version21.length).toBeGreaterThan(35);
+    const states = version21.map((fixture) => read(fixture) as Draft);
+    expect(states.some((state) => state.settlement.buildings.market > 0)).toBe(true);
+    expect(states.some((state) => state.guild.heroes.length > 0)).toBe(true);
+    expect(states.some((state) => state.guild.expeditions.length > 0)).toBe(true);
+    expect(states.some((state) => state.rng.market !== undefined)).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v21-fresh.json'));
+    expect(fresh.market.caravans).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version21)(
+    '$name: só acrescenta a lista de caravanas, vazia; ninguém muda de estado, e o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.market.caravans).toEqual([]);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids.caravan).toBeUndefined();
+      expect(after.guild.heroes.map((hero) => hero.status)).toEqual(
+        before.guild.heroes.map((hero: { status: string }) => hero.status),
+      );
+      expect(asVersion21(after)).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version21)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('caravan'))).toEqual([]);
+      expect(atBoundary.state.market.caravans).toEqual([]);
+      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('caravan:'))).toEqual(
+        [],
+      );
+      // Trinta dias sem ordem nenhuma: nenhuma caravana nasce sozinha.
+      const later = advanceTo(state, state.lastProcessedAt + 30 * 2 * HOUR).state;
+      expect(later.market.caravans).toEqual([]);
+      expect(later.ids.caravan).toBeUndefined();
+    },
+  );
+
+  it('quem já tem o Mercado no nível 2 manda uma caravana logo depois da migração, e ela chega 4 h de jogo depois', () => {
+    const old = read(named('state-v21-market.json')) as Draft;
+    old.settlement.buildings.market = 2;
+    const state = migrateState(old, { timeScale: 3 });
+    const sent = applyCommand(
+      state,
+      command('sendCaravan', { resource: 'food', amount: 50, escortHeroId: null }),
+      state.lastProcessedAt,
+    );
+    if (!sent.ok) {
+      throw new Error(sent.message);
+    }
+    expect(sent.state.market.caravans).toHaveLength(1);
+    expect(sent.state.ids.caravan).toBe(1);
+    const arrived = advanceTo(sent.state, state.lastProcessedAt + balance.market.caravan.tripMs);
+    expect(arrived.state.market.caravans).toEqual([]);
+    expect(
+      arrived.events.filter(
+        (event) => event.type === 'caravanArrived' || event.type === 'caravanAmbushed',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    const old = asVersion21(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 21 que já traz caravanas ou um herói em escolta é recusado', () => {
+    const old = read(named('state-v21-fresh.json')) as Draft;
+    old.market.caravans = [];
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(
+      /market\.caravans: campo desconhecido/,
+    );
+    const guild = read(named('state-v21-guild.json')) as Draft;
+    guild.guild.heroes[0].status = 'escort';
+    expect(() => migrateState(guild, { timeScale: 3 })).toThrow(/guild\.heroes\.0\.status/);
+  });
+
+  it('a 22 recusa a caravana fora da forma, fora do tempo, sem Mercado, sem escolta de verdade e o fluxo de quem não está na estrada', () => {
+    // Um feudo com o Mercado no nível 4, dois heróis e duas caravanas na estrada, uma com escolta.
+    const road = JSON.parse(JSON.stringify(caravanEscortScenario())) as Draft;
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(road)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const first = (state: Draft) => state.market.caravans[0];
+    expect(broken(() => undefined)).toBeNull();
+    expect(road.market.caravans).toHaveLength(2);
+    expect(broken((state) => (first(state).id = 'caravan-0'))).toMatch(/caravans\.0\.id/);
+    expect(broken((state) => (first(state).id = 'expedition-1'))).toMatch(/caravans\.0\.id/);
+    expect(broken((state) => (first(state).resource = 'gold'))).toMatch(/caravans\.0\.resource/);
+    expect(broken((state) => (first(state).amount = 0))).toMatch(/caravans\.0\.amount/);
+    expect(broken((state) => (first(state).amount = 1.5))).toMatch(/caravans\.0\.amount/);
+    expect(broken((state) => (first(state).unitPrice = 0))).toMatch(/caravans\.0\.unitPrice/);
+    expect(broken((state) => delete first(state).escortHeroId)).toMatch(
+      /caravans\.0\.escortHeroId: campo ausente/,
+    );
+    // O desfecho não cabe no estado: ele só existe na chegada.
+    expect(broken((state) => (first(state).ambushed = true))).toBe(
+      'market.caravans.0.ambushed: campo desconhecido',
+    );
+    expect(broken((state) => (state.market.caravans[1].id = 'caravan-9'))).toBe(
+      'market.caravans.1.id: caravana além do contador de ids.caravan',
+    );
+    expect(broken((state) => state.market.caravans.reverse())).toBe(
+      'market.caravans.1.id: caravanas fora da ordem de identificador',
+    );
+    expect(
+      broken((state) => {
+        state.ids.caravan = 3;
+        state.market.caravans.push({ ...state.market.caravans[1], id: 'caravan-3' });
+      }),
+    ).toBe('market.caravans: esperada lista de até 2 caravanas, veio de 3');
+    expect(broken((state) => (first(state).arrivesAtMs = state.lastProcessedAt))).toBe(
+      'market.caravans.0.arrivesAtMs: chegada vencida e não processada',
+    );
+    expect(
+      broken((state) => {
+        state.settlement.buildings.market = 0;
+        state.market.quoteDay = 0;
+        state.market.previousPrices = { ...state.market.prices };
+        state.market.tradedToday = { food: 0, wood: 0, stone: 0 };
+        delete state.rng.market;
+      }),
+    ).toBe('market.caravans: caravana sem Mercado');
+    // A escolta: quem escolta está em escolta, em uma caravana só, e quem está em escolta escolta.
+    expect(broken((state) => (first(state).escortHeroId = 'hero-2'))).toBe(
+      'market.caravans.0.escortHeroId: herói que não serve ao feudo em escolta',
+    );
+    expect(broken((state) => (first(state).escortHeroId = 'hero-9'))).toBe(
+      'market.caravans.0.escortHeroId: herói que não serve ao feudo em escolta',
+    );
+    expect(broken((state) => (first(state).escortHeroId = null))).toBe(
+      'guild.heroes.0.status: herói em escolta sem caravana',
+    );
+    expect(broken((state) => (state.market.caravans[1].escortHeroId = 'hero-1'))).toBe(
+      'market.caravans.1.escortHeroId: herói em duas escoltas',
+    );
+    expect(
+      broken((state) => {
+        state.guild.heroes[0].injury = { severity: 'light', untilMs: state.lastProcessedAt + 1 };
+      }),
+    ).toBe('guild.heroes.0.injury: herói em escolta com ferimento');
+    // O fluxo (R2): só o de uma caravana na estrada cabe; o de uma que já chegou, não.
+    expect(broken((state) => (state.rng['caravan:caravan-2'] = [1, 2, 3, 4]))).toBeNull();
+    expect(
+      broken((state) => {
+        state.ids.caravan = 3;
+        state.rng['caravan:caravan-3'] = [1, 2, 3, 4];
+      }),
+    ).toBe('rng.caravan:caravan-3: fluxo de uma caravana que não está na estrada');
+    expect(broken((state) => (state.rng['caravan:caravan-7'] = [1, 2, 3, 4]))).toBe(
+      'rng.caravan:caravan-7: fluxo de uma entidade além do contador de ids.caravan',
+    );
   });
 });

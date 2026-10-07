@@ -340,6 +340,21 @@ function atPace(view: ViewState, pace: number): ViewState {
             : up(view.tavern.festival.activeForSeconds),
       },
     },
+    // O Mercado: a mudança do preço, a viagem de uma caravana e a chegada das que estão na
+    // estrada são prazos. Os preços são de jogo.
+    market: {
+      ...view.market,
+      nextChangeInSeconds:
+        view.market.nextChangeInSeconds === null ? null : up(view.market.nextChangeInSeconds),
+      caravans: view.market.caravans.map((entry) => ({
+        ...entry,
+        arrivesInSeconds: up(entry.arrivesInSeconds),
+      })),
+      caravanOffer: {
+        ...view.market.caravanOffer,
+        tripSeconds: up(view.market.caravanOffer.tripSeconds),
+      },
+    },
     // A Ameaça é a mesma; a próxima subida e a chegada de uma incursão são prazos.
     threat: view.threat.known
       ? {

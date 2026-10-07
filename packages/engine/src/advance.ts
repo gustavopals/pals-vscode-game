@@ -1,4 +1,5 @@
 import { settleHeroArrivals } from './arrivals';
+import { settleCaravans } from './caravanTurn';
 import { emit } from './chronicle';
 import {
   calendarAt,
@@ -102,7 +103,8 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), a Taverna
  * (`settleTavern`: o festival que acabou e a troca dos candidatos), as expedições
  * (`settleExpeditions`: os nós que terminam, os prazos de encruzilhada e as equipes que voltam,
- * na ordem do identificador), início automático
+ * na ordem do identificador), as caravanas que chegam (`settleCaravans`, também na ordem do
+ * identificador), início automático
  * das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao
  * outro) e, por fim, fome, frio e soldo em atraso (`settleScarcity`). Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
@@ -149,6 +151,14 @@ export function processEventsAt(
   // Antes das planejadas, dos objetivos e da conta do ouro: o saque que entra agora já paga a
   // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
   settleExpeditions(draft, atMs, events);
+  // As caravanas que chegam, na ordem do identificador, com a emboscada de quem foi sem escolta
+  // sorteada no fluxo de cada uma. Depois das obras (a Torre de Vigia que fica pronta neste
+  // instante já baixa o risco) e da virada do dia (o preço que andou agora não muda o da
+  // caravana, fixado no envio). Depois das expedições, que não dependem delas: a equipe que
+  // volta e a caravana que chega no mesmo instante não se cruzam, porque um herói faz uma coisa
+  // por vez. Antes das planejadas, dos objetivos e da conta do ouro: o ouro da venda já paga a
+  // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
+  settleCaravans(draft, atMs, events);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }
@@ -190,6 +200,10 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * cópia, e o saque não entra: a previsão da moral não conta com a volta de um herói Devoto nem
  * com a comida que uma equipe traria antes da virada. É o preço de a visão nunca resolver um nó
  * antes da hora, nem deixar o desfecho transparecer por uma conta.
+ *
+ * **As caravanas na estrada ficam de fora**, pela mesma razão: a chegada de uma sem escolta
+ * sorteia a emboscada. Na cópia nenhuma chega, o ouro delas não entra e quem escolta continua
+ * fora: a previsão da moral não conta com a volta de um herói Devoto antes da virada.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
@@ -201,6 +215,7 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
       tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS },
       expeditions: [],
     },
+    market: { ...state.market, caravans: [] },
   };
   // Um milissegundo antes da virada o estado está em repouso e o próximo evento é ela mesma:
   // o último milissegundo é um trecho de taxas constantes, como em `advanceWith`.

@@ -104,10 +104,10 @@ export const HERO_TRAIT_IDS = [
 export type HeroTraitId = (typeof HERO_TRAIT_IDS)[number];
 
 /**
- * O que um herói está fazendo: no feudo, em expedição (V3D-T1), ferido no feudo ou em cativeiro
- * (V3D-T2). A escolta entra com a tarefa que a usa.
+ * O que um herói está fazendo: no feudo, em expedição (V3D-T1), ferido no feudo, em cativeiro
+ * (V3D-T2) ou na escolta de uma caravana (V3E-T2).
  */
-export const HERO_STATUS_IDS = ['idle', 'expedition', 'injured', 'captured'] as const;
+export const HERO_STATUS_IDS = ['idle', 'expedition', 'injured', 'captured', 'escort'] as const;
 export type HeroStatusId = (typeof HERO_STATUS_IDS)[number];
 
 /**

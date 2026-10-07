@@ -394,6 +394,78 @@ export function marketDayScenario(): GameState {
   ]).state;
 }
 
+/**
+ * O feudo que manda caravanas: o Mercado posto à mão no nível `level` (o 2, por padrão, o
+ * primeiro das caravanas) e a Torre de Vigia no nível `tower`, sobre o canteiro de `marketStall`
+ * (depósitos e cofre cheios, Conselho e Horda calados). Os preços estão na base.
+ */
+export function caravanPost(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string; level?: number; tower?: number } = {},
+): GameState {
+  const { level = 2, tower = 0, ...rest } = custom;
+  return marketStall(
+    atMs,
+    (draft) => {
+      draft.settlement.buildings.watchtower = tower;
+      edit(draft);
+    },
+    { ...rest, level },
+  );
+}
+
+/** A ordem de enviar uma caravana; sem `escortHeroId`, vai sem escolta. */
+export function caravanOrder(
+  resource: 'food' | 'wood' | 'stone',
+  amount: number,
+  escortHeroId: string | null = null,
+): Command {
+  return command('sendCaravan', { resource, amount, escortHeroId });
+}
+
+/**
+ * Uma caravana sem escolta na estrada, no ritmo Normal, com o Mercado no nível 2 e a Torre de
+ * Vigia no nível 1: 300 de madeira enviados no fim de um dia de jogo, com o preço fixado, e o
+ * dia já virado uma vez no caminho (o preço do Mercado andou; o da caravana, não). O fluxo
+ * `caravan:caravan-1` não existe: só nasce na chegada. Parado a 1 h 40 de jogo da chegada, no
+ * meio de um trecho.
+ */
+export function caravanScenario(): GameState {
+  const start = caravanPost(
+    30 * DAY + HOUR + 40 * MINUTE,
+    (draft) => {
+      Object.assign(draft.settlement.workers, { farm: 3, lumberMill: 2 });
+    },
+    { seed: 'fixture-caravan', tower: 1 },
+  );
+  return play(start, [caravanOrder('wood', 300), { at: 31 * DAY + 2 * HOUR + 2_345 }]).state;
+}
+
+/**
+ * Duas caravanas na estrada, no ritmo Rápido, com o Mercado no nível 4: a primeira leva comida
+ * com Edda de escolta (ela fica fora do feudo, com o soldo correndo); a segunda, pedra, sem
+ * escolta, enviada meia hora de jogo depois. Rolf fica no feudo. Parado com as duas a caminho,
+ * no meio de um trecho.
+ */
+export function caravanEscortScenario(): GameState {
+  const start = caravanPost(
+    50 * DAY + 20 * MINUTE,
+    (draft) => {
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+      addHero(draft, { name: 'Edda', gender: 'f', classId: 'warrior', traits: ['loyal'] });
+      addHero(draft, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
+    },
+    { seed: 'fixture-caravan-escort', timeScale: 3, level: 4 },
+  );
+  return play(start, [
+    caravanOrder('food', 200, 'hero-1'),
+    { at: 50 * DAY + 50 * MINUTE },
+    caravanOrder('stone', 120),
+    { at: 50 * DAY + HOUR + 30 * MINUTE + 4_321 },
+  ]).state;
+}
+
 /** A ordem de negociar com a cotação que o estado tem agora: é o que a tela devolveria. */
 export function tradeOrder(
   state: GameState,

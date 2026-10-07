@@ -506,6 +506,12 @@ describe('fluxos de entidade', () => {
     }
     expect(got).toEqual(expected);
     expect(saved).toStrictEqual(straight);
+    // Gravado, o fluxo de uma caravana só cabe com ela na estrada (versão 22;
+    // `market.caravans.test.ts`): este estado sintético só passa sem ele.
+    expect(currentShape(saved, '')).toBe(
+      'rng.caravan:caravan-3: fluxo de uma caravana que não está na estrada',
+    );
+    dropStream(saved, 'caravan:caravan-3');
     expect(currentShape(saved, '')).toBeNull();
   });
 
@@ -595,6 +601,13 @@ describe('fluxos de entidade', () => {
     for (const number of [1, 2, 3]) {
       dropStream(state, entityStream('expedition', `expedition-${number}`));
     }
+    // E, desde a versão 22, o de uma caravana só com ela **na estrada**.
+    expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBe(
+      'rng.caravan:caravan-1: fluxo de uma caravana que não está na estrada',
+    );
+    for (const number of [1, 2, 3]) {
+      dropStream(state, entityStream('caravan', `caravan-${number}`));
+    }
     expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBeNull();
   });
 
@@ -627,9 +640,10 @@ describe('dropStream', () => {
     expect(state.rng.council).toEqual(before.rng.council);
     expect(state.rng['expedition:expedition-2']).toEqual(before.rng['expedition:expedition-2']);
     expect({ ...state, rng: {} }).toStrictEqual({ ...before, rng: {} });
-    // O fluxo de uma caravana viva cabe na forma gravada; o de uma expedição só cabe com ela em
-    // curso (versão 17), o que os testes das expedições conferem.
+    // Na forma gravada, o fluxo de uma expedição só cabe com ela em curso (versão 17) e o de
+    // uma caravana, com ela na estrada (versão 22): os testes de cada uma conferem.
     dropStream(state, 'expedition:expedition-2');
+    dropStream(state, 'caravan:caravan-1');
     expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBeNull();
   });
 

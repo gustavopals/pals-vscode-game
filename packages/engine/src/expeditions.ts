@@ -1,6 +1,7 @@
 import {
   balance,
   buildings,
+  caravanTexts,
   type ExpeditionCrossroadsNode,
   type ExpeditionModelDef,
   expeditionModels,
@@ -362,9 +363,32 @@ export function teamSizeText({ teamMin, teamMax }: ExpeditionModelDef['requires'
 }
 
 /**
+ * Por que este herói não pode partir agora, ou `null` quando pode (`HERO_UNAVAILABLE`, com o
+ * nome e o motivo: está em expedição, em cativeiro, ainda se recupera de um ferimento, ou
+ * escolta uma caravana). Vale para a expedição e para a escolta: um herói faz uma coisa por vez
+ * (GDD §9.1).
+ */
+export function departBlock(hero: Hero): Rejection | null {
+  if (canDepart(hero)) {
+    return null;
+  }
+  return reject('HERO_UNAVAILABLE', {
+    label: hero.name,
+    remedy:
+      hero.status === 'injured'
+        ? expeditionTexts.heroInjured
+        : hero.status === 'captured'
+          ? expeditionTexts.heroCaptured
+          : hero.status === 'escort'
+            ? caravanTexts.heroEscorting
+            : expeditionTexts.heroAway,
+  });
+}
+
+/**
  * Por que esta equipe não serve para o destino, ou `null` quando serve: um herói que já não
  * serve ao feudo (`HERO_NOT_FOUND`), um que não pode partir (`HERO_UNAVAILABLE`, com o nome e o
- * motivo: está em expedição, em cativeiro, ou ainda se recupera de um ferimento) e, por último, o que o modelo pede e a equipe não tem (`TEAM_INVALID`: o tamanho, o
+ * motivo: `departBlock`) e, por último, o que o modelo pede e a equipe não tem (`TEAM_INVALID`: o tamanho, o
  * nível ou a classe, dizendo o que falta).
  */
 export function teamBlock(
@@ -382,16 +406,9 @@ export function teamBlock(
     if (hero === undefined) {
       return reject('HERO_NOT_FOUND');
     }
-    if (!canDepart(hero)) {
-      return reject('HERO_UNAVAILABLE', {
-        label: hero.name,
-        remedy:
-          hero.status === 'injured'
-            ? expeditionTexts.heroInjured
-            : hero.status === 'captured'
-              ? expeditionTexts.heroCaptured
-              : expeditionTexts.heroAway,
-      });
+    const away = departBlock(hero);
+    if (away !== null) {
+      return away;
     }
     team.push(hero);
   }

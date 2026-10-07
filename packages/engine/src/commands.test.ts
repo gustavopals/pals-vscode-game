@@ -20,6 +20,8 @@ import {
   starve,
   guildHall,
   marketStall,
+  caravanOrder,
+  caravanPost,
   send,
   tavernScenario,
   tradeOrder,
@@ -180,6 +182,7 @@ describe('catálogo de recusas', () => {
   // único lugar ocupado); e a Nv2 com Edda na Floresta, antes e depois de escolher o caminho.
   // O Mercado Nv1 no dia em que fica pronto: os preços na base, o Armazém cheio de madeira.
   const stall = marketStall();
+  const onTheRoad = accept(caravanPost(), caravanOrder('wood', 10)).state;
   const hall = guildHall(0, (draft) => {
     addHero(draft);
     addHero(draft, { classId: 'archer' });
@@ -300,6 +303,10 @@ describe('catálogo de recusas', () => {
     DAILY_VOLUME_EXCEEDED: [stall, tradeOrder(stall, 'wood', 'sell', 201)],
     // O Armazém Nv4 guarda 2.800 de madeira, e o canteiro já os tem.
     STORAGE_FULL: [stall, tradeOrder(stall, 'wood', 'buy', 10)],
+    // As caravanas pedem o Mercado no nível 2, e o do canteiro está no 1.
+    MARKET_LEVEL_REQUIRED: [stall, caravanOrder('wood', 10)],
+    // O Mercado Nv2 mantém uma caravana na estrada, e ela já partiu.
+    CARAVAN_LIMIT: [onTheRoad, caravanOrder('stone', 10)],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

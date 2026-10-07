@@ -36,6 +36,8 @@ import {
   wageArrearsScenario,
   marketDayScenario,
   marketOpeningScenario,
+  caravanEscortScenario,
+  caravanScenario,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -608,6 +610,11 @@ describe('golden do ViewState', () => {
       // base, a tendência de cada um, o fator da estação na comida e o volume em parte gasto.
       marketOpening: view(marketOpeningScenario()),
       marketDay: view(marketDayScenario()),
+      // As caravanas: uma sem escolta na estrada, com a Torre no nível 1 (o risco explicado, a
+      // estrada cheia); e duas, no ritmo Rápido, uma delas com Edda de escolta (a ficha dela diz
+      // quando volta).
+      caravan: view(caravanScenario()),
+      caravanEscort: view(caravanEscortScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

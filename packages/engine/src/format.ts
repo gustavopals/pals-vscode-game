@@ -12,6 +12,16 @@ export function thousands(value: number): string {
   return String(Math.trunc(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+/**
+ * "1,30", "1,105": um preço em ouro por unidade, a partir de milésimos de ouro, com duas casas, e
+ * a terceira quando ela existe.
+ */
+export function priceText(milli: number): string {
+  const whole = Math.trunc(milli / 1000);
+  const thousandths = String(milli % 1000).padStart(3, '0');
+  return `${thousands(whole)},${thousandths.endsWith('0') ? thousandths.slice(0, 2) : thousandths}`;
+}
+
 /** "1 trabalhador", "4 trabalhadores". */
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;

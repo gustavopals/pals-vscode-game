@@ -298,6 +298,39 @@ describe('o pacote do app', () => {
     expect(['previousPrices', 'walkedPrice'].filter((key) => code.includes(key))).toEqual([]);
   });
 
+  it('não leva nenhum número de regra das caravanas: preço, prazo, lugares, risco e perda (v0.3)', () => {
+    const { caravan } = content.balance.market;
+    const markers = [
+      'caravan:{',
+      'requiresLevel:',
+      // `maxUnits` e `tripSeconds` são campos da visão: o que não pode chegar é a tabela.
+      'tripMs:',
+      'priceRatio:{',
+      'slotsByLevel:',
+      'ambush:{',
+      'basePercent:',
+      'perWatchtowerLevel:',
+      'floorPercent:',
+      'lossRatio:{',
+    ];
+    // Os marcadores são do conteúdo de hoje: a tabela, escrita como um objeto de JavaScript,
+    // tem de conter cada um.
+    const leaked = asJavaScript({ caravan });
+    expect(markers.filter((marker) => !leaked.includes(marker))).toEqual([]);
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    expect(code.includes(asJavaScript(caravan.ambush))).toBe(false);
+    // As frases das caravanas são do conteúdo, e o que o estado guarda e a visão nunca mostra
+    // (a chegada em tempo de jogo, a conta do risco) também não chega.
+    expect(
+      ['caravanTemplates', 'caravanTexts', 'arrivesAtMs', 'ambushPercent', 'ambushLoss'].filter(
+        (key) => code.includes(key),
+      ),
+    ).toEqual([]);
+    for (const text of Object.values(content.caravanTexts)) {
+      expect(code.includes(text), text).toBe(false);
+    }
+  });
+
   // Revisão da Fase D (A25): os itens e o que cada nó rende têm números próprios, e os
   // marcadores acima não os conheciam.
   it('não leva os itens nem as recompensas das expedições: bônus, valor, raridade, chance de achado e faixas de saque (v0.3)', () => {

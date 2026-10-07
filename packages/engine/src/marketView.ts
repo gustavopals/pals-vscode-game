@@ -1,8 +1,9 @@
 import { balance, buildings, type MarketResourceId } from '@lotg/content';
 
+import { caravanGivesText, caravanOfferView, caravansView } from './caravansView';
 import { nextDayBoundary, seasonAt } from './clock';
 import { buildingWithArticle } from './construction';
-import { decimal, joinList, sentenceCase, thousands } from './format';
+import { decimal, joinList, priceText, sentenceCase, thousands } from './format';
 import {
   dailyVolume,
   marketLevel,
@@ -15,7 +16,7 @@ import {
   yesterdayQuote,
 } from './market';
 import type { BuildingId, GameState, MarketPriceView, MarketView } from './types';
-import { MILLI, realSecondsCeil } from './units';
+import { realSecondsCeil } from './units';
 
 /**
  * O Mercado na visão (GDD §5.9; ADR 0018, decisão 16). Só lê o estado: não sorteia, não dá
@@ -26,12 +27,7 @@ import { MILLI, realSecondsCeil } from './units';
 
 const { market: rules } = balance;
 
-/** "1,30", "1,105": um preço em ouro por unidade, com duas casas, e a terceira quando ela existe. */
-export function priceText(milli: number): string {
-  const whole = Math.trunc(milli / MILLI);
-  const thousandths = String(milli % MILLI).padStart(3, '0');
-  return `${thousands(whole)},${thousandths.endsWith('0') ? thousandths.slice(0, 2) : thousandths}`;
-}
+export { priceText };
 
 /** "comida, madeira e pedra". */
 const goods = joinList(rules.resources.map((id) => balance.resources[id].label.toLowerCase()));
@@ -40,7 +36,9 @@ const sellPercent = decimal((rules.sellRatio.num * 100) / rules.sellRatio.den);
 
 /** "negocia até 400 de cada recurso por dia de jogo, entre compras e vendas". */
 function marketGivesText(level: number): string {
-  return `negocia até ${thousands(rules.dailyVolumePerLevel * level)} de cada recurso por dia de jogo, entre compras e vendas`;
+  const trades = `negocia até ${thousands(rules.dailyVolumePerLevel * level)} de cada recurso por dia de jogo, entre compras e vendas`;
+  const caravans = caravanGivesText(level);
+  return caravans === null ? trades : `${trades}, e ${caravans}`;
 }
 
 /** O que o Mercado é agora: o que o nível dá ou, sem ele, o que o abre. */
@@ -126,5 +124,7 @@ export function marketView(state: GameState, timeScale: number): MarketView {
     dailyVolume: dailyVolume(state),
     // Sem Mercado não há preço a mostrar: ele aparece com o edifício (descoberta gradual).
     prices: level === 0 ? [] : rules.resources.map((resource) => priceView(state, resource)),
+    caravans: caravansView(state, timeScale),
+    caravanOffer: caravanOfferView(state, timeScale),
   };
 }

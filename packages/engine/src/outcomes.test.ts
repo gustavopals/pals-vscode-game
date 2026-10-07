@@ -1348,7 +1348,8 @@ describe('a névoa e a pureza dos desfechos (QA-18)', () => {
 
 describe('o estado gravado dos desfechos (a guarda da versão 18)', () => {
   it('os identificadores e os tetos escritos na guarda são os do conteúdo', () => {
-    expect(HERO_STATUS_IDS_V18).toEqual([...HERO_STATUS_IDS]);
+    // A escolta de uma caravana é da versão 22 (`HERO_STATUS_IDS_V22`).
+    expect(HERO_STATUS_IDS_V18).toEqual(HERO_STATUS_IDS.filter((id) => id !== 'escort'));
     expect(INJURY_SEVERITY_IDS_V18).toEqual([...INJURY_SEVERITY_IDS]);
     expect(HERO_HARM_IDS_V18).toEqual([...HERO_HARM_IDS]);
     expect(ITEM_SLOT_IDS_V18).toEqual([...ITEM_SLOT_IDS]);
