@@ -18,8 +18,22 @@ import {
   upgradeName,
 } from '../ui/format';
 import { CROSSROADS_NEAR_SECONDS, sendable, waitingExpeditions } from '../ui/expeditions';
-import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
-import { CARAVANS_SECTION, freeMasters } from '../ui/market';
+import {
+  arrearsDeadlines,
+  arrearsSince,
+  lingeringLine,
+  TAVERN_SECTION,
+  wageRisk,
+  wageRiskLine,
+} from '../ui/guild';
+import {
+  CARAVANS_SECTION,
+  freeMasters,
+  goldText,
+  hasMarket,
+  MARKET_SECTION,
+  sellShortcut,
+} from '../ui/market';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
 /**
@@ -75,6 +89,34 @@ function atProducer(view: ViewState, resource: Row['id']): string {
   const producer = view.workers.find((row) => row.resource === resource);
   return producer === undefined ? 'nos trabalhadores' : `na ${producer.label}`;
 }
+
+/**
+ * A venda que mais ouro rende agora, entre o que o Mercado aceita e o feudo pode dispensar
+ * (`surplusSellable` da visão, que já respeita o volume de hoje e a reserva): o recurso, quanto
+ * cabe e o ouro que dá, a `quantidade × preço de venda` que o servidor cobra. `null` sem Mercado
+ * ou sem excedente vendável. É a saída para o soldo que o ouro não paga.
+ */
+export function bestSale(view: ViewState): { label: string; amount: number; gold: number } | null {
+  let best: { label: string; amount: number; gold: number } | null = null;
+  for (const row of view.market.prices) {
+    const sale = sellShortcut(view, row.resource);
+    if (sale === null) {
+      continue;
+    }
+    const gold = sale.amount * sale.row.sell;
+    if (best === null || gold > best.gold) {
+      best = { label: sale.row.label.toLowerCase(), amount: sale.amount, gold };
+    }
+  }
+  return best;
+}
+
+/** O botão que leva ao balcão do Mercado: a venda em si é conferida lá, com o total. */
+const SELL_COMMAND = (label: string): LeavingItem['command'] => ({
+  id: 'lords.openPanel',
+  arg: MARKET_SECTION,
+  label,
+});
 
 /**
  * Para a fome e o frio que o servidor já prevê acabarem sozinhos: não há ordem a dar, e o botão
@@ -293,11 +335,29 @@ function storageItems(view: ViewState): LeavingItem[] {
         `A obra de ${underway.label} termina em ${formatApprox(underway.secondsRemaining)}.`,
       );
     }
+    // A saída do Mercado (IDEIA-11): com o balcão de pé e excedente vendável de algum dos
+    // recursos do depósito, a frase diz quanto cabe hoje e o botão leva ao balcão. Os números
+    // são os da visão (`surplusSellable`); sem eles, fica a obra do depósito.
+    const sales = rows.flatMap((row) => {
+      const sale = hasMarket(view.market) ? sellShortcut(view, row.id) : null;
+      return sale === null ? [] : [{ row, amount: sale.amount }];
+    });
+    const [firstSale] = sales;
+    if (firstSale !== undefined) {
+      sentences.push(
+        `No Mercado cabem hoje ${joinList(
+          sales.map(({ row, amount }) => `${formatNumber(amount)} de ${row.label.toLowerCase()}`),
+        )}.`,
+      );
+    }
     items.push({
       id: `storage:${building}`,
       severity: 'warning',
       text: sentences.join(' '),
-      command: storageCommand(view, building),
+      command:
+        firstSale === undefined
+          ? storageCommand(view, building)
+          : SELL_COMMAND(`Vender: cabem ${formatNumber(firstSale.amount)} hoje`),
     });
   }
   return items;
@@ -448,13 +508,23 @@ function threatItem(view: ViewState): LeavingItem | null {
 function wageItem(view: ViewState): LeavingItem | null {
   const { guild } = view;
   const { arrears } = guild.wage;
-  const command = allocateTo(view, 'gold');
+  // Duas saídas para o ouro que falta: a Mina, que rende devagar, e o excedente vendido no
+  // Mercado, que paga já. Com excedente vendável (`surplusSellable`), o botão é a venda.
+  const sale = bestSale(view);
+  const sell =
+    sale === null
+      ? null
+      : {
+          text: ` Vender ${formatNumber(sale.amount)} de ${sale.label} rende ${goldText(sale.gold)} de ouro hoje.`,
+          command: SELL_COMMAND('Vender excedente'),
+        };
+  const command = sell?.command ?? allocateTo(view, 'gold');
   if (arrears !== null) {
     const next = arrearsDeadlines(arrears, 0);
     return {
       id: 'wage',
       severity: 'danger',
-      text: `${arrearsSince(arrears, 0)}${next.length === 0 ? '' : `: ${next.join(' · ').toLowerCase()}`}.`,
+      text: `${arrearsSince(arrears, 0)}${next.length === 0 ? '' : `: ${next.join(' · ').toLowerCase()}`}.${sell?.text ?? ''}`,
       command,
     };
   }
@@ -475,7 +545,12 @@ function wageItem(view: ViewState): LeavingItem | null {
   if (risk === null) {
     return null;
   }
-  return { id: 'wage', severity: urgency(risk.seconds), text: wageRiskLine(risk), command };
+  return {
+    id: 'wage',
+    severity: urgency(risk.seconds),
+    text: `${wageRiskLine(risk)}${sell?.text ?? ''}`,
+    command,
+  };
 }
 
 /**
@@ -527,14 +602,23 @@ function crossroadsItem(view: ViewState): LeavingItem | null {
 /**
  * Herói no feudo com destino que o aceita e que pode partir agora: quem recebe soldo e não sai
  * não traz nada enquanto o jogador está longe. É sugestão, como os aldeões livres. Quais
- * destinos podem partir e quem cada um aceita é o que a visão diz (`canSend`,
- * `eligibleHeroIds`): a lista não conta heróis nem confere o que a jornada pede. O botão abre o
- * envio, que pergunta o destino, a equipe e a Postura.
+ * destinos podem partir e quem cada um aceita é o que a visão diz (`canSend`, `suggestedTeam`,
+ * `eligibleHeroIds`): a lista não conta heróis nem confere o que a jornada pede. Um só item: o
+ * destino da frente (o Resgate só quando é o único, porque ele já tem a vez no relatório), com
+ * a equipe que a visão sugere para ele; o botão abre o envio já nesse destino, e a tela pergunta
+ * a equipe e a Postura.
  */
 function idleHeroesItem(view: ViewState): LeavingItem | null {
   const { guild } = view;
-  const wanted = new Set(sendable(guild).flatMap((destination) => destination.eligibleHeroIds));
-  const ready = guild.heroes.filter((hero) => wanted.has(hero.id));
+  const open = sendable(guild);
+  const destination = open.find((entry) => !entry.rescue) ?? open[0];
+  if (destination === undefined) {
+    return null;
+  }
+  const team = destination.suggestedTeam;
+  const ready = guild.heroes.filter((hero) =>
+    team.length > 0 ? team.includes(hero.id) : destination.eligibleHeroIds.includes(hero.id),
+  );
   if (ready.length === 0) {
     return null;
   }
@@ -544,9 +628,39 @@ function idleHeroesItem(view: ViewState): LeavingItem | null {
     severity: 'info',
     text:
       ready.length === 1
-        ? `${names} está no feudo, sem jornada, e há expedição que pode partir.`
-        : `${names} estão no feudo, sem jornada, e há expedição que pode partir.`,
-    command: { id: 'lords.sendExpedition', label: 'Enviar expedição' },
+        ? `${names} está livre, sem jornada: ${destination.label} pode partir.`
+        : `${names} estão livres, sem jornada: ${destination.label} pode partir.`,
+    command: {
+      id: 'lords.sendExpedition',
+      arg: destination.modelId,
+      label: `Enviar em ${destination.label}`,
+    },
+  };
+}
+
+/**
+ * Os candidatos da Taverna mudam na próxima rotação (`nextRotationInSeconds`), e quem sai da lista
+ * não volta com certeza: se ela cai antes do horizonte, o item lembra de olhar antes de partir.
+ * Só informação, e a que a lista corta primeiro; sem Taverna, sem candidato ou sem rotação
+ * marcada, nada. Os candidatos e o prazo são os da visão.
+ */
+function tavernItem(view: ViewState): LeavingItem | null {
+  const { tavern } = view;
+  const left = tavern.nextRotationInSeconds;
+  if (
+    tavern.level <= 0 ||
+    tavern.offers.length === 0 ||
+    left === null ||
+    left >= LEAVING_HORIZON_SECONDS
+  ) {
+    return null;
+  }
+  const names = joinList(tavern.offers.map((offer) => `${offer.name} (${offer.classLabel})`));
+  return {
+    id: 'tavern',
+    severity: 'info',
+    text: `A Taverna troca os candidatos em ${formatApprox(left)}: ${names} ${tavern.offers.length === 1 ? 'pode sair' : 'podem sair'} da lista.`,
+    command: { id: 'lords.openPanel', arg: TAVERN_SECTION, label: 'Ver a Taverna' },
   };
 }
 
@@ -654,6 +768,7 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     mastersWaitingItem(view),
     caravanItem(view),
     idleHeroesItem(view),
+    tavernItem(view),
   ].filter((item) => item !== null);
 }
 

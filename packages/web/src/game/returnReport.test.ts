@@ -29,7 +29,9 @@ import {
   denClearedView,
   expeditionCrossroadsView,
   heroCapturedView,
+  guildArrearsView,
   heroInjuredView,
+  marketDayView,
 } from '../test-helpers';
 import { cardDecisions, crossroadsDecisions } from '../ui/format';
 import { beforeLeaving, leavingItems } from './beforeLeaving';
@@ -39,6 +41,7 @@ import {
   coveredTopics,
   currentBlocks,
   pendingItems,
+  POSTURE_MARK,
 } from './returnReport';
 
 // Roadmap da v0.2, V2D-T4: o Relatório de Retorno em três blocos. Os eventos são sintéticos: a
@@ -952,10 +955,10 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
       event('heroLeveledUp', 'Rolf chegou ao nível 2.', { heroId: 'hero-2', level: 2 }),
       event('expeditionReturned', 'A expedição voltou com 22 de ouro.', { ...id, gained_gold: 22 }),
     ]);
+    // Uma expedição, um item: o item achado e a volta são uma linha, com quem decidiu o caminho.
     expect(texts(blocks.prospered)).toEqual([
-      'A expedição achou um item: Lança de caça.',
+      'A expedição achou um item: Lança de caça. A expedição voltou com 22 de ouro. Decidido pela Postura.',
       'Rolf chegou ao nível 2.',
-      'A expedição voltou com 22 de ouro.',
     ]);
     // A partida, a encruzilhada, quem decidiu e o nó que deu errado ficam na Crônica e no
     // relatório da expedição: aqui seriam a mesma história duas vezes. (O feudo deste retrato
@@ -1006,10 +1009,8 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
       event('threatTileCleared', 'O Covil de Lobos foi limpo.', id),
     ]);
     expect(texts(blocks.prospered)).toEqual([
-      'Edda foi resgatada.',
+      'Edda foi resgatada. A patrulha achou o caminho das Ruínas. O Covil de Lobos foi limpo.',
       'Rolf está recuperado.',
-      'A patrulha achou o caminho das Ruínas.',
-      'O Covil de Lobos foi limpo.',
     ]);
     expect(blocks.cost).toEqual([]);
   });
@@ -1030,5 +1031,194 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
     expect(
       beforeLeaving(expeditionCrossroadsView, coveredTopics(waiting)).map((item) => item.id),
     ).not.toContain('crossroads');
+  });
+});
+
+describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F-T3.2 e T3.3)', () => {
+  const trip = (n: number) => ({ expeditionId: `expedition-${n}`, modelId: 'oldForest' });
+  const guildView = heroInjuredView;
+
+  describe('uma expedição, um item', () => {
+    it('a volta, o item achado e o destino revelado da mesma equipe são uma linha só; outra equipe é outra linha', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('expeditionReturned', 'A equipe voltou com 22 de ouro.', trip(1)),
+        event('itemFound', 'A equipe achou uma lança.', trip(1)),
+        event('destinationRevealed', 'O caminho das Ruínas apareceu.', trip(1)),
+        event('expeditionReturned', 'A segunda equipe voltou.', trip(2)),
+      ]);
+      expect(texts(blocks.prospered)).toEqual([
+        'A equipe voltou com 22 de ouro. A equipe achou uma lança. O caminho das Ruínas apareceu.',
+        'A segunda equipe voltou.',
+      ]);
+      expect(blocks.cost.filter((item) => item.topic === 'expedition')).toEqual([]);
+    });
+
+    it('os eventos sem expedição (herói que subiu de nível) continuam como itens deles', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('heroLeveledUp', 'Rolf chegou ao nível 2.', { heroId: 'hero-2', level: 2 }),
+        event('expeditionReturned', 'A equipe voltou.', trip(1)),
+      ]);
+      expect(texts(blocks.prospered)).toEqual(['Rolf chegou ao nível 2.', 'A equipe voltou.']);
+    });
+  });
+
+  describe('decidido pela Postura', () => {
+    it('a marca vai no bloco do desfecho: "prosperou" se voltou, "custou" se não voltou', () => {
+      const back = blocksOf(guildView, guildView, [
+        event('expeditionPostureDecided', 'A Postura escolheu.', trip(1)),
+        event('expeditionReturned', 'A equipe voltou.', trip(1)),
+      ]);
+      expect(texts(back.prospered)).toEqual([`A equipe voltou. ${POSTURE_MARK}`]);
+      const lost = blocksOf(guildView, guildView, [
+        event('expeditionPostureDecided', 'A Postura escolheu.', trip(1)),
+        event('expeditionLost', 'Ninguém voltou.', trip(1)),
+      ]);
+      expect(lost.prospered).toEqual([]);
+      expect(lost.cost.map((item) => item.text)).toEqual([`Ninguém voltou. ${POSTURE_MARK}`]);
+    });
+
+    it('estado de risco: o caminho escolhido pelo jogador, ou pela Postura em outra equipe, não leva a marca', () => {
+      const chosen = blocksOf(guildView, guildView, [
+        event('expeditionPathChosen', 'Você escolheu.', { ...trip(1), decidedBy: 'player' }),
+        event('expeditionReturned', 'A equipe voltou.', trip(1)),
+      ]);
+      expect(texts(chosen.prospered)).toEqual(['A equipe voltou.']);
+      const other = blocksOf(guildView, guildView, [
+        event('expeditionPostureDecided', 'A Postura escolheu.', trip(2)),
+        event('expeditionReturned', 'A equipe voltou.', trip(1)),
+        event('expeditionLost', 'A outra não voltou.', trip(3)),
+      ]);
+      expect(texts(other.prospered)).toEqual(['A equipe voltou.']);
+      expect(other.cost.map((item) => item.text)).toEqual(['A outra não voltou.']);
+    });
+
+    it('a equipe decidida pela Postura que ainda não terminou não gera item: a Crônica a conta', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('expeditionPostureDecided', 'A Postura escolheu.', trip(1)),
+      ]);
+      expect(blocks.prospered).toEqual([]);
+      expect(blocks.cost.filter((item) => item.topic === 'expedition')).toEqual([]);
+    });
+  });
+
+  describe('venda feita no Mercado', () => {
+    const sale = (gold: number, direction = 'sell') =>
+      event('marketTraded', 'Negociou.', { direction, resource: 'wood', gained_gold: gold });
+
+    it('as vendas são somadas em uma linha, com o ouro que renderam', () => {
+      const blocks = blocksOf(guildView, guildView, [sale(100), sale(40.5)]);
+      expect(texts(blocks.prospered)).toEqual([
+        'Vendas no Mercado: 2 ordens, 140,5 de ouro recebidos.',
+      ]);
+      expect(texts(blocksOf(guildView, guildView, [sale(7)]).prospered)).toEqual([
+        'Vendas no Mercado: 1 ordem, 7 de ouro recebidos.',
+      ]);
+    });
+
+    it('estado de risco: compra não é venda, e sem ordem não há linha', () => {
+      expect(blocksOf(guildView, guildView, [sale(100, 'buy')]).prospered).toEqual([]);
+      expect(blocksOf(guildView, guildView, []).prospered).toEqual([]);
+    });
+  });
+
+  describe('chegada da caravana, Mestre e nível novo', () => {
+    it('a caravana que chegou, o Mestre que chegou e a obra que subiu de nível vão para "prosperou"; a emboscada, para "custou"', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('caravanArrived', 'A caravana chegou.', {}),
+        event('masterArrived', 'Mestre Odo chegou.', {}),
+        event('constructionFinished', 'O Celeiro subiu ao nível 2.', {
+          building: 'granary',
+          level: 2,
+        }),
+        event('caravanAmbushed', 'A caravana foi emboscada.', { ambushed_wood: 100 }),
+      ]);
+      expect(texts(blocks.prospered)).toEqual([
+        'A caravana chegou.',
+        'Mestre Odo chegou.',
+        'O Celeiro subiu ao nível 2.',
+      ]);
+      expect(blocks.cost.map((item) => [item.text, item.action?.label])).toEqual([
+        ['A caravana foi emboscada.', 'Ver as caravanas'],
+      ]);
+    });
+  });
+
+  describe('cada item de "custou" tem a próxima ação', () => {
+    it('todo desfecho ruim da Guilda e da estrada sai com texto, topic e ação', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('heroInjured', 'Rolf se feriu.', trip(1)),
+        event('heroCaptured', 'Edda foi capturada.', trip(1)),
+        event('heroDied', 'Odo morreu.', trip(1)),
+        event('heroLeft', 'Mira partiu.', {}),
+        event('wageArrearsStarted', 'O soldo atrasou.', {}),
+        event('expeditionLost', 'Ninguém voltou.', trip(2)),
+        event('caravanAmbushed', 'A carga se foi.', { ambushed_wood: 10 }),
+      ]);
+      expect(blocks.cost).toHaveLength(7);
+      for (const item of blocks.cost) {
+        expect(item.topic).toBeDefined();
+        expect(item.action?.command).toMatch(/^lords\./);
+        expect(item.action?.label).not.toBe('');
+      }
+    });
+
+    it('o soldo em atraso com excedente no Mercado: "Vender excedente"; sem Mercado, a Mina', () => {
+      const arrears = guildArrearsView;
+      const withSale = { ...arrears, market: marketDayView.market };
+      expect(costAction(withSale, 'wage')).toEqual({
+        command: 'lords.openPanel',
+        arg: 'market',
+        label: 'Vender excedente',
+      });
+      expect(costAction(arrears, 'wage').command).toBe('lords.allocateWorkers');
+    });
+
+    it('a captura sem Resgate possível leva à Guilda, e não a um botão que será recusado', () => {
+      expect(costAction(guildView, 'hero:captured').label).toBe('Ver a Guilda');
+    });
+  });
+
+  describe('o que ainda pode decidir', () => {
+    const filling = (view: ViewState, seconds: number): ViewState => ({
+      ...withResource(view, 'wood', { fullInSeconds: seconds, full: false, wastingPerHour: 0 }),
+      market: marketDayView.market,
+    });
+    const sellRow = (blocks: ReturnType<typeof blocksOf>) =>
+      blocks.pending.find((item) => item.topic?.startsWith('storage:'));
+
+    it('o volume de hoje sem uso com o depósito perto do limite aparece, com o botão de vender, e "Antes de partir" não o repete', () => {
+      const view = filling(calm, 3 * 3600);
+      const blocks = blocksOf(view, view, []);
+      const item = sellRow(blocks);
+      expect(item?.action?.label).toMatch(/^Vender: cabem \d/);
+      expect(item?.text).toContain('No Mercado cabem hoje');
+      expect(beforeLeaving(view, coveredTopics(blocks)).map((entry) => entry.id)).not.toContain(
+        item?.topic,
+      );
+    });
+
+    it('estado de risco: sem Mercado, sem volume do dia ou com o depósito folgado, não há item de venda', () => {
+      const noMarket = withResource(calm, 'wood', { fullInSeconds: 3 * 3600, full: false });
+      expect(sellRow(blocksOf(noMarket, noMarket, []))).toBeUndefined();
+      const spent: ViewState = {
+        ...filling(calm, 3 * 3600),
+        market: {
+          ...marketDayView.market,
+          prices: marketDayView.market.prices.map((row) => ({ ...row, surplusSellable: 0 })),
+        },
+      };
+      expect(sellRow(blocksOf(spent, spent, []))).toBeUndefined();
+      const roomy = filling(calm, 20 * 3600);
+      expect(sellRow(blocksOf(roomy, roomy, []))).toBeUndefined();
+    });
+
+    it('a encruzilhada pendente continua no topo, e o herói livre traz o destino', () => {
+      const waiting = blocksOf(expeditionCrossroadsView, expeditionCrossroadsView, []);
+      expect(waiting.pending[0]?.topic).toBe('crossroads:expedition-2');
+      const idle = blocksOf(guildView, guildView, []).pending.find(
+        (item) => item.topic === 'expedition',
+      );
+      expect(idle?.action).toMatchObject({ command: 'lords.sendExpedition', arg: 'patrol' });
+    });
   });
 });

@@ -14,6 +14,7 @@ import {
   pendingCards,
   playNow,
   resourceRow,
+  serverView,
   session,
   statusBar,
   stock,
@@ -1111,6 +1112,113 @@ test.describe('no ritmo da produção', () => {
     await page.getByRole('tab', { name: 'Feudo' }).click();
     await expect(fief(page).getByRole('note')).toContainText(
       'Inverno em 17 h. O Inverno vai queimar 60 de madeira com 5 habitantes. A Serraria repõe 0 e há 40 em estoque: faltam 20 de madeira.',
+    );
+  });
+});
+
+// V3F-T3 (GDD §2.3, §13.5 e §15.1; QA-13): o Relatório de Retorno e "Antes de partir" com a Guilda
+// e a estrada. Seis horas fora com uma equipe que voltou, uma caravana sem escolta emboscada (a
+// semente `qa-10-32`, sempre a mesma) e outra equipe parada em uma encruzilhada com prazo longo.
+// O feudo é posto de pé pelas rotas de teste (`world.raise`, `world.hero`, `world.crossroads`,
+// `world.stock`); daí em diante o sorteio, a viagem, a emboscada e a volta são os do motor. Os
+// cenários não citam frase do conteúdo: leem do servidor a frase de cada evento e conferem que
+// a tela a repete, no bloco certo e uma vez só.
+test.describe('o retorno com a Guilda (V3F-T3)', () => {
+  test('Guilda: seis horas fora com uma expedição que voltou, uma caravana emboscada e uma encruzilhada à espera: os três blocos, uma linha por expedição, e os botões', async ({
+    context,
+    request,
+    world,
+  }) => {
+    world.seed('qa-10-32');
+    const first = await world.open(context);
+    await playNow(first);
+    await world.raise('townHall', 3);
+    await world.raise('guild', 1);
+    await world.raise('market', 2);
+    await world.hero('Bia', { level: 10 });
+    await world.hero('Aldo', { level: 10 });
+    await world.stock('wood', 800);
+    await world.stock('gold', 1000);
+    await world.passTime(MINUTE, first);
+    // Bia pára na encruzilhada, com 20 h de prazo: depois de seis horas ainda espera.
+    await world.crossroads('balanced', 20 * HOUR);
+    await world.passTime(MINUTE, first);
+    expect((await serverView(first, request)).pendingDecisions).toHaveLength(1);
+
+    // Aldo parte em Patrulha, pela tela: a única equipe que o feudo ainda pode mandar.
+    await first.getByRole('tab', { name: 'Guilda' }).click();
+    const guildPanel = first.getByRole('tabpanel', { name: 'Guilda' });
+    const patrol = guildPanel
+      .getByRole('region', { name: 'Expedições' })
+      .getByRole('list', { name: 'Destinos' })
+      .locator('[data-destination="patrol"]');
+    await patrol.getByText('Montar a equipe').click();
+    await patrol.getByRole('button', { name: /^Enviar/ }).click();
+    await expect(
+      guildPanel.getByRole('list', { name: 'Fora do feudo' }).locator('[data-expedition]'),
+    ).toHaveCount(2);
+
+    // Uma caravana de madeira, sem escolta: a semente da emboscada.
+    await first.getByRole('tab', { name: 'Mercado' }).click();
+    const send = first
+      .getByRole('tabpanel', { name: 'Mercado' })
+      .getByRole('region', { name: 'Caravanas' })
+      .getByRole('form', { name: 'Mandar uma caravana' });
+    await send.locator('input[data-resource="wood"]').check();
+    await send.getByTestId('caravan-amount').fill('251');
+    await send.getByTestId('caravan-review').click();
+    await send.getByTestId('caravan-confirm-button').click();
+    await expect(first.locator('[data-caravan="caravan-1"]')).toBeVisible();
+    await first.close();
+
+    await world.passTime(6 * HOUR);
+    const page = await world.open(context);
+    const today = page.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(today.getByText(/Você esteve fora por 6 horas/)).toBeVisible();
+    const events = await gameEvents(page, request);
+    const ofType = (...types: string[]) => events.filter((entry) => types.includes(entry.type));
+
+    // O que custou: a emboscada, com a próxima ação; o herói que se feriu, se a Patrulha feriu.
+    const cost = reportBlock(page, 'O que exigiu um preço');
+    await expect(cost).toContainText('caiu em uma emboscada');
+    await expect(cost.getByRole('button', { name: 'Ver as caravanas' })).toBeVisible();
+    for (const hurt of ofType('heroInjured', 'heroCaptured', 'heroDied')) {
+      await expect(cost).toContainText(hurt.text);
+    }
+
+    // A Patrulha de Aldo é UMA linha, no bloco do desfecho dela: prosperou se voltou, custou se
+    // não voltou. A encruzilhada de Bia não tem desfecho: não é item de nenhum dos dois.
+    const [outcome] = ofType('expeditionReturned', 'expeditionLost');
+    if (outcome === undefined) {
+      throw new Error('O cenário esperava a Patrulha de volta (ou perdida) em seis horas.');
+    }
+    const home = outcome.type === 'expeditionReturned';
+    const block = home ? reportBlock(page, 'O feudo prosperou') : cost;
+    await expect(block.getByRole('listitem').filter({ hasText: outcome.text })).toHaveCount(1);
+    await expect(reportBlock(page, 'O feudo prosperou')).not.toContainText('caiu em uma emboscada');
+    // O caminho foi o do próprio jogador ou nenhum: nada de "Decidido pela Postura" aqui.
+    await expect(today).not.toContainText('Decidido pela Postura');
+
+    // O que ainda pode decidir: a encruzilhada de Bia, com o botão que abre a escolha. "Antes de
+    // partir" não a repete.
+    const pending = reportBlock(page, 'Você ainda pode decidir');
+    await expect(pending).toContainText('Guilda: “');
+    const choose = pending.getByRole('button', { name: /Escolher caminho/ });
+    await expect(choose).toBeVisible();
+    await expect(
+      today.getByRole('region', { name: 'Antes de partir' }).getByText(/espera na encruzilhada/),
+    ).toHaveCount(0);
+
+    // Os botões levam aonde dizem: a escolha do caminho abre a lista; "Ver as caravanas", a aba.
+    await choose.click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await cost.getByRole('button', { name: 'Ver as caravanas' }).click();
+    await expect(page.getByRole('tab', { name: 'Mercado' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
   });
 });
