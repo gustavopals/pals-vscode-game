@@ -208,8 +208,16 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       },
     };
   });
+  // O volume do Mercado de hoje sem uso com o depósito perto do limite: o item de "Antes de
+  // partir" que oferece a venda (`Vender: cabem N hoje`) é uma decisão, e não uma perda.
   const works = leavingItems(view)
-    .filter((item) => item.id === 'queue' || item.id === 'idle' || item.id === 'expedition')
+    .filter(
+      (item) =>
+        item.id === 'queue' ||
+        item.id === 'idle' ||
+        item.id === 'expedition' ||
+        (item.id.startsWith('storage:') && item.command.label.startsWith('Vender')),
+    )
     .map((item): ReturnReportItem => ({
       text: item.text,
       topic: item.id,
@@ -329,6 +337,8 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // Quem chegou pela porta com vaga trabalha; o que espera uma vaga está em "Antes de partir".
     case 'masterArrived':
       return { block: 'prospered', topic: 'master' };
+    // Venda feita no balcão (só pode ter saído de uma ordem dada em outro navegador): somada em
+    // uma linha, em `buildBlocks`; a compra não é desfecho e fica na Crônica.
     case 'heroInjured':
       return { block: 'cost', topic: 'hero:injured' };
     case 'heroCaptured':
@@ -343,6 +353,13 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return null;
   }
 }
+
+/** A marca de uma expedição cujo caminho a Postura escolheu sem o jogador (V3F-T3.2). */
+export const POSTURE_MARK = 'Decidido pela Postura.';
+
+/** O identificador da expedição de um evento, quando ele a traz. */
+const expeditionOf = (event: GameEvent): string | null =>
+  typeof event.data.expeditionId === 'string' ? event.data.expeditionId : null;
 
 const positive = (value: unknown): boolean => typeof value === 'number' && value > 0;
 
@@ -448,13 +465,36 @@ export function buildBlocks(
     });
   }
 
+  // Uma expedição, um item: a volta, o saque, o herói que subiu de nível e o item achado de uma
+  // mesma equipe saem em uma linha só, no bloco do desfecho dela. Quem decidiu o caminho é dito
+  // (`expeditionPostureDecided`): o jogador que volta precisa saber que não foi ele.
+  const decidedByPosture = new Set(
+    events.flatMap((event) => {
+      const id = expeditionOf(event);
+      return event.type === 'expeditionPostureDecided' && id !== null ? [id] : [];
+    }),
+  );
+  const journeys = new Map<string, GameEvent[]>();
+  const sold = events.filter(
+    (event) => event.type === 'marketTraded' && event.data.direction === 'sell',
+  );
+
   for (const event of events) {
     if (objectives !== null && isObjectiveCompleted(event)) {
       continue;
     }
     const place = placeOf(event);
-    if (place?.block === 'prospered') {
+    const journey = expeditionOf(event);
+    if (place?.block === 'prospered' && place.topic === 'expedition' && journey !== null) {
+      journeys.set(journey, [...(journeys.get(journey) ?? []), event]);
+    } else if (place?.block === 'prospered') {
       prospered.push({ at: event.seq, item: { text: event.text, topic: place.topic } });
+    } else if (place?.block === 'cost' && event.type === 'expeditionLost' && journey !== null) {
+      price(
+        event.seq,
+        decidedByPosture.has(journey) ? `${event.text} ${POSTURE_MARK}` : event.text,
+        place.topic,
+      );
     } else if (place?.block === 'cost') {
       price(event.seq, event.text, place.topic);
     } else if (event.type === 'storageFilled') {
@@ -465,6 +505,30 @@ export function buildBlocks(
         price(event.seq, event.text, topic);
       }
     }
+  }
+
+  for (const [journey, group] of journeys) {
+    const texts = group.map((event) => event.text);
+    prospered.push({
+      at: group[0]?.seq ?? Number.MAX_SAFE_INTEGER,
+      item: {
+        text: (decidedByPosture.has(journey) ? [...texts, POSTURE_MARK] : texts).join(' '),
+        topic: 'expedition',
+      },
+    });
+  }
+
+  // O que se vendeu no balcão do Mercado (GDD §5.9): o ouro que as ordens renderam, somado. A
+  // frase de cada venda fica na Crônica; o total é o da tabela de "Recebido".
+  if (sold.length > 0) {
+    const gold = total(sold, 'gained_gold');
+    prospered.push({
+      at: sold[0]?.seq ?? Number.MAX_SAFE_INTEGER,
+      item: {
+        text: `Vendas no Mercado: ${sold.length} ${sold.length === 1 ? 'ordem' : 'ordens'}, ${formatNumber(gold)} de ouro recebidos.`,
+        topic: 'market',
+      },
+    });
   }
 
   // A gente que chegou e que se foi: uma linha por motivo, com a soma.
