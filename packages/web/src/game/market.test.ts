@@ -303,7 +303,9 @@ describe('o Relatório de Retorno (V3E-T4.5)', () => {
     expect(wood?.cut).toBe(0);
     expect(wood?.wasted).toBe(0);
     expect(wood?.spent).toBe(300);
-    expect(built.blocks?.cost.some((item) => item.topic.startsWith('storage:'))).toBe(false);
+    expect(built.blocks?.cost.some((item) => (item.topic ?? '').startsWith('storage:'))).toBe(
+      false,
+    );
   });
 
   it('o Mestre que chegou é "o feudo prosperou"', () => {
