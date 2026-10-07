@@ -1,4 +1,9 @@
-import type { ExpeditionItemDrop, ExpeditionModelDef, ExpeditionReturnNode } from '../expeditions';
+import type {
+  ExpeditionItemDrop,
+  ExpeditionMasterDrop,
+  ExpeditionModelDef,
+  ExpeditionReturnNode,
+} from '../expeditions';
 
 /**
  * "Pântano Nebuloso" (GDD §9.3; ADR 0018, decisão 12): cinco horas de jogo, cinco nós, três
@@ -22,6 +27,13 @@ const swampHoard: ExpeditionItemDrop = {
   chance: { num: 1, den: 1 },
   from: ['emberStaff', 'wardenPlate', 'captainChain'],
 };
+
+/**
+ * Quem vive atrás do que mora no fundo: Berta, que tira colheita de terra alagada. Em uma de
+ * cada três vitórias sobre o chefe ela segue a equipe até a trilha e toma a estrada do feudo
+ * (ADR 0018, decisão 18). Só uma vez por partida.
+ */
+const marshFarmer: ExpeditionMasterDrop = { id: 'berta', chance: { num: 1, den: 3 } };
 
 const home: ExpeditionReturnNode = {
   kind: 'return',
@@ -169,7 +181,11 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, a bruxa do charco calou {heroi} com um gesto: a expedição de {feudo} foi desbaratada na névoa e deixou a cabana sem levar nada dela.',
             },
           },
-          rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },
+          rewards: {
+            resources: { gold: { min: 100, max: 150 } },
+            item: swampHoard,
+            master: marshFarmer,
+          },
           next: 'home',
         },
         home,
@@ -324,7 +340,11 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o afogado que anda abraçou {heroi} e foi andando para a água: a expedição de {feudo} foi desbaratada e não levou nada da casa grande.',
             },
           },
-          rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },
+          rewards: {
+            resources: { gold: { min: 100, max: 150 } },
+            item: swampHoard,
+            master: marshFarmer,
+          },
           next: 'home',
         },
         home,
@@ -462,7 +482,11 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, a serpente do lodo arrastou {heroi} para dentro da água: a expedição de {feudo} foi desbaratada e fugiu sem nada do ninho.',
             },
           },
-          rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },
+          rewards: {
+            resources: { gold: { min: 100, max: 150 } },
+            item: swampHoard,
+            master: marshFarmer,
+          },
           next: 'home',
         },
         home,

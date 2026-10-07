@@ -2,6 +2,8 @@ import {
   balance,
   buildings,
   caravanTemplates,
+  masters,
+  masterTemplates,
   chronicleTemplates,
   coldReliefs,
   councilCards,
@@ -53,6 +55,7 @@ import { canonicalJson } from './canonical';
  * cartas entregam, os modelos de candidato e os nomes da Taverna (na ordem do sorteio) e as frases do fim do soldo em atraso; os números (soldo, prazos, nível, experiência, poder) estão em `balance.heroes`.
  * Do Mercado entram as frases da compra, da venda e do preço que cruza uma marca; os números (preços-base, margem, volume, passeio, estação, marcas) estão em `balance.market`.
  * Das caravanas entram as frases da partida e da chegada com escolta; as outras linhas estão em `chronicleTemplates` e os números, em `balance.market.caravan`.
+ * Dos Mestres entram a ficha de cada um e as frases da chegada de quem esperava e da ordem que o deixa sem edifício; os números estão em `balance.masters`.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -84,6 +87,8 @@ function hashedContent(): Record<string, unknown> {
     wageArrearsReliefs,
     marketTemplates,
     caravanTemplates,
+    masters,
+    masterTemplates,
   };
 }
 

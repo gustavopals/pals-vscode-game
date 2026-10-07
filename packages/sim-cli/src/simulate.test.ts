@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 
 import {
   caravanTemplates,
+  masters,
+  masterTemplates,
   balance,
   buildings,
   chronicleTemplates,
@@ -634,6 +636,8 @@ describe('resumo de uma partida', () => {
             wageArrearsReliefs,
             marketTemplates,
             caravanTemplates,
+            masters,
+            masterTemplates,
           }),
         )
         .digest('hex')

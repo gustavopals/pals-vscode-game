@@ -463,6 +463,25 @@ export type CaravanDef = {
 };
 
 /**
+ * Os Mestres (GDD §5.4; ADR 0018, decisão 18). Quem são está em `masters`; aqui ficam os
+ * números. A adaptação é **tempo de jogo** e escala com o ritmo, como a de quem troca de ofício;
+ * quanto rende quem se adapta é o `craft.adaptationMultiplier` de todo trabalhador.
+ */
+export type MastersDef = {
+  /** O que o Mestre acrescenta à produção do edifício em que trabalha: 3/20 é "+15%". */
+  readonly bonus: Ratio;
+  /** Quantos Mestres um edifício produtivo aceita: o segundo é recusado, o bônus não soma. */
+  readonly maxPerBuilding: number;
+  /** Quanto dura a adaptação do Mestre que chega a um edifício, sem o bônus: um dia de jogo. */
+  readonly adaptationMs: number;
+  /**
+   * Quantos Mestres o estado guarda, somando os do feudo e os que esperam à porta. Nunca tira a
+   * recompensa de ninguém: cada Mestre com nome chega uma vez só, e todos cabem (teste de conteúdo).
+   */
+  readonly rosterCap: number;
+};
+
+/**
  * O Mercado (GDD §5.9; ADR 0018, decisão 16). Os preços são **milésimos de ouro por unidade**,
  * sempre inteiros. O dia do Mercado é o dia de jogo (ADR 0017, decisão 1): preço e volume mudam
  * na virada, e tudo aqui escala com o ritmo. O custo e o prazo da obra estão em
@@ -564,6 +583,7 @@ export type Balance = {
   readonly injuries: InjuriesDef;
   readonly equipment: EquipmentDef;
   readonly market: MarketDef;
+  readonly masters: MastersDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -963,5 +983,14 @@ export const balance: Balance = {
         lossRatio: { num: 1, den: 2 },
       },
     },
+  },
+  // ADR 0018, decisão 18 e `masters (V3E-T3.1)`. A adaptação dura um dia de jogo, como a de quem
+  // troca de ofício: o teste de conteúdo confere contra `calendar.dayMs`. O teto é um Mestre
+  // por edifício produtivo: o quinto não teria onde render.
+  masters: {
+    bonus: { num: 3, den: 20 },
+    maxPerBuilding: 1,
+    adaptationMs: 2 * HOUR_MS,
+    rosterCap: 4,
   },
 };

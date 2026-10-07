@@ -19,6 +19,8 @@ import {
   MARKET_RESOURCE_IDS,
   marketTemplates,
   caravanTemplates,
+  masters,
+  masterTemplates,
   moraleBandTemplates,
   namedHeroes,
   objectives,
@@ -2499,6 +2501,8 @@ describe('contentHash', () => {
         wageArrearsReliefs,
         marketTemplates,
         caravanTemplates,
+        masters,
+        masterTemplates,
       }),
     ]);
   });
@@ -2529,6 +2533,8 @@ describe('contentHash', () => {
       'injuredLoss',
       'injuryTemplates',
       'marketTemplates',
+      'masterTemplates',
+      'masters',
       'moraleBandTemplates',
       'namedHeroes',
       'objectives',

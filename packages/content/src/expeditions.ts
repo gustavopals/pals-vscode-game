@@ -7,6 +7,7 @@ import type {
   HeroClassId,
   HeroTraitId,
   ItemId,
+  MasterId,
   PostureId,
   Ratio,
   ResourceId,
@@ -31,10 +32,13 @@ import { wolfDen } from './missions/wolfDen';
  * em unidades inteiras, e o desfecho decide a parte (`balance.expeditions.lootShare`). O resto só
  * vem **a partir do Sucesso** (e de um nó sem prova): um **item**, com a chance e a lista de onde
  * sai um, por igual; a **revelação** de um destino (com um Rastreador na equipe, também no
- * Revés); a **limpeza** de um tile de ameaça; e a **libertação** de quem está em cativeiro há
- * mais tempo.
+ * Revés); a **limpeza** de um tile de ameaça; a **libertação** de quem está em cativeiro há
+ * mais tempo; e um **Mestre** com nome (ADR 0018, decisão 18), com a chance de a equipe o
+ * encontrar. O Mestre não é saque: toma a estrada do feudo na hora, e a cobiça de um Ganancioso
+ * não o perde. Quem já está no feudo, ou à porta, não é sorteado de novo.
  */
 export type ExpeditionItemDrop = { readonly chance: Ratio; readonly from: readonly ItemId[] };
+export type ExpeditionMasterDrop = { readonly id: MasterId; readonly chance: Ratio };
 
 export type ExpeditionReward = {
   readonly resources?: Partial<Record<ResourceId, { readonly min: number; readonly max: number }>>;
@@ -43,6 +47,7 @@ export type ExpeditionReward = {
   /** A chave do tile no estado (`startingTiles[].id`). */
   readonly clearsTile?: string;
   readonly rescues?: true;
+  readonly master?: ExpeditionMasterDrop;
 };
 
 /**
@@ -317,6 +322,7 @@ export const expeditionTexts = {
   reportRevealed: 'Caminho novo: {destino}.',
   reportCleared: 'Limpo: {lugar}.',
   reportRescued: '{heroi} ganhou a liberdade.',
+  reportMaster: '{mestre} tomou a estrada do feudo.',
   reportLootLost: 'A cobiça pesou: o que a equipe juntou neste trecho ficou pelo caminho.',
   /**
    * O que o Revés e o Desastre ensinam quando não é a classe que faltou (essa frase é do nó,

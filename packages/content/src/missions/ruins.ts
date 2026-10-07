@@ -1,5 +1,6 @@
 import type {
   ExpeditionItemDrop,
+  ExpeditionMasterDrop,
   ExpeditionModelDef,
   ExpeditionReturnNode,
   ExpeditionStageNode,
@@ -46,6 +47,13 @@ const ruinsFind: ExpeditionItemDrop = {
   from: ['ashBow', 'boiledLeather', 'trackerHorn'],
 };
 
+/**
+ * Quem os guardiões prendiam: Odo, canteiro, que lavrava a pedra das ruínas quando elas se
+ * fecharam. Em uma de cada quatro vitórias a equipe o encontra, e ele toma a estrada do feudo
+ * (ADR 0018, decisão 18). Só uma vez por partida: quem já chegou não é sorteado de novo.
+ */
+const veltharMason: ExpeditionMasterDrop = { id: 'odo', chance: { num: 1, den: 4 } };
+
 const home: ExpeditionReturnNode = {
   kind: 'return',
   title: 'A volta pela estrada dos mortos',
@@ -80,6 +88,7 @@ const stoneGuardian: ExpeditionStageNode = {
     resources: { stone: { min: 70, max: 90 }, gold: { min: 50, max: 70 } },
     item: guardianHoard,
     reveals: 'swamp',
+    master: veltharMason,
   },
   next: 'home',
 };
@@ -315,6 +324,7 @@ export const ruins: ExpeditionModelDef = {
             resources: { stone: { min: 60, max: 80 }, gold: { min: 60, max: 80 } },
             item: guardianHoard,
             reveals: 'swamp',
+            master: veltharMason,
           },
           next: 'home',
         },
@@ -440,6 +450,7 @@ export const ruins: ExpeditionModelDef = {
             resources: { stone: { min: 60, max: 80 }, gold: { min: 60, max: 80 } },
             item: guardianHoard,
             reveals: 'swamp',
+            master: veltharMason,
           },
           next: 'home',
         },

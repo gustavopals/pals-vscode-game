@@ -68,6 +68,9 @@ export const EVENT_TYPES = [
   'caravanSent',
   'caravanArrived',
   'caravanAmbushed',
+  'masterArrived',
+  'masterWaiting',
+  'masterAssigned',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -102,6 +105,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {item} o nome de um item: "Lança de caça"
  * {destino} o nome de um destino revelado: "Ruínas de Vel'Thar"
  * {lugar} um tile do mapa, com artigo: "o Covil de Lobos"
+ * {mestre} um Mestre, com o tratamento: "Mestre Odo", "Mestra Berta"
  *
  * Nas frases de uma incursão, {perda} é tudo o que ela custou, feridos inclusive ("18 de comida,
  * 12 de madeira e um aldeão ferido"), {nivel} é o nível da Paliçada que a teria detido e
@@ -144,6 +148,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'item',
   'destino',
   'lugar',
+  'mestre',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -306,6 +311,13 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, a caravana de {feudo} chegou a {destino} e vendeu {quantidade} de {recurso}, por {preco} de ouro.',
   caravanAmbushed:
     'No {dia}º dia {daEstacao}, a caravana de {feudo} caiu em uma emboscada a caminho de {destino}: levaram {perda}. O que restou, {quantidade} de {recurso}, foi vendido por {preco} de ouro.',
+  // Os Mestres (GDD §5.4; ADR 0018, decisão 18). A chegada de quem esperava à porta e a ordem
+  // que deixa o Mestre sem edifício têm frase própria em `masterTemplates`.
+  masterArrived:
+    'No {dia}º dia {daEstacao}, {mestre} chegou a {feudo} para ficar. Espera que o senhor lhe dê um edifício.',
+  masterWaiting:
+    'No {dia}º dia {daEstacao}, {mestre} chegou aos portões de {feudo}, mas não há vaga nas casas. Espera à porta até haver uma.',
+  masterAssigned: 'No {dia}º dia {daEstacao}, {mestre} tomou a seu cargo {edificio} de {feudo}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -324,6 +336,19 @@ export const marketTemplates = {
   low: 'No {dia}º dia {daEstacao}, sobrou {recurso} nas bancas do Mercado de {feudo}: o preço caiu muito abaixo do costume.',
 } as const;
 export type MarketTemplate = keyof typeof marketTemplates;
+
+/**
+ * As frases dos Mestres que mudam com o caso (ADR 0018, decisão 18): `admitted` é a chegada de
+ * quem esperava à porta (`masterArrived`), e `released`, a do Mestre que o senhor deixa sem
+ * edifício (`masterAssigned`).
+ */
+export const masterTemplates = {
+  admitted:
+    'No {dia}º dia {daEstacao}, abriu-se uma vaga nas casas de {feudo}, e {mestre}, que esperava à porta, entrou para ficar.',
+  released:
+    'No {dia}º dia {daEstacao}, {mestre} deixou o ofício por ordem do senhor de {feudo} e aguarda outro.',
+} as const;
+export type MasterTemplate = keyof typeof masterTemplates;
 
 /**
  * As frases das caravanas que mudam com o caso (ADR 0018, decisão 17): `escorted` é a partida

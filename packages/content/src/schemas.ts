@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 import { caravanTexts } from './caravans';
+import { masterTexts } from './masters';
 import {
   caravanTemplates,
   CHRONICLE_PLACEHOLDERS,
+  masterTemplates,
   cutRewardTemplates,
   EVENT_TYPES,
   foundingTemplates,
@@ -27,6 +29,7 @@ import {
   HERO_CAPTURE_RULE_IDS,
   INJURY_SEVERITY_IDS,
   ITEM_IDS,
+  MASTER_IDS,
   ITEM_RARITY_IDS,
   ITEM_SLOT_IDS,
   MARKET_RESOURCE_IDS,
@@ -630,6 +633,13 @@ const balanceFields = z.strictObject({
     ),
   equipment: z.strictObject({ inventoryCap: positiveInt }),
   market,
+  // Os Mestres (ADR 0018, decisão 18): o bônus é uma fração positiva, e o teto guarda ao menos um.
+  masters: z.strictObject({
+    bonus: ratio,
+    maxPerBuilding: positiveInt,
+    adaptationMs: positiveInt,
+    rosterCap: positiveInt,
+  }),
 });
 
 /**
@@ -830,6 +840,42 @@ export const CaravanTemplatesSchema = z.strictObject(
 /** As frases das caravanas na tela: nenhum número de regra escrito, só lacunas. */
 export const CaravanTextsSchema = z.strictObject(
   Object.fromEntries(Object.keys(caravanTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
+);
+
+/** As frases dos Mestres que mudam com o caso: todas dizem de quem falam. */
+export const MasterTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    Object.keys(masterTemplates).map((key) => [
+      key,
+      chronicleTemplate.refine(
+        (template) => template.includes('{mestre}'),
+        'frase de Mestre sem o Mestre',
+      ),
+    ]),
+  ),
+);
+
+/** As frases dos Mestres na tela: nenhum número de regra escrito, só lacunas. */
+export const MasterTextsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(masterTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
+);
+
+/**
+ * A ficha dos Mestres: um por id, com nome, tratamento e ofício de origem; a frase da origem
+ * entra depois do nome, em minúscula e sem ponto.
+ */
+export const MastersSchema = z.strictObject(
+  Object.fromEntries(
+    MASTER_IDS.map((id) => [
+      id,
+      z.strictObject({
+        name: label,
+        gender: z.enum(HERO_GENDER_IDS),
+        origin: z.enum(PRODUCTION_BUILDING_IDS),
+        originText: label.regex(/^\p{Ll}[^.{}0-9]*$/u),
+      }),
+    ]),
+  ),
 );
 
 /**
@@ -1373,6 +1419,12 @@ const expeditionReward = z
     reveals: z.enum(EXPEDITION_MODEL_IDS).optional(),
     clearsTile: identifier.optional(),
     rescues: z.literal(true).optional(),
+    master: z
+      .strictObject({
+        id: z.enum(MASTER_IDS),
+        chance: ratio.refine(({ num, den }) => num <= den, 'chance acima de 1'),
+      })
+      .optional(),
   })
   .refine((reward) => Object.keys(reward).length > 0, 'recompensa sem nada');
 

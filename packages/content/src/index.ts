@@ -13,6 +13,7 @@ export type {
   InjuriesDef,
   CaravanDef,
   MarketDef,
+  MastersDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,
@@ -32,6 +33,8 @@ export type { BuildingDef } from './buildings';
 export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
 export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
 export { caravanTexts } from './caravans';
+export { masters, masterTexts } from './masters';
+export type { MasterDef } from './masters';
 export {
   caravanTemplates,
   CHRONICLE_PLACEHOLDERS,
@@ -47,6 +50,7 @@ export {
   injuredLoss,
   injuryTemplates,
   marketTemplates,
+  masterTemplates,
   moraleBandTemplates,
   raidTemplates,
   threatMarkTemplates,
@@ -61,6 +65,7 @@ export type {
   HeroDismissalTemplate,
   HeroHarmTemplate,
   MarketTemplate,
+  MasterTemplate,
   RaidTemplates,
   WageArrearsRelief,
 } from './chronicle';
@@ -96,6 +101,7 @@ export type {
   ExpeditionModelDef,
   ExpeditionNode,
   ExpeditionItemDrop,
+  ExpeditionMasterDrop,
   ExpeditionOption,
   ExpeditionOptionRequires,
   ExpeditionRequires,

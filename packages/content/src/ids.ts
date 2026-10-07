@@ -125,6 +125,14 @@ export const NAMED_HERO_IDS = ['edda', 'rolf'] as const;
 export type NamedHeroId = (typeof NAMED_HERO_IDS)[number];
 
 /**
+ * Os Mestres: aldeões com nome próprio, raros, que uma expedição ou uma carta traz ao feudo (GDD
+ * §5.4; ADR 0018, decisão 18). A ficha de cada um está em `masters`. O id fica gravado no estado
+ * (`settlement.masters[].masterId`): mudar um deles pede passo de migração.
+ */
+export const MASTER_IDS = ['odo', 'berta', 'gil', 'ximena'] as const;
+export type MasterId = (typeof MASTER_IDS)[number];
+
+/**
  * Os modelos de candidato que a Taverna oferece (GDD §9.1; ADR 0017, "Modelos de candidato da
  * Taverna"), **na ordem do sorteio**. A ficha de cada um está em `tavernCandidates`. O id fica
  * gravado no estado (`guild.tavernOffers[].templateId`): mudar um deles pede passo de migração.

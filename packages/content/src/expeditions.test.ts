@@ -688,7 +688,8 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
           continue;
         }
         // V3D-T2: além dos recursos, um item, um destino revelado, um tile limpo e um cativo solto.
-        const known = ['resources', 'item', 'reveals', 'clearsTile', 'rescues'];
+        // V3E-T3: um Mestre com nome.
+        const known = ['resources', 'item', 'reveals', 'clearsTile', 'rescues', 'master'];
         expect(Object.keys(node.rewards).filter((key) => !known.includes(key))).toEqual([]);
       }
     }
