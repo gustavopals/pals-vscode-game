@@ -1133,7 +1133,9 @@ test.describe('o retorno com a Guilda (V3F-T3)', () => {
     const first = await world.open(context);
     await playNow(first);
     await world.raise('townHall', 3);
-    await world.raise('guild', 1);
+    // A Guilda no nível 2 sustenta duas expedições: a encruzilhada de Bia ocupa uma, a Patrulha
+    // de Aldo fica com a outra (no nível 1 só há uma, e a Patrulha ficaria trancada).
+    await world.raise('guild', 2);
     await world.raise('market', 2);
     await world.hero('Bia', { level: 10 });
     await world.hero('Aldo', { level: 10 });
@@ -1145,7 +1147,7 @@ test.describe('o retorno com a Guilda (V3F-T3)', () => {
     await world.passTime(MINUTE, first);
     expect((await serverView(first, request)).pendingDecisions).toHaveLength(1);
 
-    // Aldo parte em Patrulha, pela tela: a única equipe que o feudo ainda pode mandar.
+    // Aldo parte em Patrulha, pela tela: a segunda equipe que o feudo pode mandar.
     await first.getByRole('tab', { name: 'Guilda' }).click();
     const guildPanel = first.getByRole('tabpanel', { name: 'Guilda' });
     const patrol = guildPanel
