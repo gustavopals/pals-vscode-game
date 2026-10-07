@@ -65,6 +65,9 @@ export const EVENT_TYPES = [
   'threatTileRestored',
   'marketTraded',
   'marketPriceSwing',
+  'caravanSent',
+  'caravanArrived',
+  'caravanAmbushed',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -294,6 +297,15 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o senhor de {feudo} negociou no Mercado: {quantidade} de {recurso}, por {preco} de ouro.',
   marketPriceSwing:
     'No {dia}º dia {daEstacao}, o preço de {recurso} mudou muito no Mercado de {feudo}.',
+  // As caravanas (GDD §5.9; ADR 0018, decisão 17). A partida sem escolta é a frase daqui; a
+  // escoltada tem a dela em `caravanTemplates`. A chegada é uma linha só: a da venda inteira ou
+  // a da emboscada, que diz o que se perdeu e o que o resto rendeu.
+  caravanSent:
+    'No {dia}º dia {daEstacao}, uma caravana deixou {feudo} rumo a {destino}, com {quantidade} de {recurso}. Vai sem escolta.',
+  caravanArrived:
+    'No {dia}º dia {daEstacao}, a caravana de {feudo} chegou a {destino} e vendeu {quantidade} de {recurso}, por {preco} de ouro.',
+  caravanAmbushed:
+    'No {dia}º dia {daEstacao}, a caravana de {feudo} caiu em uma emboscada a caminho de {destino}: levaram {perda}. O que restou, {quantidade} de {recurso}, foi vendido por {preco} de ouro.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -312,6 +324,19 @@ export const marketTemplates = {
   low: 'No {dia}º dia {daEstacao}, sobrou {recurso} nas bancas do Mercado de {feudo}: o preço caiu muito abaixo do costume.',
 } as const;
 export type MarketTemplate = keyof typeof marketTemplates;
+
+/**
+ * As frases das caravanas que mudam com o caso (ADR 0018, decisão 17): `escorted` é a partida
+ * com um herói de escolta ({heroi}), e `escortedArrival`, a chegada dela, que devolve o herói ao
+ * feudo. {quantidade} são as unidades, {destino}, para onde ela vai, e {preco}, o ouro da venda.
+ */
+export const caravanTemplates = {
+  escorted:
+    'No {dia}º dia {daEstacao}, uma caravana deixou {feudo} rumo a {destino}, com {quantidade} de {recurso}. {heroi} vai de escolta.',
+  escortedArrival:
+    'No {dia}º dia {daEstacao}, a caravana de {feudo} chegou a {destino} e vendeu {quantidade} de {recurso}, por {preco} de ouro. {heroi}, que a escoltava, está de volta.',
+} as const;
+export type CaravanTemplate = keyof typeof caravanTemplates;
 
 /**
  * O ferimento de um herói é o mesmo evento com uma frase por caso (ADR 0017, decisão 8): leve,

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
+import { caravanTexts } from './caravans';
 import {
+  caravanTemplates,
   CHRONICLE_PLACEHOLDERS,
   cutRewardTemplates,
   EVENT_TYPES,
@@ -435,6 +437,46 @@ const ONE = { num: 1, den: 1 };
  *   cada preço-base (o motor compara inteiros);
  * - o fator de uma estação é uma fração positiva de um recurso que o Mercado negocia.
  */
+/**
+ * As caravanas (ADR 0018, decisão 17). O que a forma garante, além dos tipos:
+ *
+ * - o preço da caravana é **maior** que o de venda do dia (é o prêmio da espera e do risco);
+ * - os lugares não diminuem com o nível, não há lugar abaixo de `requiresLevel` e há a partir
+ *   dele;
+ * - a chance de emboscada fica entre o piso e a base, e o piso é maior que zero: sem escolta o
+ *   risco nunca some;
+ * - a emboscada leva uma parte da carga, nunca tudo.
+ */
+const caravan = z
+  .strictObject({
+    requiresLevel: positiveInt,
+    maxUnits: positiveInt,
+    tripMs: positiveInt,
+    priceRatio: ratio.refine(
+      (value) => below(ONE, value),
+      'caravana que não paga mais que a venda',
+    ),
+    slotsByLevel: z.array(z.number().int().nonnegative()).min(1),
+    ambush: z
+      .strictObject({
+        basePercent: positiveInt.max(100),
+        perWatchtowerLevel: positiveInt,
+        floorPercent: positiveInt.max(100),
+        lossRatio: ratio.refine((value) => below(value, ONE), 'emboscada que leva a carga inteira'),
+      })
+      .refine(({ basePercent, floorPercent }) => floorPercent <= basePercent, 'piso acima da base'),
+  })
+  .refine(
+    ({ requiresLevel, slotsByLevel }) =>
+      requiresLevel <= slotsByLevel.length &&
+      slotsByLevel.every(
+        (slots, index) =>
+          (index + 1 < requiresLevel ? slots === 0 : slots > 0) &&
+          (index === 0 || slots >= (slotsByLevel[index - 1] ?? 0)),
+      ),
+    'lugares de caravana fora de ordem com o nível do Mercado',
+  );
+
 const market = z
   .strictObject({
     resources: z
@@ -462,6 +504,7 @@ const market = z
       low: ratio.refine((value) => below(value, ONE), 'marca de baixo que não fica abaixo da base'),
       high: ratio.refine((value) => below(ONE, value), 'marca de cima que não fica acima da base'),
     }),
+    caravan,
   })
   .refine(
     ({ walk, swing }) => below(walk.floor, swing.low) && below(swing.high, walk.ceiling),
@@ -762,6 +805,31 @@ export const MarketTemplatesSchema = z.strictObject(
       ),
     ]),
   ),
+);
+
+/**
+ * As frases das caravanas que mudam com o caso: todas dizem a carga e o destino; as da escolta,
+ * quem escolta; a da chegada, por quanto ouro.
+ */
+export const CaravanTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    Object.keys(caravanTemplates).map((key) => [
+      key,
+      chronicleTemplate.refine(
+        (template) =>
+          ['{quantidade}', '{recurso}', '{destino}', '{heroi}'].every((marker) =>
+            template.includes(marker),
+          ) &&
+          (key !== 'escortedArrival' || template.includes('{preco}')),
+        'frase de caravana sem o que promete',
+      ),
+    ]),
+  ),
+);
+
+/** As frases das caravanas na tela: nenhum número de regra escrito, só lacunas. */
+export const CaravanTextsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(caravanTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
 );
 
 /**

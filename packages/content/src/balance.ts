@@ -433,6 +433,36 @@ export type EquipmentDef = {
 };
 
 /**
+ * As caravanas (GDD §5.9; ADR 0018, decisão 17): só venda, de um recurso, com o preço fixado no
+ * envio. A viagem é tempo de jogo (ADR 0017, decisão 1) e escala com o ritmo. A carga não conta
+ * no volume diário do Mercado.
+ */
+export type CaravanDef = {
+  /** O nível do Mercado a partir do qual uma caravana parte. */
+  readonly requiresLevel: number;
+  /** O máximo de unidades que uma caravana leva. */
+  readonly maxUnits: number;
+  /** Quanto dura a viagem, em ms de jogo. */
+  readonly tripMs: number;
+  /** O preço por unidade é o de venda do dia vezes esta fração, fixado no envio. */
+  readonly priceRatio: Ratio;
+  /** Quantas caravanas ficam na estrada ao mesmo tempo, por nível do Mercado, a partir do 1. */
+  readonly slotsByLevel: readonly number[];
+  /**
+   * A emboscada, sorteada na chegada e só para a caravana sem escolta: a chance, em pontos
+   * percentuais, é `basePercent` menos `perWatchtowerLevel` por nível da Torre de Vigia, nunca
+   * menos que `floorPercent`. A emboscada leva `lossRatio` da carga, arredondada para baixo; o
+   * resto é vendido.
+   */
+  readonly ambush: {
+    readonly basePercent: number;
+    readonly perWatchtowerLevel: number;
+    readonly floorPercent: number;
+    readonly lossRatio: Ratio;
+  };
+};
+
+/**
  * O Mercado (GDD §5.9; ADR 0018, decisão 16). Os preços são **milésimos de ouro por unidade**,
  * sempre inteiros. O dia do Mercado é o dia de jogo (ADR 0017, decisão 1): preço e volume mudam
  * na virada, e tudo aqui escala com o ritmo. O custo e o prazo da obra estão em
@@ -468,6 +498,8 @@ export type MarketDef = {
    * notícia.
    */
   readonly swing: { readonly low: Ratio; readonly high: Ratio };
+  /** As caravanas (ADR 0018, decisão 17): vender longe, por mais, com risco na estrada. */
+  readonly caravan: CaravanDef;
 };
 
 export type Balance = {
@@ -916,5 +948,20 @@ export const balance: Balance = {
     },
     seasonal: { food: { autumn: { num: 13, den: 10 }, winter: { num: 13, den: 10 } } },
     swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
+    // ADR 0018, decisão 17. Uma caravana por vez a partir do Mercado Nv2; duas a partir do Nv4.
+    // Com a Torre no nível 2 a conta daria zero: o piso de 2% mantém a escolha da escolta.
+    caravan: {
+      requiresLevel: 2,
+      maxUnits: 300,
+      tripMs: 4 * HOUR_MS,
+      priceRatio: { num: 7, den: 5 },
+      slotsByLevel: [0, 1, 1, 2, 2],
+      ambush: {
+        basePercent: 10,
+        perWatchtowerLevel: 5,
+        floorPercent: 2,
+        lossRatio: { num: 1, den: 2 },
+      },
+    },
   },
 };

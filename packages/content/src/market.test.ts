@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   balance,
   buildings,
+  caravanTemplates,
+  caravanTexts,
   CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,
   DIFFICULTY_IDS,
@@ -13,7 +15,13 @@ import {
   SEASON_IDS,
   TRADE_DIRECTION_IDS,
 } from './index';
-import { BalanceSchema, BuildingsSchema, MarketTemplatesSchema } from './schemas';
+import {
+  BalanceSchema,
+  BuildingsSchema,
+  CaravanTemplatesSchema,
+  CaravanTextsSchema,
+  MarketTemplatesSchema,
+} from './schemas';
 
 describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
   const { market, storage, difficulties, construction } = balance;
@@ -101,6 +109,7 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
       },
       seasonal: { food: { autumn: { num: 13, den: 10 }, winter: { num: 13, den: 10 } } },
       swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
+      caravan: market.caravan,
     });
     // O ouro não se negocia por ouro, e o que se negocia é recurso do feudo.
     expect(market.resources).not.toContain('gold');
@@ -206,6 +215,99 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
     ).toBe(false);
     expect(
       MarketTemplatesSchema.safeParse({ ...marketTemplates, high: 'O preço subiu.' }).success,
+    ).toBe(false);
+  });
+});
+
+describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
+  const { caravan } = balance.market;
+  const broken = (edit: (draft: typeof caravan) => unknown) => {
+    const next = edit(caravan) ?? caravan;
+    return BalanceSchema.safeParse({ ...balance, market: { ...balance.market, caravan: next } })
+      .success;
+  };
+
+  it('os números são os do ADR 0018: Mercado Nv2, 300 unidades, 4 h de jogo, × 7/5, um lugar e dois a partir do Nv4', () => {
+    expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
+    expect(caravan).toEqual({
+      requiresLevel: 2,
+      maxUnits: 300,
+      tripMs: 4 * 60 * 60_000,
+      priceRatio: { num: 7, den: 5 },
+      slotsByLevel: [0, 1, 1, 2, 2],
+      ambush: {
+        basePercent: 10,
+        perWatchtowerLevel: 5,
+        floorPercent: 2,
+        lossRatio: { num: 1, den: 2 },
+      },
+    });
+    // Um lugar por nível do Mercado, do 1 ao máximo.
+    expect(caravan.slotsByLevel).toHaveLength(buildings.market.maxLevel);
+    // A viagem dura dois dias de jogo: o preço do Mercado anda duas vezes com a carga na
+    // estrada, e é por isso que o da caravana fica fixado no envio.
+    expect(caravan.tripMs).toBe(2 * balance.calendar.dayMs);
+  });
+
+  it('a chance de emboscada é 10%, 5% e 2% com a Torre de Vigia nos níveis 0, 1 e 2: o piso segura o risco no nível máximo', () => {
+    const { basePercent, perWatchtowerLevel, floorPercent } = caravan.ambush;
+    const at = (level: number) => Math.max(floorPercent, basePercent - perWatchtowerLevel * level);
+    expect([0, 1, 2].map(at)).toEqual([10, 5, 2]);
+    expect(buildings.watchtower.maxLevel).toBe(2);
+    expect(at(buildings.watchtower.maxLevel)).toBeGreaterThan(0);
+  });
+
+  it('a forma recusa a caravana que não paga mais que a venda, o lugar fora do nível, o risco sem piso e a perda total', () => {
+    expect(broken(() => undefined)).toBe(true);
+    expect(broken((draft) => ({ ...draft, priceRatio: { num: 1, den: 1 } }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, slotsByLevel: [1, 1, 1, 2, 2] }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, slotsByLevel: [0, 0, 1, 2, 2] }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, slotsByLevel: [0, 2, 1, 2, 2] }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, requiresLevel: 6 }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, ambush: { ...draft.ambush, floorPercent: 0 } }))).toBe(
+      false,
+    );
+    expect(broken((draft) => ({ ...draft, ambush: { ...draft.ambush, floorPercent: 11 } }))).toBe(
+      false,
+    );
+    expect(
+      broken((draft) => ({ ...draft, ambush: { ...draft.ambush, lossRatio: { num: 1, den: 1 } } })),
+    ).toBe(false);
+    expect(broken((draft) => ({ ...draft, maxUnits: 0 }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, tripMs: 0 }))).toBe(false);
+  });
+
+  it('a Crônica tem as três linhas da caravana e as duas da escolta, só com marcadores conhecidos', () => {
+    expect(EVENT_TYPES).toEqual(
+      expect.arrayContaining(['caravanSent', 'caravanArrived', 'caravanAmbushed']),
+    );
+    expect(CaravanTemplatesSchema.safeParse(caravanTemplates).error).toBeUndefined();
+    const known = new Set<string>(CHRONICLE_PLACEHOLDERS);
+    const lines = [
+      chronicleTemplates.caravanSent,
+      chronicleTemplates.caravanArrived,
+      chronicleTemplates.caravanAmbushed,
+      ...Object.values(caravanTemplates),
+    ];
+    for (const line of lines) {
+      for (const [, marker] of line.matchAll(/\{([^}]*)\}/g)) {
+        expect(known.has(marker ?? ''), `${marker} em "${line}"`).toBe(true);
+      }
+      expect(line).toContain('{destino}');
+      expect(line).toContain('{recurso}');
+      // Nenhum número de regra escrito na frase.
+      expect(line.replace(/\{[^}]*\}/g, '')).not.toMatch(/[0-9]/);
+    }
+    expect(chronicleTemplates.caravanAmbushed).toContain('{perda}');
+    expect(chronicleTemplates.caravanArrived).toContain('{preco}');
+    expect(chronicleTemplates.caravanSent).not.toContain('{heroi}');
+  });
+
+  it('as frases da tela não escrevem número nenhum, e o destino é Porto do Rio', () => {
+    expect(CaravanTextsSchema.safeParse(caravanTexts).error).toBeUndefined();
+    expect(caravanTexts.destination).toBe('Porto do Rio');
+    expect(
+      CaravanTextsSchema.safeParse({ ...caravanTexts, loss: 'Leva 50% da carga.' }).success,
     ).toBe(false);
   });
 });

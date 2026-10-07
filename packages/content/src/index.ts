@@ -11,6 +11,7 @@ export type {
   ExpeditionsDef,
   HeroesDef,
   InjuriesDef,
+  CaravanDef,
   MarketDef,
   MoraleBandDef,
   MoraleDef,
@@ -30,7 +31,9 @@ export { buildings } from './buildings';
 export type { BuildingDef } from './buildings';
 export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
 export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
+export { caravanTexts } from './caravans';
 export {
+  caravanTemplates,
   CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,
   coldReliefs,
@@ -50,6 +53,7 @@ export {
   wageArrearsReliefs,
 } from './chronicle';
 export type {
+  CaravanTemplate,
   ChroniclePlaceholder,
   ColdRelief,
   FoundingEventType,
