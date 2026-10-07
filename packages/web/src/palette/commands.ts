@@ -108,7 +108,6 @@ import {
   tradeLine,
   tradeTotal,
   TRENDS,
-  unitPrice,
 } from '../ui/market';
 import {
   CONSTRUCTIONS_ANCHOR,

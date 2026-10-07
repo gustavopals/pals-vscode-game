@@ -495,7 +495,14 @@ describe('abertura da página', () => {
     const withGame = make({ signedIn: true });
     await withGame.controller.start('settings');
     expect(withGame.controller.route).toBe('settings');
-    expect(withGame.controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'settings']);
+    expect(withGame.controller.tabs).toEqual([
+      'today',
+      'fief',
+      'council',
+      'guild',
+      'market',
+      'settings',
+    ]);
 
     const today = make({ signedIn: true });
     await today.controller.start('today');

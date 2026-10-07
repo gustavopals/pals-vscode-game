@@ -655,6 +655,8 @@ function mastersNode(view: ViewState): TreeNode[] {
             .join('\n'),
           icon: MASTER_ICON,
           contextValue: 'lords.master',
+          // O que o Mestre soma e o que a adaptação custa, antes do clique em "Mover".
+          actionHints: { 'lords.assignMaster': view.workersRules.masterText },
           command: open,
         })),
         ...mastersWaiting.names.map((name): TreeNode => ({

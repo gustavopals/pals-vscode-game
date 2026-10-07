@@ -56,9 +56,9 @@ export function goldText(milli: number): string {
   return gold.format(milli / 1000);
 }
 
-/** "1,3 ▲": o preço de compra e a marca de tendência, para a árvore e as dicas. */
-export function priceMark(row: PriceRow): string {
-  return `${goldText(row.buy)} ${TRENDS[row.trend].mark}`;
+/** "1,3 ▲": o preço de compra, como o servidor o escreve, e a marca de tendência. */
+export function priceMark(row: Pick<PriceRow, 'buyText' | 'trend'>): string {
+  return `${row.buyText} ${TRENDS[row.trend].mark}`;
 }
 
 /** O preço de um lado da tabela: o de compra ou o de venda. */
