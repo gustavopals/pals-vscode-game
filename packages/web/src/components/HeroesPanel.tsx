@@ -81,6 +81,7 @@ function HeroSheet(props: {
       <p id={about} class="hero-sheet muted">
         <Explained why={hero.powerBreakdown}>Poder {formatNumber(hero.power)}</Explained> ·{' '}
         {xpLine(hero)} · Soldo {wageOf(hero.wagePerHour)} · {hero.statusText}
+        {hero.wageNextLevelText === null ? null : <> · {hero.wageNextLevelText}</>}
         {hero.discontent ? (
           <span class="warning">
             {' '}

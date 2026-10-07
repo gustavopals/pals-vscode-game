@@ -150,6 +150,12 @@ describe('painel dos heróis (GDD §9.1 e §13.1)', () => {
     }
     expect(sheet).toContain('Poder 42');
     expect(sheet).toContain('XP 0/100 · Soldo 6/h · No feudo');
+    // O soldo cresce com o nível: a ficha diz quanto ele sobe, na frase do servidor.
+    for (const hero of guildPaidView.guild.heroes) {
+      if (hero.wageNextLevelText !== null) {
+        expect(sheet).toContain(hero.wageNextLevelText);
+      }
+    }
     expect(sheet).toContain('Poder 37,8');
     expect(sheet).toContain('XP 0/282');
     // Com equipe, a frase do alto diz que ainda não há para onde mandá-la.
