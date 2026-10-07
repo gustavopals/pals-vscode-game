@@ -11,7 +11,8 @@ import {
   slotsAtLevel,
 } from './caravans';
 import { decimal, fillText, priceText, thousands } from './format';
-import { marketLevel, quote } from './market';
+import { marketLevel, quote, stockAboveReserve } from './market';
+import { reserveView } from './surplusView';
 import { watchtowerLevel } from './threat';
 import type {
   Caravan,
@@ -118,6 +119,8 @@ function resourceView(state: GameState, resource: MarketResourceId): CaravanReso
     unitPriceText: priceText(unitPrice),
     breakdown: `${priceText(unitPrice)} = ${priceText(quote(state, resource).sell)} (venda de hoje) × ${ratioText}.`,
     maxSendable: maxSendable(state, resource),
+    surplusSendable: Math.min(maxSendable(state, resource), stockAboveReserve(state, resource)),
+    ...reserveView(state, resource),
   };
 }
 

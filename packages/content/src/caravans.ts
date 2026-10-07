@@ -4,6 +4,22 @@
  * `balance.market.caravan`. As linhas da Crônica estão em `chronicle.ts`. Rascunho que o autor
  * não leu.
  */
+/**
+ * As frases do excedente na tela do Mercado e das caravanas (pendência E-43; revisão da Fase E):
+ * o que o feudo guarda antes de vender, com lacunas que o motor preenche. `{reserva}` e
+ * `{recurso}` vêm do estado; `{motivos}` é a lista das razões abaixo, na ordem.
+ */
+export const marketTexts = {
+  /** Nada a guardar: o atalho pode vender o que o estoque tem. */
+  surplusFree: 'O feudo não guarda {recurso} agora: o que há no estoque pode sair.',
+  /** O que fica de fora do excedente, e por quê. */
+  surplusKept: 'O feudo guarda {reserva} de {recurso}: {motivos}.',
+  /** As razões, para o meio da frase. */
+  reasonFoodReserve: 'a comida guardada que sustenta a moral',
+  reasonFirewood: 'a lenha do resto do inverno',
+  reasonPlanned: 'o custo das obras automáticas',
+} as const;
+
 export const caravanTexts = {
   /** Para onde toda caravana vai: é só narrativa. */
   destination: 'Porto do Rio',

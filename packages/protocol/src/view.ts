@@ -706,6 +706,12 @@ const MarketSchema = z.strictObject({
     z.strictObject({
       resource: z.enum(MARKET_RESOURCE_IDS),
       label: z.string(),
+      /**
+       * O preço de compra e o de venda de hoje, em **milésimos de ouro por unidade**, inteiros.
+       * **Contrato (pendência E-43):** uma ordem de `n` unidades custa ou paga exatamente
+       * `n × buy` ou `n × sell` milésimos de ouro, sem outro arredondamento; a tela pode
+       * mostrar esse produto como o total, e ele é o que o motor cobra.
+       */
       buy: z.number(),
       sell: z.number(),
       buyText: z.string(),
@@ -719,6 +725,14 @@ const MarketSchema = z.strictObject({
       maxBuyable: z.number(),
       /** A maior venda que seria aceita agora: o volume e o estoque. */
       maxSellable: z.number(),
+      /**
+       * Quanto dá para vender hoje sem tirar do feudo o que ele guarda: o menor entre
+       * `maxSellable` e o estoque acima de `reserve`. É o número do atalho "Vender até N".
+       */
+      surplusSellable: z.number(),
+      /** O que o feudo guarda deste recurso, em unidades, e a frase que diz por quê. */
+      reserve: z.number(),
+      surplusText: z.string(),
       buyBlockedReason: z.string().nullable(),
       sellBlockedReason: z.string().nullable(),
     }),
@@ -774,12 +788,20 @@ const MarketSchema = z.strictObject({
       z.strictObject({
         resource: z.enum(MARKET_RESOURCE_IDS),
         label: z.string(),
-        /** O preço por unidade que a caravana fixaria agora, em milésimos de ouro. */
+        /**
+         * O preço por unidade que a caravana fixaria agora, em milésimos de ouro, inteiro.
+         * **Contrato (pendência E-43):** a carga de `n` unidades que chega inteira rende
+         * exatamente `n × unitPrice` milésimos de ouro, sem outro arredondamento.
+         */
         unitPrice: z.number(),
         unitPriceText: z.string(),
         breakdown: z.string(),
         /** A maior carga que seria aceita agora; 0 sem lugar na estrada. */
         maxSendable: z.number(),
+        /** O menor entre `maxSendable` e o estoque acima de `reserve`: o que sobra para mandar. */
+        surplusSendable: z.number(),
+        reserve: z.number(),
+        surplusText: z.string(),
       }),
     ),
     eligibleEscortIds: z.array(z.string()),

@@ -1874,6 +1874,9 @@ describe('ViewStateSchema', () => {
       remainingToday: 200,
       maxBuyable: 0,
       maxSellable: 200,
+      surplusSellable: 200,
+      reserve: 0,
+      surplusText: 'O feudo não guarda madeira agora.',
       buyBlockedReason: 'A compra não cabe.',
       sellBlockedReason: null,
     };

@@ -1830,6 +1830,18 @@ export type MarketPriceView = {
   maxBuyable: number;
   /** A maior venda que seria aceita agora: o volume e o estoque. */
   maxSellable: number;
+  /**
+   * Quanto dá para vender **hoje** sem tirar do feudo o que ele guarda (pendência E-43): o menor
+   * entre `maxSellable` e o estoque acima de `reserve`. É o número do atalho "Vender até N".
+   */
+  surplusSellable: number;
+  /**
+   * O que o feudo guarda deste recurso, em unidades: a comida guardada que sustenta a moral, a
+   * lenha do resto do inverno em curso e o custo das obras planejadas com início automático.
+   */
+  reserve: number;
+  /** "O feudo guarda 180 de comida: a comida guardada que sustenta a moral." */
+  surplusText: string;
   /** Por que nem uma unidade pode ser comprada agora; `null` quando pode. */
   buyBlockedReason: string | null;
   /** Por que nem uma unidade pode ser vendida agora; `null` quando pode. */
@@ -1873,6 +1885,15 @@ export type CaravanResourceView = {
   breakdown: string;
   /** A maior carga que seria aceita agora: o teto da caravana e o estoque; 0 sem lugar na estrada. */
   maxSendable: number;
+  /**
+   * Quanto dá para mandar agora sem tirar do feudo o que ele guarda (pendência E-43): o menor
+   * entre `maxSendable` e o estoque acima de `reserve`. A reserva é a mesma do balcão.
+   */
+  surplusSendable: number;
+  /** O que o feudo guarda deste recurso, em unidades (a de `market.prices[].reserve`). */
+  reserve: number;
+  /** "O feudo guarda 180 de comida: a comida guardada que sustenta a moral." */
+  surplusText: string;
 };
 
 /**

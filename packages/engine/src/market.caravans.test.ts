@@ -12,7 +12,7 @@ import {
   nextCaravanArrivalAt,
   slotsAtLevel,
 } from './caravans';
-import { priceBounds, quote } from './market';
+import { priceBounds, quote, stockAboveReserve } from './market';
 import { currentShape } from './migrations';
 import { cloneState } from './state';
 import {
@@ -955,7 +955,23 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
         draft.settlement.resources.stone = 120_900;
       }),
     );
-    const { caravanOffer } = view(state).market;
+    const { caravanOffer, prices } = view(state).market;
+    // O excedente tem teste próprio, abaixo: aqui basta que venha.
+    const SURPLUS = {
+      surplusSendable: expect.any(Number) as number,
+      reserve: expect.any(Number) as number,
+      surplusText: expect.any(String) as string,
+    };
+    // A reserva é a mesma do balcão, e o que sobra para mandar nunca passa do que a ordem aceita.
+    for (const row of caravanOffer.resources) {
+      const counter = prices.find((entry) => entry.resource === row.resource);
+      expect(row.reserve).toBe(counter?.reserve);
+      expect(row.surplusText).toBe(counter?.surplusText);
+      expect(row.surplusSendable).toBe(
+        Math.min(row.maxSendable, stockAboveReserve(state, row.resource)),
+      );
+      expect(row.surplusSendable).toBeLessThanOrEqual(row.maxSendable);
+    }
     expect(caravanOffer).toMatchObject({
       available: true,
       blockedReason: null,
@@ -976,6 +992,7 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
         unitPriceText: '0,977',
         breakdown: '0,977 = 0,85 (venda de hoje) × 1,15.',
         maxSendable: 300,
+        ...SURPLUS,
       },
       {
         resource: 'wood',
@@ -984,6 +1001,7 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
         unitPriceText: '1,173',
         breakdown: '1,173 = 1,02 (venda de hoje) × 1,15.',
         maxSendable: 300,
+        ...SURPLUS,
       },
       {
         resource: 'stone',
@@ -992,6 +1010,7 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
         unitPriceText: '1,955',
         breakdown: '1,955 = 1,70 (venda de hoje) × 1,15.',
         maxSendable: 120,
+        ...SURPLUS,
       },
     ]);
     // O preço e o máximo da visão são exatamente o que a ordem cumpre.

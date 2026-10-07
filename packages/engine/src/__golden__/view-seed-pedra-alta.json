@@ -30043,6 +30043,9 @@
           "remainingToday": 200,
           "maxBuyable": 200,
           "maxSellable": 200,
+          "surplusSellable": 200,
+          "reserve": 120,
+          "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -30060,6 +30063,9 @@
           "remainingToday": 80,
           "maxBuyable": 80,
           "maxSellable": 80,
+          "surplusSellable": 80,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -30077,6 +30083,9 @@
           "remainingToday": 200,
           "maxBuyable": 200,
           "maxSellable": 200,
+          "surplusSellable": 200,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         }
@@ -31093,6 +31102,9 @@
           "remainingToday": 50,
           "maxBuyable": 50,
           "maxSellable": 50,
+          "surplusSellable": 50,
+          "reserve": 120,
+          "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -31110,6 +31122,9 @@
           "remainingToday": 200,
           "maxBuyable": 150,
           "maxSellable": 200,
+          "surplusSellable": 200,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -31127,6 +31142,9 @@
           "remainingToday": 165,
           "maxBuyable": 165,
           "maxSellable": 165,
+          "surplusSellable": 165,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         }
@@ -32155,6 +32173,9 @@
           "remainingToday": 400,
           "maxBuyable": 400,
           "maxSellable": 400,
+          "surplusSellable": 400,
+          "reserve": 120,
+          "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -32172,6 +32193,9 @@
           "remainingToday": 400,
           "maxBuyable": 254,
           "maxSellable": 400,
+          "surplusSellable": 400,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -32189,6 +32213,9 @@
           "remainingToday": 400,
           "maxBuyable": 400,
           "maxSellable": 400,
+          "surplusSellable": 400,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         }
@@ -32228,7 +32255,10 @@
             "unitPrice": 989,
             "unitPriceText": "0,989",
             "breakdown": "0,989 = 0,86 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 120,
+            "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral."
           },
           {
             "resource": "wood",
@@ -32236,7 +32266,10 @@
             "unitPrice": 1183,
             "unitPriceText": "1,183",
             "breakdown": "1,183 = 1,029 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 0,
+            "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair."
           },
           {
             "resource": "stone",
@@ -32244,7 +32277,10 @@
             "unitPrice": 1967,
             "unitPriceText": "1,967",
             "breakdown": "1,967 = 1,711 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 0,
+            "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair."
           }
         ],
         "eligibleEscortIds": []
@@ -33335,6 +33371,9 @@
           "remainingToday": 800,
           "maxBuyable": 760,
           "maxSellable": 800,
+          "surplusSellable": 719,
+          "reserve": 120,
+          "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         },
@@ -33352,6 +33391,9 @@
           "remainingToday": 800,
           "maxBuyable": 0,
           "maxSellable": 800,
+          "surplusSellable": 800,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair.",
           "buyBlockedReason": "A compra não cabe: o Armazém guarda 2.800 de madeira, e está cheio.",
           "sellBlockedReason": null
         },
@@ -33369,6 +33411,9 @@
           "remainingToday": 800,
           "maxBuyable": 800,
           "maxSellable": 800,
+          "surplusSellable": 800,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
         }
@@ -33421,7 +33466,10 @@
             "unitPrice": 1270,
             "unitPriceText": "1,27",
             "breakdown": "1,27 = 1,105 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 120,
+            "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral."
           },
           {
             "resource": "wood",
@@ -33429,7 +33477,10 @@
             "unitPrice": 1173,
             "unitPriceText": "1,173",
             "breakdown": "1,173 = 1,02 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 0,
+            "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair."
           },
           {
             "resource": "stone",
@@ -33437,7 +33488,10 @@
             "unitPrice": 1955,
             "unitPriceText": "1,955",
             "breakdown": "1,955 = 1,70 (venda de hoje) × 1,15.",
-            "maxSendable": 0
+            "maxSendable": 0,
+            "surplusSendable": 0,
+            "reserve": 0,
+            "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair."
           }
         ],
         "eligibleEscortIds": [

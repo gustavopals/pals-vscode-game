@@ -5,6 +5,7 @@ import { advanceTo } from './advance';
 import {
   dailyVolume,
   gameDay,
+  marketReserve,
   maxBuyable,
   maxSellable,
   priceBounds,
@@ -12,10 +13,12 @@ import {
   quote,
   quoteOf,
   remainingToday,
+  surplusSellable,
   walkedPrice,
 } from './market';
 import { turnMarket } from './marketTurn';
 import { priceText } from './marketView';
+import { planCost } from './planned';
 import { currentShape } from './migrations';
 import { cloneState } from './state';
 import { storageCapacity } from './storage';
@@ -851,6 +854,10 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
       // O Armazém do canteiro está cheio de madeira.
       maxBuyable: 0,
       maxSellable: 200,
+      // Fora do inverno e sem obra automática, o feudo não guarda madeira (E-43).
+      surplusSellable: 200,
+      reserve: 0,
+      surplusText: 'O feudo não guarda madeira agora: o que há no estoque pode sair.',
       buyBlockedReason: 'A compra não cabe: o Armazém guarda 2.800 de madeira, e está cheio.',
       sellBlockedReason: null,
     });
@@ -957,6 +964,84 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
     );
     // 77,777 de ouro a 2,037 por unidade: 38 unidades.
     expect(priceRow(broke, 'stone').maxBuyable).toBe(38);
+  });
+
+  it('o excedente: quanto dá para vender hoje sem tirar do feudo a comida guardada, a lenha do inverno e as obras automáticas (E-43)', () => {
+    const base = (edit: (draft: GameState) => void, atMs = 3 * DAY) =>
+      marketStall(atMs, (draft) => {
+        draft.settlement.population.villagers = 5;
+        draft.settlement.recruitmentQueue = [];
+        draft.settlement.planned = [];
+        edit(draft);
+      });
+    // Comida: cinco bocas guardam um dia real de consumo (24 h de jogo × 1 por hora): 120.
+    const fed = base((draft) => (draft.settlement.resources.food = 500_000));
+    expect(marketReserve(fed, 'food')).toEqual({ units: 120, reasons: ['foodReserve'] });
+    expect(priceRow(fed, 'food')).toMatchObject({
+      maxSellable: 200,
+      // 380 acima da reserva, e o volume do dia é 200.
+      surplusSellable: 200,
+      reserve: 120,
+      surplusText: 'O feudo guarda 120 de comida: a comida guardada que sustenta a moral.',
+    });
+    const tight = base((draft) => (draft.settlement.resources.food = 150_999));
+    expect(priceRow(tight, 'food')).toMatchObject({ maxSellable: 150, surplusSellable: 30 });
+    const short = base((draft) => (draft.settlement.resources.food = 100_000));
+    expect(priceRow(short, 'food')).toMatchObject({ maxSellable: 100, surplusSellable: 0 });
+    // Vender o excedente inteiro não toca a comida guardada.
+    const sold = accept(tight, tradeOrder(tight, 'food', 'sell', 30)).state;
+    expect(sold.settlement.resources.food).toBeGreaterThanOrEqual(120_000);
+    expect(surplusSellable(sold, 'food')).toBe(0);
+    // Madeira e pedra fora do inverno e sem obra automática: nada a guardar.
+    expect(priceRow(fed, 'wood')).toMatchObject({
+      reserve: 0,
+      surplusSellable: priceRow(fed, 'wood').maxSellable,
+      surplusText: 'O feudo não guarda madeira agora: o que há no estoque pode sair.',
+    });
+    // No inverno, a lenha do resto da estação: 5 habitantes queimam 2,5 por hora de jogo, e
+    // faltam 10 dias de jogo (20 h) menos uma hora para a primavera.
+    const cold = base(
+      (draft) => (draft.settlement.resources.wood = 100_000),
+      WINTER + 2 * DAY + HOUR,
+    );
+    const burned = Math.ceil((5 * 0.5 * (10 * 2 - 1) * 1000) / 1000);
+    expect(marketReserve(cold, 'wood')).toEqual({ units: burned, reasons: ['firewood'] });
+    expect(priceRow(cold, 'wood').surplusSellable).toBe(100 - burned);
+    expect(priceRow(cold, 'wood').surplusText).toBe(
+      `O feudo guarda ${burned} de madeira: a lenha do resto do inverno.`,
+    );
+    // A obra automática reserva o custo dela, nos recursos que pede; a manual, não.
+    const planning = base((draft) => {
+      draft.settlement.resources.wood = 300_000;
+      draft.settlement.planned = [
+        { building: 'farm', targetLevel: draft.settlement.buildings.farm + 1, autoStart: true },
+        {
+          building: 'quarry',
+          targetLevel: draft.settlement.buildings.quarry + 1,
+          autoStart: false,
+        },
+      ];
+    });
+    const woodCost =
+      planCost({
+        building: 'farm',
+        targetLevel: planning.settlement.buildings.farm + 1,
+        autoStart: true,
+      }).wood ?? 0;
+    expect(woodCost).toBeGreaterThan(0);
+    expect(woodCost).toBeLessThan(300);
+    expect(marketReserve(planning, 'wood')).toEqual({ units: woodCost, reasons: ['planned'] });
+    expect(priceRow(planning, 'wood')).toMatchObject({
+      surplusSellable: Math.min(200, 300 - woodCost),
+      surplusText: `O feudo guarda ${woodCost} de madeira: o custo das obras automáticas.`,
+    });
+    // O atalho nunca passa do que a ordem aceita.
+    for (const state of [fed, tight, short, cold, planning]) {
+      for (const row of deriveViewState(state, state.lastProcessedAt).market.prices) {
+        expect(row.surplusSellable).toBeLessThanOrEqual(row.maxSellable);
+        expect(row.surplusSellable).toBeGreaterThanOrEqual(0);
+      }
+    }
   });
 
   it('não muda o estado, não sorteia e não dá identificador; `nextEventAt` também não', () => {

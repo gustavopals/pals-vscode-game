@@ -32,7 +32,7 @@ export { buildings } from './buildings';
 export type { BuildingDef } from './buildings';
 export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
 export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
-export { caravanTexts } from './caravans';
+export { caravanTexts, marketTexts } from './caravans';
 export { masters, masterTexts } from './masters';
 export type { MasterDef } from './masters';
 export {

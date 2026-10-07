@@ -12,9 +12,11 @@ import {
   quote,
   remainingToday,
   seasonalFactor,
+  surplusSellable,
   tradeBlock,
   yesterdayQuote,
 } from './market';
+import { reserveView } from './surplusView';
 import type { BuildingId, GameState, MarketPriceView, MarketView } from './types';
 import { realSecondsCeil } from './units';
 
@@ -106,6 +108,8 @@ function priceView(state: GameState, resource: MarketResourceId): MarketPriceVie
     remainingToday: remainingToday(state, resource),
     maxBuyable: maxBuyable(state, resource),
     maxSellable: maxSellable(state, resource),
+    surplusSellable: surplusSellable(state, resource),
+    ...reserveView(state, resource),
     buyBlockedReason: tradeBlock(state, resource, 'buy', 1)?.message ?? null,
     sellBlockedReason: tradeBlock(state, resource, 'sell', 1)?.message ?? null,
   };

@@ -8,12 +8,15 @@ import {
   type TradeDirectionId,
 } from '@lotg/content';
 
-import { DAY_MS, seasonAt } from './clock';
+import { DAY_MS, nextSeasonBoundary, seasonAt } from './clock';
 import { buildingWithArticle } from './construction';
+import { firewoodRate } from './economy';
+import { inhabitants } from './masters';
+import { planCost } from './planned';
 import { reject } from './rejections';
 import { storageCapacity, storagePlace } from './storage';
 import type { GameState, Rejection } from './types';
-import { MILLI } from './units';
+import { HOUR_MS, MILLI } from './units';
 
 /**
  * O Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16): as contas, sem sorteio e sem mudar
@@ -227,6 +230,77 @@ export function tradeBlock(
     });
   }
   return null;
+}
+
+/** Um motivo para o feudo guardar um recurso em vez de vendê-lo, com as unidades de cada um. */
+export type ReserveReason = 'foodReserve' | 'firewood' | 'planned';
+
+/**
+ * O que o feudo guarda de um recurso antes de vender (pendência E-43; revisão da Fase E), em
+ * unidades inteiras, arredondado para cima, e por quê. É a definição mais simples que não tira
+ * do feudo o que ele sabidamente vai usar, feita só de contas que o motor já tem:
+ *
+ * - **comida**: a comida guardada que sustenta a moral (`morale.foodReserve.coverMs` de consumo
+ *   de todas as bocas, com os recrutas a caminho; é a conta de `recruitsKeepingFoodReserve`);
+ * - **madeira**: a lenha do resto **deste** inverno, se é inverno agora (a taxa de agora até a
+ *   virada da estação); fora do inverno, nada: a tela do inverno já avisa da lenha que falta;
+ * - **qualquer um**: o custo das obras planejadas com início automático, que esperam recurso.
+ *
+ * Não é previsão: não conta o que a produção ainda traz nem o que o consumo leva depois do
+ * prazo de cada reserva. Não sorteia e não muda nada.
+ */
+export function marketReserve(
+  state: GameState,
+  resource: MarketResourceId,
+): { units: number; reasons: ReserveReason[] } {
+  const { settlement, lastProcessedAt: now } = state;
+  const reasons: ReserveReason[] = [];
+  // Em milésimos × ms por hora, a escala de `stockBalance`: a divisão fica para o fim.
+  let scaled = 0;
+  if (resource === 'food') {
+    const mouths = inhabitants(state) + settlement.recruitmentQueue.length;
+    const kept =
+      mouths *
+      balance.consumption.foodPerVillagerPerHour *
+      MILLI *
+      balance.morale.foodReserve.coverMs;
+    if (kept > 0) {
+      scaled += kept;
+      reasons.push('foodReserve');
+    }
+  }
+  if (resource === 'wood') {
+    const burned = firewoodRate(state) * (nextSeasonBoundary(now) - now);
+    if (burned > 0) {
+      scaled += burned;
+      reasons.push('firewood');
+    }
+  }
+  let planned = 0;
+  for (const plan of settlement.planned) {
+    if (plan.autoStart) {
+      planned += planCost(plan)[resource] ?? 0;
+    }
+  }
+  if (planned > 0) {
+    reasons.push('planned');
+  }
+  return { units: Math.ceil(scaled / (MILLI * HOUR_MS)) + planned, reasons };
+}
+
+/** O estoque de um recurso acima do que o feudo guarda, em unidades inteiras; nunca negativo. */
+export function stockAboveReserve(state: GameState, resource: MarketResourceId): number {
+  const stock = Math.floor(Math.max(0, state.settlement.resources[resource]) / MILLI);
+  return Math.max(0, stock - marketReserve(state, resource).units);
+}
+
+/**
+ * Quanto de um recurso dá para vender **hoje** sem tirar do feudo o que ele guarda
+ * (`marketReserve`): o menor entre a maior venda que a ordem aceita e o estoque acima da
+ * reserva. É o número do atalho "Vender até N" da tela; nunca passa de `maxSellable`.
+ */
+export function surplusSellable(state: GameState, resource: MarketResourceId): number {
+  return Math.min(maxSellable(state, resource), stockAboveReserve(state, resource));
 }
 
 /** A maior compra que `trade` aceitaria agora: o volume do dia, o ouro do cofre e o lugar no depósito. */
