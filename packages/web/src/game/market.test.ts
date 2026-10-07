@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AccountState } from '../account/accountService';
 import {
+  ambushNotice,
   decideNotifications,
   eventIcon,
   isEssential,
@@ -200,6 +201,22 @@ describe('os avisos (V3E-T4.5)', () => {
       }),
     );
     expect(decided.show.map((entry) => entry.type)).toEqual(['caravanAmbushed']);
+  });
+
+  it('várias emboscadas no mesmo lote são um aviso só, com uma linha para cada', () => {
+    const batch = [
+      event('caravanAmbushed', 'Primeira.'),
+      event('caravanAmbushed', 'Segunda.'),
+      event('caravanAmbushed', 'Terceira.'),
+    ];
+    const decided = decideNotifications(input({ events: batch }));
+    expect(decided.show).toHaveLength(1);
+    expect(ambushNotice(batch)).toEqual({
+      text: '3 caravanas foram emboscadas.',
+      details: ['Primeira.', 'Segunda.', 'Terceira.'],
+    });
+    expect(ambushNotice([batch[0]!])).toEqual({ text: 'Primeira.', details: [] });
+    expect(ambushNotice([])).toBeNull();
   });
 
   it('o Mestre que chegou, com vaga ou à espera, é essencial e sem tom de alarme', () => {

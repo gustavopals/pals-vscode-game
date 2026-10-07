@@ -511,6 +511,30 @@ export function discontentNotice(batch: GameEvent[]): { text: string; details: s
       };
 }
 
+/** O evento é uma caravana emboscada. */
+export function isCaravanAmbush(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === 'caravanAmbushed';
+}
+
+/**
+ * As caravanas emboscadas em um lote, ditas de uma vez: um salto longo com a aba ao fundo traz
+ * mais de uma, e um aviso por caravana gastaria os três da hora. Uma só sai com a frase da
+ * Crônica; várias, com a contagem e uma linha para cada uma, nas frases do servidor. `null`
+ * sem nenhuma no lote.
+ */
+export function ambushNotice(batch: GameEvent[]): { text: string; details: string[] } | null {
+  const [first, ...others] = batch.filter(isCaravanAmbush);
+  if (first === undefined) {
+    return null;
+  }
+  return others.length === 0
+    ? { text: first.text, details: [] }
+    : {
+        text: `${others.length + 1} caravanas foram emboscadas.`,
+        details: [first, ...others].map((event) => event.text),
+      };
+}
+
 /** O evento é um herói que a equipe perdeu em uma expedição: ficou em cativeiro, ou não volta. */
 export function isHeroLoss(event: Pick<GameEvent, 'type'>): boolean {
   return event.type === 'heroCaptured' || event.type === 'heroDied';
@@ -591,6 +615,8 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
       firstLosses.set(lossGroup(event), event);
     }
   }
+  // As emboscadas do mesmo lote também: a primeira fala por todas (`ambushNotice`).
+  const firstAmbush = input.events.find(isCaravanAmbush);
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
@@ -598,6 +624,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
       !(isObjectiveCompleted(event) && event !== firstObjective) &&
       !(isHeroDiscontent(event) && event !== firstDiscontent) &&
+      !(isCaravanAmbush(event) && event !== firstAmbush) &&
       !(isHeroLoss(event) && firstLosses.get(lossGroup(event)) !== event),
   );
   if (input.discreetMode || candidates.length === 0) {
