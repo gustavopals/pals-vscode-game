@@ -2,16 +2,21 @@ import {
   balance,
   buildings,
   type ObjectiveCondition,
+  MARKET_RESOURCE_IDS,
   type ObjectiveDef,
   objectives,
 } from '@lotg/content';
 
 import { seasonAt, seasonWithArticle } from './clock';
 import { constructionOf, ofBuilding, upgradeQuote } from './construction';
+import { destinationBlock } from './expeditions';
 import { sentenceCase } from './format';
+import { canDepart } from './heroes';
+import { marketRequired, surplusSellable } from './market';
 import { describeReward, objectiveProgress } from './objectives';
 import { freeVillagers, recruitmentBlock } from './population';
 import { seasonWatch } from './seasonWatch';
+import { tavernLevel, tavernRequired } from './tavern';
 import type { BuildingId, GameState, ObjectiveTarget, ObjectiveView } from './types';
 
 /**
@@ -54,6 +59,15 @@ function nearestBuilding(
     candidates.find((id) => upgradeQuote(state, id).blocked === null) ??
     first
   );
+}
+
+/** O que impede de enviar uma equipe a um destino agora: o destino, ou não haver quem parta. */
+function expeditionMissing(state: GameState, modelId: string): string | null {
+  const blocked = destinationBlock(state, modelId);
+  if (blocked !== null) {
+    return blocked.message;
+  }
+  return state.guild.heroes.some(canDepart) ? null : 'Nenhum herói está em condições de partir.';
 }
 
 /**
@@ -100,6 +114,30 @@ function missingText(state: GameState, condition: ObjectiveCondition): string | 
         : 'Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer.';
     case 'plannedAutoStart':
       return null;
+    case 'heroCount':
+      if (state.guild.arriving.length > 0) {
+        return 'O herói prometido já está a caminho do feudo.';
+      }
+      return tavernLevel(state) < 1
+        ? tavernRequired(state).message
+        : 'Escolha na Taverna quem contratar, ou espere quem o Conselho prometer.';
+    case 'expeditionSent':
+      return expeditionMissing(state, condition.model);
+    case 'expeditionCompleted':
+      return state.guild.expeditions.some((entry) => entry.modelId === condition.model)
+        ? 'A equipe já partiu: o objetivo se cumpre quando ela voltar para casa.'
+        : expeditionMissing(state, condition.model);
+    case 'crossroadsChosen':
+      return state.guild.expeditions.some((entry) => entry.crossroads !== null)
+        ? null
+        : 'Nenhuma encruzilhada espera por você: ela aparece no caminho de uma expedição.';
+    case 'tradeDone':
+      if (settlement.buildings.market < 1) {
+        return marketRequired(state).message;
+      }
+      return MARKET_RESOURCE_IDS.some((resource) => surplusSellable(state, resource) > 0)
+        ? null
+        : 'Nada sobra acima do que o feudo guarda: espere o estoque passar da reserva.';
     case 'seasonSurvived': {
       const season = balance.calendar.seasons.find((entry) => entry.id === condition.season);
       if (season === undefined) {
@@ -144,6 +182,14 @@ function targetOf(state: GameState, condition: ObjectiveCondition): ObjectiveTar
       return { kind: 'planned' };
     case 'seasonSurvived':
       return { kind: 'season', season: condition.season };
+    case 'heroCount':
+      return { kind: 'tavern' };
+    case 'expeditionSent':
+    case 'expeditionCompleted':
+    case 'crossroadsChosen':
+      return { kind: 'expeditions' };
+    case 'tradeDone':
+      return { kind: 'market' };
   }
 }
 

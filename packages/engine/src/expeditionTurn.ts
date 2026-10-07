@@ -436,6 +436,11 @@ function returnHome(
     hero.status = hero.injury === null ? 'idle' : 'injured';
   }
   draft.stats.expeditionsReturned = (draft.stats.expeditionsReturned ?? 0) + 1;
+  // Por modelo, só a que chegou ao fim: a recolhida antes não conta (objetivo "Explore as Ruínas").
+  if (!recalled) {
+    const doneKey = `expeditionsReturned:${expedition.modelId}`;
+    draft.stats[doneKey] = (draft.stats[doneKey] ?? 0) + 1;
+  }
   const { resources, items: carried } = expedition.loot;
   const empty = carried.length === 0 && RESOURCE_IDS.every((resource) => resources[resource] === 0);
   const cut = RESOURCE_IDS.some((resource) => wasted[resource] > 0);

@@ -222,12 +222,15 @@ describe('pureza do motor', () => {
     // Desde V3E-T2, `caravanOrders.ts`: a ordem de envio dá o identificador à caravana.
     // Desde V3E-T3, `masterTurn.ts`: o Mestre que chega (pela recompensa de uma expedição, um
     // instante da linha do tempo) nasce com o dele. A ordem `assignMaster` não cria nada.
+    // Desde V3F-T2, `objectives.ts`: o item de um objetivo concluído nasce com o dele, na
+    // avaliação que roda depois de uma ordem ou de um instante da linha do tempo.
     expect(creators).toEqual([
       './arrivals.ts',
       './caravanOrders.ts',
       './expeditionOrders.ts',
       './expeditionTurn.ts',
       './masterTurn.ts',
+      './objectives.ts',
       './tavernTurn.ts',
     ]);
     for (const allowed of [

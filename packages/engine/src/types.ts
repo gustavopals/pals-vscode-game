@@ -1015,7 +1015,10 @@ export type ObjectiveTarget =
   | { kind: 'recruitment' }
   | { kind: 'council' }
   | { kind: 'planned' }
-  | { kind: 'season'; season: SeasonId };
+  | { kind: 'season'; season: SeasonId }
+  | { kind: 'tavern' }
+  | { kind: 'expeditions' }
+  | { kind: 'market' };
 
 /** Um Objetivo do Senhor (GDD §12.2): a ação, o porquê, a recompensa e o que falta. */
 export type ObjectiveView = {

@@ -33,6 +33,8 @@ import {
   namedHeroes,
   wageArrearsTexts,
   OBJECTIVE_CONDITION_TYPES,
+  expeditionModels,
+  items,
   objectives,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
@@ -1236,7 +1238,67 @@ describe('objetivos', () => {
       'planAutoStart',
       'buildPalisade',
       'surviveWinterWithoutCold',
+      'welcomeFirstHero',
+      'buildGuild',
+      'sendPatrol',
+      'sellSurplus',
+      'chooseAtCrossroads',
+      'exploreRuins',
     ]);
+  });
+
+  it('são 16, e os dez primeiros têm os ids de antes (v0.3, V3F-T2)', () => {
+    expect(objectives).toHaveLength(16);
+    expect(objectives.slice(0, 10).map((objective) => objective.id)).toEqual([
+      'allocateFarmers',
+      'upgradeHousing',
+      'recruitVillagers',
+      'townHallLevel2',
+      'buildWatchtower',
+      'answerFirstCard',
+      'buildGranaryOrWarehouse',
+      'planAutoStart',
+      'buildPalisade',
+      'surviveWinterWithoutCold',
+    ]);
+    expect(new Set(objectives.map((objective) => objective.id)).size).toBe(16);
+  });
+
+  it('os da v0.3: condições, prêmios em item e destinos que o conteúdo conhece', () => {
+    const find = (id: string) => objectives.find((objective) => objective.id === id);
+    expect(find('welcomeFirstHero')?.condition).toEqual({ type: 'heroCount', count: 1 });
+    expect(find('buildGuild')?.condition).toEqual({
+      type: 'buildingLevel',
+      building: 'guild',
+      level: 1,
+    });
+    expect(find('sendPatrol')?.condition).toEqual({
+      type: 'expeditionSent',
+      model: 'patrol',
+      count: 1,
+    });
+    expect(find('sellSurplus')?.condition).toEqual({
+      type: 'tradeDone',
+      direction: 'sell',
+      count: 1,
+    });
+    expect(find('chooseAtCrossroads')?.condition).toEqual({ type: 'crossroadsChosen', count: 1 });
+    expect(find('exploreRuins')?.condition).toEqual({
+      type: 'expeditionCompleted',
+      model: 'ruins',
+      count: 1,
+    });
+    expect(find('welcomeFirstHero')?.item).toBe('huntingSpear');
+    expect(find('exploreRuins')?.item).toBe('ashBow');
+    expect(items.huntingSpear.rarity).toBe('common');
+    expect(items.ashBow.rarity).toBe('uncommon');
+    expect(find('chooseAtCrossroads')?.morale).toMatchObject({ amount: 10, durationDays: 1 });
+    const modelIds = expeditionModels.map((model) => model.id);
+    for (const { condition } of objectives) {
+      if (condition.type === 'expeditionSent' || condition.type === 'expeditionCompleted') {
+        expect(modelIds).toContain(condition.model);
+      }
+    }
   });
 
   it('as recompensas são as do GDD §12.2: recurso, o desbloqueio do Salão com 50 de ouro ou moral por um dia', () => {
@@ -1251,12 +1313,24 @@ describe('objetivos', () => {
       { gold: 30 },
       { wood: 100 },
       {},
+      {},
+      { stone: 60 },
+      { gold: 50 },
+      { wood: 40 },
+      {},
+      {},
     ]);
     expect(objectives.map((objective) => objective.rewardText)).toEqual([
       undefined,
       undefined,
       undefined,
       'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -1270,7 +1344,11 @@ describe('objetivos', () => {
           morale === undefined ? [] : [[id, [morale.amount, morale.durationDays]]],
         ),
       ),
-    ).toEqual({ answerFirstCard: [10, 1], surviveWinterWithoutCold: [15, 1] });
+    ).toEqual({
+      answerFirstCard: [10, 1],
+      surviveWinterWithoutCold: [15, 1],
+      chooseAtCrossroads: [10, 1],
+    });
   });
 
   it('as condições da v0.2: a Torre, a carta, um dos depósitos, a obra automática, a Paliçada e o inverno', () => {
