@@ -283,6 +283,15 @@ export type MarketTotals = {
   goldEarned: number;
   goldSpent: number;
   offered: number;
+  /** As caravanas da célula, somadas: enviadas, com escolta, emboscadas, e o ouro delas. */
+  caravansSent: number;
+  caravansEscorted: number;
+  caravansAmbushed: number;
+  caravanGold: number;
+  /** Partidas com ao menos uma caravana enviada. */
+  caravanRuns: number;
+  /** O que a Mina de Ouro produziu, somado nas sementes: a comparação do ouro por fonte. */
+  mineGold: number;
 };
 
 function marketTotalsOf(summaries: Summary[]): MarketTotals {
@@ -296,8 +305,20 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     goldEarned: 0,
     goldSpent: 0,
     offered: 0,
+    caravansSent: 0,
+    caravansEscorted: 0,
+    caravansAmbushed: 0,
+    caravanGold: 0,
+    caravanRuns: 0,
+    mineGold: 0,
   };
   for (const { market } of summaries) {
+    totals.caravansSent += market.caravansSent;
+    totals.caravansEscorted += market.caravansEscorted;
+    totals.caravansAmbushed += market.caravansAmbushed;
+    totals.caravanGold += market.caravanGold;
+    totals.caravanRuns += market.caravansSent > 0 ? 1 : 0;
+    totals.mineGold += market.mineGold;
     for (const id of ['food', 'wood', 'stone'] as const) {
       totals.sold[id] += market.sold[id];
       totals.bought[id] += market.bought[id];
@@ -311,7 +332,9 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
 
 /**
  * O Mercado de uma janela, **por partida** (a soma das sementes dividida pelo número delas): o
- * que cada perfil vendeu e comprou, o ouro que recebeu e a parcela do volume oferecido que usou.
+ * que cada perfil vendeu e comprou, o ouro que recebeu e a parcela do volume oferecido que usou;
+ * e as caravanas (V3E-T2): quantas partidas mandaram alguma, quantas por partida (enviadas, com
+ * escolta, emboscadas) e o ouro por fonte (o balcão, as caravanas e a Mina de Ouro).
  * O ouro parado no fim está na tabela de medidas, na coluna do excedente de ouro.
  */
 export function marketTable(cells: readonly MatrixCell[]): string {
@@ -327,6 +350,9 @@ export function marketTable(cells: readonly MatrixCell[]): string {
       'Ouro recebido por partida',
       'Ouro pago por partida',
       'Volume usado',
+      'Partidas com caravana',
+      'Caravanas por partida (enviadas · com escolta · emboscadas)',
+      'Ouro por partida (balcão · caravanas · Mina)',
     ],
     cells.map((cell) => {
       const { market } = cell;
@@ -348,6 +374,13 @@ export function marketTable(cells: readonly MatrixCell[]): string {
         market.offered === 0
           ? '—'
           : `${formatDecimal(Math.round((traded * 1000) / market.offered) / 10)}%`,
+        `${market.caravanRuns} de ${market.runs}`,
+        [market.caravansSent, market.caravansEscorted, market.caravansAmbushed]
+          .map((total) => formatDecimal(Math.round((total * 10) / Math.max(1, market.runs)) / 10))
+          .join(' · '),
+        [market.goldEarned, market.caravanGold, market.mineGold]
+          .map((total) => per(total, market.runs))
+          .join(' · '),
       ];
     }),
   );

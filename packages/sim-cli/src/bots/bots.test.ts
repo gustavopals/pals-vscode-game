@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import { botFor, strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
+  mandarCaravana,
   contratar,
   darFestival,
   enviarExpedicoes,
@@ -186,6 +187,7 @@ describe('um bot é uma lista de políticas', () => {
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
       // ergue o Mercado ou o melhora; e compra lenha antes de mandar braços à Serraria.
       alocarPorDemanda,
+      mandarCaravana,
       venderExcedente,
       erguerMercado,
       comprarLenha,

@@ -1648,28 +1648,103 @@ function keptFromMarket(view: ViewState, resource: ResourceId): number {
  * seguinte. Sem Mercado a visão não traz preço, e a
  * política não faz nada. A ordem leva o dia da cotação que a visão mostra, como a tela levaria.
  */
+/**
+ * O excedente de um recurso, em unidades: zero enquanto o depósito não está no limite nem o
+ * alcança em 8 horas reais; daí em diante, o que passa do que o feudo guarda (`keptFromMarket`)
+ * ou, se for mais, o que iria ao chão nessas 8 horas (a produção delas menos o lugar que resta
+ * no depósito): isso estará de volta na visita seguinte, porque a produção o repõe.
+ */
+function surplusOf(view: ViewState, resource: ResourceId): number {
+  const row = view.resources.find((entry) => entry.id === resource);
+  if (row === undefined) {
+    return 0;
+  }
+  const filling =
+    row.full || (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600);
+  if (!filling) {
+    return 0;
+  }
+  const spare = Math.floor(row.stock - keptFromMarket(view, resource));
+  const rate = row.full ? row.wastingPerHour : row.perHour;
+  const room = row.cap === null ? 0 : Math.max(0, row.cap - row.stock);
+  const overflow = Math.floor(rate * STORAGE_HORIZON_HOURS - room);
+  return Math.max(0, spare, overflow);
+}
+
+/** A menor carga que vale uma caravana: abaixo disso o excedente fica para o balcão. */
+const CARAVAN_MIN_CARGO = 40;
+/** Sem herói para a escolta, o bot só manda a caravana com a Torre de Vigia neste nível. */
+const UNESCORTED_TOWER_LEVEL = 2;
+
+/** O estoque tem de pagar este tanto de vezes o custo para o bot levar o Mercado ao nível das caravanas. */
+const CARAVAN_LEVEL_SPEND_SHARE = 2;
+
+/** O bot manda caravanas: tem um herói pronto para a escolta, ou a Torre que deixa ir sem ela. */
+function wouldSendCaravans(view: ViewState): boolean {
+  return (
+    view.guild.heroes.some((hero) => hero.canDepart) ||
+    view.threat.watchtower.level >= UNESCORTED_TOWER_LEVEL
+  );
+}
+
+/**
+ * Manda uma caravana com o excedente (V3E-T2.5): **com um herói ocioso de escolta; sem herói,
+ * só com a Torre de Vigia no nível 2**, quando o risco que a visão mostra é o menor que o jogo
+ * dá. A carga é o excedente (`surplusOf`) do recurso que rende mais ouro pelo preço que a visão
+ * diz que a caravana fixaria hoje, até o que ela diz que cabe (`maxSendable`: o teto da caravana
+ * e o estoque); abaixo de 40 unidades não vale a viagem, e o excedente fica para o balcão.
+ * Repete enquanto houver lugar na estrada. Vem **antes** de `vender o excedente`: a caravana
+ * paga mais e não gasta o volume do dia, e o balcão fica com o que sobrar. Vem depois do envio
+ * das expedições: escolta quem sobrou. Tudo lido da visão: quem pode escoltar
+ * (`caravanOffer.eligibleEscortIds`) é o motor que diz.
+ */
+export const mandarCaravana: Policy = {
+  name: 'mandar caravana',
+  run: async (view, act) => {
+    let current = view;
+    for (;;) {
+      const offer = current.market.caravanOffer;
+      if (!offer.available) {
+        return current;
+      }
+      const escort = offer.eligibleEscortIds[0] ?? null;
+      if (escort === null && current.threat.watchtower.level < UNESCORTED_TOWER_LEVEL) {
+        return current;
+      }
+      let best: { resource: (typeof offer.resources)[number]['resource']; amount: number } | null =
+        null;
+      let bestGold = 0;
+      for (const row of offer.resources) {
+        const amount = Math.min(row.maxSendable, surplusOf(current, row.resource));
+        if (amount >= CARAVAN_MIN_CARGO && amount * row.unitPrice > bestGold) {
+          best = { resource: row.resource, amount };
+          bestGold = amount * row.unitPrice;
+        }
+      }
+      if (best === null) {
+        return current;
+      }
+      const onTheRoad = current.market.caravans.length;
+      current = await act('sendCaravan', { ...best, escortHeroId: escort });
+      if (current.market.caravans.length === onTheRoad) {
+        // A ordem foi recusada: a visão diz por quê, e o bot não insiste.
+        return current;
+      }
+    }
+  },
+};
+
 export const venderExcedente: Policy = {
   name: 'vender o excedente',
   run: async (view, act) => {
     let current = view;
     for (const { resource } of view.market.prices) {
-      const row = current.resources.find((entry) => entry.id === resource);
       const price = current.market.prices.find((entry) => entry.resource === resource);
-      if (row === undefined || price === undefined) {
+      if (price === undefined) {
         continue;
       }
-      const filling =
-        row.full ||
-        (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600);
-      const spare = Math.floor(row.stock - keptFromMarket(current, resource));
-      // Vende-se também o que iria ao chão nessa noite: o que a produção rende em 8 horas reais
-      // menos o lugar que ainda há no depósito. O que o feudo guarda continua guardado quando o
-      // bot voltar, porque a produção o repõe.
-      const rate = row.full ? row.wastingPerHour : row.perHour;
-      const room = row.cap === null ? 0 : Math.max(0, row.cap - row.stock);
-      const overflow = Math.floor(rate * STORAGE_HORIZON_HOURS - room);
-      const amount = Math.min(price.maxSellable, Math.max(spare, overflow));
-      if (filling && amount > 0) {
+      const amount = Math.min(price.maxSellable, surplusOf(current, resource));
+      if (amount > 0) {
         current = await act('trade', {
           resource,
           direction: 'sell',
@@ -1685,7 +1760,10 @@ export const venderExcedente: Policy = {
 /**
  * Ergue o Mercado assim que o jogo deixa: é o que um jogador faria ao ler que o excedente tem
  * saída, e o primeiro nível custa pouco. E o melhora quando o volume de hoje acabou em algum
- * recurso: é o único caso em que um nível a mais rende. Vem **depois** de `vender o excedente`,
+ * recurso, ou quando o bot mandaria caravanas (há um herói pronto, ou a Torre de Vigia deixa ir
+ * sem escolta) e o Mercado ainda não mantém nenhuma na estrada: são os dois casos em que um
+ * nível a mais rende. **Só pelas caravanas, a obra espera folga**, como a Torre de Vigia: começa
+ * quando o estoque paga o dobro do custo, e não fica planejada. Vem **depois** de `vender o excedente`,
  * para olhar o volume que sobrou da venda desta visita. Tudo lido da visão: o edifício
  * (`market.building`) e o que ainda cabe hoje. Se a obra não pode começar agora por falta de
  * recurso ou de fila, fica planejada como automática; presa ao Salão, por erguer, também, e
@@ -1699,9 +1777,28 @@ export const erguerMercado: Policy = {
     const upgrade = view.constructions.available.find(
       (entry) => entry.building === market.building,
     );
-    const wanted = market.level === 0 || market.prices.some((price) => price.remainingToday === 0);
+    // O nível das caravanas: quando o bot as mandaria (há quem escolte, ou a Torre deixa ir
+    // sem escolta) e o Mercado ainda não mantém nenhuma na estrada.
+    const forCaravans =
+      market.level > 0 && market.caravanOffer.slots === 0 && wouldSendCaravans(view);
+    const wanted =
+      market.level === 0 ||
+      forCaravans ||
+      market.prices.some((price) => price.remainingToday === 0);
     if (upgrade === undefined || !wanted || !keepsFirewood(view, upgrade)) {
       return view;
+    }
+    const exhausted = market.prices.some((price) => price.remainingToday === 0);
+    if (forCaravans && !exhausted) {
+      // Só pelas caravanas, a obra espera folga, como a Torre de Vigia: começa quando pode
+      // começar e o estoque paga o dobro do custo, e nunca fica planejada. O nível das caravanas
+      // rende, mas não mais do que a obra que as outras políticas já tinham na fila.
+      const slack = upgrade.cost.every(
+        (cost) => stockOf(view, cost.resource) >= CARAVAN_LEVEL_SPEND_SHARE * cost.amount,
+      );
+      return upgrade.blockedCode === null && slack
+        ? act('startConstruction', { building: upgrade.building })
+        : view;
     }
     if (upgrade.blockedCode === null) {
       return act('startConstruction', { building: upgrade.building });

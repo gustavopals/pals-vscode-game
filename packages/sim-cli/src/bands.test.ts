@@ -104,6 +104,13 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       goldEarned: 0,
       goldSpent: 0,
       offered: 0,
+      caravansSent: 0,
+      caravansEscorted: 0,
+      caravansArrived: 0,
+      caravansAmbushed: 0,
+      caravanGold: 0,
+      caravanLost: 0,
+      mineGold: 0,
       level: 0,
       atHour: null,
       volumeUsedPercent: null,
@@ -200,7 +207,7 @@ describe('faixas a partir da linha de base medida', () => {
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 3_630, stone: 5_460, gold: 230_264 },
+      surplusMax: { wood: 5_460, stone: 5_460, gold: 223_668 },
       wasteStreakMax: 35,
     });
   });

@@ -381,6 +381,15 @@ const MEASURED_COLUMNS: Partial<
     hour: (row) => volumeUsedPercent(row.market) ?? '',
     run: (summary) => summary.market.volumeUsedPercent ?? '',
   },
+  // As caravanas (V3E-T2), contadas dos eventos: as enviadas e, das que chegaram, as emboscadas.
+  caravans_sent: {
+    hour: (row) => row.market.caravansSent,
+    run: (summary) => summary.market.caravansSent,
+  },
+  caravans_ambushed: {
+    hour: (row) => row.market.caravansAmbushed,
+    run: (summary) => summary.market.caravansAmbushed,
+  },
 };
 
 /** Quanto do volume que o Mercado ofereceu foi negociado, em por cento com uma casa; `null` sem Mercado. */
@@ -592,11 +601,15 @@ export type Summary = {
    * O Mercado da partida (GDD §5.9), como a última hora o conta: o nível final, a hora real em
    * que ficou pronto (`null` se não ficou), o que foi vendido e comprado de cada recurso, o ouro
    * que entrou e saiu, o volume oferecido e a parcela dele que foi usada (`null` sem Mercado).
+   * E as caravanas (V3E-T2): as enviadas, as escoltadas, as emboscadas e o ouro delas. `mineGold`
+   * é o que a Mina de Ouro produziu na partida, somado hora a hora (uma amostra ao fim de cada
+   * hora real): é a comparação do ouro por fonte.
    */
   market: MarketCounts & {
     level: number;
     atHour: number | null;
     volumeUsedPercent: number | null;
+    mineGold: number;
   };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
@@ -755,6 +768,8 @@ function marketOf({ rows }: SimulationResult): Summary['market'] {
     // O ouro das vendas soma frações de milésimo em milésimo: uma casa basta para o relatório.
     goldEarned: Math.round(counts.goldEarned * 10) / 10,
     goldSpent: Math.round(counts.goldSpent * 10) / 10,
+    caravanGold: Math.round(counts.caravanGold * 10) / 10,
+    mineGold: Math.round(rows.reduce((sum, row) => sum + row.gross.gold, 0)),
     atHour: rows.find((row) => row.market.level > 0)?.hour ?? null,
     volumeUsedPercent: volumeUsedPercent(counts),
   };
@@ -857,7 +872,9 @@ function guildLine({ guild, expeditions }: Summary): string {
 
 /**
  * "Mercado Nv2, erguido na hora 31 · vendeu comida 400, madeira 1.200 · comprou madeira 60 ·
- * recebeu 1.840,5 de ouro, pagou 72 · 12,5% do volume oferecido". Sem Mercado, diz isso.
+ * recebeu 1.840,5 de ouro, pagou 72 · 12,5% do volume oferecido · caravanas: 4 enviadas (3 com
+ * escolta), 1 emboscadas (levaram 150), 1.499,4 de ouro · a Mina de Ouro rendeu 5.300". Sem
+ * Mercado, diz isso.
  */
 function marketLine({ market }: Summary): string {
   if (market.level === 0) {
@@ -875,6 +892,10 @@ function marketLine({ market }: Summary): string {
     `comprou ${list(market.bought)}`,
     `recebeu ${formatDecimal(market.goldEarned)} de ouro, pagou ${formatDecimal(market.goldSpent)}`,
     `${formatDecimal(market.volumeUsedPercent ?? 0)}% do volume oferecido`,
+    market.caravansSent === 0
+      ? 'nenhuma caravana'
+      : `caravanas: ${market.caravansSent} enviadas (${market.caravansEscorted} com escolta), ${market.caravansAmbushed} emboscadas (levaram ${market.caravanLost}), ${formatDecimal(market.caravanGold)} de ouro`,
+    `a Mina de Ouro rendeu ${market.mineGold}`,
   ].join(' · ');
 }
 

@@ -1829,6 +1829,199 @@ O que se lê:
 - **O preço quase não importa para os bots**: eles vendem o que transborda pelo preço do dia, e nenhuma política olha a tendência nem a estação. O que o passeio e o fator do outono mudam para um jogador que espera o preço não tem medida.
 - **Ninguém jogou o Mercado.** Não há tela (V3E-T4); a rodada mede regras e bots.
 
-## 12. Rodadas seguintes das Fases E a G
+## 12. As caravanas (V3E-T2)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T2, V3E-T3, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 11.*
+Rodada de 2026-10-06, com o estado na versão 22 e o `contentHash` `d1df632555316eb5`. É a segunda rodada da Fase E e responde ao que a tarefa pede: **o ouro por fonte** (o balcão do Mercado, as caravanas e a Mina de Ouro), **as emboscadas**, e se **o ouro parado** subiu. Traz também a matriz QA-10, medida no motor. **Nada aqui foi lido pelo autor.** As faixas dos perfis que mandam caravanas foram remedidas de propósito.
+
+### 12.1 Comandos
+
+```bash
+pnpm --filter @lotg/engine test -- market.caravans        # a matriz QA-10: 6 células de 1.000 sementes
+for d in lord peasant ironKing; do
+  pnpm -s sim -- --matrix --difficulty $d > matriz-$d.csv 2> matriz-$d.md      # depois: 1.200 partidas cada
+done
+# antes: os mesmos três comandos na mesma árvore, com as três mudanças dos bots guardadas (git stash de packages/sim-cli/src/bots)
+pnpm -s sim -- --seed pedra-alta-001 --days 7 --time-scale 3 --strategy economico > /dev/null   # o resumo de uma partida, com as caravanas na linha "Mercado"
+```
+
+"Antes" e "depois" são as **mesmas 50 sementes**, partida a partida, com o **mesmo motor** (o estado 22, com as caravanas no jogo): o que muda entre as duas rodadas é só o que os bots fazem. As saídas ficaram no diretório descartável da sessão; o que vale está nas tabelas abaixo e na linha de base de `packages/sim-cli/src/bands.ts`.
+
+### 12.2 A matriz QA-10: com e sem escolta, com a Torre de Vigia nos níveis 0, 1 e 2
+
+Medida no motor (`market.caravans.test.ts`), fora do simulador: em cada célula, **1.000 sementes**, cada uma com um feudo de Mercado Nv2 e uma caravana de 300 de madeira. A chance esperada é `máx(2, 10 − 5 × nível da Torre)` por cento.
+
+| Torre de Vigia | Chance da regra | Com escolta: emboscadas | Sem escolta: emboscadas | Frequência medida | Faixa de três desvios-padrão |
+|---|---|---|---|---|---|
+| Nível 0 (sem Torre) | 10% | 0 de 1.000 | **116** de 1.000 | 11,6% | 72 a 128 |
+| Nível 1 | 5% | 0 de 1.000 | **50** de 1.000 | 5,0% | 30 a 70 |
+| Nível 2 | 2% (o piso) | 0 de 1.000 | **24** de 1.000 | 2,4% | 7 a 33 |
+
+- **Com escolta nenhuma caravana é emboscada**, e o fluxo `caravan:<id>` nem nasce: não há sorteio.
+- **A Torre só tira risco**: toda caravana emboscada com a Torre no nível 2 também é emboscada no 1 e no 0, e toda emboscada no 1 também o é no 0 (o sorteio é o mesmo; só a chance muda). Vale a Torre do instante da **chegada**.
+- Em toda emboscada a carga perdida é a metade (150 de 300) e a outra metade é vendida pelo preço fixado no envio; em toda chegada sem emboscada, a carga inteira. Em todas as 6.000 viagens o herói volta pronto e o estado não guarda fluxo de caravana.
+- Os três números (116, 50 e 24) estão fixados no teste: mudar o gerador ou o nome do fluxo os muda.
+
+### 12.3 O que os bots fazem com as caravanas
+
+- **O Regular, o Dedicado e o Explorador** (os bots `economico` e `explorador`) ganharam a política **mandar caravana**: o excedente (o mesmo de `vender o excedente`: o recurso no limite do depósito, ou a 8 horas reais de enchê-lo), do recurso que rende mais ouro pelo preço que a visão diz que a caravana fixaria, até 300 unidades e nunca menos de 40; **com um herói ocioso de escolta** e, **sem herói, só com a Torre de Vigia no nível 2**. Vem antes da venda no balcão (a caravana paga 40% a mais e não gasta o volume do dia) e depois do envio das expedições.
+- **`erguer o Mercado` passou a levá-lo ao nível 2**, o das caravanas, quando o bot as mandaria, **e só com folga** (o estoque paga o dobro da obra, como na Torre de Vigia). Na primeira medição desta tarefa a obra não esperava folga: o Salão do Explorador terminava um nível abaixo na pior semente de duas células e a maior sequência desperdiçando do Dedicado do Rápido ia de 15 para 24 h de jogo; com a folga, os dois voltaram ao que eram.
+- **O herói do Regular e do Dedicado é o da carta da estrangeira**, que nesses bots nunca parte em expedição: está sempre livre, e toda caravana deles vai com escolta enquanto ele está no feudo. **O Explorador** manda os heróis às expedições antes, e as caravanas dele vão quase todas **sem escolta**, com a Torre no nível 2.
+- **O Preguiçoso não ergue o Mercado nem manda caravanas.** As células dele são **idênticas, partida a partida, nas três dificuldades** (conferido nos CSVs).
+- **Nenhuma ordem recusada, nenhuma hora de fome nem de frio**, nas 3.600 partidas da rodada.
+
+### 12.4 O ouro por fonte: o balcão, as caravanas e a Mina
+
+Ouro por partida, média das 50 sementes, em Senhor. "Balcão" é o que as vendas no Mercado renderam, antes e depois; "Caravanas", o que as chegadas puseram no cofre; "A Mina", o que a Mina de Ouro produziu na partida (a produção bruta, somada em uma amostra por hora real). No ritmo Normal as duas janelas são a mesma partida.
+
+| Janela | Ritmo | Perfil | Mercado: nível final | Balcão: antes → depois | Caravanas | Balcão + caravanas | A Mina | Caravanas sobre a Mina |
+|---|---|---|---|---|---|---|---|---|
+| Janela | Ritmo | Perfil | Mercado: nível final | Balcão: antes → depois | Caravanas | Balcão + caravanas | A Mina | Caravanas sobre a Mina |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Regular | 1 a 4 → 2 a 5 | 733 → 595 | 707 | 1.302 (+78%) | 201.039 | 0,4% |
+| 7 dias | Rápido 3× | Dedicado | 3 a 5 → 2 a 5 | 6.651 → 3.169 | 4.010 | 7.179 (+8%) | 364.939 | 1,1% |
+| 7 dias | Rápido 3× | Explorador | 1 a 5 → 2 a 5 | 1.870 → 1.001 | 881 | 1.882 (+1%) | 258.908 | 0,3% |
+| 7 dias | Normal 1× | Regular | 1 a 2 → 2 | 81 → 80 | 34 | 114 (+41%) | 24.971 | 0,1% |
+| 7 dias | Normal 1× | Dedicado | 2 a 5 → 2 a 5 | 2.515 → 1.693 | 1.690 | 3.383 (+35%) | 26.535 | 6,4% |
+| 7 dias | Normal 1× | Explorador | 1 a 4 → 2 a 4 | 416 → 422 | 84 | 506 (+22%) | 22.281 | 0,4% |
+| 7 dias | Tranquilo 0,5× | Regular | 1 a 2 → 1 a 2 | 168 → 168 | 0 | 168 (+0%) | 4.844 | 0,0% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 1 a 3 → 1 a 2 | 127 → 110 | 0 | 110 (-13%) | 6.273 | 0,0% |
+| 7 dias | Tranquilo 0,5× | Explorador | 1 a 2 → 1 a 2 | 115 → 115 | 0 | 115 (+0%) | 5.254 | 0,0% |
+| Ano de jogo | Rápido 3× | Regular | 0 a 1 → 0 a 1 | 0 → 0 | 0 | 0 | 5.190 | 0,0% |
+| Ano de jogo | Rápido 3× | Dedicado | 1 → 1 a 2 | 168 → 168 | 0 | 168 (+0%) | 17.619 | 0,0% |
+| Ano de jogo | Rápido 3× | Explorador | 0 a 1 → 0 a 1 | 0 → 0 | 0 | 0 | 5.471 | 0,0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 1 a 5 → 2 a 4 | 773 → 398 | 572 | 970 (+25%) | 28.316 | 2,0% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 4 a 5 → 3 a 5 | 12.660 → 6.406 | 4.654 | 11.060 (-13%) | 35.950 | 12,9% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 1 a 5 → 2 a 5 | 888 → 613 | 632 | 1.245 (+40%) | 29.176 | 2,2% |
+
+O que se lê:
+
+- **A Mina continua sendo quase todo o ouro.** As caravanas rendem de 0% a 2,2% do que a Mina produz em treze das quinze células; passam disso no Dedicado do Normal (6,4%) e no **Dedicado do ano do Tranquilo (12,9%: 4.654 de ouro por partida contra 35.950 da Mina)**, que é quem visita quatro vezes por dia com o dia de jogo durando 4 h reais. **O Mercado e as caravanas, somados, não são a melhor fonte de ouro de nenhum perfil** (a pergunta da V3E-T5.2).
+- **A caravana leva o que o balcão levaria.** O excedente é um só: o que parte para Porto do Rio deixa de ser vendido no balcão, e o balcão cai (6.651 para 3.169 no Dedicado da semana do Rápido; 12.660 para 6.406 no do ano do Tranquilo). Somados, o balcão e as caravanas rendem **de 0% a 78% mais** do que o balcão rendia sozinho na maioria das células, e **menos em duas**: o Dedicado da semana do Tranquilo (−13%, sem caravana nenhuma: a obra do nível 2 custa e o Mercado termina um nível abaixo) e o **Dedicado do ano do Tranquilo (−13%: 12.660 para 11.060)**, que antes esgotava o volume do dia, melhorava o Mercado até o nível 5 e vendia mais no balcão; com as caravanas levando o excedente, o volume do dia já não acaba e o Mercado termina no nível 3 a 5.
+- **Onde o jogador de verdade está, não há caravana.** No **ano de jogo do Rápido** nenhuma das 150 partidas mandou caravana: o Mercado só fica de pé em parte delas, nunca com folga para o nível 2 (o ano de jogo dura 56 horas reais). Na semana do Tranquilo, três partidas em 150. A caravana aparece na **semana do Rápido** (três anos de jogo) e no **ano do Tranquilo**: é uma mecânica do feudo maduro.
+
+### 12.5 As caravanas e as emboscadas
+
+Em Senhor, por célula: quantas das 50 partidas mandaram ao menos uma caravana, quantas por partida (enviadas · com escolta · emboscadas) e os totais.
+
+| Janela | Ritmo | Perfil | Partidas com caravana | Enviadas · com escolta · emboscadas, por partida | Enviadas, total | Emboscadas, total |
+|---|---|---|---|---|---|---|
+| Janela | Ritmo | Perfil | Partidas com caravana | Enviadas · com escolta · emboscadas, por partida | Enviadas, total | Emboscadas, total |
+|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Regular | 45 de 50 | 1,6 · 1,6 · 0 | 82 | 0 |
+| 7 dias | Rápido 3× | Dedicado | 49 de 50 | 7,3 · 5,7 · 0 | 366 | 2 |
+| 7 dias | Rápido 3× | Explorador | 45 de 50 | 2 · 0,2 · 0 | 99 | 2 |
+| 7 dias | Normal 1× | Regular | 5 de 50 | 0,1 · 0,1 · 0 | 5 | 0 |
+| 7 dias | Normal 1× | Dedicado | 49 de 50 | 3,1 · 2,9 · 0 | 153 | 0 |
+| 7 dias | Normal 1× | Explorador | 9 de 50 | 0,2 · 0 · 0 | 10 | 0 |
+| 7 dias | Tranquilo 0,5× | Regular | 0 de 50 | 0 · 0 · 0 | 0 | 0 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 3 de 50 | 0,1 · 0,1 · 0 | 3 | 0 |
+| 7 dias | Tranquilo 0,5× | Explorador | 0 de 50 | 0 · 0 · 0 | 0 | 0 |
+| Ano de jogo | Rápido 3× | Regular | 0 de 50 | 0 · 0 · 0 | 0 | 0 |
+| Ano de jogo | Rápido 3× | Dedicado | 0 de 50 | 0 · 0 · 0 | 0 | 0 |
+| Ano de jogo | Rápido 3× | Explorador | 0 de 50 | 0 · 0 · 0 | 0 | 0 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 33 de 50 | 1,2 · 1,2 · 0 | 59 | 0 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 50 de 50 | 8,3 · 5,5 · 0 | 414 | 2 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 39 de 50 | 1,4 · 0,2 · 0 | 72 | 2 |
+
+Somando as células (o Normal uma vez): **em Senhor, 1.263 caravanas e 8 emboscadas; em Camponês, 908 e 1; em Rei de Ferro, 1.450 e 4.**
+
+- **Quase toda caravana do Regular e do Dedicado vai com escolta**, e nenhuma delas é emboscada. O herói da carta está sempre livre nesses bots: **para quem tem um herói sem o que fazer, a escolta é de graça** (ele recebe o mesmo soldo no feudo ou na estrada), e a aposta que o roadmap descreve ("escoltar ou mandar a mesma heroína ao Covil") não acontece. É a pendência E-21.
+- **As caravanas sem escolta são as do Explorador e as segundas do Dedicado** (com dois lugares na estrada e um herói só), e todas partem com a Torre no nível 2: em Senhor, cerca de 390 caravanas sem escolta e **8 emboscadas, 2,1%**, a chance do piso. Nenhum bot manda caravana a 10% nem a 5%: essas duas chances só foram medidas no motor (seção 12.2).
+- **O que as emboscadas levaram é pouco**: 8 emboscadas em 750 partidas, cada uma metade de uma carga de até 300 unidades.
+
+### 12.6 O ouro parado, antes e depois
+
+Ouro em estoque no fim da janela, em Senhor, nas 50 sementes: menor · mediana · maior. "Antes" é a rodada do Mercado (seção 11) com o motor de agora; a última coluna diz o que a mediana fez.
+
+| Janela | Ritmo | Perfil | Antes | Depois | Mediana |
+|---|---|---|---|---|---|
+| Janela | Ritmo | Perfil | Antes | Depois | Mediana |
+|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 2.074 · 5.894 · 5.918 | 2.074 · 5.894 · 5.918 | igual +0% |
+| 7 dias | Rápido 3× | Regular | 151.769 · 183.257 · 219.299 | 147.503 · 184.705 · 213.017 | subiu +1% |
+| 7 dias | Rápido 3× | Dedicado | 324.236 · 352.430 · 365.979 | 327.399 · 353.940 · 367.245 | igual +0% |
+| 7 dias | Rápido 3× | Explorador | 169.695 · 241.534 · 281.337 | 169.916 · 238.701 · 280.666 | caiu -1% |
+| 7 dias | Normal 1× | Preguiçoso | 3 · 165 · 268 | 3 · 165 · 268 | igual +0% |
+| 7 dias | Normal 1× | Regular | 5.515 · 16.424 · 27.901 | 5.275 · 14.282 · 27.104 | caiu -13% |
+| 7 dias | Normal 1× | Dedicado | 3.224 · 12.752 · 18.803 | 6.813 · 12.432 · 20.021 | caiu -3% |
+| 7 dias | Normal 1× | Explorador | 969 · 8.710 · 19.954 | 969 · 8.435 · 19.813 | caiu -3% |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 120 · 153 · 154 | 120 · 153 · 154 | igual +0% |
+| 7 dias | Tranquilo 0,5× | Regular | 169 · 676 · 1.227 | 169 · 676 · 1.227 | igual +0% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 118 · 420 · 1.105 | 8 · 352 · 1.104 | caiu -16% |
+| 7 dias | Tranquilo 0,5× | Explorador | 46 · 749 · 1.102 | 46 · 749 · 1.102 | igual +0% |
+| Ano de jogo | Rápido 3× | Preguiçoso | 3 · 134 · 253 | 3 · 134 · 253 | igual +0% |
+| Ano de jogo | Rápido 3× | Regular | 1.778 · 2.015 · 2.847 | 1.778 · 2.015 · 2.847 | igual +0% |
+| Ano de jogo | Rápido 3× | Dedicado | 3.374 · 9.916 · 14.870 | 3.374 · 9.950 · 14.524 | igual +0% |
+| Ano de jogo | Rápido 3× | Explorador | 1.285 · 1.679 · 2.925 | 1.285 · 1.679 · 2.925 | igual +0% |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 3.190 · 6.194 · 10.670 | 3.190 · 6.194 · 10.670 | igual +0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 5.160 · 13.479 · 19.246 | 7.654 · 12.900 · 19.246 | caiu -4% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 24.868 · 29.145 · 33.860 | 21.236 · 29.204 · 35.921 | igual +0% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 4.995 · 10.242 · 16.912 | 4.896 · 10.542 · 17.575 | subiu +3% |
+
+O que se lê:
+
+- **O ouro parado não subiu.** Somando o ouro final das 900 partidas dos três perfis que mandam caravanas: em Senhor, de 45,77 para 45,76 milhões (**−0,0%**); em Camponês, de 46,98 para 46,83 (**−0,3%**); em Rei de Ferro, de 51,87 para 51,95 (**+0,2%**). A mediana fica igual ou a menos de 4% do que era em treze das quinze células; cai 13% no Regular do Normal e 16% no Dedicado da semana do Tranquilo (o ouro foi para a obra do nível 2 do Mercado), e sobe 3% no Explorador do ano do Tranquilo.
+- **O pior caso sobe pouco em três células**: o maior valor das 50 sementes vai de 18.803 para 20.021 no Dedicado do Normal, de 33.860 para 35.921 no Dedicado do ano do Tranquilo e de 16.912 para 17.575 no Explorador do ano do Tranquilo. É o ouro das caravanas que não achou destino.
+- **As caravanas põem ouro no cofre e não lhe dão saída.** Como o balcão (seção 11.3), elas transformam excedente em ouro; para o ouro sair, o jogador teria de comprar, e nada no jogo pede isso depois que as obras acabam. A pergunta do ouro sem destino (C-23, E-4) continua aberta, e esta rodada diz que **as caravanas não a respondem**: nem pioram, nem resolvem.
+
+### 12.7 O desperdício e o excedente parado
+
+Desperdício da partida inteira, em unidades, mediana das 50 sementes (comida · madeira · pedra), e a maior sequência desperdiçando o pior recurso, em horas de jogo (mediana / maior), em Senhor:
+
+| Janela | Ritmo | Perfil | Antes: desperdício | Depois: desperdício | Antes: sequência | Depois: sequência |
+|---|---|---|---|---|---|---|
+| Janela | Ritmo | Perfil | Antes: desperdício | Depois: desperdício | Antes: sequência | Depois: sequência |
+|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Regular | 4.497 · 16.758 · 3.546 | 4.604 · 14.486 · 3.150 | 30 / 33 | 30 / 33 |
+| 7 dias | Rápido 3× | Dedicado | 2 · 1.076 · 1.198 | 0 · 1.326 · 230 | 7,5 / 15 | 6 / 15 |
+| 7 dias | Rápido 3× | Explorador | 3.014 · 5.044 · 1.931 | 3.158 · 5.267 · 1.494 | 21 / 30 | 21 / 30 |
+| 7 dias | Normal 1× | Regular | 0 · 494 · 0 | 0 · 804 · 0 | 2,5 / 10 | 3 / 10 |
+| 7 dias | Normal 1× | Dedicado | 0 · 553 · 0 | 0 · 492 · 0 | 2 / 4 | 2 / 3 |
+| 7 dias | Normal 1× | Explorador | 0 · 838 · 0 | 0 · 744 · 0 | 3 / 10 | 3 / 10 |
+| 7 dias | Tranquilo 0,5× | Regular | 0 · 48 · 0 | 0 · 48 · 0 | 0,5 / 1,5 | 0,5 / 1,5 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 1 | 0 / 1,5 |
+| 7 dias | Tranquilo 0,5× | Explorador | 0 · 19 · 0 | 0 · 19 · 0 | 0,5 / 2,5 | 0,5 / 2,5 |
+| Ano de jogo | Rápido 3× | Regular | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 9 | 0 / 9 |
+| Ano de jogo | Rápido 3× | Dedicado | 0 · 270 · 0 | 0 · 270 · 0 | 3 / 9 | 3 / 9 |
+| Ano de jogo | Rápido 3× | Explorador | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 3 | 0 / 3 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 0 · 402 · 0 | 0 · 516 · 0 | 1,5 / 4 | 1,5 / 4,5 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 0 · 1.006 · 0 | 0 · 660 · 0 | 1,5 / 2,5 | 1,25 / 2,5 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 0 · 732 · 0 | 0 · 602 · 0 | 1,5 / 5,5 | 1,5 / 5,5 |
+
+- **Em Senhor o desperdício cai mais um pouco**: somados os três recursos nas 900 partidas, de 2,85 para 2,75 milhões de unidades (**−3,6%**); a pedra perdida pelo Dedicado da semana do Rápido cai de 1.198 para 230 na mediana. **Em Camponês e em Rei de Ferro ele sobe** (+4,1% e +2,3%): a obra do nível 2 do Mercado atrasa outras, e nessas dificuldades o depósito enche antes.
+- **A madeira e a pedra paradas no fim** sobem 2,3% em Senhor e 8,1% em Rei de Ferro, e caem 0,3% em Camponês: o que a caravana leva volta a encher o depósito antes do fim da partida.
+- **A meta de desperdício do ADR 0013 (até 8 h de jogo com 2 sessões por dia) continua como estava**: acima no Rápido e no Normal, dentro no Tranquilo. As caravanas não a mexem: uma caravana leva até 300 unidades, e o que vai ao chão entre duas visitas no Rápido é muito mais que isso.
+
+### 12.8 As faixas, antes e depois
+
+**As 18 células do Preguiçoso não mudaram. Das outras 54, mudaram 42** (14 por dificuldade) e foram regravadas em `MEASURED`; as 12 que ficaram iguais são as do Regular e do Explorador na semana do Tranquilo e no ano do Rápido, onde nenhuma caravana parte. A matriz saiu com código 1 antes de regravar, nas três dificuldades (**todas as faixas quebradas eram tetos de excedente parado, menos uma**: a maior sequência desperdiçando do Dedicado da semana do Tranquilo em Rei de Ferro, que vai de 0 para 1 h de jogo), e 0 depois. Em Senhor (população, Salão, madeira, pedra e ouro parados, maior sequência desperdiçando em horas de jogo; o maior valor das 50 sementes):
+
+| Célula | Antes (Mercado) | Depois (caravanas) |
+|---|---|---|
+| `week/3/regular` | 75 a 85 · Salão 7 · 3.457 · 5.200 · 219.299 · 33 | 75 a 85 · Salão 7 · **5.200** · 5.200 · 213.017 · 33 |
+| `week/3/dedicado` | 85 · Salão 8 · 4.843 · 5.199 · 365.979 · 15 | 85 · Salão 8 · 4.989 · 5.197 · 367.245 · 15 |
+| `week/3/explorador` | 85 · Salão 8 · 4.157 · 5.085 · 281.337 · 30 | 85 · Salão 8 · 4.180 · 5.200 · 280.666 · 30 |
+| `week/1` e `year/1`, Regular | 64 a 75 · Salão 7 · 3.930 · 4.497 · 27.901 · 10 | 64 a 75 · Salão 7 · 3.874 · 4.337 · 27.104 · 10 |
+| `week/1` e `year/1`, Dedicado | 84 a 85 · Salão 8 · 5.200 · 5.200 · 18.803 · 4 | 84 a 85 · Salão 8 · 5.200 · 5.200 · **20.021** · 3 |
+| `week/1` e `year/1`, Explorador | 63 a 77 · Salão 7 · 4.600 · 5.200 · 19.954 · 10 | 63 a 77 · Salão 7 · 4.600 · 5.200 · 19.813 · 10 |
+| `week/0.5/dedicado` | 54 a 60 · Salão 5 · 1.648 · 1.051 · 1.105 · 1 | 54 a **56** · Salão 5 · 1.721 · 1.071 · 1.104 · **1,5** |
+| `year/3/dedicado` | 48 a 64 · Salão 6 · 2.800 · 2.011 · 14.870 · 9 | 48 a 64 · Salão 6 · 2.800 · 1.983 · 14.524 · 9 |
+| `year/0.5/regular` | 82 a 85 · Salão 8 · 5.200 · 5.200 · 19.246 · 4 | 82 a 85 · Salão 8 · 5.200 · 5.200 · 19.246 · **4,5** |
+| `year/0.5/dedicado` | 84 a 85 · Salão 8 · 5.200 · 5.196 · 33.860 · 2,5 | 84 a 85 · Salão 8 · 5.200 · 5.199 · **35.921** · 2,5 |
+| `year/0.5/explorador` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 16.912 · 5,5 | 84 a 85 · Salão 8 · 5.200 · 5.200 · **17.575** · 5,5 |
+
+**O que piorou, dito por extenso.** Em Senhor: no Regular da semana do Rápido, a madeira parada no fim chega ao teto do Armazém em duas sementes (5.200; a pior era 3.457); o ouro parado do pior caso sobe em três células (seção 12.6); a maior sequência desperdiçando sobe meia hora de jogo no Dedicado da semana do Tranquilo e no Regular do ano do Tranquilo. **Em Camponês, no Regular da semana do Rápido, a menor população final cai de 84 para 77 em uma semente**, e o Dedicado da semana do Tranquilo termina com quase o dobro de madeira, de pedra e de ouro parados na pior semente (1.529, 1.085 e 1.102; eram 822, 597 e 787). Em Rei de Ferro, o Dedicado da semana do Tranquilo passa a ter até 1 h de jogo de madeira indo ao chão (era 0). **Nenhum Salão terminou um nível abaixo, em nenhuma dificuldade**, e nenhuma célula ganhou hora de fome ou de frio. A causa é uma só: a obra do nível 2 do Mercado, que desloca as outras.
+
+### 12.9 Limites desta medição
+
+- **O bot manda caravana com uma regra só** (o excedente da hora da visita, o recurso que rende mais, o primeiro herói livre). Um jogador que escolhesse o que mandar pelo preço do dia, que segurasse a carga para o outono, ou que pesasse a escolta contra uma expedição, usaria as caravanas de outro jeito; nada disso foi medido.
+- **Nenhum bot manda caravana com risco de 10% ou de 5%**: sem herói, o bot espera a Torre no nível 2. As duas chances maiores só têm a medida do motor (seção 12.2).
+- **A escolha entre a escolta e a expedição não foi medida**: o Regular e o Dedicado nunca enviam expedições, e o Explorador envia as expedições antes e escolta com quem sobrou. Quanto ouro uma expedição rende contra o que uma escolta protege (metade de uma carga, em 2% a 10% das viagens) fica para a V3E-T5.2.
+- **O "antes" e o "depois" usam o mesmo motor**: o que a rodada mede é o que as políticas novas mudam, e não a diferença entre o estado 21 e o 22 (que, sem caravana enviada, não muda partida nenhuma: as células do Preguiçoso são idênticas às da seção 11).
+- **"A Mina" é a produção bruta da Mina de Ouro, amostrada ao fim de cada hora real** e somada: serve para a ordem de grandeza da comparação, não para a segunda casa.
+- **O ouro das caravanas inclui o que foi vendido depois de uma emboscada.**
+- **Ninguém jogou as caravanas.** Não há tela (V3E-T4); a rodada mede regras e bots.
+
+## 13. Rodadas seguintes das Fases E a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T3, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 12.*

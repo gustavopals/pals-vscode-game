@@ -7,6 +7,7 @@ import {
   erguerPalicada,
   erguerTorre,
   guardarLenha,
+  mandarCaravana,
   obraMaisBarata,
   planejarAutomaticas,
   recrutar,
@@ -39,6 +40,12 @@ import { type Bot, botOf, type Policy } from './types';
  * que o feudo fica); a compra, logo antes de `guardar lenha`, que cobre com braços o que ainda
  * faltar. O `preguicoso` não negocia nem ergue o Mercado: é a comparação que diz o que ele muda.
  *
+ * Das caravanas (V3E-T2) ele tem uma: **manda caravana** com o excedente quando há um herói
+ * ocioso para a escolta (o da carta da estrangeira, que neste bot nunca parte em expedição) e,
+ * sem herói, só com a Torre de Vigia no nível 2. Vem logo antes de `vender o excedente`: a
+ * caravana paga mais e não gasta o volume do dia. Para isso `erguer o Mercado` passa a levá-lo
+ * ao nível das caravanas.
+ *
  * Da Guilda ele só tem o que o jogo dá a todos: o herói da carta da estrangeira e a Taverna,
  * que `obra mais barata` ergue como qualquer outro edifício. **Não contrata nem dá festival**:
  * quem faz isso é o `explorador`, e a diferença entre os dois é o que a contratação custa.
@@ -67,6 +74,7 @@ export const economicoPolicies: readonly Policy[] = [
   recrutar,
   responderCartas,
   alocarPorDemanda,
+  mandarCaravana,
   venderExcedente,
   erguerMercado,
   comprarLenha,

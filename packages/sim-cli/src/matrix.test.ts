@@ -218,7 +218,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 3.630 | ≤ 5.460 | ≤ 230.264 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 223.668 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -238,12 +238,14 @@ describe('relatório da matriz', () => {
       // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11): o Regular vende o que iria ao
       // chão, e as sequências das três sementes encurtam na semana do Rápido (eram até 33 h) e
       // no ano do Tranquilo (eram até 5,5 h); no Normal uma semente passa de 3 para 7 h.
-      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 12 a 30 | 0 a 24 | ≤ 8 | **acima** |',
+      // Com as caravanas (V3E-T2; seção 12) a semana do Rápido encurta mais um pouco (27 e 21 h,
+      // eram 30 e 24) e o ano do Tranquilo volta a 4,5 h na madeira (eram 3).
+      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 12 a 27 | 0 a 21 | ≤ 8 | **acima** |',
       '| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 0,5 | 1 a 3 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 1 a 4,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -254,7 +256,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([75, 85], 7, 0, 0, 2790, 4781, 209408, 30),",
+      "  'week/3/regular': measured([75, 85], 7, 0, 0, 2790, 4781, 208617, 27),",
     );
   });
 
@@ -277,7 +279,7 @@ describe('relatório da matriz', () => {
     // Com o Mercado (V3E-T1) fora da corrida das obras e erguido por política própria, os
     // marcos ficam onde estavam, e uma das três sementes volta a esgotar as obras na hora 154.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 a — | 51 a 60 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 a — | 52 a 60 | 7 | 10 | 56 |',
     );
     expect(year).toContain(
       '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 34 | 7 | 10 | 56 |',
@@ -349,9 +351,10 @@ describe('relatório da matriz', () => {
       '| Rápido 3× | Preguiçoso | 51% a 54% | 57% a 61% | 38% a 49% | 63 a 75 | 63 | 42 a 45 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
-    // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h.
+    // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
+    // as caravanas (V3E-T2; seção 12), de 13% a 17% e sequências de até 27 h.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 14% a 17% | 7% a 11% | 0% a 9% | 21 a 24 | 12 a 30 | 0 a 24 |',
+      '| Rápido 3× | Regular | 13% a 17% | 6% a 11% | 0% a 8% | 21 a 24 | 12 a 27 | 0 a 21 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 1 | 0 |');
   });
@@ -390,7 +393,7 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 3630 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5460 (2 de 3 sementes, a primeira pedra-alta-002)',
       'week/3/regular: população 3, fora da faixa de 67 a 94 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
@@ -460,9 +463,9 @@ describe('CSV da matriz', () => {
     // As colunas das mecânicas: o desperdício por recurso, o frio e a moral são medidos (o
     // total, as horas e a menor moral da partida); as outras saem vazias até a tarefa de cada
     // uma. Hoje as reservadas são as da Guilda.
-    // Com as expedições medidas (V3D-T1) e o Mercado (V3E-T1), ficam o soldo pago, as caravanas
-    // e os Mestres.
-    expect(RESERVED_COLUMNS).toHaveLength(4);
+    // Com as expedições medidas (V3D-T1), o Mercado (V3E-T1) e as caravanas (V3E-T2), ficam o
+    // soldo pago e os Mestres.
+    expect(RESERVED_COLUMNS).toHaveLength(2);
     const header = (lines[0] ?? '').split(',');
     for (const line of lines.slice(1)) {
       const cells = line.split(',');

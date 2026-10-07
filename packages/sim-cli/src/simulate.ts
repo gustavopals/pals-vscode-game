@@ -335,6 +335,17 @@ export type MarketCounts = {
   goldSpent: number;
   /** Unidades que o Mercado ofereceu negociar, somados os recursos e os dias de jogo com ele de pé. */
   offered: number;
+  /**
+   * As caravanas (GDD §5.9; V3E-T2), dos eventos, acumuladas: as enviadas, quantas delas com
+   * escolta, as que chegaram, as emboscadas, o ouro que as chegadas puseram no cofre e as
+   * unidades que as emboscadas levaram.
+   */
+  caravansSent: number;
+  caravansEscorted: number;
+  caravansArrived: number;
+  caravansAmbushed: number;
+  caravanGold: number;
+  caravanLost: number;
 };
 
 /** O começo da contagem: nada negociado, nada oferecido. */
@@ -345,12 +356,33 @@ export function noMarket(): MarketCounts {
     goldEarned: 0,
     goldSpent: 0,
     offered: 0,
+    caravansSent: 0,
+    caravansEscorted: 0,
+    caravansArrived: 0,
+    caravansAmbushed: 0,
+    caravanGold: 0,
+    caravanLost: 0,
   };
 }
 
-/** Conta, dos eventos, o que foi negociado no Mercado e o ouro que isso moveu. */
+/**
+ * Conta, dos eventos, o que foi negociado no Mercado e o ouro que isso moveu, e as caravanas:
+ * as enviadas, as que chegaram, as emboscadas e o ouro delas.
+ */
 function addTrades(market: MarketCounts, events: GameEvent[]): void {
   for (const event of events) {
+    if (event.type === 'caravanSent') {
+      market.caravansSent += 1;
+      market.caravansEscorted += Number(event.data.escorted ?? 0);
+    }
+    if (event.type === 'caravanArrived' || event.type === 'caravanAmbushed') {
+      market.caravansArrived += 1;
+      market.caravanGold += Number(event.data.gained_gold ?? 0);
+    }
+    if (event.type === 'caravanAmbushed') {
+      market.caravansAmbushed += 1;
+      market.caravanLost += Number(event.data.lost ?? 0);
+    }
     if (event.type !== 'marketTraded') {
       continue;
     }
