@@ -18,8 +18,10 @@ import {
   heroInjuredView,
   impoverishedView,
   initialView,
+  marketDayView,
   palisadeRaisedView,
   proudView,
+  tavernOpenView,
   queuesView,
   raidAftermathView,
   threatIncomingView,
@@ -29,6 +31,7 @@ import {
   withFoodAhead,
   withoutTheClass,
   withPlanned,
+  withWage,
   withQueues,
   withResource,
   withUpgrade,
@@ -37,11 +40,12 @@ import {
   beforeLeaving,
   defenseCommand,
   type LeavingItem,
+  LEAVING_HORIZON_SECONDS,
   leavingItems,
   MAX_LEAVING_ITEMS,
   storageCommand,
 } from './beforeLeaving';
-import { CROSSROADS_NEAR_SECONDS } from '../ui/expeditions';
+import { CROSSROADS_NEAR_SECONDS, sendable } from '../ui/expeditions';
 
 const HOUR = 3600;
 type Firewood = NonNullable<ViewState['winter']>['firewood'];
@@ -938,13 +942,16 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
       {
         id: 'expedition',
         severity: 'info',
-        text: 'Rolf está no feudo, sem jornada, e há expedição que pode partir.',
-        command: { id: 'lords.sendExpedition', label: 'Enviar expedição' },
+        text: 'Rolf está livre, sem jornada: Patrulha dos Arredores pode partir.',
+        command: {
+          id: 'lords.sendExpedition',
+          arg: 'patrol',
+          label: 'Enviar em Patrulha dos Arredores',
+        },
       },
     ]);
-    expect(guildItems(denClearedView)[0]?.text).toBe(
-      'Edda e Rolf estão no feudo, sem jornada, e há expedição que pode partir.',
-    );
+    // A equipe é a menor que serve, a que a visão sugere: um herói só, com os dois livres.
+    expect(guildItems(denClearedView)[0]?.text).toMatch(/^Edda está livre, sem jornada: /);
   });
 
   it('fora do estado de risco: sem a Guilda, com os lugares ocupados ou sem ninguém pronto, não há sugestão de envio', () => {
@@ -978,5 +985,185 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
         expect(item.command.label).not.toBe('');
       }
     }
+  });
+});
+
+describe('antes de partir: a equipe, o ouro e o Mercado (roadmap da v0.3, V3F-T3.1)', () => {
+  const market = marketDayView.market;
+  const withMarket = (view: ViewState): ViewState => ({ ...view, market });
+  /** O mesmo Mercado, sem excedente vendável hoje: o volume esgotou ou o feudo guarda o que tem. */
+  const withoutSurplus = (view: ViewState): ViewState => ({
+    ...view,
+    market: {
+      ...market,
+      prices: market.prices.map((row) => ({ ...row, surplusSellable: 0, remainingToday: 0 })),
+    },
+  });
+  const wageOf = (view: ViewState) => leavingItems(view).find((item) => item.id === 'wage');
+
+  describe('o ouro que não paga o soldo', () => {
+    // Cinco horas de ouro para a equipe: abaixo do horizonte de um dia.
+    const short = withWage(guildPaidView, { coveredForSeconds: 5 * HOUR });
+
+    it('com Mercado e excedente vendável, o botão é a venda, com o que ela rende', () => {
+      const item = wageOf(withMarket(short));
+      // Menos de 8 h de ouro é perigo; entre 8 h e um dia, alerta.
+      expect(item?.severity).toBe('danger');
+      expect(
+        wageOf(withMarket(withWage(guildPaidView, { coveredForSeconds: 12 * HOUR })))?.severity,
+      ).toBe('warning');
+      expect(item?.text).toMatch(
+        /^O ouro paga a equipe por mais 5 h: depois disso o soldo atrasa\. /,
+      );
+      // A maior venda do dia, na conta do servidor: quantidade × preço de venda.
+      const best = [...market.prices].sort(
+        (a, b) => b.surplusSellable * b.sell - a.surplusSellable * a.sell,
+      )[0];
+      expect(item?.text).toContain(
+        `Vender ${best?.surplusSellable} de ${best?.label.toLowerCase()} rende `,
+      );
+      expect(item?.command).toEqual({
+        id: 'lords.openPanel',
+        arg: 'market',
+        label: 'Vender excedente',
+      });
+    });
+
+    it('estado de risco: sem excedente vendável, ou sem Mercado, o botão continua sendo a Mina', () => {
+      expect(wageOf(withoutSurplus(short))?.command.id).toBe('lords.allocateWorkers');
+      expect(wageOf(withoutSurplus(short))?.text).not.toContain('Vender');
+      expect(wageOf(short)?.command.id).toBe('lords.allocateWorkers');
+      expect(wageOf(short)?.text).not.toContain('Vender');
+    });
+
+    it('estado de risco: o atraso aberto também ganha a venda, e continua perigo', () => {
+      const item = wageOf(withMarket(guildArrearsView));
+      expect(item?.severity).toBe('danger');
+      expect(item?.command.label).toBe('Vender excedente');
+      expect(wageOf(guildArrearsView)?.command.id).toBe('lords.allocateWorkers');
+    });
+
+    it('com o ouro cobrindo mais que o horizonte ou sem prazo, nada a dizer', () => {
+      const long = withWage(guildPaidView, { coveredForSeconds: 30 * HOUR });
+      expect(wageOf(withMarket(long))).toBeUndefined();
+      expect(
+        wageOf(withMarket(withWage(guildPaidView, { coveredForSeconds: null }))),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('o depósito que enche', () => {
+    const filling = (view: ViewState, seconds: number) =>
+      withResource(view, 'wood', { fullInSeconds: seconds, full: false, wastingPerHour: 0 });
+    const storage = (view: ViewState) =>
+      leavingItems(view).find((item) => item.id === 'storage:warehouse');
+
+    it('cheio em 3 h com o Mercado de pé: quanto cabe hoje, e o botão vende', () => {
+      const wood = market.prices.find((row) => row.resource === 'wood');
+      const item = storage(withMarket(filling(prepared, 3 * HOUR)));
+      expect(item?.text).toBe(
+        `Pátio: madeira no limite em 3 h. O que passar disso vai ao chão. No Mercado cabem hoje ${wood?.surplusSellable} de madeira.`,
+      );
+      expect(item?.command).toEqual({
+        id: 'lords.openPanel',
+        arg: 'market',
+        label: `Vender: cabem ${wood?.surplusSellable} hoje`,
+      });
+    });
+
+    it('estado de risco: sem o excedente do dia, sem Mercado ou fora do prazo, é a obra do depósito ou nada', () => {
+      const noSale = storage(withoutSurplus(filling(withMarket(prepared), 3 * HOUR)));
+      expect(noSale?.command.label).not.toMatch(/^Vender/);
+      expect(noSale?.text).not.toContain('Mercado');
+      expect(storage(filling(prepared, 3 * HOUR))?.command.label).not.toMatch(/^Vender/);
+      // Cheio só daqui a 9 h: a ausência comum acaba antes.
+      expect(storage(withMarket(filling(prepared, 9 * HOUR)))).toBeUndefined();
+    });
+
+    it('cheio e perdendo, com Mercado: a perda é dita e a venda é oferecida', () => {
+      const item = leavingItems(withMarket(proudView)).find((entry) =>
+        entry.id.startsWith('storage:'),
+      );
+      expect(item?.text).toContain('vão ao chão');
+      expect(item?.text).toContain('No Mercado cabem hoje');
+      expect(item?.command.label).toMatch(/^Vender: cabem \d/);
+    });
+  });
+
+  describe('herói livre com expedição disponível', () => {
+    const idle = (view: ViewState) => leavingItems(view).find((item) => item.id === 'expedition');
+
+    it('nomeia quem a visão sugere e o destino, com o botão no destino', () => {
+      const [destination] = sendable(heroInjuredView.guild);
+      const item = idle(heroInjuredView);
+      expect(item?.command).toEqual({
+        id: 'lords.sendExpedition',
+        arg: destination?.modelId,
+        label: `Enviar em ${destination?.label}`,
+      });
+      expect(item?.text).toBe(`Rolf está livre, sem jornada: ${destination?.label} pode partir.`);
+    });
+
+    it('estado de risco: o herói sem destino que o aceite, ou o lugar ocupado, não gera item', () => {
+      expect(
+        idle(withoutTheClass(withoutTheClass(denClearedView, 'patrol'), 'oldForest')),
+      ).toBeUndefined();
+      expect(idle(expeditionTravelingView)).toBeUndefined();
+      expect(idle(guildPaidView)).toBeUndefined();
+    });
+  });
+
+  describe('o candidato da Taverna que sai na rotação', () => {
+    const tavern = (patch: Partial<ViewState['tavern']>): ViewState => ({
+      ...tavernOpenView,
+      tavern: { ...tavernOpenView.tavern, ...patch },
+    });
+    const item = (view: ViewState) => leavingItems(view).find((entry) => entry.id === 'tavern');
+
+    it('com a rotação antes do horizonte, diz quando e quem pode sair; é só informação', () => {
+      const found = item(tavernOpenView);
+      expect(found?.severity).toBe('info');
+      expect(found?.command).toEqual({
+        id: 'lords.openPanel',
+        arg: 'tavern',
+        label: 'Ver a Taverna',
+      });
+      expect(found?.text).toContain('A Taverna troca os candidatos em ');
+      for (const offer of tavernOpenView.tavern.offers) {
+        expect(found?.text).toContain(`${offer.name} (${offer.classLabel})`);
+      }
+    });
+
+    it('estado de risco: sem candidato, sem Taverna, sem rotação ou com a rotação além do horizonte, nada', () => {
+      expect(item(tavern({ offers: [] }))).toBeUndefined();
+      expect(item(tavern({ level: 0 }))).toBeUndefined();
+      expect(item(tavern({ nextRotationInSeconds: null }))).toBeUndefined();
+      expect(item(tavern({ nextRotationInSeconds: LEAVING_HORIZON_SECONDS }))).toBeUndefined();
+      expect(item(tavern({ nextRotationInSeconds: LEAVING_HORIZON_SECONDS - 1 }))).toBeDefined();
+    });
+  });
+
+  describe('o teto e a ordem por gravidade', () => {
+    it('o corte mantém os mais graves e tira a informação primeiro', () => {
+      const crowded: ViewState = {
+        ...proudView,
+        tavern: tavernOpenView.tavern,
+        guild: { ...proudView.guild, wage: guildArrearsView.guild.wage },
+        resources: proudView.resources.map((row) =>
+          row.id === 'food' ? { ...row, perHour: -5, depletesInSeconds: HOUR, full: false } : row,
+        ),
+      };
+      const all = leavingItems(crowded);
+      expect(all.length).toBeGreaterThan(MAX_LEAVING_ITEMS);
+      const kept = beforeLeaving(crowded);
+      expect(kept).toHaveLength(MAX_LEAVING_ITEMS);
+      const serious = all.filter((entry) => entry.severity !== 'info');
+      expect(serious.length).toBeLessThanOrEqual(MAX_LEAVING_ITEMS);
+      for (const entry of serious) {
+        expect(kept.map((x) => x.id)).toContain(entry.id);
+      }
+      // A informação da Taverna é a primeira a cair.
+      expect(kept.map((x) => x.id)).not.toContain('tavern');
+    });
   });
 });
