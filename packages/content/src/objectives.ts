@@ -1,4 +1,4 @@
-import type { BuildingId, ProductionBuildingId, ResourceAmounts, SeasonId } from './ids';
+import type { BuildingId, ItemId, ProductionBuildingId, ResourceAmounts, SeasonId } from './ids';
 
 export const OBJECTIVE_CONDITION_TYPES = [
   'workersAtLeast',
@@ -9,6 +9,11 @@ export const OBJECTIVE_CONDITION_TYPES = [
   'cardAnswered',
   'plannedAutoStart',
   'seasonSurvived',
+  'heroCount',
+  'expeditionSent',
+  'tradeDone',
+  'crossroadsChosen',
+  'expeditionCompleted',
 ] as const;
 
 export type ObjectiveCondition =
@@ -35,7 +40,17 @@ export type ObjectiveCondition =
    * a estação acompanhada desde o primeiro instante: a que já estava em curso quando a regra
    * chegou não vale pela metade.
    */
-  | { readonly type: 'seasonSurvived'; readonly season: SeasonId; readonly count: number };
+  | { readonly type: 'seasonSurvived'; readonly season: SeasonId; readonly count: number }
+  /** Heróis no feudo (v0.3), contando quem está em expedição, ferido ou em recuperação. */
+  | { readonly type: 'heroCount'; readonly count: number }
+  /** Expedições enviadas ao modelo (`expeditionModels[].id`). */
+  | { readonly type: 'expeditionSent'; readonly model: string; readonly count: number }
+  /** Ordens de venda aceitas no Mercado, de qualquer recurso (as unidades vendidas, somadas). */
+  | { readonly type: 'tradeDone'; readonly direction: 'sell'; readonly count: number }
+  /** Escolhas feitas pelo **jogador** em encruzilhadas: a decidida pela Postura não conta. */
+  | { readonly type: 'crossroadsChosen'; readonly count: number }
+  /** Expedições ao modelo que voltaram para casa (a recolhida antes do fim não conta). */
+  | { readonly type: 'expeditionCompleted'; readonly model: string; readonly count: number };
 
 /**
  * Recompensa em moral: um efeito temporário, que entra na conta da moral nas próximas
@@ -57,6 +72,8 @@ export type ObjectiveDef = {
   readonly reward: ResourceAmounts;
   /** Moral dada na conclusão, por alguns dias de jogo. */
   readonly morale?: ObjectiveMoraleReward;
+  /** Item dado ao arsenal na conclusão (v0.3); com o arsenal cheio, vira ouro (decisão 15). */
+  readonly item?: ItemId;
   /**
    * Recompensa que não é recurso, pronta para entrar depois de "Recompensa:" e ao lado de
    * "+20 ouro": começa em minúscula e não tem ponto final.
@@ -144,5 +161,52 @@ export const objectives: readonly ObjectiveDef[] = [
     condition: { type: 'seasonSurvived', season: 'winter', count: 1 },
     reward: {},
     morale: { amount: 15, durationDays: 1, label: 'Inverno sem frio' },
+  },
+  // Os da v0.3 (ADR 0018, decisão 20): cada um aparece quando a ferramenta nova resolve um problema
+  // já sentido. Os de exército continuam fora, sem buraco na sequência.
+  {
+    id: 'welcomeFirstHero',
+    title: 'Acolha ou contrate o primeiro herói',
+    hint: 'Quem sai do feudo por ele volta com o que o feudo não produz.',
+    condition: { type: 'heroCount', count: 1 },
+    reward: {},
+    item: 'huntingSpear',
+  },
+  {
+    id: 'buildGuild',
+    title: 'Erga a Guilda dos Aventureiros',
+    hint: 'Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.',
+    condition: { type: 'buildingLevel', building: 'guild', level: 1 },
+    reward: { stone: 60 },
+  },
+  {
+    id: 'sendPatrol',
+    title: 'Envie uma Patrulha',
+    hint: 'A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.',
+    condition: { type: 'expeditionSent', model: 'patrol', count: 1 },
+    reward: { gold: 50 },
+  },
+  {
+    id: 'sellSurplus',
+    title: 'Venda no Mercado o que iria para o chão',
+    hint: 'O que passa do depósito se perde; o que se vende vira ouro.',
+    condition: { type: 'tradeDone', direction: 'sell', count: 1 },
+    reward: { wood: 40 },
+  },
+  {
+    id: 'chooseAtCrossroads',
+    title: 'Escolha um caminho em uma encruzilhada',
+    hint: 'A Postura decide por quem se cala; quem escolhe sabe o que arrisca.',
+    condition: { type: 'crossroadsChosen', count: 1 },
+    reward: {},
+    morale: { amount: 10, durationDays: 1, label: 'O Senhor escolheu o caminho' },
+  },
+  {
+    id: 'exploreRuins',
+    title: "Explore as Ruínas de Vel'Thar",
+    hint: 'O que dorme nas ruínas não se acha em mais parte nenhuma.',
+    condition: { type: 'expeditionCompleted', model: 'ruins', count: 1 },
+    reward: {},
+    item: 'ashBow',
   },
 ];

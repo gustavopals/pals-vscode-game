@@ -742,6 +742,23 @@ export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
     season: z.enum(SEASON_IDS),
     count: positiveInt,
   }),
+  z.strictObject({ type: z.literal('heroCount'), count: positiveInt }),
+  z.strictObject({
+    type: z.literal('expeditionSent'),
+    model: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+    count: positiveInt,
+  }),
+  z.strictObject({
+    type: z.literal('tradeDone'),
+    direction: z.literal('sell'),
+    count: positiveInt,
+  }),
+  z.strictObject({ type: z.literal('crossroadsChosen'), count: positiveInt }),
+  z.strictObject({
+    type: z.literal('expeditionCompleted'),
+    model: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+    count: positiveInt,
+  }),
 ]);
 
 export const ObjectiveSchema = z
@@ -764,11 +781,14 @@ export const ObjectiveSchema = z
       .optional(),
     // Entra depois de "Recompensa:" e ao lado de "+20 ouro": minúscula, sem ponto final.
     rewardText: label.regex(/^\p{Ll}.*[^.]$/u).optional(),
+    // Um item do catálogo, dado ao arsenal.
+    item: z.enum(ITEM_IDS).optional(),
   })
   .refine(
     (objective) =>
       Object.keys(objective.reward).length > 0 ||
       objective.morale !== undefined ||
+      objective.item !== undefined ||
       objective.rewardText !== undefined,
     'objetivo sem recompensa',
   );

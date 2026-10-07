@@ -1,6 +1,8 @@
 import {
   balance,
   cutRewardTemplates,
+  items,
+  MARKET_RESOURCE_IDS,
   type ObjectiveCondition,
   type ObjectiveDef,
   objectives,
@@ -10,7 +12,9 @@ import {
 import { emit } from './chronicle';
 import { DAY_MS } from './clock';
 import { amountsData } from './construction';
+import { stowItem } from './equipment';
 import { decimal, durationText, joinList, plural } from './format';
+import { nextId } from './ids';
 import { addMoraleEffect } from './morale';
 import { seasonsSurvived } from './seasonWatch';
 import { grantResources } from './storage';
@@ -50,6 +54,24 @@ export function objectiveProgress(
     }
     case 'seasonSurvived':
       return { current: seasonsSurvived(state, condition.season), target: condition.count };
+    case 'heroCount':
+      // Quem está em expedição, ferido ou em recuperação continua na lista do feudo.
+      return { current: state.guild.heroes.length, target: condition.count };
+    case 'expeditionSent':
+      return { current: stats[`expeditionsSent:${condition.model}`] ?? 0, target: condition.count };
+    case 'tradeDone': {
+      // As unidades vendidas de todo recurso (`sold_<recurso>`, gravadas pela ordem de venda).
+      const sold = MARKET_RESOURCE_IDS.reduce((sum, id) => sum + (stats[`sold_${id}`] ?? 0), 0);
+      return { current: sold, target: condition.count };
+    }
+    case 'crossroadsChosen':
+      // Só a escolha do jogador: a da Postura conta em `crossroadsByPosture`.
+      return { current: stats.crossroadsChosen ?? 0, target: condition.count };
+    case 'expeditionCompleted':
+      return {
+        current: stats[`expeditionsReturned:${condition.model}`] ?? 0,
+        target: condition.count,
+      };
   }
 }
 
@@ -68,7 +90,7 @@ export function objectiveMoraleEffectId(objectiveId: string): string {
  * mesma em qualquer ritmo, fica só com os dias de jogo.
  */
 export function describeReward(
-  { reward, morale, rewardText }: ObjectiveDef,
+  { reward, morale, rewardText, item }: ObjectiveDef,
   timeScale?: number,
 ): string {
   const parts = positiveEntries(reward).map(
@@ -81,6 +103,9 @@ export function describeReward(
         ? ''
         : ` (${durationText(realSecondsCeil(morale.durationDays * DAY_MS, timeScale))})`;
     parts.push(`+${morale.amount} de moral por ${days} de jogo${real}`);
+  }
+  if (item !== undefined) {
+    parts.push(`um item (${items[item].label})`);
   }
   return joinList(rewardText === undefined ? parts : [...parts, rewardText]);
 }
@@ -164,6 +189,11 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
         },
         cut ? cutRewardTemplates.objectiveCompleted : undefined,
       );
+      // O item vai ao arsenal; com ele cheio, vira ouro pelo valor do conteúdo, com a linha
+      // própria da Crônica (`stowItem`). O identificador nasce aqui, num instante da linha do tempo.
+      if (objective.item !== undefined) {
+        stowItem(draft, { id: nextId(draft, 'item'), defId: objective.item }, atMs, events);
+      }
       changed = true;
     }
     for (const objective of objectives) {

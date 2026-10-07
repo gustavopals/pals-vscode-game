@@ -1,6 +1,9 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
+import { EXPEDITIONS_SECTION } from './expeditions';
 import { cardDecisions, isNewBuilding } from './format';
+import { TAVERN_SECTION } from './guild';
+import { MARKET_SECTION } from './market';
 import { buildingWork, workTerms } from './threat';
 
 /**
@@ -97,6 +100,7 @@ export type ObjectiveAction = {
  *   próxima;
  * - **planejadas:** liga o início automático de uma obra já planejada ou, sem nenhuma à espera
  *   de ordem, abre a lista para planejar;
+ * - **Taverna, expedições e Mercado:** só navegam, até a seção da aba Guilda ou Mercado;
  * - **estação:** nada a ordenar; atravessar a estação é esperar, e "Antes de partir" cuida da lenha.
  *
  * `null` para o objetivo cumprido e para aquele em que não há o que fazer agora.
@@ -168,6 +172,27 @@ export function objectiveAction(
             text: 'Marcar',
           }
         : { command: 'lords.planConstruction', label: 'Planejar obras', text: 'Planejar' };
+    case 'tavern':
+      return {
+        command: 'lords.openPanel',
+        arg: TAVERN_SECTION,
+        label: 'Ver a Taverna',
+        text: 'Ver',
+      };
+    case 'expeditions':
+      return {
+        command: 'lords.openPanel',
+        arg: EXPEDITIONS_SECTION,
+        label: 'Ver as expedições',
+        text: 'Ver',
+      };
+    case 'market':
+      return {
+        command: 'lords.openPanel',
+        arg: MARKET_SECTION,
+        label: 'Ver o Mercado',
+        text: 'Ver',
+      };
     case 'season':
       return null;
   }

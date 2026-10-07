@@ -1017,7 +1017,10 @@ describe('o saque e os traços (ADR 0017, "Os oito traços"; pendência D-7)', (
       'oldForest',
       'wolfDen',
     ]);
-    expect(JSON.stringify(deriveViewState(unknown([]), 0))).not.toContain("Vel'Thar");
+    // Sem os Objetivos do Senhor: o do 16º (concluído nos estados de teste) cita as Ruínas pelo nome.
+    expect(JSON.stringify({ ...deriveViewState(unknown([]), 0), objectives: [] })).not.toContain(
+      "Vel'Thar",
+    );
     expect(
       refuse(
         unknown([]),
@@ -1352,7 +1355,11 @@ describe('a névoa e a pureza dos desfechos (QA-18)', () => {
   it('parada na encruzilhada, a visão não traz o item que o caminho não tomado daria', () => {
     const sent = send(hall(3), 'oldForest', ['hero-1', 'hero-2'], 'bold', 0);
     const fork = advanceTo(sent.state, sent.expedition.nodeEndsAtMs ?? 0).state;
-    const text = JSON.stringify(deriveViewState(fork, fork.lastProcessedAt));
+    // Sem os Objetivos do Senhor: o do primeiro herói dá uma Lança de caça de recompensa.
+    const text = JSON.stringify({
+      ...deriveViewState(fork, fork.lastProcessedAt),
+      objectives: [],
+    });
     for (const id of ['huntingSpear', 'paddedJerkin', 'luckyCharm'] as const) {
       expect(text).not.toContain(items[id].label);
       expect(text).not.toContain(id);
@@ -1363,9 +1370,9 @@ describe('a névoa e a pureza dos desfechos (QA-18)', () => {
       command('chooseExpeditionPath', { expeditionId: 'expedition-1', optionId: 'stream' }),
     ).state;
     const home = advanceTo(stream, stream.lastProcessedAt + 2 * HOUR).state;
-    expect(JSON.stringify(deriveViewState(home, home.lastProcessedAt))).not.toContain(
-      items.huntingSpear.label,
-    );
+    expect(
+      JSON.stringify({ ...deriveViewState(home, home.lastProcessedAt), objectives: [] }),
+    ).not.toContain(items.huntingSpear.label);
     expect(home.ids.item).toBeUndefined();
   });
 

@@ -37,6 +37,8 @@ import type { GameEvent, GameState, ObjectiveView } from './types';
 import { deriveViewState } from './view';
 
 const ids = objectives.map((objective) => objective.id);
+/** Os dez da v0.2: o cenário roteirizado desta suíte para neles; os da v0.3 estão em `objectives.v03.test.ts`. */
+const v02 = ids.slice(0, 10);
 
 /** Os `count` primeiros objetivos concluídos e os três seguintes ativos, como o jogo os deixa. */
 const reached = (count: number) => (draft: GameState) => {
@@ -44,11 +46,15 @@ const reached = (count: number) => (draft: GameState) => {
 };
 
 /** O que cada objetivo concluído deu, como a Crônica conta: o que vem depois de "Recompensa:". */
-const rewards = (events: GameEvent[]) =>
-  eventsOfType(events, 'objectiveCompleted').map((event) => event.text.split('Recompensa: ')[1]);
+const v02Events = (events: GameEvent[]) =>
+  eventsOfType(events, 'objectiveCompleted').filter((event) =>
+    v02.includes(`${event.data.objective}`),
+  );
 
-const completedIn = (events: GameEvent[]) =>
-  eventsOfType(events, 'objectiveCompleted').map((event) => event.data.objective);
+const rewards = (events: GameEvent[]) =>
+  v02Events(events).map((event) => event.text.split('Recompensa: ')[1]);
+
+const completedIn = (events: GameEvent[]) => v02Events(events).map((event) => event.data.objective);
 
 function viewOf(state: GameState, id: string, timeScale?: number): ObjectiveView {
   const view = deriveViewState(
@@ -193,6 +199,12 @@ describe('objetivos', () => {
       { current: 0, target: 1 },
       { current: 0, target: 1 },
       { current: 0, target: 1 },
+      { current: 0, target: 1 },
+      { current: 0, target: 1 },
+      { current: 0, target: 1 },
+      { current: 0, target: 1 },
+      { current: 0, target: 1 },
+      { current: 0, target: 1 },
     ]);
   });
 
@@ -241,10 +253,13 @@ describe('objetivos da v0.2: a sequência inteira', () => {
   it('o cenário roteirizado conclui os dez, na ordem, em uma partida nova', () => {
     const { state, events } = allObjectivesScenario();
     expect(state.lastProcessedAt).toBe(YEAR);
-    expect(state.objectives).toEqual({ active: [], completed: ids });
-    expect(completedIn(events)).toEqual(ids);
+    // O herói da carta do 13º dia cumpre o 11º antes do inverno acabar; o resto da v0.3 espera.
+    expect(state.objectives.completed.filter((id) => v02.includes(id))).toEqual(v02);
+    expect(state.objectives.completed).toContain('welcomeFirstHero');
+    expect(state.objectives.active).toEqual(['buildGuild', 'sendPatrol', 'sellSurplus']);
+    expect(completedIn(events)).toEqual(v02);
     expect(rewards(events)).toEqual(expectedRewards);
-    const completed = eventsOfType(events, 'objectiveCompleted');
+    const completed = v02Events(events);
     expect(completed.map((event) => event.atMs)).toEqual([
       0,
       0,
@@ -302,9 +317,10 @@ describe('objetivos da v0.2: a sequência inteira', () => {
 
     // O mesmo roteiro da partida nova conclui os seis da v0.2, na ordem.
     const { state, events } = laterObjectivesScenario(start);
-    expect(completedIn(events)).toEqual(ids.slice(4));
+    expect(completedIn(events)).toEqual(v02.slice(4));
     expect(rewards(events)).toEqual(expectedRewards.slice(4));
-    expect(state.objectives).toEqual({ active: [], completed: ids });
+    expect(state.objectives.completed.filter((id) => v02.includes(id))).toEqual(v02);
+    expect(state.objectives.active).toEqual(['buildGuild', 'sendPatrol', 'sellSurplus']);
     expect(state.lastProcessedAt).toBe(YEAR);
   });
 
@@ -347,7 +363,7 @@ describe('objetivos da v0.2: a sequência inteira', () => {
       'No 6º dia da Primavera, cumpriu-se um objetivo: Construa a Torre de Vigia. Recompensa: +40 pedra.',
     );
     expect(state.objectives).toEqual({
-      active: ['buildPalisade', 'surviveWinterWithoutCold'],
+      active: ['buildPalisade', 'surviveWinterWithoutCold', 'welcomeFirstHero'],
       completed: ids.slice(0, 8),
     });
     expect(state.settlement.resources).toMatchObject({
@@ -921,8 +937,10 @@ describe('objetivos na visão: o que falta e onde se cumpre', () => {
   it('a visão nunca mostra mais de três ativos, nem objetivo ainda escondido', () => {
     const { state } = allObjectivesScenario();
     const all = deriveViewState(state, state.lastProcessedAt).objectives;
-    expect(all.map((objective) => objective.id)).toEqual(ids);
-    expect(all.every((objective) => objective.status === 'completed')).toBe(true);
+    expect(all.map((objective) => objective.id)).toEqual(ids.slice(0, 14));
+    // O herói da carta do 13º dia já cumpriu o 11º; os três seguintes esperam.
+    expect(all.slice(0, 11).every((objective) => objective.status === 'completed')).toBe(true);
+    expect(all.slice(11).every((objective) => objective.status === 'active')).toBe(true);
     for (let done = 0; done <= ids.length; done += 1) {
       const view = deriveViewState(gameWith(reached(done)), 0).objectives;
       expect(view.filter((objective) => objective.status === 'active').length).toBe(
