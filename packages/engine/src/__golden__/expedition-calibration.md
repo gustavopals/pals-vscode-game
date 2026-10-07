@@ -117,7 +117,7 @@ Em 31 sortes:
 | Resgate | C | Soltar os cavalos e entrar na confusão | Equilibrada | — | Arqueiro + Arqueiro Nv5 (passa em 100%) | Guerreiro + Guerreiro Nv1 (passa em 26%) | 11 de 72 |
 | Resgate | C | Rastejar pela vala até a gaiola | Cautelosa | — | Guerreiro + Guerreiro Nv1 (passa em 87%) | Guerreiro + Guerreiro Nv5, com brave (passa em 100%) | 58 de 72 |
 | Ruínas de Vel'Thar | A | Seguir pelo Corredor das Inscrições | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Clérigo + Clérigo Nv2 (passa em 0%) | 48 de 60 |
-| Ruínas de Vel'Thar | A | Atravessar a Galeria Inundada | Equilibrada | Guerreiro | Guerreiro + Clérigo Nv2 (passa em 10%) | Guerreiro + Arqueiro + Mago Nv2 (passa em 100%) | 11 de 60 |
+| Ruínas de Vel'Thar | A | Atravessar a Galeria Inundada | Equilibrada | Guerreiro | Guerreiro + Clérigo Nv2 (passa em 10%) | Guerreiro + Arqueiro + Mago Nv3 (passa em 100%) | 11 de 60 |
 | Ruínas de Vel'Thar | A | Sair pela fresta | Cautelosa | — | Clérigo + Clérigo Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 1 de 60 |
 | Ruínas de Vel'Thar | B | Descer ao ossário | Ousada | — | Clérigo + Clérigo Nv3 (passa em 32%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 42 de 60 |
 | Ruínas de Vel'Thar | B | Atravessar o salão das lajes falsas | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 0%) | Clérigo + Clérigo Nv3 (passa em 29%) | 19 de 60 |

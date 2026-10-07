@@ -251,7 +251,17 @@ function yieldPerHeroHour(model: ExpeditionModelDef, kind: TeamKind, posture: Po
  * cativo, revelar um destino) e o dano descontado (o Revés fere de leve, o Desastre fere
  * gravemente ou captura). Serve só para dizer para que equipe cada opção é a escolha razoável.
  */
-const WORTH = { clears: 150, rescues: 250, reveals: 60, light: 40, severe: 150, capture: 400 };
+const WORTH = {
+  clears: 150,
+  rescues: 250,
+  reveals: 60,
+  // O Mestre (V3E-T3): vale muito, pesado pela chance de a equipe o encontrar. Só chega uma vez
+  // por partida; a régua conta a jornada em que ele ainda está lá.
+  master: 300,
+  light: 40,
+  severe: 150,
+  capture: 400,
+};
 
 function expectedWorth(
   team: readonly Hero[],
@@ -278,6 +288,10 @@ function expectedWorth(
     worth += succeeded * (rewards?.clearsTile === undefined ? 0 : WORTH.clears);
     worth += succeeded * (rewards?.rescues === true ? WORTH.rescues : 0);
     worth += succeeded * (rewards?.reveals === undefined ? 0 : WORTH.reveals);
+    if (rewards?.master !== undefined) {
+      const { chance } = rewards.master;
+      worth += (succeeded * chance.num * WORTH.master) / chance.den;
+    }
     if (trial !== undefined) {
       worth -= odds.setback * WORTH.light;
       worth -= odds.disaster * (trial.onDisaster === 'capture' ? WORTH.capture : WORTH.severe);

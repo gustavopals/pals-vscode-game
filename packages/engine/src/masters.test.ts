@@ -1024,7 +1024,7 @@ describe('o Mestre que uma expedição encontra (V3E-T3.3)', () => {
   const outcomeOf = (events: GameEvent[]) =>
     events.find((event) => event.type.startsWith('expeditionNode'))?.data.outcome;
 
-  it('em sessenta sementes: só quem vence o guardião o encontra, em perto de uma de cada quatro vitórias', () => {
+  it('em sessenta sementes: só quem vence o guardião o encontra, e a equipe forte o encontra em dez das sessenta vitórias', () => {
     let won = 0;
     let found = 0;
     for (const seed of SEEDS) {
@@ -1048,10 +1048,11 @@ describe('o Mestre que uma expedição encontra (V3E-T3.3)', () => {
         expect(done.state.ids.master).toBeUndefined();
       }
     }
-    expect(won).toBeGreaterThan(40);
-    // Um em quatro: com mais de quarenta vitórias, entre cinco e vinte.
-    expect(found).toBeGreaterThanOrEqual(5);
-    expect(found).toBeLessThanOrEqual(20);
+    // Os dois números estão fixados: a equipe forte vence sempre, e o sorteio do Mestre é o
+    // último do nó. Mudar o gerador, o nome do fluxo ou a ordem dos sorteios os muda, e é
+    // mudança de regra. Dez em sessenta fica a um desvio-padrão e meio dos quinze esperados.
+    expect(won).toBe(60);
+    expect(found).toBe(10);
   });
 
   it('o Mestre toma a estrada na hora do nó: a linha dele vem depois da do guardião, o relatório o registra, e ele não espera a volta da equipe', () => {
