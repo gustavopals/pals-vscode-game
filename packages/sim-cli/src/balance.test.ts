@@ -190,10 +190,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // encruzilhada, e em alguma das 50 sementes ele termina a semana com cinco (a causa exata
     // não foi investigada; o ritmo de envios e de saque mudou). Com o Mercado (V3E-T1) ele volta
     // a encher os seis lugares nas 50 sementes: o ouro das vendas paga o contrato que faltava.
-    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
+    // Na revisão da Fase E (docs/balance-v0.3.md, seção 14) a caravana passou a pagar 15% sobre
+    // o balcão, e não 40%, e o soldo passou a crescer com o nível: em alguma das 50 sementes o
+    // ouro já não paga o sexto contrato na semana, e ele termina com cinco.
+    expect(heroes('week/1/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('week/0.5/explorador')).toEqual({ min: 2, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
-    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
+    expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.

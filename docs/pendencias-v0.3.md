@@ -4,7 +4,7 @@
 
 ## 0a. Respostas do autor em 2026-10-07 (quarta rodada)
 
-Com a Fase E implementada e a revisão independente feita, o autor respondeu a quatro pontos. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e no [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), seção "Respostas de 2026-10-07" de cada um; os números medidos, em [balance-v0.3.md](balance-v0.3.md), "Revisão da Fase E". Como na seção 0, o texto das seções 1 a 6 não foi reescrito: leia com esta tabela por cima.
+Com a Fase E implementada e a revisão independente feita, o autor respondeu a quatro pontos. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e no [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), seção "Respostas de 2026-10-07" de cada um; os números medidos, em [balance-v0.3.md](balance-v0.3.md), "Revisão da Fase E" (seção 14). Como na seção 0, o texto das seções 1 a 6 não foi reescrito: leia com esta tabela por cima.
 
 | Item | Pergunta | Resposta |
 |---|---|---|
@@ -179,17 +179,52 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase E: a revisão independente no motor, no conteúdo e no simulador (V3E-T5)
+
+Vêm da aplicação, em 2026-10-07, das quatro respostas do autor (seção 0a) e dos achados da revisão independente da Fase E. **Estado na versão 24.** Um commit por item (`V3E: aplica …` e `V3E: corrige …`). O que segue é o que ficou **decidido na revisão ou pelo agente, sem o autor**, e o que ficou só registrado.
+
+**E-51. As marcas da Crônica do Mercado ficaram em 85% e 115%, e não em 90% e 110%.** *(Decisão da revisão, trocada pelo agente depois de medir; pergunta para o autor.)*
+- A revisão (R3) achou as marcas mortas: em 100 sementes de dois anos o preço ficou entre 0,778 e 1,309 da base, e `marketPriceSwing` saía uma vez a cada 17 anos de jogo. A proposta era 90% e 110%, com o alvo "algumas linhas por ano, não uma por semana".
+- **Medido em 50 sementes de dois anos de jogo, nos três recursos:** 80%/125%, 6 linhas (0,06 por ano); 85%/115%, **221 (2,2 por ano)**; 87,5%/112,5%, 618 (6,2 por ano); 90%/110%, **1.226 (12,3 por ano: uma por semana de jogo)**. A proposta não cumpria o próprio alvo, e o agente aplicou 85%/115%.
+- Onde: `balance.market.swing`; `market.test.ts` fixa o 221. O piso (60%) e o teto (160%) do ADR continuam sem ser alcançados (E-3).
+- Se decidir diferente: é uma linha no conteúdo e três números de teste.
+
+**E-52. O herói devido que volta é cobrado na volta.** *(Correção da revisão, R2; muda o que a E-20 dizia.)*
+- A regra aprovada é "quem está fora só pode partir depois de voltar". A cobrança era só da virada do dia, e bastava manter o herói sempre na estrada: cofre vazio, 1 de madeira por caravana a cada chegada, fora de toda virada: 60 chegadas em 120 dias de jogo, nenhuma partida. Agora a chegada da caravana e o retorno da expedição cobram ali mesmo quem deve e é o da vez (`chargeReturned`), depois de entregar a carga ou o saque. A conta é a da virada: nunca duas vezes.
+- **Consequência para quem joga certo:** a equipe que volta de uma expedição longa com o atraso vencido perde um herói no instante da volta, e não na virada seguinte. A tela diz ("Quem está fora do feudo não parte na estrada: se o prazo já tiver vencido, parte no instante em que voltar."), **mas não anuncia o segundo exato**: `nextDepartureInSeconds` continua sendo o prazo da virada para quem está em casa.
+- Se decidir diferente: a alternativa é dar a quem volta uma virada de carência; a manobra volta a funcionar com viagens de menos de um dia de jogo.
+
+**E-53. Quem já teve um edifício e ficou livre paga a adaptação ao voltar a trabalhar.** *(Leitura do agente; a resposta do autor deixou o caso aberto.)*
+- A resposta é "a primeira alocação é imediata; só mudar de edifício custa 1 dia". O agente leu "primeira" como "nunca trabalhou" (`masters[].worked`): tirar o Mestre do edifício e pô-lo de volta, até no mesmo, paga a adaptação. Sem isso, a troca sairia de graça por uma ordem intermediária.
+- **Na migração (23 → 24):** quem tem edifício ou está em adaptação já trabalhou; quem está sem edifício entra como quem nunca trabalhou e ganha a alocação imediata, uma vez. Nenhuma partida em produção tem Mestre.
+
+**E-54. A tabela do soldo por nível foi proposta pelo agente.** *(Pergunta para o autor.)*
+- O autor deu as pontas (2 no nível 1, cerca de dez vezes no 10). A tabela é **2, 3, 4, 6, 8, 10, 12, 15, 18, 20**. O que ela fez com o ouro parado, com o atraso e com os heróis que partem está em [balance-v0.3.md](balance-v0.3.md), "Revisão da Fase E" (seção 14): **o ouro parado quase não mexe**, porque a Mina rende de dez a cem vezes o soldo de uma equipe.
+
+**E-55. O excedente (`surplusSellable`) é uma reserva simples, não uma previsão.** *(Decisão do agente; a tela é do agente do app.)*
+- O que o feudo guarda: a comida guardada da moral (24 h de jogo de consumo), a lenha do resto do inverno **em curso** e o custo das obras automáticas. **Fora do inverno não guarda lenha para o inverno que vem**, e não conta o que a produção ainda traz. É o número que o atalho "Vender até N" deve propor; a ordem continua aceitando até `maxSellable`.
+
+**E-56. No estado, `masters[].masterId` continua sendo o conteúdo.** *(Registro.)* Nos eventos o par foi alinhado (`masterId` = entidade, `masterDefId` = conteúdo). Renomear o estado pedia outro passo de migração por um nome.
+
+**E-57. A experiência do ofício sobe só com o Mestre no edifício.** *(Decisão do orquestrador: fica. Para o autor saber.)* A revisão viu a Pedreira ir de 0 a 12 em 3 dias sem aldeão nenhum: o Mestre é um braço, e o edifício só com ele está ocupado (`occupancyOf`).
+
+**E-58. `trade` com quantidade gigantesca responde `DAILY_VOLUME_EXCEEDED`, e não `INVALID_AMOUNT`.** *(Decisão do orquestrador: fica.)* Uma quantidade inteira a partir de 1 é uma quantidade válida; o que a barra é o volume do dia, e a frase diz quanto cabe.
+
+**E-59. As guardas das versões 21 a 23 não foram endurecidas; a da 24, sim.** *(Registro; R5.)* As formas das versões antigas são congeladas. A guarda da 24 confere o volume do dia, o dia da cotação, o nível e os lugares das caravanas, a carga e a chegada. **Ficam de fora** o preço fixado de cada caravana (o estado não guarda o preço e a estação do envio) e o piso e o teto do preço do passeio. **Quem mudar no conteúdo um dos números escritos em `v24.ts` (volume por nível, dia de jogo, carga, viagem, lugares) precisa subir a versão do estado**: o teste que os compara com o conteúdo falha e avisa.
+
+**E-60. O bot `especulador` mede a arbitragem e a especulação sazonal, e não tem faixa.** *(Registro; R6.)* Compra madeira ou pedra e envia na mesma visita (o saldo é negativo em toda célula) e compra comida no verão para enviar no outono e no inverno. A caravana de comida leva também a colheita do feudo: o ganho "só da comida comprada" é uma conta sobre os preços médios, não um saldo contado.
+
 ### Fase E: a tela do Mercado, das caravanas e dos Mestres (V3E-T4)
 
 **E-42. Negociar tem duas etapas: "Revisar a ordem" e "Confirmar".** *(Pergunta para o autor; é o que o roadmap pede: "o total aparece antes de confirmar; `PRICE_CHANGED` pede nova confirmação".)*
 - Enquanto isso: o total já aparece enquanto o jogador digita, e a conferência (que prende o dia da cotação) é um clique a mais. Quem negocia muito paga dois cliques por ordem; quem negocia pouco ganha o preço novo na cara se o dia virar. A caravana é igual.
 - Se decidir diferente: o botão único "Vender 150 por 153 de ouro", que manda na hora com o `quoteDay` da tela, é uma troca na tela, sem mexer no motor; o `PRICE_CHANGED` continuaria protegendo.
 
-**E-43. O total da negociação é uma conta no app: `quantidade × preço`.** *(Registro; o roadmap proibia contas de regra no app.)*
+**E-43. O total da negociação é uma conta no app: `quantidade × preço`.** **Resolvida no motor na revisão da Fase E (2026-10-07):** o protocolo passou a dizer, como contrato, que `quantidade × preço da unidade` é o total exato; e a visão ganhou `surplusSellable` (E-55). *(Registro; o roadmap proibia contas de regra no app.)*
 - Enquanto isso: a visão traz o preço de uma unidade em milésimos (`buy`, `sell`, `unitPrice`), e o protocolo diz que a ordem cobra e paga exatamente `unidades × preço`, sem outro arredondamento. O app só multiplica e formata (`ui/market.ts`). Está amarrada ao motor por teste (a frase do ouro de cada caravana dos goldens sai igual) e por navegador (o ouro que o cofre ganha é o que a tela disse).
 - Se decidir diferente: uma tabela de totais por quantidade na visão, ou um campo `total` na recusa e na resposta, tiraria até esta multiplicação; custa campos novos e quase nada de utilidade.
 
-**E-44. `caravanAmbushed` traz `lost_<recurso>`, nome que o Relatório de Retorno lê como corte de depósito.** *(Defeito de nome no motor, contornado no app.)*
+**E-44. `caravanAmbushed` traz `lost_<recurso>`, nome que o Relatório de Retorno lê como corte de depósito.** **Corrigida na revisão da Fase E (2026-10-07):** o campo passou a `ambushed_<recurso>`, e o contorno `cutBy` saiu do app. *(Defeito de nome no motor, contornado no app.)*
 - Enquanto isso: `lost_<recurso>` nos eventos de ganho é o que o depósito cortou; na emboscada, é a carga que a estrada levou. Sem o contorno, o relatório contaria a carga perdida como madeira "ao chão". `cutBy`, em `returnReport.ts`, tira a emboscada da conta, com teste de unidade e de navegador.
 - Se decidir diferente: renomear o campo no motor (por exemplo `ambushLost_<recurso>`) é uma troca em `caravanTurn.ts`, no conteúdo do evento e nos testes; o contorno do app sai. Não foi feito porque mexe em evento já gravado nas partidas.
 
@@ -197,7 +232,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Enquanto isso: o aviso diz "Mais do que cabe agora (140): o servidor deve recusar", e a ordem segue, para a recusa chegar com a frase do servidor (é o critério 4: "vender até o limite e ver a recusa com a frase"). Com o volume do dia esgotado o lado traz o motivo com cadeado e "o máximo" fica desabilitado, mas "Revisar" não.
 - Se decidir diferente: desabilitar "Revisar" quando a quantidade passa de `maxBuyable` ou `maxSellable` evita a viagem até o servidor, e a frase da recusa só apareceria em corrida entre abas.
 
-**E-46. "Vender até N" vende o máximo de hoje, que pode ser o estoque inteiro.**
+**E-46. "Vender até N" vende o máximo de hoje, que pode ser o estoque inteiro.** **Em parte, na revisão da Fase E (2026-10-07):** a visão traz `surplusSellable`, o número que o atalho deve propor; a tela ainda não o usa (é do agente do app).
 - Enquanto isso: o atalho do aviso de depósito cheio abre a confirmação com o total, mas não diz o que sobra no estoque. Vender toda a madeira de um feudo em inverno deixa a lareira sem lenha.
 - Se decidir diferente: a confirmação poderia dizer "sobram X", que é a visão (`stock − amount`) ou uma frase do motor, ou o atalho poderia vender só o que passa do limite.
 
@@ -224,7 +259,7 @@ Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifíci
 - O que a tela mostra por causa disso: "aldeões" continua sendo só os aldeões (`population.villagers`), e os Mestres aparecem à parte (`population.masters`); as casas ocupadas (`housed`) contam os dois. Um feudo com 8 aldeões e 2 Mestres tem as 10 vagas tomadas.
 - Se decidir diferente: pôr o Mestre dentro de `villagers` pede uma exceção em `loseVillager`, em `injureVillager`, em `releaseExcessWorkers`, em `setWorkers` e nas coortes de adaptação, e um passo de migração.
 
-**E-30. A primeira alocação também paga a adaptação.** *(Pergunta para o autor; o ADR diz "trocar de edifício passa pela adaptação".)*
+**E-30. A primeira alocação também paga a adaptação.** **Respondida pelo autor em 2026-10-07 (seção 0a): "é imediata".** *(Pergunta para o autor; o ADR diz "trocar de edifício passa pela adaptação".)*
 - Enquanto isso: **chegar a um edifício custa a adaptação, venha o Mestre de outro edifício ou de edifício nenhum**: por um dia de jogo ele rende metade e não dá o bônus. É a regra de todo trabalhador (quem sai do grupo sem ofício também se adapta), e fecha um atalho: se só a troca custasse, duas ordens seguidas (deixá-lo sem edifício, depois pô-lo no novo) trocariam de graça.
 - O que isso custa ao jogador: o Mestre que chega só soma os 15% um dia de jogo depois da primeira ordem (40 minutos reais no Rápido, 2 h no Normal, 4 h no Tranquilo).
 - Se decidir diferente: isentar a primeira alocação pede um campo a mais no Mestre ("já trabalhou"), versão nova do estado, e a regra de que deixá-lo sem edifício não devolve a isenção.
@@ -233,7 +268,7 @@ Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifíci
 - Enquanto isso: o braço do Mestre em adaptação vale `craft.adaptationMultiplier` (1/2), o mesmo de todo trabalhador, e o bônus não entra. Dois canteiros e o Mestre em adaptação rendem por 2,5; depois, por 3 × 1,15.
 - Se decidir diferente: "braço inteiro, só sem o bônus" é uma linha em `craft.ts` e muda os números da tela (`gainWhileAdaptingPerHour`).
 
-**E-32. O piso de população conta os habitantes, e um feudo só de Mestres não perde ninguém.** *(Leitura do agente de "conta para o piso".)*
+**E-32. O piso de população conta os habitantes, e um feudo só de Mestres não perde ninguém.** **Respondida pelo autor em 2026-10-07 (seção 0a): "o piso protege 3 aldeões".** *(Leitura do agente de "conta para o piso".)*
 - Enquanto isso: um aldeão só parte ou deserta com mais de 3 habitantes (aldeões e Mestres). Com 3 aldeões e 1 Mestre, um aldeão ainda sai; com 2 e 1, ninguém. Com Mestres bastantes, os aldeões podem chegar a zero (4 Mestres e 1 aldeão: ele sai), e o feudo fica só com os Mestres, que trabalham.
 - Se decidir diferente: "o piso são 3 aldeões, e o Mestre é um a mais" é uma linha em `aboveFloor`; a outra leitura do ADR ("conta para o piso") é esta.
 
@@ -309,7 +344,7 @@ Vêm da tarefa V3E-T2 (as caravanas: a venda adiada, a emboscada e a escolta), a
 - Enquanto isso: "As caravanas pedem o Mercado no nível 2: o feudo ainda não o tem." (ou "…o do feudo está no nível 1."). A ordem `trade` usa `MARKET_REQUIRED` para o feudo sem Mercado; a caravana tem um código só, o do roadmap.
 - Se decidir diferente: devolver `MARKET_REQUIRED` no nível 0 é uma linha.
 
-**E-20. A escolta no soldo em atraso: "herói fora".** *(Decisão que o roadmap deixou à tarefa.)*
+**E-20. A escolta no soldo em atraso: "herói fora".** **Mudou na revisão da Fase E (2026-10-07): o herói devido é cobrado no instante da volta (E-52).** *(Decisão que o roadmap deixou à tarefa.)*
 - Enquanto isso: quem escolta recebe soldo e deve como os outros; pode ficar Descontente pelo prazo, na virada do dia; **só parte depois de voltar** (é a regra de quem está em expedição, pelo mesmo código: `isAtHome`). Não pode ser dispensado nem equipado na estrada (`HERO_BUSY`), e a fé de um Devoto em escolta não levanta o ânimo enquanto ele está fora.
 - Se decidir diferente: deixar dispensar quem escolta pede uma regra para a caravana que fica sem ninguém.
 
@@ -357,7 +392,7 @@ Vêm da tarefa V3E-T1 (o Mercado: preço, compra, venda e volume diário), aplic
 - Enquanto isso: vale a regra do ADR (`200 × nível` por recurso por dia de jogo, sem acumular). Medido na matriz (balance-v0.3.md, seção 11.5): os bots usam de 0% a 3% do volume oferecido na mediana (11% no melhor caso), o desperdício total cai 15% em Senhor, e **no ano de jogo do Rápido o Regular e o Explorador não negociam nada**. O Mercado leva o que transborda na hora da visita; o que vai ao chão nos 17 dias de jogo seguintes continua indo.
 - Se decidir diferente: (a) o volume acumula por alguns dias (um teto de 3 ou de 6 dias de volume guardado); (b) o volume passa a ser por dia **real**; (c) uma ordem de venda permanente ("vender o que passar de X"), que o ADR recusou ao dizer que o Mercado não tem ordem automática; (d) fica como está, e o destino do excedente no Rápido é a caravana (V3E-T2). Qualquer uma das três primeiras muda `balance.market`, o motor e o estado.
 
-**E-2. As marcas da Crônica (80% e 125% da base) quase nunca são cruzadas.** *(Pergunta para o autor.)*
+**E-2. As marcas da Crônica (80% e 125% da base) quase nunca são cruzadas.** **Decidida na revisão da Fase E (2026-10-07), sem o autor: 85% e 115% (E-51).** *(Pergunta para o autor.)*
 - Enquanto isso: `marketPriceSwing` sai quando o preço **do passeio** (sem o fator da estação) entra em uma das duas zonas. Com o passo de até ±5% e a volta de um décimo, o preço fica quase sempre a menos de 15% da base: em 50 sementes de dois anos de jogo, **seis linhas ao todo**, nos três recursos. O evento existe, é provado, e o jogador quase nunca o verá.
 - Se decidir diferente: aproximar as marcas (90% e 110% dariam uma linha a cada poucos dias de jogo); medir com o fator da estação (a comida cruzaria 125% em quase todo outono, e ficaria indo e voltando: foi por isso que o agente não fez assim); ou tirar o evento. As marcas estão em `balance.market.swing`.
 
@@ -1170,6 +1205,14 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase E: a revisão independente no motor, no conteúdo e no simulador (V3E-T5)
+
+- **O autor não leu** a tabela do soldo por nível, as marcas de 85% e 115%, a cobrança na volta, a leitura de "primeira alocação" para quem ficou livre, nem as frases novas (`guildTexts.wageNextLevel`, `wageArrearsTexts.away`, `masterTexts.firstAssignment` e `reassignment`, `marketTexts`).
+- **A tela não foi mexida além do mínimo para compilar e os testes passarem** (a frase da opção de Mestre sem adaptação; o corte de depósito sem o contorno da emboscada). O atalho "Vender até N" ainda não usa `surplusSellable`, a ficha do herói ainda não mostra `wageNextLevelText`, e o painel do Mestre ainda não mostra `assignText`: é do agente do app.
+- **A especulação sazonal não foi medida com um jogador que só especula**: o bot manda a colheita na mesma caravana (E-60).
+- **A cobrança na volta só foi provada com a caravana de uma unidade e com a expedição posta à mão no nó de retorno**; a propriedade de divisão de intervalo das caravanas e das expedições roda com atraso no caminho, mas não foi escrita uma propriedade só para a volta.
+- **Nenhuma partida de produção passa pelo passo 23 → 24 com Mestre**: os retratos da versão 23 têm os quatro casos (trabalhando, em adaptação, sem edifício, à porta), e é só o que há.
 
 ### Fase E: a tela do Mercado, das caravanas e dos Mestres (V3E-T4)
 

@@ -11,7 +11,13 @@ import { describe, expect, it } from 'vitest';
 import { simulate } from '../simulate';
 import { summarize } from '../report';
 import { economicoPolicies } from './economico';
-import { comprarLenha, erguerMercado, mandarCaravana, venderExcedente } from './policies';
+import {
+  comprarLenha,
+  erguerMercado,
+  especular,
+  mandarCaravana,
+  venderExcedente,
+} from './policies';
 import { preguicosoPolicies } from './preguicoso';
 import type { Act } from './types';
 
@@ -528,5 +534,85 @@ describe('as caravanas em uma partida inteira', () => {
       expect(Number(event.data.amount)).toBeLessThanOrEqual(300);
       expect(Number(event.data.amount)).toBeGreaterThanOrEqual(40);
     }
+  });
+});
+
+describe('especular (revisão da Fase E, R6): comprar no balcão para revender por caravana', () => {
+  /** Um feudo com lugar no depósito, ouro no cofre e o Mercado no nível das caravanas. */
+  const room = (edit: (state: GameState) => void = () => {}, atMs?: number) =>
+    feud((state) => {
+      state.settlement.buildings.market = 2;
+      Object.assign(state.settlement.resources, { wood: 100_000, stone: 100_000, gold: 900_000 });
+      enlist(state);
+      edit(state);
+    }, atMs);
+
+  it('a arbitragem do dia: compra madeira ou pedra e envia na mesma visita exatamente o que comprou; o ouro que a caravana fixa é menos do que o que a compra custou', async () => {
+    const game = player(room());
+    const gold = game.state().settlement.resources.gold;
+    await especular.run(game.view, game.act);
+    expect(game.refused).toEqual([]);
+    expect(game.orders.map((order) => order.type)).toEqual(['trade', 'sendCaravan']);
+    const [bought, sent] = game.orders as Array<{
+      payload: { resource: string; amount: number; direction?: string };
+    }>;
+    expect(bought?.payload.direction).toBe('buy');
+    expect(sent?.payload.resource).toBe(bought?.payload.resource);
+    expect(sent?.payload.amount).toBe(bought?.payload.amount);
+    const state = game.state();
+    const [caravan] = state.market.caravans;
+    const spent = gold - state.settlement.resources.gold;
+    expect(spent).toBeGreaterThan(0);
+    // O que a caravana vai render, se chegar inteira, não paga a compra.
+    expect((caravan?.amount ?? 0) * (caravan?.unitPrice ?? 0)).toBeLessThan(spent);
+  });
+
+  it('a comida do verão: no verão compra comida e a guarda; no outono manda por caravana o que está acima do que o feudo guarda', async () => {
+    const SUMMER = 24 * DAY;
+    const summer = player(
+      room(
+        (state) => {
+          state.settlement.resources.food = 100_000;
+        },
+        SUMMER + DAY + HOUR,
+      ),
+    );
+    await especular.run(summer.view, summer.act);
+    const [first] = summer.orders as Array<{ type: string; payload: Record<string, unknown> }>;
+    expect(first).toMatchObject({ type: 'trade', payload: { resource: 'food', direction: 'buy' } });
+    expect(
+      summer.orders.some(
+        (order) =>
+          order.type === 'sendCaravan' &&
+          (order.payload as { resource: string }).resource === 'food',
+      ),
+    ).toBe(false);
+    const autumn = player(
+      room(
+        (state) => {
+          state.settlement.resources.food = 600_000;
+        },
+        AUTUMN + DAY + HOUR,
+      ),
+    );
+    await especular.run(autumn.view, autumn.act);
+    const [sent] = autumn.orders as Array<{ type: string; payload: Record<string, unknown> }>;
+    expect(sent).toMatchObject({ type: 'sendCaravan', payload: { resource: 'food' } });
+    // Só o que está acima da reserva: o que a visão diz que sobra para mandar.
+    const offered = autumn.view.market.caravanOffer.resources.find(
+      (row) => row.resource === 'food',
+    );
+    expect(sent?.payload.amount).toBe(offered?.surplusSendable);
+    expect(offered?.surplusSendable).toBeLessThanOrEqual(offered?.maxSendable ?? 0);
+  });
+
+  it('sem o Mercado no nível das caravanas não compra nada para revender', async () => {
+    const game = player(
+      room((state) => {
+        state.settlement.buildings.market = 1;
+      }),
+    );
+    await especular.run(game.view, game.act);
+    expect(game.orders).toEqual([]);
   });
 });

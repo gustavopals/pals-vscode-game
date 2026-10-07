@@ -2086,6 +2086,270 @@ O ganho de pôr um Mestre em um edifício é `(braços + 1) × 1,15 − braços`
 - **O Mestre à porta não foi medido além de constatado**: quanto tempo ele espera, e se o bot ergue Habitações por causa dele (não ergue: não tem política para isso).
 - **Ninguém jogou com um Mestre.** Não há tela (V3E-T4); a rodada mede regras e bots.
 
-## 14. Rodadas seguintes das Fases E a G
+## 14. Revisão da Fase E (V3E-T5)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 13.*
+Rodada de 2026-10-07, depois de aplicadas as quatro respostas do autor da quarta rodada ([pendências](pendencias-v0.3.md), seção 0a) e os achados da revisão independente da Fase E. O que mudou de regra entre a seção 13 e esta: **a caravana paga 15% sobre o balcão** (`priceRatio` 23/20; era 7/5); **o soldo cresce com o nível do herói** (2, 3, 4, 6, 8, 10, 12, 15, 18, 20 por hora de jogo; era 2 em todo nível); **o piso de população protege 3 aldeões** (os Mestres deixaram de contar); **a primeira alocação do Mestre é imediata**; **o herói devido que volta é cobrado na volta**; e as marcas da Crônica do Mercado a 85% e 115%. Estado na versão 24. Nenhum bot da rodada padrão mudou: o que mexe nos números é a regra.
+
+### 14.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix > f-lord.csv 2> f-lord.md
+pnpm -s sim -- --matrix --difficulty peasant > f-peasant.csv 2> f-peasant.md
+pnpm -s sim -- --matrix --difficulty ironKing > f-ironKing.csv 2> f-ironKing.md
+pnpm -s sim -- --matrix --profile especulador > f-spec.csv 2> f-spec.md
+pnpm -s sim -- --matrix --profile especulador --difficulty ironKing > f-spec-ik.csv 2> f-spec-ik.md
+```
+
+Cada matriz padrão leva de 6 a 7 minutos; a do especulador, menos de 2. "Linha de base" é a da seção 1 (a v0.2 fechada), "Fase D" é a rodada da seção 10, e "Fase E, antes da revisão" é a das caravanas (seção 12; a dos Mestres, seção 13, não mudou faixa nenhuma). Os números de nível dos heróis da seção 14.3 saem de dez sementes do Explorador em Senhor, lidas do estado final.
+
+### 14.2 As faixas, antes e depois
+
+Mudaram **28 das 72 células** de `MEASURED` (9 em Camponês, 9 em Senhor, 10 em Rei de Ferro), todas do Regular, do Dedicado e do Explorador; **nenhuma do Preguiçoso**. Em quase todas o que mudou foi só o maior ouro parado, que **caiu de 0,1% a 3,6%** (a caravana rende menos e o soldo custa um pouco mais); em três ele subiu menos de 1,3% (o Regular e o Dedicado do ano do Tranquilo em Camponês, e o Explorador do ano do Tranquilo em Rei de Ferro). As outras diferenças: a população mínima do Explorador no ano do Tranquilo cai de 84 para 83 em Camponês e em Senhor; em algumas células a madeira ou a pedra parada sobe até o teto do depósito (diferenças de 1 a 71 unidades: em Rei de Ferro, de 3.609, 3.623 e 3.679 para 3.680); e em **Camponês, no Normal, o Explorador termina com mais madeira parada (5.000 → 5.739) e menos pedra (5.247 → 4.891)**. Esta foi a **única célula fora da faixa antiga** na rodada (uma semente, `pedra-alta-017`, com 5.739 de madeira contra o limite de 5.250): com as regras novas a partida dela toma outro rumo no fim da semana. A faixa foi remedida de propósito, porque a mudança é de regra, e não do bot.
+
+Fome e frio continuam em zero em todas as células, nas três dificuldades.
+
+### 14.3 O ouro parado: linha de base → Fase D → Fase E → agora
+
+Ouro em estoque no fim da janela, nas 50 sementes: menor · mediana · maior. O Explorador não existia na linha de base.
+
+**Senhor**
+
+| Janela | Ritmo | Perfil | Linha de base (v0.2) | Fase D | Fase E, antes da revisão | Agora (soldo por nível) | Mediana: Fase E → agora |
+|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 3.925 · 7.482 · 7.497 | 2.074 · 5.894 · 5.918 | 2.074 · 5.894 · 5.918 | 2.074 · 5.894 · 5.918 | +0% |
+| 7 dias | Rápido 3× | Regular | 113.566 · 128.436 · 148.487 | 159.093 · 177.666 · 211.754 | 147.503 · 184.705 · 213.017 | 147.348 · 184.563 · 212.739 | -0,1% |
+| 7 dias | Rápido 3× | Dedicado | 284.168 · 309.332 · 324.539 | 319.205 · 357.481 · 366.691 | 327.399 · 353.940 · 367.245 | 327.334 · 353.283 · 366.589 | -0,2% |
+| 7 dias | Rápido 3× | Explorador | — | 169.768 · 243.978 · 282.613 | 169.916 · 238.701 · 280.666 | 169.492 · 237.781 · 279.762 | -0,4% |
+| 7 dias | Normal 1× | Preguiçoso | 1.034 · 1.066 · 1.139 | 3 · 165 · 268 | 3 · 165 · 268 | 3 · 165 · 268 | +0% |
+| 7 dias | Normal 1× | Regular | 2.348 · 8.967 · 23.641 | 8.283 · 16.708 · 23.840 | 5.275 · 14.282 · 27.104 | 5.275 · 14.282 · 27.104 | +0% |
+| 7 dias | Normal 1× | Dedicado | 2.587 · 13.399 · 21.575 | 4.399 · 16.370 · 19.802 | 6.813 · 12.432 · 20.021 | 7.331 · 12.192 · 19.622 | -1,9% |
+| 7 dias | Normal 1× | Explorador | — | 862 · 9.324 · 20.806 | 969 · 8.435 · 19.813 | 799 · 8.468 · 19.690 | +0,4% |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 26 · 30 · 30 | 120 · 153 · 154 | 120 · 153 · 154 | 120 · 153 · 154 | +0% |
+| 7 dias | Tranquilo 0,5× | Regular | 38 · 518 · 1.044 | 6 · 882 · 1.233 | 169 · 676 · 1.227 | 169 · 676 · 1.227 | +0% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 53 · 244 · 940 | 68 · 518 · 745 | 8 · 352 · 1.104 | 8 · 352 · 1.104 | +0% |
+| 7 dias | Tranquilo 0,5× | Explorador | — | 29 · 701 · 1.216 | 46 · 749 · 1.102 | 46 · 749 · 1.102 | +0% |
+| Ano de jogo | Rápido 3× | Preguiçoso | 51 · 299 · 304 | 3 · 134 · 253 | 3 · 134 · 253 | 3 · 134 · 253 | +0% |
+| Ano de jogo | Rápido 3× | Regular | 1.870 · 2.176 · 3.052 | 1.859 · 2.065 · 3.000 | 1.778 · 2.015 · 2.847 | 1.778 · 2.015 · 2.847 | +0% |
+| Ano de jogo | Rápido 3× | Dedicado | 1.130 · 8.225 · 12.964 | 332 · 8.298 · 13.499 | 3.374 · 9.950 · 14.524 | 3.374 · 9.950 · 14.524 | +0% |
+| Ano de jogo | Rápido 3× | Explorador | — | 1.285 · 1.689 · 3.075 | 1.285 · 1.679 · 2.925 | 1.261 · 1.679 · 2.925 | +0% |
+| Ano de jogo | Normal 1× | Preguiçoso | 1.034 · 1.066 · 1.139 | 3 · 165 · 268 | 3 · 165 · 268 | 3 · 165 · 268 | +0% |
+| Ano de jogo | Normal 1× | Regular | 2.348 · 8.967 · 23.641 | 8.283 · 16.708 · 23.840 | 5.275 · 14.282 · 27.104 | 5.275 · 14.282 · 27.104 | +0% |
+| Ano de jogo | Normal 1× | Dedicado | 2.587 · 13.399 · 21.575 | 4.399 · 16.370 · 19.802 | 6.813 · 12.432 · 20.021 | 7.331 · 12.192 · 19.622 | -1,9% |
+| Ano de jogo | Normal 1× | Explorador | — | 862 · 9.324 · 20.806 | 969 · 8.435 · 19.813 | 799 · 8.468 · 19.690 | +0,4% |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 160 · 2.714 · 3.936 | 3.190 · 6.194 · 10.670 | 3.190 · 6.194 · 10.670 | 3.190 · 6.194 · 10.670 | +0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 13.128 · 17.646 · 22.535 | 11.000 · 14.838 · 20.021 | 7.654 · 12.900 · 19.246 | 7.686 · 12.689 · 19.246 | -1,6% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 23.713 · 28.208 · 32.471 | 26.232 · 29.516 · 32.859 | 21.236 · 29.204 · 35.921 | 20.242 · 28.018 · 34.917 | -4,1% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | — | 5.891 · 11.962 · 19.032 | 4.896 · 10.542 · 17.575 | 5.685 · 10.067 · 17.061 | -4,5% |
+
+Soma do ouro final das 1200 partidas: 46.363.025 → 46.156.351 (-0,45%).
+
+**Camponês**
+
+| Janela | Ritmo | Perfil | Linha de base (v0.2) | Fase D | Fase E, antes da revisão | Agora (soldo por nível) | Mediana: Fase E → agora |
+|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 3.960 · 7.511 · 7.524 | 2.112 · 5.932 · 5.954 | 2.112 · 5.932 · 5.954 | 2.112 · 5.932 · 5.954 | +0% |
+| 7 dias | Rápido 3× | Regular | 132.557 · 143.029 · 152.495 | 150.997 · 208.337 · 229.537 | 151.512 · 209.721 · 231.712 | 151.359 · 209.721 · 231.712 | +0% |
+| 7 dias | Rápido 3× | Dedicado | 296.216 · 309.405 · 323.662 | 341.229 · 362.490 · 378.434 | 343.781 · 362.296 · 373.182 | 343.455 · 361.596 · 372.005 | -0,2% |
+| 7 dias | Rápido 3× | Explorador | — | 153.175 · 235.447 · 300.084 | 152.225 · 237.954 · 299.439 | 151.400 · 237.094 · 298.416 | -0,4% |
+| 7 dias | Normal 1× | Preguiçoso | 62 · 1.072 · 1.165 | 4 · 168 · 262 | 4 · 168 · 262 | 4 · 168 · 262 | +0% |
+| 7 dias | Normal 1× | Regular | 188 · 3.378 · 18.058 | 234 · 13.978 · 23.083 | 775 · 14.854 · 23.097 | 775 · 14.854 · 23.097 | +0% |
+| 7 dias | Normal 1× | Dedicado | 12.284 · 15.898 · 20.225 | 10.689 · 18.136 · 21.901 | 9.425 · 15.306 · 20.673 | 9.303 · 14.888 · 20.425 | -2,7% |
+| 7 dias | Normal 1× | Explorador | — | 47 · 4.239 · 18.759 | 406 · 4.731 · 17.568 | 304 · 4.876 · 16.929 | +3,1% |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 26 · 30 · 30 | 152 · 166 · 167 | 152 · 166 · 167 | 152 · 166 · 167 | +0% |
+| 7 dias | Tranquilo 0,5× | Regular | 158 · 492 · 935 | 158 · 934 · 1.283 | 227 · 750 · 1.146 | 227 · 750 · 1.146 | +0% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 76 · 560 · 1.237 | 23 · 442 · 838 | 8 · 246 · 1.102 | 8 · 246 · 1.102 | +0% |
+| 7 dias | Tranquilo 0,5× | Explorador | — | 103 · 688 · 1.009 | 20 · 616 · 1.127 | 20 · 616 · 1.127 | +0% |
+| Ano de jogo | Rápido 3× | Preguiçoso | 51 · 198 · 202 | 3 · 131 · 150 | 3 · 131 · 150 | 3 · 131 · 150 | +0% |
+| Ano de jogo | Rápido 3× | Regular | 1.778 · 2.362 · 3.560 | 1.365 · 1.882 · 2.836 | 1.214 · 1.806 · 2.836 | 1.214 · 1.806 · 2.836 | +0% |
+| Ano de jogo | Rápido 3× | Dedicado | 1.274 · 3.414 · 13.816 | 284 · 2.266 · 14.831 | 162 · 6.414 · 14.691 | 162 · 6.414 · 14.691 | +0% |
+| Ano de jogo | Rápido 3× | Explorador | — | 784 · 1.188 · 1.895 | 784 · 1.170 · 1.895 | 784 · 1.170 · 1.895 | +0% |
+| Ano de jogo | Normal 1× | Preguiçoso | 62 · 1.072 · 1.165 | 4 · 168 · 262 | 4 · 168 · 262 | 4 · 168 · 262 | +0% |
+| Ano de jogo | Normal 1× | Regular | 188 · 3.378 · 18.058 | 234 · 13.978 · 23.083 | 775 · 14.854 · 23.097 | 775 · 14.854 · 23.097 | +0% |
+| Ano de jogo | Normal 1× | Dedicado | 12.284 · 15.898 · 20.225 | 10.689 · 18.136 · 21.901 | 9.425 · 15.306 · 20.673 | 9.303 · 14.888 · 20.425 | -2,7% |
+| Ano de jogo | Normal 1× | Explorador | — | 47 · 4.239 · 18.759 | 406 · 4.731 · 17.568 | 304 · 4.876 · 16.929 | +3,1% |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 527 · 774 · 2.004 | 3.603 · 3.682 · 5.517 | 3.603 · 3.682 · 5.517 | 3.603 · 3.682 · 5.517 | +0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 12.046 · 18.462 · 21.275 | 13.301 · 16.776 · 19.800 | 9.035 · 13.582 · 19.560 | 9.035 · 13.605 · 19.678 | +0,2% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 26.509 · 29.288 · 33.840 | 27.060 · 31.344 · 35.524 | 23.512 · 29.521 · 34.757 | 23.127 · 28.740 · 34.926 | -2,6% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | — | 4.489 · 13.570 · 19.694 | 3.550 · 10.986 · 19.906 | 3.768 · 10.593 · 19.534 | -3,6% |
+
+Soma do ouro final das 1200 partidas: 47.327.930 → 47.192.031 (-0,29%).
+
+**Rei de Ferro**
+
+| Janela | Ritmo | Perfil | Linha de base (v0.2) | Fase D | Fase E, antes da revisão | Agora (soldo por nível) | Mediana: Fase E → agora |
+|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 3.942 · 7.508 · 7.536 | 2.096 · 5.934 · 5.951 | 2.096 · 5.934 · 5.951 | 2.096 · 5.934 · 5.951 | +0% |
+| 7 dias | Rápido 3× | Regular | 148.435 · 154.854 · 165.302 | 189.607 · 211.428 · 228.153 | 183.485 · 208.848 · 229.566 | 183.343 · 208.594 · 229.278 | -0,1% |
+| 7 dias | Rápido 3× | Dedicado | 266.497 · 278.635 · 294.121 | 303.572 · 313.964 · 332.386 | 302.802 · 312.930 · 329.204 | 302.450 · 312.262 · 328.700 | -0,2% |
+| 7 dias | Rápido 3× | Explorador | — | 204.831 · 247.212 · 278.455 | 207.850 · 242.824 · 279.782 | 207.166 · 242.088 · 278.627 | -0,3% |
+| 7 dias | Normal 1× | Preguiçoso | 964 · 1.000 · 1.255 | 0 · 340 · 1.384 | 0 · 340 · 1.384 | 0 · 340 · 1.384 | +0% |
+| 7 dias | Normal 1× | Regular | 3.057 · 10.880 · 19.717 | 7.729 · 17.087 · 22.940 | 4.893 · 14.974 · 23.085 | 4.893 · 14.974 · 23.085 | +0% |
+| 7 dias | Normal 1× | Dedicado | 35.003 · 38.728 · 43.766 | 35.374 · 40.666 · 44.570 | 35.562 · 40.104 · 43.842 | 34.986 · 39.811 · 42.948 | -0,7% |
+| 7 dias | Normal 1× | Explorador | — | 2.204 · 11.192 · 20.107 | 2.850 · 10.668 · 19.888 | 2.868 · 10.553 · 19.665 | -1,1% |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 26 · 30 · 30 | 87 · 88 · 102 | 87 · 88 · 102 | 87 · 88 · 102 | +0% |
+| 7 dias | Tranquilo 0,5× | Regular | 45 · 279 · 730 | 21 · 220 · 1.033 | 43 · 782 · 1.220 | 43 · 782 · 1.220 | +0% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 59 · 265 · 763 | 84 · 374 · 1.335 | 5 · 529 · 1.330 | 5 · 529 · 1.330 | +0% |
+| 7 dias | Tranquilo 0,5× | Explorador | — | 16 · 652 · 1.005 | 62 · 510 · 979 | 62 · 510 · 958 | +0% |
+| Ano de jogo | Rápido 3× | Preguiçoso | 153 · 292 · 474 | 105 · 245 · 426 | 105 · 245 · 426 | 105 · 245 · 426 | +0% |
+| Ano de jogo | Rápido 3× | Regular | 2.538 · 2.928 · 6.322 | 1.851 · 1.958 · 2.753 | 1.851 · 1.970 · 4.734 | 1.851 · 1.970 · 4.734 | +0% |
+| Ano de jogo | Rápido 3× | Dedicado | 4.357 · 10.554 · 14.091 | 3.693 · 11.576 · 16.222 | 2.261 · 9.272 · 14.006 | 2.261 · 9.198 · 14.006 | -0,8% |
+| Ano de jogo | Rápido 3× | Explorador | — | 758 · 1.412 · 2.693 | 604 · 1.391 · 2.881 | 604 · 1.391 · 2.881 | +0% |
+| Ano de jogo | Normal 1× | Preguiçoso | 964 · 1.000 · 1.255 | 0 · 340 · 1.384 | 0 · 340 · 1.384 | 0 · 340 · 1.384 | +0% |
+| Ano de jogo | Normal 1× | Regular | 3.057 · 10.880 · 19.717 | 7.729 · 17.087 · 22.940 | 4.893 · 14.974 · 23.085 | 4.893 · 14.974 · 23.085 | +0% |
+| Ano de jogo | Normal 1× | Dedicado | 35.003 · 38.728 · 43.766 | 35.374 · 40.666 · 44.570 | 35.562 · 40.104 · 43.842 | 34.986 · 39.811 · 42.948 | -0,7% |
+| Ano de jogo | Normal 1× | Explorador | — | 2.204 · 11.192 · 20.107 | 2.850 · 10.668 · 19.888 | 2.868 · 10.553 · 19.665 | -1,1% |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 828 · 3.948 · 5.802 | 2.142 · 2.665 · 6.456 | 2.142 · 2.665 · 6.456 | 2.142 · 2.665 · 6.456 | +0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 40.471 · 42.786 · 44.215 | 37.558 · 41.724 · 43.982 | 36.452 · 40.746 · 42.555 | 36.452 · 40.592 · 42.555 | -0,4% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 40.826 · 47.260 · 53.059 | 42.976 · 52.205 · 55.609 | 45.700 · 49.689 · 55.871 | 44.685 · 48.788 · 54.607 | -1,8% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | — | 34.244 · 39.040 · 44.990 | 28.596 · 37.916 · 43.806 | 29.863 · 37.534 · 44.345 | -1% |
+
+Soma do ouro final das 1200 partidas: 52.452.514 → 52.239.625 (-0,41%).
+
+O que se lê, com todas as letras:
+
+- **O soldo que cresce com o nível NÃO baixou o ouro parado de forma que se meça como vitória.** A soma do ouro final das 1.200 partidas de cada dificuldade cai **0,45% em Senhor, 0,29% em Camponês e 0,41% em Rei de Ferro**. A maior queda de mediana em Senhor é de 4,5% (o Explorador no ano do Tranquilo, de 10.542 para 10.067) e de 4,1% (o Dedicado no mesmo ano); nas outras células a mediana se move menos de 2%, e em catorze das vinte e quatro não se move.
+- **Por quê: os heróis não chegam aos níveis em que a tabela pesa.** Em dez sementes do Explorador, em Senhor: na semana do Rápido (três anos de jogo), 32 heróis terminam no nível 1 e 28 no nível 2; na semana do Normal, 47 no nível 1 e 11 no 2; no ano do Tranquilo, 15 no nível 1, 39 no 2 e 6 no 3. O soldo da equipe de seis sobe de 12 por hora de jogo para **12,7 a 17,1**: de 6% a 43% a mais, sobre um custo que já era pequeno. Ninguém passa do nível 3 em um ano de jogo, e é do nível 4 em diante que a tabela triplica.
+- **E a Mina rende de onze a quase quatrocentas vezes o soldo** (para o Explorador, de 19 a 54 vezes). Na tabela da seção 14.4, o Explorador da semana do Rápido tira 258.908 de ouro da Mina e paga 4.805 de soldo (1,9%); no ano do Tranquilo, 28.957 e 1.385 (4,8%). As obras levam de 12 a 17 mil. O que sobra depois das obras não tem para onde ir, e nenhum soldo desta ordem de grandeza muda isso.
+- **Contra a linha de base da v0.2**, o ouro parado da semana do Rápido continua **maior** (o Regular: mediana de 128 mil para 185 mil; o Dedicado: de 309 mil para 353 mil), porque o feudo cresceu (Salão no nível 8, depósitos em 1.000) e a Mina rende mais. No ano de jogo, onde o jogador de verdade está, ele fica na mesma ordem: o Regular do Rápido, de 2.176 para 2.015; o do Tranquilo, de 17.646 para 12.689 (−28%); o Dedicado do Tranquilo, igual (28.208 e 28.018).
+- **O que isto diz ao autor** (C-23): "soldo que cresce com o nível" é um destino que só existe para quem tem heróis de nível alto, e nesta versão ninguém os tem no primeiro ano. Para o ouro ter destino antes disso, ou o soldo do nível 1 e do 2 sobe, ou a experiência vem mais depressa, ou o destino é outro (o Mercado não é: ver 14.5). **Nenhum número foi mexido por conta própria.**
+
+### 14.4 O ouro por fonte e por destino (Senhor, por partida)
+
+Tabela nova do simulador (`goldTable`). A Mina e o soldo são amostrados ao fim de cada hora real; o resto vem dos eventos.
+
+**7 dias reais**
+
+| Ritmo | Perfil | Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas) | Destinos por partida (soldo · Taverna · obras · recrutamento · compras · cartas e outros) | Ouro parado no fim, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 14.852 · 0 · 0 · 0 · 100 | 720 · 0 · 8.666 · 310 · 0 · 0 | 5.436 |
+| Rápido 3× | Regular | 201.039 · 595 · 581 · 0 · 100 | 864 · 0 · 14.054 · 507 · 0 · 257 | 185.659 |
+| Rápido 3× | Dedicado | 364.939 · 3.169 · 3.293 · 0 · 100 | 936 · 0 · 16.266 · 645 · 0 · 453 | 352.001 |
+| Rápido 3× | Explorador | 258.908 · 1.001 · 723 · 205 · 100 | 4.805 · 1.059 · 17.162 · 588 · 0 · 291 | 235.655 |
+| Normal 1× | Preguiçoso | 3.569 · 0 · 0 · 0 · 100 | 196 · 0 · 3.269 · 260 · 0 · 0 | 164 |
+| Normal 1× | Regular | 24.971 · 80 · 28 · 0 · 100 | 282 · 0 · 9.418 · 566 · 0 · 147 | 14.669 |
+| Normal 1× | Dedicado | 26.539 · 1.625 · 1.392 · 0 · 100 | 288 · 0 · 15.553 · 749 · 0 · 135 | 12.463 |
+| Normal 1× | Explorador | 22.239 · 405 · 61 · 93 · 100 | 946 · 746 · 11.791 · 603 · 0 · 140 | 8.509 |
+| Tranquilo 0,5× | Preguiçoso | 1.299 · 0 · 0 · 0 · 100 | 120 · 0 · 1.135 · 240 · 0 · 0 | 137 |
+| Tranquilo 0,5× | Regular | 4.844 · 168 · 0 · 0 · 100 | 120 · 0 · 3.948 · 440 · 0 · 66 | 736 |
+| Tranquilo 0,5× | Dedicado | 6.273 · 110 · 0 · 0 · 100 | 120 · 0 · 5.490 · 486 · 0 · 93 | 457 |
+| Tranquilo 0,5× | Explorador | 5.254 · 115 · 0 · 30 · 100 | 199 · 350 · 3.932 · 438 · 0 · 66 | 690 |
+
+**Um ano de jogo**
+
+| Ritmo | Perfil | Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas) | Destinos por partida (soldo · Taverna · obras · recrutamento · compras · cartas e outros) | Ouro parado no fim, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 588 · 0 · 0 · 0 · 100 | 48 · 0 · 606 · 110 · 0 · 0 | 142 |
+| Rápido 3× | Regular | 5.190 · 0 · 0 · 0 · 100 | 192 · 0 · 2.938 · 220 · 0 · 80 | 2.037 |
+| Rápido 3× | Dedicado | 17.619 · 168 · 0 · 0 · 100 | 264 · 0 · 7.177 · 461 · 0 · 139 | 9.499 |
+| Rápido 3× | Explorador | 5.471 · 0 · 0 · 19 · 100 | 293 · 312 · 3.063 · 233 · 0 · 79 | 1.748 |
+| Normal 1× | Preguiçoso | 3.569 · 0 · 0 · 0 · 100 | 196 · 0 · 3.269 · 260 · 0 · 0 | 164 |
+| Normal 1× | Regular | 24.971 · 80 · 28 · 0 · 100 | 282 · 0 · 9.418 · 566 · 0 · 147 | 14.669 |
+| Normal 1× | Dedicado | 26.539 · 1.625 · 1.392 · 0 · 100 | 288 · 0 · 15.553 · 749 · 0 · 135 | 12.463 |
+| Normal 1× | Explorador | 22.239 · 405 · 61 · 93 · 100 | 946 · 746 · 11.791 · 603 · 0 · 140 | 8.509 |
+| Tranquilo 0,5× | Preguiçoso | 13.486 · 0 · 0 · 0 · 100 | 288 · 0 · 6.840 · 555 · 0 · 0 | 6.108 |
+| Tranquilo 0,5× | Regular | 28.301 · 405 · 452 · 0 · 100 | 288 · 0 · 14.994 · 751 · 0 · 145 | 12.926 |
+| Tranquilo 0,5× | Dedicado | 36.423 · 5.796 · 3.807 · 0 · 100 | 288 · 0 · 16.697 · 761 · 0 · 177 | 28.036 |
+| Tranquilo 0,5× | Explorador | 28.957 · 596 · 577 · 276 · 100 | 1.385 · 773 · 16.995 · 733 · 0 · 145 | 10.250 |
+
+- **A Mina é a fonte, e quase a única**: de 79% a 99,4% do ouro que entra. O balcão e as caravanas, somados, passam de 5% só no Dedicado do Normal (10%) e do ano do Tranquilo (21%: 5.796 do balcão e 3.807 das caravanas contra 36.423 da Mina). O saque das expedições nunca chega a 1% (276 no ano do Tranquilo).
+- **O destino são as obras**: de 72% a 93% do que sai. O soldo é de 1,6% a 20% do que sai (a parcela maior é a do Explorador na semana do Rápido: 4.805 de 23.905); a Taverna (contratações e festivais), o recrutamento e as cartas, o resto. **Ninguém compra no balcão** (zero em todas as células): os bots só compram lenha quando a conta do inverno não fecha, e ela fecha.
+- **O Mercado não virou a melhor fonte de ouro em perfil nenhum, e é usado**: 50 de 50 partidas do Regular, do Dedicado e do Explorador o erguem no Normal e no ano do Tranquilo. É uma fonte pequena.
+
+### 14.5 As perguntas da V3E-T5.2
+
+**O desperdício e o excedente parado contra a linha de base** (Senhor; somas das 50 sementes; "base → Fase E → agora"):
+
+| Janela | Ritmo | Perfil | Desperdício (comida+madeira+pedra): base → Fase E → agora | Madeira e pedra paradas no fim: base → Fase E → agora | Volume do dia usado (mediana) | Caravanas (enviadas · emboscadas) |
+|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 3.473.067 → 4.412.156 → 4.412.156 | 340.000 → 340.000 → 340.000 | 0% | 0 · 0 |
+| 7 dias | Rápido 3× | Regular | 717.670 → 1.114.603 → 1.114.603 | 389.332 → 317.465 → 317.465 | 0,2% | 82 · 0 |
+| 7 dias | Rápido 3× | Dedicado | 273.250 → 262.762 → 262.762 | 459.962 → 410.764 → 410.764 | 0,6% | 366 · 2 |
+| 7 dias | Rápido 3× | Explorador | — → 598.748 → 598.748 | — → 407.858 → 407.858 | 0,4% | 99 · 2 |
+| 7 dias | Normal 1× | Preguiçoso | 149.110 → 158.909 → 158.909 | 149.503 → 119.983 → 119.983 | 0% | 0 · 0 |
+| 7 dias | Normal 1× | Regular | 61.955 → 127.253 → 127.253 | 287.255 → 215.729 → 215.729 | 0% | 5 · 0 |
+| 7 dias | Normal 1× | Dedicado | 70.878 → 41.610 → 41.720 | 505.804 → 481.153 → 482.098 | 1,45% | 152 · 0 |
+| 7 dias | Normal 1× | Explorador | — → 114.138 → 121.767 | — → 296.142 → 302.665 | 0,8% | 8 · 0 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 84.934 → 43.706 → 43.706 | 130.783 → 63.261 → 63.261 | 0% | 0 · 0 |
+| 7 dias | Tranquilo 0,5× | Regular | 1.467 → 5.632 → 5.632 | 60.048 → 55.914 → 55.914 | 1,2% | 0 · 0 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 229 → 1.551 → 1.551 | 68.904 → 52.538 → 52.538 | 0,1% | 3 · 0 |
+| 7 dias | Tranquilo 0,5× | Explorador | — → 5.402 → 5.402 | — → 59.030 → 59.030 | 0,55% | 0 · 0 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 275.510 → 275.510 → 275.510 | 27.349 → 26.690 → 26.690 | 0% | 0 · 0 |
+| Ano de jogo | Rápido 3× | Regular | 1.806 → 415 → 415 | 62.542 → 39.010 → 39.010 | 0% | 0 · 0 |
+| Ano de jogo | Rápido 3× | Dedicado | 33.007 → 28.652 → 28.652 | 91.847 → 115.815 → 115.815 | 0,2% | 0 · 0 |
+| Ano de jogo | Rápido 3× | Explorador | — → 7 → 7 | — → 42.625 → 42.625 | 0% | 0 · 0 |
+| Ano de jogo | Normal 1× | Preguiçoso | 149.110 → 158.909 → 158.909 | 149.503 → 119.983 → 119.983 | 0% | 0 · 0 |
+| Ano de jogo | Normal 1× | Regular | 61.955 → 127.253 → 127.253 | 287.255 → 215.729 → 215.729 | 0% | 5 · 0 |
+| Ano de jogo | Normal 1× | Dedicado | 70.878 → 41.610 → 41.720 | 505.804 → 481.153 → 482.098 | 1,45% | 152 · 0 |
+| Ano de jogo | Normal 1× | Explorador | — → 114.138 → 121.767 | — → 296.142 → 302.665 | 0,8% | 8 · 0 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 262.922 → 367.579 → 367.579 | 234.709 → 268.199 → 268.199 | 0% | 0 · 0 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 47.256 → 49.611 → 49.587 | 503.979 → 485.674 → 486.158 | 0,45% | 57 · 0 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 76.380 → 61.456 → 60.557 | 428.434 → 492.659 → 491.734 | 4,45% | 410 · 2 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | — → 54.556 → 67.321 | — → 508.459 → 508.175 | 0,75% | 80 · 2 |
+
+- **A revisão quase não mexeu no desperdício**: a coluna do meio e a da direita são iguais em dezessete das vinte e quatro células. Sobe no Explorador do Normal (+7%, de 114 mil para 122 mil) e no do ano do Tranquilo (+23%, de 55 mil para 67 mil): é o perfil que tem heróis, e com a caravana pagando menos e o soldo um pouco maior a partida dele toma outro rumo. Nas outras a diferença é de menos de 2%.
+- **Contra a linha de base da v0.2 o desperdício não caiu de forma geral**: cai no Dedicado (273 mil para 263 mil na semana do Rápido; 71 mil para 42 mil no Normal) e sobe no Regular do Rápido e do Normal (o feudo é maior e produz mais do que na v0.2; a comparação célula a célula está nas seções 11.4 e 12.7). A madeira e a pedra paradas no fim caem na maior parte das células do Regular e do Dedicado.
+
+**A parcela do volume diário usada** continua mínima: a mediana é de **0% a 1,45%** em toda célula, menos no Dedicado do ano do Tranquilo (**4,45%**). Como na seção 11.5: no Rápido, quem visita duas vezes por dia alcança um dia de jogo em cada dezoito.
+
+**Emboscadas**: em Senhor, **8 em 1.262 caravanas** (0,6%; sem contar duas vezes o Normal, em que a semana e o ano são a mesma janela): quase todas vão com escolta ou com a Torre de Vigia no nível 2.
+
+**O Mercado virou a melhor fonte de ouro em algum perfil, ou não é usado em nenhum?** Nem uma coisa nem outra (14.4).
+
+**O teto: cada nível do Mercado cabe no depósito nas três dificuldades**: garantido por teste de conteúdo (`market.test.ts`) e por `storage.test.ts`, como na seção 11; não mudou.
+
+### 14.6 A arbitragem e a especulação sazonal (o bot `especulador`)
+
+Perfil novo, fora da rodada padrão e sem faixa (2 visitas por dia): em vez de mandar o excedente, **compra no balcão para revender por caravana**. Por partida, 50 sementes, Senhor:
+
+**7 dias reais**
+
+| Ritmo | Perfil | Arbitragem do dia, madeira e pedra (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo) | Comida: comprada no verão e enviada no outono e no inverno, com a colheita do feudo na mesma caravana (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo bruto) | Especulação sazonal: o ganho só da comida comprada, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Especulador | 796,8 · 995,5 · 688,8 · 837,8 · -157,8 | 774,8 · 772,5 · 1122,7 · 1414,4 · 642 | 203,6 |
+| Normal 1× | Especulador | 48 · 59,3 · 48 · 57,9 · -1,4 | 267,6 · 268,6 · 802,6 · 1001,7 · 733,1 | 65,4 |
+| Tranquilo 0,5× | Especulador | 43,7 · 52,6 · 43,7 · 51,4 · -1,2 | 579,5 · 575,8 · 0 · 0 · -575,8 | — |
+
+**Um ano de jogo**
+
+| Ritmo | Perfil | Arbitragem do dia, madeira e pedra (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo) | Comida: comprada no verão e enviada no outono e no inverno, com a colheita do feudo na mesma caravana (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo bruto) | Especulação sazonal: o ganho só da comida comprada, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Especulador | 0 · 0 · 0 · 0 · 0 | 0 · 0 · 0 · 0 · 0 | — |
+| Normal 1× | Especulador | 48 · 59,3 · 48 · 57,9 · -1,4 | 267,6 · 268,6 · 802,6 · 1001,7 · 733,1 | 65,4 |
+| Tranquilo 0,5× | Especulador | 1772,7 · 2170,1 · 1567,9 · 1882,5 · -287,6 | 1035,9 · 1033,2 · 1123,9 · 1404,4 · 371,2 | 261,2 |
+
+**Um ano de jogo, Rei de Ferro**
+
+| Ritmo | Perfil | Arbitragem do dia, madeira e pedra (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo) | Comida: comprada no verão e enviada no outono e no inverno, com a colheita do feudo na mesma caravana (compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo bruto) | Especulação sazonal: o ganho só da comida comprada, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Especulador | 0 · 0 · 0 · 0 · 0 | 0 · 0 · 0 · 0 · 0 | — |
+| Normal 1× | Especulador | 236,6 · 295,6 · 200,6 · 247,6 · -48 | 239,5 · 240,3 · 511,1 · 636,4 · 396,1 | 57,9 |
+| Tranquilo 0,5× | Especulador | 1795,4 · 2150,3 · 1642,9 · 1924,2 · -226,1 | 1044,4 · 1042,3 · 1025,3 · 1278,8 · 236,4 | 260,2 |
+
+- **A arbitragem do dia fechou.** O saldo de comprar madeira ou pedra e enviar na mesma visita é **negativo em toda célula em que o bot a tenta**: de −1,2 a −287,6 de ouro por partida em Senhor, de −1,1 a −226,1 em Rei de Ferro (as células em zero são as em que o Mercado não chega ao nível das caravanas na janela). **O lucro máximo é negativo**: por unidade, com os preços na base, a caravana paga 0,977, 1,173 e 1,955 contra 1,00, 1,20 e 2,00 da compra, e perde 6,9, 8,1 e 13,5 de ouro a cada 300 unidades; antes da resposta do autor, **ganhava** 57, 68,4 e 114. O motor prova o caso geral: em todo preço inteiro entre o piso e o teto, nos três recursos e nas quatro estações, a caravana paga menos do que a compra do mesmo dia cobra (`market.caravans.test.ts`), e o conteúdo recusa `sellRatio × priceRatio ≥ 1`. O saldo medido é pior do que a margem porque parte das caravanas sem escolta é emboscada, e porque parte da carga comprada ainda está na estrada no fim da janela.
+- **A especulação sazonal existe, e é pequena.** Comida comprada no verão a 1,00 e enviada no outono rende 1,270 na base: **0,27 de ouro por unidade** (era 0,547 com a caravana a 7/5; no balcão do outono, 0,105). O limite é o que o depósito guarda e o que as caravanas levam em um outono e um inverno. Medido, o ganho só da comida comprada é de **65 de ouro por ano de jogo no Normal e 261 no ano do Tranquilo** (58 e 260 em Rei de Ferro), e 204 na semana do Rápido, que são três anos (68 por ano). Contra a Mina do mesmo perfil (25 mil a 36 mil por ano de jogo), é **menos de 1%**. A coluna "saldo bruto" é maior porque a caravana de comida leva também a colheita do feudo.
+- **No Tranquilo, em 7 dias, o especulador perde 576 de ouro**: a semana termina no verão do primeiro ano, com a comida comprada e ainda não vendida.
+
+### 14.7 O soldo em atraso e os heróis que partem
+
+**Iguais aos de antes da revisão, célula a célula, nas três dificuldades:**
+
+- **Ninguém perde herói.** Zero partidas com herói que partiu, em 3.600 partidas. A cobrança na volta (o herói devido que retorna de escolta ou de expedição) não alcançou ninguém: nenhum bot fica com o cofre vazio por 24 h reais.
+- **O Preguiçoso não perde herói por ausência.** No Normal ele passa **21 horas reais com o soldo em atraso** (as 50 sementes, nas três dificuldades; eram 21 antes), abaixo das 24 h do prazo: Edda é Leal, não fica Descontente nem parte. É o mesmo número de antes: o soldo do nível 1 não mudou, e a Edda dele nunca sai do nível 1. Nos outros ritmos, zero.
+- **O Explorador com a equipe de nível mais alto não entra em atraso**: zero horas em todas as células. A equipe dele não passa do nível 3 (14.3).
+
+### 14.8 As marcas da Crônica do Mercado
+
+Medido no motor (`market.test.ts`), 50 sementes de dois anos de jogo, os três recursos somados: com as marcas a 80% e 125%, **6 linhas** (0,06 por ano de jogo); a 85% e 115%, **221 (2,2 por ano)**; a 87,5% e 112,5%, 618 (6,2 por ano); a 90% e 110%, 1.226 (12,3 por ano, uma por semana de jogo). Ficou 85% e 115% (pendência E-51).
+
+### 14.9 Limites desta medição
+
+- **O ouro parado mede bots que não gastam.** Nenhum bot compra, e só o Explorador contrata. Um jogador que erguesse tudo e contratasse seis heróis de nível alto gastaria mais; ninguém mediu esse jogador, porque nenhum herói chega lá em um ano de jogo.
+- **O soldo é amostrado ao fim de cada hora real**, e a Mina também: as parcelas da seção 14.4 não fecham no milésimo com o ouro parado (a diferença é o ouro inicial e o arredondamento da amostra).
+- **O especulador mistura a comida comprada com a colheita** na mesma caravana: o ganho da especulação é uma conta sobre os preços médios (E-60).
+- **A matriz não tem Mestre trabalhando desde o primeiro dia**: a primeira alocação imediata não aparece nos números (Odo e Berta chegam em poucas partidas, como na seção 13.3).
+- **Os níveis dos heróis vêm de dez sementes**, não das cinquenta: a matriz não tem coluna de nível.
+- **Ninguém jogou.** A rodada mede regras e bots.
+
+## 15. Rodadas seguintes das Fases F e G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 14.*

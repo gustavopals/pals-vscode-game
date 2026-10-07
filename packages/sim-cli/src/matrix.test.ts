@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { identityLine } from './identity';
 import {
   BOLD_PROFILE,
+  SPECULATOR_PROFILE,
+  speculationTable,
   EXPLORER_PROFILE,
   formatMatrix,
   gameYearsIn,
@@ -53,7 +55,9 @@ describe('matriz de balanceamento: o que é jogado', () => {
     // cadência de visitas do Regular, com outro bot.
     expect(PROFILES).toContain(EXPLORER_PROFILE);
     // O Ousado (revisão da Fase D, M-R2) é conhecido, mas só roda a pedido e não tem faixa.
-    expect(KNOWN_PROFILES).toEqual([...PROFILES, BOLD_PROFILE]);
+    expect(KNOWN_PROFILES).toEqual([...PROFILES, BOLD_PROFILE, SPECULATOR_PROFILE]);
+    // O Especulador (revisão da Fase E, R6) também: mede a arbitragem e a especulação sazonal.
+    expect(PROFILES).not.toContain(SPECULATOR_PROFILE);
     expect(PROFILES).not.toContain(BOLD_PROFILE);
     expect(EXPLORER_PROFILE).toEqual({
       id: 'explorador',
@@ -218,7 +222,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 223.668 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 223.376 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -256,7 +260,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([75, 85], 7, 0, 0, 2790, 4781, 208617, 27),",
+      "  'week/3/regular': measured([75, 85], 7, 0, 0, 2790, 4781, 208461, 27),",
     );
   });
 
@@ -569,6 +573,44 @@ describe('as expedições na matriz (revisão da Fase D, M-D2 e M-R2)', () => {
     const week = result.cells.find((cell) => cell.key === 'week/3/ousado');
     expect(week?.expeditions.byModel.patrol?.sent ?? 0).toBeGreaterThan(0);
     expect(formatMatrix(result)).toContain('Nenhuma faixa definida para esta rodada.');
+  });
+
+  it('o Especulador roda a pedido, sem faixa: a arbitragem do dia dá prejuízo, e a matriz diz o ouro por fonte e por destino (revisão da Fase E, R6)', async () => {
+    const result = await runMatrix({
+      seeds: MATRIX_SEEDS.slice(0, 3),
+      profiles: [SPECULATOR_PROFILE],
+      timeScales: [3],
+    });
+    expect(result.cells.every((cell) => cell.band === null && cell.violations.length === 0)).toBe(
+      true,
+    );
+    const week = result.cells.find((cell) => cell.key === 'week/3/especulador');
+    const market = week?.market;
+    if (market === undefined) {
+      throw new Error('a célula do especulador sumiu');
+    }
+    // Comprou madeira ou pedra para revender por caravana, e perdeu ouro com isso.
+    const paid = market.boughtGold.wood + market.boughtGold.stone;
+    const got = market.caravanGoldBy.wood + market.caravanGoldBy.stone;
+    expect(market.bought.wood + market.bought.stone).toBeGreaterThan(0);
+    expect(market.caravanUnits.wood + market.caravanUnits.stone).toBeGreaterThan(0);
+    expect(got).toBeLessThan(paid);
+    // Ele não vende no balcão: o ouro que entra, fora a Mina, vem das caravanas.
+    expect(market.goldIn.counter).toBe(0);
+    expect(market.goldIn.caravans).toBeGreaterThan(0);
+    expect(market.goldOut.purchases).toBeCloseTo(market.goldSpent, 0);
+    expect(market.goldOut.works).toBeGreaterThan(0);
+    expect(market.goldOut.wages).toBeGreaterThan(0);
+    const text = formatMatrix(result);
+    expect(text).toContain('### Ouro por fonte e por destino: 7 dias reais');
+    expect(text).toContain(
+      'Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas)',
+    );
+    expect(text).toContain('### Especulação: 7 dias reais');
+    expect(text).toContain('Arbitragem do dia, madeira e pedra');
+    expect(text).toContain('Nenhuma faixa definida para esta rodada.');
+    // Sem especulador na rodada, a tabela da especulação não sai; a do ouro, sim.
+    expect(speculationTable([])).toBeNull();
   });
 
   it('shareText: a parte, o todo e o percentual; sem nenhuma, um traço', () => {

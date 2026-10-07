@@ -351,6 +351,50 @@ export type MarketCounts = {
   caravansAmbushed: number;
   caravanGold: number;
   caravanLost: number;
+  /**
+   * O ouro por fonte e por destino (revisão da Fase E, R6), em unidades, acumulado. As fontes e
+   * os destinos discretos vêm dos eventos (`gained_gold` e `spent_gold`); o soldo, que é
+   * contínuo, é amostrado ao fim de cada hora real, com o soldo em dia. A Mina está em
+   * `Summary.market.mineGold`.
+   */
+  goldIn: GoldIn;
+  goldOut: GoldOut;
+  /**
+   * O que a política `especular` moveu (o bot `especulador`): o ouro pago nas compras e o
+   * recebido das caravanas, por recurso. Em um bot que não especula, é o mesmo que as compras e
+   * as caravanas de sempre.
+   */
+  boughtGold: Record<MarketResourceId, number>;
+  caravanGoldBy: Record<MarketResourceId, number>;
+  caravanUnits: Record<MarketResourceId, number>;
+};
+
+/** De onde o ouro veio, fora a Mina: o balcão, as caravanas, o saque das expedições e o resto. */
+export type GoldIn = { counter: number; caravans: number; loot: number; other: number };
+/** Para onde o ouro foi: o soldo, a Taverna, as obras, o recrutamento, as compras e o resto. */
+export type GoldOut = {
+  wages: number;
+  tavern: number;
+  works: number;
+  recruits: number;
+  purchases: number;
+  other: number;
+};
+
+const GOLD_IN_BY_EVENT: Partial<Record<GameEvent['type'], keyof GoldIn>> = {
+  marketTraded: 'counter',
+  caravanArrived: 'caravans',
+  caravanAmbushed: 'caravans',
+  expeditionReturned: 'loot',
+  itemSold: 'loot',
+};
+const GOLD_OUT_BY_EVENT: Partial<Record<GameEvent['type'], keyof GoldOut>> = {
+  marketTraded: 'purchases',
+  heroHired: 'tavern',
+  festivalHeld: 'tavern',
+  constructionStarted: 'works',
+  constructionAutoStarted: 'works',
+  recruitmentStarted: 'recruits',
 };
 
 /** Os Mestres de uma hora: os do feudo, os da porta e onde cada um trabalha. */
@@ -377,6 +421,11 @@ export function noMarket(): MarketCounts {
     caravansAmbushed: 0,
     caravanGold: 0,
     caravanLost: 0,
+    goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
+    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
+    boughtGold: { food: 0, wood: 0, stone: 0 },
+    caravanGoldBy: { food: 0, wood: 0, stone: 0 },
+    caravanUnits: { food: 0, wood: 0, stone: 0 },
   };
 }
 
@@ -386,6 +435,15 @@ export function noMarket(): MarketCounts {
  */
 function addTrades(market: MarketCounts, events: GameEvent[]): void {
   for (const event of events) {
+    // O ouro por fonte e por destino: todo evento que ganha ou gasta ouro diz quanto.
+    const gained = Number(event.data.gained_gold ?? 0);
+    if (gained > 0) {
+      market.goldIn[GOLD_IN_BY_EVENT[event.type] ?? 'other'] += gained;
+    }
+    const spent = Number(event.data.spent_gold ?? 0);
+    if (spent > 0) {
+      market.goldOut[GOLD_OUT_BY_EVENT[event.type] ?? 'other'] += spent;
+    }
     if (event.type === 'caravanSent') {
       market.caravansSent += 1;
       market.caravansEscorted += Number(event.data.escorted ?? 0);
@@ -393,6 +451,9 @@ function addTrades(market: MarketCounts, events: GameEvent[]): void {
     if (event.type === 'caravanArrived' || event.type === 'caravanAmbushed') {
       market.caravansArrived += 1;
       market.caravanGold += Number(event.data.gained_gold ?? 0);
+      const cargo = event.data.resource as MarketResourceId;
+      market.caravanGoldBy[cargo] += Number(event.data.gained_gold ?? 0);
+      market.caravanUnits[cargo] += Number(event.data.sold ?? 0);
     }
     if (event.type === 'caravanAmbushed') {
       market.caravansAmbushed += 1;
@@ -409,6 +470,7 @@ function addTrades(market: MarketCounts, events: GameEvent[]): void {
     } else {
       market.bought[resource] += amount;
       market.goldSpent += Number(event.data.spent_gold ?? 0);
+      market.boughtGold[resource] += Number(event.data.spent_gold ?? 0);
     }
   }
 }
@@ -511,6 +573,11 @@ function rowAt(
       ...market,
       sold: { ...market.sold },
       bought: { ...market.bought },
+      goldIn: { ...market.goldIn },
+      goldOut: { ...market.goldOut },
+      boughtGold: { ...market.boughtGold },
+      caravanGoldBy: { ...market.caravanGoldBy },
+      caravanUnits: { ...market.caravanUnits },
       level: view.market.level,
     },
     masters: {
@@ -634,6 +701,11 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     // E a equipe parada: quantos heróis estavam no feudo, sem tarefa, ao fim desta hora.
     const atHourEnd = deriveViewState(state, state.lastProcessedAt, { timeScale });
     expeditions.heroIdleHours += atHourEnd.guild.heroes.filter((hero) => hero.atHome).length;
+    // O soldo é contínuo e não tem evento: amostrado ao fim da hora, com o soldo em dia (a
+    // visão o dá por hora real). Com o atraso aberto só sai o que a Mina entrega, e não conta.
+    if (atHourEnd.guild.wage.arrears === null) {
+      market.goldOut.wages += atHourEnd.guild.wage.perHour;
+    }
     // O jogador que atende o aviso: uma visita a mais por encruzilhada que apareceu nesta hora.
     if (options.crossroadsVisit === true && hour < realHours) {
       const waiting = atHourEnd.pendingDecisions

@@ -1777,6 +1777,97 @@ export const alocarMestre: Policy = {
   },
 };
 
+/**
+ * Especula (revisão da Fase E, R6): **compra no balcão para revender por caravana**. Existe para
+ * a matriz provar que a arbitragem fechou e medir a especulação sazonal; nenhum jogador sensato
+ * faria a primeira parte. Tudo lido da visão, e sem memória entre as visitas:
+ *
+ * - **a comida do verão**: no verão compra comida até onde o volume do dia, o ouro e o depósito
+ *   deixam (`maxBuyable`), e a guarda; no outono e no inverno, quando o Mercado paga mais por
+ *   ela, manda por caravana a comida que está acima do que o feudo guarda (`surplusSendable`);
+ * - **a arbitragem do dia**: com lugar na estrada, compra madeira ou pedra (a que perde menos
+ *   por unidade, pelo preço de compra e pelo preço que a caravana fixaria, os dois da visão) e
+ *   envia **na mesma visita** exatamente o que comprou.
+ *
+ * Vai com escolta se houver quem escolte, e sem ela se não houver: a emboscada só piora o saldo.
+ * O bot que especula não manda o excedente por caravana nem o vende no balcão: assim o ouro das
+ * caravanas de madeira e de pedra é só o da arbitragem.
+ */
+export const especular: Policy = {
+  name: 'especular',
+  run: async (view, act) => {
+    let current = view;
+    const send = async (
+      resource: (typeof view.market.caravanOffer.resources)[number]['resource'],
+      amount: number,
+    ) => {
+      const offer = current.market.caravanOffer;
+      current = await act('sendCaravan', {
+        resource,
+        amount,
+        escortHeroId: offer.eligibleEscortIds[0] ?? null,
+        quoteDay: current.market.quoteDay,
+      });
+    };
+    const buy = async (resource: 'food' | 'wood' | 'stone', amount: number) => {
+      const before = current.market.prices.find((row) => row.resource === resource)?.tradedToday;
+      current = await act('trade', {
+        resource,
+        direction: 'buy',
+        amount,
+        quoteDay: current.market.quoteDay,
+      });
+      const after = current.market.prices.find((row) => row.resource === resource)?.tradedToday;
+      return after !== undefined && after !== before;
+    };
+    const { season } = current.calendar;
+    if (season === 'summer') {
+      const food = current.market.prices.find((row) => row.resource === 'food');
+      if (food !== undefined && food.maxBuyable > 0) {
+        await buy('food', food.maxBuyable);
+      }
+    }
+    if (season === 'autumn' || season === 'winter') {
+      const food = current.market.caravanOffer.resources.find((row) => row.resource === 'food');
+      if (
+        current.market.caravanOffer.available &&
+        food !== undefined &&
+        food.surplusSendable >= CARAVAN_MIN_CARGO
+      ) {
+        await send('food', food.surplusSendable);
+      }
+    }
+    // A arbitragem do dia, enquanto houver lugar na estrada.
+    for (;;) {
+      const offer = current.market.caravanOffer;
+      if (!offer.available) {
+        return current;
+      }
+      let best: { resource: 'wood' | 'stone'; amount: number; loss: number } | null = null;
+      for (const resource of ['wood', 'stone'] as const) {
+        const price = current.market.prices.find((row) => row.resource === resource);
+        const cargo = offer.resources.find((row) => row.resource === resource);
+        if (price === undefined || cargo === undefined) {
+          continue;
+        }
+        const amount = Math.min(price.maxBuyable, offer.maxUnits);
+        const loss = price.buy - cargo.unitPrice;
+        if (amount >= CARAVAN_MIN_CARGO && (best === null || loss < best.loss)) {
+          best = { resource, amount, loss };
+        }
+      }
+      if (best === null || !(await buy(best.resource, best.amount))) {
+        return current;
+      }
+      const onTheRoad = current.market.caravans.length;
+      await send(best.resource, best.amount);
+      if (current.market.caravans.length === onTheRoad) {
+        return current;
+      }
+    }
+  },
+};
+
 export const venderExcedente: Policy = {
   name: 'vender o excedente',
   run: async (view, act) => {

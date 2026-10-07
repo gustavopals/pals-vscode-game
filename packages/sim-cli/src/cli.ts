@@ -26,8 +26,9 @@ jogo oferece, com os perfis de 1, 2 e 4 sessões por dia, o da Guilda e as 50 se
 Há faixas para as três dificuldades; o comando sai com erro se alguma partida ficar fora delas.
 Com --profile, a matriz joga só aquele perfil: preguicoso, regular, dedicado ou explorador (2
 sessões por dia com o bot explorador, que além de cuidar do feudo contrata na Taverna e dá
-festival) ou ousado (o explorador que arrisca; sem faixa). As estratégias de --strategy são
-economico, preguicoso, explorador e ousado.
+festival), ousado (o explorador que arrisca; sem faixa) ou especulador (o que compra no balcão
+para revender por caravana; sem faixa). As estratégias de --strategy são
+economico, preguicoso, explorador, ousado e especulador.
 Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
 advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
 Com --expeditions, joga o estudo das expedições: 7 dias reais em cada ritmo, com 1, 2, 4 e 6

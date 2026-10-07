@@ -17,7 +17,14 @@ import {
   type WasteResource,
   worstWasteStreak,
 } from './report';
-import { type ExpeditionCounts, noExpeditions, type OutcomeCounts, simulate } from './simulate';
+import {
+  type ExpeditionCounts,
+  type GoldIn,
+  type GoldOut,
+  noExpeditions,
+  type OutcomeCounts,
+  simulate,
+} from './simulate';
 
 const HOUR_MS = 3_600_000;
 const WEEK_REAL_HOURS = 7 * 24;
@@ -29,7 +36,7 @@ export const MATRIX_SEEDS: readonly string[] = Array.from(
 );
 
 export type Profile = {
-  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador' | 'ousado';
+  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador' | 'ousado' | 'especulador';
   readonly label: string;
   /** Visitas por dia real, a intervalos iguais, a primeira na criação da partida. */
   readonly sessionsPerDay: number;
@@ -71,6 +78,19 @@ export const BOLD_PROFILE: Profile = {
   crossroadsVisits: 'half',
 };
 
+/**
+ * O perfil que especula (revisão da Fase E, R6): 2 sessões por dia com o bot `especulador`, que
+ * compra no balcão para revender por caravana. **Fora da rodada padrão e sem faixa**: roda a
+ * pedido (`--profile especulador`), para a matriz provar que a arbitragem do mesmo dia perde
+ * ouro e medir quanto a especulação sazonal da comida rende.
+ */
+export const SPECULATOR_PROFILE: Profile = {
+  id: 'especulador',
+  label: 'Especulador',
+  sessionsPerDay: 2,
+  strategy: 'especulador',
+};
+
 /** A partida de uma semente joga com a visita extra da encruzilhada: metade delas, as ímpares. */
 export function playsCrossroadsVisit(profile: Profile, seedIndex: number): boolean {
   return profile.crossroadsVisits === 'half' && seedIndex % 2 === 0;
@@ -89,8 +109,8 @@ export const PROFILES: readonly Profile[] = [
 ];
 export type ProfileId = Profile['id'];
 
-/** Todo perfil que a matriz sabe jogar: os da rodada padrão e o Ousado, que só roda a pedido. */
-export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, BOLD_PROFILE];
+/** Todo perfil que a matriz sabe jogar: os da rodada padrão e os que só rodam a pedido. */
+export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, BOLD_PROFILE, SPECULATOR_PROFILE];
 
 /**
  * As duas janelas de medida. Não se comparam entre si: em 7 dias reais o ritmo 3 atravessa três
@@ -294,6 +314,15 @@ export type MarketTotals = {
   caravanRuns: number;
   /** O que a Mina de Ouro produziu, somado nas sementes: a comparação do ouro por fonte. */
   mineGold: number;
+  /** O ouro por fonte e por destino, somado nas sementes (revisão da Fase E, R6). */
+  goldIn: GoldIn;
+  goldOut: GoldOut;
+  /** O ouro pago nas compras e o recebido das caravanas, e as unidades delas, por recurso. */
+  boughtGold: Record<'food' | 'wood' | 'stone', number>;
+  caravanGoldBy: Record<'food' | 'wood' | 'stone', number>;
+  caravanUnits: Record<'food' | 'wood' | 'stone', number>;
+  /** O ouro parado no fim, somado nas sementes: o que as fontes deixaram sem destino. */
+  goldLeft: number;
 };
 
 /**
@@ -397,8 +426,21 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     caravanGold: 0,
     caravanRuns: 0,
     mineGold: 0,
+    goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
+    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
+    boughtGold: { food: 0, wood: 0, stone: 0 },
+    caravanGoldBy: { food: 0, wood: 0, stone: 0 },
+    caravanUnits: { food: 0, wood: 0, stone: 0 },
+    goldLeft: 0,
   };
-  for (const { market } of summaries) {
+  for (const { market, surplus } of summaries) {
+    totals.goldLeft += surplus.gold;
+    for (const key of Object.keys(totals.goldIn) as Array<keyof GoldIn>) {
+      totals.goldIn[key] += market.goldIn[key];
+    }
+    for (const key of Object.keys(totals.goldOut) as Array<keyof GoldOut>) {
+      totals.goldOut[key] += market.goldOut[key];
+    }
     totals.caravansSent += market.caravansSent;
     totals.caravansEscorted += market.caravansEscorted;
     totals.caravansAmbushed += market.caravansAmbushed;
@@ -408,6 +450,9 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     for (const id of ['food', 'wood', 'stone'] as const) {
       totals.sold[id] += market.sold[id];
       totals.bought[id] += market.bought[id];
+      totals.boughtGold[id] += market.boughtGold[id];
+      totals.caravanGoldBy[id] += market.caravanGoldBy[id];
+      totals.caravanUnits[id] += market.caravanUnits[id];
     }
     totals.goldEarned += market.goldEarned;
     totals.goldSpent += market.goldSpent;
@@ -469,6 +514,101 @@ export function marketTable(cells: readonly MatrixCell[]): string {
           .join(' · '),
       ];
     }),
+  );
+}
+
+/**
+ * O ouro de uma janela, **por partida**: de onde veio (a Mina, o balcão, as caravanas, o saque
+ * das expedições e o resto: prêmios de objetivo e cartas) e para onde foi (o soldo, a Taverna,
+ * as obras, o recrutamento, as compras no balcão e o resto), e o que ficou parado no fim. É a
+ * pergunta "o ouro tem destino?" (GDD §8.3; ADR 0016, C-5) em números (revisão da Fase E, R6).
+ * O soldo é amostrado ao fim de cada hora real, como a Mina; o resto vem dos eventos.
+ */
+export function goldTable(cells: readonly MatrixCell[]): string {
+  const per = (total: number, runs: number) => formatInt(Math.round(total / Math.max(1, runs)));
+  return table(
+    [
+      'Ritmo',
+      'Perfil',
+      'Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas)',
+      'Destinos por partida (soldo · Taverna · obras · recrutamento · compras · cartas e outros)',
+      'Ouro parado no fim, por partida',
+    ],
+    cells.map((cell) => {
+      const { market } = cell;
+      const { goldIn, goldOut } = market;
+      return [
+        cell.paceLabel,
+        cell.profile.label,
+        [market.mineGold, goldIn.counter, goldIn.caravans, goldIn.loot, goldIn.other]
+          .map((total) => per(total, market.runs))
+          .join(' · '),
+        [
+          goldOut.wages,
+          goldOut.tavern,
+          goldOut.works,
+          goldOut.recruits,
+          goldOut.purchases,
+          goldOut.other,
+        ]
+          .map((total) => per(total, market.runs))
+          .join(' · '),
+        per(market.goldLeft, market.runs),
+      ];
+    }),
+  );
+}
+
+/**
+ * O que a especulação rendeu em uma janela, **por partida**, para o perfil que compra para
+ * revender por caravana (`especulador`; revisão da Fase E, R6): por recurso, o ouro pago no
+ * balcão, as unidades que chegaram e o ouro que as caravanas trouxeram, e o saldo. A madeira e a
+ * pedra são a arbitragem do mesmo dia (comprar e enviar na mesma visita): o saldo tem de ser
+ * negativo. A comida é a especulação sazonal: comprada no verão, enviada no outono e no inverno.
+ * `null` sem nenhuma célula de especulador.
+ */
+export function speculationTable(cells: readonly MatrixCell[]): string | null {
+  const speculators = cells.filter((cell) => cell.profile.strategy === 'especulador');
+  if (speculators.length === 0) {
+    return null;
+  }
+  const per = (total: number, runs: number) =>
+    formatDecimal(Math.round((total * 10) / Math.max(1, runs)) / 10);
+  const leg = (cell: MatrixCell, ids: ReadonlyArray<'food' | 'wood' | 'stone'>) => {
+    const { market } = cell;
+    const sum = (amounts: Record<'food' | 'wood' | 'stone', number>) =>
+      ids.reduce((total, id) => total + amounts[id], 0);
+    const paid = sum(market.boughtGold);
+    const got = sum(market.caravanGoldBy);
+    return `${per(sum(market.bought), market.runs)} · ${per(paid, market.runs)} · ${per(sum(market.caravanUnits), market.runs)} · ${per(got, market.runs)} · ${per(got - paid, market.runs)}`;
+  };
+  // O que a comida comprada rendeu, fora a colheita do feudo, que vai na mesma caravana: as
+  // unidades compradas vezes a diferença entre o preço médio recebido e o preço médio pago.
+  const seasonal = (cell: MatrixCell): string => {
+    const { bought, boughtGold, caravanUnits, caravanGoldBy, runs } = cell.market;
+    if (bought.food === 0 || caravanUnits.food === 0) {
+      return '—';
+    }
+    const gain =
+      bought.food * (caravanGoldBy.food / caravanUnits.food - boughtGold.food / bought.food);
+    return per(gain, runs);
+  };
+  const columns = 'compradas · ouro pago · unidades vendidas por caravana · ouro recebido · saldo';
+  return table(
+    [
+      'Ritmo',
+      'Perfil',
+      `Arbitragem do dia, madeira e pedra (${columns})`,
+      `Comida: comprada no verão e enviada no outono e no inverno, com a colheita do feudo na mesma caravana (${columns} bruto)`,
+      'Especulação sazonal: o ganho só da comida comprada, por partida',
+    ],
+    speculators.map((cell) => [
+      cell.paceLabel,
+      cell.profile.label,
+      leg(cell, ['wood', 'stone']),
+      leg(cell, ['food']),
+      seasonal(cell),
+    ]),
   );
 }
 
@@ -1079,6 +1219,10 @@ export function formatMatrix(result: MatrixResult): string {
       `### Guilda: ${window.label.toLowerCase()}\n\n${guild}`,
       `### Expedições: ${window.label.toLowerCase()}\n\n${expeditionTables(cells)}`,
       `### Mercado: ${window.label.toLowerCase()}\n\n${marketTable(cells)}`,
+      `### Ouro por fonte e por destino: ${window.label.toLowerCase()}\n\n${goldTable(cells)}`,
+      ...(speculationTable(cells) === null
+        ? []
+        : [`### Especulação: ${window.label.toLowerCase()}\n\n${speculationTable(cells) ?? ''}`]),
       `### Mestres: ${window.label.toLowerCase()}\n\n${mastersTable(cells)}`,
     ].join('\n\n');
   });

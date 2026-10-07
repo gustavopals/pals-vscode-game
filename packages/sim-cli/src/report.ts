@@ -794,6 +794,13 @@ function mastersLine({ masters }: Summary): string {
   ].join(' · ');
 }
 
+/** As parcelas de ouro com uma casa: somam frações de milésimo em milésimo. */
+function roundedAmounts<T extends Record<string, number>>(amounts: T): T {
+  return Object.fromEntries(
+    Object.entries(amounts).map(([key, value]) => [key, Math.round(value * 10) / 10]),
+  ) as T;
+}
+
 function marketOf({ rows }: SimulationResult): Summary['market'] {
   const counts = rows.at(-1)?.market ?? { ...noMarket(), level: 0 };
   return {
@@ -802,6 +809,10 @@ function marketOf({ rows }: SimulationResult): Summary['market'] {
     goldEarned: Math.round(counts.goldEarned * 10) / 10,
     goldSpent: Math.round(counts.goldSpent * 10) / 10,
     caravanGold: Math.round(counts.caravanGold * 10) / 10,
+    goldIn: roundedAmounts(counts.goldIn),
+    goldOut: roundedAmounts(counts.goldOut),
+    boughtGold: roundedAmounts(counts.boughtGold),
+    caravanGoldBy: roundedAmounts(counts.caravanGoldBy),
     mineGold: Math.round(rows.reduce((sum, row) => sum + row.gross.gold, 0)),
     atHour: rows.find((row) => row.market.level > 0)?.hour ?? null,
     volumeUsedPercent: volumeUsedPercent(counts),

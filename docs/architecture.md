@@ -563,7 +563,7 @@ O que a terceira tarefa da Fase E construiu por cima das seções 20 e 21: **os 
 
 **O desenho, em uma frase: o Mestre é um habitante que não é aldeão.** `population.villagers` continua contando só os aldeões; o Mestre mora em `settlement.masters`. As contas de habitante (vaga nas casas, comida, lenha, casas cheias, piso de população) somam os dois; as de aldeão (ofício, adaptação por coortes, quem parte, deserta ou se fere) não sabem que ele existe. **É isso que garante, por construção, que nenhuma regra de perda o alcança**, e que deixa intacta a invariante "a soma dos trabalhadores nunca passa dos aldeões que podem trabalhar". No edifício ele é um braço a mais, fora de `settlement.workers`.
 
-**Estado** (versão 23; o passo `v22ToV23` não cria prazo, evento, identificador nem sorteio): `settlement.masters` (`id` de `nextId`, `masterId`, `building`, `adaptingUntilMs`), `settlement.mastersWaiting` (`id`, `masterId`) e `master` em cada registro do percurso de uma expedição. As duas listas têm teto somado (`balance.masters.rosterCap`), e Mestre nenhum tem fluxo de sorteio.
+**Estado** (versão 23, e desde a revisão da Fase E a **24**, que acrescenta `worked` a cada Mestre: a primeira alocação é imediata; o passo `v22ToV23` não cria prazo, evento, identificador nem sorteio, e o `v23ToV24` também não): `settlement.masters` (`id` de `nextId`, `masterId`, `building`, `adaptingUntilMs`), `settlement.mastersWaiting` (`id`, `masterId`) e `master` em cada registro do percurso de uma expedição. As duas listas têm teto somado (`balance.masters.rosterCap`), e Mestre nenhum tem fluxo de sorteio.
 
 | Camada | Onde | O que faz |
 |---|---|---|

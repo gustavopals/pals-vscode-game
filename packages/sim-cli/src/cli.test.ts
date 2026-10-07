@@ -66,7 +66,7 @@ describe('linha de comando: modo em processo', () => {
 
   it('recusa estratégia e opção desconhecidas, e argumento solto', () => {
     expect(() => parseCli(['--seed', 's', '--strategy', 'guerreiro'])).toThrow(
-      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador, ousado.',
+      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador, ousado, especulador.',
     );
     expect(() => parseCli(['--seed', 's', '--strategy', 'toString'])).toThrow(
       /Estratégia desconhecida/,
@@ -160,7 +160,7 @@ describe('linha de comando: matriz', () => {
     });
     // O nome é o do perfil, não o do bot: `economico` joga dois perfis.
     expect(() => parseCli(['--matrix', '--profile', 'economico'])).toThrow(
-      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador, ousado.',
+      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador, ousado, especulador.',
     );
     expect(() => parseCli(['--seed', 's', '--profile', 'explorador'])).toThrow(
       '--profile não vale com o modo em processo.',
@@ -277,7 +277,7 @@ describe('texto de uso', () => {
     expect(USAGE).toContain('pnpm -s sim -- --perf\n');
     expect(USAGE).toContain('Há faixas para as três dificuldades');
     expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord] [--profile explorador]');
-    expect(USAGE).toContain('economico, preguicoso, explorador e ousado');
+    expect(USAGE).toContain('economico, preguicoso, explorador, ousado e especulador');
     expect(USAGE).toContain('--expeditions [--seeds 10] [--difficulty lord]');
     expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');
@@ -298,6 +298,17 @@ describe('linha de comando: o estudo das expedições (revisão da Fase D, M-D2)
     });
     expect(() => parseCli(['--expeditions', '--seeds', '51'])).toThrow('--seeds vai até 50');
     expect(() => parseCli(['--expeditions', '--profile', 'ousado'])).toThrow();
+  });
+
+  it('o bot especulador é uma estratégia e um perfil da matriz, fora da rodada padrão (revisão da Fase E, R6)', () => {
+    expect(parseCli(['--seed', 's', '--strategy', 'especulador'])).toMatchObject({
+      mode: 'simulate',
+      options: { strategy: 'especulador' },
+    });
+    expect(parseCli(['--matrix', '--seeds', '1', '--profile', 'especulador'])).toMatchObject({
+      mode: 'matrix',
+      options: { profiles: [{ id: 'especulador', strategy: 'especulador' }] },
+    });
   });
 
   it('o bot ousado é uma estratégia e um perfil da matriz, fora da rodada padrão', () => {

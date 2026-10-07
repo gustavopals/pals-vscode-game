@@ -228,7 +228,24 @@ describe('um bot é uma lista de políticas', () => {
     // encruzilhadas (a todas) e como envia (entre o risco e a folga, alternando as Posturas).
     expect(strategyPolicies.ousado).toEqual(guildBot(escolherTodoCaminho, enviarExpedicoesOusado));
     expect(strategyPolicies.explorador).not.toBe(strategyPolicies.economico);
-    expect(Object.keys(strategies)).toEqual(['economico', 'preguicoso', 'explorador', 'ousado']);
+    expect(Object.keys(strategies)).toEqual([
+      'economico',
+      'preguicoso',
+      'explorador',
+      'ousado',
+      'especulador',
+    ]);
+    // O especulador (revisão da Fase E, R6) é o econômico que, em vez de mandar o excedente e
+    // de vendê-lo, compra no balcão para revender por caravana.
+    expect(strategyPolicies.especulador.map((policy) => policy.name)).toEqual(
+      strategyPolicies.economico.flatMap((policy) =>
+        policy.name === 'mandar caravana'
+          ? ['especular']
+          : policy.name === 'vender o excedente'
+            ? []
+            : [policy.name],
+      ),
+    );
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
     const names = [
       responderCartas,
@@ -2691,6 +2708,7 @@ describe('bot honesto', () => {
   it('os bots só conhecem os tipos do motor: nunca o estado, o avanço, os sorteios nem o conteúdo', () => {
     expect(sources.map((source) => source.name).sort()).toEqual([
       'economico.ts',
+      'especulador.ts',
       'explorador.ts',
       'index.ts',
       'ousado.ts',
