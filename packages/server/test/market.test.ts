@@ -486,7 +486,7 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
         id: 'caravan-1',
         cargoText: '200 de madeira',
         unitPrice: 1173,
-        goldText: '285,6',
+        goldText: '234,6',
         arrivesInSeconds: 4 * 3600,
         escortName: 'Edda',
       }),
@@ -554,8 +554,8 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
       amount: 200,
       sold: 200,
       unitPrice: 1173,
-      gold: 285_600,
-      gained_gold: 285.6,
+      gold: 234_600,
+      gained_gold: 234.6,
       escorted: 1,
     });
     expect(arrived.market.quoteDay).toBe(3);

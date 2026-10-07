@@ -564,8 +564,8 @@ test.describe('o Relatório de Retorno depois da estrada (V3E-T4.5)', () => {
     await page.getByRole('tab', { name: 'Hoje' }).click();
     const table = today.getByRole('table', { name: /O saldo dos estoques/ });
     const goldCells = table.getByRole('row', { name: /^Ouro/ }).getByRole('cell');
-    await expect(goldCells.nth(3)).toContainText('+179,9');
-    await expect(goldCells.nth(1)).not.toContainText('179');
+    await expect(goldCells.nth(3)).toContainText('+147,8');
+    await expect(goldCells.nth(1)).not.toContainText('147');
     const woodCells = table.getByRole('row', { name: /^Madeira/ }).getByRole('cell');
     await expect(woodCells.nth(1)).toHaveText('0');
     await expect(woodCells.nth(4)).toHaveText('—');
@@ -573,7 +573,7 @@ test.describe('o Relatório de Retorno depois da estrada (V3E-T4.5)', () => {
 });
 
 test.describe('os Mestres (V3E-T4.4)', () => {
-  test('mover um Mestre mostra o que muda antes de confirmar; ele se adapta, e depois a conta da produção traz o bônus', async ({
+  test('alocar um Mestre mostra o que muda antes de confirmar: a primeira alocação é imediata; mudá-lo de edifício custa a adaptação, e depois a conta da produção traz o bônus', async ({
     context,
     request,
     world,
@@ -614,25 +614,40 @@ test.describe('os Mestres (V3E-T4.4)', () => {
       type: 'assignMaster',
       payload: { masterId: odo.id, building: 'farm' },
     });
-    // Na Fazenda, em adaptação: a linha diz que ainda não dá o bônus.
-    await expect(workers.locator(`[data-master="${odo.id}"]`)).toContainText('em adaptação');
-    await expect(workers.locator(`[data-master="${odo.id}"]`)).toContainText('ainda sem o bônus');
-
-    // Passada a adaptação, o bônus vale e a conta da produção o diz, termo a termo.
-    await world.passTime(26 * HOUR, page);
-    await expect(workers.locator(`[data-master="${odo.id}"]`)).toContainText('+15% na produção');
-    const farmRate = workers
-      .locator('li.worker')
-      .filter({ hasText: 'Fazenda' })
-      .locator('[data-tip]')
-      .first();
-    await expect(farmRate).toHaveAttribute('data-tip', new RegExp(odo.name));
+    // A primeira alocação é imediata (resposta do autor de 2026-10-07): na Fazenda ele já rende
+    // inteiro, com o bônus, e a conta da produção o diz, termo a termo.
+    const line = workers.locator(`[data-master="${odo.id}"]`);
+    await expect(line).toContainText('+15% na produção');
+    await expect(line).not.toContainText('em adaptação');
+    const rateOf = (building: string) =>
+      workers.locator('li.worker').filter({ hasText: building }).locator('[data-tip]').first();
+    await expect(rateOf('Fazenda')).toHaveAttribute('data-tip', new RegExp(odo.name));
     // O Mestre sai da lista dos livres e a árvore o diz.
     await expect(tree(page).getByRole('treeitem', { name: new RegExp(odo.name) })).toContainText(
       'Fazenda',
     );
+
+    // Mudá-lo de edifício custa a adaptação: na Pedreira a linha diz que ainda não dá o bônus.
+    await line.getByRole('button', { name: /^Mover Mestre/ }).click();
+    await page.getByRole('dialog').getByText('Pedreira', { exact: true }).first().click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Mover' }).click();
+    await expect.poll(() => posts.length).toBe(2);
+    expect(posts[1]).toMatchObject({
+      type: 'assignMaster',
+      payload: { masterId: odo.id, building: 'quarry' },
+    });
+    await expect(line).toContainText('em adaptação');
+    await expect(line).toContainText('ainda sem o bônus');
+
+    // Passada a adaptação, o bônus vale de novo.
+    await world.passTime(26 * HOUR, page);
+    await expect(line).toContainText('+15% na produção');
+    await expect(rateOf('Pedreira')).toHaveAttribute('data-tip', new RegExp(odo.name));
+    await expect(tree(page).getByRole('treeitem', { name: new RegExp(odo.name) })).toContainText(
+      'Pedreira',
+    );
     const moved = await gameEvents(page, request);
-    expect(moved.filter((e) => e.type === 'masterAssigned')).toHaveLength(1);
+    expect(moved.filter((e) => e.type === 'masterAssigned')).toHaveLength(2);
   });
 });
 

@@ -302,6 +302,16 @@ function atPace(view: ViewState, pace: number): ViewState {
       heroes: view.guild.heroes.map((hero) => ({
         ...hero,
         wagePerHour: scaled(hero.wagePerHour),
+        // O soldo do próximo nível também é uma taxa, e a frase que o avisa leva o número.
+        wageNextLevelPerHour:
+          hero.wageNextLevelPerHour === null ? null : scaled(hero.wageNextLevelPerHour),
+        wageNextLevelText:
+          hero.wageNextLevelText === null || hero.wageNextLevelPerHour === null
+            ? null
+            : hero.wageNextLevelText.replace(
+                `${String(hero.wageNextLevelPerHour).replace('.', ',')}/h`,
+                `${String(scaled(hero.wageNextLevelPerHour)).replace('.', ',')}/h`,
+              ),
       })),
       arriving: view.guild.arriving.map((hero) => ({
         ...hero,
