@@ -200,10 +200,8 @@ function expectInvariants(state: GameState, known: Map<string, string>): void {
       );
     }
   }
-  // O piso protege os habitantes, e Mestre nenhum tem fluxo de sorteio.
-  if (settlement.population.villagers === 0) {
-    expect(aboveFloor(state)).toBe(false);
-  }
+  // O piso protege os aldeões, com quantos Mestres houver, e Mestre nenhum tem fluxo de sorteio.
+  expect(aboveFloor(state)).toBe(settlement.population.villagers > balance.morale.populationFloor);
   expect(inhabitants(state)).toBe(settlement.population.villagers + settlement.masters.length);
   expect(Object.keys(state.rng).filter((key) => key.startsWith('master'))).toEqual([]);
   const next = nextEventAt(state);

@@ -660,24 +660,36 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
     return seed === undefined ? base : { ...base, seed };
   };
 
-  it('o Mestre conta para o piso: com três aldeões e um Mestre, um aldeão ainda pode sair, e depois ninguém', () => {
+  it('o piso protege 3 aldeões, com quantos Mestres houver (resposta do autor de 2026-10-07): com três aldeões e um Mestre ninguém sai', () => {
     const state = doomed(3, ['odo']);
     expect(balance.morale.populationFloor).toBe(3);
-    expect(aboveFloor(state)).toBe(true);
+    expect(aboveFloor(state)).toBe(false);
     const later = advanceTo(state, state.lastProcessedAt + 40 * DAY);
     const lost = [
       ...ofType(later.events, 'villagerDeserted'),
       ...ofType(later.events, 'villagerLeft'),
     ];
-    expect(lost).toHaveLength(1);
-    expect(later.state.settlement.population.villagers).toBe(2);
-    expect(inhabitants(later.state)).toBe(3);
-    expect(aboveFloor(later.state)).toBe(false);
+    expect(lost).toEqual([]);
+    expect(later.state.settlement.population.villagers).toBe(3);
+    expect(inhabitants(later.state)).toBe(4);
     expect(later.state.settlement.masters).toHaveLength(1);
     expect(later.state.settlement.masters[0]?.building).toBe('quarry');
-    // Sem o Mestre, com três aldeões, ninguém sairia.
-    const bare = advanceTo(doomed(3, []), state.lastProcessedAt + 40 * DAY);
-    expect(bare.state.settlement.population.villagers).toBe(3);
+    // Com quatro aldeões e o Mestre, um aldeão sai, e depois ninguém.
+    const four = advanceTo(doomed(4, ['odo']), state.lastProcessedAt + 40 * DAY);
+    expect(four.state.settlement.population.villagers).toBe(3);
+    expect(aboveFloor(four.state)).toBe(false);
+  });
+
+  it('a reprodução do risco: fome de 60 dias, seis aldeões e de zero a quatro Mestres: restam sempre 3 aldeões', () => {
+    const all = ['odo', 'berta', 'gil', 'ximena'] as const;
+    const left = [0, 1, 2, 3, 4].map((count) => {
+      const state = doomed(6, all.slice(0, count));
+      const later = advanceTo(state, state.lastProcessedAt + 60 * DAY).state;
+      expect(later.settlement.masters).toHaveLength(count);
+      return later.settlement.population.villagers;
+    });
+    // Antes da resposta, com o piso contando habitantes: 3, 2, 1, 0 e 0.
+    expect(left).toEqual([3, 3, 3, 3, 3]);
   });
 
   it('a fome longa e a moral no chão, por quarenta dias, em vinte sementes: saem aldeões, nunca um Mestre, e ele continua no edifício', () => {
@@ -693,9 +705,9 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
         ['berta', 'goldMine'],
       ]);
       expect(later.state.settlement.mastersWaiting).toEqual([]);
-      // O piso são três habitantes: sobra um aldeão e os dois Mestres.
-      expect(later.state.settlement.population.villagers).toBe(1);
-      expect(inhabitants(later.state)).toBe(3);
+      // O piso são três aldeões: sobram os três e os dois Mestres.
+      expect(later.state.settlement.population.villagers).toBe(3);
+      expect(inhabitants(later.state)).toBe(5);
       for (const event of later.events) {
         if (event.type === 'villagerLeft' || event.type === 'villagerDeserted') {
           expect(event.text).not.toMatch(/Mestr/);
@@ -703,7 +715,7 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
       }
       expect(shaped(later.state)).toBeNull();
     }
-    expect(gone).toBe(20 * 8);
+    expect(gone).toBe(20 * 6);
   });
 
   it('todos os aldeões fora e só os Mestres trabalhando: ninguém parte, ninguém deserta, e o feudo segue produzindo', () => {
@@ -718,11 +730,11 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
     ).toEqual([]);
     // A Mestra da Fazenda alimenta os quatro, e a fome acaba.
     expect(later.state.settlement.famine).toBeNull();
-    // Só um aldeão acima do piso pode sair: com quatro Mestres e um aldeão, ele sai.
+    // O Mestre não conta para o piso: com quatro Mestres e um aldeão, o aldeão fica.
     const one = doomed(1, ['odo', 'berta', 'gil', 'ximena']);
-    expect(aboveFloor(one)).toBe(true);
+    expect(aboveFloor(one)).toBe(false);
     const after = advanceTo(one, one.lastProcessedAt + 40 * DAY).state;
-    expect(after.settlement.population.villagers).toBe(0);
+    expect(after.settlement.population.villagers).toBe(1);
     expect(after.settlement.masters).toHaveLength(4);
   });
 
@@ -987,7 +999,7 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
     }
   });
 
-  it('a nota do piso conta o Mestre', () => {
+  it('a nota do piso diz que ele é de aldeões e que o Mestre nunca parte', () => {
     const state = gameAt(WINTER + 2 * DAY + 20 * MINUTE, (draft) => {
       const { settlement } = draft;
       settlement.population.villagers = 2;
@@ -998,7 +1010,7 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
     });
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(view.morale.notes.join(' ')).toContain(
-      'Restam 2 aldeões e 1 Mestre: com 3 habitantes ou menos, ninguém mais parte nem deserta, e um Mestre nunca parte.',
+      'Restam 2 aldeões e 1 Mestre: com 3 aldeões ou menos, ninguém mais parte nem deserta, e um Mestre nunca parte.',
     );
   });
 });

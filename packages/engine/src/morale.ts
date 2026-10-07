@@ -211,12 +211,15 @@ export function nextFamineDesertionAt(state: GameState, fromMs: number): number 
 }
 
 /**
- * Acima do piso: o feudo ainda pode perder um aldeão (GDD §5.6). **O Mestre conta para o piso**
- * (ADR 0018, decisão 18): o que o piso protege são os habitantes. E só há quem perder se houver
- * aldeão: um Mestre nunca parte nem deserta, então um feudo só de Mestres não perde ninguém.
+ * Acima do piso: o feudo ainda pode perder um aldeão (GDD §5.6). **O piso protege aldeões
+ * comuns, com quantos Mestres houver** (resposta do autor de 2026-10-07; ADR 0018, decisão 18):
+ * nenhuma partida e nenhuma deserção deixam o feudo com menos de `populationFloor` aldeões. O
+ * Mestre não conta para o piso e nunca parte nem deserta. Enquanto o piso contou habitantes
+ * (V3E-T3), cada Mestre recebido tirava um aldeão da proteção: com quatro Mestres, a fome levava
+ * todos os aldeões.
  */
 export function aboveFloor(state: GameState): boolean {
-  return inhabitants(state) > rules.populationFloor && state.settlement.population.villagers > 0;
+  return state.settlement.population.villagers > rules.populationFloor;
 }
 
 /**

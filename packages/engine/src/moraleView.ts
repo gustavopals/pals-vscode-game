@@ -345,8 +345,8 @@ function populationNotes(
     notes.push(
       masters === 0
         ? `Restam ${villagers}: com ${populationFloor} ou menos, ninguém mais parte nem deserta.`
-        : // O Mestre conta para o piso e nunca parte nem deserta (GDD §5.4).
-          `Restam ${villagers} e ${plural(masters, 'Mestre', 'Mestres')}: com ${populationFloor} habitantes ou menos, ninguém mais parte nem deserta, e um Mestre nunca parte.`,
+        : // O piso é de aldeões; o Mestre não conta para ele e nunca parte nem deserta (GDD §5.4).
+          `Restam ${villagers} e ${plural(masters, 'Mestre', 'Mestres')}: com ${populationFloor} aldeões ou menos, ninguém mais parte nem deserta, e um Mestre nunca parte.`,
     );
   }
   return notes;
