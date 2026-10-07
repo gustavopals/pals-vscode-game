@@ -25,6 +25,7 @@ import {
   startingTiles,
   threatMarkTemplates,
   tileTypes,
+  marketTemplates,
   wageArrearsReliefs,
   tavernCandidates,
 } from '@lotg/content';
@@ -65,7 +66,7 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,' +
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
@@ -150,6 +151,11 @@ describe('CSV de uma partida', () => {
       'crossroads_by_player',
       'crossroads_by_stance',
       'hero_idle_hours',
+      // As do Mercado, medidas desde V3E-T1.
+      'traded_food',
+      'traded_wood',
+      'traded_stone',
+      'market_volume_used_percent',
     ]);
     // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
     // dos objetivos (V2E-T4) já nasceu medida. As da Guilda (roadmap da v0.3, V3B-T2.2) vêm
@@ -165,17 +171,12 @@ describe('CSV de uma partida', () => {
     expect(reserved).toEqual([
       // O jogo não conta o soldo pago em lugar nenhum: fica reservada.
       'wages_paid',
-      'traded_food',
-      'traded_wood',
-      'traded_stone',
-      'market_volume_used_percent',
       'caravans_sent',
       'caravans_ambushed',
       'masters',
     ]);
     expect(RESERVED_COLUMNS.map((column) => column.task)).toEqual([
       'V3C-T1',
-      ...Array.from({ length: 4 }, () => 'V3E-T1'),
       'V3E-T2',
       'V3E-T2',
       'V3E-T3',
@@ -634,6 +635,7 @@ describe('resumo de uma partida', () => {
             tavernCandidates,
             heroNames,
             wageArrearsReliefs,
+            marketTemplates,
           }),
         )
         .digest('hex')
@@ -646,7 +648,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 

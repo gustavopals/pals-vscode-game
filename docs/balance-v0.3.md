@@ -1646,6 +1646,189 @@ Em Senhor e em Rei de Ferro, 10 sementes por linha, 7 dias reais, as quinze linh
 - Os tempos de `--perf` são de uma rodada, nove repetições, indicativos.
 - A matriz do Camponês saiu **dentro das faixas** só depois de regravar as cinco células do Explorador; as 24 células de cada dificuldade foram conferidas, e as dos perfis sem Guilda, comparadas uma a uma com a linha de base antiga, e são idênticas.
 
-## 11. Rodadas seguintes das Fases E a G
+## 11. O Mercado: preço, compra, venda e volume diário (V3E-T1)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 10.*
+Rodada de 2026-10-06, com o estado na versão 21 e o `contentHash` `0dc43e2568713c46`. É a primeira rodada da Fase E e responde ao que a tarefa pede: o que o Mercado muda no desperdício, no excedente parado e no **ouro parado**, por perfil e ritmo, e que parcela do volume diário os bots usam. **Nada aqui foi lido pelo autor.** As faixas dos perfis que negociam foram remedidas de propósito.
+
+### 11.1 Comandos
+
+```bash
+for d in lord peasant ironKing; do
+  pnpm -s sim -- --matrix --difficulty $d > matriz-$d.csv 2> matriz-$d.md      # depois: 1.200 partidas cada
+done
+# antes: os mesmos três comandos no commit 27fceb5 (Fase D fechada), em uma árvore de trabalho à parte
+pnpm -s sim -- --seed pedra-alta-001 --days 7 --time-scale 3 --strategy economico > /dev/null   # o resumo de uma partida, com a linha "Mercado"
+```
+
+"Antes" e "depois" são as **mesmas 50 sementes**, partida a partida, lidas dos CSVs das duas rodadas (menor, mediana e maior, ou a mediana, como cada tabela diz). As saídas ficaram no diretório descartável da sessão; o que vale está nas tabelas abaixo e na linha de base de `packages/sim-cli/src/bands.ts`.
+
+### 11.2 O que os bots fazem com o Mercado
+
+- **O Regular, o Dedicado e o Explorador** (o bot `economico` e o `explorador`, que herda a lista dele) ganharam três políticas, todas lendo só a visão: **erguer o Mercado** assim que o Salão chega ao nível 3, e melhorá-lo só quando o volume do dia acabou em algum recurso; **vender o excedente**, isto é, o recurso que está no limite do depósito ou que o alcança em menos de 8 horas reais, até o volume do dia (`maxSellable`), sem tocar no que as obras e o inverno pedem a não ser pelo que iria ao chão nessas 8 horas; e **comprar lenha** quando a conta do inverno não fecha. A venda vem depois das obras, do recrutamento, das cartas e da alocação.
+- **O Mercado saiu da corrida das obras**, como a Guilda: `obra mais barata` não o ergue. Na primeira medição desta tarefa ele estava na corrida, todo bot o levava ao nível 5 como "a obra mais barata" e o Salão do Preguiçoso do Normal ficava um nível abaixo em 48 das 50 sementes; a política própria desfez isso.
+- **O Preguiçoso não ergue o Mercado nem negocia.** É a comparação: as seis células dele são **idênticas, partida a partida, nas três dificuldades** (conferido nos CSVs).
+- **Nenhum bot comprou nada, em nenhuma das 3.600 partidas**: a conta da lenha fecha sempre para os bots que guardam madeira (`guardar lenha`), e nenhuma partida tem hora de frio. A política de compra existe, é provada por teste de unidade (`bots/mercado.test.ts`) e **não foi exercida pela matriz**.
+
+### 11.3 O ouro parado, por perfil e ritmo, antes e depois
+
+Ouro em estoque no fim da janela, em Senhor, nas 50 sementes: menor · mediana · maior. "Antes" é a Fase D fechada (seção 10); a última coluna diz, **com todas as letras**, o que a mediana fez. No ritmo Normal as duas janelas são a mesma partida.
+
+| Janela | Ritmo | Perfil | Antes | Depois | Mediana |
+|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 2.074 · 5.894 · 5.918 | 2.074 · 5.894 · 5.918 | igual +0% |
+| 7 dias | Rápido 3× | Regular | 159.093 · 177.666 · 211.754 | 151.769 · 183.257 · 219.299 | subiu +3% |
+| 7 dias | Rápido 3× | Dedicado | 319.205 · 357.481 · 366.691 | 324.236 · 352.430 · 365.979 | caiu -1% |
+| 7 dias | Rápido 3× | Explorador | 169.768 · 243.978 · 282.613 | 169.695 · 241.534 · 281.337 | caiu -1% |
+| 7 dias | Normal 1× | Preguiçoso | 3 · 165 · 268 | 3 · 165 · 268 | igual +0% |
+| 7 dias | Normal 1× | Regular | 8.283 · 16.708 · 23.840 | 5.515 · 16.424 · 27.901 | caiu -2% |
+| 7 dias | Normal 1× | Dedicado | 4.399 · 16.370 · 19.802 | 3.224 · 12.752 · 18.803 | caiu -22% |
+| 7 dias | Normal 1× | Explorador | 862 · 9.324 · 20.806 | 969 · 8.710 · 19.954 | caiu -7% |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 120 · 153 · 154 | 120 · 153 · 154 | igual +0% |
+| 7 dias | Tranquilo 0,5× | Regular | 6 · 882 · 1.233 | 169 · 676 · 1.227 | caiu -23% |
+| 7 dias | Tranquilo 0,5× | Dedicado | 68 · 518 · 745 | 118 · 420 · 1.105 | caiu -19% |
+| 7 dias | Tranquilo 0,5× | Explorador | 29 · 701 · 1.216 | 46 · 749 · 1.102 | subiu +7% |
+| Ano de jogo | Rápido 3× | Preguiçoso | 3 · 134 · 253 | 3 · 134 · 253 | igual +0% |
+| Ano de jogo | Rápido 3× | Regular | 1.859 · 2.065 · 3.000 | 1.778 · 2.015 · 2.847 | caiu -2% |
+| Ano de jogo | Rápido 3× | Dedicado | 332 · 8.298 · 13.499 | 3.374 · 9.916 · 14.870 | subiu +19% |
+| Ano de jogo | Rápido 3× | Explorador | 1.285 · 1.689 · 3.075 | 1.285 · 1.679 · 2.925 | igual -1% |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 3.190 · 6.194 · 10.670 | 3.190 · 6.194 · 10.670 | igual +0% |
+| Ano de jogo | Tranquilo 0,5× | Regular | 11.000 · 14.838 · 20.021 | 5.160 · 13.479 · 19.246 | caiu -9% |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 26.232 · 29.516 · 32.859 | 24.868 · 29.145 · 33.860 | caiu -1% |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 5.891 · 11.962 · 19.032 | 4.995 · 10.242 · 16.912 | caiu -14% |
+
+O que se lê:
+
+- **O ouro parado não subiu de forma que se meça, e também não caiu.** Vender põe ouro no cofre, mas o Mercado custa ouro para erguer e melhorar (150, 240, 384, 614 e 983) e o que os bots vendem é pouco (seção 11.5). Somando o ouro final das 900 partidas dos três perfis que negociam, em Senhor, o total vai de 46,40 a 45,77 milhões (**−1,3%**); em Camponês, −1,1%; em Rei de Ferro, −1,7%.
+- **Onde a mediana sobe**: o Regular da semana do Rápido (+3%: 177.666 para 183.257), o Explorador da semana do Tranquilo (+7%) e o **Dedicado do ano do Rápido (+19%: 8.298 para 9.916, e o menor valor vai de 332 a 3.374)**. Onde cai: o Dedicado do Normal (−22%), o Regular e o Dedicado da semana do Tranquilo (−23% e −19%) e o Explorador do ano do Tranquilo (−14%). São partidas que mudaram de caminho de obras (o Mercado entra na fila logo depois do Salão Nv3), e não um efeito limpo da venda.
+- **Contra a linha de base da v0.2 (seção 1.3), o Regular**: semana do Rápido, 113.566 · 128.436 · 148.487 → 151.769 · 183.257 · 219.299 (**a mediana subiu 43%**, quase tudo desde a Fase C: soldo, carta e Taverna); ano do Rápido, 1.870 · 2.176 · 3.052 → 1.778 · 2.015 · 2.847 (**caiu 7%**); Normal, 2.348 · 8.967 · 23.641 → 5.515 · 16.424 · 27.901 (**subiu 83%**); semana do Tranquilo, 38 · 518 · 1.044 → 169 · 676 · 1.227 (subiu 31%); ano do Tranquilo, 13.128 · 17.646 · 22.535 → 5.160 · 13.479 · 19.246 (**caiu 24%**).
+- **O Mercado, como está, não é o destino do ouro.** Ele transforma excedente em ouro; para o ouro ter saída o jogador teria de **comprar**, e nada no jogo pede comida, madeira ou pedra depois que as obras acabam. A pergunta do ouro sem destino (C-23, "medir após a Fase E e então decidir") continua aberta, e esta rodada diz que a venda no Mercado **não** a responde.
+
+### 11.4 O desperdício e o excedente parado, antes e depois
+
+Desperdício da partida inteira, em unidades, mediana das 50 sementes (comida · madeira · pedra), e a maior sequência desperdiçando o pior recurso, em horas de jogo (mediana / maior), em Senhor:
+
+| Janela | Ritmo | Perfil | Antes: desperdício | Depois: desperdício | Antes: sequência | Depois: sequência |
+|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 19.194 · 56.066 · 10.231 | 19.194 · 56.066 · 10.231 | 72 / 75 | 72 / 75 |
+| 7 dias | Rápido 3× | Regular | 4.559 · 16.811 · 3.629 | 4.497 · 16.758 · 3.546 | 33 / 36 | 30 / 33 |
+| 7 dias | Rápido 3× | Dedicado | 36 · 1.810 · 2.840 | 2 · 1.076 · 1.198 | 12 / 42 | 7,5 / 15 |
+| 7 dias | Rápido 3× | Explorador | 2.876 · 5.806 · 2.840 | 3.014 · 5.044 · 1.931 | 21 / 33 | 21 / 30 |
+| 7 dias | Normal 1× | Preguiçoso | 830 · 299 · 2.058 | 830 · 299 · 2.058 | 22 / 28 | 22 / 28 |
+| 7 dias | Normal 1× | Regular | 0 · 769 · 0 | 0 · 494 · 0 | 3 / 10 | 2,5 / 10 |
+| 7 dias | Normal 1× | Dedicado | 0 · 1.704 · 0 | 0 · 553 · 0 | 2 / 3 | 2 / 4 |
+| 7 dias | Normal 1× | Explorador | 0 · 1.015 · 0 | 0 · 838 · 0 | 3,5 / 10 | 3 / 10 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 0 · 262 · 611 | 0 · 262 · 611 | 8 / 8 | 8 / 8 |
+| 7 dias | Tranquilo 0,5× | Regular | 0 · 282 · 0 | 0 · 48 · 0 | 1,5 / 1,5 | 0,5 / 1,5 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 1 | 0 / 1 |
+| 7 dias | Tranquilo 0,5× | Explorador | 0 · 194 · 0 | 0 · 19 · 0 | 1 / 1,5 | 0,5 / 2,5 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 2.710 · 2.802 · 0 | 2.710 · 2.802 · 0 | 63 / 63 | 63 / 63 |
+| Ano de jogo | Rápido 3× | Regular | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 9 | 0 / 9 |
+| Ano de jogo | Rápido 3× | Dedicado | 0 · 251 · 0 | 0 · 270 · 0 | 3 / 18 | 3 / 9 |
+| Ano de jogo | Rápido 3× | Explorador | 0 · 0 · 0 | 0 · 0 · 0 | 0 / 3 | 0 / 3 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 0 · 6.708 · 913 | 0 · 6.708 · 913 | 8 / 8 | 8 / 8 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 8 · 996 · 0 | 0 · 402 · 0 | 1,5 / 5,5 | 1,5 / 4 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 0 · 2.388 · 0 | 0 · 1.006 · 0 | 2 / 5,5 | 1,5 / 2,5 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 0 · 1.143 · 0 | 0 · 732 · 0 | 1,75 / 5,5 | 1,5 / 5,5 |
+
+Madeira e pedra em estoque no fim da janela, mediana das 50 sementes (madeira · pedra), em Senhor:
+
+| Janela | Ritmo | Perfil | Antes | Depois |
+|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 3.400 · 3.400 | 3.400 · 3.400 |
+| 7 dias | Rápido 3× | Regular | 1.655 · 3.808 | 2.217 · 4.286 |
+| 7 dias | Rápido 3× | Dedicado | 4.066 · 5.086 | 3.994 · 4.987 |
+| 7 dias | Rápido 3× | Explorador | 3.630 · 4.638 | 3.476 · 4.602 |
+| 7 dias | Normal 1× | Preguiçoso | 366 · 2.145 | 366 · 2.145 |
+| 7 dias | Normal 1× | Regular | 3.058 · 1.584 | 2.856 · 1.066 |
+| 7 dias | Normal 1× | Dedicado | 5.124 · 5.168 | 5.080 · 5.122 |
+| 7 dias | Normal 1× | Explorador | 3.520 · 3.555 | 3.130 · 3.328 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 112 · 1.224 | 112 · 1.224 |
+| 7 dias | Tranquilo 0,5× | Regular | 701 · 630 | 452 · 579 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 540 · 411 | 520 · 308 |
+| 7 dias | Tranquilo 0,5× | Explorador | 410 · 484 | 522 · 556 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 153 · 382 | 153 · 382 |
+| Ano de jogo | Rápido 3× | Regular | 454 · 534 | 467 · 443 |
+| Ano de jogo | Rápido 3× | Dedicado | 1.018 · 1.190 | 1.148 · 1.496 |
+| Ano de jogo | Rápido 3× | Explorador | 312 · 576 | 204 · 580 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 4.600 · 1.378 | 4.600 · 1.378 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 5.136 · 5.178 | 5.145 · 4.944 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 4.935 · 5.178 | 4.932 · 5.106 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 5.120 · 5.152 | 5.114 · 5.111 |
+
+O que se lê:
+
+- **O desperdício caiu.** Somando os três recursos nas 900 partidas dos três perfis que negociam: em Senhor, de 3,37 para 2,85 milhões de unidades (**−15,3%**); em Camponês, −12,2%; em Rei de Ferro, −9,8%. Em quase toda célula a mediana da madeira perdida cai (Dedicado do Normal, 1.704 → 553; Regular do ano do Tranquilo, 996 → 402; Regular da semana do Tranquilo, 282 → 48).
+- **A maior sequência desperdiçando encurta onde era pior**: no Dedicado da semana do Rápido a pior das 50 sementes vai de 42 para **15** horas de jogo, e no Regular, de 36 para 33; em Rei de Ferro, o Regular da semana do Rápido vai de 72 para 33 e o Explorador, de 69 para 36. **A meta de desperdício do ADR 0013 (até 8 h de jogo com 2 sessões por dia) continua sem ser cumprida no Rápido nem no Normal** (33, 10, 9 e 10 h nas quatro células acima dela; só a da semana do Rápido mexeu, de 36 para 33). **E piorou em um ponto: no Regular do Normal passam da meta cinco das 50 sementes (007, 015, 021, 022 e 032), e era uma (a 021)**, todas com 9 ou 10 h; o pior caso da célula não mudou. A obra do Mercado entra na fila logo depois do Salão Nv3 e, nessas sementes, o Armazém fica para depois.
+- **O excedente parado quase não mexe**: a madeira e a pedra finais, somadas nas 900 partidas, caem 4,9% em Senhor e 2,7% em Rei de Ferro e sobem 0,8% em Camponês. No fim da partida os depósitos estão cheios do mesmo jeito: o Mercado leva o que **transborda**, não o que está guardado.
+- **Contra a linha de base da v0.2 (seção 1.2), a pior sequência do Regular**: semana do Rápido, 3 a 33 → 15 a 33; Normal, 0 a 9 → 0 a 10; semana do Tranquilo, 0 a 1 → 0 a 1,5; ano do Rápido, 0 a 9 → 0 a 9; ano do Tranquilo, 0 a 3 → 0 a 4. **O Mercado não levou o desperdício abaixo do que a v0.2 tinha**: ele devolve parte do que a Taverna e os colonos da moral tinham piorado (seção 4).
+- **Nenhuma hora de fome nem de frio, e nenhuma ordem recusada**, nas 3.600 partidas da rodada.
+
+### 11.5 A parcela do volume diário usada
+
+Unidades negociadas por partida (média das 50 sementes: comida · madeira · pedra; é tudo venda), a parcela do volume oferecido que cada partida usou (mediana · maior) e o desperdício total da partida, mediana, antes e depois. **"Volume oferecido"** é a soma, pelos dias de jogo em que o Mercado esteve de pé, do volume do dia dos três recursos (`200 × nível × 3`), amostrada ao fim de cada hora real. Em Senhor:
+
+| Janela | Ritmo | Perfil | Negociado por partida (comida · madeira · pedra) | Volume usado (mediana · maior) | Total desperdiçado antes→depois (soma dos três, mediana) |
+|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 0 · 0 · 0 | — | 88.052 → 88.052 |
+| 7 dias | Rápido 3× | Regular | 236 · 429 · 40 | 0,4% · 1% | 24.795 → 22.876 |
+| 7 dias | Rápido 3× | Dedicado | 1.796 · 1.642 · 1.871 | 1,4% · 2,9% | 4.669 → 4.013 |
+| 7 dias | Rápido 3× | Explorador | 437 · 751 · 391 | 0,55% · 1,9% | 8.662 → 7.697 |
+| 7 dias | Normal 1× | Preguiçoso | 0 · 0 · 0 | — | 3.186 → 3.186 |
+| 7 dias | Normal 1× | Regular | 0 · 30 · 30 | 0% · 1,2% | 815 → 514 |
+| 7 dias | Normal 1× | Dedicado | 108 · 983 · 833 | 2,85% · 6,6% | 1.728 → 896 |
+| 7 dias | Normal 1× | Explorador | 0 · 201 · 123 | 0,8% · 2,5% | 1.024 → 866 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 0 · 0 · 0 | — | 874 → 874 |
+| 7 dias | Tranquilo 0,5× | Regular | 0 · 121 · 26 | 1,2% · 3,6% | 284 → 48 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 0 · 88 · 22 | 0,35% · 3,3% | 0 → 0 |
+| 7 dias | Tranquilo 0,5× | Explorador | 0 · 70 · 25 | 0,55% · 3,2% | 194 → 19 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 0 · 0 · 0 | — | 5.512 → 5.512 |
+| Ano de jogo | Rápido 3× | Regular | 0 · 0 · 0 | 0% · 0% | 0 → 0 |
+| Ano de jogo | Rápido 3× | Dedicado | 0 · 58 · 63 | 0,3% · 2,2% | 292 → 321 |
+| Ano de jogo | Rápido 3× | Explorador | 0 · 0 · 0 | 0% · 0% | 0 → 0 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 0 · 0 · 0 | — | 7.622 → 7.622 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 60 · 438 · 154 | 1% · 2,8% | 1.126 → 466 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 104 · 4.581 · 4.674 | 11% · 17,1% | 2.390 → 1.006 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 36 · 689 · 98 | 1,15% · 3,9% | 1.560 → 770 |
+
+O que se lê:
+
+- **Os bots usam quase nada do volume: de 0% a 3% na mediana, e 11% no melhor caso** (o Dedicado do ano do Tranquilo, com quatro visitas por dia e o dia de jogo durando 4 h reais). **O limite que segura não é o do dia: é o da visita.** O volume é por dia de jogo e não acumula; entre duas visitas de quem joga duas vezes por dia passam 18 dias de jogo no Rápido, 6 no Normal e 3 no Tranquilo, e cada visita negocia o volume de **um**. É a regra como o ADR 0018 a escreveu ("uma visita nunca negocia mais do que o volume de um dia"), e a medida diz o que ela custa: **no Rápido o Mercado alcança 1/18 do tempo do jogador de duas visitas**.
+- **No ano de jogo do Rápido, que é onde o jogador de verdade está, o Regular e o Explorador não negociam nada**: o Mercado só fica de pé em 29 e em 26 das 50 partidas (o Salão chega ao nível 3 na hora 24 de 56), e nas que o têm não há depósito cheio na hora da visita. O critério "Mercado útil" do roadmap (§8.3) **não é atendido nessa célula**.
+- **Quem visita mais vende mais, quase sempre**: o Dedicado (4 visitas) vende 7 vezes o que o Regular vende na semana do Rápido, 32 vezes no Normal e 14 no ano do Tranquilo, e é nele que o desperdício mais cai; na semana do Tranquilo (meio ano de jogo, com o Mercado erguido tarde) os dois vendem o mesmo pouco.
+- **O nível do Mercado**: os bots só o melhoram quando esgotam o volume do dia, e terminam entre o nível 1 e o 5 conforme a célula (tabela "Mercado" da matriz). Um nível a mais dobra, triplica… o que **uma visita** vende; não muda quantos dias de jogo ela alcança.
+
+### 11.6 As faixas, antes e depois
+
+**As 18 células do Preguiçoso (6 por dificuldade) não mudaram**; **as outras 54 mudaram todas** e foram regravadas em `MEASURED` (a lista inteira, valor a valor, está no diff de `bands.ts`). A matriz saiu com código 1 antes de regravar, nas três dificuldades, e 0 depois. Em Senhor (população, Salão, madeira, pedra e ouro parados, maior sequência desperdiçando em horas de jogo; o maior valor das 50 sementes):
+
+| Célula | Antes (Fase D) | Depois (Mercado) |
+|---|---|---|
+| `week/3/regular` | 75 a 85 · Salão 7 · 3.889 · 5.200 · 211.754 · 36 | 75 a 85 · Salão 7 · 3.457 · 5.200 · **219.299** · 33 |
+| `week/3/dedicado` | 85 · Salão 8 · 4.225 · 5.200 · 366.691 · 42 | 85 · Salão 8 · **4.843** · 5.199 · 365.979 · **15** |
+| `week/3/explorador` | 85 · Salão 8 · 4.211 · 5.200 · 282.613 · 33 | 85 · Salão 8 · 4.157 · 5.085 · 281.337 · 30 |
+| `week/1` e `year/1`, Regular | 64 a 75 · Salão 7 · 4.036 · 4.541 · 23.840 · 10 | 64 a 75 · Salão 7 · 3.930 · 4.497 · **27.901** · 10 |
+| `week/1` e `year/1`, Dedicado | 84 a 85 · Salão 8 · 5.200 · 5.200 · 19.802 · 3 | 84 a 85 · Salão 8 · 5.200 · 5.200 · 18.803 · **4** |
+| `week/1` e `year/1`, Explorador | 65 a 77 · Salão 7 · 5.200 · 4.600 · 20.806 · 10 | 63 a 77 · Salão 7 · 4.600 · **5.200** · 19.954 · 10 |
+| `week/0.5/regular` | 45 a 54 · Salão 5 · 1.641 · 1.133 · 1.233 · 1,5 | 45 a 54 · Salão 5 · 1.530 · 1.114 · 1.227 · 1,5 |
+| `week/0.5/dedicado` | 54 a 59 · Salão 6 · 1.075 · 694 · 745 · 1 | 54 a 60 · **Salão 5** · **1.648** · **1.051** · **1.105** · 1 |
+| `week/0.5/explorador` | 45 a 54 · Salão 5 · 1.159 · 910 · 1.216 · 1,5 | 44 a 55 · Salão 5 · **1.591** · **1.152** · 1.102 · **2,5** |
+| `year/3/regular` | 27 a 30 · Salão 5 · 778 · 805 · 3.000 · 9 | 27 a 30 · Salão 5 · 633 · 750 · 2.847 · 9 |
+| `year/3/dedicado` | 51 a 63 · Salão 6 · 1.770 · 2.006 · 13.499 · 18 | **48** a 64 · Salão 6 · **2.800** · 2.011 · **14.870** · **9** |
+| `year/3/explorador` | 23 a 37 · Salão 5 · 722 · 1.011 · 3.075 · 3 | 23 a 37 · Salão 5 · 605 · 989 · 2.925 · 3 |
+| `year/0.5/regular` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 20.021 · 5,5 | **82** a 85 · Salão 8 · 5.200 · 5.200 · 19.246 · 4 |
+| `year/0.5/dedicado` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 32.859 · 5,5 | 84 a 85 · Salão 8 · 5.200 · 5.196 · **33.860** · 2,5 |
+| `year/0.5/explorador` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 19.032 · 5,5 | 84 a 85 · Salão 8 · 5.200 · 5.200 · 16.912 · 5,5 |
+
+**O que piorou, dito por extenso**: na semana do Tranquilo, o Dedicado termina com o **Salão um nível abaixo** na pior das 50 sementes (5, era 6) e com mais madeira, pedra e ouro parados; em Camponês a mesma célula perde o mesmo nível; em Rei de Ferro, o Explorador da semana do Tranquilo, o Regular e o Explorador do ano do Rápido terminam com o Salão no nível 4 na pior semente (era 5). É o preço da obra do Mercado entrando na fila logo depois do Salão Nv3, onde o material é curto. A Paliçada do Regular do Normal fica pronta até a hora 59 (era até a 56), e a Taverna do Regular do Tranquilo, até a hora 105 (era até a 97). O Explorador do Normal volta a terminar a semana com seis heróis nas 50 sementes (eram cinco ou seis).
+
+### 11.7 Limites desta medição
+
+- **O bot vende com uma regra só** (o depósito cheio ou a 8 horas de encher, na hora da visita). Um jogador que vendesse **antes** de sair, contando a ausência inteira, ou que comprasse barato e vendesse no outono, usaria mais do Mercado; nada disso foi medido. A política de compra de lenha não foi exercida por nenhuma partida.
+- **A parcela do volume usada é uma amostra por hora real**: o nível que sobe entre duas amostras entra na conta em dias diferentes conforme o ritmo. Serve para a ordem de grandeza (de 0% a 3%; 11% no melhor caso), não para a segunda casa.
+- **As mudanças de ouro e de Salão vêm do caminho de obras**, que o Mercado desloca, tanto quanto da venda: a rodada não separa os dois efeitos (seria preciso um bot que ergue o Mercado e não vende).
+- **O preço quase não importa para os bots**: eles vendem o que transborda pelo preço do dia, e nenhuma política olha a tendência nem a estação. O que o passeio e o fator do outono mudam para um jogador que espera o preço não tem medida.
+- **Ninguém jogou o Mercado.** Não há tela (V3E-T4); a rodada mede regras e bots.
+
+## 12. Rodadas seguintes das Fases E a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T2, V3E-T3, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 11.*

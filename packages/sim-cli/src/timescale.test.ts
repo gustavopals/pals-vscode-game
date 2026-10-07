@@ -171,6 +171,9 @@ describe('simulação no ritmo 3', () => {
         raids: { ...entry.raids, announced: 0 },
         // A equipe parada é uma amostra por hora real: no ritmo 3 há um terço das amostras.
         expeditions: { ...entry.expeditions, heroIdleHours: 0 },
+        // O volume que o Mercado ofereceu também é uma amostra por hora real: o nível que sobe
+        // entre duas amostras entra na conta em dias diferentes.
+        market: { ...entry.market, offered: 0 },
       });
       expect(pictured(row)).toStrictEqual(pictured(same));
       expect(row.raids.announced).toBeGreaterThanOrEqual(same.raids.announced);

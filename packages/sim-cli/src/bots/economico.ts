@@ -2,6 +2,8 @@ import {
   alocarPorDemanda,
   alocarPorDemandaFor,
   ampliarEstoque,
+  comprarLenha,
+  erguerMercado,
   erguerPalicada,
   erguerTorre,
   guardarLenha,
@@ -10,6 +12,7 @@ import {
   recrutar,
   responderCartas,
   seguirObjetivos,
+  venderExcedente,
 } from './policies';
 import { type Bot, botOf, type Policy } from './types';
 
@@ -24,6 +27,17 @@ import { type Bot, botOf, type Policy } from './types';
  * arrisca), reparte os aldeões pelo que as próximas obras pedem (sem deixar ninguém produzindo
  * para o chão) e, com o inverno à vista, reforça a Serraria até a conta da lenha fechar. A
  * lista é a de quem joga duas vezes por dia, o perfil que o bot imita por padrão.
+ *
+ * Do Mercado (V3E-T1) ele tem três políticas. **Vende o excedente**: o recurso que está no
+ * limite do depósito, ou que o alcança em menos de 8 horas reais, até o volume do dia; do que o
+ * feudo guarda para as obras e para o inverno, só o que iria ao chão nessas 8 horas. **Ergue o
+ * Mercado** assim que o jogo deixa e o melhora quando o volume do dia acabou; fora disso o
+ * Mercado fica fora da corrida das obras, como a Guilda (`obra mais barata` não o ergue: um
+ * nível a mais só rende a quem esgota o volume). E **compra lenha** quando o inverno chega e a
+ * conta da madeira não fecha. A venda vem depois das obras, do recrutamento, das cartas e da
+ * alocação (só sai o que nada disso usou, e a conta do que iria ao chão já é a das taxas com
+ * que o feudo fica); a compra, logo antes de `guardar lenha`, que cobre com braços o que ainda
+ * faltar. O `preguicoso` não negocia nem ergue o Mercado: é a comparação que diz o que ele muda.
  *
  * Da Guilda ele só tem o que o jogo dá a todos: o herói da carta da estrangeira e a Taverna,
  * que `obra mais barata` ergue como qualquer outro edifício. **Não contrata nem dá festival**:
@@ -53,6 +67,9 @@ export const economicoPolicies: readonly Policy[] = [
   recrutar,
   responderCartas,
   alocarPorDemanda,
+  venderExcedente,
+  erguerMercado,
+  comprarLenha,
   guardarLenha,
 ];
 

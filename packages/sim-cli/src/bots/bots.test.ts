@@ -26,11 +26,14 @@ import {
   escolherTodoCaminho,
   alocarPorDemandaFor,
   ampliarEstoque,
+  comprarLenha,
+  erguerMercado,
   comidaPrimeiro,
   DEFAULT_AWAY_HOURS,
   erguerPalicada,
   erguerTorre,
   guardarLenha,
+  venderExcedente,
   nothingLeftToBuild,
   obraMaisBarata,
   ocuparLivres,
@@ -179,7 +182,13 @@ describe('um bot é uma lista de políticas', () => {
       planejarAutomaticas,
       recrutar,
       responderCartas,
+      // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
+      // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
+      // ergue o Mercado ou o melhora; e compra lenha antes de mandar braços à Serraria.
       alocarPorDemanda,
+      venderExcedente,
+      erguerMercado,
+      comprarLenha,
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([

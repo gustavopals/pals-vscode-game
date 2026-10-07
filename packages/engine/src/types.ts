@@ -1730,6 +1730,8 @@ export type MarketPriceView = {
  * o de ontem só aparece como tendência, e o gerador nunca sai do servidor.
  */
 export type MarketView = {
+  /** O edifício do Mercado: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: BuildingId;
   level: number;
   /** O que o Mercado dá no nível de agora, ou como obtê-lo. */
   text: string;

@@ -188,11 +188,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // volta quando a equipe para na encruzilhada (mais visitas, mais contratos). **Com a espera
     // de 12 h reais** (resposta do autor de 2026-10-06, D-71) a equipe espera o dobro na
     // encruzilhada, e em alguma das 50 sementes ele termina a semana com cinco (a causa exata
-    // não foi investigada; o ritmo de envios e de saque mudou).
-    expect(heroes('week/1/explorador')).toEqual({ min: 5, max: 6 });
+    // não foi investigada; o ritmo de envios e de saque mudou). Com o Mercado (V3E-T1) ele volta
+    // a encher os seis lugares nas 50 sementes: o ouro das vendas paga o contrato que faltava.
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
     expect(heroes('week/0.5/explorador')).toEqual({ min: 2, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
-    expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
+    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
     expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
@@ -200,7 +201,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.tavernAtHour;
     expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
     expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 59 });
-    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 97 });
+    // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
+    // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97).
+    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 105 });
     expect(tavernAt('week/3/explorador')).toEqual(tavernAt('week/3/regular'));
     expect(tavernAt('year/3/preguicoso')).toEqual({ min: 55, max: null });
     // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
@@ -390,10 +393,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // do ADR 0016 (seção 18): entre as horas 49 e 53 no Normal e entre a 82 e a 85 no Tranquilo.
     // Com a pedra do poço a 20 (V2G-T4, seção 20): até a hora 86 no Tranquilo. Com a estrangeira
     // no sorteio (V3C-T3): a partir da hora 83 no Tranquilo. Com a Taverna na lista de obras
-    // (V3C-T2): até a hora 56 no Normal e até a 26 no Rápido.
+    // (V3C-T2): até a hora 56 no Normal e até a 26 no Rápido. Com o Mercado erguido assim que o
+    // Salão chega ao nível 3 (V3E-T1), na frente da Paliçada em algumas sementes: até a hora 59
+    // no Normal.
     const palisade = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.palisade;
-    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 56 });
+    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 59 });
     expect(palisade('year/3/regular')).toEqual({ min: 25, max: 26 });
     expect(palisade('year/0.5/regular')).toEqual({ min: 83, max: 86 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
@@ -524,8 +529,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const over = Object.fromEntries(
       goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
     );
+    // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular vende o que iria ao chão:
+    // a semana do Rápido volta de 36 para 33 h. As outras três células ficam onde estavam.
     expect(over).toEqual({
-      'week/3/regular': 36,
+      'week/3/regular': 33,
       'week/1/regular': 10,
       'year/3/regular': 9,
       'year/1/regular': 10,
@@ -541,7 +548,18 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-021']);
+    // REGRESSÃO MEDIDA com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11.4): no ritmo Normal
+    // passam da meta cinco das 50 sementes (era uma, a 021), todas com 9 ou 10 h de jogo. A obra
+    // do Mercado entra na fila logo depois do Salão Nv3 e atrasa o Armazém em algumas sementes;
+    // o pior caso da célula continua em 10 h. Nenhum número além dos do Mercado foi mexido: fica
+    // à espera do autor.
+    expect(beyond.map((run) => run.seed)).toEqual([
+      'pedra-alta-007',
+      'pedra-alta-015',
+      'pedra-alta-021',
+      'pedra-alta-022',
+      'pedra-alta-032',
+    ]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

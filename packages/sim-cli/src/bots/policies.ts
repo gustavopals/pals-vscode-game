@@ -143,9 +143,11 @@ function blockingDepots(view: ViewState): BuildingId[] {
 /**
  * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
  * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`),
- * a Paliçada (`erguer a Paliçada`) e a Guilda dos Aventureiros (`erguer a Guilda`, que só o
- * explorador tem: a quem não envia expedições ela não serve de nada), como a visão os aponta: o
- * edifício que amplia cada recurso, o da Torre, o da defesa e o da Guilda.
+ * a Paliçada (`erguer a Paliçada`), a Guilda dos Aventureiros (`erguer a Guilda`, que só o
+ * explorador tem: a quem não envia expedições ela não serve de nada) e o Mercado (`erguer o
+ * Mercado`, que o preguiçoso não tem: a quem não negocia ele não serve de nada), como a visão os
+ * aponta: o edifício que amplia cada recurso, o da Torre, o da defesa, o da Guilda e o do
+ * Mercado.
  */
 function sideBuildings(view: ViewState): Set<BuildingId | null> {
   return new Set([
@@ -153,18 +155,22 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
     view.threat.watchtower.building,
     view.threat.defense.building,
     view.guild.building,
+    view.market.building,
   ]);
 }
 
 /**
- * A lista de obras sem a Guilda dos Aventureiros, a não ser que ela já esteja entre as
- * planejadas: só quem envia expedições a quer (`erguer a Guilda`), e o custo dela não entra na
- * conta de quem não a ergue (o que a próxima obra pede, a obra que um objetivo manda planejar,
- * o que falta juntar).
+ * A lista de obras sem a Guilda dos Aventureiros e sem o Mercado, a não ser que já estejam
+ * entre as planejadas: só quem envia expedições quer a Guilda (`erguer a Guilda`), e só quem
+ * negocia quer o Mercado, e cada nível dele só quando o volume do dia não basta (`erguer o
+ * Mercado`). O custo deles não entra na conta de quem não os ergue (o que a próxima obra pede,
+ * a obra que um objetivo manda planejar, o que falta juntar).
  */
 function inTheRace(view: ViewState): Upgrade[] {
   return view.constructions.available.filter(
-    (upgrade) => upgrade.building !== view.guild.building || upgrade.planned,
+    (upgrade) =>
+      (upgrade.building !== view.guild.building && upgrade.building !== view.market.building) ||
+      upgrade.planned,
   );
 }
 
@@ -1612,6 +1618,134 @@ export const ocuparLivres: Policy = {
     const emptiest = crafts.reduce((best, row) => (row.assigned < best.assigned ? row : best));
     const chosen = hoursToCover(mostNeeded) > 0 ? mostNeeded : emptiest;
     return act('setWorkers', { building: chosen.building, count: chosen.assigned + free });
+  },
+};
+
+/**
+ * O que o bot não vende de um recurso, em unidades. Da comida, metade do que o depósito guarda:
+ * é a despensa do inverno, quando a Fazenda rende menos da metade. Da madeira, o que as obras
+ * à espera pedem e o que a lareira vai queimar; da pedra, o que as obras pedem. Tudo lido da
+ * visão.
+ */
+function keptFromMarket(view: ViewState, resource: ResourceId): number {
+  if (resource === 'food') {
+    const cap = view.resources.find((row) => row.id === 'food')?.cap ?? 0;
+    return Math.max(FOOD_RESERVE, cap / 2);
+  }
+  if (resource === 'gold') {
+    return Infinity;
+  }
+  const needed = materialNeeds(view)[resource];
+  return resource === 'wood' ? needed + firewoodReserve(view) : needed;
+}
+
+/**
+ * Vende no Mercado o recurso que já está no limite do depósito ou que o alcança em menos de 8
+ * horas reais (o tempo de uma noite fora): o que iria para o chão vira ouro. Vende até o que a
+ * visão diz que cabe hoje (`maxSellable`: o volume do dia e o estoque): o que passa do que o
+ * feudo guarda (`keptFromMarket`) e, mesmo do que ele guarda, o que iria ao chão nessas 8 horas
+ * (a produção delas menos o lugar que resta no depósito), porque isso estará de volta na visita
+ * seguinte. Sem Mercado a visão não traz preço, e a
+ * política não faz nada. A ordem leva o dia da cotação que a visão mostra, como a tela levaria.
+ */
+export const venderExcedente: Policy = {
+  name: 'vender o excedente',
+  run: async (view, act) => {
+    let current = view;
+    for (const { resource } of view.market.prices) {
+      const row = current.resources.find((entry) => entry.id === resource);
+      const price = current.market.prices.find((entry) => entry.resource === resource);
+      if (row === undefined || price === undefined) {
+        continue;
+      }
+      const filling =
+        row.full ||
+        (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600);
+      const spare = Math.floor(row.stock - keptFromMarket(current, resource));
+      // Vende-se também o que iria ao chão nessa noite: o que a produção rende em 8 horas reais
+      // menos o lugar que ainda há no depósito. O que o feudo guarda continua guardado quando o
+      // bot voltar, porque a produção o repõe.
+      const rate = row.full ? row.wastingPerHour : row.perHour;
+      const room = row.cap === null ? 0 : Math.max(0, row.cap - row.stock);
+      const overflow = Math.floor(rate * STORAGE_HORIZON_HOURS - room);
+      const amount = Math.min(price.maxSellable, Math.max(spare, overflow));
+      if (filling && amount > 0) {
+        current = await act('trade', {
+          resource,
+          direction: 'sell',
+          amount,
+          quoteDay: current.market.quoteDay,
+        });
+      }
+    }
+    return current;
+  },
+};
+
+/**
+ * Ergue o Mercado assim que o jogo deixa: é o que um jogador faria ao ler que o excedente tem
+ * saída, e o primeiro nível custa pouco. E o melhora quando o volume de hoje acabou em algum
+ * recurso: é o único caso em que um nível a mais rende. Vem **depois** de `vender o excedente`,
+ * para olhar o volume que sobrou da venda desta visita. Tudo lido da visão: o edifício
+ * (`market.building`) e o que ainda cabe hoje. Se a obra não pode começar agora por falta de
+ * recurso ou de fila, fica planejada como automática; presa ao Salão, por erguer, também, e
+ * começa quando ele chegar ao nível que a abre. Como as outras obras, não gasta a madeira da
+ * lareira.
+ */
+export const erguerMercado: Policy = {
+  name: 'erguer o Mercado',
+  run: async (view, act) => {
+    const { market } = view;
+    const upgrade = view.constructions.available.find(
+      (entry) => entry.building === market.building,
+    );
+    const wanted = market.level === 0 || market.prices.some((price) => price.remainingToday === 0);
+    if (upgrade === undefined || !wanted || !keepsFirewood(view, upgrade)) {
+      return view;
+    }
+    if (upgrade.blockedCode === null) {
+      return act('startConstruction', { building: upgrade.building });
+    }
+    const canWait =
+      !upgrade.planned &&
+      upgrade.blockedCode !== 'MAX_LEVEL' &&
+      (upgrade.blockedCode !== 'GATE_LOCKED' || market.level === 0) &&
+      upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
+      upgrade.blockedCode !== 'EXCEEDS_STORAGE';
+    return canWait
+      ? act('planConstruction', {
+          building: upgrade.building,
+          autoStart: true,
+          targetLevel: upgrade.targetLevel,
+        })
+      : view;
+  },
+};
+
+/**
+ * Compra madeira no Mercado quando o inverno chega e a lenha não fecha: a conta da visão (a do
+ * outono, para o inverno inteiro, ou a do próprio inverno) diz quanto falta, e o bot compra
+ * isso, até o que a visão diz que cabe (`maxBuyable`: o volume do dia, o ouro e o lugar no
+ * depósito). Vem antes de `guardar lenha`, que só manda braços à Serraria pelo que ainda
+ * faltar depois da compra.
+ */
+export const comprarLenha: Policy = {
+  name: 'comprar lenha',
+  run: async (view, act) => {
+    const firewood = firewoodOf(view);
+    const price = view.market.prices.find((entry) => entry.resource === 'wood');
+    if (firewood === null || firewood.missing <= 0 || price === undefined) {
+      return view;
+    }
+    const amount = Math.min(price.maxBuyable, Math.ceil(firewood.missing));
+    return amount > 0
+      ? act('trade', {
+          resource: 'wood',
+          direction: 'buy',
+          amount,
+          quoteDay: view.market.quoteDay,
+        })
+      : view;
   },
 };
 

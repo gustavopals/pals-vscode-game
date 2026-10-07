@@ -50,6 +50,9 @@ describe('bot explorador', () => {
       'equipar o melhor item',
       'enviar expedições',
       'alocar por demanda',
+      'vender o excedente',
+      'erguer o Mercado',
+      'comprar lenha',
       'guardar lenha',
     ]);
     const own = [

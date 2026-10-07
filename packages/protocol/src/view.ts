@@ -638,6 +638,8 @@ const TavernSchema = z.strictObject({
  * `amount × sell`, sem outro arredondamento. `quoteDay` é o que a ordem `trade` devolve.
  */
 const MarketSchema = z.strictObject({
+  /** O edifício do Mercado: é o que `startConstruction` recebe. */
+  building: buildingId,
   level: z.number(),
   text: z.string(),
   quoteDay: z.number(),

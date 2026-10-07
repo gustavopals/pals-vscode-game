@@ -15,7 +15,9 @@ import { identityLine } from './identity';
 import {
   type ExpeditionCounts,
   type HourRow,
+  type MarketCounts,
   noExpeditions,
+  noMarket,
   type RaidCounts,
   realHoursOf,
   type SimulationResult,
@@ -360,7 +362,35 @@ const MEASURED_COLUMNS: Partial<
     hour: (row) => row.expeditions.heroIdleHours,
     run: (summary) => summary.expeditions.heroIdleHours,
   },
+  // O Mercado (V3E-T1), contado dos eventos: as unidades negociadas de cada recurso, compra e
+  // venda somadas. A parcela do volume usada é o negociado sobre o que o Mercado ofereceu nos
+  // dias de jogo em que esteve de pé (os três recursos somados); vazia enquanto não há Mercado.
+  traded_food: {
+    hour: (row) => row.market.sold.food + row.market.bought.food,
+    run: (summary) => summary.market.sold.food + summary.market.bought.food,
+  },
+  traded_wood: {
+    hour: (row) => row.market.sold.wood + row.market.bought.wood,
+    run: (summary) => summary.market.sold.wood + summary.market.bought.wood,
+  },
+  traded_stone: {
+    hour: (row) => row.market.sold.stone + row.market.bought.stone,
+    run: (summary) => summary.market.sold.stone + summary.market.bought.stone,
+  },
+  market_volume_used_percent: {
+    hour: (row) => volumeUsedPercent(row.market) ?? '',
+    run: (summary) => summary.market.volumeUsedPercent ?? '',
+  },
 };
+
+/** Quanto do volume que o Mercado ofereceu foi negociado, em por cento com uma casa; `null` sem Mercado. */
+export function volumeUsedPercent(market: MarketCounts): number | null {
+  if (market.offered === 0) {
+    return null;
+  }
+  const traded = TRADED_RESOURCES.reduce((sum, id) => sum + market.sold[id] + market.bought[id], 0);
+  return Math.round((traded * 1000) / market.offered) / 10;
+}
 
 /** O que as incursões levaram, somados os recursos, em unidades inteiras. */
 function raidLosses(raids: RaidCounts): number {
@@ -558,6 +588,16 @@ export type Summary = {
    * saques puseram no cofre, em unidades.
    */
   expeditions: ExpeditionCounts & { guildLevel: number; lootGold: number };
+  /**
+   * O Mercado da partida (GDD §5.9), como a última hora o conta: o nível final, a hora real em
+   * que ficou pronto (`null` se não ficou), o que foi vendido e comprado de cada recurso, o ouro
+   * que entrou e saiu, o volume oferecido e a parcela dele que foi usada (`null` sem Mercado).
+   */
+  market: MarketCounts & {
+    level: number;
+    atHour: number | null;
+    volumeUsedPercent: number | null;
+  };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -703,7 +743,20 @@ export function summarize(result: SimulationResult): Summary {
         .filter((event) => event.type === 'expeditionReturned')
         .reduce((sum, event) => sum + Number(event.data.gained_gold ?? 0), 0),
     },
+    market: marketOf(result),
     stock,
+  };
+}
+
+function marketOf({ rows }: SimulationResult): Summary['market'] {
+  const counts = rows.at(-1)?.market ?? { ...noMarket(), level: 0 };
+  return {
+    ...counts,
+    // O ouro das vendas soma frações de milésimo em milésimo: uma casa basta para o relatório.
+    goldEarned: Math.round(counts.goldEarned * 10) / 10,
+    goldSpent: Math.round(counts.goldSpent * 10) / 10,
+    atHour: rows.find((row) => row.market.level > 0)?.hour ?? null,
+    volumeUsedPercent: volumeUsedPercent(counts),
   };
 }
 
@@ -803,6 +856,29 @@ function guildLine({ guild, expeditions }: Summary): string {
 }
 
 /**
+ * "Mercado Nv2, erguido na hora 31 · vendeu comida 400, madeira 1.200 · comprou madeira 60 ·
+ * recebeu 1.840,5 de ouro, pagou 72 · 12,5% do volume oferecido". Sem Mercado, diz isso.
+ */
+function marketLine({ market }: Summary): string {
+  if (market.level === 0) {
+    return 'Mercado: sem Mercado';
+  }
+  const list = (amounts: Record<string, number>) => {
+    const moved = TRADED_RESOURCES.filter((id) => (amounts[id] ?? 0) > 0)
+      .map((id) => `${id} ${amounts[id]}`)
+      .join(', ');
+    return moved === '' ? 'nada' : moved;
+  };
+  return [
+    `Mercado Nv${market.level}, erguido na hora ${market.atHour ?? '?'}`,
+    `vendeu ${list(market.sold)}`,
+    `comprou ${list(market.bought)}`,
+    `recebeu ${formatDecimal(market.goldEarned)} de ouro, pagou ${formatDecimal(market.goldSpent)}`,
+    `${formatDecimal(market.volumeUsedPercent ?? 0)}% do volume oferecido`,
+  ].join(' · ');
+}
+
+/**
  * "Lobos: 8 incursões sofridas, 9 repelidas (17 anunciadas pela Torre) · levaram comida 360,
  * madeira 590 · 13 feridos · Paliçada Nv2, erguida na hora 76". Sem incursão nenhuma, diz isso.
  */
@@ -898,6 +974,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     threatLine(summary),
     raidsLine(summary),
     guildLine(summary),
+    marketLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []

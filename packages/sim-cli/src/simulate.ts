@@ -1,3 +1,4 @@
+import { balance } from '@lotg/content';
 import {
   advanceTo,
   applyCommand,
@@ -8,6 +9,7 @@ import {
   type DifficultyId,
   type GameEvent,
   type GameState,
+  type MarketResourceId,
   type MoraleBandId,
   type ResourceId,
   type SeasonId,
@@ -20,6 +22,8 @@ import type { Act, Bot } from './bots/types';
 
 const HOUR_MS = 3_600_000;
 const HOURS_PER_REAL_DAY = 24;
+/** Um dia de jogo, em ms de jogo: é o dia do Mercado (o simulador mede o mundo pelo estado). */
+const GAME_DAY_MS = balance.calendar.dayMs;
 
 export { strategies, type StrategyName };
 
@@ -138,6 +142,13 @@ export type HourRow = {
    * (quantos heróis estavam sem tarefa naquele instante).
    */
   expeditions: ExpeditionCounts;
+  /**
+   * O Mercado até aqui (GDD §5.9): o nível dele nesta hora e, dos eventos, o que foi vendido e
+   * comprado de cada recurso e o ouro que entrou e saiu; e o volume que o Mercado ofereceu, uma
+   * amostra ao fim de cada hora (os dias de jogo que passaram com ele de pé, vezes o volume do
+   * dia dos três recursos).
+   */
+  market: MarketCounts & { level: number };
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -314,6 +325,47 @@ export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): v
   }
 }
 
+/** O Mercado de uma partida, hora a hora: ver `HourRow.market`. */
+export type MarketCounts = {
+  /** Unidades vendidas e compradas de cada recurso, acumuladas. */
+  sold: Record<MarketResourceId, number>;
+  bought: Record<MarketResourceId, number>;
+  /** Ouro recebido nas vendas e pago nas compras, em unidades, acumulado. */
+  goldEarned: number;
+  goldSpent: number;
+  /** Unidades que o Mercado ofereceu negociar, somados os recursos e os dias de jogo com ele de pé. */
+  offered: number;
+};
+
+/** O começo da contagem: nada negociado, nada oferecido. */
+export function noMarket(): MarketCounts {
+  return {
+    sold: { food: 0, wood: 0, stone: 0 },
+    bought: { food: 0, wood: 0, stone: 0 },
+    goldEarned: 0,
+    goldSpent: 0,
+    offered: 0,
+  };
+}
+
+/** Conta, dos eventos, o que foi negociado no Mercado e o ouro que isso moveu. */
+function addTrades(market: MarketCounts, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type !== 'marketTraded') {
+      continue;
+    }
+    const resource = event.data.resource as MarketResourceId;
+    const amount = Number(event.data.amount);
+    if (event.data.direction === 'sell') {
+      market.sold[resource] += amount;
+      market.goldEarned += Number(event.data.gained_gold ?? 0);
+    } else {
+      market.bought[resource] += amount;
+      market.goldSpent += Number(event.data.spent_gold ?? 0);
+    }
+  }
+}
+
 /** Conta, dos eventos, os heróis que partiram: os que o soldo em atraso levou e os dispensados. */
 function addDepartures(guild: GuildCounts, events: GameEvent[]): void {
   for (const event of events) {
@@ -363,6 +415,7 @@ function rowAt(
   raids: RaidCounts,
   guild: GuildCounts,
   expeditions: ExpeditionCounts,
+  market: MarketCounts,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -406,6 +459,12 @@ function rowAt(
         ]),
       ),
       fates: { ...expeditions.fates },
+    },
+    market: {
+      ...market,
+      sold: { ...market.sold },
+      bought: { ...market.bought },
+      level: view.market.level,
     },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
@@ -458,6 +517,9 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   };
   const guild: GuildCounts = { heroes: 0, arrearsHours: 0, departed: 0 };
   const expeditions = noExpeditions();
+  const market = noMarket();
+  // O último dia de jogo cujo volume já entrou na conta do que o Mercado ofereceu.
+  let marketDayCounted: number | null = null;
   const visitedCrossroads = new Set<string>();
   let commandCount = 0;
 
@@ -472,6 +534,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       addCards(cards, result.events);
       addDepartures(guild, result.events);
       addExpeditions(expeditions, result.events);
+      addTrades(market, result.events);
       commands.accepted += 1;
     } else {
       commands.refused[result.code] = (commands.refused[result.code] ?? 0) + 1;
@@ -498,6 +561,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       addRaids(raids, advanced.events);
       addDepartures(guild, advanced.events);
       addExpeditions(expeditions, advanced.events);
+      addTrades(market, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
@@ -509,6 +573,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     addRaids(raids, advanced.events);
     addDepartures(guild, advanced.events);
     addExpeditions(expeditions, advanced.events);
+    addTrades(market, advanced.events);
     // O atraso é amostrado ao fim da hora, como o frio e a fome.
     if (state.guild.wageArrears !== null) {
       guild.arrearsHours += 1;
@@ -529,8 +594,27 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
         visitedCrossroads.add(id);
       }
     }
+    // O volume que o Mercado ofereceu: os dias de jogo que passaram com ele de pé desde a
+    // última amostra (o primeiro conta inteiro), vezes o volume do dia de cada recurso.
+    if (atHourEnd.market.level > 0) {
+      const day = Math.floor(state.lastProcessedAt / GAME_DAY_MS);
+      const days = marketDayCounted === null ? 1 : day - marketDayCounted;
+      market.offered += days * atHourEnd.market.dailyVolume * atHourEnd.market.prices.length;
+      marketDayCounted = day;
+    }
     rows.push(
-      rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids, guild, expeditions),
+      rowAt(
+        state,
+        hour,
+        timeScale,
+        commands,
+        reportedWaste,
+        cards,
+        raids,
+        guild,
+        expeditions,
+        market,
+      ),
     );
   }
 

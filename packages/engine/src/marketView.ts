@@ -117,6 +117,7 @@ export function marketView(state: GameState, timeScale: number): MarketView {
   const now = state.lastProcessedAt;
   const level = marketLevel(state);
   return {
+    building: 'market',
     level,
     text: marketText(state),
     quoteDay: state.market.quoteDay,

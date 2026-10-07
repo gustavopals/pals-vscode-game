@@ -795,6 +795,7 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
   it('existe sempre: sem o edifício diz como obtê-lo, e não mostra preço nenhum', () => {
     const early = view(newGame()).market;
     expect(early).toEqual({
+      building: 'market',
       level: 0,
       text: 'O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.',
       quoteDay: 0,
@@ -990,6 +991,7 @@ describe('a névoa do Mercado (roadmap §0.7, "Visão e privacidade")', () => {
     expect(shown).not.toContain('previousPrices');
     expect(shown).not.toContain('rng');
     expect(Object.keys(view(today).market)).toEqual([
+      'building',
       'level',
       'text',
       'quoteDay',

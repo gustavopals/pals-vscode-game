@@ -32,7 +32,8 @@ import { botOf, type Bot, type Policy } from './types';
  *   diz do primeiro trecho (o poder de cada herói contra a prova e o poder que dá folga); sem
  *   nenhuma, o primeiro destino aberto; quem está ferido não vai (V3D-T3).
  *
- * As próximas (vender no Mercado, mandar caravanas) entram com a Fase E.
+ * Do Mercado (V3E-T1) ele tem as duas políticas que o `economico` já traz na lista: vender o
+ * excedente e comprar lenha. A próxima (mandar caravanas) entra com a V3E-T2.
  *
  * A Guilda entra **na frente de todas as obras** (revisão da Fase D, M-R1): com uma fila só, é a
  * obra que dá trabalho a quem já recebe soldo, e antes ela esperava a Paliçada, os objetivos e

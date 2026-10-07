@@ -222,6 +222,8 @@ export type MatrixCell = {
   measure: CellMeasure;
   /** As expedições da célula, somadas nas sementes: ver `ExpeditionTotals`. */
   expeditions: ExpeditionTotals;
+  /** O Mercado da célula, somado nas sementes: ver `MarketTotals`. */
+  market: MarketTotals;
   /** `null` quando não há faixa para a célula (outra dificuldade, ritmo fora do conteúdo). */
   band: Band | null;
   /** Uma frase por problema, com quantas sementes o tiveram; vazio quando a célula está dentro. */
@@ -266,6 +268,90 @@ export type ExpeditionTotals = {
   /** Quantas partidas a célula somou. */
   runs: number;
 };
+
+/**
+ * O Mercado de uma célula, **somado** nas sementes: quantas partidas o ergueram, o nível com
+ * que terminaram, o que foi vendido e comprado de cada recurso, o ouro que isso moveu e o
+ * volume oferecido (os dias de jogo com o Mercado de pé, os três recursos somados).
+ */
+export type MarketTotals = {
+  runs: number;
+  built: number;
+  level: Range;
+  sold: Record<'food' | 'wood' | 'stone', number>;
+  bought: Record<'food' | 'wood' | 'stone', number>;
+  goldEarned: number;
+  goldSpent: number;
+  offered: number;
+};
+
+function marketTotalsOf(summaries: Summary[]): MarketTotals {
+  const levels = summaries.map(({ market }) => market.level);
+  const totals: MarketTotals = {
+    runs: summaries.length,
+    built: levels.filter((level) => level > 0).length,
+    level: { min: Math.min(...levels), max: Math.max(...levels) },
+    sold: { food: 0, wood: 0, stone: 0 },
+    bought: { food: 0, wood: 0, stone: 0 },
+    goldEarned: 0,
+    goldSpent: 0,
+    offered: 0,
+  };
+  for (const { market } of summaries) {
+    for (const id of ['food', 'wood', 'stone'] as const) {
+      totals.sold[id] += market.sold[id];
+      totals.bought[id] += market.bought[id];
+    }
+    totals.goldEarned += market.goldEarned;
+    totals.goldSpent += market.goldSpent;
+    totals.offered += market.offered;
+  }
+  return totals;
+}
+
+/**
+ * O Mercado de uma janela, **por partida** (a soma das sementes dividida pelo número delas): o
+ * que cada perfil vendeu e comprou, o ouro que recebeu e a parcela do volume oferecido que usou.
+ * O ouro parado no fim está na tabela de medidas, na coluna do excedente de ouro.
+ */
+export function marketTable(cells: readonly MatrixCell[]): string {
+  const per = (total: number, runs: number) => formatInt(Math.round(total / Math.max(1, runs)));
+  return table(
+    [
+      'Ritmo',
+      'Perfil',
+      'Partidas com Mercado',
+      'Nível final',
+      'Vendido por partida (comida · madeira · pedra)',
+      'Comprado por partida (comida · madeira · pedra)',
+      'Ouro recebido por partida',
+      'Ouro pago por partida',
+      'Volume usado',
+    ],
+    cells.map((cell) => {
+      const { market } = cell;
+      const traded = (['food', 'wood', 'stone'] as const).reduce(
+        (sum, id) => sum + market.sold[id] + market.bought[id],
+        0,
+      );
+      const list = (amounts: MarketTotals['sold']) =>
+        (['food', 'wood', 'stone'] as const).map((id) => per(amounts[id], market.runs)).join(' · ');
+      return [
+        cell.paceLabel,
+        cell.profile.label,
+        `${market.built} de ${market.runs}`,
+        formatRange(market.level),
+        list(market.sold),
+        list(market.bought),
+        per(market.goldEarned, market.runs),
+        per(market.goldSpent, market.runs),
+        market.offered === 0
+          ? '—'
+          : `${formatDecimal(Math.round((traded * 1000) / market.offered) / 10)}%`,
+      ];
+    }),
+  );
+}
 
 function expeditionTotalsOf(profile: Profile, summaries: Summary[]): ExpeditionTotals {
   const totals: ExpeditionTotals = {
@@ -493,6 +579,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
           seeds: seeds.length,
           measure: measureOf(summaries),
           expeditions: expeditionTotalsOf(profile, summaries),
+          market: marketTotalsOf(summaries),
           band,
           violations: band === null ? [] : violationsOf(key, band, summaries, seeds),
         });
@@ -871,6 +958,7 @@ export function formatMatrix(result: MatrixResult): string {
       `### Lobos: ${window.label.toLowerCase()}\n\n${raids}`,
       `### Guilda: ${window.label.toLowerCase()}\n\n${guild}`,
       `### Expedições: ${window.label.toLowerCase()}\n\n${expeditionTables(cells)}`,
+      `### Mercado: ${window.label.toLowerCase()}\n\n${marketTable(cells)}`,
     ].join('\n\n');
   });
 
