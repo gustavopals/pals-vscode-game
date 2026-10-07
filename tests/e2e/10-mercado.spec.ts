@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import type { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 
 import {
@@ -11,6 +13,7 @@ import {
   palette,
   playNow,
   serverView,
+  session,
   test,
   THEMES,
   toasts,
@@ -51,6 +54,24 @@ function commandPosts(page: Page): Array<{ type: string; commandId: string; payl
     }
   });
   return sent;
+}
+
+/**
+ * Põe a Mina de Ouro sem trabalhadores (ordem `setWorkers` direto na API, que a página não vê):
+ * com ela produzindo, o cofre sobe a cada segundo e o ouro de uma venda só se confere com
+ * tolerância. Sem ela, o que muda no cofre é a venda e mais nada.
+ */
+async function silenceMine(page: Page, request: APIRequestContext) {
+  const { url, headers } = await session(page);
+  const response = await request.post(`${url}/commands`, {
+    headers,
+    data: {
+      commandId: randomUUID(),
+      type: 'setWorkers',
+      payload: { building: 'goldMine', count: 0 },
+    },
+  });
+  expect(response.status(), 'a Mina sem trabalhadores').toBe(200);
 }
 
 /** O ouro do cofre, lido do servidor, em unidades. */
@@ -145,6 +166,9 @@ test.describe('negociar (V3E-T4.2; critério 4)', () => {
   }) => {
     const page = await world.open(context);
     await openMarket(world, page);
+    await silenceMine(page, request);
+    // O cofre volta a um número redondo: o que a Mina rendeu até aqui deixou milésimos soltos.
+    await world.stock('gold', 1000);
     const posts = commandPosts(page);
     const view = await serverView(page, request);
     const wood = view.market.prices.find((entry) => entry.resource === 'wood');
@@ -187,7 +211,9 @@ test.describe('negociar (V3E-T4.2; critério 4)', () => {
       .toBeGreaterThan(0);
     const after = await serverView(page, request);
     const earned = (await gold(page, request)) - goldBefore;
-    expect(Math.abs(earned - (units * wood.sell) / 1000)).toBeLessThan(2);
+    // Sem a Mina produzindo e com o cofre redondo, o total é exato: quantidade × preço de venda
+    // (a visão mostra o cofre em unidades inteiras, para baixo).
+    expect(earned).toBe(Math.floor((units * wood.sell) / 1000));
     // O volume de hoje da madeira acabou, e a tela diz com a frase do servidor, com cadeado.
     const spent = after.market.prices.find((entry) => entry.resource === 'wood');
     expect(spent?.remainingToday).toBe(0);
@@ -258,8 +284,9 @@ test.describe('negociar (V3E-T4.2; critério 4)', () => {
     await expect(row(page, 'stone')).toContainText(stone?.sellText ?? '');
     await expect(form(page).getByTestId('trade-confirm')).toHaveCount(0);
     await expect(form(page).getByTestId('trade-review')).toBeEnabled();
-    // Nada foi reenviado sozinho: continua uma ordem só, mesmo depois de a página reler.
-    await page.waitForTimeout(500);
+    // Nada foi reenviado sozinho: continua uma ordem só, mesmo depois de a página reler (o salto
+    // de tempo espera o ciclo de leitura terminar).
+    await world.passTime(MINUTE, page);
     expect(orders()).toBe(1);
 
     // O jogador confere de novo, vê o preço novo e confirma: agora vale, com o dia de hoje.
@@ -316,20 +343,24 @@ test.describe('negociar (V3E-T4.2; critério 4)', () => {
     await amount(page).fill('30');
     await form(page).getByTestId('trade-review').click();
     // Dois cliques no mesmo instante, antes de a página redesenhar: uma ordem só.
+    const answered = page.waitForResponse((response) => response.url().endsWith('/commands'));
     await form(page)
       .getByTestId('trade-confirm-button')
       .evaluate((button: HTMLButtonElement) => {
         button.click();
         button.click();
       });
-    await expect.poll(() => posts.length).toBe(1);
-    await page.waitForTimeout(500);
+    await answered;
+    await expect(form(page).getByTestId('trade-confirm')).toHaveCount(0);
     expect(posts).toHaveLength(1);
-    // E o duplo clique de verdade, em outra venda: também uma ordem.
+    // E o duplo clique de verdade, em outra venda: também uma ordem. A segunda ordem, se saísse,
+    // sairia antes da resposta da primeira: esperar a resposta e a conferência fechar a descarta.
     await amount(page).fill('20');
     await form(page).getByTestId('trade-review').click();
+    const answeredAgain = page.waitForResponse((response) => response.url().endsWith('/commands'));
     await form(page).getByTestId('trade-confirm-button').dblclick();
-    await page.waitForTimeout(500);
+    await answeredAgain;
+    await expect(form(page).getByTestId('trade-confirm')).toHaveCount(0);
     expect(posts).toHaveLength(2);
   });
 });
@@ -655,8 +686,16 @@ test.describe('só com o teclado, nos três temas e em 720 px (V3E-T4.6; QA-15)'
     await expect(form(page).getByTestId('trade-total')).toContainText('Vender 15 de madeira por');
     await page.keyboard.press('Enter');
     await expect(form(page).getByTestId('trade-confirm')).toBeVisible();
-    // O foco segue pelos botões da conferência: Tab até "Confirmar", Enter.
-    await form(page).getByTestId('trade-confirm-button').focus();
+    // Ao abrir a conferência o foco vai para "Confirmar"; Tab chega a "Voltar", que devolve o foco
+    // à quantidade, e a conferência abre de novo pelo mesmo Enter.
+    await expect(form(page).getByTestId('trade-confirm-button')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(form(page).getByRole('button', { name: 'Voltar' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(form(page).getByTestId('trade-confirm')).toHaveCount(0);
+    await expect(amount(page)).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(form(page).getByTestId('trade-confirm-button')).toBeFocused();
     await page.keyboard.press('Enter');
     await expect.poll(() => posts.length).toBe(1);
     expect(await gold(page, request)).toBeGreaterThan(1000);

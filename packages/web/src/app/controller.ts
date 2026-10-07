@@ -34,6 +34,7 @@ import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
   arrearsAhead,
+  ambushNotice,
   discontentNotice,
   lossNotice,
   isHeroDiscontent,
@@ -42,6 +43,7 @@ import {
   decideNotifications,
   eventIcon,
   crossroadsNotice,
+  isCaravanAmbush,
   isCrossroadsArrival,
   isDecision,
   isEssential,
@@ -894,6 +896,17 @@ export class Controller {
         icon: eventIcon(event),
         ...discontent,
         action: { label: 'Ver', route: 'guild' },
+      });
+      return;
+    }
+    // As caravanas emboscadas no mesmo lote também.
+    const ambush = isCaravanAmbush(event) ? ambushNotice(batch) : null;
+    if (ambush !== null) {
+      this.announce({
+        kind: 'warning',
+        icon: eventIcon(event),
+        ...ambush,
+        action: { label: 'Ver', route: 'market' },
       });
       return;
     }

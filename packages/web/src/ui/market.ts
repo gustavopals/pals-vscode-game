@@ -205,6 +205,19 @@ export function escortHeroes(view: ViewState): Hero[] {
   return view.guild.heroes.filter((hero) => ids.has(hero.id));
 }
 
+/**
+ * A escolta que o jogador marcou e que a visão já não lista (partiu, feriu-se, foi mandada a
+ * outro lugar): a frase que diz isso, para a tela nunca trocar a escolta por "sem escolta" em
+ * silêncio. `null` com a escolta ainda disponível, ou sem nenhuma marcada.
+ */
+export function lostEscortLine(view: ViewState, chosenId: string | null): string | null {
+  if (chosenId === null || escortHeroes(view).some((hero) => hero.id === chosenId)) {
+    return null;
+  }
+  const name = view.guild.heroes.find((hero) => hero.id === chosenId)?.name ?? 'O herói marcado';
+  return `${name} deixou de estar disponível para escoltar: a caravana sairia sem escolta.`;
+}
+
 /** "Edda · Guerreira Nv1": a escolta na lista e na confirmação. */
 export const escortLine = (hero: Hero): string => `${hero.name} · ${sheetLine(hero)}`;
 
@@ -268,8 +281,44 @@ export function sellShortcut(
   resource: string,
 ): { row: PriceRow; amount: number } | null {
   const row = priceOf(view.market, resource);
-  if (row === undefined || !hasMarket(view.market) || row.maxSellable <= 0) {
+  // O que sobra é o excedente da visão (`surplusSellable`): o que o feudo guarda não se oferece.
+  if (row === undefined || !hasMarket(view.market) || row.surplusSellable <= 0) {
     return null;
   }
-  return { row, amount: row.maxSellable };
+  return { row, amount: row.surplusSellable };
+}
+
+/**
+ * "Restam 662 de 1.062 de comida no feudo.": o que fica depois de uma venda, com o estoque da
+ * visão. `null` na compra, sem o recurso na visão ou com mais do que o estoque (a ordem será
+ * recusada pelo servidor).
+ */
+export function stockLeftLine(
+  view: ViewState,
+  row: Pick<PriceRow, 'resource' | 'label'>,
+  direction: TradeDirection,
+  amount: number,
+): string | null {
+  const stock = view.resources.find((entry) => entry.id === row.resource)?.stock;
+  if (direction !== 'sell' || stock === undefined || amount > stock) {
+    return null;
+  }
+  return `Restam ${formatNumber(stock - amount)} de ${formatNumber(stock)} de ${row.label.toLowerCase()} no feudo.`;
+}
+
+/**
+ * A conferência aberta ainda vale? Ela é do recurso, do sentido e do clique em "Comprar" ou
+ * "Vender" da tabela em que foi aberta (`pick`, que sobe a cada clique): escolher de novo o mesmo
+ * recurso zera a quantidade, e a ordem velha não pode sobreviver a isso.
+ */
+export function reviewStillOpen(
+  review: { resource: string; direction: TradeDirection; pick: number } | null,
+  now: { resource: string; direction: TradeDirection; pick: number },
+): boolean {
+  return (
+    review !== null &&
+    review.resource === now.resource &&
+    review.direction === now.direction &&
+    review.pick === now.pick
+  );
 }

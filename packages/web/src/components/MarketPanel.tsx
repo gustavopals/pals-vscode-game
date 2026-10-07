@@ -15,7 +15,9 @@ import {
   parseAmount,
   type PriceRow,
   priceLabel,
+  stockLeftLine,
   remainingLine,
+  reviewStillOpen,
   type TradeDirection,
   tradeLine,
   tradeTotal,
@@ -25,7 +27,7 @@ import {
 import { workTerms } from '../ui/threat';
 import type { Actions } from './actions';
 import { formatNumber } from './format';
-import { Explained, Icon } from './shared';
+import { Explained, focusOnMount, Icon } from './shared';
 
 /** A palavra de uma tendência com o ícone: a cor nunca diz sozinha para onde o preço foi. */
 function Trend(props: { trend: PriceRow['trend'] }) {
@@ -45,6 +47,8 @@ function Trend(props: { trend: PriceRow['trend'] }) {
 type Review = {
   resource: PriceRow['resource'];
   direction: TradeDirection;
+  /** O clique da tabela em que foi aberta (`focusTick`): outro clique a fecha. */
+  pick: number;
   amount: number;
   quoteDay: number;
   unit: number;
@@ -161,6 +165,7 @@ function PriceTable(props: {
  * é pedida de novo: nada é reenviado sozinho.
  */
 function TradeForm(props: {
+  view: ViewState;
   market: Market;
   elapsed: number;
   disabled: boolean;
@@ -200,6 +205,7 @@ function TradeForm(props: {
       : {
           resource: row.resource,
           direction,
+          pick: props.focusTick,
           amount,
           quoteDay: market.quoteDay,
           unit: unitPrice(row, direction),
@@ -209,7 +215,8 @@ function TradeForm(props: {
   // A conferência é do recurso e do sentido em que foi aberta: mudar um dos dois a fecha. Se o
   // dia da cotação passou, ela já não vale, e o preço novo vem ao lado do que foi conferido.
   const open =
-    review !== null && review.resource === row.resource && review.direction === direction
+    review !== null &&
+    reviewStillOpen(review, { resource: row.resource, direction, pick: props.focusTick })
       ? review
       : null;
   const stale = open !== null && open.quoteDay !== market.quoteDay;
@@ -227,8 +234,12 @@ function TradeForm(props: {
       confirmed: true,
     });
     setReview(null);
+    // O botão que tinha o foco sai da tela com a conferência: o foco volta à quantidade.
+    amountInput.current?.focus();
   };
 
+  const leftLine =
+    open === null ? null : stockLeftLine(props.view, row, open.direction, open.amount);
   const nameOf = `${directionVerb(direction)} ${row.label.toLowerCase()}`;
   return (
     <form
@@ -363,7 +374,7 @@ function TradeForm(props: {
             aria-label="Confirme a ordem"
             data-testid="trade-confirm"
           >
-            <div>
+            <div id="trade-review-text">
               {stale ? (
                 <p class="warning" role="alert">
                   <Icon name="warning" /> O preço mudou enquanto você conferia: era{' '}
@@ -376,6 +387,7 @@ function TradeForm(props: {
               ) : (
                 <p>
                   <strong>{tradeLine(row, open.direction, open.amount, open.total)}.</strong>{' '}
+                  {leftLine === null ? null : <span class="num">{leftLine} </span>}
                   <span class="muted">
                     Preço de hoje, {price(open.unit)}
                     {change === null ? '' : `; o preço muda ${change}`}.
@@ -388,6 +400,7 @@ function TradeForm(props: {
                 <button
                   type="button"
                   data-testid="trade-reconfirm"
+                  ref={focusOnMount}
                   disabled={props.disabled || now === null}
                   onClick={() => setReview(conferred())}
                 >
@@ -397,6 +410,8 @@ function TradeForm(props: {
                 <button
                   type="button"
                   data-testid="trade-confirm-button"
+                  ref={focusOnMount}
+                  aria-describedby="trade-review-text"
                   disabled={props.disabled || busy}
                   aria-busy={busy}
                   onClick={confirm}
@@ -404,7 +419,13 @@ function TradeForm(props: {
                   Confirmar
                 </button>
               )}
-              <button type="button" onClick={() => setReview(null)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setReview(null);
+                  amountInput.current?.focus();
+                }}
+              >
                 Voltar
               </button>
             </div>
@@ -430,14 +451,15 @@ export function MarketPanel(props: {
 }) {
   const { view, elapsed } = props;
   const { market } = view;
-  const first = market.prices[0]?.resource ?? 'food';
-  const [selected, setSelected] = useState<{
+  const [picked, setPicked] = useState<{
     resource: PriceRow['resource'];
     direction: TradeDirection;
-  }>({
-    resource: first,
-    direction: 'sell',
-  });
+  } | null>(null);
+  // Sem escolha, o primeiro recurso da tabela, para vender; com o Mercado de pé a tabela nunca é vazia.
+  const first = market.prices[0]?.resource;
+  const selected =
+    picked ?? (first === undefined ? null : { resource: first, direction: 'sell' as const });
+  const setSelected = setPicked;
   const [amount, setAmount] = useState('');
   const [focusTick, setFocusTick] = useState(0);
   const change = changeLine(market, elapsed);
@@ -449,7 +471,7 @@ export function MarketPanel(props: {
       <p class="market-now">
         <Icon name={MARKET_ICON} /> {market.text}
       </p>
-      {hasMarket(market) ? (
+      {hasMarket(market) && selected !== null ? (
         <>
           {/* Não é região viva: o prazo muda a cada minuto. */}
           {change === null ? null : (
@@ -470,6 +492,7 @@ export function MarketPanel(props: {
             }}
           />
           <TradeForm
+            view={view}
             market={market}
             elapsed={elapsed}
             disabled={props.disabled}

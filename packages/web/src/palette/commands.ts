@@ -108,6 +108,7 @@ import {
   tradeLine,
   tradeTotal,
   TRENDS,
+  stockLeftLine,
 } from '../ui/market';
 import {
   CONSTRUCTIONS_ANCHOR,
@@ -1326,6 +1327,10 @@ export function createCommands(
       detail: [
         `Preço de hoje: ${direction === 'buy' ? row.buyText : row.sellText} de ouro por unidade (${TRENDS[row.trend].word}).`,
         row.breakdown,
+        ...[
+          stockLeftLine(view, row, direction, amount),
+          direction === 'sell' ? row.surplusText : null,
+        ].filter((line): line is string => line !== null && line !== ''),
       ],
       confirmLabel: directionVerb(direction),
       cancelLabel: 'Agora não',

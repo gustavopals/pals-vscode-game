@@ -40,6 +40,8 @@ export type LeavingItem = {
   command: { id: string; arg?: string; label: string };
 };
 
+const SEVERITY_ORDER: readonly LeavingSeverity[] = ['danger', 'warning', 'info'];
+
 /** A lista nunca passa disto: é para caber em uma olhada. */
 export const MAX_LEAVING_ITEMS = 5;
 
@@ -599,7 +601,13 @@ function caravanItem(view: ViewState): LeavingItem | null {
   }
   return {
     id: 'caravan',
-    severity: 'info',
+    // Risco de verdade e uma carga que passa da metade do que a estrada leva: é perda de ouro que
+    // o jogador evita com a escolta, e não pode ficar de fora do corte da lista.
+    severity:
+      view.market.caravanOffer.riskPercent > 0 &&
+      exposed.some((caravan) => caravan.amount * 2 >= view.market.caravanOffer.maxUnits)
+        ? 'warning'
+        : 'info',
     text:
       exposed.length === 1
         ? `A caravana com ${first.cargoText} chega em ${formatApprox(first.arrivesInSeconds)}, sem escolta. ${view.market.caravanOffer.riskText}`
@@ -658,7 +666,12 @@ export function leavingItems(view: ViewState): LeavingItem[] {
  */
 export function beforeLeaving(view: ViewState, skip: readonly string[] = []): LeavingItem[] {
   const crossroadsCovered = skip.some((topic) => topic.startsWith('crossroads:'));
-  return leavingItems(view)
-    .filter((item) => !skip.includes(item.id) && !(item.id === 'crossroads' && crossroadsCovered))
-    .slice(0, MAX_LEAVING_ITEMS);
+  // A gravidade vem antes da posição no corte: ele nunca tira um alerta para manter uma
+  // informação. Quem fica sai na ordem de `leavingItems`, que é a da urgência de cada assunto.
+  const rank = (item: LeavingItem) => SEVERITY_ORDER.indexOf(item.severity);
+  const items = leavingItems(view).filter(
+    (item) => !skip.includes(item.id) && !(item.id === 'crossroads' && crossroadsCovered),
+  );
+  const kept = new Set([...items].sort((a, b) => rank(a) - rank(b)).slice(0, MAX_LEAVING_ITEMS));
+  return items.filter((item) => kept.has(item));
 }

@@ -2,6 +2,7 @@ import type { ViewState } from '@lotg/protocol';
 import type { ComponentChild } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
+import { buildReturnReport } from '../game/returnReport';
 
 import { MarketTab } from '../tabs/Market';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../test-helpers';
 import type { Actions } from './actions';
 import { ResourcesTable } from './ResourcesTable';
+import { Today } from './Today';
 import { WorkersPanel } from './WorkersPanel';
 
 /**
@@ -246,7 +248,11 @@ describe('o atalho "Vender" ao lado do depósito que enche (IDEIA-11)', () => {
       ...marketDayView,
       market: {
         ...marketDayView.market,
-        prices: marketDayView.market.prices.map((row) => ({ ...row, maxSellable: 0 })),
+        prices: marketDayView.market.prices.map((row) => ({
+          ...row,
+          maxSellable: 0,
+          surplusSellable: 0,
+        })),
       },
     });
     expect(resources(spent)).not.toContain('data-sell');
@@ -300,5 +306,30 @@ describe('os Mestres no painel dos trabalhadores (V3E-T4.4)', () => {
     );
     expect(off.length).toBeGreaterThan(0);
     expect(off.every((button) => button.disabled)).toBe(true);
+  });
+});
+
+describe('o foco da conferência', () => {
+  it('focusOnMount foca o botão que entra e ignora a saída (ref nulo)', async () => {
+    const { focusOnMount } = await import('./shared');
+    const calls: string[] = [];
+    focusOnMount({ focus: () => calls.push('focus') });
+    focusOnMount(null);
+    expect(calls).toEqual(['focus']);
+  });
+});
+
+describe('o Relatório de Retorno e o que se vende no Mercado', () => {
+  it('com o Mercado de pé, a nota diz que a venda está em Gasto e o ouro, em Recebido', () => {
+    const report = buildReturnReport(marketDayView, marketDayView, [], 9 * 3600 * 1000);
+    const sheet = text(
+      html(<Today report={report} view={marketDayView} online elapsed={0} actions={actions} />),
+    );
+    expect(sheet).toContain('vendido no balcão do Mercado');
+    expect(sheet).toContain('o ouro que rendeu, em Recebido');
+    const plain = buildReturnReport(initialView, initialView, [], 9 * 3600 * 1000);
+    expect(
+      text(html(<Today report={plain} view={initialView} online elapsed={0} actions={actions} />)),
+    ).not.toContain('balcão');
   });
 });

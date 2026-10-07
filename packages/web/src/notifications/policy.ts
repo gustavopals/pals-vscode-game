@@ -161,13 +161,11 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'expeditionPostureDecided',
   'heroLeveledUp',
   'itemFound',
-  // O Mercado (GDD §5.9): a caravana que chegou inteira, a negociação (que o jogador mesmo
-  // deu, ou outra aba), o preço que andou muito e o Mestre que passou a trabalhar em outro lugar.
-  // Nada disso pede ação imediata: só em "Todas". A emboscada é alarme, acima.
+  // O Mercado (GDD §5.9): a caravana que chegou inteira e o preço que andou muito. Nada disso
+  // pede ação imediata: só em "Todas". A emboscada é alarme, acima. A negociação e a troca de
+  // edifício do Mestre são ordens do próprio jogador: a resposta está na tela, não avisam.
   'caravanArrived',
-  'marketTraded',
   'marketPriceSwing',
-  'masterAssigned',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -513,6 +511,30 @@ export function discontentNotice(batch: GameEvent[]): { text: string; details: s
       };
 }
 
+/** O evento é uma caravana emboscada. */
+export function isCaravanAmbush(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === 'caravanAmbushed';
+}
+
+/**
+ * As caravanas emboscadas em um lote, ditas de uma vez: um salto longo com a aba ao fundo traz
+ * mais de uma, e um aviso por caravana gastaria os três da hora. Uma só sai com a frase da
+ * Crônica; várias, com a contagem e uma linha para cada uma, nas frases do servidor. `null`
+ * sem nenhuma no lote.
+ */
+export function ambushNotice(batch: GameEvent[]): { text: string; details: string[] } | null {
+  const [first, ...others] = batch.filter(isCaravanAmbush);
+  if (first === undefined) {
+    return null;
+  }
+  return others.length === 0
+    ? { text: first.text, details: [] }
+    : {
+        text: `${others.length + 1} caravanas foram emboscadas.`,
+        details: [first, ...others].map((event) => event.text),
+      };
+}
+
 /** O evento é um herói que a equipe perdeu em uma expedição: ficou em cativeiro, ou não volta. */
 export function isHeroLoss(event: Pick<GameEvent, 'type'>): boolean {
   return event.type === 'heroCaptured' || event.type === 'heroDied';
@@ -593,6 +615,8 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
       firstLosses.set(lossGroup(event), event);
     }
   }
+  // As emboscadas do mesmo lote também: a primeira fala por todas (`ambushNotice`).
+  const firstAmbush = input.events.find(isCaravanAmbush);
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
@@ -600,6 +624,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
       !(isObjectiveCompleted(event) && event !== firstObjective) &&
       !(isHeroDiscontent(event) && event !== firstDiscontent) &&
+      !(isCaravanAmbush(event) && event !== firstAmbush) &&
       !(isHeroLoss(event) && firstLosses.get(lossGroup(event)) !== event),
   );
   if (input.discreetMode || candidates.length === 0) {
@@ -611,11 +636,23 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   // Com pouco espaço, o essencial passa na frente. A ordenação é estável: dentro de cada grupo
   // vale a ordem em que as coisas aconteceram.
   const ordered = [...candidates].sort((a, b) => rank(a) - rank(b));
+  // O alarme (o que tira algo do jogador) nunca é barrado pela cota gasta com outros avisos: o
+  // histórico guarda só instantes, e quem está no limite de 3 por hora perderia a emboscada ou
+  // a fome. Com a hora cheia, o primeiro alarme do lote ainda passa; o resto respeita a cota.
   const room = Math.max(0, MAX_NOTIFICATIONS_PER_HOUR - history.length);
-  const show = ordered.slice(0, room);
+  const show: GameEvent[] = [];
+  const left: GameEvent[] = [];
+  for (const event of ordered) {
+    const limit = isEssential(event) ? Math.max(room, 1) : room;
+    if (show.length < limit) {
+      show.push(event);
+    } else {
+      left.push(event);
+    }
+  }
   return {
     show,
-    badge: badgeCount(ordered.slice(room)),
+    badge: badgeCount(left),
     history: [...history, ...show.map(() => input.now)],
   };
 }
