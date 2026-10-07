@@ -23,6 +23,7 @@ import {
   marketLines,
   marketTreeLine,
   masterOptionLine,
+  lostEscortLine,
   masterOf,
   parseAmount,
   priceMark,
@@ -262,5 +263,19 @@ describe('a conferência aberta', () => {
     expect(reviewStillOpen(review, { ...review, direction: 'buy' })).toBe(false);
     expect(reviewStillOpen(review, { ...review, resource: 'stone' })).toBe(false);
     expect(reviewStillOpen(null, review)).toBe(false);
+  });
+});
+
+describe('a escolta que some com a tela aberta', () => {
+  it('diz que a escolta marcada deixou de estar disponível, com o nome da visão', () => {
+    expect(lostEscortLine(caravanEscortView, 'hero-2')).toBeNull();
+    expect(lostEscortLine(caravanEscortView, null)).toBeNull();
+    const line = lostEscortLine(caravanView, 'hero-2');
+    expect(line).toMatch(
+      /deixou de estar disponível para escoltar: a caravana sairia sem escolta\.$/,
+    );
+    expect(lostEscortLine(caravanView, 'hero-999')).toBe(
+      'O herói marcado deixou de estar disponível para escoltar: a caravana sairia sem escolta.',
+    );
   });
 });

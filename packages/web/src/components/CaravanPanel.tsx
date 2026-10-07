@@ -13,6 +13,7 @@ import {
   escortLine,
   goldText,
   hasMarket,
+  lostEscortLine,
   parseAmount,
 } from '../ui/market';
 import type { Actions } from './actions';
@@ -108,6 +109,7 @@ function SendForm(props: {
   );
   // Quem saiu da lista (partiu, feriu-se) com a tela aberta já não vai de escolta.
   const escortId = escort !== null && heroes.some((hero) => hero.id === escort) ? escort : null;
+  const lostEscort = lostEscortLine(view, escort);
   const amount = parseAmount(amountText);
   const gold = chosen === undefined || amount === null ? null : caravanGold(chosen, amount);
   const busy = chosen !== undefined && props.busy.has(`caravan:${chosen.resource}`);
@@ -261,6 +263,11 @@ function SendForm(props: {
             </label>
           ))}
         </div>
+        {lostEscort === null ? null : (
+          <p class="warning" role="alert" data-testid="caravan-escort-lost">
+            <Icon name="warning" /> {lostEscort}
+          </p>
+        )}
         {heroes.length === 0 ? (
           <p class="muted hint">Nenhum herói livre para escoltar agora.</p>
         ) : null}

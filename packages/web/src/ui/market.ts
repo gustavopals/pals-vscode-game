@@ -205,6 +205,19 @@ export function escortHeroes(view: ViewState): Hero[] {
   return view.guild.heroes.filter((hero) => ids.has(hero.id));
 }
 
+/**
+ * A escolta que o jogador marcou e que a visão já não lista (partiu, feriu-se, foi mandada a
+ * outro lugar): a frase que diz isso, para a tela nunca trocar a escolta por "sem escolta" em
+ * silêncio. `null` com a escolta ainda disponível, ou sem nenhuma marcada.
+ */
+export function lostEscortLine(view: ViewState, chosenId: string | null): string | null {
+  if (chosenId === null || escortHeroes(view).some((hero) => hero.id === chosenId)) {
+    return null;
+  }
+  const name = view.guild.heroes.find((hero) => hero.id === chosenId)?.name ?? 'O herói marcado';
+  return `${name} deixou de estar disponível para escoltar: a caravana sairia sem escolta.`;
+}
+
 /** "Edda · Guerreira Nv1": a escolta na lista e na confirmação. */
 export const escortLine = (hero: Hero): string => `${hero.name} · ${sheetLine(hero)}`;
 
