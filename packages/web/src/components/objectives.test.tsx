@@ -220,7 +220,7 @@ describe('painel dos objetivos', () => {
     expect(text(markup)).toContain(
       'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
     );
-    expect(text(markup)).toContain('Cumpridos (10)');
+    expect(text(markup)).toContain('Cumpridos (16)');
     expect(buttons(markup)).toEqual([]);
     // A partida que acaba de chegar de uma versão anterior pode vir uma leitura sem os ativos:
     // é um estado normal, com a mesma frase, e não um erro.
@@ -328,7 +328,7 @@ describe('os objetivos na aba Hoje', () => {
   it('com tudo cumprido, a seção diz isso em uma linha, com o caminho para a lista', () => {
     expect(text(section(today(autumnView)))).toBe(
       'Objetivos Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido. ' +
-        '10 já cumpridos. Ver todos',
+        '16 já cumpridos. Ver todos',
     );
   });
 

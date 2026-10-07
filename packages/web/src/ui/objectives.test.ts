@@ -71,7 +71,7 @@ describe('objetivos: o que a lista diz', () => {
   it('o resumo da árvore conta os dois grupos, e fala só do que existe', () => {
     expect(objectivesSummary(initialView)).toBe('3 em aberto');
     expect(objectivesSummary(unlockedView)).toBe('3 em aberto · 4 cumpridos');
-    expect(objectivesSummary(autumnView)).toBe('10 cumpridos');
+    expect(objectivesSummary(autumnView)).toBe('16 cumpridos');
     expect(objectivesSummary({ objectives: [objectiveOf(unlockedView, 'allocateFarmers')] })).toBe(
       '1 cumprido',
     );

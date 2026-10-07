@@ -344,8 +344,10 @@ describe('cenário golden de 7 dias', () => {
       wageArrears: null,
       lastWageArrears: null,
       ...NO_TAVERN,
+      // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
+      inventory: [{ id: 'item-1', defId: 'huntingSpear' }],
     });
-    expect(state.ids).toEqual({ hero: 1 });
+    expect(state.ids).toEqual({ hero: 1, item: 1 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a
@@ -455,9 +457,15 @@ describe('cenário golden de 7 dias', () => {
       [24 * 60, 'planAutoStart'],
       [25 * 60 + 12, 'buildWatchtower'],
       [30 * 60 + 10, 'buildGranaryOrWarehouse'],
+      // A estrangeira chega às 48 h, e o objetivo 11 se cumpre com ela.
+      [48 * 60, 'welcomeFirstHero'],
       [76 * 60 + 20, 'buildPalisade'],
     ]);
-    expect(state.objectives.active).toEqual(['surviveWinterWithoutCold']);
+    expect(state.objectives.active).toEqual([
+      'surviveWinterWithoutCold',
+      'buildGuild',
+      'sendPatrol',
+    ]);
     expect(state.stats['seasonsSurvived:winter']).toBeUndefined();
     expect(state.stats).toMatchObject({
       'seasonsSurvived:summer': 1,

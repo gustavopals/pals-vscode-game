@@ -981,7 +981,8 @@
     "objectives": {
      "active": [
       "buildPalisade",
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "welcomeFirstHero"
      ],
      "completed": [
       "allocateFarmers",
@@ -1020,7 +1021,7 @@
   },
   {
    "day": 3,
-   "eventsSoFar": 128,
+   "eventsSoFar": 129,
    "state": {
     "schemaVersion": 24,
     "seed": "pedra-alta-golden",
@@ -1053,7 +1054,8 @@
      ]
     },
     "ids": {
-     "hero": 1
+     "hero": 1,
+     "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
@@ -1203,7 +1205,12 @@
       }
      ],
      "arriving": [],
-     "inventory": [],
+     "inventory": [
+      {
+       "id": "item-1",
+       "defId": "huntingSpear"
+      }
+     ],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1237,7 +1244,8 @@
     "objectives": {
      "active": [
       "buildPalisade",
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "buildGuild"
      ],
      "completed": [
       "allocateFarmers",
@@ -1247,7 +1255,8 @@
       "answerFirstCard",
       "planAutoStart",
       "buildWatchtower",
-      "buildGranaryOrWarehouse"
+      "buildGranaryOrWarehouse",
+      "welcomeFirstHero"
      ]
     },
     "stats": {
@@ -1283,7 +1292,7 @@
   },
   {
    "day": 4,
-   "eventsSoFar": 176,
+   "eventsSoFar": 177,
    "state": {
     "schemaVersion": 24,
     "seed": "pedra-alta-golden",
@@ -1316,7 +1325,8 @@
      ]
     },
     "ids": {
-     "hero": 1
+     "hero": 1,
+     "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
@@ -1475,7 +1485,12 @@
       }
      ],
      "arriving": [],
-     "inventory": [],
+     "inventory": [
+      {
+       "id": "item-1",
+       "defId": "huntingSpear"
+      }
+     ],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1508,7 +1523,9 @@
     },
     "objectives": {
      "active": [
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "buildGuild",
+      "sendPatrol"
      ],
      "completed": [
       "allocateFarmers",
@@ -1519,6 +1536,7 @@
       "planAutoStart",
       "buildWatchtower",
       "buildGranaryOrWarehouse",
+      "welcomeFirstHero",
       "buildPalisade"
      ]
     },
@@ -1558,7 +1576,7 @@
   },
   {
    "day": 5,
-   "eventsSoFar": 224,
+   "eventsSoFar": 225,
    "state": {
     "schemaVersion": 24,
     "seed": "pedra-alta-golden",
@@ -1591,7 +1609,8 @@
      ]
     },
     "ids": {
-     "hero": 1
+     "hero": 1,
+     "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
@@ -1744,7 +1763,12 @@
       }
      ],
      "arriving": [],
-     "inventory": [],
+     "inventory": [
+      {
+       "id": "item-1",
+       "defId": "huntingSpear"
+      }
+     ],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1777,7 +1801,9 @@
     },
     "objectives": {
      "active": [
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "buildGuild",
+      "sendPatrol"
      ],
      "completed": [
       "allocateFarmers",
@@ -1788,6 +1814,7 @@
       "planAutoStart",
       "buildWatchtower",
       "buildGranaryOrWarehouse",
+      "welcomeFirstHero",
       "buildPalisade"
      ]
     },
@@ -1831,7 +1858,7 @@
   },
   {
    "day": 6,
-   "eventsSoFar": 272,
+   "eventsSoFar": 273,
    "state": {
     "schemaVersion": 24,
     "seed": "pedra-alta-golden",
@@ -1870,7 +1897,8 @@
      ]
     },
     "ids": {
-     "hero": 1
+     "hero": 1,
+     "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
@@ -2040,7 +2068,12 @@
       }
      ],
      "arriving": [],
-     "inventory": [],
+     "inventory": [
+      {
+       "id": "item-1",
+       "defId": "huntingSpear"
+      }
+     ],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -2073,7 +2106,9 @@
     },
     "objectives": {
      "active": [
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "buildGuild",
+      "sendPatrol"
      ],
      "completed": [
       "allocateFarmers",
@@ -2084,6 +2119,7 @@
       "planAutoStart",
       "buildWatchtower",
       "buildGranaryOrWarehouse",
+      "welcomeFirstHero",
       "buildPalisade"
      ]
     },
@@ -2131,7 +2167,7 @@
   },
   {
    "day": 7,
-   "eventsSoFar": 323,
+   "eventsSoFar": 324,
    "state": {
     "schemaVersion": 24,
     "seed": "pedra-alta-golden",
@@ -2170,7 +2206,8 @@
      ]
     },
     "ids": {
-     "hero": 1
+     "hero": 1,
+     "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
@@ -2318,7 +2355,12 @@
       }
      ],
      "arriving": [],
-     "inventory": [],
+     "inventory": [
+      {
+       "id": "item-1",
+       "defId": "huntingSpear"
+      }
+     ],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -2351,7 +2393,9 @@
     },
     "objectives": {
      "active": [
-      "surviveWinterWithoutCold"
+      "surviveWinterWithoutCold",
+      "buildGuild",
+      "sendPatrol"
      ],
      "completed": [
       "allocateFarmers",
@@ -2362,6 +2406,7 @@
       "planAutoStart",
       "buildWatchtower",
       "buildGranaryOrWarehouse",
+      "welcomeFirstHero",
       "buildPalisade"
      ]
     },
@@ -3174,6 +3219,14 @@
     "heroId": "hero-1",
     "namedHeroId": "edda",
     "classId": "warrior"
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, cumpriu-se um objetivo: Acolha ou contrate o primeiro herói. Recompensa: um item (Lança de caça).",
+   "data": {
+    "objective": "welcomeFirstHero"
    }
   },
   {

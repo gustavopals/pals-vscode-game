@@ -336,7 +336,13 @@
    "buildGranaryOrWarehouse",
    "planAutoStart",
    "buildPalisade",
-   "surviveWinterWithoutCold"
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
   ]
  },
  "stats": {
@@ -345,6 +351,7 @@
   "crossroadsChosen": 1,
   "heroesInjured": 1,
   "wasted_wood": 47000,
-  "expeditionsReturned": 1
+  "expeditionsReturned": 1,
+  "expeditionsReturned:oldForest": 1
  }
 }

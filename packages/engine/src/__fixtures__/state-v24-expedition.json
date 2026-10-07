@@ -243,7 +243,13 @@
    "buildGranaryOrWarehouse",
    "planAutoStart",
    "buildPalisade",
-   "surviveWinterWithoutCold"
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
   ]
  },
  "stats": {

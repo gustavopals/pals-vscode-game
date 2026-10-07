@@ -36,7 +36,8 @@
   ]
  },
  "ids": {
-  "hero": 1
+  "hero": 1,
+  "item": 1
  },
  "settlement": {
   "name": "Pedra Alta do Norte",
@@ -184,7 +185,12 @@
    }
   ],
   "arriving": [],
-  "inventory": [],
+  "inventory": [
+   {
+    "id": "item-1",
+    "defId": "huntingSpear"
+   }
+  ],
   "wageArrears": null,
   "lastWageArrears": null,
   "tavernOffers": [],
@@ -217,7 +223,9 @@
  },
  "objectives": {
   "active": [
-   "surviveWinterWithoutCold"
+   "surviveWinterWithoutCold",
+   "buildGuild",
+   "sendPatrol"
   ],
   "completed": [
    "allocateFarmers",
@@ -228,6 +236,7 @@
    "planAutoStart",
    "buildWatchtower",
    "buildGranaryOrWarehouse",
+   "welcomeFirstHero",
    "buildPalisade"
   ]
  },

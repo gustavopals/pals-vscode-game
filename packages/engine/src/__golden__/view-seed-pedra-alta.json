@@ -3557,6 +3557,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -4553,6 +4644,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -5723,6 +5905,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -6731,6 +7004,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -7735,6 +8099,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -8730,6 +9185,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -9716,6 +10262,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -10810,6 +11447,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -11897,6 +12625,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -12885,6 +13704,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -13927,6 +14837,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -14915,6 +15916,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -15934,6 +17026,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -20039,6 +21222,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -21122,6 +22396,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -22235,6 +23600,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -23423,6 +24879,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -24701,6 +26248,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (4 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -25981,6 +27619,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -27246,6 +28975,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -28619,6 +30439,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (4 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -29909,6 +31820,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -30968,6 +32970,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -32015,6 +34108,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -33145,6 +35329,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],
@@ -34304,6 +36579,97 @@
           "kind": "season",
           "season": "winter"
         }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
       }
     ],
     "council": {
@@ -35360,6 +37726,97 @@
         "target": {
           "kind": "season",
           "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
         }
       }
     ],

@@ -915,15 +915,16 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(cleared.settlement.buildings.watchtower).toBe(1);
     expect(cleared.guild.reports[0]?.log.at(-1)?.cleared).toBe('wolfDen');
     expect(cleared.guild.expeditions).toEqual([]);
-    // Nos outros retratos nada disso existe: ninguém em cativeiro, nenhum item, e o Covil
-    // ativo. (As Ruínas já foram reveladas onde uma Patrulha voltou com sucesso.)
+    // Nos outros retratos nada disso existe: ninguém em cativeiro, nenhum item além da lança
+    // que o objetivo 11 dá a quem acolheu o primeiro herói, e o Covil ativo. (As Ruínas já foram
+    // reveladas onde uma Patrulha voltou com sucesso.)
     expect(of('expedition-crossroads').map.discovered).toEqual(['ruins']);
     expect(of('fresh').map.discovered).toEqual([]);
     for (const state of all0().filter(
       (entry) => entry !== injured && entry !== captured && entry !== cleared,
     )) {
-      expect(state.guild.inventory).toEqual([]);
-      expect(state.ids.item).toBeUndefined();
+      expect(state.guild.inventory.filter((item) => item.defId !== 'huntingSpear')).toEqual([]);
+      expect(state.ids.item ?? 0).toBeLessThanOrEqual(1);
       expect(state.guild.heroes.every((hero) => hero.captivity === null)).toBe(true);
       expect(state.map.tiles.wolfDen?.threatActive).toBe(true);
     }

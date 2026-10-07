@@ -446,6 +446,23 @@ function asVersion11(state: GameState): Draft {
 const withoutObjectives = (events: GameEvent[]) =>
   events.filter((event) => event.type !== 'objectiveCompleted');
 
+/**
+ * Os contadores sem o prêmio em item de um objetivo: o objetivo 11 dá uma peça a quem já tem herói,
+ * e a partida migrada o cumpre na fronteira. A peça usa o contador `item`, e isso também não é obra
+ * do passo de migração.
+ */
+function besidesPrizes(
+  ids: Record<string, number>,
+  before: Record<string, number>,
+): Record<string, number> {
+  const rest = { ...ids };
+  delete rest.item;
+  if (before.item !== undefined) {
+    rest.item = before.item;
+  }
+  return rest;
+}
+
 /** FNV-1a de 32 bits do texto do arquivo: o bastante para notar um retrato antigo editado. */
 function fingerprint(text: string): string {
   let hash = 0x811c9dc5;
@@ -3737,11 +3754,11 @@ describe('versão 12 → 13', () => {
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(withoutObjectives(atBoundary.events)).toEqual([]);
       // A única regra de hoje que cria entidade é a carta da estrangeira, que dá um herói: um
-      // mês real depois o contador conhece esse herói e mais nada, e o gerador só tem os fluxos
-      // fixos.
+      // mês real depois o contador conhece esse herói e mais nada (fora a peça do objetivo 11, de
+      // quem chegou até ele), e o gerador só tem os fluxos fixos.
       const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
       const later = advanceTo(state, state.lastProcessedAt + month).state;
-      expect(later.ids).toEqual({ hero: 1 });
+      expect(besidesPrizes(later.ids, {})).toEqual({ hero: 1 });
       for (const stream of Object.keys(later.rng)) {
         expect(RNG_STREAMS).toContain(stream);
       }
@@ -4814,7 +4831,7 @@ describe('versão 18 → 19', () => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('expedition'))).toEqual([]);
-      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -4943,7 +4960,7 @@ describe('versão 19 → 20', () => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('hero'))).toEqual([]);
-      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -5070,7 +5087,7 @@ describe('versão 20 → 21', () => {
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('market'))).toEqual([]);
       expect(atBoundary.state.market).toStrictEqual(NO_MARKET);
-      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -5259,7 +5276,7 @@ describe('versão 21 → 22', () => {
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('caravan'))).toEqual([]);
       expect(atBoundary.state.market.caravans).toEqual([]);
-      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
       expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('caravan:'))).toEqual(
         [],
       );
@@ -5469,7 +5486,7 @@ describe('versão 22 → 23', () => {
       expect(atBoundary.state.settlement.masters).toEqual([]);
       expect(atBoundary.state.settlement.mastersWaiting).toEqual([]);
       expect(atBoundary.state.ids.master).toBeUndefined();
-      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
       // Trinta dias sem ordem nenhuma e sem expedição ao lugar certo: nenhum Mestre nasce sozinho
       // do passo (o que uma expedição em curso encontrar é regra do motor, não do passo).
       expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('master'))).toEqual(

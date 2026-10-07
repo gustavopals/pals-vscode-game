@@ -1529,7 +1529,7 @@ describe('árvore', () => {
 
     it('com tudo cumprido, a linha fica sem filhos, com o visto e a frase que não promete nada', () => {
       const node = find(buildTree({ ...input, view: autumnView }), 'objectives');
-      expect(node).toMatchObject({ description: '10 cumpridos', icon: 'pass', children: [] });
+      expect(node).toMatchObject({ description: '16 cumpridos', icon: 'pass', children: [] });
       expect(node?.tooltip?.split('\n')[0]).toBe(
         'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
       );
