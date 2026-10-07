@@ -168,6 +168,42 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase E: a tela do Mercado, das caravanas e dos Mestres (V3E-T4)
+
+**E-42. Negociar tem duas etapas: "Revisar a ordem" e "Confirmar".** *(Pergunta para o autor; é o que o roadmap pede: "o total aparece antes de confirmar; `PRICE_CHANGED` pede nova confirmação".)*
+- Enquanto isso: o total já aparece enquanto o jogador digita, e a conferência (que prende o dia da cotação) é um clique a mais. Quem negocia muito paga dois cliques por ordem; quem negocia pouco ganha o preço novo na cara se o dia virar. A caravana é igual.
+- Se decidir diferente: o botão único "Vender 150 por 153 de ouro", que manda na hora com o `quoteDay` da tela, é uma troca na tela, sem mexer no motor; o `PRICE_CHANGED` continuaria protegendo.
+
+**E-43. O total da negociação é uma conta no app: `quantidade × preço`.** *(Registro; o roadmap proibia contas de regra no app.)*
+- Enquanto isso: a visão traz o preço de uma unidade em milésimos (`buy`, `sell`, `unitPrice`), e o protocolo diz que a ordem cobra e paga exatamente `unidades × preço`, sem outro arredondamento. O app só multiplica e formata (`ui/market.ts`). Está amarrada ao motor por teste (a frase do ouro de cada caravana dos goldens sai igual) e por navegador (o ouro que o cofre ganha é o que a tela disse).
+- Se decidir diferente: uma tabela de totais por quantidade na visão, ou um campo `total` na recusa e na resposta, tiraria até esta multiplicação; custa campos novos e quase nada de utilidade.
+
+**E-44. `caravanAmbushed` traz `lost_<recurso>`, nome que o Relatório de Retorno lê como corte de depósito.** *(Defeito de nome no motor, contornado no app.)*
+- Enquanto isso: `lost_<recurso>` nos eventos de ganho é o que o depósito cortou; na emboscada, é a carga que a estrada levou. Sem o contorno, o relatório contaria a carga perdida como madeira "ao chão". `cutBy`, em `returnReport.ts`, tira a emboscada da conta, com teste de unidade e de navegador.
+- Se decidir diferente: renomear o campo no motor (por exemplo `ambushLost_<recurso>`) é uma troca em `caravanTurn.ts`, no conteúdo do evento e nos testes; o contorno do app sai. Não foi feito porque mexe em evento já gravado nas partidas.
+
+**E-45. Acima do que cabe, a ordem não é travada na tela.**
+- Enquanto isso: o aviso diz "Mais do que cabe agora (140): o servidor deve recusar", e a ordem segue, para a recusa chegar com a frase do servidor (é o critério 4: "vender até o limite e ver a recusa com a frase"). Com o volume do dia esgotado o lado traz o motivo com cadeado e "o máximo" fica desabilitado, mas "Revisar" não.
+- Se decidir diferente: desabilitar "Revisar" quando a quantidade passa de `maxBuyable` ou `maxSellable` evita a viagem até o servidor, e a frase da recusa só apareceria em corrida entre abas.
+
+**E-46. "Vender até N" vende o máximo de hoje, que pode ser o estoque inteiro.**
+- Enquanto isso: o atalho do aviso de depósito cheio abre a confirmação com o total, mas não diz o que sobra no estoque. Vender toda a madeira de um feudo em inverno deixa a lareira sem lenha.
+- Se decidir diferente: a confirmação poderia dizer "sobram X", que é a visão (`stock − amount`) ou uma frase do motor, ou o atalho poderia vender só o que passa do limite.
+
+**E-47. A aba Mercado é fixa desde o começo, mesmo sem o edifício.**
+- Enquanto isso: sem o Mercado a aba diz como erguê-lo (a frase do servidor e a obra), como a da Guilda; com isso, quem não chegou ao Salão Nv3 vê uma aba que ainda não serve. As abas fixas passam a cinco.
+- Se decidir diferente: esconder a aba até a obra ser possível é uma linha em `visibleTabs`; a obra continuaria na lista de construções.
+
+**E-48. A emboscada em navegador só foi provada com semente fixa.**
+- Enquanto isso: o cenário usa `qa-10-32` (o primeiro sorteio é 0, emboscada com a Torre em qualquer nível) por `world.seed`, e `estrada-e2e` (99) para a caravana que sempre chega. A chance de 10% e 5% só tem a medida do motor (QA-10, 1.000 sementes); nenhum navegador viu uma emboscada sem a semente escolhida.
+- Se decidir diferente: nada a fazer; é o desenho do critério 5 com semente fixa.
+
+**E-49. O ícone da aba Mercado é `tag` (etiqueta de preço); o das caravanas, `package`; o do Mestre, `star-full`.** *(Apresentação; o autor não escolheu.)*
+
+**E-50. "Antes de partir" ganhou três sugestões (o Mestre sem edifício, o que espera uma vaga e a caravana sem escolta), além do mínimo pedido.**
+- Enquanto isso: são `info`, dentro do limite de cinco itens, e o risco da caravana é o da oferta de agora (a Torre que o feudo tiver na chegada), na frase da visão. O tratamento completo é da V3F-T3.
+- Se decidir diferente: tirar os três é apagar três funções de `game/beforeLeaving.ts`.
+
 ### Fase E: os Mestres (V3E-T3)
 
 Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifício), aplicada em 2026-10-07 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 23; protocolo ainda 3** (a visão cresceu por adição: `masters`, `mastersWaiting`, `workers[].master`, `population.masters` e três campos em `workersRules`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-30, a E-31, a E-33 e a E-35; a E-41 é sobre o portão, não sobre o jogo.
@@ -242,9 +278,9 @@ Vêm da tarefa V3E-T2 (as caravanas: a venda adiada, a emboscada e a escolta), a
 - Enquanto isso: `piso(venda de agora × 7/5)`, com a venda de agora sendo o preço do balcão (`piso(preço × estação × 17/20)`). São dois arredondamentos para baixo, e o jogador perde menos de um milésimo e meio de ouro por unidade contra uma conta só. Em troca, a tela mostra a conta inteira com números que ele vê ("1,428 = 1,02 (venda de hoje) × 1,4.") e acerta.
 - Se decidir diferente: uma conta só (`preço × estação × 17/20 × 7/5`, com um arredondamento) é trocar `caravanUnitPrice`; a explicação passaria a partir da cotação do passeio.
 
-**E-15. A ordem `sendCaravan` não leva o dia da cotação.** *(Pergunta para o autor; recomendação: acrescentar na V3E-T4, com a tela.)*
-- Enquanto isso: a ordem é `{ resource, amount, escortHeroId }`, como o roadmap a escreve. O preço fixado é o do **instante da ordem**. Se o dia de jogo virar entre a tela e a ordem, a caravana parte pelo preço novo, sem recusa; o evento e a visão mostram o preço que ficou. A ordem `trade` recusa esse caso com `PRICE_CHANGED`.
-- Se decidir diferente: um `quoteDay` na ordem, recusado como em `trade`, é uma linha no motor e outra no protocolo; a promessa "mostrado antes de confirmar" passa a valer também na virada do dia. O agente recomenda fazer isso junto com a tela.
+**E-15. A ordem `sendCaravan` não levava o dia da cotação.** **Resolvida na V3E-T4 (2026-10-07), como o agente recomendava.** *(Era pergunta para o autor; a recomendação foi aplicada com a tela.)*
+- O que ficou: a ordem é `{ resource, amount, escortHeroId, quoteDay }`, com `quoteDay` obrigatório; se o dia de jogo virou entre a tela e a ordem, a recusa é `PRICE_CHANGED`, a mesma de `trade`, com a visão de hoje nos detalhes. A recusa vem **depois** de `MARKET_LEVEL_REQUIRED` e `CARAVAN_LIMIT` (sem lugar na estrada a cotação nem é lida) e **antes** de `INVALID_AMOUNT` e do estoque. É mudança de contrato de comando dentro do protocolo 3 ainda não publicado nesta parte (o Mercado nunca foi ao ar): adição obrigatória, sem subir o protocolo. Teste no motor (`market.caravans.test.ts`), na integração (`market.test.ts`), no protocolo e nos bots do simulador (que leem `quoteDay` da visão). No app, a promessa "mostrado antes de confirmar" vale também na virada do dia.
+- Se decidir diferente: voltar atrás é tirar o campo do protocolo, do motor e do app; a tela perderia a recusa na virada do dia.
 
 **E-16. `escortHeroId` é obrigatório e aceita `null`.**
 - Enquanto isso: mandar sem escolta é dizer `escortHeroId: null`. O roadmap escreve `escortHeroId?`; com o campo sempre presente, o tipo do protocolo e o do motor são iguais sem caso especial, e a ordem diz por extenso que a caravana vai sem ninguém.
@@ -1123,6 +1159,13 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase E: a tela do Mercado, das caravanas e dos Mestres (V3E-T4)
+
+- **O autor não viu a tabela de preços antes de a tela ser completada** (a T4.1 pedia mostrá-la), e **ninguém jogou o Mercado, as caravanas nem os Mestres**: nem as frases, nem os preços, nem o ritmo da conferência em duas etapas (E-42).
+- Chromium apenas. Firefox, Safari e leitor de tela não foram abertos: o que há é o padrão ARIA (formulários e grupos de opções rotulados, o total em região `aria-live`, a tendência em palavra) conferido por papel e nome nos testes em navegador.
+- Uma emboscada sem a semente escolhida não foi vista em navegador (E-48). A conferência aberta que o dia vira foi provada nos dois caminhos (a página lê o dia novo; o servidor recusa com `PRICE_CHANGED`), mas com o relógio de teste.
+- `pnpm capture:landing` e `pnpm test:e2e:landing`: ver a linha V3E-T4 do Registro.
 
 ### Fase E: os Mestres (V3E-T3)
 

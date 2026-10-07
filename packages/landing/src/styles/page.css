@@ -260,7 +260,7 @@ figcaption,
 /*
  * Telas largas: os rótulos ficam presos à captura e o interruptor troca a leitura. É só CSS:
  * dois botões de opção antes da figura. As posições são porcentagens da captura
- * (src/assets/jogo-feudo.webp, 1040 × 742); se ela for refeita com outra disposição, reveja.
+ * (src/assets/jogo-feudo.webp, 1040 × 765); se ela for refeita com outra disposição, reveja.
  * Abaixo de 68rem a captura fica pequena demais para a gótica dos rótulos ser lida.
  */
 @media (min-width: 60rem) {
@@ -401,7 +401,7 @@ figcaption,
   }
 
   /*
-   * Árvore lateral: 4,6% a 33,4% na horizontal, 4,6% a 89,6% na vertical. Ela enche a coluna:
+   * Árvore lateral: 4,6% a 33,4% na horizontal, 4,5% a 90% na vertical. Ela enche a coluna:
    * o rótulo fica no cabeçalho da barra lateral, à direita do título, encostado no topo dela.
    */
   .label-tree {
@@ -414,9 +414,9 @@ figcaption,
     height: 0.4cqw;
   }
 
-  /* Tabela de recursos: 35% a 65,2%, 25% a 42,5%. */
+  /* Tabela de recursos: 35% a 65,2%, 24,3% a 41,2%. */
   .label-table {
-    top: 20.1%;
+    top: 19.5%;
     left: 46%;
   }
 
@@ -426,13 +426,13 @@ figcaption,
   }
 
   /*
-   * Contadores dos trabalhadores: 35% a 65,2%, de 59% até a barra de status; os botões ficam
+   * Contadores dos trabalhadores: 35% a 65,2%, de 57,2% até a barra de status; os botões ficam
    * de 49,8% a 57,1% na horizontal. O rótulo fica ao lado do título da seção, e o fio desce até
    * os botões do primeiro ofício por 51,6%, onde passa entre as palavras das linhas de
    * explicação sem riscar nenhuma.
    */
   .label-steppers {
-    top: 43.7%;
+    top: 42.4%;
     left: 50.6%;
   }
 
@@ -442,9 +442,9 @@ figcaption,
     height: 8.3cqw;
   }
 
-  /* Obra em andamento: 68,3% a 98,5%, 25% a 36,2%. */
+  /* Obra em andamento: 68,3% a 98,5%, 24,3% a 35,2%. */
   .label-work {
-    top: 20.1%;
+    top: 19.5%;
     right: 1.4%;
   }
 
@@ -454,11 +454,11 @@ figcaption,
   }
 
   /*
-   * Barra de status: a faixa de baixo, de 96,6% a 100%. O rótulo ocupa a faixa livre entre o
-   * fim da árvore (89,6%) e a barra, e o fio cai sobre o que ela anuncia, à esquerda.
+   * Barra de status: a faixa de baixo, de 96,7% a 100%. O rótulo ocupa a faixa livre entre o
+   * fim da árvore (90%) e a barra, e o fio cai sobre o que ela anuncia, à esquerda.
    */
   .label-status {
-    top: 90.3%;
+    top: 90.7%;
     left: 6.5%;
   }
 
