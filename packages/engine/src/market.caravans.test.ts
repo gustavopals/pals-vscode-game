@@ -534,7 +534,7 @@ describe('a matriz QA-10: a mesma caravana com e sem escolta, com a Torre de Vig
         expect(hit.data).toMatchObject({
           amount: 300,
           lost: 150,
-          lost_wood: 150,
+          ambushed_wood: 150,
           sold: 150,
           unitPrice: fixed,
           gold: 150 * fixed,
@@ -618,7 +618,7 @@ describe('uma caravana pode ser emboscada (GDD §16.2, critério 5): cenário co
         resource: 'wood',
         amount: 251,
         lost: 125,
-        lost_wood: 125,
+        ambushed_wood: 125,
         sold: 126,
         unitPrice: 1173,
         gold: 126 * 1173,

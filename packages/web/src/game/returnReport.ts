@@ -55,15 +55,14 @@ function total(events: GameEvent[], key: string): number {
 }
 
 /**
- * O que o depósito cortou de uma recompensa ou devolução (`lost_<recurso>`). **A emboscada de uma
- * caravana também traz `lost_<recurso>`**, mas é a carga que a estrada levou, e não falta de
- * espaço: ela não é corte nem vai ao chão. Ela já saiu do estoque no envio (`spent_`), e o
- * ouro da parte vendida entra como `gained_gold`; a perda está na frase do evento, em "custou".
+ * O que o depósito cortou de uma recompensa ou devolução (`lost_<recurso>`). A carga que uma
+ * emboscada leva de uma caravana tem nome próprio no evento (`ambushed_<recurso>`; pendência
+ * E-44, corrigida no motor) e não entra aqui: não é corte nem vai ao chão. Ela já saiu do
+ * estoque no envio (`spent_`), e o ouro da parte vendida entra como `gained_gold`; a perda está
+ * na frase do evento, em "custou".
  */
-const cutBy = (event: GameEvent): boolean => event.type !== 'caravanAmbushed';
-
 function cutOf(events: GameEvent[], id: string): number {
-  return total(events.filter(cutBy), `lost_${id}`);
+  return total(events, `lost_${id}`);
 }
 
 /** O número e a faixa da moral de uma visão, como o relatório os guarda. */
@@ -386,9 +385,7 @@ function wasteItems(view: ViewState, wasted: Map<string, number>, events: GameEv
             (event.type === 'storageFilled' && event.data.building === building) ||
             // O fecho diário do que a produção perdeu, ou a recompensa que o depósito cortou.
             ids.some(
-              (id) =>
-                positive(event.data[`wasted_${id}`]) ||
-                (cutBy(event) && positive(event.data[`lost_${id}`])),
+              (id) => positive(event.data[`wasted_${id}`]) || positive(event.data[`lost_${id}`]),
             ),
         ) + 0.5,
       item: {

@@ -84,7 +84,9 @@ function arrive(draft: GameState, caravan: Caravan, atMs: number, events: GameEv
       {
         ...data,
         lost,
-        [`lost_${caravan.resource}`]: lost,
+        // `ambushed_<recurso>`, e não `lost_<recurso>`: nos outros eventos `lost_` é o que o
+        // depósito cortou de um ganho, e a carga que a estrada levou não é corte (E-44).
+        [`ambushed_${caravan.resource}`]: lost,
         riskPercent,
         watchtowerLevel: watchtowerLevel(draft),
       },

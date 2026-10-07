@@ -282,7 +282,7 @@ describe('o Relatório de Retorno (V3E-T4.5)', () => {
   it('a emboscada custa: "o que exigiu um preço", com o botão das caravanas; a carga perdida NÃO é corte de depósito', () => {
     const ambushed = event('caravanAmbushed', 'A caravana foi emboscada: perdeu 150 de madeira.', {
       gained_gold: 214.2,
-      lost_wood: 150,
+      ambushed_wood: 150,
       lost: 150,
     });
     const built = report(caravanView, [
@@ -297,8 +297,8 @@ describe('o Relatório de Retorno (V3E-T4.5)', () => {
         action: { command: 'lords.openPanel', arg: 'caravans', label: 'Ver as caravanas' },
       }),
     ]);
-    // `lost_wood` da emboscada é carga que a estrada levou, e não recompensa cortada pelo
-    // depósito: nada "foi ao chão", e a madeira não ganha parcela de corte.
+    // A carga que a estrada levou vem em `ambushed_wood`, e não em `lost_wood`, que é a
+    // recompensa cortada pelo depósito: nada "foi ao chão", e a madeira não ganha parcela de corte.
     const wood = stock(built, 'wood');
     expect(wood?.cut).toBe(0);
     expect(wood?.wasted).toBe(0);
