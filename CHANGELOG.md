@@ -6,6 +6,79 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 
 Nada ainda.
 
+## [0.3.0] — 2026-10-07
+
+**v0.3 "A Guilda"** (GDD §16.2 e §18.2; plano em [`docs/roadmap-v0.3.md`](docs/roadmap-v0.3.md)): o feudo ganha uma equipe. Heróis com nome, soldo e classe vêm de uma carta do Conselho e da Taverna, saem em expedição de seis tipos com encruzilhadas e Posturas, voltam com um relatório nó a nó, e o excedente do estoque vira ouro no Mercado, por balcão ou por caravana.
+
+A versão foi implementada por agentes de código entre 2026-10-05 e 2026-10-07, tudo no `main`, por fases (A a F; a Fase G é o fechamento), cada uma com revisão independente depois do portão verde. As decisões de regra 1 a 21 foram fechadas pelo autor em 2026-10-05 ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)), e outras rodadas de perguntas em 2026-10-06 e 2026-10-07 mudaram regras (abaixo). O que foi feito, fase por fase: [`docs/relatorio-v0.3.md`](docs/relatorio-v0.3.md).
+
+O que esta versão **não** tem, dito antes de tudo: **nenhum playtest aconteceu** (nem o desta versão, nem o da v0.1 e o da v0.2: não há linha de base de pessoas); **o autor não jogou nenhuma fase** antes da seguinte, como o roadmap pedia; o quadro em [`docs/acceptance-v0.3.md`](docs/acceptance-v0.3.md) tem a prova automática de cada critério e a coluna de evidência manual **vazia**; **todo o conteúdo narrativo** (os 18 grafos de expedição, os relatórios, os candidatos da Taverna, os heróis com nome, as cartas do lote 2 do Conselho) é **rascunho que o autor não leu**, e as decisões 1 e 4 a 21 foram aprovadas em bloco, sem leitura item a item; só o **Chromium** foi usado (Firefox, Safari, celular e leitor de tela, não); **nenhuma partida real de produção passou pela migração** do estado 12 para o atual, só retratos congelados; **o ensaio de reversão com imagens nunca foi feito**; o backup fora do servidor e a cópia do `RECOVERY_CODE_SECRET` fora do Coolify continuam pendentes; e a matriz de balanceamento de fechamento (V3G-T1) e o desempenho com 50 bots não foram registrados. A tag e a release são do autor.
+
+### O que muda nas partidas em andamento
+
+Quem já joga a v0.2 (estado 12) mantém o feudo: ele é migrado, um passo por versão, na primeira leitura ou pelo job de avanço.
+
+- **Nada se perde nem se paga de novo**, e nenhum acontecimento da v0.3 é calculado antes da fronteira da migração. Os passos não emitem eventos nem sorteiam.
+- **A carta da "Estrangeira ferida" chega também a quem já passou do 13º dia de jogo**, na primeira audiência do Conselho com lugar, uma vez. Sem ela, quem joga desde a v0.1 nunca teria o primeiro herói. Nenhum herói é dado por migração.
+- **Nenhum soldo de antes da migração é cobrado**: o soldo só existe depois que o primeiro herói chega.
+- **O piso de população** protege 3 aldeões comuns; os Mestres não contam (resposta do autor de 2026-10-07).
+- **A fome (e o soldo em atraso) que fechou há pouco e já devia uma deserção é cobrada na virada seguinte** ("o que venceu é cobrado"): é mudança de regra da v0.2 em partidas vivas, **confirmada pelo autor em 2026-10-06**.
+- **Quem está com o jogo aberto recebe "Há uma versão nova do jogo. Recarregue a página."** (`426`), porque o protocolo sobe de 2 para 3; o cache do app é descartado e o cursor da Crônica, mantido.
+- **Reversão.** Depois da primeira publicação, a imagem anterior **não** é destino de reversão sem restaurar o backup: a `v0.2.0` recusa um estado de versão futura com `500`, sem gravar, mas uma partida já migrada só volta com o backup. O procedimento, o ponto de retorno e o aviso estão em [`deploy/README.md`](deploy/README.md), "Reverter depois de uma migração de estado" e "A primeira publicação da v0.3". **Faça o backup manual do banco antes do `push`.**
+
+### Mudado
+
+Com as respostas do autor (2026-10-06 e 2026-10-07):
+
+- **Espera da encruzilhada de 12 h reais** em qualquer ritmo (era 6 h na proposta): com 6 h, quem visita uma ou duas vezes por dia nunca decidia uma encruzilhada.
+- **Soldo em atraso em tempo real**: 12 h para o Descontente, 24 h para a primeira partida e 2 h entre as seguintes; Leal nunca parte; o atraso que reabre em menos de 2 h reais continua de onde estava.
+- **O soldo cresce com o nível do herói**: 2, 3, 4, 6, 8, 10, 12, 15, 18 e 20 de ouro por hora de jogo, do nível 1 ao 10 (tabela proposta pelo agente, para o autor rever).
+- **A caravana paga 15% sobre o balcão** (era 1,4 vezes o preço de venda do dia): a manobra de comprar e enviar no mesmo instante dava lucro certo.
+- **A primeira alocação de um Mestre é imediata**; só mudar de edifício custa um dia de jogo de adaptação (estado 24).
+- **O capturado não conta no limite de heróis**; os lobos do outono descem mesmo com o Covil limpo; as dificuldades dizem o que acontece aos heróis em expedição.
+- **O ouro parado não caiu** com o Mercado, as caravanas e o soldo por nível: está registrado em [`docs/balance-v0.3.md`](docs/balance-v0.3.md) e fica para a v0.4.
+
+### Adicionado
+
+**Motor (`@lotg/engine`) e conteúdo (`@lotg/content`)**
+
+- **Heróis e soldo**: quatro classes, oito traços, atributos inteiros, nível e experiência por tabela; soldo como consumo contínuo de ouro, sem dívida; o atraso abre no instante exato em que o ouro acaba. Limite de heróis de 1 mais o nível da Taverna; uma recompensa nunca é barrada pelo limite.
+- **A carta roteirizada "Estrangeira ferida"** (`addHero`; Edda, Guerreira Leal, e Rolf, Arqueiro Prudente) e a lista dos heróis prometidos.
+- **Taverna** (níveis 1 a 5): candidatos em rotação, contratação, dispensa, moral e festival (um por estação).
+- **Guilda dos Aventureiros** (níveis 1 a 4) e **expedições**: seis modelos (Patrulha dos Arredores, Floresta Antiga, Covil de Lobos, Resgate, Ruínas de Vel'Thar e Pântano Nebuloso), três variantes cada, 18 grafos; encruzilhada com prazo real e **Postura** (Cautelosa, Equilibrada, Ousada); relatório nó a nó; ferimento (2 h e 12 h de jogo), captura e **Resgate**, morte em Rei de Ferro; experiência; equipamento em três espaços, quatro raridades e doze itens; Covil de Lobos que pode ser limpo (a Ameaça cai e o tile para de somar, até a virada do ano).
+- **Mercado** (níveis 1 a 5): preço que anda a cada dia de jogo, compra, venda a 85% do preço e volume diário por recurso. **Caravanas a Porto do Rio** (Mercado nível 2), com preço fixado no envio, emboscada sorteada na chegada e escolta. **Mestres** (Odo, Berta, Gil e Ximena): +15% no edifício em que trabalham.
+- **Objetivos 11 a 16** e o **lote 2 do Conselho** (as cartas que entraram estão em [`docs/content-v0.3.md`](docs/content-v0.3.md)).
+- **Estado na versão 24 ou posterior** (veja `CURRENT_SCHEMA_VERSION`; o lote 2 do Conselho pode ter subido a versão), em passos de 12 a 24 ou mais, com contadores de identidade (`state.ids`) e fluxos de sorteio por entidade (`expedition:` e `caravan:`), apagados quando a entidade termina.
+- Eventos novos com frase na Crônica para cada mecânica acima.
+
+**Servidor (`@lotg/server`), protocolo (`@lotg/protocol`) e SDK (`@lotg/client-sdk`)**
+
+- **Protocolo 3.** Ordens novas: contratar, dispensar, festival, enviar expedição, escolher caminho, equipar, enviar o Resgate, negociar (`trade`), enviar caravana (com o dia da cotação) e alocar Mestre. Recusa `PRICE_CHANGED` quando o dia da cotação virou.
+- `GET /v1/catalog` com as frases novas das dificuldades.
+
+**App web (`@lotg/web`)**
+
+- **Abas Guilda e Mercado**: heróis com ficha, soldo e atraso; Taverna; destinos com risco, duração, régua da equipe e Postura; a folha da encruzilhada com o prazo real; relatórios nó a nó; arsenal; tabela de preços, negociação em duas etapas, caravanas e Mestres; atalho "Vender até N".
+- **Relatório de Retorno e "Antes de partir"** com a Guilda e o Mercado: uma linha por expedição, a marca da Postura, vendas, emboscadas e o que ainda se pode decidir.
+- Avisos, linha da árvore, barra de status e paleta de comandos para cada ordem nova.
+
+**Simulador (`@lotg/sim-cli`)**
+
+- Bots `explorador`, `ousado` e `especulador`; colunas da Guilda e do Mercado nos CSVs; ouro por fonte e por destino; faixas remedidas.
+
+**Página de apresentação (`@lotg/landing`)**
+
+- O parágrafo "No horizonte" deixa de prometer a Guilda, os heróis e as expedições: o horizonte fica com a guerra e o Cerco do Inverno, o mapa e o legado.
+
+### Corrigido
+
+Defeitos que as revisões independentes acharam depois de cada portão verde, todos com teste de regressão (um commit por defeito, `V3x: corrige …`):
+
+- **Soldo e fome** (Fase C): o atraso que escapava da cobrança fechando logo antes da virada (e o mesmo furo na deserção por fome da v0.2); o Descontente que saía de graça; o herói que chegava a um atraso velho e partia sem carência; a promessa de herói que podia passar do teto e repetir o herói com nome; o evento da contratação que levava o modelo do candidato para fora do servidor; o atraso aberto com a Mina pagando o soldo inteiro; o número do festival que o motor ignorava.
+- **App** (Fase C): o Relatório de Retorno sem a contratação e o festival em "Gasto"; o "Tentar de novo" que sobrevivia à troca de feudo ou de conta; a linha "Guilda" da árvore sem o alerta do ouro; avisos que gastavam os três da hora.
+- **Expedições** (Fase D): o cativo resgatado que voltava devendo o atraso inteiro; a equipe presa em um caminho que o conteúdo deixou de ter; dois Resgates para um cativo e dois envios ao Covil; oito defeitos no app (a classe pedida e a equipe sugerida lidas da visão, o aviso "decidida em outra aba" que era falso, o botão do Resgate da ficha errada, o item vendido que sumia do retorno); nove defeitos editoriais nos grafos (opção dominante, lições impossíveis, pistas que mentiam, "Covil dos Lobos" e "Covil de Lobos").
+- **Mercado, caravanas e Mestres** (Fase E): a escolta ou expedição perpétua que blindava o herói do soldo em atraso; as guardas do estado que deixavam passar um Mercado e caravanas impossíveis; os nomes invertidos nos eventos de Mestre; a carga perdida lida como corte de depósito no Relatório; a conferência velha que sobrevivia a um novo clique; o foco que sumia ao fechar a conferência; a tela sem o número do excedente; a emboscada barrada pela cota de avisos.
+
 ## [0.2.0] — 2026-10-05
 
 **v0.2 "Estações e Conselho"** (GDD §16.2 e §18.2; plano em [`docs/roadmap-v0.2.md`](docs/roadmap-v0.2.md)): o feudo muda com as estações, o estoque tem limite, o Conselho traz dilemas com prazo e os lobos vêm com ou sem o jogador.
