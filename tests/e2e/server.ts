@@ -329,6 +329,38 @@ control.post('/__test/item', async (request) => {
 });
 
 /**
+ * Põe um Mestre do conteúdo no feudo de todos os feudos, sem edifício, com o identificador
+ * seguinte do contador do estado: é como um cenário da alocação tem um Mestre sem depender de uma
+ * expedição que o ache (o sorteio dele é de 1 em 4 ou 1 em 3, e a expedição, de horas). Entra pela
+ * porta que toda chegada tem, mas direto nas casas: as habitações do feudo de teste têm vaga.
+ * Daí em diante a alocação, a adaptação, o bônus e a conta da produção são os do motor.
+ */
+control.post('/__test/master', async (request) => {
+  const { masterId = 'odo' } = (request.body ?? {}) as { masterId?: string };
+  type Stored = {
+    ids: Record<string, number>;
+    settlement: { masters: Array<Record<string, unknown>> };
+  };
+  const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    const number = (state.ids.master ?? 0) + 1;
+    state.ids.master = number;
+    state.settlement.masters.push({
+      id: `master-${number}`,
+      masterId,
+      building: null,
+      adaptingUntilMs: null,
+    });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
  * Revela um destino a todos os feudos, como uma expedição que achou o caminho dele: é como um
  * cenário tem na lista da Guilda o destino que pede três heróis ou uma classe, sem jogar as
  * jornadas que o descobrem (qual nó o revela depende da variante, que sai da semente). Só a

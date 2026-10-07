@@ -61,7 +61,7 @@ export type World = {
    * no primeiro avanço, como na inauguração).
    */
   raise(
-    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild',
+    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild' | 'market',
     level: number,
   ): Promise<void>;
   /**
@@ -104,6 +104,19 @@ export type World = {
    * de uma marca da Crônica cedo. Daí em diante a subida e as marcas são as do motor.
    */
   threat(level: number): Promise<void>;
+  /**
+   * Põe um Mestre sem edifício no feudo (`/__test/master`), pelo nome interno dele (`odo`,
+   * `berta`): a alocação de um cenário sem depender da expedição que o acha. Daí em diante a
+   * adaptação, o bônus e a conta da produção são os do motor.
+   */
+  master(masterId?: 'odo' | 'berta' | 'gil' | 'ximena'): Promise<void>;
+  /**
+   * Os feudos fundados daqui em diante nascem desta semente (o servidor de teste a aceita): é
+   * como o desfecho de uma caravana é sempre o mesmo. `qa-10-32` é emboscada na primeira
+   * caravana sem escolta, com a Torre em qualquer nível; `estrada-e2e`, nunca (o primeiro
+   * sorteio dela, 99, passa de todas as chances). Chame antes de fundar o feudo.
+   */
+  seed(seed: string): void;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -119,6 +132,7 @@ export const test = base.extend<{ world: World }>({
       };
       await control('reset');
       let councilInSession = false;
+      let customSeed: string | null = null;
       let wolvesRoaming = false;
       const watched = new WeakSet<BrowserContext>();
       /**
@@ -139,14 +153,16 @@ export const test = base.extend<{ world: World }>({
             await route.fallback();
             return;
           }
-          const seeded = councilInSession
-            ? {
-                postData: JSON.stringify({
-                  ...(request.postDataJSON() as Record<string, unknown>),
-                  seed: COUNCIL_SEED,
-                }),
-              }
-            : {};
+          const seed = customSeed ?? (councilInSession ? COUNCIL_SEED : null);
+          const seeded =
+            seed === null
+              ? {}
+              : {
+                  postData: JSON.stringify({
+                    ...(request.postDataJSON() as Record<string, unknown>),
+                    seed,
+                  }),
+                };
           if (councilInSession && wolvesRoaming) {
             // Nada a mudar no feudo recém-fundado: o pedido segue, só com a semente.
             await route.continue(seeded);
@@ -198,6 +214,12 @@ export const test = base.extend<{ world: World }>({
         },
         item: async (defId) => {
           await control('item', { defId });
+        },
+        master: async (masterId = 'odo') => {
+          await control('master', { masterId });
+        },
+        seed: (seed) => {
+          customSeed = seed;
         },
         threat: async (level) => {
           await control('threat', { level });
