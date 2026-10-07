@@ -108,7 +108,7 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
         ceiling: { num: 8, den: 5 },
       },
       seasonal: { food: { autumn: { num: 13, den: 10 }, winter: { num: 13, den: 10 } } },
-      swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
+      swing: { low: { num: 17, den: 20 }, high: { num: 23, den: 20 } },
       caravan: market.caravan,
     });
     // O ouro não se negocia por ouro, e o que se negocia é recurso do feudo.
@@ -134,9 +134,9 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
       ];
     });
     expect(bounds).toEqual([
-      ['food', 600, 800, 1000, 1250, 1600],
-      ['wood', 720, 960, 1200, 1500, 1920],
-      ['stone', 1200, 1600, 2000, 2500, 3200],
+      ['food', 600, 850, 1000, 1150, 1600],
+      ['wood', 720, 1020, 1200, 1380, 1920],
+      ['stone', 1200, 1700, 2000, 2300, 3200],
     ]);
   });
 

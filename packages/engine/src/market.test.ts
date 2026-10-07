@@ -351,12 +351,12 @@ describe('o preço que anda (V3E-T1.2)', () => {
 });
 
 describe('a Crônica sem ruído (V3E-T1.5)', () => {
-  it('as marcas são 80% e 125% da base, e o preço na marca já está na zona', () => {
-    expect(priceBounds('food')).toEqual({ floor: 600, ceiling: 1600, low: 800, high: 1250 });
-    expect(priceZone('food', 801)).toBe('mid');
-    expect(priceZone('food', 800)).toBe('low');
-    expect(priceZone('food', 1249)).toBe('mid');
-    expect(priceZone('food', 1250)).toBe('high');
+  it('as marcas são 85% e 115% da base (revisão da Fase E, R3), e o preço na marca já está na zona', () => {
+    expect(priceBounds('food')).toEqual({ floor: 600, ceiling: 1600, low: 850, high: 1150 });
+    expect(priceZone('food', 851)).toBe('mid');
+    expect(priceZone('food', 850)).toBe('low');
+    expect(priceZone('food', 1149)).toBe('mid');
+    expect(priceZone('food', 1150)).toBe('high');
     expect(priceZone('stone', 2000)).toBe('mid');
   });
 
@@ -379,16 +379,18 @@ describe('a Crônica sem ruído (V3E-T1.5)', () => {
         swings += events.length;
       }
     }
-    // É raro de propósito: em 50 partidas de dois anos, um punhado de linhas, e não uma por dia.
-    expect(swings).toBeLessThan(50 * 6);
+    // Medido (revisão da Fase E, R3): 221 linhas em 50 partidas de dois anos de jogo, nos três
+    // recursos: 2,2 por ano de jogo. São algumas por ano, e não uma por semana (um ano tem 12
+    // semanas de jogo). Com as marcas a 80% e 125% eram 6 ao todo; a 90% e 110%, 1.226.
+    expect(swings).toBe(221);
   });
 
   it('o preço que sobe até a marca de cima e o que cai até a de baixo têm cada um a sua frase, com o recurso', () => {
-    // A madeira a um passo da marca de cima (1.500) e a pedra a um passo da de baixo (1.600):
+    // A madeira a um passo da marca de cima (1.380) e a pedra a um passo da de baixo (1.700):
     // em alguma das sementes o passo do dia as leva para dentro.
     const found: Record<string, GameEvent> = {};
     for (const seed of SEEDS) {
-      const draft = cloneState(stallWith(0, { wood: 1499, stone: 1601 }, undefined, { seed }));
+      const draft = cloneState(stallWith(0, { wood: 1379, stone: 1701 }, undefined, { seed }));
       const events: GameEvent[] = [];
       turnMarket(draft, DAY, events);
       for (const event of events) {
@@ -414,7 +416,7 @@ describe('a Crônica sem ruído (V3E-T1.5)', () => {
   it('a comida mais cara no outono é o calendário, e não uma linha da Crônica', () => {
     const summerEnd = stallWith(AUTUMN - HOUR, {}, undefined, { seed: 'mercado-2' });
     const { state, events } = advanceTo(summerEnd, AUTUMN);
-    expect(priceRow(state, 'food').buy).toBeGreaterThan(1250);
+    expect(priceRow(state, 'food').buy).toBeGreaterThan(priceBounds('food').high);
     expect(eventsOfType(events, 'marketPriceSwing')).toEqual([]);
   });
 });
@@ -425,7 +427,7 @@ describe('a ordem dentro da virada do dia (V3E-T1.2; roadmap §0.7)', () => {
     const build = (seed: string) =>
       stallWith(
         turn - HOUR,
-        { wood: 1499 },
+        { wood: 1379 },
         (draft) => {
           // A moral cai de faixa nesta virada, uma carta é sorteada nela, e a Ameaça cruza os 40
           // diante da Torre de Vigia.

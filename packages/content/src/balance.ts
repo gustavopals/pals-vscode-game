@@ -972,7 +972,11 @@ export const balance: Balance = {
       ceiling: { num: 8, den: 5 },
     },
     seasonal: { food: { autumn: { num: 13, den: 10 }, winter: { num: 13, den: 10 } } },
-    swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
+    // As marcas da Crônica ficam a 15% da base (revisão da Fase E, R3). A 80% e 125% o passeio
+    // quase nunca as cruzava (6 linhas em 100 anos de jogo); a 90% e 110%, que foi a primeira
+    // proposta, davam 12 linhas por ano de jogo, uma por semana; a 85% e 115% são 2,2 por ano.
+    // O piso e o teto do passeio não mudaram. Decidido na revisão; o autor não leu.
+    swing: { low: { num: 17, den: 20 }, high: { num: 23, den: 20 } },
     // ADR 0018, decisão 17. Uma caravana por vez a partir do Mercado Nv2; duas a partir do Nv4.
     // Com a Torre no nível 2 a conta daria zero: o piso de 2% mantém a escolha da escolta.
     // A caravana paga 15% sobre o balcão (resposta do autor de 2026-10-07): 17/20 × 23/20 =
