@@ -1067,3 +1067,36 @@ describe('as expedições nos avisos (roadmap da v0.3, V3D-T4; GDD §13.5)', () 
     expect(crossroadsNotice({ ...expedition, crossroads: null })).toBeNull();
   });
 });
+
+describe('os níveis dos avisos da Guilda e do Mercado (roadmap da v0.3, V3F-T3.4)', () => {
+  const shown = (level: PolicyInput['level'], type: GameEvent['type']) =>
+    decideNotifications(input({ level, events: [event(type, 1)] })).show.map((entry) => entry.type);
+
+  it('a encruzilhada e a captura são essenciais: chegam em "Essenciais" e em "Todas"', () => {
+    for (const type of ['expeditionAtCrossroads', 'heroCaptured'] as const) {
+      expect(shown('essential', type)).toEqual([type]);
+      expect(shown('all', type)).toEqual([type]);
+      expect(shown('silent', type)).toEqual([]);
+    }
+  });
+
+  it('o retorno da expedição, a caravana que chegou e o nível novo só chegam em "Todas"', () => {
+    for (const type of ['expeditionReturned', 'caravanArrived', 'constructionFinished'] as const) {
+      expect(shown('essential', type)).toEqual([]);
+      expect(shown('all', type)).toEqual([type]);
+    }
+  });
+
+  it('o limite de três por hora continua, e o alarme passa na frente do informativo', () => {
+    const informative = [1, 2, 3, 4].map((seq) => event('expeditionReturned', seq));
+    const withAlarm = [...informative, event('heroCaptured', 5)];
+    const result = decideNotifications(input({ level: 'all', events: withAlarm }));
+    expect(result.show).toHaveLength(3);
+    expect(result.show.map((entry) => entry.type)).toContain('heroCaptured');
+    // Dois avisos já mostrados na hora: sobra um, e é o alarme, nunca o informativo.
+    const nearlyFull = decideNotifications(
+      input({ level: 'all', events: withAlarm, history: [now - 1000, now - 2000] }),
+    );
+    expect(nearlyFull.show.map((entry) => entry.type)).toEqual(['heroCaptured']);
+  });
+});
