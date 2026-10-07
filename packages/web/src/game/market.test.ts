@@ -181,13 +181,25 @@ describe('os avisos (V3E-T4.5)', () => {
     expect(shown('all', ['caravanArrived'])).toEqual(['caravanArrived']);
   });
 
-  it('a negociação, a mudança de preço e a mudança de edifício do Mestre só entram em "Todas"', () => {
-    for (const type of ['marketTraded', 'marketPriceSwing', 'masterAssigned'] as const) {
-      expect(shown('essential', [type]), type).toEqual([]);
-      expect(shown('all', [type]), type).toEqual([type]);
+  it('só a mudança de preço entra em "Todas": a negociação e a troca de edifício do Mestre são ordens do jogador', () => {
+    expect(shown('essential', ['marketPriceSwing'])).toEqual([]);
+    expect(shown('all', ['marketPriceSwing'])).toEqual(['marketPriceSwing']);
+    // As ordens do próprio jogador nunca avisam, em nível nenhum.
+    for (const type of ['marketTraded', 'masterAssigned', 'caravanSent'] as const) {
+      expect(shown('all', [type]), type).toEqual([]);
     }
-    // O envio da caravana é ordem do próprio jogador: nunca avisa.
-    expect(shown('all', ['caravanSent'])).toEqual([]);
+  });
+
+  it('a emboscada passa mesmo com a cota da hora gasta por avisos informativos', () => {
+    const informative = [now - 3000, now - 2000, now - 1000];
+    const decided = decideNotifications(
+      input({
+        level: 'all',
+        history: informative,
+        events: [event('caravanAmbushed', 'A caravana foi emboscada.')],
+      }),
+    );
+    expect(decided.show.map((entry) => entry.type)).toEqual(['caravanAmbushed']);
   });
 
   it('o Mestre que chegou, com vaga ou à espera, é essencial e sem tom de alarme', () => {

@@ -161,13 +161,11 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'expeditionPostureDecided',
   'heroLeveledUp',
   'itemFound',
-  // O Mercado (GDD §5.9): a caravana que chegou inteira, a negociação (que o jogador mesmo
-  // deu, ou outra aba), o preço que andou muito e o Mestre que passou a trabalhar em outro lugar.
-  // Nada disso pede ação imediata: só em "Todas". A emboscada é alarme, acima.
+  // O Mercado (GDD §5.9): a caravana que chegou inteira e o preço que andou muito. Nada disso
+  // pede ação imediata: só em "Todas". A emboscada é alarme, acima. A negociação e a troca de
+  // edifício do Mestre são ordens do próprio jogador: a resposta está na tela, não avisam.
   'caravanArrived',
-  'marketTraded',
   'marketPriceSwing',
-  'masterAssigned',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -611,11 +609,23 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   // Com pouco espaço, o essencial passa na frente. A ordenação é estável: dentro de cada grupo
   // vale a ordem em que as coisas aconteceram.
   const ordered = [...candidates].sort((a, b) => rank(a) - rank(b));
+  // O alarme (o que tira algo do jogador) nunca é barrado pela cota gasta com outros avisos: o
+  // histórico guarda só instantes, e quem está no limite de 3 por hora perderia a emboscada ou
+  // a fome. Com a hora cheia, o primeiro alarme do lote ainda passa; o resto respeita a cota.
   const room = Math.max(0, MAX_NOTIFICATIONS_PER_HOUR - history.length);
-  const show = ordered.slice(0, room);
+  const show: GameEvent[] = [];
+  const left: GameEvent[] = [];
+  for (const event of ordered) {
+    const limit = isEssential(event) ? Math.max(room, 1) : room;
+    if (show.length < limit) {
+      show.push(event);
+    } else {
+      left.push(event);
+    }
+  }
   return {
     show,
-    badge: badgeCount(ordered.slice(room)),
+    badge: badgeCount(left),
     history: [...history, ...show.map(() => input.now)],
   };
 }
