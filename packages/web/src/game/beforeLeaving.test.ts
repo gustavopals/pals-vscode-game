@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   activeConstruction,
   autumnView,
+  caravanView,
   coldView,
   craftsView,
   denClearedView,
@@ -43,7 +44,6 @@ import {
 import { CROSSROADS_NEAR_SECONDS } from '../ui/expeditions';
 
 const HOUR = 3600;
-
 type Firewood = NonNullable<ViewState['winter']>['firewood'];
 
 /**
@@ -699,6 +699,52 @@ describe('antes de partir', () => {
       expect(ids(leavingItems(threatIncomingView))).toContain('raid');
       expect(ids(leavingItems(threatIncomingView))).not.toContain('threat');
     });
+  });
+
+  it('a caravana sem escolta com risco e carga grande é alerta, e sobe antes do corte dos cinco', () => {
+    const [caravan] = caravanView.market.caravans;
+    if (caravan === undefined) {
+      throw new Error('o golden deixou de ter caravana');
+    }
+    const withCaravan = (view: ViewState, riskPercent: number): ViewState => ({
+      ...view,
+      market: {
+        ...view.market,
+        caravans: [{ ...caravan, escortName: null, arrivesInSeconds: HOUR, amount: 400 }],
+        caravanOffer: { ...view.market.caravanOffer, riskPercent, maxUnits: 500 },
+      },
+    });
+    const severity = (view: ViewState) =>
+      leavingItems(view).find((entry) => entry.id === 'caravan')?.severity;
+    expect(severity(withCaravan(caravanView, 10))).toBe('warning');
+    // Sem risco, ou com a carga pequena, é só informação.
+    expect(severity(withCaravan(caravanView, 0))).toBe('info');
+    const small = withCaravan(caravanView, 10);
+    small.market.caravans[0]!.amount = 50;
+    expect(severity(small)).toBe('info');
+
+    // Com a lista cheia (fome, frio, depósitos, obras), o alerta da caravana entra no lugar de
+    // um item de "info", e a lista continua do mais grave ao menos.
+    const crowded = withCaravan(
+      withResource(
+        {
+          ...impoverishedView,
+          resources: impoverishedView.resources.map((row) => {
+            const full = proudView.resources.find((entry) => entry.id === row.id);
+            return row.id === 'stone' && full !== undefined ? full : row;
+          }),
+        },
+        'food',
+        { full: true, wastingPerHour: 12 },
+      ),
+      10,
+    );
+    const shown = beforeLeaving(crowded);
+    expect(shown).toHaveLength(MAX_LEAVING_ITEMS);
+    expect(ids(shown)).toContain('caravan');
+    expect(shown.filter((entry) => entry.severity === 'info').length).toBeLessThan(
+      beforeLeaving(withCaravan(crowded, 0)).filter((entry) => entry.severity === 'info').length,
+    );
   });
 
   it('o feudo recém-fundado: planejar uma obra e dar ofício aos cinco', () => {
