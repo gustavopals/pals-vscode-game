@@ -28,6 +28,7 @@ import {
   priceMark,
   priceOf,
   remainingLine,
+  reviewStillOpen,
   sellShortcut,
   stockLeftLine,
   tradeLine,
@@ -154,7 +155,11 @@ describe('o atalho "Vender" e a escolta', () => {
       ...marketDayView,
       market: {
         ...marketDayView.market,
-        prices: marketDayView.market.prices.map((row) => ({ ...row, maxSellable: 0, surplusSellable: 0 })),
+        prices: marketDayView.market.prices.map((row) => ({
+          ...row,
+          maxSellable: 0,
+          surplusSellable: 0,
+        })),
       },
     };
     expect(sellShortcut(spent, 'food')).toBeNull();
@@ -246,5 +251,16 @@ describe('os Mestres', () => {
       ),
     ]);
     expect(marketDeadlines(initialView)).toEqual([]);
+  });
+});
+
+describe('a conferência aberta', () => {
+  const review = { resource: 'wood', direction: 'sell' as const, pick: 1 };
+  it('vale no mesmo recurso, sentido e clique; escolher de novo o mesmo recurso a fecha', () => {
+    expect(reviewStillOpen(review, review)).toBe(true);
+    expect(reviewStillOpen(review, { ...review, pick: 2 })).toBe(false);
+    expect(reviewStillOpen(review, { ...review, direction: 'buy' })).toBe(false);
+    expect(reviewStillOpen(review, { ...review, resource: 'stone' })).toBe(false);
+    expect(reviewStillOpen(null, review)).toBe(false);
   });
 });

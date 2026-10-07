@@ -17,6 +17,7 @@ import {
   priceLabel,
   stockLeftLine,
   remainingLine,
+  reviewStillOpen,
   type TradeDirection,
   tradeLine,
   tradeTotal,
@@ -46,6 +47,8 @@ function Trend(props: { trend: PriceRow['trend'] }) {
 type Review = {
   resource: PriceRow['resource'];
   direction: TradeDirection;
+  /** O clique da tabela em que foi aberta (`focusTick`): outro clique a fecha. */
+  pick: number;
   amount: number;
   quoteDay: number;
   unit: number;
@@ -202,6 +205,7 @@ function TradeForm(props: {
       : {
           resource: row.resource,
           direction,
+          pick: props.focusTick,
           amount,
           quoteDay: market.quoteDay,
           unit: unitPrice(row, direction),
@@ -211,7 +215,8 @@ function TradeForm(props: {
   // A conferência é do recurso e do sentido em que foi aberta: mudar um dos dois a fecha. Se o
   // dia da cotação passou, ela já não vale, e o preço novo vem ao lado do que foi conferido.
   const open =
-    review !== null && review.resource === row.resource && review.direction === direction
+    review !== null &&
+    reviewStillOpen(review, { resource: row.resource, direction, pick: props.focusTick })
       ? review
       : null;
   const stale = open !== null && open.quoteDay !== market.quoteDay;

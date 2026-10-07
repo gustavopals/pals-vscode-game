@@ -292,3 +292,20 @@ export function stockLeftLine(
   }
   return `Restam ${formatNumber(stock - amount)} de ${formatNumber(stock)} de ${row.label.toLowerCase()} no feudo.`;
 }
+
+/**
+ * A conferência aberta ainda vale? Ela é do recurso, do sentido e do clique em "Comprar" ou
+ * "Vender" da tabela em que foi aberta (`pick`, que sobe a cada clique): escolher de novo o mesmo
+ * recurso zera a quantidade, e a ordem velha não pode sobreviver a isso.
+ */
+export function reviewStillOpen(
+  review: { resource: string; direction: TradeDirection; pick: number } | null,
+  now: { resource: string; direction: TradeDirection; pick: number },
+): boolean {
+  return (
+    review !== null &&
+    review.resource === now.resource &&
+    review.direction === now.direction &&
+    review.pick === now.pick
+  );
+}

@@ -246,7 +246,11 @@ describe('o atalho "Vender" ao lado do depósito que enche (IDEIA-11)', () => {
       ...marketDayView,
       market: {
         ...marketDayView.market,
-        prices: marketDayView.market.prices.map((row) => ({ ...row, maxSellable: 0, surplusSellable: 0 })),
+        prices: marketDayView.market.prices.map((row) => ({
+          ...row,
+          maxSellable: 0,
+          surplusSellable: 0,
+        })),
       },
     });
     expect(resources(spent)).not.toContain('data-sell');
