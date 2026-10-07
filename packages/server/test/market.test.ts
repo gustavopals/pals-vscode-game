@@ -386,7 +386,8 @@ const caravan = (
   resource: 'food' | 'wood' | 'stone',
   amount: number,
   escortHeroId: string | null = null,
-) => order('sendCaravan', { resource, amount, escortHeroId });
+  quoteDay = 0,
+) => order('sendCaravan', { resource, amount, escortHeroId, quoteDay });
 
 /**
  * Uma partida com o Mercado no nível 2, posto direto no banco, e Edda a serviço do feudo. O
@@ -423,11 +424,12 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
       blockedReason: 'As caravanas pedem o Mercado no nível 2: o feudo ainda não o tem.',
     });
     for (const payload of [
-      { resource: 'gold', amount: 10, escortHeroId: null },
-      { resource: 'wood', amount: 1.5, escortHeroId: null },
-      { resource: 'wood', amount: 10 },
-      { resource: 'wood', amount: 10, escortHeroId: null, unitPrice: 9000 },
-      { resource: 'wood', amount: 10, escortHeroId: null, ambushed: false },
+      { resource: 'gold', amount: 10, escortHeroId: null, quoteDay: 0 },
+      { resource: 'wood', amount: 1.5, escortHeroId: null, quoteDay: 0 },
+      { resource: 'wood', amount: 10, quoteDay: 0 },
+      { resource: 'wood', amount: 10, escortHeroId: null },
+      { resource: 'wood', amount: 10, escortHeroId: null, quoteDay: 0, unitPrice: 9000 },
+      { resource: 'wood', amount: 10, escortHeroId: null, quoteDay: 0, ambushed: false },
     ]) {
       const malformed = await send<ApiError>(server, player.token, gameId, {
         ...caravan('wood', 10),
@@ -580,6 +582,36 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
         `game_id = '${gameId}' and kind = 'caravanArrived'`,
       ),
     ).toBe(1);
+  });
+  it('o dia virou entre a tela e o envio (E-15): a ordem com a cotação de ontem é recusada com a visão de hoje, e nada sai do estoque; com a de hoje, vale', async () => {
+    const { player, gameId } = await caravanPost('Teodora');
+    const yesterday = await viewOf(player.token, gameId);
+    server.clock.advance(2 * HOUR);
+    await renew(server, player);
+    const stale = await send<Rejected>(
+      server,
+      player.token,
+      gameId,
+      caravan('wood', 100, null, yesterday.market.quoteDay),
+    );
+    expect(stale.status).toBe(422);
+    expect(stale.body).toMatchObject({
+      code: 'GAME_RULE',
+      message: 'O dia virou e o preço do Mercado mudou: confira o preço de hoje e peça de novo.',
+      details: { code: 'PRICE_CHANGED' },
+    });
+    const today = stale.body.details.view;
+    expect(today.market.quoteDay).toBeGreaterThan(yesterday.market.quoteDay);
+    expect(today.market.caravans).toEqual([]);
+    expect(stockOf(today, 'wood')).toBeGreaterThanOrEqual(stockOf(yesterday, 'wood'));
+    const fresh = await send<CommandAccepted>(
+      server,
+      player.token,
+      gameId,
+      caravan('wood', 100, null, today.market.quoteDay),
+    );
+    expect(fresh.status).toBe(200);
+    expect(fresh.body.view.market.caravans).toHaveLength(1);
   });
 });
 

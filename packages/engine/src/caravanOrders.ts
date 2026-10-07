@@ -4,6 +4,7 @@ import { caravanBlock, caravanUnitPrice, cargoBlock, escortBlock } from './carav
 import { emit } from './chronicle';
 import { thousands } from './format';
 import { nextId } from './ids';
+import { reject } from './rejections';
 import type { Caravan, GameEvent, GameState, MarketResourceId, Rejection } from './types';
 import { MILLI } from './units';
 
@@ -20,9 +21,11 @@ const { caravan: rules } = balance.market;
  *
  * 1. o Mercado abaixo do nível das caravanas (`MARKET_LEVEL_REQUIRED`);
  * 2. todos os lugares na estrada ocupados (`CARAVAN_LIMIT`);
- * 3. o que não é uma carga (`INVALID_AMOUNT`) e o que o estoque não tem
+ * 3. a cotação que ficou para trás (`PRICE_CHANGED`): o dia de jogo virou entre a tela e a ordem,
+ *    e o preço fixado seria outro (pendência E-15; o mesmo critério de `trade`);
+ * 4. o que não é uma carga (`INVALID_AMOUNT`) e o que o estoque não tem
  *    (`INSUFFICIENT_RESOURCES`);
- * 4. a escolta que já não serve ao feudo (`HERO_NOT_FOUND`) ou não pode partir
+ * 5. a escolta que já não serve ao feudo (`HERO_NOT_FOUND`) ou não pode partir
  *    (`HERO_UNAVAILABLE`, com o nome e o motivo).
  *
  * Aceita, **a carga sai do estoque agora** e o preço por unidade fica **fixado**: o de venda
@@ -38,11 +41,13 @@ export function sendCaravan(
   resource: unknown,
   amount: unknown,
   escortHeroId: unknown,
+  quoteDay: unknown,
   nowMs: number,
   events: GameEvent[],
 ): Rejection | null {
   const blocked =
     caravanBlock(draft) ??
+    (quoteDay === draft.market.quoteDay ? null : reject('PRICE_CHANGED')) ??
     cargoBlock(draft, resource, amount) ??
     (escortHeroId === null || escortHeroId === undefined ? null : escortBlock(draft, escortHeroId));
   if (blocked !== null) {

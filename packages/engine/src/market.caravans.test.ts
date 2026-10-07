@@ -27,6 +27,7 @@ import {
   guildHall,
   HOUR,
   MINUTE,
+  QUOTE_OF_NOW,
   refuse,
   tradeOrder,
 } from './test-helpers';
@@ -210,7 +211,7 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
   it('o que não é uma carga é recusado: outro recurso, quantidade que não é inteiro de 1 a 300', () => {
     const state = caravanPost();
     const order = (payload: Record<string, unknown>) =>
-      refuse(state, command('sendCaravan', payload as never));
+      refuse(state, command('sendCaravan', { quoteDay: QUOTE_OF_NOW, ...payload } as never));
     expect(order({ resource: 'gold', amount: 10, escortHeroId: null })).toEqual({
       code: 'INVALID_AMOUNT',
       message: 'Uma caravana leva um recurso só: comida, madeira ou pedra.',
@@ -223,6 +224,25 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
     }
     expect(apply(state, caravanOrder('wood', 1)).ok).toBe(true);
     expect(apply(state, caravanOrder('wood', 300)).ok).toBe(true);
+  });
+
+  it('a cotação de ontem é recusada (E-15): o dia virou entre a tela e o envio, e nada sai do estoque; a de hoje vale', () => {
+    const state = caravanPost();
+    const stale = caravanOrder('wood', 100, null, state.market.quoteDay + 1);
+    expect(refuse(state, stale)).toEqual({
+      code: 'PRICE_CHANGED',
+      message: 'O dia virou e o preço do Mercado mudou: confira o preço de hoje e peça de novo.',
+    });
+    expect(apply(state, caravanOrder('wood', 100, null, state.market.quoteDay)).ok).toBe(true);
+    // A cotação velha é conferida antes da carga e da escolta, como em `trade`.
+    expect(refuse(state, caravanOrder('wood', 0, 'hero-9', state.market.quoteDay + 1)).code).toBe(
+      'PRICE_CHANGED',
+    );
+    // O que abre o Mercado e a estrada vem antes: sem lugar, a cotação nem é lida.
+    const busy = accept(state, caravanOrder('wood', 10)).state;
+    expect(refuse(busy, caravanOrder('wood', 10, null, busy.market.quoteDay + 1)).code).toBe(
+      'CARAVAN_LIMIT',
+    );
   });
 
   it('a carga que o estoque não tem é recusada com o que falta', () => {

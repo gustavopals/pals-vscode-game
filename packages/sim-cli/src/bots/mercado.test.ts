@@ -333,7 +333,10 @@ describe('mandar caravana (V3E-T2.5)', () => {
     const after = await mandarCaravana.run(game.view, game.act);
     expect(game.refused).toEqual([]);
     expect(game.orders).toEqual([
-      { type: 'sendCaravan', payload: { resource: 'wood', amount: 300, escortHeroId: 'hero-1' } },
+      {
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 300, escortHeroId: 'hero-1', quoteDay: 0 },
+      },
     ]);
     expect(after.market.caravans).toHaveLength(1);
     expect(after.market.caravans[0]).toMatchObject({ amount: 300, escortName: 'Edda' });
@@ -353,7 +356,10 @@ describe('mandar caravana (V3E-T2.5)', () => {
     await mandarCaravana.run(watched.view, watched.act);
     expect(watched.refused).toEqual([]);
     expect(watched.orders).toEqual([
-      { type: 'sendCaravan', payload: { resource: 'wood', amount: 300, escortHeroId: null } },
+      {
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 300, escortHeroId: null, quoteDay: 0 },
+      },
     ]);
   });
 
@@ -413,15 +419,18 @@ describe('mandar caravana (V3E-T2.5)', () => {
     await mandarCaravana.run(one.view, one.act);
     // 300 de pedra a 2,38 rendem mais do que 300 de madeira a 1,428.
     expect(one.orders).toEqual([
-      { type: 'sendCaravan', payload: { resource: 'stone', amount: 300, escortHeroId: 'hero-1' } },
+      {
+        type: 'sendCaravan',
+        payload: { resource: 'stone', amount: 300, escortHeroId: 'hero-1', quoteDay: 0 },
+      },
     ]);
     const two = player(both(4));
     await mandarCaravana.run(two.view, two.act);
     expect(two.refused).toEqual([]);
     expect(two.orders.map((order) => order.payload)).toEqual([
-      { resource: 'stone', amount: 300, escortHeroId: 'hero-1' },
+      { resource: 'stone', amount: 300, escortHeroId: 'hero-1', quoteDay: 0 },
       // A pedra que sobrou já não é excedente; a madeira, sim, e vai com quem ficou.
-      { resource: 'wood', amount: 300, escortHeroId: 'hero-2' },
+      { resource: 'wood', amount: 300, escortHeroId: 'hero-2', quoteDay: 0 },
     ]);
   });
 

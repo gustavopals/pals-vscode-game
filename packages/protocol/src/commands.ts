@@ -173,7 +173,8 @@ export const TradeCommandSchema = command(
 /**
  * O envio de uma caravana: um recurso, uma quantidade e quem a escolta (`null` para mandá-la sem
  * escolta). O preço por unidade é o que a visão mostrava em `market.caravanOffer.resources[]`,
- * e fica fixado nesta ordem. O protocolo só confere a forma; se há lugar na estrada, se a carga
+ * e fica fixado nesta ordem. `quoteDay` é o `market.quoteDay` da visão que o jogador conferiu:
+ * se o dia de jogo virou, a ordem é recusada (`PRICE_CHANGED`). O protocolo só confere a forma; se há lugar na estrada, se a carga
  * cabe e existe, e se o herói pode ir é com o motor.
  */
 export const SendCaravanCommandSchema = command(
@@ -182,6 +183,7 @@ export const SendCaravanCommandSchema = command(
     resource: z.enum(MARKET_RESOURCE_IDS),
     amount: z.number().int().min(-1_000_000).max(1_000_000),
     escortHeroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE).nullable(),
+    quoteDay: z.number().int().min(0).max(100_000_000),
   }),
 );
 

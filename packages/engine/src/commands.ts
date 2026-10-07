@@ -105,6 +105,7 @@ function dispatch(
         payload.resource,
         payload.amount,
         payload.escortHeroId,
+        payload.quoteDay,
         nowMs,
         events,
       );

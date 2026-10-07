@@ -1734,7 +1734,11 @@ export const mandarCaravana: Policy = {
         return current;
       }
       const onTheRoad = current.market.caravans.length;
-      current = await act('sendCaravan', { ...best, escortHeroId: escort });
+      current = await act('sendCaravan', {
+        ...best,
+        escortHeroId: escort,
+        quoteDay: current.market.quoteDay,
+      });
       if (current.market.caravans.length === onTheRoad) {
         // A ordem foi recusada: a visão diz por quê, e o bot não insiste.
         return current;

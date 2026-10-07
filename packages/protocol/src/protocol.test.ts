@@ -146,12 +146,12 @@ describe('CommandSchema', () => {
     {
       commandId: uuid,
       type: 'sendCaravan',
-      payload: { resource: 'stone', amount: 300, escortHeroId: 'hero-2' },
+      payload: { resource: 'stone', amount: 300, escortHeroId: 'hero-2', quoteDay: 3 },
     },
     {
       commandId: uuid,
       type: 'sendCaravan',
-      payload: { resource: 'food', amount: 40, escortHeroId: null },
+      payload: { resource: 'food', amount: 40, escortHeroId: null, quoteDay: 3 },
     },
     {
       commandId: uuid,
@@ -374,11 +374,19 @@ describe('CommandSchema', () => {
       { commandId: uuid, type: 'sendCaravan', payload: { resource: 'wood', amount: 10 } },
     ],
     [
+      'caravana sem o dia da cotação',
+      {
+        commandId: uuid,
+        type: 'sendCaravan',
+        payload: { resource: 'wood', amount: 10, escortHeroId: null },
+      },
+    ],
+    [
       'caravana de ouro',
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'gold', amount: 10, escortHeroId: null },
+        payload: { resource: 'gold', amount: 10, escortHeroId: null, quoteDay: 3 },
       },
     ],
     [
@@ -386,7 +394,7 @@ describe('CommandSchema', () => {
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'wood', amount: 1.5, escortHeroId: null },
+        payload: { resource: 'wood', amount: 1.5, escortHeroId: null, quoteDay: 3 },
       },
     ],
     [
@@ -394,7 +402,7 @@ describe('CommandSchema', () => {
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'wood', amount: 10, escortHeroId: null, unitPrice: 9000 },
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, unitPrice: 9000, quoteDay: 3 },
       },
     ],
     [
@@ -402,7 +410,7 @@ describe('CommandSchema', () => {
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'wood', amount: 10, escortHeroId: null, ambushed: false },
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, ambushed: false, quoteDay: 3 },
       },
     ],
     [
@@ -410,7 +418,7 @@ describe('CommandSchema', () => {
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'wood', amount: 10, escortHeroId: null, arrivesAtMs: 1 },
+        payload: { resource: 'wood', amount: 10, escortHeroId: null, arrivesAtMs: 1, quoteDay: 3 },
       },
     ],
     [
@@ -418,7 +426,7 @@ describe('CommandSchema', () => {
       {
         commandId: uuid,
         type: 'sendCaravan',
-        payload: { resource: 'wood', amount: 10, escortHeroId: ['hero-1', 'hero-2'] },
+        payload: { resource: 'wood', amount: 10, escortHeroId: ['hero-1', 'hero-2'], quoteDay: 3 },
       },
     ],
     [
@@ -1776,8 +1784,22 @@ describe('ViewStateSchema', () => {
     expect(
       ViewStateSchema.safeParse(deriveViewState(createInitialState('s', settings), 0)).error,
     ).toBeUndefined();
-    run(order('sendCaravan', { resource: 'wood', amount: 300, escortHeroId: null }));
-    run(order('sendCaravan', { resource: 'stone', amount: 45, escortHeroId: null }));
+    run(
+      order('sendCaravan', {
+        resource: 'wood',
+        amount: 300,
+        escortHeroId: null,
+        quoteDay: state.market.quoteDay,
+      }),
+    );
+    run(
+      order('sendCaravan', {
+        resource: 'stone',
+        amount: 45,
+        escortHeroId: null,
+        quoteDay: state.market.quoteDay,
+      }),
+    );
     const onTheRoad = deriveViewState(state, state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(onTheRoad).error).toBeUndefined();
     expect(onTheRoad.market.caravans).toHaveLength(2);
@@ -1785,14 +1807,24 @@ describe('ViewStateSchema', () => {
     expect(
       applyCommand(
         state,
-        order('sendCaravan', { resource: 'food', amount: 5, escortHeroId: null }),
+        order('sendCaravan', {
+          resource: 'food',
+          amount: 5,
+          escortHeroId: null,
+          quoteDay: state.market.quoteDay,
+        }),
         0,
       ),
     ).toMatchObject({ ok: false, code: 'CARAVAN_LIMIT' });
     expect(
       applyCommand(
         createInitialState('s', settings),
-        order('sendCaravan', { resource: 'food', amount: 5, escortHeroId: null }),
+        order('sendCaravan', {
+          resource: 'food',
+          amount: 5,
+          escortHeroId: null,
+          quoteDay: state.market.quoteDay,
+        }),
         0,
       ),
     ).toMatchObject({ ok: false, code: 'MARKET_LEVEL_REQUIRED' });

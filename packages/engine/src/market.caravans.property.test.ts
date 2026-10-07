@@ -102,10 +102,18 @@ function visit(state: GameState, plan: Visit): { state: GameState; events: GameE
       resource: plan.resource,
       amount: plan.amount,
       escortHeroId: escort,
+      quoteDay: view.market.quoteDay,
     }),
   );
   if (plan.second) {
-    orders.push(command('sendCaravan', { resource: 'wood', amount: 40, escortHeroId: null }));
+    orders.push(
+      command('sendCaravan', {
+        resource: 'wood',
+        amount: 40,
+        escortHeroId: null,
+        quoteDay: view.market.quoteDay,
+      }),
+    );
   }
   if (plan.expedition) {
     const free = view.guild.heroes.filter((hero) => hero.canDepart && hero.id !== escort);

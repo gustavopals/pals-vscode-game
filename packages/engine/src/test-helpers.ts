@@ -418,13 +418,23 @@ export function caravanPost(
   );
 }
 
-/** A ordem de enviar uma caravana; sem `escortHeroId`, vai sem escolta. */
+/**
+ * O `quoteDay` que `apply` troca pelo dia de cotação do estado em que a ordem cai: a ordem de
+ * teste, escrita antes de o estado existir, vale "com a cotação de agora".
+ */
+export const QUOTE_OF_NOW = -1;
+
+/**
+ * A ordem de enviar uma caravana; sem `escortHeroId`, vai sem escolta. Sem `quoteDay`, vale a
+ * cotação do estado em que for aplicada (`QUOTE_OF_NOW`); com ele, o jogador "viu" aquele dia.
+ */
 export function caravanOrder(
   resource: 'food' | 'wood' | 'stone',
   amount: number,
   escortHeroId: string | null = null,
+  quoteDay: number = QUOTE_OF_NOW,
 ): Command {
-  return command('sendCaravan', { resource, amount, escortHeroId });
+  return command('sendCaravan', { resource, amount, escortHeroId, quoteDay });
 }
 
 /**
@@ -1115,6 +1125,13 @@ export function command<T extends Command['type']>(
 
 /** Aplica um comando no instante atual do estado. */
 export function apply(state: GameState, cmd: Command): CommandResult {
+  if (cmd.type === 'sendCaravan' && cmd.payload.quoteDay === QUOTE_OF_NOW) {
+    return applyCommand(
+      state,
+      { ...cmd, payload: { ...cmd.payload, quoteDay: state.market.quoteDay } },
+      state.lastProcessedAt,
+    );
+  }
   return applyCommand(state, cmd, state.lastProcessedAt);
 }
 

@@ -824,11 +824,18 @@ export type Command =
    * Manda uma caravana vender longe (GDD §5.9; ADR 0018, decisão 17): um recurso, `amount`
    * unidades inteiras, pelo preço de venda de agora vezes a fração do conteúdo, fixado nesta
    * ordem. `escortHeroId` é o herói que vai com ela, ou `null` para mandá-la sem escolta.
+   * `quoteDay` é o `market.quoteDay` da visão que o jogador viu: se o dia de jogo virou, o preço
+   * fixado não é o que ele conferiu, e a ordem é recusada (`PRICE_CHANGED`), como em `trade`.
    */
   | {
       commandId: string;
       type: 'sendCaravan';
-      payload: { resource: MarketResourceId; amount: number; escortHeroId: string | null };
+      payload: {
+        resource: MarketResourceId;
+        amount: number;
+        escortHeroId: string | null;
+        quoteDay: number;
+      };
     }
   /**
    * Põe um Mestre para trabalhar em um edifício produtivo, ou o deixa sem edifício

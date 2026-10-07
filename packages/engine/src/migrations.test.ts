@@ -5216,7 +5216,12 @@ describe('versão 21 → 22', () => {
     const state = migrateState(old, { timeScale: 3 });
     const sent = applyCommand(
       state,
-      command('sendCaravan', { resource: 'food', amount: 50, escortHeroId: null }),
+      command('sendCaravan', {
+        resource: 'food',
+        amount: 50,
+        escortHeroId: null,
+        quoteDay: state.market.quoteDay,
+      }),
       state.lastProcessedAt,
     );
     if (!sent.ok) {
