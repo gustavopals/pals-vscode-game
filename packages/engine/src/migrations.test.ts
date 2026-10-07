@@ -79,12 +79,21 @@ import { EXPEDITION_LESSON_KINDS_V20, MARKET_BASE_PRICES_V21 } from './migration
 import { BUILDING_IDS_V21, MARKET_RESOURCE_IDS_V21, RNG_FIXED_STREAMS_V21 } from './migrations/v21';
 import { CARAVAN_SLOTS_CAP_V22, HERO_STATUS_IDS_V22 } from './migrations/v22';
 import { MASTER_IDS_V23, MASTERS_CAP_V23, PRODUCTION_BUILDING_IDS_V23 } from './migrations/v23';
+import {
+  CARAVAN_MAX_UNITS_V24,
+  CARAVAN_SLOTS_BY_LEVEL_V24,
+  CARAVAN_TRIP_MS_V24,
+  DAILY_VOLUME_PER_LEVEL_V24,
+  DAY_MS_V24,
+} from './migrations/v24';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
   addHero,
   caravanEscortScenario,
+  caravanScenario,
+  marketDayScenario,
   masterOrder,
   mastersScenario,
   masterWaitingScenario,
@@ -5187,7 +5196,8 @@ describe('versão 20 → 21', () => {
     );
     expect(
       open((state) => {
-        state.market.quoteDay = 3;
+        // O dia de hoje: a guarda da versão 24 recusa a cotação de um dia que ainda não chegou.
+        state.market.quoteDay = Math.floor(state.lastProcessedAt / (2 * HOUR)) + 1;
         state.market.prices.wood = 1300;
         state.rng.market = [1, 2, 3, 4];
       }),
@@ -5768,5 +5778,71 @@ describe('versão 23 → 24', () => {
     const atDoor = JSON.parse(JSON.stringify(masterWaitingScenario())) as Draft;
     atDoor.settlement.mastersWaiting[0].worked = false;
     expect(currentShape(atDoor, '')).toBe('settlement.mastersWaiting.0.worked: campo desconhecido');
+  });
+});
+
+describe('os limites do Mercado e das caravanas na guarda da versão 24 (revisão da Fase E, R5)', () => {
+  const broken = (from: GameState, edit: (state: Draft) => void): string | null => {
+    const copy = JSON.parse(JSON.stringify(from)) as Draft;
+    edit(copy);
+    return currentShape(copy, '');
+  };
+
+  it('os números escritos na forma são os do conteúdo de hoje', () => {
+    const { market, calendar } = balance;
+    expect(DAILY_VOLUME_PER_LEVEL_V24).toBe(market.dailyVolumePerLevel);
+    expect(DAY_MS_V24).toBe(calendar.dayMs);
+    expect(CARAVAN_MAX_UNITS_V24).toBe(market.caravan.maxUnits);
+    expect(CARAVAN_TRIP_MS_V24).toBe(market.caravan.tripMs);
+    expect(CARAVAN_SLOTS_BY_LEVEL_V24).toEqual([...market.caravan.slotsByLevel]);
+  });
+
+  it('recusa o negociado além do volume do dia do nível de agora e a cotação de um dia que ainda não chegou', () => {
+    // O Mercado no nível 1, em dia de feira: 200 por recurso.
+    const fair = marketDayScenario();
+    expect(broken(fair, () => undefined)).toBeNull();
+    const level = fair.settlement.buildings.market;
+    expect(broken(fair, (state) => (state.market.tradedToday.wood = 200 * level))).toBeNull();
+    expect(broken(fair, (state) => (state.market.tradedToday.wood = 200 * level + 1))).toBe(
+      `market.tradedToday.wood: negociado além do volume do dia (${200 * level})`,
+    );
+    const today = Math.floor(fair.lastProcessedAt / (2 * HOUR)) + 1;
+    expect(fair.market.quoteDay).toBe(today);
+    expect(broken(fair, (state) => (state.market.quoteDay = today + 1))).toBe(
+      'market.quoteDay: cotação de um dia que ainda não chegou',
+    );
+  });
+
+  it('recusa a caravana com o Mercado abaixo do nível, além dos lugares, com carga acima do máximo e com chegada além de uma viagem', () => {
+    // Uma caravana na estrada com o Mercado no nível 2.
+    const road = caravanScenario();
+    expect(broken(road, () => undefined)).toBeNull();
+    expect(road.market.caravans).toHaveLength(1);
+    expect(broken(road, (state) => (state.settlement.buildings.market = 1))).toBe(
+      'market.caravans: 1 na estrada, e o Mercado Nv1 mantém 0',
+    );
+    expect(broken(road, (state) => (state.market.caravans[0].amount = 301))).toBe(
+      'market.caravans.0.amount: carga além do máximo de uma caravana (300)',
+    );
+    expect(broken(road, (state) => (state.market.caravans[0].amount = 300))).toBeNull();
+    expect(
+      broken(
+        road,
+        (state) => (state.market.caravans[0].arrivesAtMs = state.lastProcessedAt + 4 * HOUR + 1),
+      ),
+    ).toBe('market.caravans.0.arrivesAtMs: chegada além de uma viagem inteira');
+    expect(
+      broken(
+        road,
+        (state) => (state.market.caravans[0].arrivesAtMs = state.lastProcessedAt + 4 * HOUR),
+      ),
+    ).toBeNull();
+    // Duas na estrada só a partir do Mercado Nv4.
+    const two = caravanEscortScenario();
+    expect(broken(two, () => undefined)).toBeNull();
+    expect(two.market.caravans).toHaveLength(2);
+    expect(broken(two, (state) => (state.settlement.buildings.market = 3))).toBe(
+      'market.caravans: 2 na estrada, e o Mercado Nv3 mantém 1',
+    );
   });
 });
