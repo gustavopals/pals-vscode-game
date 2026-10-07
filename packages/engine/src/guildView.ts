@@ -250,6 +250,9 @@ function arrearsText(state: GameState): string {
     if (heroes.some((hero) => !isBeyondArrears(hero) && servingSinceMs(hero) > started)) {
       sentences.push(texts.latecomers);
     }
+    if (heroes.some((hero) => !isBeyondArrears(hero) && !isAtHome(hero))) {
+      sentences.push(texts.away);
+    }
   }
   sentences.push(texts.remedy);
   return fillText(sentences.join(' '), values);

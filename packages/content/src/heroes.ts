@@ -240,6 +240,8 @@ export const wageArrearsTexts = {
   /** Só quando há um herói que chegou depois de o atraso abrir. */
   latecomers:
     'Para quem chegou, ou voltou do cativeiro, com o atraso já aberto, os dois prazos contam da chegada dele.',
+  /** Só quando há um herói fora do feudo (em expedição ou em escolta) que o atraso alcança. */
+  away: 'Quem está fora do feudo não parte na estrada: se o prazo já tiver vencido, parte no instante em que voltar.',
   remedy:
     'O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente n{mina} ou dispense um herói.',
   /** O atraso fechou há pouco, e a virada do dia ainda cobra o herói que o prazo já devia. */

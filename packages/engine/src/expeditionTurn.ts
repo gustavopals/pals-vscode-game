@@ -53,6 +53,7 @@ import type {
   Item,
 } from './types';
 import { MILLI } from './units';
+import { chargeReturned } from './wages';
 
 /**
  * As expedições na linha do tempo (GDD §9.2; ADR 0017, decisões 7 e 9; ADR 0018, decisão 11): o
@@ -491,6 +492,14 @@ function returnHome(
     sold: sold.map((item) => item.defId),
     lost: false,
   });
+  // Depois do saque e do relatório: quem volta com o soldo em atraso e o prazo vencido é
+  // cobrado na volta (revisão da Fase E, R2; `chargeReturned`).
+  chargeReturned(
+    draft,
+    team.map((hero) => hero.id),
+    atMs,
+    events,
+  );
 }
 
 /**

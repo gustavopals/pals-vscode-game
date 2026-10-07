@@ -8,6 +8,7 @@ import { storeResource } from './storage';
 import { watchtowerLevel } from './threat';
 import type { Caravan, GameEvent, GameState } from './types';
 import { MILLI } from './units';
+import { chargeReturned } from './wages';
 
 /**
  * As caravanas na linha do tempo (GDD §5.9; ADR 0017, decisão 9; ADR 0018, decisão 17): a
@@ -103,6 +104,11 @@ function arrive(draft: GameState, caravan: Caravan, atMs: number, events: GameEv
       { ...placeholders, ...(escort === null ? {} : { heroi: escort.name }) },
       escort === null ? undefined : caravanTemplates.escortedArrival,
     );
+  }
+  // Depois de entregar a carga: o herói que volta com o soldo em atraso e o prazo vencido é
+  // cobrado na volta, e não em uma virada em casa que ele pode nunca encontrar (R2).
+  if (escort !== null) {
+    chargeReturned(draft, [escort.id], atMs, events);
   }
   // O último passo: o estado não guarda fluxo de caravana que já chegou.
   dropStream(draft, stream);

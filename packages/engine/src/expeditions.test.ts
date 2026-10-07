@@ -1252,9 +1252,11 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
     expect(nextEventAt(at.state)).toBeGreaterThan(T);
   });
 
-  it('a virada do dia vem antes: quem volta nela não é cobrado pelo soldo em atraso daquela virada; é na seguinte', () => {
+  it('a virada do dia vem antes, e quem volta nela com o prazo vencido é cobrado na volta, depois de entregar o saque (revisão da Fase E, R2)', () => {
     // Um atraso de mais de 24 h reais, com Edda fora: o prazo já deve uma partida, e ela volta
-    // exatamente na virada do dia. A cobrança da virada vem antes da volta e não a alcança.
+    // exatamente na virada do dia. A cobrança da virada vem antes da volta e não a alcança
+    // (ela ainda está fora); a volta, no mesmo instante, cobra: quem deve não espera em casa
+    // uma virada que uma equipe sempre na estrada nunca encontraria.
     const T = 20 * DAY;
     const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
     const start = guildHall(T - 5 * MINUTE, (draft) => {
@@ -1288,12 +1290,58 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
     expect(kinds).toContain('dayStarted');
     expect(kinds).toContain('expeditionReturned');
     expect(kinds.indexOf('expeditionReturned')).toBeGreaterThan(kinds.indexOf('dayStarted'));
-    expect(kinds).not.toContain('heroLeft');
-    expect(at.state.guild.heroes.map((entry) => entry.status)).toEqual(['idle']);
-    // Na virada seguinte ela está no feudo, e o prazo cobra.
+    // A partida vem depois da linha da volta, uma vez só.
+    expect(kinds.filter((kind) => kind === 'heroLeft')).toHaveLength(1);
+    expect(kinds.indexOf('heroLeft')).toBeGreaterThan(kinds.indexOf('expeditionReturned'));
+    expect(at.state.guild.heroes).toEqual([]);
+    // Sem herói, o atraso fecha no mesmo instante.
+    expect(at.state.guild.wageArrears).toBeNull();
+    // De uma vez ou parando um milissegundo antes: o mesmo estado e os mesmos eventos.
+    const split = advanceTo(advanceTo(start, T - 1).state, T);
+    expect(split.state).toEqual(at.state);
+    expect(split.events).toEqual(at.events);
+    // A virada seguinte não cobra de novo.
     const next = advanceTo(at.state, T + DAY);
-    expect(next.events.filter((event) => event.type === 'heroLeft')).toHaveLength(1);
-    expect(next.state.guild.heroes).toEqual([]);
+    expect(next.events.filter((event) => event.type === 'heroLeft')).toEqual([]);
+  });
+
+  it('quem volta de expedição com o soldo em dia, ou antes do prazo, fica', () => {
+    const T = 20 * DAY + 30 * MINUTE;
+    const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
+    const away = (sinceMs: number) =>
+      guildHall(T - 5 * MINUTE, (draft) => {
+        const edda = addHero(draft, { name: 'Edda', gender: 'f', joinedAtMs: 0 });
+        edda.status = 'expedition';
+        draft.settlement.resources.gold = 0;
+        draft.guild.wageArrears = { sinceMs, carriedMs: 0, departed: 0 };
+        draft.ids.expedition = 1;
+        draft.guild.expeditions = [
+          {
+            id: 'expedition-1',
+            modelId: 'patrol',
+            variant: 0,
+            heroIds: ['hero-1'],
+            posture: 'balanced',
+            sentAtMs: T - 15 * MINUTE,
+            durationFactor: { num: 1, den: 1 },
+            status: 'returning',
+            nodeId: 'home',
+            nodeEndsAtMs: T,
+            crossroads: null,
+            loot: { resources: { ...blank }, items: [] },
+            log: [],
+          },
+        ];
+      });
+    // O atraso tem 23 h reais (ritmo 1): ainda não deve ninguém.
+    const early = advanceTo(away(T - 23 * HOUR), T);
+    expect(early.events.map((event) => event.type as string)).not.toContain('heroLeft');
+    expect(early.state.guild.heroes.map((entry) => entry.status)).toEqual(['idle']);
+    // Com 25 h, deve um: ela parte na volta, fora de qualquer virada.
+    const due = advanceTo(away(T - 25 * HOUR), T);
+    expect(
+      due.events.filter((event) => event.type === 'heroLeft').map((event) => event.atMs),
+    ).toEqual([T]);
   });
 });
 

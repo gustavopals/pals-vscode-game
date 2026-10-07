@@ -803,47 +803,130 @@ describe('o herói em escolta (GDD §9.1: um herói faz uma coisa por vez)', () 
     expect(view(state).guild.heroes[1]?.statusText).toBe('No feudo');
   });
 
-  it('no soldo em atraso é herói fora: deve, mas só parte depois de voltar', () => {
-    // O cofre vazio e ninguém na Mina: o atraso abre na hora. Rolf, no feudo, parte no prazo;
-    // Edda, na estrada, não.
-    const broke = (escort: boolean) => {
-      const start = caravanPost(0, withHeroes(), { level: 4 });
-      start.settlement.resources.gold = 0;
-      let state = accept(start, command('setWorkers', { building: 'goldMine', count: 0 })).state;
-      if (escort) {
-        // Uma unidade de pedra: a caravana chega e não paga nem o soldo de uma hora.
+  /** O cofre vazio e ninguém na Mina: o atraso abre na hora. */
+  const broke = (atMs: number, edit: (draft: GameState) => void, level = 4) => {
+    const start = caravanPost(atMs, edit, { level });
+    start.settlement.resources.gold = 0;
+    return accept(start, command('setWorkers', { building: 'goldMine', count: 0 })).state;
+  };
+
+  it('no soldo em atraso é herói fora: deve, não parte na estrada, e é cobrado no instante em que volta (revisão da Fase E, R2)', () => {
+    // Rolf, no feudo, parte no prazo, na virada. Edda, na estrada, não parte enquanto está
+    // fora; quando volta com o prazo vencido, parte ali mesmo, depois de entregar a carga.
+    const { leaveAfterRealMs, leaveEveryRealMs } = balance.heroes.arrears;
+    let state = broke(0, withHeroes());
+    state = accept(state, caravanOrder('stone', 1, 'hero-1')).state;
+    // A tela diz o que espera quem está fora.
+    expect(view(state).guild.wage.arrears?.text).toContain(
+      'Quem está fora do feudo não parte na estrada: se o prazo já tiver vencido, parte no instante em que voltar.',
+    );
+    expect(view(broke(0, withHeroes())).guild.wage.arrears?.text).not.toContain('na estrada');
+    const events: GameEvent[] = [];
+    const deadline = leaveAfterRealMs + 2 * leaveEveryRealMs + DAY;
+    while (state.lastProcessedAt < deadline && state.guild.heroes.length > 0) {
+      const next = advanceTo(state, state.lastProcessedAt + TRIP);
+      events.push(...next.events);
+      state = next.state;
+      const edda = state.guild.heroes.find((hero) => hero.id === 'hero-1');
+      if (edda !== undefined && edda.status === 'idle') {
         state = accept(state, caravanOrder('stone', 1, 'hero-1')).state;
       }
-      return state;
-    };
-    const { leaveAfterRealMs, leaveEveryRealMs } = balance.heroes.arrears;
-    // Reenvia a escolta a cada chegada, para Edda passar o prazo inteiro na estrada.
-    let state = broke(true);
-    const left: string[] = [];
-    const deadline = leaveAfterRealMs + 2 * leaveEveryRealMs + DAY;
-    while (state.lastProcessedAt < deadline) {
-      const next = advanceTo(state, state.lastProcessedAt + TRIP);
-      left.push(...eventsOfType(next.events, 'heroLeft').map((event) => String(event.data.heroId)));
-      state = next.state;
-      state.settlement.resources.gold = 0;
-      const again = apply(state, caravanOrder('stone', 1, 'hero-1'));
-      if (again.ok) {
-        state = again.state;
-        state.settlement.resources.gold = 0;
-      }
     }
-    // Rolf partiu; Edda, sempre na estrada, continua a serviço.
-    expect(left).toEqual(['hero-2']);
-    expect(state.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1']);
-    expect(state.guild.wageArrears).not.toBeNull();
-    // De volta ao feudo com o atraso aberto e o prazo vencido, ela parte na virada seguinte.
-    const home = advanceTo(state, state.lastProcessedAt + TRIP + DAY);
-    expect(eventsOfType(home.events, 'heroLeft').map((event) => event.data.heroId)).toEqual([
-      'hero-1',
+    const left = eventsOfType(events, 'heroLeft');
+    expect(left.map((event) => event.data.heroId)).toEqual(['hero-2', 'hero-1']);
+    // Rolf parte em uma virada de dia; Edda, no instante de uma chegada, logo depois da linha
+    // da caravana que escoltava.
+    expect((left[0]?.atMs ?? 1) % DAY).toBe(0);
+    const eddaLeft = left[1] as GameEvent;
+    const sameInstant = events.filter((event) => event.atMs === eddaLeft.atMs);
+    const kinds = sameInstant.map((event) => event.type as string);
+    expect(kinds).toContain('caravanArrived');
+    expect(kinds.indexOf('heroLeft')).toBeGreaterThan(kinds.indexOf('caravanArrived'));
+    expect(eddaLeft.atMs % TRIP).toBe(0);
+    // Ela nunca partiu de dentro da estrada: até a chegada que a cobrou, esteve a serviço.
+    expect(state.guild.heroes).toEqual([]);
+    expect(state.market.caravans).toEqual([]);
+    expect(currentShape(stored(state), '')).toBeNull();
+  });
+
+  it('a manobra da escolta perpétua já não blinda o herói: 120 dias de jogo reenviando 1 de madeira a cada chegada, fora de toda virada (R2)', () => {
+    // Antes da correção: 60 chegadas e nenhum `heroLeft`. O herói devido só era cobrado em uma
+    // virada de dia em casa, e ele nunca estava em casa em uma virada.
+    let state = broke(
+      30 * MINUTE,
+      (draft) => void addHero(draft, { name: 'Rolf', classId: 'archer' }),
+      2,
+    );
+    const events: GameEvent[] = [];
+    let sent = 0;
+    const end = state.lastProcessedAt + 120 * DAY;
+    while (state.lastProcessedAt < end) {
+      const rolf = state.guild.heroes[0];
+      if (rolf !== undefined && rolf.status === 'idle') {
+        state = accept(state, caravanOrder('wood', 1, 'hero-1')).state;
+        sent += 1;
+      }
+      const next = advanceTo(state, Math.min(end, state.lastProcessedAt + TRIP));
+      events.push(...next.events);
+      state = next.state;
+    }
+    // Nenhuma chegada cai em uma virada de dia.
+    const arrivals = eventsOfType(events, 'caravanArrived');
+    expect(arrivals.every((event) => event.atMs % DAY !== 0)).toBe(true);
+    // O Descontente é marcado na virada, com ele fora; a partida, na volta em que o prazo vence.
+    const sour = eventsOfType(events, 'heroDiscontent');
+    expect(sour).toHaveLength(1);
+    expect((sour[0]?.atMs ?? 1) % DAY).toBe(0);
+    const left = eventsOfType(events, 'heroLeft');
+    expect(left).toHaveLength(1);
+    // Cada 1 de madeira paga 35 minutos de soldo: o atraso vivido chega às 24 h reais (ritmo 1)
+    // na sétima chegada, 28 h de jogo depois do primeiro envio.
+    expect(left[0]?.atMs).toBe(30 * MINUTE + 7 * TRIP);
+    expect(arrivals).toHaveLength(7);
+    expect(sent).toBe(7);
+    expect(arrivals.at(-1)?.atMs).toBe(left[0]?.atMs);
+    expect(state.guild.heroes).toEqual([]);
+    expect(state.guild.wageArrears).toBeNull();
+    // Cortar o avanço em volta da chegada que cobra dá o mesmo estado e os mesmos eventos.
+    const before = advanceTo(
+      accept(
+        broke(30 * MINUTE, (draft) => void addHero(draft, { name: 'Rolf', classId: 'archer' }), 2),
+        caravanOrder('wood', 1, 'hero-1'),
+      ).state,
+      30 * MINUTE + TRIP - 1,
+    );
+    const whole = advanceTo(before.state, 30 * MINUTE + TRIP + HOUR);
+    const split = advanceTo(
+      advanceTo(before.state, 30 * MINUTE + TRIP).state,
+      30 * MINUTE + TRIP + HOUR,
+    );
+    expect(split.state).toEqual(whole.state);
+  });
+
+  it('a volta não cobra duas vezes: de duas escoltas que voltam com meia hora de diferença, o prazo que deve um herói leva um só', () => {
+    const { leaveAfterRealMs } = balance.heroes.arrears;
+    // Edda e Rolf saem com meia hora de diferença, e as duas chegadas caem depois das 24 h.
+    let state = broke(leaveAfterRealMs - TRIP + 10 * MINUTE, withHeroes());
+    // O atraso está aberto há 24 h reais menos a viagem, mais dez minutos.
+    state.guild.wageArrears = { sinceMs: 0, carriedMs: 0, departed: 0 };
+    for (const hero of state.guild.heroes) {
+      hero.joinedAtMs = 0;
+    }
+    state = accept(state, caravanOrder('stone', 1, 'hero-1')).state;
+    state = advanceTo(state, state.lastProcessedAt + 30 * MINUTE).state;
+    state = accept(state, caravanOrder('stone', 1, 'hero-2')).state;
+    const first = leaveAfterRealMs + 10 * MINUTE;
+    const later = advanceTo(state, first + 30 * MINUTE);
+    const left = eventsOfType(later.events, 'heroLeft');
+    // Na primeira chegada o prazo deve um herói, e é Edda quem volta: parte. Meia hora depois
+    // o prazo ainda deve um só, já cobrado: Rolf volta e fica.
+    expect(left.map((event) => [event.data.heroId, event.atMs])).toEqual([['hero-1', first]]);
+    expect(later.state.guild.heroes.map((hero) => [hero.id, hero.status])).toEqual([
+      ['hero-2', 'idle'],
     ]);
-    // Sem escolta, os dois partem no prazo.
-    const both = advanceTo(broke(false), deadline);
-    expect(eventsOfType(both.events, 'heroLeft')).toHaveLength(2);
+    // A virada seguinte não cobra de novo o que a volta já cobrou.
+    const turn = advanceTo(later.state, Math.ceil((first + 30 * MINUTE) / DAY) * DAY);
+    expect(eventsOfType(turn.events, 'heroLeft')).toEqual([]);
   });
 });
 

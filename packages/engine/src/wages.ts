@@ -361,23 +361,83 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
       // Quem poderia partir está fora: continua devido para a virada em que tiver voltado.
       break;
     }
-    guild.heroes = guild.heroes.filter((hero) => hero.id !== leaver.id);
-    // O que ele levava é do feudo: volta ao arsenal.
-    releaseEquipment(draft, leaver, atMs, events);
+    depart(draft, leaver, atMs, events);
     departed += 1;
-    emit(
-      events,
-      draft,
-      atMs,
-      'heroLeft',
-      { heroId: leaver.id, heroes: guild.heroes.length },
-      { heroi: leaver.name },
-    );
   }
+  recordDepartures(draft, departed);
+}
+
+/** O herói cobrado pelo prazo deixa o feudo: sai da lista, devolve o que levava e ganha a linha. */
+function depart(draft: GameState, leaver: Hero, atMs: number, events: GameEvent[]): void {
+  const { guild } = draft;
+  guild.heroes = guild.heroes.filter((hero) => hero.id !== leaver.id);
+  // O que ele levava é do feudo: volta ao arsenal.
+  releaseEquipment(draft, leaver, atMs, events);
+  emit(
+    events,
+    draft,
+    atMs,
+    'heroLeft',
+    { heroId: leaver.id, heroes: guild.heroes.length },
+    { heroi: leaver.name },
+  );
+}
+
+/** Grava quantos heróis a conta já cobrou: no atraso aberto, ou no que fechou dentro da janela. */
+function recordDepartures(draft: GameState, departed: number): void {
+  const { guild } = draft;
   if (guild.wageArrears !== null) {
     guild.wageArrears = { ...guild.wageArrears, departed };
   } else if (guild.lastWageArrears !== null) {
     guild.lastWageArrears = { ...guild.lastWageArrears, departed };
+  }
+}
+
+/**
+ * A cobrança do atraso **no instante em que heróis voltam ao feudo** (a chegada da caravana que
+ * escoltavam, o retorno da expedição; revisão da Fase E, R2). A regra aprovada diz que quem
+ * está fora "só pode partir depois de voltar"; enquanto a cobrança era só da virada do dia,
+ * manter o herói sempre na estrada (reenviando uma caravana de uma unidade a cada chegada, fora
+ * de toda virada) o blindava do atraso para sempre. Agora, **o herói devido que volta é cobrado
+ * ali mesmo**: se o prazo da conta deve mais partidas do que ela cobrou (`wageDeparturesOwedAt`)
+ * e quem é o da vez (o que chegou por último entre os que podem partir e estão no feudo, a
+ * regra de `turnWages`) é um dos que acabaram de voltar, ele parte, depois de entregar a carga
+ * ou o saque.
+ *
+ * - **Só quem voltou neste instante parte aqui.** Se o da vez é alguém que já estava em casa,
+ *   é a virada seguinte que o cobra, como sempre: a volta de um não antecipa a partida de outro.
+ * - **Não cobra duas vezes.** A conta é a mesma da virada (`departed`): o que a volta cobra a
+ *   virada não cobra de novo, e a virada do mesmo instante (que vem antes na ordem do instante,
+ *   com ele ainda fora) deixou o devido por cobrar.
+ * - **Não perdoa nada.** O perdão do devido quando ninguém pode partir é da virada.
+ * - **Não marca o Descontente.** A marca é da virada do dia e alcança quem está fora.
+ *
+ * A chegada da caravana e o fim do nó de retorno já são instantes da linha do tempo: avançar de
+ * uma vez ou aos pedaços encontra as mesmas voltas, e a divisão de intervalo continua exata.
+ */
+export function chargeReturned(
+  draft: GameState,
+  heroIds: readonly string[],
+  atMs: number,
+  events: GameEvent[],
+): void {
+  const ledger = wageLedgerAt(draft, atMs);
+  if (ledger === null) {
+    return;
+  }
+  const owed = wageDeparturesOwedAt(draft, atMs);
+  let { departed } = ledger;
+  const before = departed;
+  while (departed < owed) {
+    const leaver = lastArrived(mayLeaveNow(draft, ledger));
+    if (leaver === null || !heroIds.includes(leaver.id)) {
+      break;
+    }
+    depart(draft, leaver, atMs, events);
+    departed += 1;
+  }
+  if (departed !== before) {
+    recordDepartures(draft, departed);
   }
 }
 
