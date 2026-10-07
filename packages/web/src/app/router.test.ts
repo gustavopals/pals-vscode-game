@@ -46,7 +46,7 @@ describe('endereço da aba (hash)', () => {
     expect(parseHash('')).toBeNull();
     expect(parseHash('#')).toBeNull();
     expect(parseHash('#/')).toBeNull();
-    expect(parseHash('#/mercado')).toBeNull();
+    expect(parseHash('#/mercadinho')).toBeNull();
     expect(parseHash('#/feudo/obras')).toBeNull();
     // O nome interno da aba não é endereço.
     expect(parseHash('#/fief')).toBeNull();
@@ -93,8 +93,8 @@ describe('visibleTabs', () => {
     expect(visibleTabs(false, [])).toEqual(['welcome']);
   });
 
-  it('com feudo, Hoje, Feudo, Conselho e Guilda estão sempre lá, nessa ordem', () => {
-    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council', 'guild']);
+  it('com feudo, Hoje, Feudo, Conselho, Guilda e Mercado estão sempre lá, nessa ordem', () => {
+    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council', 'guild', 'market']);
   });
 
   it('as abas abertas vêm depois das fixas, em ordem estável', () => {
@@ -103,6 +103,7 @@ describe('visibleTabs', () => {
       'fief',
       'council',
       'guild',
+      'market',
       'chronicle',
       'settings',
       'about',
@@ -112,6 +113,7 @@ describe('visibleTabs', () => {
       'fief',
       'council',
       'guild',
+      'market',
       'settings',
     ]);
   });
@@ -125,18 +127,26 @@ describe('visibleTabs', () => {
   });
 
   it('uma aba fixa na lista de abertas não aparece duas vezes', () => {
-    expect(visibleTabs(true, ['fief', 'today', 'council', 'guild'])).toEqual([
+    expect(visibleTabs(true, ['fief', 'today', 'council', 'guild', 'market'])).toEqual([
       'today',
       'fief',
       'council',
       'guild',
+      'market',
     ]);
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
 
   it('só Crônica, Preferências e Sobre podem ser fechadas', () => {
     expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'settings']);
-    expect([...GAME_ROUTES].sort()).toEqual(['chronicle', 'council', 'fief', 'guild', 'today']);
+    expect([...GAME_ROUTES].sort()).toEqual([
+      'chronicle',
+      'council',
+      'fief',
+      'guild',
+      'market',
+      'today',
+    ]);
   });
 
   it('sem feudo, o Conselho não aparece nem abre: é aba do jogo', () => {

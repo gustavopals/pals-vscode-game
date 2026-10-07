@@ -5,6 +5,7 @@ export const ROUTES = [
   'fief',
   'council',
   'guild',
+  'market',
   'chronicle',
   'settings',
   'about',
@@ -12,7 +13,14 @@ export const ROUTES = [
 export type Route = (typeof ROUTES)[number];
 
 /** Abas que só existem com um feudo aberto. */
-export const GAME_ROUTES: readonly Route[] = ['today', 'fief', 'council', 'guild', 'chronicle'];
+export const GAME_ROUTES: readonly Route[] = [
+  'today',
+  'fief',
+  'council',
+  'guild',
+  'market',
+  'chronicle',
+];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
 export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'settings', 'about'];
 
@@ -22,6 +30,7 @@ const PATHS: Record<Route, string> = {
   fief: 'feudo',
   council: 'conselho',
   guild: 'guilda',
+  market: 'mercado',
   chronicle: 'cronica',
   settings: 'preferencias',
   about: 'sobre',
@@ -33,6 +42,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   fief: 'Feudo',
   council: 'Conselho',
   guild: 'Guilda',
+  market: 'Mercado',
   chronicle: 'Crônica',
   settings: 'Preferências',
   about: 'Sobre',
@@ -44,6 +54,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   fief: 'shield',
   council: 'law',
   guild: 'compass',
+  market: 'tag',
   chronicle: 'book',
   settings: 'gear',
   about: 'info',
@@ -76,10 +87,10 @@ export function resolveRoute(requested: Route, hasGame: boolean, fallback: Route
 /**
  * As abas à vista, na ordem: as fixas e depois as que o jogador abriu. O Conselho é fixo como o
  * feudo: é onde as cartas esperam, e o jogador não precisa lembrar de abri-lo. A Guilda também:
- * é onde a equipe e o soldo dela estão à vista.
+ * é onde a equipe e o soldo dela estão à vista. O Mercado também: sem ele, a aba diz como erguê-lo.
  */
 export function visibleTabs(hasGame: boolean, opened: readonly Route[]): Route[] {
-  const fixed: Route[] = hasGame ? ['today', 'fief', 'council', 'guild'] : ['welcome'];
+  const fixed: Route[] = hasGame ? ['today', 'fief', 'council', 'guild', 'market'] : ['welcome'];
   const extra = CLOSABLE_ROUTES.filter(
     (route) => opened.includes(route) && (hasGame || !GAME_ROUTES.includes(route)),
   );

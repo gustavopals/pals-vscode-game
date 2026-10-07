@@ -62,6 +62,21 @@ import {
   traitLines,
   wageOf,
 } from './guild';
+import {
+  CARAVAN_ICON,
+  CARAVAN_NODE,
+  caravanTreeLine,
+  hasMarket,
+  MARKET_ICON,
+  MARKET_SECTION,
+  marketLines,
+  marketTreeLine,
+  MASTER_ICON,
+  MASTER_NODE,
+  PRICE_NODE,
+  remainingLine,
+  TRENDS,
+} from './market';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
 import {
   activeObjectives,
@@ -555,6 +570,107 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * O Mercado (GDD §13.2: "Mercado · comida 1,3 ▲ · madeira 1,1 ▼"): o preço de compra de cada
+ * recurso com a marca da tendência, e uma linha por recurso com os dois preços e o que ainda
+ * cabe hoje. As caravanas na estrada vêm como linhas ("Caravana a Porto do Rio · 240 de madeira ·
+ * chega em 52 min"). O clique só navega; as ordens saem dos botões da linha: "Negociar" e, com
+ * lugar na estrada, "Caravana". Sem o Mercado, a linha diz que ele não foi erguido, e a
+ * explicação é a frase do servidor.
+ */
+function marketNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { market } = view;
+  const open = { id: 'lords.openPanel', args: [MARKET_SECTION] };
+  const built = hasMarket(market);
+  return {
+    id: 'market',
+    label: 'Mercado',
+    description: marketTreeLine(market),
+    tooltip: marketLines(market, elapsedSeconds).join('\n'),
+    icon: MARKET_ICON,
+    expanded: true,
+    command: open,
+    ...(built
+      ? {
+          contextValue: market.caravanOffer.available ? 'lords.marketCaravan' : 'lords.market',
+          // O risco da estrada fica à vista antes do clique em "Caravana".
+          ...(market.caravanOffer.available
+            ? { actionHints: { 'lords.sendCaravan': market.caravanOffer.riskText } }
+            : {}),
+        }
+      : {}),
+    children: [
+      ...market.prices.map((row): TreeNode => ({
+        id: `${PRICE_NODE}${row.resource}`,
+        label: row.label,
+        description: `compra ${row.buyText} · venda ${row.sellText} · ${TRENDS[row.trend].word}`,
+        tooltip: [row.breakdown, remainingLine(row)].join('\n'),
+        icon: TRENDS[row.trend].icon,
+        command: open,
+      })),
+      ...market.caravans.map((caravan): TreeNode => ({
+        id: `${CARAVAN_NODE}${caravan.id}`,
+        label: `Caravana a ${caravan.destination}`,
+        description: caravanTreeLine(caravan, elapsedSeconds),
+        tooltip: caravan.text,
+        icon: CARAVAN_ICON,
+        command: open,
+      })),
+    ],
+  };
+}
+
+/**
+ * Os Mestres (GDD §5.4): quem trabalha onde e com que bônus (na frase do servidor), quem ainda se
+ * adapta e quem espera uma vaga nas casas. O botão "Mover" de cada linha abre a lista dos
+ * edifícios com o que cada um renderia. Sem Mestre nenhum, a árvore nem fala deles.
+ */
+function mastersNode(view: ViewState): TreeNode[] {
+  const { masters, mastersWaiting } = view;
+  if (masters.length === 0 && mastersWaiting.count === 0) {
+    return [];
+  }
+  const open = { id: 'lords.openPanel', args: ['fief'] };
+  const bonusOf = (masterId: string) =>
+    view.workers.find((row) => row.master?.id === masterId)?.master?.bonusText ?? null;
+  return [
+    {
+      id: 'masters',
+      label: 'Mestres',
+      description:
+        `${masters.length}` +
+        (mastersWaiting.count > 0 ? ` · ${mastersWaiting.count} à espera de vaga` : ''),
+      tooltip: [view.workersRules.masterText, mastersWaiting.note]
+        .filter((line) => line !== null)
+        .join('\n'),
+      icon: MASTER_ICON,
+      expanded: true,
+      command: open,
+      children: [
+        ...masters.map((master): TreeNode => ({
+          id: `${MASTER_NODE}${master.id}`,
+          label: master.name,
+          description: `${master.buildingLabel}${bonusOf(master.id) === null ? '' : ` · ${bonusOf(master.id)}`}`,
+          tooltip: [master.originText, bonusOf(master.id)]
+            .filter((line) => line !== null)
+            .join('\n'),
+          icon: MASTER_ICON,
+          contextValue: 'lords.master',
+          command: open,
+        })),
+        ...mastersWaiting.names.map((name): TreeNode => ({
+          id: `masterWaiting:${name}`,
+          label: name,
+          description: 'espera uma vaga nas casas',
+          tooltip: mastersWaiting.note ?? '',
+          icon: 'watch',
+          command: open,
+        })),
+      ],
+    },
+  ];
+}
+
+/**
  * Os Objetivos do Senhor (GDD §12.2): "3 em aberto · 4 cumpridos" e uma linha por objetivo em
  * aberto, com o progresso e a recompensa. A explicação de cada linha é o porquê, a recompensa e o
  * que falta agora, nas frases do servidor. O clique só navega; o botão da linha é o comando que
@@ -766,6 +882,8 @@ export function buildTree(input: TreeInput): TreeNode[] {
         constructionsNode(view, input.elapsedSeconds),
         councilNode(view, input.elapsedSeconds),
         guildNode(view, input.elapsedSeconds),
+        marketNode(view, input.elapsedSeconds),
+        ...mastersNode(view),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),
         ...hearthNode(view),

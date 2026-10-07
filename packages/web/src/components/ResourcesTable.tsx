@@ -12,6 +12,7 @@ import {
 } from '../ui/format';
 import type { Actions } from './actions';
 import { formatApprox, formatDuration, formatNumber, formatSigned } from './format';
+import { sellShortcut } from '../ui/market';
 import { Explained, Icon } from './shared';
 
 type Row = ViewState['resources'][number];
@@ -89,7 +90,10 @@ function Trend(props: { view: ViewState; row: Row }) {
  */
 function StorageNotes(props: { view: ViewState; disabled: boolean; actions: Actions }) {
   const { view, disabled, actions } = props;
-  const groups = new Map<string, { lines: string[]; upgrade: Upgrade | null }>();
+  const groups = new Map<
+    string,
+    { lines: string[]; sellable: Array<{ row: Row; amount: number }>; upgrade: Upgrade | null }
+  >();
   for (const row of view.resources) {
     const line = storageNotice(row);
     if (line === null || row.storageBuilding === null) {
@@ -97,11 +101,18 @@ function StorageNotes(props: { view: ViewState; disabled: boolean; actions: Acti
     }
     const group = groups.get(row.storageBuilding) ?? {
       lines: [],
+      sellable: [],
       upgrade:
         view.constructions.available.find((entry) => entry.building === row.storageBuilding) ??
         null,
     };
     group.lines.push(line);
+    // A saída ao lado do problema (IDEIA-11): com o Mercado de pé e algo que ele aceite agora, o
+    // atalho "Vender" com quanto cabe no volume de hoje. Os números são os da visão.
+    const sale = sellShortcut(view, row.id);
+    if (sale !== null) {
+      group.sellable.push({ row, amount: sale.amount });
+    }
     groups.set(row.storageBuilding, group);
   }
   if (groups.size === 0) {
@@ -109,7 +120,7 @@ function StorageNotes(props: { view: ViewState; disabled: boolean; actions: Acti
   }
   return (
     <ul class="storage-notes">
-      {[...groups].map(([building, { lines, upgrade }]) => {
+      {[...groups].map(([building, { lines, sellable, upgrade }]) => {
         const verb = upgrade !== null && isNewBuilding(upgrade) ? 'Construir' : 'Ampliar';
         // A frase do servidor às vezes já diz o que trava a obra (o Salão): não se repete.
         const reason =
@@ -133,15 +144,31 @@ function StorageNotes(props: { view: ViewState; disabled: boolean; actions: Acti
                 </p>
               ) : null}
             </div>
-            {upgrade !== null ? (
-              <button
-                type="button"
-                disabled={disabled || upgrade.blockedReason !== null}
-                onClick={() => actions.run('lords.build', upgrade.building)}
-              >
-                {verb} {upgrade.label}
-              </button>
-            ) : null}
+            <div class="storage-actions">
+              {upgrade !== null ? (
+                <button
+                  type="button"
+                  disabled={disabled || upgrade.blockedReason !== null}
+                  onClick={() => actions.run('lords.build', upgrade.building)}
+                >
+                  {verb} {upgrade.label}
+                </button>
+              ) : null}
+              {sellable.map(({ row, amount }) => (
+                <button
+                  key={row.id}
+                  type="button"
+                  data-sell={row.id}
+                  disabled={disabled}
+                  onClick={() =>
+                    actions.run('lords.trade', { resource: row.id, direction: 'sell', amount })
+                  }
+                >
+                  Vender até {formatNumber(amount)}
+                  <span class="sr-only"> de {row.label.toLowerCase()} no Mercado</span>
+                </button>
+              ))}
+            </div>
           </li>
         );
       })}

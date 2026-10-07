@@ -10,6 +10,7 @@ import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '.
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
 import { TAVERN_SECTION } from '../ui/guild';
+import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
 import {
   isObjectiveCompleted,
@@ -51,6 +52,18 @@ function total(events: GameEvent[], key: string): number {
       return typeof value === 'number' ? sum + value : sum;
     }, 0),
   );
+}
+
+/**
+ * O que o depósito cortou de uma recompensa ou devolução (`lost_<recurso>`). **A emboscada de uma
+ * caravana também traz `lost_<recurso>`**, mas é a carga que a estrada levou, e não falta de
+ * espaço: ela não é corte nem vai ao chão. Ela já saiu do estoque no envio (`spent_`), e o
+ * ouro da parte vendida entra como `gained_gold`; a perda está na frase do evento, em "custou".
+ */
+const cutBy = (event: GameEvent): boolean => event.type !== 'caravanAmbushed';
+
+function cutOf(events: GameEvent[], id: string): number {
+  return total(events.filter(cutBy), `lost_${id}`);
 }
 
 /** O número e a faixa da moral de uma visão, como o relatório os guarda. */
@@ -127,6 +140,11 @@ export function costAction(
   if (topic === 'hero:injured' || topic === 'expedition:lost') {
     // O ferido se recupera sozinho, e a equipe perdida não volta: a Guilda diz quem pode partir.
     return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
+  }
+  if (topic === 'caravan') {
+    // A estrada: quem foi emboscado sem escolta aprende com a próxima; quem chegou inteiro vê as
+    // caravanas para mandar outra.
+    return { command: 'lords.openPanel', arg: CARAVANS_SECTION, label: 'Ver as caravanas' };
   }
   if (topic === 'wage') {
     // O atraso já fechou, ou quem partiu já partiu: o que há a ver é a equipe e o soldo dela.
@@ -299,6 +317,19 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // a da defesa.
     case 'threatTileRestored':
       return { block: 'cost', topic: 'threat' };
+    // O Mercado e a estrada (GDD §5.9; o tratamento completo é da V3F-T3). A caravana que chegou
+    // é o feudo vendendo longe sem o senhor; a emboscada é o preço, e a próxima ação é a estrada
+    // (a escolta, a Torre de Vigia). O ouro que ela trouxe entra na tabela como "recebido", e a
+    // carga que partiu, como "gasto": pelos totais do evento, nunca como produção. A negociação
+    // (`marketTraded`), o envio (`caravanSent`) e a mudança de preço ficam na Crônica: o ouro
+    // que ganharam ou gastaram já está na tabela, e a frase de cada um não é desfecho.
+    case 'caravanArrived':
+      return { block: 'prospered', topic: 'caravan' };
+    case 'caravanAmbushed':
+      return { block: 'cost', topic: 'caravan' };
+    // Quem chegou pela porta com vaga trabalha; o que espera uma vaga está em "Antes de partir".
+    case 'masterArrived':
+      return { block: 'prospered', topic: 'master' };
     case 'heroInjured':
       return { block: 'cost', topic: 'hero:injured' };
     case 'heroCaptured':
@@ -355,7 +386,9 @@ function wasteItems(view: ViewState, wasted: Map<string, number>, events: GameEv
             (event.type === 'storageFilled' && event.data.building === building) ||
             // O fecho diário do que a produção perdeu, ou a recompensa que o depósito cortou.
             ids.some(
-              (id) => positive(event.data[`wasted_${id}`]) || positive(event.data[`lost_${id}`]),
+              (id) =>
+                positive(event.data[`wasted_${id}`]) ||
+                (cutBy(event) && positive(event.data[`lost_${id}`])),
             ),
         ) + 0.5,
       item: {
@@ -573,7 +606,7 @@ export function buildReturnReport(
           const delta = row.stock - stockBefore;
           const spent = total(events, `spent_${row.id}`);
           const received = total(events, `gained_${row.id}`);
-          const cut = total(events, `lost_${row.id}`);
+          const cut = cutOf(events, row.id);
           const raided = total(events, `raided_${row.id}`);
           const wasted = Math.max(
             cut,

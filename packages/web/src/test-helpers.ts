@@ -250,6 +250,51 @@ export const heroCapturedView = golden.heroCaptured as unknown as ViewState;
 export const denClearedView = golden.denCleared as unknown as ViewState;
 
 /**
+ * O Mercado e as caravanas, como o motor os mostra (V3E-T1 e T2): o dia em que o Mercado Nv1 fica
+ * pronto, com os preços na base; um dia de feira, no outono, com os preços longe da base, a
+ * tendência de cada um e o volume em parte gasto; uma caravana sem escolta na estrada, com o
+ * Mercado Nv2 (a estrada cheia); e duas, uma delas com Edda de escolta, no Nv4 (a estrada cheia,
+ * Rolf livre para escoltar a próxima).
+ */
+export const marketOpeningView = golden.marketOpening as unknown as ViewState;
+export const marketDayView = golden.marketDay as unknown as ViewState;
+export const caravanView = golden.caravan as unknown as ViewState;
+export const caravanEscortView = golden.caravanEscort as unknown as ViewState;
+/**
+ * Os Mestres (V3E-T3): Odo na Pedreira com o bônus, Berta na Fazenda ainda em adaptação; e Gil
+ * à porta, sem vaga nas casas, com Odo sem edifício.
+ */
+export const mastersView = golden.masters as unknown as ViewState;
+export const masterWaitingView = golden.masterWaiting as unknown as ViewState;
+
+/**
+ * O Mercado Nv2 com a estrada livre e um herói que pode escoltar: é a oferta de caravana
+ * `available`, que os goldens não trazem (nos dois a estrada está cheia). Os números do preço são
+ * os do golden do Mercado Nv4 com a estrada vazia; o que o teste confere é que a tela repete o
+ * que a visão diz, nunca que o motor chegou a estes números.
+ */
+export function openRoadView(): ViewState {
+  const base = caravanEscortView;
+  return {
+    ...base,
+    market: {
+      ...base.market,
+      caravans: [],
+      caravanOffer: {
+        ...base.market.caravanOffer,
+        available: true,
+        blockedReason: null,
+        slotsInUse: 0,
+        resources: base.market.caravanOffer.resources.map((row) => ({
+          ...row,
+          maxSendable: 200,
+        })),
+      },
+    },
+  };
+}
+
+/**
  * O motivo que o servidor dá a um destino sem equipe possível. É frase inventada, de propósito:
  * o que os testes conferem é que a tela a repete, não o texto do conteúdo.
  */

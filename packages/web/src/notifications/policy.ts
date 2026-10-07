@@ -12,6 +12,7 @@ import {
   wageRiskLine,
 } from '../ui/guild';
 import { CROSSROADS_ICON, type Expedition, ITEM_ICON, REPORT_ICON } from '../ui/expeditions';
+import { CARAVAN_ICON, MARKET_ICON, MASTER_ICON } from '../ui/market';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
@@ -43,6 +44,10 @@ const ALARMS: ReadonlyArray<GameEvent['type']> = [
   // O herói que ficou em cativeiro e o que não volta mais (GDD §9.1): a equipe perdeu alguém.
   'heroCaptured',
   'heroDied',
+  // A caravana sem escolta que foi emboscada (GDD §5.9): a carga perdeu metade, e o aviso diz
+  // quanto, com a frase da Crônica. É a perda do Mercado que o jogador pode evitar da próxima
+  // vez, com a escolta ou a Torre de Vigia.
+  'caravanAmbushed',
 ];
 /**
  * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
@@ -64,6 +69,19 @@ const RELIEFS: ReadonlyArray<GameEvent['type']> = [
  * não avisa: a ordem foi dele, e a resposta está na tela.
  */
 const ARRIVALS: ReadonlyArray<GameEvent['type']> = ['heroJoined'];
+/**
+ * O Mestre que chegou, ou que chegou e espera uma vaga nas casas (GDD §5.4): como o herói que uma
+ * carta prometeu, avisa no nível "Essenciais" e sem o tom de alarme. Quem o jogador move
+ * (`masterAssigned`) não avisa por esse caminho: a ordem foi dele, e só entra em "Todas".
+ */
+const MASTERS: ReadonlyArray<GameEvent['type']> = ['masterArrived', 'masterWaiting'];
+/** O que é do Mercado e da estrada: os avisos destes eventos levam à aba Mercado. */
+const MARKET: ReadonlyArray<GameEvent['type']> = [
+  'caravanArrived',
+  'caravanAmbushed',
+  'marketTraded',
+  'marketPriceSwing',
+];
 /** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
 const GUILD: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
@@ -143,6 +161,13 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'expeditionPostureDecided',
   'heroLeveledUp',
   'itemFound',
+  // O Mercado (GDD §5.9): a caravana que chegou inteira, a negociação (que o jogador mesmo
+  // deu, ou outra aba), o preço que andou muito e o Mestre que passou a trabalhar em outro lugar.
+  // Nada disso pede ação imediata: só em "Todas". A emboscada é alarme, acima.
+  'caravanArrived',
+  'marketTraded',
+  'marketPriceSwing',
+  'masterAssigned',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -190,6 +215,14 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   heroDied: 'error',
   heroLeveledUp: 'star-full',
   itemFound: ITEM_ICON,
+  // O Mercado e a estrada levam os ícones da aba; a emboscada, o da perda.
+  caravanArrived: CARAVAN_ICON,
+  caravanAmbushed: 'error',
+  marketTraded: MARKET_ICON,
+  marketPriceSwing: 'graph',
+  masterArrived: MASTER_ICON,
+  masterWaiting: 'watch',
+  masterAssigned: MASTER_ICON,
 };
 
 export type PolicyInput = {
@@ -335,6 +368,16 @@ export function isHeroArrival(event: GameEvent): boolean {
   return ARRIVALS.includes(event.type);
 }
 
+/** O evento é um Mestre que chegou, com vaga ou à espera dela. */
+export function isMasterArrival(event: GameEvent): boolean {
+  return MASTERS.includes(event.type);
+}
+
+/** O evento é do Mercado ou da estrada: o aviso dele leva à aba Mercado. */
+export function isMarketEvent(event: GameEvent): boolean {
+  return MARKET.includes(event.type);
+}
+
 /** O evento é da equipe (soldo, herói que chega ou parte): o aviso dele leva à aba Guilda. */
 export function isGuildEvent(event: GameEvent): boolean {
   return GUILD.includes(event.type);
@@ -442,6 +485,7 @@ function wanted(
     isDecision(event) ||
     isWatchReport(event) ||
     isHeroArrival(event) ||
+    isMasterArrival(event) ||
     (level === 'all' && INFORMATIVE.includes(event.type))
   );
 }
@@ -515,7 +559,8 @@ function rank(event: GameEvent): number {
     isRelief(event) ||
     isSeasonTurn(event) ||
     isWatchReport(event) ||
-    isHeroArrival(event)
+    isHeroArrival(event) ||
+    isMasterArrival(event)
     ? 2
     : 3;
 }

@@ -11,6 +11,7 @@ import {
 
 import { Emitter, type KeyValueStore } from '../services/store';
 import { expeditionDeadlines } from '../ui/expeditions';
+import { marketDeadlines } from '../ui/market';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
 
@@ -570,7 +571,7 @@ export class GameSession {
    * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
    * visão (obra, planejada à espera, fim de adaptação, aldeão a caminho, virada do dia, carta do
    * Conselho que expira, próxima audiência, incursão à vista, ferido que sara, e os da Guilda:
-   * `guildDeadlines`) vence antes: a
+   * `guildDeadlines`; e os do Mercado: `marketDeadlines`) vence antes: a
    * contagem regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais dá ao
    * servidor tempo de virar o prazo.
    */
@@ -599,7 +600,14 @@ export class GameSession {
       view.threat.incoming?.inSeconds,
       view.population.secondsToNextRecovery,
     ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);
-    const soonest = Math.min(...deadlines, ...guildDeadlines(view), Number.POSITIVE_INFINITY);
+    const soonest = Math.min(
+      ...deadlines,
+      ...guildDeadlines(view),
+      // A mudança do preço (a virada do dia), a chegada de cada caravana e o fim da adaptação de
+      // cada Mestre: nesses instantes a tela muda sem evento que avise.
+      ...marketDeadlines(view),
+      Number.POSITIVE_INFINITY,
+    );
     return Math.max(MIN_POLL_MS, Math.min(poll, (soonest + 1) * 1000));
   }
 

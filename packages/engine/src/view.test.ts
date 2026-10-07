@@ -37,6 +37,8 @@ import {
   marketDayScenario,
   marketOpeningScenario,
   caravanEscortScenario,
+  mastersScenario,
+  masterWaitingScenario,
   caravanScenario,
 } from './test-helpers';
 import type { GameState } from './types';
@@ -620,6 +622,11 @@ describe('golden do ViewState', () => {
       // quando volta).
       caravan: view(caravanScenario()),
       caravanEscort: view(caravanEscortScenario()),
+      // Os Mestres, para as telas do feudo e da árvore (V3E-T4): Odo na Pedreira, já com o
+      // bônus, e Berta na Fazenda, ainda em adaptação; e Gil à porta, sem vaga nas casas, com
+      // Odo sem edifício.
+      masters: view(mastersScenario()),
+      masterWaiting: view(masterWaitingScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

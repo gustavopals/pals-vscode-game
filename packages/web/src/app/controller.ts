@@ -51,6 +51,7 @@ import {
   isSeasonTurn,
   isWatchReport,
   isGuildEvent,
+  isMarketEvent,
   MUTE_DURATION_MS,
   raidAftermath,
   raidAhead,
@@ -947,7 +948,7 @@ export class Controller {
           }
         : {
             label: 'Ver',
-            route: isGuildEvent(event) ? 'guild' : 'fief',
+            route: isGuildEvent(event) ? 'guild' : isMarketEvent(event) ? 'market' : 'fief',
             ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
           },
     });
@@ -1110,7 +1111,7 @@ export class Controller {
      */
     action: {
       label: string;
-      route: 'today' | 'fief' | 'council' | 'guild';
+      route: 'today' | 'fief' | 'council' | 'guild' | 'market';
       section?: string;
       /**
        * Em vez de só navegar, o botão executa este comando do app (que leva à aba e abre o que
@@ -1599,11 +1600,16 @@ export class Controller {
    * uma falha de rede, reenvia a mesma ordem, e o herói não é contratado nem pago duas vezes.
    * Enquanto a resposta não volta, a ordem fica em `guildOrders` e um segundo acionamento dela
    * (o duplo clique) não vira ordem. A recusa do servidor vira aviso com a frase dele.
+   *
+   * Do Mercado, das caravanas e dos Mestres também (`trade`, `sendCaravan`, `assignMaster`): a
+   * trava é por alvo (o recurso, o Mestre), e `where` diz a quem a ordem não chegou, se a sessão
+   * acabar com ela a caminho.
    */
   private async guildOrder<T extends CommandType>(
     key: string,
     type: T,
     payload: Extract<Command, { type: T }>['payload'],
+    where = 'à Guilda',
   ): Promise<boolean> {
     const options: AttemptOptions = {
       intents: intentsOf(type, payload),
@@ -1629,7 +1635,7 @@ export class Controller {
         // Quem cuida da conta já avisa que a sessão terminou; aqui se diz o que foi da ordem.
         this.toast({
           kind: 'warning',
-          text: 'A sessão terminou antes de a ordem chegar à Guilda: nada foi feito. Entre de novo para repetir.',
+          text: `A sessão terminou antes de a ordem chegar ${where}: nada foi feito. Entre de novo para repetir.`,
         });
       } finally {
         this.setGuildOrder(key, false);
@@ -1692,6 +1698,54 @@ export class Controller {
     slot: Extract<Command, { type: 'unequipItem' }>['payload']['slot'],
   ): Promise<boolean> {
     return this.guildOrder(`equipment:${heroId}`, 'unequipItem', { heroId, slot });
+  }
+
+  /**
+   * Compra ou vende no Mercado (GDD §5.9). `quoteDay` é o dia da cotação que o jogador conferiu:
+   * se o dia virou, o servidor recusa com `PRICE_CHANGED` e a visão que vem na recusa traz o
+   * preço novo; a tela pede a confirmação de novo, e nada é reenviado sozinho. A trava é a do
+   * recurso: o duplo clique em "Vender" não vende duas vezes.
+   */
+  trade(
+    resource: Extract<Command, { type: 'trade' }>['payload']['resource'],
+    direction: Extract<Command, { type: 'trade' }>['payload']['direction'],
+    amount: number,
+    quoteDay: number,
+  ): Promise<boolean> {
+    return this.guildOrder(
+      `trade:${resource}`,
+      'trade',
+      { resource, direction, amount, quoteDay },
+      'ao Mercado',
+    );
+  }
+
+  /** Manda uma caravana a vender longe (GDD §5.9), com o preço da cotação que o jogador viu. */
+  sendCaravan(
+    resource: Extract<Command, { type: 'sendCaravan' }>['payload']['resource'],
+    amount: number,
+    escortHeroId: string | null,
+    quoteDay: number,
+  ): Promise<boolean> {
+    return this.guildOrder(
+      `caravan:${resource}`,
+      'sendCaravan',
+      { resource, amount, escortHeroId, quoteDay },
+      'ao Mercado',
+    );
+  }
+
+  /** Põe um Mestre para trabalhar em um edifício, ou o deixa sem edifício (`building: null`). */
+  assignMaster(
+    masterId: string,
+    building: Extract<Command, { type: 'assignMaster' }>['payload']['building'],
+  ): Promise<boolean> {
+    return this.guildOrder(
+      `master:${masterId}`,
+      'assignMaster',
+      { masterId, building },
+      'aos trabalhadores',
+    );
   }
 
   /**

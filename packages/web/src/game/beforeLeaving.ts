@@ -19,6 +19,7 @@ import {
 } from '../ui/format';
 import { CROSSROADS_NEAR_SECONDS, sendable, waitingExpeditions } from '../ui/expeditions';
 import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
+import { CARAVANS_SECTION, freeMasters } from '../ui/market';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
 /**
@@ -547,6 +548,66 @@ function idleHeroesItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * O Mestre sem edifício não soma o bônus enquanto o jogador está longe (`bonusActive` é falso na
+ * visão): é sugestão, como os aldeões livres. O botão abre a alocação, que mostra o que cada
+ * edifício passaria a render. O Mestre que espera uma vaga nas casas tem a frase do servidor.
+ */
+function mastersItem(view: ViewState): LeavingItem | null {
+  const idle = freeMasters(view);
+  const [first] = idle;
+  if (first === undefined) {
+    return null;
+  }
+  const names = joinList(idle.map((master) => master.name));
+  return {
+    id: 'master',
+    severity: 'info',
+    text:
+      idle.length === 1
+        ? `${names} está sem edifício e não soma o bônus.`
+        : `${names} estão sem edifício e não somam o bônus.`,
+    command: { id: 'lords.assignMaster', arg: first.id, label: 'Alocar Mestre' },
+  };
+}
+
+/** O Mestre que chegou e espera uma vaga nas casas: a frase é a do servidor. */
+function mastersWaitingItem(view: ViewState): LeavingItem | null {
+  const { note } = view.mastersWaiting;
+  return note === null
+    ? null
+    : {
+        id: 'masterWaiting',
+        severity: 'info',
+        text: note,
+        command: { id: 'lords.openPanel', arg: 'fief', label: 'Ver as casas' },
+      };
+}
+
+/**
+ * A caravana sem escolta que chega enquanto o jogador está longe: o desfecho só existe na chegada,
+ * e a frase da visão (`caravanOffer.riskText`) diz o risco de agora. Só as que chegam dentro do
+ * horizonte. É informação: o botão leva às caravanas.
+ */
+function caravanItem(view: ViewState): LeavingItem | null {
+  const exposed = view.market.caravans.filter(
+    (caravan) => caravan.escortName === null && caravan.arrivesInSeconds <= LEAVING_HORIZON_SECONDS,
+  );
+  const [first] = exposed;
+  if (first === undefined) {
+    return null;
+  }
+  return {
+    id: 'caravan',
+    severity: 'info',
+    text:
+      exposed.length === 1
+        ? `A caravana com ${first.cargoText} chega em ${formatApprox(first.arrivesInSeconds)}, sem escolta. ${view.market.caravanOffer.riskText}`
+        : `${exposed.length} caravanas chegam nas próximas horas, sem escolta; a primeira em ${formatApprox(first.arrivesInSeconds)}. ${view.market.caravanOffer.riskText}`,
+    command: { id: 'lords.openPanel', arg: CARAVANS_SECTION, label: 'Ver as caravanas' },
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -581,6 +642,9 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
+    mastersItem(view),
+    mastersWaitingItem(view),
+    caravanItem(view),
     idleHeroesItem(view),
   ].filter((item) => item !== null);
 }

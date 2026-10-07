@@ -13,6 +13,7 @@ import { ChronicleTab } from '../tabs/Chronicle';
 import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
+import { MarketTab } from '../tabs/Market';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
 import { keptReports } from '../ui/expeditions';
@@ -97,6 +98,7 @@ function TabContent(props: {
     case 'fief':
     case 'council':
     case 'guild':
+    case 'market':
       if (view === null) {
         return (
           <main class="loading">
@@ -118,6 +120,18 @@ function TabContent(props: {
             retryInSeconds={retryInSeconds}
             answering={controller.answering}
             record={controller.councilLog}
+            actions={actions}
+          />
+        );
+      }
+      if (route === 'market') {
+        return (
+          <MarketTab
+            view={view}
+            elapsed={elapsed}
+            online={online}
+            retryInSeconds={retryInSeconds}
+            busy={controller.guildOrders}
             actions={actions}
           />
         );

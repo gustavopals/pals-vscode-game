@@ -13,7 +13,8 @@ const CONSTRUCTION_ORDERS: ReadonlySet<CommandType> = new Set([
  * A intenção de uma ordem: o que o jogador quis mexer, sem o valor que escolheu. Duas ordens com
  * a mesma intenção disputam a mesma coisa (os trabalhadores de um edifício, a obra de um
  * edifício, a resposta a uma carta, um candidato da Taverna, o caminho de uma expedição, o envio
- * a um destino, o espaço de equipamento de um herói), e a mais nova aposenta o "Tentar de novo"
+ * a um destino, o espaço de equipamento de um herói, a negociação ou a caravana de um recurso,
+ * o edifício de um Mestre), e a mais nova aposenta o "Tentar de novo"
  * da mais velha: reenviar a velha depois desfaria a nova, ou faria duas vezes o que o jogador
  * pediu uma.
  *
@@ -29,11 +30,13 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
       ? 'equipment'
       : type;
   const target =
+    fields.masterId ??
     fields.building ??
     fields.instanceId ??
     fields.offerId ??
     fields.expeditionId ??
     fields.modelId ??
+    fields.resource ??
     fields.heroId;
   return typeof target === 'string' ? `${family}:${target}` : family;
 }
@@ -51,5 +54,12 @@ export function intentsOf(type: CommandType, payload: Command['payload']): strin
     type === 'sendExpedition' && Array.isArray(heroIds)
       ? heroIds.filter((heroId): heroId is string => typeof heroId === 'string')
       : [];
-  return [intentOf(type, payload), ...heroes.map((heroId) => `${type}:hero:${heroId}`)];
+  // Uma caravana com escolta disputa também o herói: ele só escolta uma estrada por vez, e a
+  // ordem nova com o mesmo herói aposenta a retentativa da velha.
+  const { escortHeroId } = payload as Record<string, unknown>;
+  const escort =
+    type === 'sendCaravan' && typeof escortHeroId === 'string'
+      ? [`${type}:hero:${escortHeroId}`]
+      : [];
+  return [intentOf(type, payload), ...heroes.map((heroId) => `${type}:hero:${heroId}`), ...escort];
 }

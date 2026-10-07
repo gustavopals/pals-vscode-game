@@ -86,6 +86,31 @@ import {
   wageOf,
 } from '../ui/guild';
 import {
+  blockedFor,
+  MASTER_NODE,
+  CARAVANS_ANCHOR,
+  CARAVANS_SECTION,
+  caravanGold,
+  caravanResource,
+  directionVerb,
+  escortHeroes,
+  escortLine,
+  goldText,
+  hasMarket,
+  MARKET_ANCHOR,
+  MARKET_SECTION,
+  masterOptionLine,
+  maxFor,
+  parseAmount,
+  priceOf,
+  remainingLine,
+  type TradeDirection,
+  tradeLine,
+  tradeTotal,
+  TRENDS,
+  unitPrice,
+} from '../ui/market';
+import {
   CONSTRUCTIONS_ANCHOR,
   CONSTRUCTIONS_SECTION,
   OBJECTIVES_ANCHOR,
@@ -141,6 +166,8 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [EXPEDITIONS_SECTION]: { route: 'guild', anchor: EXPEDITIONS_ANCHOR },
   [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
   [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
+  [MARKET_SECTION]: { route: 'market', anchor: MARKET_ANCHOR },
+  [CARAVANS_SECTION]: { route: 'market', anchor: CARAVANS_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';
@@ -1152,6 +1179,544 @@ export function createCommands(
     }
     await controller.holdFestival();
   });
+
+  // --- Mercado, caravanas e Mestres ----------------------------------------------
+
+  const seeMarket = {
+    label: 'Ver o Mercado',
+    run: () => controller.runCommand('lords.openPanel', MARKET_SECTION),
+  };
+
+  /** O que um acionamento de `lords.trade` já traz: o painel manda tudo, o atalho "Vender" quase. */
+  const tradeRequest = (arg: unknown) => {
+    const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+    const resource = typeof record.resource === 'string' ? record.resource : undefined;
+    const direction: TradeDirection | undefined =
+      record.direction === 'buy' || record.direction === 'sell' ? record.direction : undefined;
+    const amount = typeof record.amount === 'number' ? record.amount : undefined;
+    const quoteDay = typeof record.quoteDay === 'number' ? record.quoteDay : undefined;
+    return { resource, direction, amount, quoteDay, confirmed: record.confirmed === true };
+  };
+
+  /** O recurso é o que a trava do fluxo usa: o duplo clique em "Vender madeira" vale uma ordem. */
+  const tradeTarget = (arg?: unknown) => tradeRequest(arg).resource;
+
+  /**
+   * "Comprar ou vender no Mercado": o único caminho da negociação. O painel já mostrou o total e
+   * mandou a ordem conferida (`confirmed`, com o dia da cotação que o jogador viu); o atalho
+   * "Vender" manda o recurso, o sentido e a quantidade e pede só a confirmação; a paleta
+   * pergunta o recurso, o sentido e a quantidade, e confirma com o total. **Depois de qualquer
+   * diálogo o fluxo lê a visão de novo**: se o dia da cotação mudou enquanto o jogador decidia, o
+   * preço novo é dito e nada é enviado, para ele conferir de novo. O total é `quantidade × preço
+   * de hoje`, a conta exata que o servidor cobra (`ui/market.ts`).
+   */
+  const trade = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const asked = tradeRequest(arg);
+    if (
+      asked.confirmed &&
+      asked.resource !== undefined &&
+      asked.direction !== undefined &&
+      asked.amount !== undefined &&
+      asked.quoteDay !== undefined
+    ) {
+      await controller.trade(
+        asked.resource as Parameters<typeof controller.trade>[0],
+        asked.direction,
+        asked.amount,
+        asked.quoteDay,
+      );
+      return;
+    }
+    if (!hasMarket(view.market)) {
+      controller.toast({ kind: 'info', text: view.market.text, actions: [seeMarket] });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const quoteDay = view.market.quoteDay;
+    const picked =
+      asked.resource === undefined
+        ? await dialogs.pick({
+            title: 'Comprar ou vender no Mercado',
+            placeholder: 'Qual recurso?',
+            items: view.market.prices.map((entry) => ({
+              icon: TRENDS[entry.trend].icon,
+              label: entry.label,
+              description: `compra ${entry.buyText} · venda ${entry.sellText} · ${TRENDS[entry.trend].word}`,
+              detail: `${remainingLine(entry)} ${entry.breakdown}`,
+              value: entry.resource,
+            })),
+          })
+        : asked.resource;
+    if (picked === undefined) {
+      return;
+    }
+    const direction: TradeDirection | undefined =
+      asked.direction ??
+      (await dialogs.pick<TradeDirection>({
+        title: 'Comprar ou vender no Mercado',
+        placeholder: 'Comprar ou vender?',
+        items: (['buy', 'sell'] as const).map((side) => {
+          const row = priceOf(view.market, picked);
+          return {
+            icon: row !== undefined && blockedFor(row, side) !== null ? 'lock' : 'check',
+            label: directionVerb(side),
+            description:
+              row === undefined
+                ? ''
+                : `a ${side === 'buy' ? row.buyText : row.sellText} · cabem até ${formatNumber(maxFor(row, side))}`,
+            detail: row === undefined ? '' : (blockedFor(row, side) ?? ''),
+            value: side,
+          };
+        }),
+      }));
+    if (direction === undefined) {
+      return;
+    }
+    const row = priceOf(view.market, picked);
+    if (row === undefined) {
+      controller.toast({
+        kind: 'warning',
+        text: 'O Mercado não negocia este recurso. Nada foi enviado.',
+        actions: [seeMarket],
+      });
+      return;
+    }
+    const max = maxFor(row, direction);
+    const answer =
+      asked.amount !== undefined
+        ? String(asked.amount)
+        : await dialogs.input({
+            title: `${directionVerb(direction)} ${row.label.toLowerCase()}`,
+            prompt: [
+              `${direction === 'buy' ? 'Compra' : 'Venda'} a ${direction === 'buy' ? row.buyText : row.sellText} de ouro por unidade.`,
+              remainingLine(row),
+              blockedFor(row, direction),
+            ]
+              .filter((line) => line !== null)
+              .join(' '),
+            placeholder: max > 0 ? `de 1 a ${max}` : 'nada cabe agora',
+            value: max > 0 ? String(max) : '',
+            confirmLabel: 'Conferir',
+            // A cada tecla: o total da ordem, antes de confirmar.
+            validate: (value) => {
+              const amount = parseAmount(value);
+              const total = tradeTotal(row, direction, amount);
+              if (amount === null || total === null) {
+                return { message: 'Digite quantas unidades, de 1 em diante.', severity: 'error' };
+              }
+              return {
+                message: `Total: ${goldText(total)} de ouro.${max > 0 && amount > max ? ` Mais do que cabe agora (${formatNumber(max)}): o servidor deve recusar.` : ''}`,
+                severity: 'info',
+              };
+            },
+          });
+    const amount = answer === undefined ? null : parseAmount(answer);
+    if (amount === null) {
+      return;
+    }
+    const total = tradeTotal(row, direction, amount);
+    if (total === null) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `${tradeLine(row, direction, amount, total)}?`,
+      detail: [
+        `Preço de hoje: ${direction === 'buy' ? row.buyText : row.sellText} de ouro por unidade (${TRENDS[row.trend].word}).`,
+        row.breakdown,
+      ],
+      confirmLabel: directionVerb(direction),
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    // Depois da espera: a conta, a visão de agora e o dia da cotação que o jogador conferiu.
+    if (!sameGame(gameId)) {
+      sessionEnded('a negociação');
+      return;
+    }
+    const now = controller.view?.market;
+    const nowRow = now === undefined ? undefined : priceOf(now, row.resource);
+    if (now === undefined || nowRow === undefined || !hasMarket(now)) {
+      controller.toast({
+        kind: 'warning',
+        text: 'O Mercado já não negocia assim. Nada foi enviado.',
+        actions: [seeMarket],
+      });
+      return;
+    }
+    if (now.quoteDay !== quoteDay) {
+      controller.toast({
+        kind: 'warning',
+        text: `O dia virou e o preço do Mercado mudou enquanto você decidia: agora ${row.label.toLowerCase()} está a ${direction === 'buy' ? nowRow.buyText : nowRow.sellText} de ouro. Nada foi enviado: confira de novo.`,
+        actions: [
+          {
+            label: 'Negociar de novo',
+            run: () =>
+              controller.runCommand('lords.trade', {
+                resource: row.resource,
+                direction,
+                amount,
+              }),
+          },
+        ],
+      });
+      return;
+    }
+    await controller.trade(row.resource, direction, amount, quoteDay);
+  }, tradeTarget);
+
+  /** O que um acionamento de `lords.sendCaravan` já traz. */
+  const caravanRequest = (arg: unknown) => {
+    const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+    return {
+      resource: typeof record.resource === 'string' ? record.resource : undefined,
+      amount: typeof record.amount === 'number' ? record.amount : undefined,
+      escortHeroId:
+        typeof record.escortHeroId === 'string' || record.escortHeroId === null
+          ? record.escortHeroId
+          : undefined,
+      quoteDay: typeof record.quoteDay === 'number' ? record.quoteDay : undefined,
+      confirmed: record.confirmed === true,
+    };
+  };
+
+  const caravanTarget = (arg?: unknown) => caravanRequest(arg).resource;
+
+  /**
+   * "Mandar uma caravana": o único caminho do envio. O painel já mostrou o preço fixado, o que ela
+   * rende, a viagem e o risco com a conta, e manda a ordem conferida (`confirmed`, com o dia da
+   * cotação que o jogador viu); a árvore e a paleta perguntam a carga, a quantidade e a escolta
+   * (só quem a visão diz que pode ir) e confirmam com o preço, a chegada e o risco. **Depois de
+   * cada diálogo a visão é lida de novo**: o dia da cotação, o lugar na estrada e a lista das
+   * escoltas. O que mudou não vira ordem.
+   */
+  const sendCaravan = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const asked = caravanRequest(arg);
+    if (
+      asked.confirmed &&
+      asked.resource !== undefined &&
+      asked.amount !== undefined &&
+      asked.escortHeroId !== undefined &&
+      asked.quoteDay !== undefined
+    ) {
+      await controller.sendCaravan(
+        asked.resource as Parameters<typeof controller.sendCaravan>[0],
+        asked.amount,
+        asked.escortHeroId,
+        asked.quoteDay,
+      );
+      return;
+    }
+    const { caravanOffer: offer } = view.market;
+    if (!hasMarket(view.market) || !offer.available) {
+      controller.toast({
+        kind: 'info',
+        text: hasMarket(view.market) ? (offer.blockedReason ?? view.market.text) : view.market.text,
+        actions: [
+          {
+            label: 'Ver as caravanas',
+            run: () => controller.runCommand('lords.openPanel', CARAVANS_SECTION),
+          },
+        ],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const quoteDay = view.market.quoteDay;
+    const resource =
+      asked.resource ??
+      (await dialogs.pick({
+        title: 'Mandar uma caravana',
+        placeholder: `Qual carga? Viagem a ${offer.destination}.`,
+        detail: [offer.priceRatioText, offer.riskText, offer.lossText],
+        items: offer.resources.map((entry) => ({
+          icon: entry.maxSendable > 0 ? 'package' : 'lock',
+          label: entry.label,
+          description: `a ${entry.unitPriceText} de ouro · até ${formatNumber(entry.maxSendable)}`,
+          detail: entry.breakdown,
+          value: entry.resource,
+        })),
+      }));
+    if (resource === undefined) {
+      return;
+    }
+    const chosen = caravanResource(offer, resource);
+    if (chosen === undefined) {
+      return;
+    }
+    const answer =
+      asked.amount !== undefined
+        ? String(asked.amount)
+        : await dialogs.input({
+            title: `Caravana de ${chosen.label.toLowerCase()}`,
+            prompt: `Preço fixado no envio: ${chosen.unitPriceText} de ouro por unidade. Cabem até ${formatNumber(chosen.maxSendable)}.`,
+            placeholder:
+              chosen.maxSendable > 0 ? `de 1 a ${chosen.maxSendable}` : 'sem lugar agora',
+            value: chosen.maxSendable > 0 ? String(chosen.maxSendable) : '',
+            confirmLabel: 'Seguir',
+            validate: (value) => {
+              const amount = parseAmount(value);
+              return amount === null
+                ? { message: 'Digite quantas unidades, de 1 em diante.', severity: 'error' }
+                : {
+                    message: `Rende ${goldText(caravanGold(chosen, amount))} de ouro se chegar inteira.`,
+                    severity: 'info',
+                  };
+            },
+          });
+    const amount = answer === undefined ? null : parseAmount(answer);
+    if (amount === null) {
+      return;
+    }
+    const escorts = escortHeroes(view);
+    const escortId: string | null | undefined =
+      asked.escortHeroId !== undefined
+        ? asked.escortHeroId
+        : escorts.length === 0
+          ? null
+          : await dialogs.pick<string | null>({
+              title: 'Escolta da caravana',
+              placeholder: 'Com quem?',
+              detail: [offer.riskText, offer.riskBreakdown],
+              items: [
+                { icon: 'close', label: 'Sem escolta', description: offer.riskText, value: null },
+                ...escorts.map((hero) => ({
+                  icon: 'person',
+                  label: escortLine(hero),
+                  description: 'fora do feudo até a caravana chegar',
+                  value: hero.id,
+                })),
+              ],
+            });
+    if (escortId === undefined) {
+      return;
+    }
+    const escortName = escorts.find((hero) => hero.id === escortId)?.name ?? null;
+    const gold = caravanGold(chosen, amount);
+    const confirmed = await dialogs.confirm({
+      title: `Mandar ${formatNumber(amount)} de ${chosen.label.toLowerCase()} a ${offer.destination}?`,
+      detail: [
+        `Preço fixado: ${chosen.unitPriceText} de ouro por unidade: ${goldText(gold)} de ouro se chegar inteira.`,
+        `Viagem de ${formatDuration(offer.tripSeconds)}. ${escortName === null ? 'Nenhuma escolta.' : `Escolta: ${escortName}.`}`,
+        offer.riskText,
+        offer.riskBreakdown,
+        offer.lossText,
+      ],
+      confirmLabel: 'Mandar a caravana',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a caravana');
+      return;
+    }
+    const now = controller.view?.market;
+    if (now === undefined || !now.caravanOffer.available) {
+      controller.toast({
+        kind: 'warning',
+        text: `${now?.caravanOffer.blockedReason ?? 'A estrada não tem lugar agora.'} Nada foi enviado.`,
+        actions: [seeMarket],
+      });
+      return;
+    }
+    if (now.quoteDay !== quoteDay) {
+      const row = caravanResource(now.caravanOffer, chosen.resource);
+      controller.toast({
+        kind: 'warning',
+        text: `O dia virou e o preço mudou enquanto você decidia${row === undefined ? '' : `: a ${chosen.label.toLowerCase()} agora é fixada a ${row.unitPriceText} de ouro`}. Nada foi enviado: confira de novo.`,
+        actions: [
+          {
+            label: 'Mandar de novo',
+            run: () =>
+              controller.runCommand('lords.sendCaravan', {
+                resource: chosen.resource,
+                amount,
+                escortHeroId: escortId,
+              }),
+          },
+        ],
+      });
+      return;
+    }
+    if (
+      escortId !== null &&
+      !escortHeroes(controller.view ?? view).some((hero) => hero.id === escortId)
+    ) {
+      controller.toast({
+        kind: 'warning',
+        text: `${escortName ?? 'O herói da escolta'} já não pode escoltar: partiu, feriu-se ou saiu do feudo. Nada foi enviado.`,
+        actions: [seeMarket],
+      });
+      return;
+    }
+    await controller.sendCaravan(chosen.resource, amount, escortId, quoteDay);
+  }, caravanTarget);
+
+  /** O Mestre e o edifício que quem chamou `lords.assignMaster` já escolheu. */
+  const masterRequest = (arg: unknown): { masterId?: string; building?: string | null } => {
+    if (typeof arg === 'string') {
+      return arg === '' ? {} : { masterId: arg };
+    }
+    if (typeof arg !== 'object' || arg === null) {
+      return {};
+    }
+    const { id, masterId, building } = arg as Record<string, unknown>;
+    const chosen: { building?: string | null } =
+      typeof building === 'string' || building === null ? { building } : {};
+    if (typeof masterId === 'string') {
+      return { masterId, ...chosen };
+    }
+    return typeof id === 'string' && id.startsWith(MASTER_NODE)
+      ? { masterId: id.slice(MASTER_NODE.length), ...chosen }
+      : {};
+  };
+
+  const masterNow = (masterId: string) =>
+    controller.view?.masters.find((entry) => entry.id === masterId);
+
+  const masterGone = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'Este Mestre já não serve ao feudo. Nada foi enviado.',
+      actions: [{ label: 'Ver o feudo', run: () => controller.navigate('fief') }],
+    });
+
+  /**
+   * "Mover Mestre": o único caminho da alocação de um Mestre. O painel e a árvore mandam o Mestre;
+   * a paleta pergunta qual. A lista dos edifícios diz, em cada linha, o que ele passaria a
+   * render (durante a adaptação e depois dela) ou por que não pode ir (a frase do servidor, com
+   * cadeado), e a confirmação repete as regras do Mestre, a adaptação entre elas: **toda
+   * chegada a um edifício paga a adaptação**. Depois dos diálogos, a visão é lida de novo.
+   */
+  const assignMaster = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const asked = masterRequest(arg);
+      if (asked.masterId !== undefined && masterNow(asked.masterId) === undefined) {
+        masterGone();
+        return;
+      }
+      if (view.masters.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: view.workersRules.masterText,
+          actions: [{ label: 'Ver o feudo', run: () => controller.navigate('fief') }],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const master =
+        view.masters.find((entry) => entry.id === asked.masterId) ??
+        (view.masters.length === 1
+          ? view.masters[0]
+          : await dialogs.pick<ViewState['masters'][number]>({
+              title: 'Mover Mestre',
+              placeholder: 'Qual Mestre?',
+              items: view.masters.map((entry) => ({
+                icon: 'star-full',
+                label: entry.name,
+                description: entry.buildingLabel,
+                detail: entry.originText,
+                value: entry,
+              })),
+            }));
+      if (master === undefined) {
+        return;
+      }
+      const building =
+        asked.building !== undefined
+          ? asked.building
+          : await dialogs.pick<string | null>({
+              title: `Mover ${master.name}`,
+              placeholder: 'Para qual edifício?',
+              detail: [view.workersRules.masterText],
+              items: [
+                ...master.options.map((option) => ({
+                  icon: option.blockedReason !== null ? 'lock' : option.current ? 'check' : 'tools',
+                  label: option.label,
+                  description: masterOptionLine(option),
+                  value: option.building as string | null,
+                })),
+                ...(master.building === null
+                  ? []
+                  : [
+                      {
+                        icon: 'close',
+                        label: 'Deixar sem edifício',
+                        description: 'Ele deixa de trabalhar e perde o bônus.',
+                        value: null as string | null,
+                      },
+                    ]),
+              ],
+            });
+      if (building === undefined) {
+        return;
+      }
+      const option =
+        building === null ? undefined : master.options.find((entry) => entry.building === building);
+      if (option !== undefined && option.blockedReason !== null && !option.current) {
+        controller.toast({
+          kind: 'info',
+          text: option.blockedReason,
+          actions: [{ label: 'Ver o feudo', run: () => controller.navigate('fief') }],
+        });
+        return;
+      }
+      const confirmed = await dialogs.confirm({
+        title:
+          building === null
+            ? `Tirar ${master.name} do edifício?`
+            : `Mover ${master.name} para ${option?.label ?? 'o edifício'}?`,
+        detail: [
+          ...(option === undefined ? [] : [masterOptionLine(option)]),
+          view.workersRules.masterText,
+        ],
+        confirmLabel: building === null ? 'Tirar' : 'Mover',
+        cancelLabel: 'Agora não',
+      });
+      if (!confirmed) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a alocação do Mestre');
+        return;
+      }
+      const now = masterNow(master.id);
+      if (now === undefined) {
+        masterGone();
+        return;
+      }
+      const nowOption =
+        building === null ? undefined : now.options.find((entry) => entry.building === building);
+      if (nowOption !== undefined && nowOption.blockedReason !== null && !nowOption.current) {
+        controller.toast({
+          kind: 'warning',
+          text: `${nowOption.blockedReason} Nada foi enviado.`,
+          actions: [{ label: 'Ver o feudo', run: () => controller.navigate('fief') }],
+        });
+        return;
+      }
+      await controller.assignMaster(
+        master.id,
+        building as Parameters<typeof controller.assignMaster>[1],
+      );
+    },
+    (arg) => masterRequest(arg).masterId,
+  );
 
   // --- Expedições ----------------------------------------------------------------
 
@@ -2272,6 +2837,34 @@ export function createCommands(
       run: go('guild'),
     },
     {
+      id: 'lords.openMarket',
+      title: 'Ir para o Mercado',
+      palette: true,
+      when: hasGame,
+      run: go('market'),
+    },
+    {
+      id: 'lords.trade',
+      title: 'Comprar ou vender no Mercado…',
+      palette: true,
+      when: hasGame,
+      run: trade,
+    },
+    {
+      id: 'lords.sendCaravan',
+      title: 'Mandar uma caravana…',
+      palette: true,
+      when: hasGame,
+      run: sendCaravan,
+    },
+    {
+      id: 'lords.assignMaster',
+      title: 'Mover Mestre…',
+      palette: true,
+      when: hasGame,
+      run: assignMaster,
+    },
+    {
       id: 'lords.hireHero',
       title: 'Contratar herói…',
       palette: true,
@@ -2434,7 +3027,11 @@ export function createCommands(
         return;
       }
       controller.navigate(
-        arg === 'today' || arg === 'fief' || arg === 'council' || arg === 'guild'
+        arg === 'today' ||
+          arg === 'fief' ||
+          arg === 'council' ||
+          arg === 'guild' ||
+          arg === 'market'
           ? arg
           : controller.defaultRoute(),
       );

@@ -1487,3 +1487,181 @@ code,
 .mono {
   font-family: var(--vscode-editor-font-family);
 }
+
+/* --- Mercado, caravanas e Mestres (GDD §5.4, §5.9 e §13) ---------------------- */
+
+.market-now,
+.market-change {
+  margin-top: 6px;
+}
+
+/* A tabela dos preços de hoje: lê-se em cinco segundos, e nada é dito só pela cor. */
+table.market-prices {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+
+table.market-prices th,
+table.market-prices td {
+  padding: 4px 8px 4px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  font-weight: normal;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+table.market-prices th.num,
+table.market-prices td.num {
+  text-align: right;
+}
+
+table.market-prices thead th {
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+}
+
+table.market-prices tbody th {
+  font-weight: 600;
+}
+
+.price-trend {
+  white-space: nowrap;
+}
+
+.market-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.market-row-actions button[aria-pressed='true'] {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+/* A negociação e o envio da caravana: o mesmo formulário, o total sempre à vista. */
+.trade-form {
+  margin-top: 14px;
+}
+
+.trade-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px 12px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 2px;
+}
+
+.trade-form legend {
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+.choice-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 8px;
+}
+
+.choice-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.choice-pill input {
+  margin: 0;
+  accent-color: var(--vscode-button-background);
+}
+
+.trade-price,
+.trade-total {
+  margin-top: 8px;
+}
+
+.trade-amount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trade-amount input[type='text'] {
+  width: 9ch;
+}
+
+.trade-total strong {
+  font-weight: 600;
+}
+
+.trade-form > fieldset > button[type='submit'] {
+  margin-top: 8px;
+}
+
+.trade-review {
+  margin-top: 8px;
+}
+
+.trade-review > div:first-child {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.trade-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.caravan-terms {
+  margin-top: 6px;
+}
+
+.caravan-terms p + p {
+  margin-top: 3px;
+}
+
+.caravans {
+  margin-top: 6px;
+}
+
+.caravan {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.caravan-blocked {
+  margin-top: 8px;
+}
+
+.market-raise > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* O Mestre de cada edifício, na linha dele; os que não têm edifício, abaixo da lista. */
+.worker-master {
+  grid-column: 1 / -1;
+  font-size: 0.92em;
+}
+
+.masters {
+  margin-top: 8px;
+}
+
+.masters p + p {
+  margin-top: 4px;
+}
+
+/* O atalho "Vender" ao lado do aviso do depósito (IDEIA-11). */
+.storage-note .storage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

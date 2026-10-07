@@ -1,5 +1,6 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { MASTER_ICON } from '../ui/market';
 import { INJURED_ICON } from '../ui/threat';
 import {
   adaptationLine,
@@ -82,8 +83,14 @@ export function WorkersPanel(props: {
   elapsed: number;
   disabled: boolean;
   actions: Actions;
+  /** Os Mestres do feudo e os que esperam uma vaga (`view.masters`, `view.mastersWaiting`). */
+  masters?: ViewState['masters'];
+  mastersWaiting?: ViewState['mastersWaiting'];
 }) {
   const { workers, rules, population, elapsed, disabled, actions } = props;
+  const masters = props.masters ?? [];
+  const waiting = props.mastersWaiting ?? { count: 0, names: [], note: null };
+  const idle = masters.filter((master) => master.building === null);
   const set = (row: Row, count: number) => {
     if (!disabled && count >= 0 && count <= row.assigned + population.free) {
       actions.order('setWorkers', { building: row.building, count });
@@ -195,10 +202,47 @@ export function WorkersPanel(props: {
                   <Icon name="warning" /> {row.experienceNote}
                 </span>
               ) : null}
+              {row.master === null ? null : (
+                <span class="worker-master" data-master={row.master.id}>
+                  <Icon name={MASTER_ICON} /> {row.master.name}: {row.master.bonusText}{' '}
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => actions.run('lords.assignMaster', { masterId: row.master?.id })}
+                  >
+                    Mover Mestre…
+                    <span class="sr-only"> {row.master.name}</span>
+                  </button>
+                </span>
+              )}
             </li>
           );
         })}
       </ul>
+      {masters.length === 0 && waiting.count === 0 ? null : (
+        <div class="masters" aria-label="Mestres sem edifício">
+          {/* Antes de qualquer clique: o que o Mestre soma, a adaptação e o que ela custa. */}
+          <p class="muted hint">{rules.masterText}</p>
+          {idle.map((master) => (
+            <p key={master.id} class="master-idle" data-master={master.id}>
+              <Icon name={MASTER_ICON} /> {master.name}: {master.buildingLabel.toLowerCase()}.{' '}
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => actions.run('lords.assignMaster', { masterId: master.id })}
+              >
+                Alocar Mestre…
+                <span class="sr-only"> {master.name}</span>
+              </button>
+            </p>
+          ))}
+          {waiting.note === null ? null : (
+            <p class="master-waiting">
+              <Icon name="watch" /> {waiting.note}
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }

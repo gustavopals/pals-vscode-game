@@ -116,6 +116,17 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.guild':
       // "Enviar" pergunta o destino, a equipe e a Postura: nada parte no primeiro clique.
       return [{ label: 'Enviar expedição', text: 'Enviar', command: 'lords.sendExpedition' }];
+    case 'lords.market':
+      // "Negociar" pergunta o recurso, o sentido e a quantidade, e confirma com o total.
+      return [{ label: 'Comprar ou vender no Mercado', text: 'Negociar', command: 'lords.trade' }];
+    case 'lords.marketCaravan':
+      return [
+        { label: 'Comprar ou vender no Mercado', text: 'Negociar', command: 'lords.trade' },
+        { label: 'Mandar uma caravana', text: 'Caravana', command: 'lords.sendCaravan' },
+      ];
+    case 'lords.master':
+      // "Mover" lista os edifícios com o que cada um renderia; nada muda no primeiro clique.
+      return [{ label: `Mover ${node.label}`, text: 'Mover', command: 'lords.assignMaster' }];
     case 'lords.tavern':
       return [
         { label: 'Dar um festival na Taverna', text: 'Festival', command: 'lords.holdFestival' },

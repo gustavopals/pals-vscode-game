@@ -87,3 +87,40 @@ describe('a intenção de uma ordem', () => {
     );
   });
 });
+
+describe('o Mercado, as caravanas e os Mestres', () => {
+  it('a negociação e a caravana são do recurso; o Mestre, dele, qualquer que seja o edifício', () => {
+    expect(
+      intentOf('trade', { resource: 'wood', direction: 'sell', amount: 10, quoteDay: 3 }),
+    ).toBe('trade:wood');
+    // Comprar e vender o mesmo recurso disputam o mesmo alvo: a ordem nova aposenta a velha.
+    expect(intentOf('trade', { resource: 'wood', direction: 'buy', amount: 50, quoteDay: 3 })).toBe(
+      'trade:wood',
+    );
+    expect(
+      intentOf('trade', { resource: 'stone', direction: 'sell', amount: 10, quoteDay: 3 }),
+    ).toBe('trade:stone');
+    expect(
+      intentOf('sendCaravan', { resource: 'wood', amount: 100, escortHeroId: null, quoteDay: 3 }),
+    ).toBe('sendCaravan:wood');
+    expect(intentOf('assignMaster', { masterId: 'master-1', building: 'farm' })).toBe(
+      intentOf('assignMaster', { masterId: 'master-1', building: 'quarry' }),
+    );
+    expect(intentOf('assignMaster', { masterId: 'master-2', building: 'farm' })).not.toBe(
+      intentOf('assignMaster', { masterId: 'master-1', building: 'farm' }),
+    );
+  });
+
+  it('a caravana com escolta disputa também o herói', () => {
+    const escorted = intentsOf('sendCaravan', {
+      resource: 'wood',
+      amount: 100,
+      escortHeroId: 'hero-1',
+      quoteDay: 3,
+    });
+    expect(escorted).toEqual(['sendCaravan:wood', 'sendCaravan:hero:hero-1']);
+    expect(
+      intentsOf('sendCaravan', { resource: 'stone', amount: 9, escortHeroId: null, quoteDay: 3 }),
+    ).toEqual(['sendCaravan:stone']);
+  });
+});

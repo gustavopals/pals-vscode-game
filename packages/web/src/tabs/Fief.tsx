@@ -45,6 +45,8 @@ export function FiefTab(props: {
             elapsed={elapsed}
             disabled={disabled}
             actions={actions}
+            masters={view.masters}
+            mastersWaiting={view.mastersWaiting}
           />
           <MoralePanel morale={view.morale} elapsed={elapsed} />
           <RecruitPanel
