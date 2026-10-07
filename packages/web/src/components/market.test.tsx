@@ -180,7 +180,7 @@ describe('as caravanas (V3E-T4.3)', () => {
     const page = tab(caravanView);
     const road = page.match(/<li[^>]*data-caravan="caravan-1".*?<\/li>/)?.[0] ?? '';
     expect(text(road)).toContain('Caravana a Porto do Rio · 300 de madeira · chega em 1 h 40 min');
-    expect(text(road)).toContain('Rende 428,4 de ouro se chegar inteira');
+    expect(text(road)).toContain('Rende 351,9 de ouro se chegar inteira');
     // A estrada está cheia: o motivo vem do servidor, e o desfecho não está em lugar nenhum.
     expect(text(page)).toContain(caravanView.market.caravanOffer.blockedReason ?? '');
     expect(page).not.toContain('emboscad');
@@ -203,7 +203,7 @@ describe('as caravanas (V3E-T4.3)', () => {
     expect(page).toContain(offer.riskBreakdown);
     expect(text(page)).toContain(offer.lossText);
     expect(text(page)).toContain('Viagem a Porto do Rio: 1 h 20 min');
-    expect(text(page)).toContain('Preço fixado no envio: 1,547 de ouro por unidade de comida');
+    expect(text(page)).toContain('Preço fixado no envio: 1,27 de ouro por unidade de comida');
     // A escolta é opcional, e só quem a visão lista aparece.
     expect(page).toContain('data-escort="none"');
     expect(page).toContain('data-escort="hero-2"');

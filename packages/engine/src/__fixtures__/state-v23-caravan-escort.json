@@ -205,7 +205,7 @@
     "id": "caravan-1",
     "resource": "food",
     "amount": 200,
-    "unitPrice": 1547,
+    "unitPrice": 1270,
     "arrivesAtMs": 375600000,
     "escortHeroId": "hero-1"
    },
@@ -213,7 +213,7 @@
     "id": "caravan-2",
     "resource": "stone",
     "amount": 120,
-    "unitPrice": 2380,
+    "unitPrice": 1955,
     "arrivesAtMs": 377400000,
     "escortHeroId": null
    }

@@ -970,11 +970,14 @@ export const balance: Balance = {
     swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
     // ADR 0018, decisão 17. Uma caravana por vez a partir do Mercado Nv2; duas a partir do Nv4.
     // Com a Torre no nível 2 a conta daria zero: o piso de 2% mantém a escolha da escolta.
+    // A caravana paga 15% sobre o balcão (resposta do autor de 2026-10-07): 17/20 × 23/20 =
+    // 0,9775 do preço de compra, e comprar para revender por caravana sempre perde. Era 7/5,
+    // que dava 1,19 (revisão da Fase E, D1). O schema recusa o número que reabrir a manobra.
     caravan: {
       requiresLevel: 2,
       maxUnits: 300,
       tripMs: 4 * HOUR_MS,
-      priceRatio: { num: 7, den: 5 },
+      priceRatio: { num: 23, den: 20 },
       slotsByLevel: [0, 1, 1, 2, 2],
       ambush: {
         basePercent: 10,

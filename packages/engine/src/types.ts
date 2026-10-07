@@ -1835,7 +1835,7 @@ export type CaravanView = {
   unitPrice: number;
   /** "1,428". */
   unitPriceText: string;
-  /** O ouro que a carga inteira rende a esse preço, se chegar inteira: "428,4". */
+  /** O ouro que a carga inteira rende a esse preço, se chegar inteira: "351,9". */
   goldText: string;
   /** "Porto do Rio". */
   destination: string;

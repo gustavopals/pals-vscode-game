@@ -443,7 +443,8 @@ const ONE = { num: 1, den: 1 };
 /**
  * As caravanas (ADR 0018, decisão 17). O que a forma garante, além dos tipos:
  *
- * - o preço da caravana é **maior** que o de venda do dia (é o prêmio da espera e do risco);
+ * - o preço da caravana é **maior** que o de venda do dia (é o prêmio da espera e do risco) e,
+ *   conferido em `market`, **menor** que o de compra (`sellRatio × priceRatio < 1`);
  * - os lugares não diminuem com o nível, não há lugar abaixo de `requiresLevel` e há a partir
  *   dele;
  * - a chance de emboscada fica entre o piso e a base, e o piso é maior que zero: sem escolta o
@@ -521,6 +522,13 @@ const market = z
         ),
       ),
     'piso, teto ou marca que não dá milésimos inteiros em um preço-base',
+  )
+  .refine(
+    // Resposta do autor de 2026-10-07 (revisão da Fase E, D1): a venda do balcão vezes o prêmio
+    // da caravana tem de ficar abaixo do preço de compra, ou comprar para revender dá lucro.
+    ({ sellRatio, caravan: { priceRatio } }) =>
+      sellRatio.num * priceRatio.num < sellRatio.den * priceRatio.den,
+    'caravana que paga o preço de compra ou mais: comprar para revender daria lucro',
   );
 
 const balanceFields = z.strictObject({

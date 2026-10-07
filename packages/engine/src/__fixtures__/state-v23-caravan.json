@@ -166,7 +166,7 @@
     "id": "caravan-1",
     "resource": "wood",
     "amount": 300,
-    "unitPrice": 1428,
+    "unitPrice": 1173,
     "arrivesAtMs": 236400000,
     "escortHeroId": null
    }

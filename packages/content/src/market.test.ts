@@ -227,13 +227,13 @@ describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
       .success;
   };
 
-  it('os números são os do ADR 0018: Mercado Nv2, 300 unidades, 4 h de jogo, × 7/5, um lugar e dois a partir do Nv4', () => {
+  it('os números são os do ADR 0018: Mercado Nv2, 300 unidades, 4 h de jogo, × 23/20, um lugar e dois a partir do Nv4', () => {
     expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
     expect(caravan).toEqual({
       requiresLevel: 2,
       maxUnits: 300,
       tripMs: 4 * 60 * 60_000,
-      priceRatio: { num: 7, den: 5 },
+      priceRatio: { num: 23, den: 20 },
       slotsByLevel: [0, 1, 1, 2, 2],
       ambush: {
         basePercent: 10,
@@ -247,6 +247,18 @@ describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
     // A viagem dura dois dias de jogo: o preço do Mercado anda duas vezes com a carga na
     // estrada, e é por isso que o da caravana fica fixado no envio.
     expect(caravan.tripMs).toBe(2 * balance.calendar.dayMs);
+  });
+
+  it('a caravana nunca paga o preço de compra: `sellRatio × caravan.priceRatio` fica abaixo de 1, e a forma recusa o número que reabre a arbitragem', () => {
+    const { sellRatio } = balance.market;
+    const { priceRatio } = caravan;
+    // 17/20 × 23/20 = 0,9775: comprar no balcão para revender por caravana sempre perde.
+    expect(sellRatio.num * priceRatio.num).toBeLessThan(sellRatio.den * priceRatio.den);
+    // 7/5, o número de antes da resposta de 2026-10-07, dava 1,19: é recusado.
+    expect(broken((draft) => ({ ...draft, priceRatio: { num: 7, den: 5 } }))).toBe(false);
+    // No limite exato (17/20 × 20/17 = 1) também: a manobra não pode nem empatar.
+    expect(broken((draft) => ({ ...draft, priceRatio: { num: 20, den: 17 } }))).toBe(false);
+    expect(broken((draft) => ({ ...draft, priceRatio: { num: 23, den: 20 } }))).toBe(true);
   });
 
   it('a chance de emboscada é 10%, 5% e 2% com a Torre de Vigia nos níveis 0, 1 e 2: o piso segura o risco no nível máximo', () => {

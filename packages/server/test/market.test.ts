@@ -458,9 +458,9 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
     expect(
       before.market.caravanOffer.resources.map((row) => [row.resource, row.unitPrice]),
     ).toEqual([
-      ['food', 1190],
-      ['wood', 1428],
-      ['stone', 2380],
+      ['food', 977],
+      ['wood', 1173],
+      ['stone', 1955],
     ]);
 
     const shipment = caravan('wood', 200, 'hero-1');
@@ -472,7 +472,7 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
       caravanId: 'caravan-1',
       resource: 'wood',
       amount: 200,
-      unitPrice: 1428,
+      unitPrice: 1173,
       escorted: 1,
       heroId: 'hero-1',
       spent_wood: 200,
@@ -485,7 +485,7 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
       expect.objectContaining({
         id: 'caravan-1',
         cargoText: '200 de madeira',
-        unitPrice: 1428,
+        unitPrice: 1173,
         goldText: '285,6',
         arrivesInSeconds: 4 * 3600,
         escortName: 'Edda',
@@ -553,7 +553,7 @@ describe('enviar uma caravana e reenviar a ordem (QA-10)', () => {
       caravanId: 'caravan-1',
       amount: 200,
       sold: 200,
-      unitPrice: 1428,
+      unitPrice: 1173,
       gold: 285_600,
       gained_gold: 285.6,
       escorted: 1,
@@ -673,9 +673,9 @@ describe('o que a caravana não mostra antes de chegar (QA-18)', () => {
     expect(endings).toHaveLength(1);
     const [ending] = endings;
     if (ending?.type === 'caravanAmbushed') {
-      expect(ending.data).toMatchObject({ lost: 150, sold: 150, gold: 150 * 2380 });
+      expect(ending.data).toMatchObject({ lost: 150, sold: 150, gold: 150 * 1955 });
     } else {
-      expect(ending?.data).toMatchObject({ sold: 300, gold: 300 * 2380, escorted: 0 });
+      expect(ending?.data).toMatchObject({ sold: 300, gold: 300 * 1955, escorted: 0 });
     }
     const final = await server.pool.query<{ state: { rng: Record<string, unknown> } }>(
       'select state from games where id = $1',

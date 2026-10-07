@@ -965,7 +965,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
         id: 'caravan-1',
         resource: 'wood',
         amount: 300,
-        unitPrice: 1428,
+        unitPrice: 1173,
         arrivesAtMs: 30 * DAY + 5 * HOUR + 40 * MINUTE,
         escortHeroId: null,
       },

@@ -1,4 +1,5 @@
 import { balance, caravanTexts } from '@lotg/content';
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -11,7 +12,7 @@ import {
   nextCaravanArrivalAt,
   slotsAtLevel,
 } from './caravans';
-import { quote } from './market';
+import { priceBounds, quote } from './market';
 import { currentShape } from './migrations';
 import { cloneState } from './state';
 import {
@@ -29,7 +30,10 @@ import {
   MINUTE,
   QUOTE_OF_NOW,
   refuse,
+  SPRING,
+  SUMMER,
   tradeOrder,
+  WINTER,
 } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
@@ -97,17 +101,117 @@ describe('as contas das caravanas (V3E-T2.1; ADR 0018, decisão 17)', () => {
     expect([1, 2, 3, 299, 300].map(ambushLoss)).toEqual([0, 1, 1, 149, 150]);
   });
 
-  it('o preço da caravana é o de venda de agora × 7/5, arredondado para baixo, em milésimos', () => {
+  it('o preço da caravana é o de venda de agora × 23/20, arredondado para baixo, em milésimos', () => {
     const state = caravanPost();
-    // Madeira na base: 1,20 de compra, 1,02 de venda; × 1,4 dá 1,428.
+    // Madeira na base: 1,20 de compra, 1,02 de venda; × 1,15 dá 1,173.
     expect(quote(state, 'wood').sell).toBe(1020);
-    expect(caravanUnitPrice(state, 'wood')).toBe(1428);
-    expect(caravanUnitPrice(state, 'food')).toBe(1190);
-    expect(caravanUnitPrice(state, 'stone')).toBe(2380);
+    expect(caravanUnitPrice(state, 'wood')).toBe(1173);
+    // Comida: 0,85 × 1,15 = 0,9775, arredondado para baixo.
+    expect(caravanUnitPrice(state, 'food')).toBe(977);
+    expect(caravanUnitPrice(state, 'stone')).toBe(1955);
     // No outono a comida vale mais no Mercado, e na caravana também.
     const autumn = caravanPost(AUTUMN + HOUR);
-    expect(caravanUnitPrice(autumn, 'food')).toBe(Math.floor((quote(autumn, 'food').sell * 7) / 5));
+    expect(caravanUnitPrice(autumn, 'food')).toBe(
+      Math.floor((quote(autumn, 'food').sell * 23) / 20),
+    );
     expect(caravanUnitPrice(autumn, 'food')).toBeGreaterThan(caravanUnitPrice(state, 'food'));
+  });
+});
+
+describe('comprar no balcão e enviar por caravana nunca rende (resposta do autor de 2026-10-07; revisão da Fase E, D1)', () => {
+  const RESOURCES = balance.market.resources;
+
+  it('a reprodução do defeito: Mercado Nv2, preços na base, escolta, comprar 300 e enviar 300 no mesmo instante perde ouro nos três recursos', () => {
+    for (const resource of RESOURCES) {
+      const start = caravanPost(
+        0,
+        withHeroes((draft) => {
+          // Lugar no depósito para a compra caber.
+          draft.settlement.resources[resource] = 100_000;
+        }),
+      );
+      const bought = accept(start, tradeOrder(start, resource, 'buy', 300)).state;
+      const sent = accept(bought, caravanOrder(resource, 300, 'hero-1')).state;
+      const arrived = advanceTo(sent, TRIP).state;
+      // O mesmo feudo sem a manobra: a Mina e o soldo andam igual nos dois.
+      const idle = advanceTo(start, TRIP).state;
+      expect(arrived.settlement.resources[resource]).toBe(idle.settlement.resources[resource]);
+      const profit = gold(arrived) - gold(idle);
+      expect(profit).toBe(300 * (caravanUnitPrice(start, resource) - quote(start, resource).buy));
+      expect(profit).toBeLessThan(0);
+    }
+  });
+
+  it('em todo preço entre o piso e o teto, em todo recurso e em toda estação, a caravana paga menos do que a compra do mesmo dia cobra', () => {
+    let worst = -Infinity;
+    for (const season of [SPRING, SUMMER, AUTUMN, WINTER]) {
+      const state = cloneState(caravanPost(season + HOUR));
+      for (const resource of RESOURCES) {
+        const { floor, ceiling } = priceBounds(resource);
+        for (let price = floor; price <= ceiling; price += 1) {
+          state.market.prices[resource] = price;
+          const margin = caravanUnitPrice(state, resource) - quote(state, resource).buy;
+          worst = Math.max(worst, margin);
+          if (margin >= 0) {
+            throw new Error(`${resource} a ${price} em ${season}: a caravana rende ${margin}`);
+          }
+        }
+      }
+    }
+    // O melhor caso para quem tenta: ainda perde ao menos um milésimo e meio por cento do preço.
+    expect(worst).toBeLessThan(0);
+  });
+
+  it('por propriedade: comprar e enviar no mesmo dia, com qualquer quantidade, preço e escolta, nunca deixa mais ouro do que não fazer nada', () => {
+    fc.assert(
+      fc.property(
+        fc.record({
+          resource: fc.constantFrom(...RESOURCES),
+          season: fc.constantFrom(SPRING, SUMMER, AUTUMN, WINTER),
+          share: fc.integer({ min: 0, max: 1000 }),
+          amount: fc.integer({ min: 1, max: 300 }),
+          escorted: fc.boolean(),
+          level: fc.constantFrom(2, 3, 4, 5),
+          waitMs: fc.integer({ min: 0, max: DAY - 2 * MINUTE }),
+        }),
+        (plan) => {
+          const { floor, ceiling } = priceBounds(plan.resource);
+          const start = caravanPost(
+            plan.season + MINUTE,
+            withHeroes((draft) => {
+              draft.settlement.resources[plan.resource] = 100_000;
+              draft.market.prices[plan.resource] =
+                floor + Math.floor(((ceiling - floor) * plan.share) / 1000);
+            }),
+            { level: plan.level, tower: 2 },
+          );
+          const bought = accept(start, tradeOrder(start, plan.resource, 'buy', plan.amount)).state;
+          // A carga parte no mesmo dia de jogo, logo ou mais tarde.
+          const later = advanceTo(bought, bought.lastProcessedAt + plan.waitMs).state;
+          const sent = accept(
+            later,
+            caravanOrder(plan.resource, plan.amount, plan.escorted ? 'hero-1' : null),
+          ).state;
+          const end = sent.lastProcessedAt + TRIP;
+          const arrived = advanceTo(sent, end).state;
+          const idle = advanceTo(start, end).state;
+          expect(gold(arrived)).toBeLessThan(gold(idle));
+        },
+      ),
+      { numRuns: 60 },
+    );
+  });
+
+  it('a especulação sazonal continua, limitada (GDD §5.9): comida comprada no último dia do verão e enviada no primeiro do outono rende 0,27 por unidade na base', () => {
+    const summer = caravanPost(AUTUMN - HOUR, (draft) => {
+      draft.settlement.resources.food = 100_000;
+    });
+    const autumn = cloneState(summer);
+    autumn.lastProcessedAt = AUTUMN + MINUTE;
+    expect(quote(summer, 'food').buy).toBe(1000);
+    // 1,00 × 1,3 × 0,85 = 1,105 no balcão; × 1,15 = 1,270 na caravana.
+    expect(quote(autumn, 'food').sell).toBe(1105);
+    expect(caravanUnitPrice(autumn, 'food')).toBe(1270);
   });
 });
 
@@ -124,7 +228,7 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
         id: 'caravan-1',
         resource: 'wood',
         amount: 300,
-        unitPrice: 1428,
+        unitPrice: 1173,
         arrivesAtMs: start.lastProcessedAt + 4 * HOUR,
         escortHeroId: null,
       },
@@ -140,7 +244,7 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
         caravanId: 'caravan-1',
         resource: 'wood',
         amount: 300,
-        unitPrice: 1428,
+        unitPrice: 1173,
         arrivesAtMs: start.lastProcessedAt + 4 * HOUR,
         escorted: 0,
         spent_wood: 300,
@@ -328,20 +432,20 @@ describe('a chegada (V3E-T2.3)', () => {
         resource: 'wood',
         amount: 300,
         sold: 300,
-        unitPrice: 1428,
-        gold: 428_400,
-        gained_gold: 428.4,
+        unitPrice: 1173,
+        gold: 351_900,
+        gained_gold: 351.9,
         escorted: 1,
         heroId: 'hero-1',
       },
     });
     expect(arrival?.text).toBe(
-      'No 8º dia da Primavera, a caravana de Pedra Alta chegou a Porto do Rio e vendeu 300 de madeira, por 428,4 de ouro. Edda, que a escoltava, está de volta.',
+      'No 8º dia da Primavera, a caravana de Pedra Alta chegou a Porto do Rio e vendeu 300 de madeira, por 351,9 de ouro. Edda, que a escoltava, está de volta.',
     );
     expect(there.state.stats).toMatchObject({
       caravansSent: 1,
       caravansArrived: 1,
-      caravanGold: 428_400,
+      caravanGold: 351_900,
     });
     expect(there.state.stats.caravansAmbushed).toBeUndefined();
   });
@@ -396,7 +500,7 @@ describe('a chegada (V3E-T2.3)', () => {
     for (let index = 0; index < 60; index += 1) {
       const { arrived, events } = trip(caravanPost(0, undefined, { seed: `uma-${index}` }), 1);
       expect(eventsOfType(events, 'caravanAmbushed')).toEqual([]);
-      expect(arrived.stats.caravanGold).toBe(1428);
+      expect(arrived.stats.caravanGold).toBe(1173);
     }
   });
 });
@@ -516,21 +620,21 @@ describe('uma caravana pode ser emboscada (GDD §16.2, critério 5): cenário co
         lost: 125,
         lost_wood: 125,
         sold: 126,
-        unitPrice: 1428,
-        gold: 126 * 1428,
-        gained_gold: 179.928,
+        unitPrice: 1173,
+        gold: 126 * 1173,
+        gained_gold: 147.798,
         riskPercent: 2,
         watchtowerLevel: 2,
       },
     });
     expect(hit?.text).toBe(
-      'No 12º dia da Primavera, a caravana de Pedra Alta caiu em uma emboscada a caminho de Porto do Rio: levaram 125 de madeira. O que restou, 126 de madeira, foi vendido por 179,928 de ouro.',
+      'No 12º dia da Primavera, a caravana de Pedra Alta caiu em uma emboscada a caminho de Porto do Rio: levaram 125 de madeira. O que restou, 126 de madeira, foi vendido por 147,798 de ouro.',
     );
     expect(arrived.stats).toMatchObject({
       caravansSent: 1,
       caravansArrived: 1,
       caravansAmbushed: 1,
-      caravanGold: 126 * 1428,
+      caravanGold: 126 * 1173,
     });
     expect(arrived.market.caravans).toEqual([]);
     expect(caravanStreams(arrived)).toEqual([]);
@@ -543,7 +647,7 @@ describe('uma caravana pode ser emboscada (GDD §16.2, critério 5): cenário co
     expect(eventsOfType(escorted.events, 'caravanAmbushed')).toEqual([]);
     expect(eventsOfType(escorted.events, 'caravanArrived')[0]?.data).toMatchObject({
       sold: 251,
-      gold: 251 * 1428,
+      gold: 251 * 1173,
     });
   });
 });
@@ -773,7 +877,7 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
       available: true,
       blockedReason: null,
       maxUnits: 300,
-      priceRatioText: 'O preço de venda do dia × 1,4, fixado no envio.',
+      priceRatioText: 'O preço de venda do dia × 1,15, fixado no envio.',
       tripSeconds: 4 * 3600,
       lossText:
         'A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado.',
@@ -785,25 +889,25 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
       {
         resource: 'food',
         label: 'Comida',
-        unitPrice: 1190,
-        unitPriceText: '1,19',
-        breakdown: '1,19 = 0,85 (venda de hoje) × 1,4.',
+        unitPrice: 977,
+        unitPriceText: '0,977',
+        breakdown: '0,977 = 0,85 (venda de hoje) × 1,15.',
         maxSendable: 300,
       },
       {
         resource: 'wood',
         label: 'Madeira',
-        unitPrice: 1428,
-        unitPriceText: '1,428',
-        breakdown: '1,428 = 1,02 (venda de hoje) × 1,4.',
+        unitPrice: 1173,
+        unitPriceText: '1,173',
+        breakdown: '1,173 = 1,02 (venda de hoje) × 1,15.',
         maxSendable: 300,
       },
       {
         resource: 'stone',
         label: 'Pedra',
-        unitPrice: 2380,
-        unitPriceText: '2,38',
-        breakdown: '2,38 = 1,70 (venda de hoje) × 1,4.',
+        unitPrice: 1955,
+        unitPriceText: '1,955',
+        breakdown: '1,955 = 1,70 (venda de hoje) × 1,15.',
         maxSendable: 120,
       },
     ]);
@@ -865,26 +969,26 @@ describe('as caravanas na visão (V3E-T2.4)', () => {
         resource: 'wood',
         amount: 300,
         cargoText: '300 de madeira',
-        unitPrice: 1428,
-        unitPriceText: '1,428',
-        goldText: '428,4',
+        unitPrice: 1173,
+        unitPriceText: '1,173',
+        goldText: '351,9',
         destination: 'Porto do Rio',
         arrivesInSeconds: 3 * 3600,
         escortName: 'Edda',
-        text: 'A caminho de Porto do Rio com 300 de madeira, a 1,428 de ouro a unidade. Escolta: Edda.',
+        text: 'A caminho de Porto do Rio com 300 de madeira, a 1,173 de ouro a unidade. Escolta: Edda.',
       },
       {
         id: 'caravan-2',
         resource: 'stone',
         amount: 45,
         cargoText: '45 de pedra',
-        unitPrice: 2380,
-        unitPriceText: '2,38',
-        goldText: '107,1',
+        unitPrice: 1955,
+        unitPriceText: '1,955',
+        goldText: '87,975',
         destination: 'Porto do Rio',
         arrivesInSeconds: 4 * 3600,
         escortName: null,
-        text: 'A caminho de Porto do Rio com 45 de pedra, a 2,38 de ouro a unidade. Sem escolta.',
+        text: 'A caminho de Porto do Rio com 45 de pedra, a 1,955 de ouro a unidade. Sem escolta.',
       },
     ]);
   });

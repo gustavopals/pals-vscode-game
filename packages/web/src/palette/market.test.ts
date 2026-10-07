@@ -343,19 +343,19 @@ describe('mandar uma caravana', () => {
       throw new Error('esperava os quatro diálogos');
     }
     expect(cargo.detail).toEqual([
-      'O preço de venda do dia × 1,4, fixado no envio.',
+      'O preço de venda do dia × 1,15, fixado no envio.',
       '10% de chance de emboscada sem escolta; com escolta, nenhuma. Conta a Torre de Vigia que o feudo tiver na chegada.',
       'A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado.',
     ]);
-    expect(cargo.items[0]?.description).toBe('a 1,547 de ouro · até 200');
-    expect(amount.validate?.('100')?.message).toBe('Rende 154,7 de ouro se chegar inteira.');
+    expect(cargo.items[0]?.description).toBe('a 1,27 de ouro · até 200');
+    expect(amount.validate?.('100')?.message).toBe('Rende 127 de ouro se chegar inteira.');
     expect(escort.items.map((item) => item.label)).toEqual([
       'Sem escolta',
       'Rolf · Arqueiro Nv1 · Prudente',
     ]);
     expect(confirm.title).toBe('Mandar 100 de comida a Porto do Rio?');
     expect(confirm.detail?.[0]).toBe(
-      'Preço fixado: 1,547 de ouro por unidade: 154,7 de ouro se chegar inteira.',
+      'Preço fixado: 1,27 de ouro por unidade: 127 de ouro se chegar inteira.',
     );
     expect(confirm.detail?.[1]).toBe('Viagem de 1 h 20 min. Escolta: Rolf.');
     expect(orders()).toEqual([send('food', 100, 'hero-2')]);

@@ -2,6 +2,14 @@
 
 > **Para ler primeiro.** Em 2026-10-05, com a v0.2 fechada e no ar, o autor respondeu em uma sessão de perguntas às decisões de regra da v0.3 (ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)) e pediu a implementação da versão inteira nesta execução, tudo no `main`, com `push` quando houver versão estável. Este documento é a caixa de entrada dele, no formato de [pendencias-v0.2.md](pendencias-v0.2.md): o que foi decidido e de que modo, o que só ele pode fazer, as dúvidas que a implementação levantar e o que ficar sem verificação. É registro, não leitura obrigatória: o que precisar de resposta chega como pergunta curta com opções. Nasceu na tarefa V3A-T1 do [roadmap da v0.3](roadmap-v0.3.md) e cresce a cada fase.
 
+## 0a. Respostas do autor em 2026-10-07 (quarta rodada)
+
+Com a Fase E implementada e a revisão independente feita, o autor respondeu a quatro pontos. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e no [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), seção "Respostas de 2026-10-07" de cada um; os números medidos, em [balance-v0.3.md](balance-v0.3.md), "Revisão da Fase E". Como na seção 0, o texto das seções 1 a 6 não foi reescrito: leia com esta tabela por cima.
+
+| Item | Pergunta | Resposta |
+|---|---|---|
+| **D1 da revisão da Fase E**, a arbitragem balcão → caravana | A caravana pagava 1,19 do preço de compra: comprar no balcão e enviar no mesmo instante dava lucro certo. O que fazer? | **"Caravana paga +15% sobre o balcão."** MUDA REGRA: `market.caravan.priceRatio` de 7/5 para 23/20 (0,9775 do preço de compra). Provado por propriedade no motor e por um teste de conteúdo que recusa o número que reabrir a manobra. A especulação sazonal da comida (verão → outono) continua, com 0,27 de ouro por unidade na base |
+
 ## 0. Respostas do autor em 2026-10-06
 
 Com a Fase C implementada e revista, o autor respondeu em sessão de perguntas a três pontos; no mesmo dia, com o catálogo de expedições implementado (V3D-T3), respondeu a mais três, da Fase D (as três linhas seguintes da tabela); **e, em uma terceira rodada, ainda em 2026-10-06, com a Fase D medida, a mais quatro (as quatro últimas linhas: D-71, D-54, C-23 e o processo)**. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e no [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), seção "Respostas de 2026-10-06" de cada um. O que segue abaixo, das seções 1 a 6, **não foi reescrito**: onde o texto diz "para o autor confirmar", "enquanto isso" ou "se decidir diferente" nos itens desta tabela, leia com ela por cima.

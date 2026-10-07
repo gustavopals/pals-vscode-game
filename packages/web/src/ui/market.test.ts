@@ -165,7 +165,7 @@ describe('o atalho "Vender" e a escolta', () => {
     expect(road.market.caravanOffer.available).toBe(true);
     expect(caravanResource(road.market.caravanOffer, 'food')?.maxSendable).toBe(200);
     const [row] = road.market.caravanOffer.resources;
-    expect(row && goldText(caravanGold(row, 100))).toBe('154,7');
+    expect(row && goldText(caravanGold(row, 100))).toBe('127');
   });
 });
 
