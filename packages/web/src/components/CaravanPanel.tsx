@@ -17,7 +17,7 @@ import {
 } from '../ui/market';
 import type { Actions } from './actions';
 import { formatNumber } from './format';
-import { Explained, Icon } from './shared';
+import { Explained, focusOnMount, Icon } from './shared';
 
 /** A conferência de um envio: o que o jogador viu quando pediu para conferir. */
 type Review = {
@@ -151,6 +151,8 @@ function SendForm(props: {
       confirmed: true,
     });
     setReview(null);
+    // O botão que tinha o foco sai da tela com a conferência: o foco volta à quantidade.
+    amountInput.current?.focus();
   };
 
   const summary = (current: Review) =>
@@ -294,7 +296,7 @@ function SendForm(props: {
             aria-label="Confirme o envio"
             data-testid="caravan-confirm"
           >
-            <div>
+            <div id="caravan-review-text">
               {stale ? (
                 <p class="warning" role="alert">
                   <Icon name="warning" /> O preço mudou enquanto você conferia: era{' '}
@@ -320,6 +322,7 @@ function SendForm(props: {
                 <button
                   type="button"
                   data-testid="caravan-reconfirm"
+                  ref={focusOnMount}
                   disabled={props.disabled || now === null}
                   onClick={() => setReview(conferred())}
                 >
@@ -329,6 +332,8 @@ function SendForm(props: {
                 <button
                   type="button"
                   data-testid="caravan-confirm-button"
+                  ref={focusOnMount}
+                  aria-describedby="caravan-review-text"
                   disabled={props.disabled || busy}
                   aria-busy={busy}
                   onClick={confirm}
@@ -336,7 +341,13 @@ function SendForm(props: {
                   Confirmar
                 </button>
               )}
-              <button type="button" onClick={() => setReview(null)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setReview(null);
+                  amountInput.current?.focus();
+                }}
+              >
                 Voltar
               </button>
             </div>

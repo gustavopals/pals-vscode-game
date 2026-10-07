@@ -34,3 +34,13 @@ export function Explained(props: { why: string; children: ComponentChildren }) {
 export function Icon(props: { name: string }) {
   return <span class={`codicon codicon-${props.name}`} aria-hidden="true" />;
 }
+
+/**
+ * Ref de um botão que acabou de aparecer e deve receber o foco: a conferência de uma ordem troca
+ * o botão "Revisar" (que tinha o foco) por "Confirmar", e sem isto o foco cairia no corpo da
+ * página. A função tem identidade fixa de propósito: o Preact só a chama quando o elemento
+ * entra, e não a cada atualização da tela (o relógio redesenha o painel todo segundo).
+ */
+export function focusOnMount(element: { focus: () => void } | null): void {
+  element?.focus();
+}

@@ -306,3 +306,13 @@ describe('os Mestres no painel dos trabalhadores (V3E-T4.4)', () => {
     expect(off.every((button) => button.disabled)).toBe(true);
   });
 });
+
+describe('o foco da conferência', () => {
+  it('focusOnMount foca o botão que entra e ignora a saída (ref nulo)', async () => {
+    const { focusOnMount } = await import('./shared');
+    const calls: string[] = [];
+    focusOnMount({ focus: () => calls.push('focus') });
+    focusOnMount(null);
+    expect(calls).toEqual(['focus']);
+  });
+});

@@ -27,7 +27,7 @@ import {
 import { workTerms } from '../ui/threat';
 import type { Actions } from './actions';
 import { formatNumber } from './format';
-import { Explained, Icon } from './shared';
+import { Explained, focusOnMount, Icon } from './shared';
 
 /** A palavra de uma tendência com o ícone: a cor nunca diz sozinha para onde o preço foi. */
 function Trend(props: { trend: PriceRow['trend'] }) {
@@ -234,6 +234,8 @@ function TradeForm(props: {
       confirmed: true,
     });
     setReview(null);
+    // O botão que tinha o foco sai da tela com a conferência: o foco volta à quantidade.
+    amountInput.current?.focus();
   };
 
   const leftLine =
@@ -372,7 +374,7 @@ function TradeForm(props: {
             aria-label="Confirme a ordem"
             data-testid="trade-confirm"
           >
-            <div>
+            <div id="trade-review-text">
               {stale ? (
                 <p class="warning" role="alert">
                   <Icon name="warning" /> O preço mudou enquanto você conferia: era{' '}
@@ -398,6 +400,7 @@ function TradeForm(props: {
                 <button
                   type="button"
                   data-testid="trade-reconfirm"
+                  ref={focusOnMount}
                   disabled={props.disabled || now === null}
                   onClick={() => setReview(conferred())}
                 >
@@ -407,6 +410,8 @@ function TradeForm(props: {
                 <button
                   type="button"
                   data-testid="trade-confirm-button"
+                  ref={focusOnMount}
+                  aria-describedby="trade-review-text"
                   disabled={props.disabled || busy}
                   aria-busy={busy}
                   onClick={confirm}
@@ -414,7 +419,13 @@ function TradeForm(props: {
                   Confirmar
                 </button>
               )}
-              <button type="button" onClick={() => setReview(null)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setReview(null);
+                  amountInput.current?.focus();
+                }}
+              >
                 Voltar
               </button>
             </div>
