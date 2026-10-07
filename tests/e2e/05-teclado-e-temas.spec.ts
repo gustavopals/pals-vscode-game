@@ -509,10 +509,11 @@ test.describe('teclado', () => {
     ).toHaveCount(2);
     // Nenhum aviso avulso: quem conta a ausência é o relatório.
     await expect(toasts(page).getByRole('status')).toHaveCount(0);
-    // Logo abaixo, os dois que restam, e quantos já foram.
+    // Logo abaixo, os que restam (o jogo tem hoje 16 objetivos: nunca mais de três em aberto,
+    // e o do primeiro herói já está entre eles), e quantos já foram.
     const after = back.getByRole('region', { name: 'Objetivos' });
     await sameAsServer(after);
-    await expect(open(after)).toHaveCount(2);
+    await expect(open(after)).toHaveCount(3);
     await expect(after).toContainText('8 já cumpridos.');
     const winter = open(after).filter({ hasText: 'Atravesse o inverno sem passar frio' });
     await expect(winter).toContainText('Recompensa: +15 de moral por 1 dia de jogo (2 h).');
@@ -527,9 +528,9 @@ test.describe('teclado', () => {
     await expect(statusBar(page)).toContainText('Paliçada Nv1 ·');
     await world.passTime(21 * MINUTE, page);
     await expect(after).toContainText('9 já cumpridos.');
-    await expect(open(after)).toHaveCount(1);
+    await expect(open(after)).toHaveCount(3);
     await expect(tree(page).locator('[data-node="objectives"]')).toContainText(
-      '1 em aberto · 9 cumpridos',
+      '3 em aberto · 9 cumpridos',
     );
 
     // 10. Atravesse o inverno sem passar frio. A lenha dá: a Serraria repõe o que a lareira queima.
@@ -541,11 +542,13 @@ test.describe('teclado', () => {
     );
     const untilSpring = (await serverView(page, request)).calendar.nextSeason;
     await world.passTime((untilSpring.secondsUntil + 60) * 1000, page);
-    await expect(after).toContainText(
-      'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
-    );
+    // Os dez da v0.1 e da v0.2 estão cumpridos; os três em aberto são os da Guilda (v0.3).
     await expect(after).toContainText('10 já cumpridos.');
-    await expect(tree(page).locator('[data-node="objectives"]')).toContainText('10 cumpridos');
+    await expect(open(after)).toHaveCount(3);
+    await expect(open(after).first()).toContainText('Acolha ou contrate o primeiro herói');
+    await expect(tree(page).locator('[data-node="objectives"]')).toContainText(
+      '3 em aberto · 10 cumpridos',
+    );
 
     // A lista inteira, no feudo: os dez cumpridos, recolhidos até o jogador abrir.
     await press(after.getByRole('button', { name: 'Ver todos' }));
