@@ -353,7 +353,7 @@ describe('ofícios na visão (GDD §5.4)', () => {
       masterBonusPercent: 15,
       masterAdaptationSeconds: 7200,
       masterText:
-        'Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. Ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus.',
+        'Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. A primeira alocação é imediata; daí em diante, ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus.',
     });
   });
 

@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 23) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 24) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |

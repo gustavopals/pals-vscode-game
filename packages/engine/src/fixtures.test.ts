@@ -997,12 +997,13 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // Os Mestres (versão 23). Um que já dá o bônus e outro em adaptação, fora de `villagers`.
     const crafted = of('masters');
     expect(crafted.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null, worked: true },
       {
         id: 'master-2',
         masterId: 'berta',
         building: 'farm',
         adaptingUntilMs: SUMMER + 6 * DAY + 30 * MINUTE,
+        worked: true,
       },
     ]);
     expect(crafted.settlement.mastersWaiting).toEqual([]);
@@ -1012,7 +1013,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const atDoor = of('master-waiting');
     expect(atDoor.settings.timeScale).toBe(3);
     expect(atDoor.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: false },
     ]);
     expect(atDoor.settlement.mastersWaiting).toEqual([{ id: 'master-2', masterId: 'gil' }]);
     expect(atDoor.settlement.constructionQueues[0]?.building).toBe('housing');

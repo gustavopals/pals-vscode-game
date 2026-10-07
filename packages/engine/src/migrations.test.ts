@@ -964,6 +964,50 @@ const FROZEN: Record<string, string> = {
   'state-v22-wage-arrears-resumed.json': '8ad7d422',
   'state-v22-wage-arrears.json': 'd743fe6f',
   'state-v22-week-scripted.json': '676704a3',
+  'state-v23-caravan-escort.json': 'f746b8c8',
+  'state-v23-caravan.json': '1a382616',
+  'state-v23-cold.json': '2f1aff64',
+  'state-v23-construction.json': '868c6fef',
+  'state-v23-council-hidden.json': '72cdbbbc',
+  'state-v23-council.json': '71100fcc',
+  'state-v23-crafts.json': 'c3149e61',
+  'state-v23-den-cleared.json': 'a7f23caa',
+  'state-v23-expedition-crossroads.json': '4233f620',
+  'state-v23-expedition-returning.json': 'e22c3f61',
+  'state-v23-expedition.json': '18b51cb4',
+  'state-v23-famine-3x.json': '62ba9edf',
+  'state-v23-famine-ended.json': '402275c7',
+  'state-v23-famine-half.json': '01766cd8',
+  'state-v23-famine-resumed.json': 'b783fc01',
+  'state-v23-famine.json': '4fb05603',
+  'state-v23-fresh.json': 'fe422fb6',
+  'state-v23-guild.json': '524825c1',
+  'state-v23-hero-captured.json': '0a8dc331',
+  'state-v23-hero-injured.json': '6a889213',
+  'state-v23-hero-promised.json': '4c4d5887',
+  'state-v23-iron-king-half.json': 'fcad5370',
+  'state-v23-market-opening.json': '6c1ea9c1',
+  'state-v23-market.json': 'af4ee913',
+  'state-v23-master-waiting.json': 'b39b63b7',
+  'state-v23-masters.json': 'cbcadaa4',
+  'state-v23-migrated-3x.json': 'cb18102f',
+  'state-v23-migrated-iron-king-half.json': '20b2690d',
+  'state-v23-migrated-peasant-3x.json': '779fdf0c',
+  'state-v23-morale.json': '10097637',
+  'state-v23-objectives.json': 'fe004177',
+  'state-v23-palisade.json': '4b775881',
+  'state-v23-peasant-3x.json': '1dc47c85',
+  'state-v23-queues.json': '6c789e03',
+  'state-v23-raid-announced.json': 'b11ec61e',
+  'state-v23-raid.json': 'cf77e4fb',
+  'state-v23-storage.json': 'c58b9ab9',
+  'state-v23-tavern-busy.json': '0eae7505',
+  'state-v23-tavern.json': '1014be4c',
+  'state-v23-threat.json': '51c1c174',
+  'state-v23-wage-arrears-ended.json': 'c7c326a7',
+  'state-v23-wage-arrears-resumed.json': 'f62d4fe5',
+  'state-v23-wage-arrears.json': '78ebf6c2',
+  'state-v23-week-scripted.json': 'f2375cfb',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -5499,8 +5543,14 @@ describe('versão 22 → 23', () => {
       broken((state) => {
         state.ids.master = 5;
         state.settlement.masters.push(
-          { id: 'master-3', masterId: 'gil', building: null, adaptingUntilMs: null },
-          { id: 'master-4', masterId: 'ximena', building: null, adaptingUntilMs: null },
+          { id: 'master-3', masterId: 'gil', building: null, adaptingUntilMs: null, worked: false },
+          {
+            id: 'master-4',
+            masterId: 'ximena',
+            building: null,
+            adaptingUntilMs: null,
+            worked: false,
+          },
         );
         state.settlement.mastersWaiting.push({ id: 'master-5', masterId: 'odo' });
       }),
@@ -5570,7 +5620,9 @@ describe('versão 22 → 23', () => {
         id: 'master-1',
         masterId: 'odo',
         building: 'goldMine',
-        adaptingUntilMs: state.lastProcessedAt + balance.masters.adaptationMs,
+        // A primeira alocação é imediata (versão 24; resposta do autor de 2026-10-07).
+        adaptingUntilMs: null,
+        worked: true,
       },
     ]);
     const settled = advanceTo(
@@ -5579,5 +5631,142 @@ describe('versão 22 → 23', () => {
     ).state;
     expect(settled.settlement.masters[0]?.adaptingUntilMs).toBeNull();
     expect(currentShape(settled, '')).toBeNull();
+  });
+});
+
+describe('versão 23 → 24', () => {
+  const version23 = fixtures.filter((fixture) => fixture.version === 23);
+  /** Um estado como a versão 23 o gravava, a partir de um da versão atual: sem `worked`. */
+  const asVersion23 = (state: GameState): Draft => {
+    const old = JSON.parse(JSON.stringify(state)) as Draft;
+    old.schemaVersion = 23;
+    for (const entry of old.settlement.masters as Draft[]) {
+      delete entry.worked;
+    }
+    return old;
+  };
+
+  it('há retratos da versão 23 com Mestre trabalhando, em adaptação, sem edifício e à porta', () => {
+    expect(version23.length).toBeGreaterThan(40);
+    const masters = version23.flatMap(
+      (fixture) => (read(fixture) as Draft).settlement.masters as Draft[],
+    );
+    expect(masters.some((entry) => entry.building !== null && entry.adaptingUntilMs === null)).toBe(
+      true,
+    );
+    expect(masters.some((entry) => entry.adaptingUntilMs !== null)).toBe(true);
+    expect(masters.some((entry) => entry.building === null)).toBe(true);
+    expect(
+      version23.some((fixture) => (read(fixture) as Draft).settlement.mastersWaiting.length > 0),
+    ).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v23-fresh.json'));
+    expect(fresh.settlement.masters).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version23)(
+    '$name: só acrescenta `worked` a cada Mestre do feudo: verdadeiro para quem tem edifício ou se adapta, falso para quem está sem edifício; prazo, porta, gerador e contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.masters).toEqual(
+        (before.settlement.masters as Draft[]).map((entry) => ({
+          ...entry,
+          worked: entry.building !== null,
+        })),
+      );
+      expect(after.settlement.mastersWaiting).toStrictEqual(before.settlement.mastersWaiting);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(asVersion23(after)).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      // Nada acontece na fronteira: o passo não cria prazo nem evento de Mestre.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('master'))).toEqual([]);
+      expect(atBoundary.state.settlement.masters).toStrictEqual(after.settlement.masters);
+    },
+  );
+
+  it('quem estava em adaptação continua nela, com o prazo que tinha, e quem estava sem edifício ganha a alocação imediata', () => {
+    // Odo na Pedreira, adaptado, e Berta na Fazenda, em adaptação (da primeira alocação, que na
+    // versão 23 ainda custava a adaptação).
+    const crafted = migrated(named('state-v23-masters.json'));
+    const before = read(named('state-v23-masters.json')) as Draft;
+    expect(crafted.settlement.masters.map((entry) => [entry.masterId, entry.worked])).toEqual([
+      ['odo', true],
+      ['berta', true],
+    ]);
+    expect(crafted.settlement.masters[1]?.adaptingUntilMs).toBe(
+      before.settlement.masters[1].adaptingUntilMs,
+    );
+    // Odo, sem edifício, e Gil à porta.
+    const atDoor = migrated(named('state-v23-master-waiting.json'));
+    expect(atDoor.settlement.masters).toEqual([
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: false },
+    ]);
+    const assigned = applyCommand(
+      atDoor,
+      masterOrder('master-1', 'quarry'),
+      atDoor.lastProcessedAt,
+    );
+    if (!assigned.ok) {
+      throw new Error(assigned.message);
+    }
+    expect(assigned.state.settlement.masters[0]).toMatchObject({
+      building: 'quarry',
+      adaptingUntilMs: null,
+      worked: true,
+    });
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(mastersScenario(), mastersScenario().lastProcessedAt + HOUR).state;
+    const old = asVersion23(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow).toEqual({ ...start, migratedAtMs: start.lastProcessedAt });
+  });
+
+  it('um estado da versão 23 que já traz `worked` é recusado, e a 24 recusa o Mestre sem ele, com ele fora da forma e com edifício sem nunca ter trabalhado', () => {
+    const old = read(named('state-v23-masters.json')) as Draft;
+    old.settlement.masters[0].worked = true;
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(
+      /settlement\.masters\.0\.worked: campo desconhecido/,
+    );
+    const crafted = JSON.parse(JSON.stringify(mastersScenario())) as Draft;
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(crafted)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.settlement.masters[0].worked)).toBe(
+      'settlement.masters.0.worked: campo ausente',
+    );
+    expect(broken((state) => (state.settlement.masters[0].worked = 1))).toMatch(
+      /masters\.0\.worked/,
+    );
+    expect(broken((state) => (state.settlement.masters[0].worked = false))).toBe(
+      'settlement.masters.0.worked: Mestre com edifício que nunca trabalhou',
+    );
+    // Livre e já tendo trabalhado é um estado possível.
+    expect(
+      broken((state) => {
+        state.settlement.masters[0].building = null;
+      }),
+    ).toBeNull();
+    // Quem espera à porta não tem o campo.
+    const atDoor = JSON.parse(JSON.stringify(masterWaitingScenario())) as Draft;
+    atDoor.settlement.mastersWaiting[0].worked = false;
+    expect(currentShape(atDoor, '')).toBe('settlement.mastersWaiting.0.worked: campo desconhecido');
   });
 });

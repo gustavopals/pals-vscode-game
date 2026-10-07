@@ -351,6 +351,7 @@ control.post('/__test/master', async (request) => {
       masterId,
       building: null,
       adaptingUntilMs: null,
+      worked: false,
     });
     await pool.query('update games set state = $2::jsonb where id = $1', [
       game.id,

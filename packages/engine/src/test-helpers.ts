@@ -500,8 +500,9 @@ export function masterOrder(masterId: string, building: ProductionBuildingId | n
 
 /**
  * Um feudo com Mestres, no verão, no meio de um dia de jogo: Odo trabalha na Pedreira há mais
- * de um dia e já dá o bônus; Berta chegou há pouco e foi posta na Fazenda há 50 minutos de
- * jogo, ainda em adaptação. Dez aldeões, dois deles sem ofício, e casas para doze habitantes.
+ * de um dia e já dá o bônus; Berta chegou há pouco, foi posta na Serraria (a primeira alocação
+ * é imediata) e, no mesmo instante, mudada para a Fazenda, há 50 minutos de jogo: ainda em
+ * adaptação. Dez aldeões, dois deles sem ofício, e casas para doze habitantes.
  */
 export function mastersScenario(): GameState {
   const start = gameAt(SUMMER + 4 * DAY + 10 * MINUTE, (draft) => {
@@ -521,6 +522,7 @@ export function mastersScenario(): GameState {
   const arrived = cloneState(withOdo.state);
   bringMaster(arrived, 'berta');
   return play(arrived, [
+    masterOrder('master-2', 'lumberMill'),
     masterOrder('master-2', 'farm'),
     { at: SUMMER + 5 * DAY + 80 * MINUTE + 1_234 },
   ]).state;

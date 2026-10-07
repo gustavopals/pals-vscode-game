@@ -70,8 +70,8 @@ async function withMasters(name: string, atDoor = false) {
   await rewriteState(server, gameId, (state) => {
     const { settlement } = state;
     settlement.masters = [
-      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
-      { id: 'master-2', masterId: 'berta', building: null, adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: true },
+      { id: 'master-2', masterId: 'berta', building: null, adaptingUntilMs: null, worked: true },
     ];
     state.ids.master = 2;
     settlement.workers.quarry = 2;

@@ -183,7 +183,10 @@ describe('os Mestres', () => {
     if (lumber === undefined) {
       throw new Error('o golden deixou de ter a Serraria');
     }
-    expect(masterOptionLine(lumber)).toBe(
+    // Odo nunca trabalhou: a primeira alocação é imediata (resposta do autor de 2026-10-07).
+    expect(masterOptionLine(lumber)).toBe('Serraria Nv1: +34,8/h, na hora, sem adaptação.');
+    // Quem já teve um edifício paga a adaptação, e a linha diz os dois números.
+    expect(masterOptionLine({ ...lumber, gainWhileAdaptingPerHour: 12 })).toBe(
       'Serraria Nv1: +34,8/h depois da adaptação, +12/h durante ela.',
     );
     const [busy] = mastersView.masters;

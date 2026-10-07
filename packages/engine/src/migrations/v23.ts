@@ -1,4 +1,5 @@
 import { exactObject, listOf, literal, natural, nullable, oneOf, type Shape } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildOf, guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -24,7 +25,7 @@ export const MASTERS_CAP_V23 = 4;
 
 const MASTER_ID = /^master-([1-9][0-9]*)$/;
 
-const masterEntityId: Shape = (value, path) =>
+export const masterEntityId: Shape = (value, path) =>
   typeof value === 'string' && MASTER_ID.test(value) && Number.isSafeInteger(Number(value.slice(7)))
     ? null
     : `${where(path)}: esperado um identificador de Mestre (master-<n>)`;
@@ -38,7 +39,7 @@ const master: Shape = exactObject({
 });
 
 /** Um Mestre à porta: só quem é. Não tem edifício nem adaptação enquanto espera. */
-const waitingMaster: Shape = exactObject({
+export const waitingMasterV23: Shape = exactObject({
   id: masterEntityId,
   masterId: oneOf(MASTER_IDS_V23),
 });
@@ -162,13 +163,12 @@ const { expeditions, reports } = expeditionShapesOf(logEntry);
  * - `rng` e `ids` não mudam de forma: o contador `ids.master` nasce com o primeiro Mestre, e
  *   Mestre nenhum tem fluxo de sorteio (a chance de o encontrar é do fluxo da expedição).
  *
- * Quem subir `schemaVersion` para 24 acrescenta aqui o passo `v23ToV24`, com esta forma como
- * entrada, e escreve a forma nova em `v24.ts`.
+ * O passo que sai daqui é o `v23ToV24`, abaixo; a forma da versão 24 está em `v24.ts`.
  */
 export const settlementV23Fields: Readonly<Record<string, Shape>> = {
   ...settlementV21Fields,
   masters: listOf(master),
-  mastersWaiting: listOf(waitingMaster),
+  mastersWaiting: listOf(waitingMasterV23),
 };
 
 export const guildV23Fields: Readonly<Record<string, Shape>> = {
@@ -199,3 +199,37 @@ export const stateV23: Shape = (value, path) =>
   marketWithinState(value, path) ??
   caravansWithinState(value, path) ??
   mastersWithinState(value, path);
+
+/**
+ * 23 → 24: cada Mestre do feudo ganha `worked`, "já trabalhou em algum edifício" (resposta do
+ * autor de 2026-10-07: a primeira alocação do Mestre é imediata, e só quem já teve um edifício
+ * paga a adaptação ao chegar a outro).
+ *
+ * A versão 23 não guardava a história do Mestre, então o passo lê o que ela deixou: **quem tem
+ * edifício, ou está em adaptação, já trabalhou; quem está sem edifício entra como quem nunca
+ * trabalhou**, e a próxima alocação dele é imediata. É a leitura a favor do jogador: o Mestre
+ * que foi posto e tirado na versão 23 ganha uma alocação sem adaptação, uma vez. Quem estava em
+ * adaptação continua nela, com o prazo que tinha: o passo não cria nem tira prazo, não dá
+ * identificador e não toca o gerador. Quem espera à porta não muda.
+ */
+export const v23ToV24: MigrationStep = {
+  from: 23,
+  summary: 'cada Mestre do feudo passa a dizer se já trabalhou: a primeira alocação é imediata',
+  shape: stateV23,
+  migrate(state) {
+    const settlement = state.settlement as StoredState;
+    return {
+      ...state,
+      schemaVersion: 24,
+      settlement: {
+        ...settlement,
+        masters: (settlement.masters as MasterV23[]).map((entry) => ({
+          ...entry,
+          worked:
+            (entry.building !== null && entry.building !== undefined) ||
+            (entry.adaptingUntilMs !== null && entry.adaptingUntilMs !== undefined),
+        })),
+      },
+    };
+  },
+};

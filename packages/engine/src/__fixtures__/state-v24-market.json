@@ -1,0 +1,185 @@
+{
+ "schemaVersion": 24,
+ "seed": "fixture-market",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 363607890,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 363607890,
+ "rng": {
+  "market": [
+   3040452773,
+   484445915,
+   633701913,
+   2185871947
+  ]
+ },
+ "ids": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 1172437,
+   "wood": 2650000,
+   "stone": 535000,
+   "gold": 2059027
+  },
+  "accumulators": {
+   "food": 631230,
+   "wood": 0,
+   "stone": 0,
+   "gold": 1674660
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 2
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 1
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 20,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 20
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 16,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1165,
+   "wood": 1184,
+   "stone": 2130
+  },
+  "previousPrices": {
+   "food": 1136,
+   "wood": 1248,
+   "stone": 2045
+  },
+  "quoteDay": 51,
+  "tradedToday": {
+   "food": 150,
+   "wood": 0,
+   "stone": 35
+  },
+  "caravans": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:market": 1,
+  "coldSpellsThisSeason": 0,
+  "sold_food": 150,
+  "bought_stone": 35
+ }
+}

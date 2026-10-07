@@ -65,7 +65,15 @@ export const masterTexts = {
   adapting: 'em adaptação por {prazo}: ainda sem o bônus',
   /** As regras, antes de o jogador confirmar: `{prazo}` é tempo real, `{parte}` vem do ofício. */
   rules:
-    'Um Mestre conta como um trabalhador do edifício e soma {bonus}% à produção dele. Cabe um Mestre por edifício. Ao chegar a um edifício ele se adapta por {prazo}: rende {parte} e não dá o bônus.',
+    'Um Mestre conta como um trabalhador do edifício e soma {bonus}% à produção dele. Cabe um Mestre por edifício. A primeira alocação é imediata; daí em diante, ao chegar a um edifício ele se adapta por {prazo}: rende {parte} e não dá o bônus.',
+  /**
+   * O que a ordem de alocar custa a este Mestre, antes de confirmar (resposta do autor de
+   * 2026-10-07): quem nunca trabalhou rende inteiro na hora; quem já teve um edifício se adapta.
+   */
+  firstAssignment:
+    'A primeira alocação é imediata: rende inteiro e com o bônus na hora. Depois, mudar de edifício custa {prazo} de adaptação, sem o bônus.',
+  reassignment:
+    'Chegar a outro edifício custa {prazo} de adaptação: rende {parte} e não dá o bônus enquanto ela durar.',
   /** Quem espera à porta: `{mestres}` é "Mestre Odo" ou "Mestre Odo e Mestra Berta". */
   waitingOne: '{mestres} espera uma vaga nas casas: entra assim que houver uma.',
   waitingMany: '{mestres} esperam uma vaga nas casas: entram assim que houver.',

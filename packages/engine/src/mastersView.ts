@@ -1,4 +1,5 @@
 import {
+  balance,
   buildings,
   masters as masterDefs,
   masterTexts,
@@ -7,7 +8,7 @@ import {
 
 import { handsOf } from './craft';
 import { producedBy, productionRate } from './economy';
-import { decimal, durationText, fillText, joinList } from './format';
+import { decimal, durationText, fillText, joinList, shareText } from './format';
 import { masterAdaptingAt, masterBonusPercent, masterLabel, masterOf } from './masters';
 import type {
   GameState,
@@ -62,13 +63,15 @@ function optionView(
     adapting: without.adapting,
     master: true,
   });
-  const during = settled
-    ? after
-    : productionRate(state, building, {
-        adapted: without.adapted,
-        adapting: without.adapting + 1,
-        master: false,
-      });
+  // Onde ele já rende inteiro, e na primeira alocação, não há adaptação a pagar.
+  const during =
+    settled || !master.worked
+      ? after
+      : productionRate(state, building, {
+          adapted: without.adapted,
+          adapting: without.adapting + 1,
+          master: false,
+        });
   let blockedReason: string | null = null;
   if (state.settlement.buildings[building] <= 0) {
     blockedReason = masterTexts.notBuilt;
@@ -99,6 +102,15 @@ export function mastersView(state: GameState, timeScale: number): MasterView[] {
     adaptationEndsInSeconds: adaptationEndsIn(state, master, timeScale),
     bonusPercent: masterBonusPercent(),
     bonusActive: master.building !== null && !masterAdaptingAt(master, now),
+    firstAssignment: !master.worked,
+    assignText: master.worked
+      ? fillText(masterTexts.reassignment, {
+          prazo: durationText(realSecondsCeil(balance.masters.adaptationMs, timeScale)),
+          parte: shareText(balance.craft.adaptationMultiplier),
+        })
+      : fillText(masterTexts.firstAssignment, {
+          prazo: durationText(realSecondsCeil(balance.masters.adaptationMs, timeScale)),
+        }),
     options: PRODUCTION_BUILDING_IDS.map((building) =>
       optionView(state, master, building, timeScale),
     ),

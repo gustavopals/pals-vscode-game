@@ -1943,8 +1943,8 @@ describe('ViewStateSchema', () => {
     state.settlement.population.villagers = 8;
     Object.assign(state.settlement.workers, { farm: 3, quarry: 2 });
     state.settlement.masters = [
-      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
-      { id: 'master-2', masterId: 'berta', building: null, adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: true },
+      { id: 'master-2', masterId: 'berta', building: null, adaptingUntilMs: null, worked: true },
     ];
     state.settlement.mastersWaiting = [{ id: 'master-3', masterId: 'gil' }];
     state.ids.master = 3;
@@ -2015,7 +2015,7 @@ describe('ViewStateSchema', () => {
   it('recusa nos Mestres o que não é para o jogador ver e o que o cliente não decide', () => {
     const state = createInitialState('mestres', settings);
     state.settlement.masters = [
-      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null, worked: true },
     ];
     state.ids.master = 1;
     const view = deriveViewState(state, 0);

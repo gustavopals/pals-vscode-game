@@ -231,6 +231,10 @@ export function masterOptionLine(option: MasterOption): string {
   if (option.current) {
     return 'É onde ele trabalha.';
   }
+  if (option.gainWhileAdaptingPerHour === option.gainPerHour) {
+    // A primeira alocação é imediata: a visão diz o mesmo ganho nos dois, e não há adaptação.
+    return `${option.label} Nv${option.level}: +${formatNumber(option.gainPerHour)}/h, na hora, sem adaptação.`;
+  }
   return (
     `${option.label} Nv${option.level}: +${formatNumber(option.gainPerHour)}/h depois da adaptação, ` +
     `+${formatNumber(option.gainWhileAdaptingPerHour)}/h durante ela.`

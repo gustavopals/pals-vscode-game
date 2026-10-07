@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 23,
+    schemaVersion: 24,
     seed,
     settings: {
       settlementName: settings.settlementName,

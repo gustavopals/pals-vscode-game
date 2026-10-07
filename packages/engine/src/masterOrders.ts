@@ -19,10 +19,13 @@ import type { GameEvent, GameState, Rejection } from './types';
  *    (`NOT_A_PRODUCTION_BUILDING`, com a frase de cada caso);
  * 3. o edifício que já tem outro Mestre (`BUILDING_HAS_MASTER`): o bônus não soma.
  *
- * **Chegar a um edifício custa a adaptação**, venha o Mestre de outro edifício ou de edifício
- * nenhum: por `balance.masters.adaptationMs` de jogo ele rende como quem acabou de chegar e não
- * dá o bônus. É a regra de todo trabalhador (`setWorkers`), e não deixa a troca sair de graça
- * por uma ordem intermediária que o deixe livre. **Pedir o que já vale não muda nada**: a ordem
+ * **A primeira alocação é imediata** (resposta do autor de 2026-10-07): o Mestre que nunca
+ * trabalhou em edifício nenhum (`worked: false`) rende inteiro e com o bônus no instante da
+ * ordem. **Daí em diante, chegar a um edifício custa a adaptação**, venha ele de outro edifício
+ * ou de edifício nenhum: por `balance.masters.adaptationMs` de jogo ele rende como quem acabou
+ * de chegar e não dá o bônus. Quem já teve um edifício e ficou livre também paga ao voltar a
+ * trabalhar (decisão desta correção, a registrar): sem isso a troca sairia de graça por uma
+ * ordem intermediária que o deixasse livre. **Pedir o que já vale não muda nada**: a ordem
  * é aceita, sem evento, e a adaptação em curso não recomeça.
  */
 export function assignMaster(
@@ -77,7 +80,9 @@ export function assignMaster(
   }
   const from = master.building;
   master.building = building;
-  master.adaptingUntilMs = nowMs + balance.masters.adaptationMs;
+  // A primeira alocação é imediata; quem já teve um edifício se adapta ao chegar a outro.
+  master.adaptingUntilMs = master.worked ? nowMs + balance.masters.adaptationMs : null;
+  master.worked = true;
   emit(
     events,
     draft,

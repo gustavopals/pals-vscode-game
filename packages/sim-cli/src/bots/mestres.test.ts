@@ -46,6 +46,7 @@ function feud(masters: string[], edit: (state: GameState) => void = () => {}): G
     masterId: masterId as GameState['settlement']['masters'][number]['masterId'],
     building: null,
     adaptingUntilMs: null,
+    worked: false,
   }));
   state.ids.master = masters.length;
   edit(state);

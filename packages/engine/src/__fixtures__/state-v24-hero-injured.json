@@ -1,0 +1,350 @@
+{
+ "schemaVersion": 24,
+ "seed": "fixture-hero-injured",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 223440789,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 223440789,
+ "rng": {},
+ "ids": {
+  "hero": 2,
+  "item": 2,
+  "expedition": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 1026797,
+   "wood": 2800000,
+   "stone": 1000000,
+   "gold": 2015234
+  },
+  "accumulators": {
+   "food": 2726742,
+   "wood": 0,
+   "stone": 0,
+   "gold": 361500
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 2
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 1,
+   "market": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 4,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 4
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 2,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "warrior",
+    "level": 2,
+    "xp": 11,
+    "traits": [
+     "loyal"
+    ],
+    "status": "injured",
+    "injury": {
+     "severity": "light",
+     "untilMs": 228840000
+    },
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 219600000,
+    "freedAtMs": null,
+    "discontent": false
+   },
+   {
+    "id": "hero-2",
+    "name": "Rolf",
+    "gender": "m",
+    "classId": "archer",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "prudent"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": {
+      "id": "item-1",
+      "defId": "ashBow"
+     },
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 219600000,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [
+   {
+    "id": "item-2",
+    "defId": "luckyCharm"
+   }
+  ],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": [
+   {
+    "expeditionId": "expedition-1",
+    "modelId": "oldForest",
+    "variant": 0,
+    "heroNames": [
+     "Edda"
+    ],
+    "posture": "bold",
+    "sentAtMs": 219600000,
+    "returnedAtMs": 222660000,
+    "log": [
+     {
+      "nodeId": "trail",
+      "atMs": 220365000,
+      "outcome": "passed",
+      "optionId": null,
+      "decidedBy": null,
+      "gained": {
+       "food": 0,
+       "wood": 15,
+       "stone": 0,
+       "gold": 0
+      },
+      "xp": 0,
+      "harm": null,
+      "leveled": [],
+      "found": [],
+      "revealed": null,
+      "cleared": null,
+      "rescued": null,
+      "master": null,
+      "lootLost": false,
+      "standout": null,
+      "lesson": null
+     },
+     {
+      "nodeId": "fork",
+      "atMs": 220365000,
+      "outcome": "chosen",
+      "optionId": "thicket",
+      "decidedBy": "player",
+      "gained": {
+       "food": 0,
+       "wood": 0,
+       "stone": 0,
+       "gold": 0
+      },
+      "xp": 0,
+      "harm": null,
+      "leveled": [],
+      "found": [],
+      "revealed": null,
+      "cleared": null,
+      "rescued": null,
+      "master": null,
+      "lootLost": false,
+      "standout": null,
+      "lesson": null
+     },
+     {
+      "nodeId": "deepWoods",
+      "atMs": 221640000,
+      "outcome": "setback",
+      "optionId": null,
+      "decidedBy": null,
+      "gained": {
+       "food": 0,
+       "wood": 32,
+       "stone": 0,
+       "gold": 12
+      },
+      "xp": 11,
+      "harm": {
+       "heroName": "Edda",
+       "kind": "light"
+      },
+      "leveled": [],
+      "found": [],
+      "revealed": null,
+      "cleared": null,
+      "rescued": null,
+      "master": null,
+      "lootLost": false,
+      "standout": "Edda",
+      "lesson": {
+       "kind": "item",
+       "heroName": "Edda",
+       "posture": null
+      }
+     }
+    ],
+    "loot": {
+     "resources": {
+      "food": 0,
+      "wood": 47,
+      "stone": 0,
+      "gold": 12
+     },
+     "items": []
+    },
+    "wasted": {
+     "food": 0,
+     "wood": 47000,
+     "stone": 0,
+     "gold": 0
+    },
+    "sold": [],
+    "lost": false
+   }
+  ]
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0
+  },
+  "caravans": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
+  ]
+ },
+ "stats": {
+  "expeditionsSent:oldForest": 2,
+  "expeditionsSent": 1,
+  "crossroadsChosen": 1,
+  "heroesInjured": 1,
+  "wasted_wood": 47000,
+  "expeditionsReturned": 1
+ }
+}

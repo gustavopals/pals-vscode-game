@@ -92,6 +92,7 @@ export function settleMasterArrivals(
       masterId: next.masterId,
       building: null,
       adaptingUntilMs: null,
+      worked: false,
     });
     draft.stats.mastersArrived = (draft.stats.mastersArrived ?? 0) + 1;
     // Só quem acabou de chegar, e é o último da fila, entra com a frase da chegada.

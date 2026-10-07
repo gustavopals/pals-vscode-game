@@ -65,7 +65,7 @@ function fief(
 function withOdo(edit: (draft: GameState) => void = () => {}, atMs?: number): GameState {
   return fief((draft) => {
     bringMaster(draft, 'odo');
-    Object.assign(draft.settlement.masters[0] as object, { building: 'quarry' });
+    Object.assign(draft.settlement.masters[0] as object, { building: 'quarry', worked: true });
     edit(draft);
   }, atMs);
 }
@@ -86,7 +86,7 @@ describe('a chegada (V3E-T3.3)', () => {
     const draft = cloneState(start);
     const events = bringMaster(draft, 'odo');
     expect(draft.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: false },
     ]);
     expect(draft.settlement.mastersWaiting).toEqual([]);
     expect(draft.ids.master).toBe(1);
@@ -184,7 +184,7 @@ describe('a chegada (V3E-T3.3)', () => {
     const at = advanceTo(before.state, turn);
     expect(at.state.settlement.mastersWaiting).toEqual([]);
     expect(at.state.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'gil', building: null, adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'gil', building: null, adaptingUntilMs: null, worked: false },
     ]);
     const order = types(at.events);
     expect(order.indexOf('constructionFinished')).toBeLessThan(order.indexOf('masterArrived'));
@@ -397,7 +397,7 @@ describe('o bônus na conta única da produção (V3E-T3.4)', () => {
     const state = fief(
       (draft) => {
         bringMaster(draft, 'berta');
-        Object.assign(draft.settlement.masters[0] as object, { building: 'farm' });
+        Object.assign(draft.settlement.masters[0] as object, { building: 'farm', worked: true });
         draft.settlement.adaptation = [
           { building: 'farm', count: 2, untilMs: draft.lastProcessedAt + 30 * MINUTE },
         ];
@@ -422,15 +422,99 @@ describe('o bônus na conta única da produção (V3E-T3.4)', () => {
   });
 });
 
-describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
-  const arrived = () => fief((draft) => void bringMaster(draft, 'odo'));
+describe('a primeira alocação do Mestre é imediata (resposta do autor de 2026-10-07)', () => {
+  const fresh = () => fief((draft) => void bringMaster(draft, 'odo'));
 
-  it('dar um edifício ao Mestre: ele chega em adaptação, rende metade e não dá o bônus até um dia de jogo depois', () => {
+  it('o Mestre que nunca trabalhou rende inteiro e com o bônus no instante da ordem, sem adaptação', () => {
+    const start = fresh();
+    expect(start.settlement.masters).toEqual([
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: false },
+    ]);
+    const ordered = accept(start, masterOrder('master-1', 'quarry'));
+    expect(ordered.state.settlement.masters).toEqual([
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null, worked: true },
+    ]);
+    expect(types(ordered.events)).toEqual(['masterAssigned']);
+    // Dois canteiros e o Mestre, com o bônus, na hora: 3 × 5 × 1,15 = 17,25.
+    expect(handsOf(ordered.state, 'quarry')).toEqual({ adapted: 3, adapting: 0, master: true });
+    expect(productionRate(ordered.state, 'quarry')).toBe(17_250);
+    // Nenhum prazo nasce: a linha do tempo não ganha instante.
+    expect(nextEventAt(ordered.state)).toBe(nextEventAt(start));
+    expect(shaped(ordered.state)).toBeNull();
+    // A tela diz a verdade antes da ordem: não há adaptação a pagar em edifício nenhum.
+    const view = deriveViewState(start, start.lastProcessedAt);
+    const [odo] = view.masters;
+    expect(odo?.firstAssignment).toBe(true);
+    expect(odo?.assignText).toBe(
+      'A primeira alocação é imediata: rende inteiro e com o bônus na hora. Depois, mudar de edifício custa 2 h de adaptação, sem o bônus.',
+    );
+    for (const option of odo?.options ?? []) {
+      expect(option.gainWhileAdaptingPerHour).toBe(option.gainPerHour);
+    }
+    const after = deriveViewState(ordered.state, start.lastProcessedAt);
+    expect(after.masters[0]).toMatchObject({
+      firstAssignment: false,
+      bonusActive: true,
+      adaptationEndsInSeconds: null,
+      assignText:
+        'Chegar a outro edifício custa 2 h de adaptação: rende metade e não dá o bônus enquanto ela durar.',
+    });
+  });
+
+  it('só a primeira: mudar de edifício depois custa a adaptação, e voltar a trabalhar depois de ficar livre também', () => {
+    const start = fresh();
+    const first = accept(start, masterOrder('master-1', 'quarry')).state;
+    // Mudar: adaptação na Mina.
+    const moved = accept(first, masterOrder('master-1', 'goldMine')).state;
+    expect(moved.settlement.masters[0]).toMatchObject({
+      building: 'goldMine',
+      adaptingUntilMs: start.lastProcessedAt + ADAPT,
+      worked: true,
+    });
+    // Ficar livre e voltar: quem já teve um edifício paga a adaptação, até no mesmo edifício.
+    const freed = accept(first, masterOrder('master-1', null)).state;
+    expect(freed.settlement.masters[0]).toEqual({
+      id: 'master-1',
+      masterId: 'odo',
+      building: null,
+      adaptingUntilMs: null,
+      worked: true,
+    });
+    const back = accept(freed, masterOrder('master-1', 'quarry')).state;
+    expect(back.settlement.masters[0]?.adaptingUntilMs).toBe(start.lastProcessedAt + ADAPT);
+    expect(productionRate(back, 'quarry')).toBe(12_500);
+    // E a tela de quem está livre, mas já trabalhou, mostra a adaptação.
+    const view = deriveViewState(freed, freed.lastProcessedAt);
+    expect(view.masters[0]?.firstAssignment).toBe(false);
+    const quarry = view.masters[0]?.options.find((option) => option.building === 'quarry');
+    expect(quarry?.gainWhileAdaptingPerHour).toBe(2.5);
+    expect(quarry?.gainPerHour).toBe(7.25);
+  });
+
+  it('a guarda recusa o Mestre com edifício que nunca trabalhou', () => {
+    const state = JSON.parse(JSON.stringify(withOdo())) as GameState;
+    expect(currentShape(state, '')).toBeNull();
+    (state.settlement.masters[0] as { worked: boolean }).worked = false;
+    expect(currentShape(state, '')).toBe(
+      'settlement.masters.0.worked: Mestre com edifício que nunca trabalhou',
+    );
+  });
+});
+
+describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
+  /** Odo no feudo, sem edifício, **já tendo trabalhado**: chegar a um edifício custa a adaptação. */
+  const arrived = () =>
+    fief((draft) => {
+      bringMaster(draft, 'odo');
+      Object.assign(draft.settlement.masters[0] as object, { worked: true });
+    });
+
+  it('dar um edifício ao Mestre que já trabalhou: ele chega em adaptação, rende metade e não dá o bônus até um dia de jogo depois', () => {
     const start = arrived();
     const ordered = accept(start, masterOrder('master-1', 'quarry'));
     const until = start.lastProcessedAt + ADAPT;
     expect(ordered.state.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: until },
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: until, worked: true },
     ]);
     expect(types(ordered.events)).toEqual(['masterAssigned']);
     expect(ordered.events[0]?.data).toEqual({
@@ -536,6 +620,7 @@ describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
       masterId: 'odo',
       building: 'quarry',
       adaptingUntilMs: half.lastProcessedAt + ADAPT,
+      worked: true,
     });
     expect(productionRate(back, 'quarry')).toBe(12_500);
   });
@@ -548,6 +633,7 @@ describe('a ordem assignMaster e a adaptação (V3E-T3.4 e T3.5)', () => {
       masterId: 'odo',
       building: null,
       adaptingUntilMs: null,
+      worked: true,
     });
     expect(freed.events[0]?.text).toBe(
       'No 4º dia da Primavera, Mestre Odo deixou o ofício por ordem do senhor de Pedra Alta e aguarda outro.',
@@ -655,6 +741,7 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
       }
       for (const [index, entry] of settlement.masters.entries()) {
         entry.building = (['quarry', 'goldMine', 'lumberMill', 'farm'] as const)[index] ?? null;
+        entry.worked = entry.building !== null;
       }
     });
     return seed === undefined ? base : { ...base, seed };
@@ -747,8 +834,8 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
       settlement.resources = { food: 400_000, wood: 300_000, stone: 0, gold: 0 };
       bringMaster(draft, 'odo');
       bringMaster(draft, 'berta');
-      Object.assign(settlement.masters[0] as object, { building: 'quarry' });
-      Object.assign(settlement.masters[1] as object, { building: 'farm' });
+      Object.assign(settlement.masters[0] as object, { building: 'quarry', worked: true });
+      Object.assign(settlement.masters[1] as object, { building: 'farm', worked: true });
       draft.horde.scheduledRaids = [
         {
           id: 'threat-1',
@@ -811,6 +898,9 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
         adaptationEndsInSeconds: null,
         bonusPercent: 15,
         bonusActive: true,
+        firstAssignment: false,
+        assignText:
+          'Chegar a outro edifício custa 2 h de adaptação: rende metade e não dá o bônus enquanto ela durar.',
       },
       {
         id: 'master-2',
@@ -821,6 +911,9 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
         adaptationEndsInSeconds: Math.ceil((70 * MINUTE - 1_234) / 1000),
         bonusPercent: 15,
         bonusActive: false,
+        firstAssignment: false,
+        assignText:
+          'Chegar a outro edifício custa 2 h de adaptação: rende metade e não dá o bônus enquanto ela durar.',
       },
     ]);
     expect(view.mastersWaiting).toEqual({ count: 0, names: [], note: null });
@@ -856,7 +949,10 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
   });
 
   it('em adaptação: a linha diz o prazo, a explicação conta meio braço e não traz o bônus', () => {
-    const start = fief((draft) => void bringMaster(draft, 'odo'));
+    const start = fief((draft) => {
+      bringMaster(draft, 'odo');
+      Object.assign(draft.settlement.masters[0] as object, { worked: true });
+    });
     const state = advanceTo(
       accept(start, masterOrder('master-1', 'quarry')).state,
       start.lastProcessedAt + 80 * MINUTE,
@@ -877,8 +973,11 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
     expect(quarry?.adaptingCohorts).toEqual([]);
   });
 
-  it('antes de confirmar: o que cada edifício renderia a mais com este Mestre, por hora real, durante a adaptação e depois dela', () => {
-    const state = fief((draft) => void bringMaster(draft, 'odo'));
+  it('antes de confirmar: o que cada edifício renderia a mais com este Mestre (que já trabalhou), por hora real, durante a adaptação e depois dela', () => {
+    const state = fief((draft) => {
+      bringMaster(draft, 'odo');
+      Object.assign(draft.settlement.masters[0] as object, { worked: true });
+    });
     const view = deriveViewState(state, state.lastProcessedAt);
     const [odo] = view.masters;
     expect(odo?.buildingLabel).toBe('Sem edifício');
@@ -982,7 +1081,7 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
     expect(view.workersRules.masterBonusPercent).toBe(15);
     expect(view.workersRules.masterAdaptationSeconds).toBe(2 * 3600);
     expect(view.workersRules.masterText).toBe(
-      'Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. Ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus.',
+      'Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. A primeira alocação é imediata; daí em diante, ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus.',
     );
     const fast = deriveViewState(fief(), fief().lastProcessedAt, { timeScale: 3 });
     expect(fast.workersRules.masterAdaptationSeconds).toBe(40 * 60);
@@ -1052,7 +1151,7 @@ describe('o Mestre que uma expedição encontra (V3E-T3.3)', () => {
       found += arrived.length;
       if (arrived.length > 0) {
         expect(done.state.settlement.masters).toEqual([
-          { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
+          { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null, worked: false },
         ]);
         expect(arrived[0]?.atMs).toBe(endsAt);
       } else {
@@ -1189,7 +1288,7 @@ describe('o Mestre que uma expedição encontra (V3E-T3.3)', () => {
     expect(end.state.settlement.population.villagers).toBeLessThan(villagers);
     expect(ofType(end.events, 'raidSuffered').length).toBeGreaterThanOrEqual(1);
     expect(end.state.settlement.masters).toEqual([
-      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null },
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null, worked: true },
     ]);
     expect(shaped(end.state)).toBeNull();
   });

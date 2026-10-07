@@ -1,0 +1,246 @@
+{
+ "schemaVersion": 24,
+ "seed": "fixture-wage-arrears",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 120662345,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 120662345,
+ "rng": {
+  "council": [
+   2711132362,
+   3835620459,
+   3693999860,
+   1845808476
+  ]
+ },
+ "ids": {
+  "hero": 3
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 500000,
+   "wood": 108000,
+   "stone": 65000,
+   "gold": 1800
+  },
+  "accumulators": {
+   "food": 2023640,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 58376,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 64,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 50,
+  "moraleEffects": [
+   {
+    "id": "raid",
+    "label": "Incursão sofrida",
+    "amount": -10,
+    "untilMs": 122400000
+   }
+  ],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": []
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "springSeeds-2",
+    "cardId": "springSeeds",
+    "drawnAtMs": 57600000,
+    "expiresAtMs": 144000000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "routine.masonsMeal": true
+  },
+  "seenThisYear": [
+   "masonsMeal",
+   "springSeeds"
+  ],
+  "nextDrawAtMs": 144000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "masonsMeal-1"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 2,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "warrior",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "loyal"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 0,
+    "freedAtMs": null,
+    "discontent": false
+   },
+   {
+    "id": "hero-2",
+    "name": "Rolf",
+    "gender": "m",
+    "classId": "archer",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "prudent"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 0,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": {
+   "endedAtMs": 119582345,
+   "lastedMs": 94382345,
+   "departed": 1
+  },
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0
+  },
+  "caravans": []
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ],
+  "completed": [
+   "allocateFarmers"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 2,
+  "cardsDrawn:masonsMeal": 1,
+  "wasted_food": 806376,
+  "cardsDrawn:springSeeds": 1,
+  "raids_suffered": 1,
+  "cardsExpired": 1
+ }
+}

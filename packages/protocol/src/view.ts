@@ -86,7 +86,10 @@ const MasterOptionSchema = z.strictObject({
   current: z.boolean(),
   /** Quanto o edifício rende a mais com este Mestre já adaptado: o braço dele e o bônus. */
   gainPerHour: z.number(),
-  /** Quanto rende a mais enquanto ele se adapta: só a fração do braço, sem o bônus. */
+  /**
+   * Quanto rende a mais enquanto ele se adapta: só a fração do braço, sem o bônus. Onde não há
+   * adaptação a pagar (o edifício em que já rende inteiro; a primeira alocação) é `gainPerHour`.
+   */
   gainWhileAdaptingPerHour: z.number(),
   /** Por que a ordem seria recusada; `null` quando seria aceita. */
   blockedReason: z.string().nullable(),
@@ -109,6 +112,10 @@ const MasterSchema = z.strictObject({
   bonusPercent: z.number(),
   /** O bônus vale agora: tem edifício e já se adaptou. */
   bonusActive: z.boolean(),
+  /** Nunca trabalhou: a primeira alocação é imediata, sem adaptação. */
+  firstAssignment: z.boolean(),
+  /** O que a ordem de alocar custa a este Mestre, em uma frase. */
+  assignText: z.string(),
   /** Um edifício produtivo por linha, na ordem do conteúdo. */
   options: z.array(MasterOptionSchema),
 });

@@ -109,6 +109,12 @@ export type Master = {
    * edifício. O fim é um evento da linha do tempo.
    */
   adaptingUntilMs: number | null;
+  /**
+   * Já trabalhou em algum edifício (desde a versão 24; resposta do autor de 2026-10-07): **a
+   * primeira alocação é imediata**, e só quem já teve um edifício paga a adaptação ao chegar a
+   * outro, ou ao voltar a trabalhar depois de ficar livre. Nunca volta a `false`.
+   */
+  worked: boolean;
 };
 
 /** Um Mestre que chegou sem vaga nas casas e espera à porta, já com o identificador dele. */
@@ -495,7 +501,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 23;
+  schemaVersion: 24;
   seed: string;
   settings: GameSettings;
   /**
@@ -2243,7 +2249,8 @@ export type MasterOptionView = {
   gainPerHour: number;
   /**
    * Quanto rende a mais enquanto ele se adapta: só a fração do braço, sem o bônus. No edifício
-   * em que ele já rende inteiro, é igual a `gainPerHour`.
+   * em que ele já rende inteiro, **e na primeira alocação, que é imediata**, é igual a
+   * `gainPerHour`: não há adaptação a pagar.
    */
   gainWhileAdaptingPerHour: number;
   /** Por que a ordem seria recusada ("já tem Mestra Berta"); `null` quando seria aceita. */
@@ -2266,6 +2273,13 @@ export type MasterView = {
   bonusPercent: number;
   /** O bônus vale agora: tem edifício e já se adaptou. */
   bonusActive: boolean;
+  /**
+   * Ele nunca trabalhou em edifício nenhum: a primeira alocação é imediata, com o bônus na hora
+   * (resposta do autor de 2026-10-07). Depois dela, chegar a um edifício custa a adaptação.
+   */
+  firstAssignment: boolean;
+  /** O que a ordem de alocar custa a este Mestre, em uma frase, com o prazo em tempo real. */
+  assignText: string;
   /** Um edifício produtivo por linha, na ordem do conteúdo. */
   options: MasterOptionView[];
 };
