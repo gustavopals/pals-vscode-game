@@ -112,8 +112,8 @@ test.describe('teclado', () => {
     expect(await focused()).toBe('fief');
     await page.keyboard.press('End');
     // A última linha do feudo é o último objetivo em aberto: a seta para cima passa pelos três,
-    // pela linha "Objetivos", pela Ameaça, pela Moral, pela Guilda e pelo Conselho, e volta às
-    // Construções.
+    // pela linha "Objetivos", pela Ameaça, pela Moral, pelo Mercado, pela Guilda e pelo Conselho,
+    // e volta às Construções.
     expect(await focused()).toBe('objective:recruitVillagers');
     await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('objective:upgradeHousing');
@@ -125,6 +125,8 @@ test.describe('teclado', () => {
     expect(await focused()).toBe('threat');
     await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('morale');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused()).toBe('market');
     await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('guild');
     await page.keyboard.press('ArrowUp');
