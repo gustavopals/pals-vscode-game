@@ -655,8 +655,16 @@ test.describe('só com o teclado, nos três temas e em 720 px (V3E-T4.6; QA-15)'
     await expect(form(page).getByTestId('trade-total')).toContainText('Vender 15 de madeira por');
     await page.keyboard.press('Enter');
     await expect(form(page).getByTestId('trade-confirm')).toBeVisible();
-    // O foco segue pelos botões da conferência: Tab até "Confirmar", Enter.
-    await form(page).getByTestId('trade-confirm-button').focus();
+    // Ao abrir a conferência o foco vai para "Confirmar"; Tab chega a "Voltar", que devolve o foco
+    // à quantidade, e a conferência abre de novo pelo mesmo Enter.
+    await expect(form(page).getByTestId('trade-confirm-button')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(form(page).getByRole('button', { name: 'Voltar' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(form(page).getByTestId('trade-confirm')).toHaveCount(0);
+    await expect(amount(page)).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(form(page).getByTestId('trade-confirm-button')).toBeFocused();
     await page.keyboard.press('Enter');
     await expect.poll(() => posts.length).toBe(1);
     expect(await gold(page, request)).toBeGreaterThan(1000);
