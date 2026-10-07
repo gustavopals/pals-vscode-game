@@ -170,7 +170,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 
 ### Fase E: os Mestres (V3E-T3)
 
-Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifício), aplicada em 2026-10-07 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 23; protocolo ainda 3** (a visão cresceu por adição: `masters`, `mastersWaiting`, `workers[].master`, `population.masters` e três campos em `workersRules`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-30, a E-31, a E-33 e a E-35.
+Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifício), aplicada em 2026-10-07 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 23; protocolo ainda 3** (a visão cresceu por adição: `masters`, `mastersWaiting`, `workers[].master`, `population.masters` e três campos em `workersRules`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-30, a E-31, a E-33 e a E-35; a E-41 é sobre o portão, não sobre o jogo.
 
 **E-29. O Mestre é um habitante que não é aldeão: fica fora de `population.villagers` e de `settlement.workers`.** *(Decisão de desenho que a tarefa pediu; muda como a regra se lê, não o que ela diz.)*
 - Enquanto isso: as contas de habitante (vaga nas casas, comida, lenha, casas cheias, a comida guardada da moral, o piso) somam aldeões e Mestres; as de aldeão (ofício, coortes, quem parte, deserta ou se fere) continuam só com os aldeões. **Nenhuma regra de perda tem como escolher um Mestre**, e não foi preciso escrever exceção em nenhuma. No edifício ele é um braço a mais, que a ordem de trabalhadores não conta nem tira.
@@ -224,6 +224,11 @@ Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifíci
 **E-40. O `main` local está no estado 23, três passos além do fim da Fase D.** *(Continua a E-0 e a E-28.)*
 - Enquanto isso: nada foi publicado. `git push origin main` levaria o Mercado, as caravanas e os Mestres, os três sem tela: um Mestre que chegasse por expedição moraria e comeria no feudo sem o jogador poder vê-lo nem lhe dar um edifício.
 - Se decidir diferente: a escolha continua a da E-0; publicar só a Fase D é `git push origin 27fceb5:main`.
+
+**E-41. Os pisos de contagem das propriedades são sorteados a cada execução, e um deles reprovou o portão sem defeito.** *(Para o autor saber; dívida de verificação.)*
+- O que aconteceu: no fechamento da V3E-T3, a propriedade das caravanas (V3E-T2) saiu com 198 chegadas contra um piso de 200, e o `pnpm verify` reprovou. O `fast-check` não tem semente fixa neste repositório: cada execução sorteia outro plano. Os pisos dessa propriedade foram afrouxados (`afb3d34`: 200 enviadas, 120 chegadas, uma emboscada; as rodadas medidas dão de 370 a 454, de 221 a 305 e de 7 a 12).
+- O que fica: as outras propriedades com pisos do mesmo tipo (`market.property`, `expeditions.property`, `tavern.property`) não foram medidas; a dos Mestres nasceu com folga (os pisos ficam a menos de metade do menor valor de quatro rodadas).
+- Se decidir diferente: fixar a semente do `fast-check` (`fc.configureGlobal({ seed })`) deixa o portão determinístico e tira das propriedades a chance de achar um caso novo a cada rodada; é uma escolha de processo.
 
 ### Fase E: as caravanas (V3E-T2)
 
