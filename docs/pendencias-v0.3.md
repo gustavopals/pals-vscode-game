@@ -168,6 +168,74 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase E: as caravanas (V3E-T2)
+
+Vêm da tarefa V3E-T2 (as caravanas: a venda adiada, a emboscada e a escolta), aplicada em 2026-10-06 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 22; protocolo ainda 3** (a visão cresceu por adição: `market.caravans` e `market.caravanOffer`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-13, a E-15 e a E-21.
+
+**E-13. Vale a Torre de Vigia do instante da chegada, e não a do envio.** *(Pergunta para o autor; o roadmap diz "sorteada na chegada" e não diz com que Torre.)*
+- Enquanto isso: a chance `máx(2, 10 − 5 × nível da Torre)` é lida quando a caravana chega. Quem ergue ou melhora a Torre com a carga na estrada já a protege; a Torre não cai de nível no jogo, então a regra nunca piora o risco de quem já enviou. A tela diz isso no risco ("Conta a Torre de Vigia que o feudo tiver na chegada.").
+- Se decidir diferente: gravar a chance na caravana, no envio, é um campo a mais no estado (versão nova) e uma linha em `caravanTurn.ts`; a visão passaria a mostrar o risco de cada caravana na estrada.
+
+**E-14. O preço da caravana parte do preço de venda já arredondado.** *(Leitura do agente da decisão 17: "o de venda do dia × 7/5".)*
+- Enquanto isso: `piso(venda de agora × 7/5)`, com a venda de agora sendo o preço do balcão (`piso(preço × estação × 17/20)`). São dois arredondamentos para baixo, e o jogador perde menos de um milésimo e meio de ouro por unidade contra uma conta só. Em troca, a tela mostra a conta inteira com números que ele vê ("1,428 = 1,02 (venda de hoje) × 1,4.") e acerta.
+- Se decidir diferente: uma conta só (`preço × estação × 17/20 × 7/5`, com um arredondamento) é trocar `caravanUnitPrice`; a explicação passaria a partir da cotação do passeio.
+
+**E-15. A ordem `sendCaravan` não leva o dia da cotação.** *(Pergunta para o autor; recomendação: acrescentar na V3E-T4, com a tela.)*
+- Enquanto isso: a ordem é `{ resource, amount, escortHeroId }`, como o roadmap a escreve. O preço fixado é o do **instante da ordem**. Se o dia de jogo virar entre a tela e a ordem, a caravana parte pelo preço novo, sem recusa; o evento e a visão mostram o preço que ficou. A ordem `trade` recusa esse caso com `PRICE_CHANGED`.
+- Se decidir diferente: um `quoteDay` na ordem, recusado como em `trade`, é uma linha no motor e outra no protocolo; a promessa "mostrado antes de confirmar" passa a valer também na virada do dia. O agente recomenda fazer isso junto com a tela.
+
+**E-16. `escortHeroId` é obrigatório e aceita `null`.**
+- Enquanto isso: mandar sem escolta é dizer `escortHeroId: null`. O roadmap escreve `escortHeroId?`; com o campo sempre presente, o tipo do protocolo e o do motor são iguais sem caso especial, e a ordem diz por extenso que a caravana vai sem ninguém.
+- Se decidir diferente: aceitar a ausência do campo é uma linha no schema.
+
+**E-17. A carga de uma unidade não sorteia.**
+- Enquanto isso: a emboscada leva a metade arredondada para baixo, e a metade de uma unidade é zero. "Só se sorteia o que pode acontecer": a caravana de uma unidade chega sempre inteira, mesmo sem escolta. Com duas unidades perde uma.
+- Se decidir diferente: arredondar para cima (perde ao menos uma) muda a perda de toda carga ímpar.
+
+**E-18. A chegada é uma linha só na Crônica.**
+- Enquanto isso: `caravanArrived` (a carga inteira; com escolta, a frase diz que o herói voltou) **ou** `caravanAmbushed` (o que se perdeu e o que o resto rendeu). As duas trazem `gained_gold`. O roadmap lista os dois eventos sem dizer se a emboscada tem os dois.
+- Se decidir diferente: emitir os dois na emboscada dobra a linha; o Retorno (V3F-T3) teria de juntá-las.
+
+**E-19. Sem Mercado, a recusa também é `MARKET_LEVEL_REQUIRED`.**
+- Enquanto isso: "As caravanas pedem o Mercado no nível 2: o feudo ainda não o tem." (ou "…o do feudo está no nível 1."). A ordem `trade` usa `MARKET_REQUIRED` para o feudo sem Mercado; a caravana tem um código só, o do roadmap.
+- Se decidir diferente: devolver `MARKET_REQUIRED` no nível 0 é uma linha.
+
+**E-20. A escolta no soldo em atraso: "herói fora".** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: quem escolta recebe soldo e deve como os outros; pode ficar Descontente pelo prazo, na virada do dia; **só parte depois de voltar** (é a regra de quem está em expedição, pelo mesmo código: `isAtHome`). Não pode ser dispensado nem equipado na estrada (`HERO_BUSY`), e a fé de um Devoto em escolta não levanta o ânimo enquanto ele está fora.
+- Se decidir diferente: deixar dispensar quem escolta pede uma regra para a caravana que fica sem ninguém.
+
+**E-21. A escolta não custa nada além do herói parado, e para quem tem um herói sem o que fazer ela é sempre a melhor escolha.** *(Pergunta para o autor: é o "teste de diversão" da tarefa, medido.)*
+- Enquanto isso: o herói recebe o mesmo soldo no feudo e na estrada, qualquer herói serve (nível, classe e traço não contam; o Descontente também escolta) e a viagem dura 4 h de jogo (1 h 20 reais no Rápido). Medido (balance-v0.3.md, seções 12.3 e 12.5): o Regular e o Dedicado, que têm o herói da carta sempre livre, mandam **quase toda caravana com escolta** e não sofrem emboscada nenhuma; as emboscadas são as do Explorador, que envia os heróis em expedição antes. A hesitação "escoltar ou mandar a mesma heroína ao Covil" só existe para quem usa a Guilda, e **não foi medida**: uma emboscada custa metade de uma carga em 2% a 10% das viagens, e isso é pouco contra o saque de uma expedição.
+- Se decidir diferente: (a) a escolta passa a pedir nível ou poder, ou a reduzir o risco em vez de zerá-lo; (b) o prêmio da caravana sobe, para a metade perdida pesar; (c) fica como está, e a escolta é o emprego do herói ocioso. Qualquer mudança é em `balance.market.caravan` e no motor. Vai à V3E-T5.2 com os números.
+
+**E-22. As caravanas não são a melhor fonte de ouro de ninguém, e onde o jogador de verdade está não há caravana.** *(Para o autor saber; é a resposta parcial à V3E-T5.2.)*
+- Enquanto isso: medido em Senhor, as caravanas rendem de 0% a 2,2% do que a Mina produz em treze das quinze células, e 12,9% no Dedicado do ano do Tranquilo. No **ano de jogo do Rápido nenhuma das 150 partidas mandou caravana** (o Mercado não chega ao nível 2 com folga em 56 horas reais). O ouro parado não subiu (−0,0% em Senhor, −0,3% em Camponês, +0,2% em Rei de Ferro).
+- Se decidir diferente: caravana a partir do Mercado Nv1, ou um nível 2 mais barato, a traria para o ano do Rápido; é número de `balance` e de `buildings.market`.
+
+**E-23. Os bots: quem manda caravana, com que carga e quando.** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: o Regular, o Dedicado e o Explorador mandam o excedente (o mesmo de `vender o excedente`) do recurso que rende mais, de 40 a 300 unidades, com o primeiro herói livre de escolta e, sem herói, só com a Torre no nível 2; a caravana vem antes do balcão. **`erguer o Mercado` passou a levá-lo ao nível 2 quando há folga** (o estoque paga o dobro da obra): sem a folga, na primeira medição, o Salão do Explorador terminava um nível abaixo em duas células. O Preguiçoso não manda caravanas, e as células dele não mudaram.
+- Se decidir diferente: outra carga mínima, ou o bot mandar sem escolta com a Torre no nível 1, remede as células; o segundo exerceria a chance de 5%, que hoje só o motor mede.
+
+**E-24. Regressões medidas com as caravanas.** *(Para o autor saber; nenhum número além dos das caravanas foi mexido.)*
+- 42 das 54 células dos perfis que mandam caravanas mudaram e foram regravadas. O que piorou: em Senhor, a madeira parada do Regular da semana do Rápido chega ao teto do Armazém em duas sementes, e o ouro parado do pior caso sobe em três células (até 6%); em Camponês, **a menor população final do Regular da semana do Rápido cai de 84 para 77 em uma semente**; em Rei de Ferro, o Dedicado da semana do Tranquilo passa a ter até 1 h de jogo de madeira indo ao chão (era 0); o desperdício total sobe 4,1% em Camponês e 2,3% em Rei de Ferro (cai 3,6% em Senhor). Nenhum Salão um nível abaixo, nenhuma hora de fome ou de frio.
+- Se decidir diferente: a causa é a obra do nível 2 do Mercado; baixar o custo dela, ou o bot esperar mais folga, devolve parte desses números.
+
+**E-25. A visão das caravanas tem campos que o Apêndice B não previa.**
+- Enquanto isso: em cada caravana, além de `id`, `text`, `arrivesInSeconds` e `escortName`, saem `resource`, `amount`, `cargoText`, `unitPrice`, `unitPriceText`, `goldText` e `destination`; na oferta, além dos do roadmap, `destination`, `riskPercent`, `lossText`, `slots`, `slotsInUse`, `resources` (o preço que cada recurso fixaria hoje, de onde ele vem e o máximo enviável) e `eligibleEscortIds`. O texto do Mercado e o efeito da obra passaram a dizer as caravanas do nível. O Apêndice B foi atualizado.
+- Se decidir diferente: são adições; tirar uma é mexer na visão, no protocolo e no golden.
+
+**E-26. `stats` ganhou quatro contadores.**
+- Enquanto isso: `caravansSent`, `caravansArrived`, `caravansAmbushed` e `caravanGold` (milésimos de ouro), de sempre. O Apêndice B previa só `caravans_ambushed`. A carga das caravanas **não** entra em `sold_<recurso>`: o objetivo 14 ("Venda no Mercado o que iria para o chão", V3F-T2) decide se a caravana conta.
+- Se decidir diferente: somar a carga em `sold_<recurso>` é uma linha em `caravanOrders.ts`.
+
+**E-27. A previsão da moral não conta com a caravana que chega antes da virada.**
+- Enquanto isso: `stateAtNextMoraleTurn` avança a cópia sem caravana nenhuma, como faz com as expedições: a chegada de uma sem escolta sorteia, e a visão não sorteia. O herói em escolta continua fora na previsão, e o ouro da venda não entra nela.
+- Se decidir diferente: resolver na previsão só as caravanas com escolta (que não sorteiam) é possível, e deixaria a previsão diferente para os dois casos.
+
+**E-28. O `main` local está no estado 22, dois passos além do fim da Fase D.** *(Continua a E-0.)*
+- Enquanto isso: nada foi publicado. `git push origin main` levaria o Mercado e as caravanas, os dois sem tela.
+- Se decidir diferente: a escolha continua a da E-0; publicar só a Fase D é `git push origin 27fceb5:main`.
+
 ### Fase E: o Mercado (V3E-T1)
 
 Vêm da tarefa V3E-T1 (o Mercado: preço, compra, venda e volume diário), aplicada em 2026-10-06 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 21; protocolo ainda 3** (a visão cresceu por adição: `market`). O app não tem tela do Mercado: é a V3E-T4. **Nenhuma foi perguntada ao autor.** A E-0 é sobre o que publicar; as que mudam o que o jogador vive são a E-1, a E-2, a E-3 e a E-4.
@@ -993,6 +1061,20 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase E: as caravanas (V3E-T2)
+
+- **Ninguém jogou as caravanas, e não há tela para jogá-las**: a interface é a V3E-T4. O que existe é a ordem `sendCaravan` pela API e a visão `market.caravans` e `market.caravanOffer`, provadas por teste de motor, de protocolo e de integração.
+- **Ninguém leu as frases novas**: as três linhas da Crônica, as duas da escolta, as duas recusas, o risco termo a termo, o texto da caravana na estrada e a ficha de quem escolta são rascunho (`caravanTexts`, `caravanTemplates`).
+- **Uma emboscada de verdade pela API não foi conferida com o texto**: o teste de integração sem escolta aceita os dois desfechos (a carga inteira ou a metade) e confere as quantidades do que acontecer; o cenário de semente fixa com a emboscada é do motor.
+- **As chances de 10% e de 5% não foram exercidas por nenhuma partida do simulador**: sem herói, os bots só mandam caravana com a Torre no nível 2. A medida delas é a da matriz QA-10, no motor.
+- **A escolha entre a escolta e a expedição não foi medida** (E-21): fica para a V3E-T5.2.
+- **O soldo em atraso com herói em escolta** tem um teste de motor (o herói que passa o prazo inteiro na estrada não parte, e parte depois de voltar); não tem teste de integração nem cenário no simulador.
+- **O cenário integrado QA-02** (30 dias com heróis em expedição, soldo em atraso, Mercado, caravana e Mestre juntos) e o **QA-03** (todos os eventos no mesmo instante) são da V3E-T5; a propriedade desta tarefa junta caravanas, expedições e Mercado, sem Mestre.
+- **O Relatório de Retorno do app não trata os eventos da caravana** (caem no "nem ganho nem perda"; os totais `spent_`, `gained_` e `lost_` estão nos eventos): é da V3F-T3.
+- **`--perf`, os bytes do estado e da visão com caravanas, `pnpm docker:build`, `pnpm capture:landing` e `pnpm test:e2e:landing` não foram rodados.** O estado cresceu `caravans: []` em toda partida, e a visão, a oferta de caravana (cerca de 600 bytes sem Mercado no nível 2, mais com ele); o teto de `perf.test.ts` continua passando.
+- **A matriz "antes" foi rodada na mesma árvore, com as mudanças dos bots guardadas** (`git stash`), e não em um commit à parte; as saídas das duas rodadas não foram guardadas no repositório.
+- **Nenhum ensaio de reversão**: a imagem anterior diante de um estado 22 responde `500` sem gravar, como em toda versão, e isso não foi exercitado com imagens.
 
 ### Fase E: o Mercado (V3E-T1)
 

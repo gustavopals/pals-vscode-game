@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 21) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 22) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -347,7 +347,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 | Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| Mecânicas de versões futuras (caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), o motor das expedições, desde a V3D-T1 (seção 15), os desfechos e o equipamento, desde a V3D-T2 (seção 16), e o Mercado, sem tela, desde a V3E-T1 (seção 20) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
+| Mecânicas de versões futuras (Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), o motor das expedições, desde a V3D-T1 (seção 15), os desfechos e o equipamento, desde a V3D-T2 (seção 16), o Mercado, sem tela, desde a V3E-T1 (seção 20), e as caravanas, também sem tela, desde a V3E-T2 (seção 21) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
 
 ## 13. Limites conhecidos
 
@@ -530,3 +530,29 @@ O que a primeira tarefa da Fase E construiu por cima da seção 19: **o Mercado 
 **O que ainda não existe, e é erro antecipar:** caravanas e escolta (V3E-T2), Mestres (V3E-T3), a tela (V3E-T4), `market.effects` e as cartas que mexem no preço (V3F-T1), o objetivo de vender o excedente (V3F-T2), ferro (v0.4).
 
 **Limites conhecidos:** o volume diário alcança um dia de jogo por visita, e os bots usam de 0% a 3% dele (E-1); as marcas da Crônica quase nunca são cruzadas (E-2); o ouro parado ficou onde estava (E-4); nenhum bot comprou nada na matriz; ninguém jogou o Mercado, e as frases são rascunho.
+
+## 21. As caravanas (V3E-T2, 2026-10-06)
+
+O que a segunda tarefa da Fase E construiu por cima da seção 20: **as caravanas no motor, no protocolo, no servidor e no simulador, sem a interface** (V3E-T4). Está no `main` **local**, com o estado na **versão 22** e o protocolo 3 (a visão cresceu por adição), e não está em produção. O detalhe está no [README do motor](../packages/engine/README.md), "Caravanas"; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), "Fase E: as caravanas"; a medição, em [balance-v0.3.md](balance-v0.3.md), seção 12.
+
+**Estado** (versão 22; o passo `v21ToV22` não cria prazo, evento, identificador nem sorteio): `market.caravans`, as que estão na estrada (`id` de `nextId`, `resource`, `amount`, `unitPrice` fixado no envio, `arrivesAtMs`, `escortHeroId`), em ordem de identificador e com teto (os lugares do Mercado); e o herói com `status: 'escort'`. **Não há campo de desfecho.** A guarda exige que todo fluxo `caravan:<id>` em `rng` seja de uma caravana na estrada; no jogo nenhum chega a ser gravado, porque o fluxo nasce e é apagado dentro do instante da chegada.
+
+| Camada | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `balance.market.caravan`, `chronicle.ts` (`caravanSent`, `caravanArrived`, `caravanAmbushed`, `caravanTemplates`), `caravans.ts` (`caravanTexts`) | Os números do ADR 0018, decisão 17; as linhas da Crônica; as frases da tela e o destino ("Porto do Rio"), sem número de regra |
+| Contas | `caravans.ts` | Os lugares por nível, o preço que a caravana fixaria (`venda de agora × 7/5`, para baixo), a chance de emboscada (`máx(2, 10 − 5 × Torre)`), a perda (metade, para baixo), as recusas e quem pode escoltar. Só lê o estado |
+| Ordem | `caravanOrders.ts` (`sendCaravan`) | Tira a carga do estoque, fixa o preço, marca a chegada (4 h de jogo), põe o herói em escolta. **Dá o identificador e não sorteia.** Não conta no volume do dia |
+| Linha do tempo | `caravanTurn.ts` (`settleCaravans`), depois de `settleExpeditions` | A chegada, candidata de `nextEventAt`, **na ordem do identificador**: com escolta, sem sorteio; sem escolta, um sorteio no fluxo da caravana, com a Torre de Vigia **daquele instante**. O ouro entra antes das planejadas e da conta do soldo; o fluxo é apagado por último |
+| Visão | `caravansView.ts`, dentro de `market` | `caravans` (a carga, o preço fixado, a chegada em tempo real, a escolta) e `caravanOffer` (se pode partir e por que não, o preço de cada recurso hoje, o prazo, o risco termo a termo, o máximo enviável e `eligibleEscortIds`). A ficha do herói diz "Escolta a caravana: volta em …" |
+| Protocolo | `SendCaravanCommandSchema`, `MarketSchema` | A forma da ordem e da visão; os códigos `MARKET_LEVEL_REQUIRED` e `CARAVAN_LIMIT`. Teste de igualdade de tipos com o motor |
+| Servidor | nada de novo no código | O caminho de toda ordem: recibo por `commandId` (o duplo envio manda uma caravana só), a recusa com a visão de agora, a chegada resolvida pela leitura seguinte ou pelo job, a migração da versão 21 na primeira leitura |
+| App | nenhuma tela | Não há onde mandar uma caravana até a V3E-T4. O Relatório de Retorno ainda não trata os eventos da caravana (V3F-T3) |
+| Simulador | `bots/policies.ts` (`mandar caravana`; `erguer o Mercado` até o nível das caravanas) | O `economico` e o `explorador` a têm; o `preguicoso`, não. Colunas `caravans_sent` e `caravans_ambushed` medidas; a tabela do Mercado ganhou as caravanas e o ouro por fonte |
+
+**O herói em escolta** está fora do feudo, como quem está em expedição: recebe soldo, não parte, não é dispensado nem equipado e, no soldo em atraso, só parte depois de voltar.
+
+**Critério 5 do GDD §16.2** ("uma caravana pode ser emboscada"): provado por um cenário de semente fixa (`market.caravans.test.ts`) e pela matriz QA-10, com 1.000 sementes por célula: nenhuma emboscada com escolta; sem escolta, 116, 50 e 24 com a Torre nos níveis 0, 1 e 2.
+
+**O que ainda não existe, e é erro antecipar:** Mestres (V3E-T3), a tela (V3E-T4), `market.effects` e as cartas que mexem no preço ou pedem um herói presente (V3F-T1), os objetivos 11 a 16 (V3F-T2), o Retorno com as caravanas (V3F-T3), ferro (v0.4), compra por caravana e mais de um destino.
+
+**Limites conhecidos:** a ordem não leva o dia da cotação (E-15); a escolta não custa nada além do herói parado, e para quem tem um herói sem o que fazer ela é sempre a melhor escolha (E-21); ninguém jogou as caravanas, e as frases são rascunho.
