@@ -204,7 +204,12 @@ describe('index.html', () => {
       expect(prose).toMatch(/A pintura desta página é arte conceitual gerada por IA/);
       // As capturas reproduzem os ícones do app, que pedem crédito (CC BY 4.0).
       expect(prose).toMatch(/Codicons \(licença CC BY 4\.0\)/);
-      expect(prose).toMatch(/Nada disso se joga ainda\./);
+      expect(prose).toMatch(/Isso ainda não se joga\./);
+      // A Guilda e o Mercado saíram do horizonte com a v0.3: o que ainda falta é a guerra, o mapa e o legado.
+      expect(prose).toMatch(
+        /No horizonte, sem data: a guerra e o Cerco do Inverno; mapa e legado\./,
+      );
+      expect(prose).not.toMatch(/No horizonte[^.]*(Guilda|expedi)/);
       expect(prose).toMatch(/não é afiliado a nenhum editor de código/);
     });
   });
