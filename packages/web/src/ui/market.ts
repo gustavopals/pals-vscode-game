@@ -268,8 +268,27 @@ export function sellShortcut(
   resource: string,
 ): { row: PriceRow; amount: number } | null {
   const row = priceOf(view.market, resource);
-  if (row === undefined || !hasMarket(view.market) || row.maxSellable <= 0) {
+  // O que sobra é o excedente da visão (`surplusSellable`): o que o feudo guarda não se oferece.
+  if (row === undefined || !hasMarket(view.market) || row.surplusSellable <= 0) {
     return null;
   }
-  return { row, amount: row.maxSellable };
+  return { row, amount: row.surplusSellable };
+}
+
+/**
+ * "Restam 662 de 1.062 de comida no feudo.": o que fica depois de uma venda, com o estoque da
+ * visão. `null` na compra, sem o recurso na visão ou com mais do que o estoque (a ordem será
+ * recusada pelo servidor).
+ */
+export function stockLeftLine(
+  view: ViewState,
+  row: Pick<PriceRow, 'resource' | 'label'>,
+  direction: TradeDirection,
+  amount: number,
+): string | null {
+  const stock = view.resources.find((entry) => entry.id === row.resource)?.stock;
+  if (direction !== 'sell' || stock === undefined || amount > stock) {
+    return null;
+  }
+  return `Restam ${formatNumber(stock - amount)} de ${formatNumber(stock)} de ${row.label.toLowerCase()} no feudo.`;
 }

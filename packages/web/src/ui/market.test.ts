@@ -29,6 +29,7 @@ import {
   priceOf,
   remainingLine,
   sellShortcut,
+  stockLeftLine,
   tradeLine,
   tradeTotal,
 } from './market';
@@ -145,17 +146,55 @@ describe('a tabela e a árvore', () => {
 
 describe('o atalho "Vender" e a escolta', () => {
   it('o atalho leva quanto cabe no volume de hoje, da visão; sem Mercado ou sem o que vender, nada', () => {
-    expect(sellShortcut(marketDayView, 'food')?.amount).toBe(50);
+    const food = priceOf(marketDayView.market, 'food');
+    expect(sellShortcut(marketDayView, 'food')?.amount).toBe(food?.surplusSellable);
     expect(sellShortcut(marketDayView, 'gold')).toBeNull();
     expect(sellShortcut(initialView, 'food')).toBeNull();
     const spent = {
       ...marketDayView,
       market: {
         ...marketDayView.market,
-        prices: marketDayView.market.prices.map((row) => ({ ...row, maxSellable: 0 })),
+        prices: marketDayView.market.prices.map((row) => ({ ...row, maxSellable: 0, surplusSellable: 0 })),
       },
     };
     expect(sellShortcut(spent, 'food')).toBeNull();
+  });
+
+  it('o atalho vende o excedente da visão, não o volume nem o estoque inteiro', () => {
+    const view = {
+      ...marketDayView,
+      market: {
+        ...marketDayView.market,
+        prices: marketDayView.market.prices.map((row) =>
+          row.resource === 'food' ? { ...row, maxSellable: 400, surplusSellable: 120 } : row,
+        ),
+      },
+    };
+    expect(sellShortcut(view, 'food')?.amount).toBe(120);
+    const none = {
+      ...view,
+      market: {
+        ...view.market,
+        prices: view.market.prices.map((row) => ({ ...row, surplusSellable: 0 })),
+      },
+    };
+    expect(sellShortcut(none, 'food')).toBeNull();
+  });
+
+  it('a confirmação da venda diz quanto resta, com os números da visão', () => {
+    const view = {
+      ...marketDayView,
+      resources: marketDayView.resources.map((row) =>
+        row.id === 'food' ? { ...row, stock: 1062 } : row,
+      ),
+    };
+    const food = priceOf(view.market, 'food');
+    if (food === undefined) {
+      throw new Error('o golden deixou de ter comida no Mercado');
+    }
+    expect(stockLeftLine(view, food, 'sell', 400)).toBe('Restam 662 de 1.062 de comida no feudo.');
+    expect(stockLeftLine(view, food, 'buy', 400)).toBeNull();
+    expect(stockLeftLine(view, food, 'sell', 2000)).toBeNull();
   });
 
   it('só escolta quem a visão lista; a carga rende o preço fixado vezes a quantidade', () => {

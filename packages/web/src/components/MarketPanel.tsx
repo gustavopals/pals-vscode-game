@@ -15,6 +15,7 @@ import {
   parseAmount,
   type PriceRow,
   priceLabel,
+  stockLeftLine,
   remainingLine,
   type TradeDirection,
   tradeLine,
@@ -161,6 +162,7 @@ function PriceTable(props: {
  * é pedida de novo: nada é reenviado sozinho.
  */
 function TradeForm(props: {
+  view: ViewState;
   market: Market;
   elapsed: number;
   disabled: boolean;
@@ -229,6 +231,8 @@ function TradeForm(props: {
     setReview(null);
   };
 
+  const leftLine =
+    open === null ? null : stockLeftLine(props.view, row, open.direction, open.amount);
   const nameOf = `${directionVerb(direction)} ${row.label.toLowerCase()}`;
   return (
     <form
@@ -376,6 +380,7 @@ function TradeForm(props: {
               ) : (
                 <p>
                   <strong>{tradeLine(row, open.direction, open.amount, open.total)}.</strong>{' '}
+                  {leftLine === null ? null : <span class="num">{leftLine} </span>}
                   <span class="muted">
                     Preço de hoje, {price(open.unit)}
                     {change === null ? '' : `; o preço muda ${change}`}.
@@ -430,14 +435,15 @@ export function MarketPanel(props: {
 }) {
   const { view, elapsed } = props;
   const { market } = view;
-  const first = market.prices[0]?.resource ?? 'food';
-  const [selected, setSelected] = useState<{
+  const [picked, setPicked] = useState<{
     resource: PriceRow['resource'];
     direction: TradeDirection;
-  }>({
-    resource: first,
-    direction: 'sell',
-  });
+  } | null>(null);
+  // Sem escolha, o primeiro recurso da tabela, para vender; com o Mercado de pé a tabela nunca é vazia.
+  const first = market.prices[0]?.resource;
+  const selected =
+    picked ?? (first === undefined ? null : { resource: first, direction: 'sell' as const });
+  const setSelected = setPicked;
   const [amount, setAmount] = useState('');
   const [focusTick, setFocusTick] = useState(0);
   const change = changeLine(market, elapsed);
@@ -449,7 +455,7 @@ export function MarketPanel(props: {
       <p class="market-now">
         <Icon name={MARKET_ICON} /> {market.text}
       </p>
-      {hasMarket(market) ? (
+      {hasMarket(market) && selected !== null ? (
         <>
           {/* Não é região viva: o prazo muda a cada minuto. */}
           {change === null ? null : (
@@ -470,6 +476,7 @@ export function MarketPanel(props: {
             }}
           />
           <TradeForm
+            view={view}
             market={market}
             elapsed={elapsed}
             disabled={props.disabled}
