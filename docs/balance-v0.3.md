@@ -2022,6 +2022,70 @@ Desperdício da partida inteira, em unidades, mediana das 50 sementes (comida ·
 - **O ouro das caravanas inclui o que foi vendido depois de uma emboscada.**
 - **Ninguém jogou as caravanas.** Não há tela (V3E-T4); a rodada mede regras e bots.
 
-## 13. Rodadas seguintes das Fases E a G
+## 13. Os Mestres (V3E-T3)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T3, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 12.*
+Rodada de 2026-10-07, com os Mestres no motor (estado 23) e a política `alocar o Mestre` no `economico` e no `explorador`. A pergunta que o ADR 0018 mandou medir é uma só: **o bônus do Mestre torna um edifício obrigatório?** A resposta curta: **não há um edifício que seja o melhor a partida inteira; o melhor é sempre o que tem mais braços**, e isso muda com a fase da partida. A resposta comprida tem dois limites grandes, ditos na seção 13.5: o Mestre é raro no simulador, e o bot compara unidades por hora sem pesar o recurso.
+
+### 13.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix --profile explorador > explorador.csv 2> explorador.md   # 85 s; as tabelas "Mestres" de cada janela
+pnpm test                                                                        # a matriz das três dificuldades, contra as faixas
+pnpm --filter @lotg/engine test -- masters                                       # as sessenta sementes diante do guardião das Ruínas
+```
+
+O estudo da seção 13.4 foi um roteiro de uma vez, que não ficou no repositório: 25 sementes da matriz por célula, o `economico` e o `explorador` com duas visitas por dia, parados aos 3, 7 e 28 dias reais; no estado final de cada partida sem Mestre entra Odo, sem edifício, e a visão diz onde ele renderia mais (`masters[0].options`).
+
+### 13.2 As faixas, antes e depois
+
+**Nenhuma faixa mudou.** As seis células do Explorador em Senhor saem com os mesmos números gravados na V3E-T2 (`bands.ts`), e a matriz das três dificuldades passa no `pnpm test` sem regravar nada. O motivo é o da seção 13.3: o Mestre quase não chega. Os perfis que não mandam expedições (Preguiçoso, Regular e Dedicado) nunca recebem um, e as células deles são as da seção 12, partida por partida: sem Mestre no estado, nem a alocação nem a conta das bocas mudam uma ordem.
+
+### 13.3 Quantos Mestres chegam, e quando
+
+Senhor, 50 sementes, perfil Explorador (2 visitas por dia):
+
+| Janela | Ritmo | Partidas com Mestre | Mestres no feudo no fim | Primeiro Mestre (hora real, mediana) | Onde terminaram (Fazenda · Serraria · Pedreira · Mina · sem edifício) | À porta no fim |
+|---|---|---|---:|---:|---|---:|
+| 7 dias reais | Rápido 3× | 2 de 50 | 0 | 161 | 0 · 0 · 0 · 0 · 0 | 2 |
+| 7 dias reais | Normal 1× | 0 de 50 | 0 | — | — | 0 |
+| 7 dias reais | Tranquilo 0,5× | 0 de 50 | 0 | — | — | 0 |
+| Um ano de jogo | Rápido 3× (56 h) | 0 de 50 | 0 | — | — | 0 |
+| Um ano de jogo | Normal 1× (168 h) | 0 de 50 | 0 | — | — | 0 |
+| Um ano de jogo | Tranquilo 0,5× (336 h) | 5 de 50 | 5 | 305 | 0 · 2 · 1 · 1 · 1 | 1 |
+
+- **O Mestre é raro, e chega tarde.** Odo pede as Ruínas de Vel'Thar (reveladas por uma Patrulha, dois heróis de nível 2 ou mais), a vitória sobre o guardião e um sorteio de 1 em 4; Berta pede o Pântano (Guilda Nv3, três heróis, um Mago). No ano de jogo do Rápido e do Normal nenhuma partida do bot recebe um. É coerente com "aldeões nomeados e raros", e deixa a pergunta do autor: **raro assim?** (pendência E-35).
+- **Nas duas partidas da semana do Rápido o Mestre chegou na hora 161 de 168 e ficou à porta**: aos sete dias reais do Rápido o feudo do bot tem 85 aldeões e as casas cheias. A recompensa não se perdeu (espera), mas o jogador que a recebe com as casas cheias precisa de uma obra das Habitações ou de um aldeão a menos para vê-la render. A tela da V3E-T4 tem de dizer isso onde o jogador olha.
+- **No motor, sem o bot no caminho**: três Guerreiros de nível 6 diante do guardião de pedra, em sessenta sementes, vencem as sessenta vezes e encontram Odo em **dez** (16,7%; o esperado, 25%, fica a um desvio-padrão e meio). Os dois números estão fixados em `masters.test.ts`.
+
+### 13.4 Onde um Mestre renderia mais
+
+O ganho de pôr um Mestre em um edifício é `(braços + 1) × 1,15 − braços`, em braços daquele edifício: **cresce com os braços que o edifício já tem**. Em um edifício com `n` aldeões adaptados ele vale `1,15 + 0,15 × n` braços: 1,45 com dois, 2,65 com dez. Por isso o melhor edifício, em unidades por hora, é quase sempre o mais cheio:
+
+| Estratégia | Ritmo | Aos 3 dias reais | Aos 7 dias reais | Aos 28 dias reais |
+|---|---|---|---|---|
+| Explorador | Rápido 3× | Serraria 25 de 25 | Mina 25 de 25 | Mina 25 de 25 |
+| Explorador | Normal 1× | Serraria 25 de 25 | Serraria 23 · Mina 2 | Mina 15 de 15 |
+| Explorador | Tranquilo 0,5× | Fazenda 25 de 25 | Serraria 25 de 25 | Mina 17 de 17 |
+| Econômico | Rápido 3× | Serraria 18 · Mina 7 | Serraria 10 · Mina 15 | Mina 25 de 25 |
+| Econômico | Normal 1× | Serraria 25 de 25 | Serraria 18 · Mina 7 | Mina 25 de 25 |
+| Econômico | Tranquilo 0,5× | Fazenda 25 de 25 | Serraria 25 de 25 | Mina 25 de 25 |
+
+(As partidas que já tinham Mestre ficaram de fora: por isso 15 e 17 nas duas células do Explorador aos 28 dias.)
+
+- **Nenhum edifício é obrigatório a partida inteira.** No começo o melhor é a Fazenda ou a Serraria; quando os depósitos enchem e o bot manda os braços para a Mina, é a Mina. O Mestre segue os braços, e os braços seguem a fase da partida.
+- **Em cada momento, um edifício ganha com folga.** O melhor rende de 1,2 a 3,5 vezes o ganho do segundo (1,18 aos 3 dias do Tranquilo; 3,47 aos 28 dias do Rápido, com quase todos na Mina). A escolha de onde pôr o Mestre é fácil de acertar olhando a tela; o que ela pede do jogador é **mudá-lo quando a partida muda de fase**, pagando um dia de jogo de adaptação. É o "teste de diversão" da tarefa ("o autor mudar o Mestre de edifício antes do outono"), e a medição diz que há motivo para mudar.
+- **O que ele soma ao edifício em que entra**: de 16% a 53% da produção daquele edifício (o braço a mais pesa muito onde há poucos; os 15% são o piso, com muitos braços). No feudo crescido, é cerca de 16,5% de um recurso.
+- **A Pedreira nunca é a melhor** para o bot: é onde ele põe menos gente. Um jogador que precisa de pedra para a próxima obra poria o Mestre lá mesmo assim; o bot não sabe pesar isso.
+
+### 13.5 Limites desta medição
+
+- **A comparação é em unidades por hora, sem pesar o recurso.** Cinco de ouro e cinco de comida contam igual para o bot e para as tabelas acima. Com o preço-base do Mercado (pedra a 2,0, madeira a 1,2, comida a 1,0) a ordem mudaria em algumas células; isso não foi medido, e a visão não traz o ganho em ouro (pendência E-37).
+- **Quase nenhuma partida da matriz tem um Mestre trabalhando**: quatro, todas no ano do Tranquilo. O efeito de um Mestre sobre o ano inteiro (o desperdício, o excedente, a moral) **não foi medido**; o que há é a conta do ganho no instante em que ele chegaria.
+- **O bot não muda o Mestre de lugar.** A troca de fase (seção 13.4) é a decisão interessante, e nenhum bot a toma.
+- **Dois dos quatro Mestres não têm de onde vir** (Gil e Ximena esperam as cartas da V3F-T1): nenhuma partida tem mais de dois, e o "um por edifício" só foi exercido por teste.
+- **O Mestre à porta não foi medido além de constatado**: quanto tempo ele espera, e se o bot ergue Habitações por causa dele (não ergue: não tem política para isso).
+- **Ninguém jogou com um Mestre.** Não há tela (V3E-T4); a rodada mede regras e bots.
+
+## 14. Rodadas seguintes das Fases E a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 13.*

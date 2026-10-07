@@ -168,6 +168,63 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase E: os Mestres (V3E-T3)
+
+Vêm da tarefa V3E-T3 (os Mestres: o aldeão com nome que soma 15% a um edifício), aplicada em 2026-10-07 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 23; protocolo ainda 3** (a visão cresceu por adição: `masters`, `mastersWaiting`, `workers[].master`, `population.masters` e três campos em `workersRules`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-30, a E-31, a E-33 e a E-35.
+
+**E-29. O Mestre é um habitante que não é aldeão: fica fora de `population.villagers` e de `settlement.workers`.** *(Decisão de desenho que a tarefa pediu; muda como a regra se lê, não o que ela diz.)*
+- Enquanto isso: as contas de habitante (vaga nas casas, comida, lenha, casas cheias, a comida guardada da moral, o piso) somam aldeões e Mestres; as de aldeão (ofício, coortes, quem parte, deserta ou se fere) continuam só com os aldeões. **Nenhuma regra de perda tem como escolher um Mestre**, e não foi preciso escrever exceção em nenhuma. No edifício ele é um braço a mais, que a ordem de trabalhadores não conta nem tira.
+- O que a tela mostra por causa disso: "aldeões" continua sendo só os aldeões (`population.villagers`), e os Mestres aparecem à parte (`population.masters`); as casas ocupadas (`housed`) contam os dois. Um feudo com 8 aldeões e 2 Mestres tem as 10 vagas tomadas.
+- Se decidir diferente: pôr o Mestre dentro de `villagers` pede uma exceção em `loseVillager`, em `injureVillager`, em `releaseExcessWorkers`, em `setWorkers` e nas coortes de adaptação, e um passo de migração.
+
+**E-30. A primeira alocação também paga a adaptação.** *(Pergunta para o autor; o ADR diz "trocar de edifício passa pela adaptação".)*
+- Enquanto isso: **chegar a um edifício custa a adaptação, venha o Mestre de outro edifício ou de edifício nenhum**: por um dia de jogo ele rende metade e não dá o bônus. É a regra de todo trabalhador (quem sai do grupo sem ofício também se adapta), e fecha um atalho: se só a troca custasse, duas ordens seguidas (deixá-lo sem edifício, depois pô-lo no novo) trocariam de graça.
+- O que isso custa ao jogador: o Mestre que chega só soma os 15% um dia de jogo depois da primeira ordem (40 minutos reais no Rápido, 2 h no Normal, 4 h no Tranquilo).
+- Se decidir diferente: isentar a primeira alocação pede um campo a mais no Mestre ("já trabalhou"), versão nova do estado, e a regra de que deixá-lo sem edifício não devolve a isenção.
+
+**E-31. Enquanto se adapta, o Mestre rende metade, como qualquer recém-chegado.** *(Leitura do agente: o ADR diz "sem o bônus enquanto durar" e não diz quanto o braço dele rende.)*
+- Enquanto isso: o braço do Mestre em adaptação vale `craft.adaptationMultiplier` (1/2), o mesmo de todo trabalhador, e o bônus não entra. Dois canteiros e o Mestre em adaptação rendem por 2,5; depois, por 3 × 1,15.
+- Se decidir diferente: "braço inteiro, só sem o bônus" é uma linha em `craft.ts` e muda os números da tela (`gainWhileAdaptingPerHour`).
+
+**E-32. O piso de população conta os habitantes, e um feudo só de Mestres não perde ninguém.** *(Leitura do agente de "conta para o piso".)*
+- Enquanto isso: um aldeão só parte ou deserta com mais de 3 habitantes (aldeões e Mestres). Com 3 aldeões e 1 Mestre, um aldeão ainda sai; com 2 e 1, ninguém. Com Mestres bastantes, os aldeões podem chegar a zero (4 Mestres e 1 aldeão: ele sai), e o feudo fica só com os Mestres, que trabalham.
+- Se decidir diferente: "o piso são 3 aldeões, e o Mestre é um a mais" é uma linha em `aboveFloor`; a outra leitura do ADR ("conta para o piso") é esta.
+
+**E-33. O Mestre à porta não mora, não come e não trabalha, e a casa do recruta é do recruta.** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: quem chega sem vaga espera sem custo nenhum, o quanto for, e entra no instante em que uma vaga abre (a obra das Habitações ou do Salão que termina; o aldeão que parte ou deserta). O recruta em treinamento tem a vaga reservada desde a ordem, e o Mestre à espera nunca a toma. Do outro lado, **o jogador não consegue passar um recruta na frente do Mestre**: sem vaga a ordem de recrutar é recusada, e a vaga que abre é do Mestre no mesmo instante.
+- O que o jogador precisa saber, e hoje só a visão diz (`mastersWaiting.note`): que o Mestre está à porta e que uma vaga o faz entrar. A tela é a V3E-T4.
+- Se decidir diferente: fazê-lo comer enquanto espera, ou dar-lhe a vez na frente do recruta, é uma linha em cada caso.
+
+**E-34. `MASTER_WAITING`: um código de recusa a mais que o roadmap previa.**
+- Enquanto isso: a ordem `assignMaster` para um Mestre que ainda está à porta é recusada com "Mestre Gil ainda espera uma vaga nas casas: só recebe ofício depois de entrar no feudo.", e não com "Esse Mestre não está no feudo.".
+- Se decidir diferente: sai o código, e a frase fica a de `MASTER_NOT_FOUND`.
+
+**E-35. De onde vêm os Mestres, com que chance, e quem são.** *(Conteúdo: rascunho, não lido pelo autor. É a pergunta que mais pede resposta.)*
+- Enquanto isso: quatro Mestres com nome (Odo, canteiro; Berta, lavradora; Gil, carpinteiro; Ximena, mineira). **Odo** está nos três guardiões das Ruínas de Vel'Thar, em **1 de cada 4** vitórias; **Berta**, nos três chefes do Pântano Nebuloso, em **1 de cada 3**. Cada um chega uma vez só por partida. **Gil e Ximena não têm de onde vir** até as cartas do lote 2 (V3F-T1: "Os Refugiados" entrega um). O Resgate, que a tarefa também sugeria, ficou sem Mestre: só existe com um herói em cativeiro.
+- O que a medição diz ([balance-v0.3.md](balance-v0.3.md), seção 13.3): **o Mestre é raro no simulador**. Em 50 partidas do Explorador, 2 receberam um na semana do Rápido (na hora 161 de 168, e os dois ficaram à porta) e 5 no ano de jogo do Tranquilo; no ano de jogo do Rápido e do Normal, nenhuma.
+- Se decidir diferente: a chance é um número em `missions/ruins.ts` e em `missions/swamp.ts`; pôr um Mestre em um destino mais cedo (a Floresta Antiga, o Covil) é uma linha por nó. Os ids (`odo`, `berta`, `gil`, `ximena`) ficam gravados no estado: trocar um nome é texto, trocar um id pede passo de migração.
+
+**E-36. "O bônus torna um edifício obrigatório?": não um só, mas sempre o mais cheio.** *(Para o autor saber; é a validação que a decisão 18 mandava voltar.)*
+- O que a medição diz ([balance-v0.3.md](balance-v0.3.md), seção 13.4): o ganho do Mestre cresce com os braços que o edifício já tem, então o melhor lugar é o edifício com mais gente: a Fazenda ou a Serraria no começo, a Mina de Ouro quando os depósitos enchem. Em cada momento o melhor rende de 1,2 a 3,5 vezes o segundo. **A decisão que sobra para o jogador é mudar o Mestre quando a partida muda de fase**, pagando um dia de jogo.
+- O limite: a comparação é em unidades por hora, sem pesar o recurso (E-37), e quase nenhuma partida da matriz tem um Mestre trabalhando.
+- Se o autor quiser outra coisa: um bônus que não dependa dos braços (somar um valor fixo) ou um teto ("os 15% valem para até N trabalhadores") espalhariam a escolha; nenhum dos dois é da decisão 18.
+
+**E-37. A visão diz o ganho do Mestre em unidades por hora, sem pesar o recurso.** *(Para a V3E-T4.)*
+- Enquanto isso: `masters[].options[]` traz, de cada edifício, `gainPerHour` e `gainWhileAdaptingPerHour`, na unidade do recurso. Cinco de ouro e cinco de comida aparecem iguais, e o bot escolhe pelo maior número.
+- Se decidir diferente: a tela pode ordenar por outro critério, ou a visão pode trazer o ganho em ouro pelo preço do dia (só com o Mercado de pé).
+
+**E-38. O Mestre toma a estrada na hora do nó, sem esperar a volta da equipe.** *(Decisão do agente.)*
+- Enquanto isso: como o destino revelado e o cativo solto, o Mestre que a equipe encontra chega ao feudo no instante em que o guardião cai, 45 minutos de jogo antes da equipe. A cobiça de um Ganancioso não o perde (ele não é saque), e a equipe que se perdesse no caminho de volta não o levaria junto (não há nó depois do guardião que possa perdê-la).
+- Se decidir diferente: fazê-lo chegar com a equipe pede guardar o Mestre no saque da expedição (um campo a mais no estado) e decidir o que acontece com ele se a equipe se perde.
+
+**E-39. A visão dos Mestres tem campos que o Apêndice B não previa.**
+- `masters[]` traz também `originText`, `building`, `bonusActive` e `options[]`; `mastersWaiting` é `{ count, names, note }`, e não um número; `workers[].master` traz também `id` e `adapting`; entraram `population.masters` e `workersRules.masterBonusPercent`, `masterAdaptationSeconds` e `masterText`. O Apêndice B.4 do roadmap já traz a forma entregue.
+- No estado: `masterId` (o id do conteúdo) no lugar de `name`, e `master` em cada registro do percurso de uma expedição, para o relatório dizer que a equipe o encontrou.
+
+**E-40. O `main` local está no estado 23, três passos além do fim da Fase D.** *(Continua a E-0 e a E-28.)*
+- Enquanto isso: nada foi publicado. `git push origin main` levaria o Mercado, as caravanas e os Mestres, os três sem tela: um Mestre que chegasse por expedição moraria e comeria no feudo sem o jogador poder vê-lo nem lhe dar um edifício.
+- Se decidir diferente: a escolha continua a da E-0; publicar só a Fase D é `git push origin 27fceb5:main`.
+
 ### Fase E: as caravanas (V3E-T2)
 
 Vêm da tarefa V3E-T2 (as caravanas: a venda adiada, a emboscada e a escolta), aplicada em 2026-10-06 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 22; protocolo ainda 3** (a visão cresceu por adição: `market.caravans` e `market.caravanOffer`). O app não tem tela: é a V3E-T4. **Nenhuma foi perguntada ao autor.** As que mudam o que o jogador vive são a E-13, a E-15 e a E-21.
@@ -1061,6 +1118,21 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase E: os Mestres (V3E-T3)
+
+- **Ninguém jogou com um Mestre, e não há tela para vê-lo nem movê-lo**: a interface é a V3E-T4. O que existe é a ordem `assignMaster` pela API e a visão `masters`, `mastersWaiting` e `workers[].master`, provadas por teste de motor, de protocolo e de integração.
+- **Ninguém leu as frases novas nem os nomes**: as três linhas da Crônica, as duas de `masterTemplates`, as quatro recusas, as frases da tela (`masterTexts`), os quatro Mestres e as origens deles são rascunho.
+- **Um Mestre achado por expedição pela API não foi exercitado**: os testes de integração põem os Mestres direto no estado gravado (`rewriteState`). O caminho da expedição até a chegada é provado no motor (sessenta sementes diante do guardião) e na propriedade.
+- **O efeito de um Mestre sobre uma partida inteira não foi medido**: na matriz só quatro partidas terminam com um Mestre trabalhando, todas no ano de jogo do Tranquilo. O que há é a conta do ganho no instante em que ele chegaria (seção 13.4 do balanceamento), feita por um roteiro que não ficou no repositório.
+- **As faixas de Camponês e de Rei de Ferro não foram remedidas à parte**: a matriz das três dificuldades passou no `pnpm test` sem regravar nada; a rodada do Explorador com a tabela dos Mestres foi só em Senhor.
+- **O Mestre de Berta (o Pântano) só tem o teste de conteúdo e o da propriedade não o alcança**: nenhum teste de motor leva uma equipe ao chefe do Pântano para encontrá-la; a regra é a mesma do guardião das Ruínas, e o que muda é o dado.
+- **Dois Mestres no feudo ao mesmo tempo**: provado com Mestres postos por `deliverMaster` nos testes; na matriz, ao menos uma partida do ano do Tranquilo termina com dois (seis Mestres em cinco partidas), e nenhuma foi olhada de perto.
+- **O cenário integrado QA-02** (30 dias com heróis em expedição, soldo em atraso, Mercado, caravana e Mestre juntos) e o **QA-03** (todos os eventos no mesmo instante) são da V3E-T5; a propriedade desta tarefa junta Mestres, expedições às Ruínas, obras, recrutas, fome e lobos, sem Mercado nem caravana.
+- **O Relatório de Retorno do app não trata os eventos do Mestre** (caem no "nem ganho nem perda"): é da V3F-T3. As notificações também não.
+- **`--perf`, os bytes do estado e da visão com Mestres, `pnpm docker:build`, `pnpm capture:landing` e `pnpm test:e2e:landing` não foram rodados.** O estado cresceu duas listas vazias em toda partida e um campo em cada registro de percurso; a visão, `masters`, `mastersWaiting`, um campo por linha de `workers` e três em `workersRules` (com um Mestre, as quatro opções dele). O teto de `perf.test.ts` continua passando.
+- **O "antes" da medição é o que a V3E-T2 gravou** (`bands.ts` e a seção 12 do balanceamento), e não uma rodada nova na árvore anterior: as seis células do Explorador em Senhor saíram com os mesmos números.
+- **Nenhum ensaio de reversão**: a imagem anterior diante de um estado 23 responde `500` sem gravar, como em toda versão, e isso não foi exercitado com imagens.
 
 ### Fase E: as caravanas (V3E-T2)
 

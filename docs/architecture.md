@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 22) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 23) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -347,7 +347,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 | Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| Mecânicas de versões futuras (Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), o motor das expedições, desde a V3D-T1 (seção 15), os desfechos e o equipamento, desde a V3D-T2 (seção 16), o Mercado, sem tela, desde a V3E-T1 (seção 20), e as caravanas, também sem tela, desde a V3E-T2 (seção 21) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
+| Mecânicas de versões futuras (exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), o motor das expedições, desde a V3D-T1 (seção 15), os desfechos e o equipamento, desde a V3D-T2 (seção 16), o Mercado, sem tela, desde a V3E-T1 (seção 20), as caravanas, também sem tela, desde a V3E-T2 (seção 21), e os Mestres, também sem tela, desde a V3E-T3 (seção 22) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
 
 ## 13. Limites conhecidos
 
@@ -553,6 +553,35 @@ O que a segunda tarefa da Fase E construiu por cima da seção 20: **as caravana
 
 **Critério 5 do GDD §16.2** ("uma caravana pode ser emboscada"): provado por um cenário de semente fixa (`market.caravans.test.ts`) e pela matriz QA-10, com 1.000 sementes por célula: nenhuma emboscada com escolta; sem escolta, 116, 50 e 24 com a Torre nos níveis 0, 1 e 2.
 
-**O que ainda não existe, e é erro antecipar:** Mestres (V3E-T3), a tela (V3E-T4), `market.effects` e as cartas que mexem no preço ou pedem um herói presente (V3F-T1), os objetivos 11 a 16 (V3F-T2), o Retorno com as caravanas (V3F-T3), ferro (v0.4), compra por caravana e mais de um destino.
+**O que ainda não existe, e é erro antecipar:** a tela (V3E-T4), `market.effects` e as cartas que mexem no preço ou pedem um herói presente (V3F-T1), os objetivos 11 a 16 (V3F-T2), o Retorno com as caravanas (V3F-T3), ferro (v0.4), compra por caravana e mais de um destino. Os Mestres, que esta lista trazia, existem desde a V3E-T3 (seção 22).
 
 **Limites conhecidos:** a ordem não leva o dia da cotação (E-15); a escolta não custa nada além do herói parado, e para quem tem um herói sem o que fazer ela é sempre a melhor escolha (E-21); ninguém jogou as caravanas, e as frases são rascunho.
+
+## 22. Os Mestres (V3E-T3, 2026-10-07)
+
+O que a terceira tarefa da Fase E construiu por cima das seções 20 e 21: **os Mestres no motor, no protocolo, no servidor e no simulador, sem a interface** (V3E-T4). Está no `main` **local**, com o estado na **versão 23** e o protocolo 3 (a visão cresceu por adição), e não está em produção. O detalhe está no [README do motor](../packages/engine/README.md), "Mestres"; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), "Fase E: os Mestres"; a medição, em [balance-v0.3.md](balance-v0.3.md), seção 13.
+
+**O desenho, em uma frase: o Mestre é um habitante que não é aldeão.** `population.villagers` continua contando só os aldeões; o Mestre mora em `settlement.masters`. As contas de habitante (vaga nas casas, comida, lenha, casas cheias, piso de população) somam os dois; as de aldeão (ofício, adaptação por coortes, quem parte, deserta ou se fere) não sabem que ele existe. **É isso que garante, por construção, que nenhuma regra de perda o alcança**, e que deixa intacta a invariante "a soma dos trabalhadores nunca passa dos aldeões que podem trabalhar". No edifício ele é um braço a mais, fora de `settlement.workers`.
+
+**Estado** (versão 23; o passo `v22ToV23` não cria prazo, evento, identificador nem sorteio): `settlement.masters` (`id` de `nextId`, `masterId`, `building`, `adaptingUntilMs`), `settlement.mastersWaiting` (`id`, `masterId`) e `master` em cada registro do percurso de uma expedição. As duas listas têm teto somado (`balance.masters.rosterCap`), e Mestre nenhum tem fluxo de sorteio.
+
+| Camada | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `balance.masters`, `masters.ts` (`masters`, `masterTexts`), `chronicle.ts` (`masterArrived`, `masterWaiting`, `masterAssigned`, `masterTemplates`), `expeditions.ts` (`rewards.master`), `missions/ruins.ts` e `missions/swamp.ts` | Os números do ADR 0018, decisão 18; quatro Mestres com nome, tratamento e ofício de origem (só narrativa); as linhas da Crônica e as frases da tela, sem número de regra; Odo nos guardiões das Ruínas (1 em 4) e Berta nos chefes do Pântano (1 em 3) |
+| Contas | `masters.ts` | `inhabitants`, o Mestre de um edifício e o braço que ele é em um instante, o fator do bônus, quem já chegou, o fim da adaptação. Só lê o estado (e encerra a adaptação vencida) |
+| Chegada | `masterTurn.ts` (`deliverMaster`, `settleMasterArrivals`) | **O único ponto que cria um Mestre.** Com vaga entra na hora, sem edifício; sem vaga, espera à porta e entra quando houver uma. Não sorteia |
+| Ordem | `masterOrders.ts` (`assignMaster`) | Põe o Mestre em um edifício produtivo, ou o deixa sem edifício. Chegar a um edifício começa a adaptação; pedir o que já vale não muda nada. **Não sorteia nem cria entidade** |
+| Produção | `craft.ts` (`handsAt`, `armsOf`), `economy.ts` (`productionFactors`) | O braço do Mestre entre os do edifício e o fator `master` (23/20) na conta única, com o termo na explicação |
+| Linha do tempo | `advance.ts` (`settleMasterArrivals`, duas vezes), `craft.ts` (`nextAdaptationEndAt`, `finishAdaptations`) | A entrada de quem esperava, junto dos aldeões que chegam e de novo depois da virada do dia; o fim da adaptação é candidato de `nextEventAt` |
+| Expedições | `expeditionTurn.ts` | O sexto sorteio do nó, no fluxo da expedição: o Mestre, só no Sucesso e só se ele ainda pode chegar. Ele toma a estrada no instante do nó |
+| Visão | `mastersView.ts`, `craftView.ts` | `masters[]` com `options[]` (o que cada edifício renderia a mais, durante a adaptação e depois dela), `mastersWaiting`, `workers[].master`, o termo no `breakdown`, `population.masters` e as regras em `workersRules` |
+| Protocolo | `AssignMasterCommandSchema`, `ViewStateSchema` | A forma da ordem e da visão; os códigos `MASTER_NOT_FOUND`, `MASTER_WAITING`, `BUILDING_HAS_MASTER` e `NOT_A_PRODUCTION_BUILDING`. Teste de igualdade de tipos com o motor |
+| Servidor | nada de novo no código | O caminho de toda ordem: recibo por `commandId` (o duplo envio não recomeça a adaptação), a recusa com a visão de agora, a entrada de quem esperava resolvida pela leitura seguinte ou pelo job, a migração da versão 22 na primeira leitura |
+| App | nenhuma tela | Não há onde ver nem mover um Mestre até a V3E-T4. O Relatório de Retorno ainda não trata os eventos do Mestre (V3F-T3) |
+| Simulador | `bots/policies.ts` (`alocar o Mestre`) | O `economico` e o `explorador` a têm; o `preguicoso`, não. Coluna `masters` medida; linha "Mestres" no resumo e tabela "Mestres" na matriz |
+
+**QA-11** (roadmap §8.2): provado em `masters.test.ts` e `masters.property.test.ts`, e pela API em `packages/server/test/masters.test.ts`.
+
+**O que ainda não existe, e é erro antecipar:** o efeito de carta que dá um Mestre (`addMaster`, V3F-T1; a função do motor que o entrega já existe), a tela (V3E-T4), dispensar um Mestre, Mestre que ensina o ofício (a carta "O aprendiz e o Mestre" é do lote 2), `market.effects`, os objetivos 11 a 16 (V3F-T2) e o Retorno com a Guilda (V3F-T3).
+
+**Limites conhecidos:** dos quatro Mestres do conteúdo, só dois têm de onde vir (Gil e Ximena esperam as cartas da V3F-T1); o Mestre é raro no simulador, e o que a medição diz sobre onde ele rende mais vem de um estudo à parte (E-36); o bot compara o ganho em unidades por hora, sem pesar o recurso (E-37); ninguém jogou com um Mestre, e as frases são rascunho.

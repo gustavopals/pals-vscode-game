@@ -13,7 +13,7 @@ Onde este documento e o código divergirem, vale o código.
 1. [O que a v0.3 acrescenta ao catálogo](#1-o-que-a-v03-acrescenta-ao-catálogo)
 2. [Regras editoriais novas](#2-regras-editoriais-novas)
 3. [Fichas das cartas](#3-fichas-das-cartas)
-4. [Heróis com nome](#4-heróis-com-nome)
+4. [Heróis com nome](#4-heróis-com-nome) e [Mestres](#41-mestres-v3e-t3)
 5. [A Taverna: candidatos, nomes e frases](#5-a-taverna-candidatos-nomes-e-frases)
 6. [Expedições: o catálogo da v0.3](#6-expedições-o-catálogo-da-v03) (as fichas dos dezoito grafos)
 7. [Desfechos: os itens e as frases](#7-desfechos-os-itens-e-as-frases)
@@ -116,6 +116,29 @@ Estão em `namedHeroes` (`packages/content/src/heroes.ts`), com os identificador
 
 A frase de cada traço vale para as duas formas: um teste recusa "ele", "ela", "dele" e "dela" nela. Por isso a do Devoto mudou de "A fé dele levanta o ânimo do feudo." para "Tem fé, e a fé levanta o ânimo do feudo.".
 
+### 4.1 Mestres (V3E-T3)
+
+Estão em `masters` (`packages/content/src/masters.ts`), com os identificadores em `MASTER_IDS`, fixados em `masters.test.ts`: o id fica gravado no estado (`settlement.masters[].masterId`), e mudar um pede passo de migração. Os números (o bônus, um por edifício, a adaptação) estão em `balance.masters`. **Curadoria: rascunho, não lido pelo autor**, como os nomes, as origens e as frases abaixo.
+
+| Id | Nome | Tratamento | Ofício de origem | Frase da ficha | De onde vem |
+|---|---|---|---|---|---|
+| `odo` | Odo | Mestre | Pedreira | canteiro das pedreiras velhas | Ruínas de Vel'Thar: o guardião vencido (os três), 1 em 4 |
+| `berta` | Berta | Mestra | Fazenda | lavradora das terras alagadas | Pântano Nebuloso: o chefe vencido (os três), 1 em 3 |
+| `gil` | Gil | Mestre | Serraria | carpinteiro de ribeira | ainda de lugar nenhum: fica para as cartas do lote 2 (V3F-T1) |
+| `ximena` | Ximena | Mestra | Mina de Ouro | mineira dos veios fundos | ainda de lugar nenhum: fica para as cartas do lote 2 (V3F-T1) |
+
+- **O ofício de origem é só narrativa.** O bônus vale em qualquer edifício produtivo; a origem só dá a frase da ficha.
+- **Um Mestre chega uma vez só por partida.** Quem já está no feudo, ou espera à porta, não é sorteado de novo: a expedição seguinte ao mesmo lugar não gasta o sorteio.
+- **Onde o Mestre está no grafo.** Sempre no último nó com prova (o guardião, o chefe), só a partir do Sucesso. A cobiça de um Ganancioso não o perde: ele não é saque. Toma a estrada do feudo na hora do nó, sem esperar a volta da equipe; o relatório diz "Mestre Odo tomou a estrada do feudo.".
+- **Por que as Ruínas e o Pântano.** São os dois destinos mais fundos do catálogo, os que pedem a equipe mais forte: o Mestre é a recompensa que fica para quem chegou lá. Odo é o canteiro que lavrava a pedra das ruínas quando elas se fecharam; Berta tira colheita de terra alagada, atrás do que mora no fundo do charco. As fichas dos grafos não dizem isso em frase nenhuma: quem conta a chegada é a Crônica. **Um cenário em que o Mestre é uma boa recompensa:** o feudo com casa livre e um edifício cheio de braços. **Um em que não é:** as casas cheias (ele espera à porta) ou o feudo em fome (é mais uma boca).
+- **As linhas da Crônica** (`chronicleTemplates` e `masterTemplates`):
+  - chegada: "No {dia}º dia {daEstacao}, {mestre} chegou a {feudo} para ficar. Espera que o senhor lhe dê um edifício."
+  - sem vaga: "No {dia}º dia {daEstacao}, {mestre} chegou aos portões de {feudo}, mas não há vaga nas casas. Espera à porta até haver uma."
+  - a vaga abriu: "No {dia}º dia {daEstacao}, abriu-se uma vaga nas casas de {feudo}, e {mestre}, que esperava à porta, entrou para ficar."
+  - alocação: "No {dia}º dia {daEstacao}, {mestre} tomou a seu cargo {edificio} de {feudo}."
+  - sem edifício: "No {dia}º dia {daEstacao}, {mestre} deixou o ofício por ordem do senhor de {feudo} e aguarda outro."
+- **As frases da tela** (`masterTexts`, sem número de regra escrito): o tratamento ("Mestre", "Mestra"), "Sem edifício", "+{bonus}% na produção", "em adaptação por {prazo}: ainda sem o bônus", a regra em uma frase, quem espera à porta e por que um edifício não o recebe ("já tem {mestre}").
+
 ## 5. A Taverna: candidatos, nomes e frases
 
 **Rascunho, não lido pelo autor** (V3C-T2; pendência C-30). Os números são os do ADR 0017 ("Modelos de candidato da Taverna"), copiados; os nomes e as frases são do agente.
@@ -192,8 +215,8 @@ Os efeitos de traço que a Taverna trouxe: o Carismático multiplica o preço do
 | Floresta Antiga | `oldForest` | 1 h | 3 | 1 a 2 heróis | Baixo a médio | madeira, ouro, item comum ou incomum | Guilda Nv1 |
 | Covil de Lobos | `wolfDen` | 2 h | 3 | 2 heróis | Médio | limpa o Covil (Ameaça −30), ouro, item comum ou incomum | conhecido desde sempre; fecha com o Covil limpo ou com outra equipe a caminho |
 | Resgate | `rescue` | 2 h | 3 (duas provas e a volta) | 2 heróis | Alto | solta quem está em cativeiro; ouro e item incomum pelos caminhos mais duros | enquanto houver um herói em cativeiro; um Resgate por cativo |
-| Ruínas de Vel'Thar | `ruins` | 3 h | 4 | 2 a 3 heróis, nível 2 ou mais | Médio | pedra, ouro, item incomum no caminho e, em 2 de cada 3 vitórias sobre o guardião, item raro; revela o Pântano | revelada por uma Patrulha (ou por carta, V3F) |
-| Pântano Nebuloso | `swamp` | 5 h | 5 | 3 heróis, com um Mago | Alto | ouro, item raro e, vencido o chefe, item épico | revelado pelas Ruínas; Guilda Nv3 |
+| Ruínas de Vel'Thar | `ruins` | 3 h | 4 | 2 a 3 heróis, nível 2 ou mais | Médio | pedra, ouro, item incomum no caminho e, em 2 de cada 3 vitórias sobre o guardião, item raro; em 1 de cada 4, o Mestre Odo (V3E-T3); revela o Pântano | revelada por uma Patrulha (ou por carta, V3F) |
+| Pântano Nebuloso | `swamp` | 5 h | 5 | 3 heróis, com um Mago | Alto | ouro, item raro e, vencido o chefe, item épico; em 1 de cada 3 vitórias, a Mestra Berta (V3E-T3) | revelado pelas Ruínas; Guilda Nv3 |
 
 "Nós" conta o que a equipe atravessa no caminho mais longo, com o retorno e sem a encruzilhada. **O que o rótulo de risco quer dizer**, e o teste confere nas três Posturas (`expeditions.calibration.test.ts`; a régua inteira e a tabela estão em [balance-v0.3.md](balance-v0.3.md), seção 9.2): *Baixo*, a equipe mínima passa em nove de cada dez em qualquer Postura, e ninguém chega ao Desastre; *Baixo a médio*, a mínima passa em seis de cada dez ou mais pelo caminho do meio, sem Desastre nele nem no seguro, e na Ousada o Desastre existe e não passa de 15%; *Médio*, a mínima passa em pelo menos um quarto e em não mais de dois terços das vezes pelo caminho do meio (o Revés é comum), e o Desastre é possível para quem vai fraco ou ousa; *Alto*, a mínima passa em menos de um quarto, e a captura acontece: na Ousada para a mínima, e também na Equilibrada para quem vai mais fraco do que ela. **Os rótulos ordenam o risco**: a mínima passa mais em todo destino de um rótulo do que em qualquer destino do seguinte. (Era só a Equilibrada, e o Resgate, "Alto", era mais fácil do que as Ruínas, "Médio": revisão da Fase D, B11 e B12.)
 
@@ -650,7 +673,7 @@ stairway  encruzilhada  "A escadaria desaba"   Cautelosa → retreat · Equilibr
 | A trilha até as ruínas | viagem | — | — | — | — | — | — | — | — | — |
 | O Corredor das Inscrições | perigo | 110 | perícia ×1,5 | Arqueiro | fere gravemente | 40 | 30 a 50 de pedra; 30 a 50 de ouro; item (1 em 2): Arco de freixo, Couro fervido, Corno de batedor | 0/0/31/0 | 0/21/10/0 | 31/0/0/0 |
 | A Galeria Inundada | encontro | 72 | o padrão | Guerreiro | fere gravemente | 35 | 50 a 70 de pedra; 30 a 40 de ouro | 0/11/20/0 | 4/26/1/0 | 31/0/0/0 |
-| O guardião de pedra | chefe | 89 | o padrão | Guerreiro | **captura** | 60 | 70 a 90 de pedra; 50 a 70 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso | 0/0/25/6 | 0/10/21/0 | 31/0/0/0 |
+| O guardião de pedra | chefe | 89 | o padrão | Guerreiro | **captura** | 60 | 70 a 90 de pedra; 50 a 70 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso; **Mestre Odo (1 em 4, uma vez por partida)** | 0/0/25/6 | 0/10/21/0 | 31/0/0/0 |
 
 **Encruzilhada "A escadaria desaba".** A escadaria desaba às costas da expedição. Adiante, um corredor de paredes escritas; à direita, uma galeria com água parada; e, entre os escombros, uma fresta por onde ainda se sai.
 
@@ -691,7 +714,7 @@ threeArches  encruzilhada  "O pátio dos três arcos"   Cautelosa → retreat ·
 | Os saqueadores no portão caído | encontro | 70 | o padrão | Guerreiro | fere gravemente | 35 | 30 a 50 de pedra | 0/14/17/0 | 7/24/0/0 | 31/0/0/0 |
 | O ossário que canta | perigo | 104 | vontade ×1,5, ataque ×0,5 | Clérigo | fere gravemente | 40 | 40 a 60 de pedra; 30 a 50 de ouro; item (1 em 2): Arco de freixo, Couro fervido, Corno de batedor | 0/22/9/0 | 0/4/27/0 | 31/0/0/0 |
 | O salão das lajes falsas | perigo | 84 | perícia ×1 | Arqueiro | fere gravemente | 40 | 40 a 70 de pedra; 20 a 40 de ouro | 0/18/13/0 | 12/19/0/0 | 31/0/0/0 |
-| O guardião da cripta | chefe | 116 | vontade ×1 | Mago | **captura** | 60 | 60 a 80 de pedra; 60 a 80 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso | 0/4/27/0 | 0/1/30/0 | 31/0/0/0 |
+| O guardião da cripta | chefe | 116 | vontade ×1 | Mago | **captura** | 60 | 60 a 80 de pedra; 60 a 80 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso; **Mestre Odo (1 em 4, uma vez por partida)** | 0/4/27/0 | 0/1/30/0 | 31/0/0/0 |
 
 **Encruzilhada "O pátio dos três arcos".** O pátio tem três arcos. O primeiro desce a um ossário de onde vem um canto baixo; o segundo dá em um salão de lajes desiguais; o terceiro é o da entrada.
 
@@ -734,7 +757,7 @@ cisternAndTower  encruzilhada  "A cisterna e a torre"   Cautelosa → gatherCour
 | Os selos da torre | perigo | 104 | vontade ×1,5 | Mago | fere gravemente | 40 | 60 a 90 de ouro; item (1 em 2): Arco de freixo, Couro fervido, Corno de batedor | 4/26/1/0 | 0/21/10/0 | 31/0/0/0 |
 | O ninho na cisterna | encontro | 64 | o padrão | Guerreiro | fere gravemente | 35 | 50 a 70 de pedra; 20 a 30 de ouro | 0/23/8/0 | 17/14/0/0 | 31/0/0/0 |
 | A pedra do pátio | descoberta | — | — | — | — | — | 20 a 30 de pedra | — | — | — |
-| A sentinela sem rosto | chefe | 105 | perícia ×1 | Arqueiro | **captura** | 60 | 60 a 80 de pedra; 60 a 80 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso | 0/0/30/1 | 0/16/15/0 | 31/0/0/0 |
+| A sentinela sem rosto | chefe | 105 | perícia ×1 | Arqueiro | **captura** | 60 | 60 a 80 de pedra; 60 a 80 de ouro; item (2 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante; revela Pântano Nebuloso; **Mestre Odo (1 em 4, uma vez por partida)** | 0/0/30/1 | 0/16/15/0 | 31/0/0/0 |
 
 **Encruzilhada "A cisterna e a torre".** No pátio há uma torre de porta selada, coberta de sinais, e a boca de uma cisterna seca. Pedra lavrada está espalhada pelo chão.
 
@@ -782,7 +805,7 @@ lights  encruzilhada  "As luzes sobre a água"   Cautelosa → retreat · Equili
 | O atoleiro | perigo | 130 | perícia ×1 | Arqueiro | fere gravemente | 45 | — | 0/12/19/0 | 0/25/6/0 | 14/17/0/0 |
 | As luzes do charco | encontro | 140 | o padrão | Guerreiro | **captura** | 55 | 80 a 120 de ouro; item (1 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante | 0/0/17/14 | 0/0/29/2 | 0/9/22/0 |
 | A margem dos salgueiros | perigo | 132 | vontade ×1 | Mago | fere gravemente | 50 | 40 a 60 de ouro | 0/26/5/0 | 0/24/7/0 | 13/18/0/0 |
-| A bruxa do charco | chefe | 170 | vontade ×1,5 | Mago | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão | 0/16/15/0 | 0/10/21/0 | 0/24/7/0 |
+| A bruxa do charco | chefe | 170 | vontade ×1,5 | Mago | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão; **Mestra Berta (1 em 3, uma vez por partida)** | 0/16/15/0 | 0/10/21/0 | 0/24/7/0 |
 
 **Encruzilhada "As luzes sobre a água".** A névoa abre sobre um charco largo. Luzes azuis dançam no meio dele, em volta de uma ilha; pela margem, uma fila de salgueiros some na bruma.
 
@@ -826,7 +849,7 @@ sunkenVillage  encruzilhada  "A aldeia afundada"   Cautelosa → retreat · Equi
 | A noite da febre | acampamento | 120 | vontade ×1,5, ataque ×0,5 | Clérigo | fere gravemente | 45 | — | 12/19/0/0 | 0/26/5/0 | 15/16/0/0 |
 | A toca do que arrasta as redes | encontro | 138 | o padrão | Guerreiro | **captura** | 55 | 80 a 120 de ouro; item (1 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante | 0/0/18/13 | 0/0/30/1 | 0/10/21/0 |
 | A torre do sino debaixo da água | perigo | 128 | perícia ×1 | Arqueiro | fere gravemente | 50 | 50 a 70 de ouro | 0/13/18/0 | 0/26/5/0 | 15/16/0/0 |
-| O afogado que anda | chefe | 122 | o padrão | Guerreiro | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão | 0/0/29/2 | 0/8/23/0 | 0/22/9/0 |
+| O afogado que anda | chefe | 122 | o padrão | Guerreiro | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão; **Mestra Berta (1 em 3, uma vez por partida)** | 0/0/29/2 | 0/8/23/0 | 0/22/9/0 |
 
 **Encruzilhada "A aldeia afundada".** Telhados saem da água parada: uma aldeia inteira afundou aqui. Do campanário vem um toque abafado, e na lama da margem há um rastro largo, de coisa arrastada.
 
@@ -870,7 +893,7 @@ hangingTree  encruzilhada  "A árvore dos enforcados"   Cautelosa → retreat ·
 | O nevoeiro que chama pelo nome | perigo | 128 | vontade ×1 | Mago | fere gravemente | 45 | — | 2/26/3/0 | 1/26/4/0 | 17/14/0/0 |
 | A maldição dos enforcados | perigo | 150 | vontade ×1,5, ataque ×0,5 | Clérigo | **captura** | 55 | 80 a 120 de ouro; item (1 em 3): Lâmina de Vel'Thar, Cota rebitada, Medalha do viajante | 0/16/15/0 | 0/4/27/0 | 0/19/12/0 |
 | O canal escuro | encontro | 104 | o padrão | Guerreiro | fere gravemente | 50 | 40 a 60 de ouro | 0/10/21/0 | 0/23/8/0 | 12/19/0/0 |
-| A serpente do lodo | chefe | 134 | perícia ×0,5 | Guerreiro | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão | 0/0/31/0 | 0/11/20/0 | 0/25/6/0 |
+| A serpente do lodo | chefe | 134 | perícia ×0,5 | Guerreiro | **captura** | 80 | 100 a 150 de ouro; item (sempre): Cajado de brasa, Placas do guardião, Corrente do capitão; **Mestra Berta (1 em 3, uma vez por partida)** | 0/0/31/0 | 0/11/20/0 | 0/25/6/0 |
 
 **Encruzilhada "A árvore dos enforcados".** No fim do dique há uma árvore morta, com cordas velhas nos galhos e oferendas entre as raízes. Um canal passa ao largo dela, estreito e escuro.
 
@@ -941,4 +964,5 @@ Cada item tem uma frase de crônica, sem número ("Aço antigo, tirado das ruín
 
 - As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
 - Uma carta que **deixe de sair** conforme a equipe (por exemplo, só para quem não tem herói): hoje nenhum requisito de carta olha os heróis.
+- O efeito de carta que dá um Mestre (`addMaster`, V3F-T1): a cadeia "Os Refugiados" entrega um, e Gil e Ximena não têm outra origem até lá. A função do motor que o entrega já existe (`deliverMaster`).
 - Outros heróis com nome: `arrivingCap` (4) e o teste "só roteirizada dá herói" valem enquanto os heróis de carta forem poucos e de uma vez por partida.
