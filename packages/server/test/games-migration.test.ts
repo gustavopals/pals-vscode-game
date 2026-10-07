@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 22;
+const CURRENT = 23;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -67,12 +67,38 @@ const EMPTY_GUILD = {
 };
 
 /**
+ * Um estado gravado sem o que o passo 22 → 23 acrescenta a toda partida (V3E-T3): as duas listas
+ * de Mestres e o Mestre de cada registro do percurso. É o que deixa os blocos dos passos
+ * anteriores compararem o resto, campo por campo, com o retrato antigo; o que o passo escreve é
+ * conferido no bloco dele.
+ */
+function beforeMasters<T>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as {
+    settlement?: { masters?: unknown; mastersWaiting?: unknown };
+    guild?: {
+      expeditions?: Array<{ log?: Array<Record<string, unknown>> }>;
+      reports?: Array<{ log?: Array<Record<string, unknown>> }>;
+    };
+  };
+  delete copy.settlement?.masters;
+  delete copy.settlement?.mastersWaiting;
+  for (const journey of [...(copy.guild?.expeditions ?? []), ...(copy.guild?.reports ?? [])]) {
+    for (const entry of journey.log ?? []) {
+      delete entry.master;
+    }
+  }
+  return copy as T;
+}
+
+/**
  * Um estado gravado sem o que o passo 17 → 18 acrescenta a toda partida (V3D-T2): os destinos
  * revelados, o arsenal e, em cada herói, o ferimento, o cativeiro e o equipamento. É o que deixa
  * os blocos dos passos anteriores compararem o resto, campo por campo, com o retrato antigo; o
  * que o passo escreve é conferido no bloco dele.
  */
-function beforeOutcomes<T>(state: T): T {
+function beforeOutcomes<T>(input: T): T {
+  // E os Mestres, da versão 23 (V3E-T3).
+  const state = beforeMasters(input);
   const copy = JSON.parse(JSON.stringify(state)) as {
     map?: { discovered?: unknown };
     guild?: { inventory?: unknown; heroes?: Array<Record<string, unknown>> };
@@ -162,6 +188,9 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       market: 0,
     },
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+    // Os Mestres (V3E-T3): ninguém no feudo, ninguém à porta.
+    masters: [],
+    mastersWaiting: [],
     constructionQueues: [...constructionQueues, null],
     planned: planned.map((plan) => ({ ...plan, autoStart: false })),
     // Os ofícios (V2C-T3): experiência em zero e todo mundo já adaptado.
@@ -847,6 +876,9 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       // E o Mercado, da versão 21, também por construir.
       buildings: { ...site.buildings, market: 0 },
       lastFamine: null,
+      // E os Mestres, da versão 23: nenhum.
+      masters: [],
+      mastersWaiting: [],
     });
   });
 
@@ -1452,7 +1484,7 @@ describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', ()
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       // O estado é o da versão 20, campo por campo, com a fronteira nova, o edifício no nível
       // zero e o Mercado com os preços na base: nenhum estoque, contador ou sorteio muda.
-      expect(row.state).toEqual({
+      expect(beforeMasters(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -2156,7 +2188,7 @@ describe('uma partida gravada na versão 21 (V3E-T2; ADR 0018, decisão 17)', ()
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       // O estado é o da versão 21, campo por campo, com a fronteira nova e a lista vazia:
       // nenhum estoque, herói, contador ou sorteio muda.
-      expect(row.state).toEqual({
+      expect(beforeMasters(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -2190,6 +2222,115 @@ describe('uma partida gravada na versão 21 (V3E-T2; ADR 0018, decisão 17)', ()
       expect(row.state.ids.caravan).toBeUndefined();
       expect(
         await countRows(app.pool, 'game_events', `game_id = '${game.id}' and kind like 'caravan%'`),
+      ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 22 (V3E-T3; ADR 0018, decisão 18)', () => {
+  type Journey = { log: Array<Record<string, unknown>> };
+  type V22State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    settlement: StoredState['settlement'] & {
+      masters?: unknown[];
+      mastersWaiting?: unknown[];
+      population: { villagers: number };
+    };
+    guild: { expeditions: Journey[]; reports: Journey[] };
+  };
+
+  /** Um retrato da versão 22, como o motor das caravanas o gravou. */
+  function v22State(name: string): V22State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v22-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V22State;
+  }
+
+  async function insertV22(app: TestApp, state: V22State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // Com caravana na estrada, com expedição em curso e com relatório guardado, com gente em
+  // adaptação, nos três ritmos.
+  it.each([
+    ['caravan-escort'],
+    ['expedition-returning'],
+    ['expedition-crossroads'],
+    ['crafts'],
+    ['week-scripted'],
+    ['migrated-iron-king-half'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com as duas listas de Mestres, vazias, e o Mestre de cada registro, nulo, a mais',
+    async (name) => {
+      const before = v22State(name);
+      expect(before.settlement.masters).toBeUndefined();
+      const game = await insertV22(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 22, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V22State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 22, campo por campo, com a fronteira nova: nenhum aldeão,
+      // estoque, herói, contador ou sorteio muda.
+      expect(row.state.settlement.masters).toEqual([]);
+      expect(row.state.settlement.mastersWaiting).toEqual([]);
+      for (const journey of [...row.state.guild.expeditions, ...row.state.guild.reports]) {
+        for (const entry of journey.log) {
+          expect(entry.master).toBeNull();
+        }
+      }
+      expect(beforeMasters(row.state)).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      expect(row.state.ids.master).toBeUndefined();
+      expect(reply.body.view.masters).toEqual([]);
+      expect(reply.body.view.mastersWaiting).toEqual({ count: 0, names: [], note: null });
+      expect(reply.body.view.population.masters).toBe(0);
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: um dia real depois não há Mestre nenhum, nem evento dele', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v22State('crafts');
+      const game = await insertV22(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V22State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(row.state.settlement.masters).toEqual([]);
+      expect(row.state.settlement.mastersWaiting).toEqual([]);
+      expect(row.state.ids.master).toBeUndefined();
+      expect(
+        await countRows(app.pool, 'game_events', `game_id = '${game.id}' and kind like 'master%'`),
       ).toBe(0);
     } finally {
       await app.close();

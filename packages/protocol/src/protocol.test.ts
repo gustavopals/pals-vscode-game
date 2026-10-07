@@ -153,6 +153,12 @@ describe('CommandSchema', () => {
       type: 'sendCaravan',
       payload: { resource: 'food', amount: 40, escortHeroId: null },
     },
+    {
+      commandId: uuid,
+      type: 'assignMaster',
+      payload: { masterId: 'master-1', building: 'quarry' },
+    },
+    { commandId: uuid, type: 'assignMaster', payload: { masterId: 'master-2', building: null } },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -413,6 +419,42 @@ describe('CommandSchema', () => {
         commandId: uuid,
         type: 'sendCaravan',
         payload: { resource: 'wood', amount: 10, escortHeroId: ['hero-1', 'hero-2'] },
+      },
+    ],
+    [
+      'Mestre sem dizer para onde vai',
+      { commandId: uuid, type: 'assignMaster', payload: { masterId: 'master-1' } },
+    ],
+    [
+      'Mestre em edifício que não produz',
+      {
+        commandId: uuid,
+        type: 'assignMaster',
+        payload: { masterId: 'master-1', building: 'tavern' },
+      },
+    ],
+    [
+      'Mestre com a adaptação escolhida pelo cliente',
+      {
+        commandId: uuid,
+        type: 'assignMaster',
+        payload: { masterId: 'master-1', building: 'farm', adaptingUntilMs: 0 },
+      },
+    ],
+    [
+      'Mestre com o bônus escolhido pelo cliente',
+      {
+        commandId: uuid,
+        type: 'assignMaster',
+        payload: { masterId: 'master-1', building: 'farm', bonus: { num: 1, den: 1 } },
+      },
+    ],
+    [
+      'dois Mestres em uma ordem',
+      {
+        commandId: uuid,
+        type: 'assignMaster',
+        payload: { masterId: ['master-1', 'master-2'], building: 'farm' },
       },
     ],
     [
@@ -1857,6 +1899,119 @@ describe('ViewStateSchema', () => {
       Object.entries(view).filter(([key]) => key !== 'market'),
     );
     expect(ViewStateSchema.safeParse(withoutMarket).success).toBe(false);
+  });
+
+  it('aceita a visão e os eventos de uma partida com Mestres: a alocação, a adaptação, quem espera à porta e as recusas', () => {
+    const DAY = 7_200_000;
+    const order = (type: Command['type'], payload: unknown) =>
+      ({ commandId: uuid, type, payload }) as Command;
+    let state = createInitialState('mestres', settings);
+    // Dois Mestres no feudo e um à porta, postos à mão: no jogo chegam por expedição.
+    state.settlement.population.villagers = 8;
+    Object.assign(state.settlement.workers, { farm: 3, quarry: 2 });
+    state.settlement.masters = [
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
+      { id: 'master-2', masterId: 'berta', building: null, adaptingUntilMs: null },
+    ];
+    state.settlement.mastersWaiting = [{ id: 'master-3', masterId: 'gil' }];
+    state.ids.master = 3;
+    const told: Array<{ type: string; atMs: number; text: string; data: unknown }> = [];
+    const run = (command: Command) => {
+      const result = applyCommand(state, command, state.lastProcessedAt);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      told.push(...result.events);
+    };
+    const before = deriveViewState(state, 0);
+    expect(ViewStateSchema.safeParse(before).error).toBeUndefined();
+    expect(before.masters.map((entry) => entry.buildingLabel)).toEqual([
+      'Sem edifício',
+      'Sem edifício',
+    ]);
+    expect(before.mastersWaiting).toMatchObject({ count: 1, names: ['Mestre Gil'] });
+    expect(before.population).toMatchObject({ villagers: 8, masters: 2, vacancies: 0 });
+    run(order('assignMaster', { masterId: 'master-1', building: 'quarry' }));
+    const adapting = deriveViewState(state, 0);
+    expect(ViewStateSchema.safeParse(adapting).error).toBeUndefined();
+    expect(adapting.masters[0]).toMatchObject({
+      bonusActive: false,
+      adaptationEndsInSeconds: 7200,
+    });
+    expect(adapting.workers.find((row) => row.building === 'quarry')?.master).toMatchObject({
+      name: 'Mestre Odo',
+      adapting: true,
+    });
+    // As recusas do motor passam pelo contrato com os códigos novos.
+    const refuse = (command: Command) => applyCommand(state, command, state.lastProcessedAt);
+    expect(
+      refuse(order('assignMaster', { masterId: 'master-2', building: 'quarry' })),
+    ).toMatchObject({ ok: false, code: 'BUILDING_HAS_MASTER' });
+    expect(refuse(order('assignMaster', { masterId: 'master-3', building: 'farm' }))).toMatchObject(
+      {
+        ok: false,
+        code: 'MASTER_WAITING',
+      },
+    );
+    expect(refuse(order('assignMaster', { masterId: 'master-9', building: 'farm' }))).toMatchObject(
+      {
+        ok: false,
+        code: 'MASTER_NOT_FOUND',
+      },
+    );
+    expect(
+      refuse(order('assignMaster', { masterId: 'master-2', building: 'tavern' })),
+    ).toMatchObject({ ok: false, code: 'NOT_A_PRODUCTION_BUILDING' });
+    const step = advanceTo(state, DAY);
+    state = step.state;
+    told.push(...step.events);
+    const settled = deriveViewState(state, DAY);
+    expect(ViewStateSchema.safeParse(settled).error).toBeUndefined();
+    expect(settled.masters[0]).toMatchObject({ bonusActive: true, adaptationEndsInSeconds: null });
+    expect(settled.workers.find((row) => row.building === 'quarry')?.breakdown).toContain(
+      '× 1,15 (Mestre Odo)',
+    );
+    expect(told.map((event) => event.type)).toContain('masterAssigned');
+    for (const [index, event] of told.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-07T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+    }
+  });
+
+  it('recusa nos Mestres o que não é para o jogador ver e o que o cliente não decide', () => {
+    const state = createInitialState('mestres', settings);
+    state.settlement.masters = [
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null },
+    ];
+    state.ids.master = 1;
+    const view = deriveViewState(state, 0);
+    const parse = (change: object) => ViewStateSchema.safeParse({ ...view, ...change }).success;
+    expect(parse({})).toBe(true);
+    const [master] = view.masters;
+    for (const leak of [
+      { masterId: 'odo' },
+      { adaptingUntilMs: 7_200_000 },
+      { bonus: { num: 3, den: 20 } },
+      { origin: 'quarry' },
+    ]) {
+      expect(parse({ masters: [{ ...master, ...leak }] })).toBe(false);
+    }
+    expect(parse({ masters: [{ ...master, building: 'tavern' }] })).toBe(false);
+    expect(parse({ mastersWaiting: 1 })).toBe(false);
+    expect(
+      parse({ mastersWaiting: { count: 1, names: ['Mestre Gil'], note: null, ids: [] } }),
+    ).toBe(false);
+    const without = (key: string) =>
+      ViewStateSchema.safeParse(
+        Object.fromEntries(Object.entries(view).filter(([name]) => name !== key)),
+      ).success;
+    expect(without('masters')).toBe(false);
+    expect(without('mastersWaiting')).toBe(false);
+    const [row] = view.workers;
+    expect(
+      parse({ workers: [{ ...row, master: { name: 'Mestre Odo' } }, ...view.workers.slice(1)] }),
+    ).toBe(false);
   });
 
   it('recusa na guilda o que é de outra fase ou não é para o jogador ver', () => {

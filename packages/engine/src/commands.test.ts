@@ -22,6 +22,9 @@ import {
   marketStall,
   caravanOrder,
   caravanPost,
+  masterOrder,
+  mastersScenario,
+  masterWaitingScenario,
   send,
   tavernScenario,
   tradeOrder,
@@ -202,6 +205,8 @@ describe('catálogo de recusas', () => {
     atFork,
     command('chooseExpeditionPath', { expeditionId: inForest.expedition.id, optionId: 'stream' }),
   ).state;
+  const crafted = mastersScenario();
+  const atDoor = masterWaitingScenario();
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
@@ -307,6 +312,15 @@ describe('catálogo de recusas', () => {
     MARKET_LEVEL_REQUIRED: [stall, caravanOrder('wood', 10)],
     // O Mercado Nv2 mantém uma caravana na estrada, e ela já partiu.
     CARAVAN_LIMIT: [onTheRoad, caravanOrder('stone', 10)],
+    // O feudo dos Mestres: Odo na Pedreira, Berta na Fazenda, e ninguém com esse identificador.
+    MASTER_NOT_FOUND: [crafted, masterOrder('master-9', 'farm')],
+    // Gil chegou com as casas cheias e ainda espera à porta.
+    MASTER_WAITING: [atDoor, masterOrder('master-2', 'farm')],
+    BUILDING_HAS_MASTER: [crafted, masterOrder('master-2', 'quarry')],
+    NOT_A_PRODUCTION_BUILDING: [
+      crafted,
+      command('assignMaster', { masterId: 'master-1', building: 'tavern' as 'farm' }),
+    ],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

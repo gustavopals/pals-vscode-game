@@ -2,6 +2,7 @@ import { PRODUCTION_BUILDING_IDS } from '@lotg/content';
 
 import { DAYS_PER_YEAR, isDayBoundary, nextDayBoundary, nextSeasonBoundary } from './clock';
 import {
+  anyoneAdapting,
   experienceChange,
   finishAdaptations,
   nextAdaptationEndAt,
@@ -44,12 +45,12 @@ export type Probe<T extends Deadline> = (state: GameState, rates: Rates) => T | 
 type Stretch = { atMs: number; state: GameState; rates: Rates; untilMs: number };
 
 /**
- * Com todo mundo adaptado, nenhum ferido por voltar ao ofício e nenhuma experiência por mudar,
+ * Com todo mundo adaptado (os aldeões e os Mestres), nenhum ferido por voltar ao ofício e nenhuma experiência por mudar,
  * o ofício não mexe mais nas taxas.
  */
 function craftSettled(state: GameState): boolean {
   return (
-    state.settlement.adaptation.length === 0 &&
+    !anyoneAdapting(state) &&
     state.settlement.injured.length === 0 &&
     PRODUCTION_BUILDING_IDS.every((building) => experienceChange(state, building) === 0)
   );

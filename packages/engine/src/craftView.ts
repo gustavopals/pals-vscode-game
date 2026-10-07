@@ -1,9 +1,10 @@
-import { balance, buildings } from '@lotg/content';
+import { balance, buildings, masterTexts } from '@lotg/content';
 
 import { buildingWithArticle } from './construction';
 import { experienceChange, handsOf, occupancyOf, occupiedFrom, workersAtNextTurn } from './craft';
+import { masterAdaptingAt, masterBonusPercent, masterLabel, masterOf } from './masters';
 import { effectiveWorkers, productionRate } from './economy';
-import { decimal, durationText, plural, shareText } from './format';
+import { decimal, durationText, fillText, plural, shareText } from './format';
 import type { GameState, ProductionBuildingId, ViewState } from './types';
 import { MILLI, realSecondsCeil } from './units';
 
@@ -63,6 +64,13 @@ export function workersRulesView(timeScale: number): ViewState['workersRules'] {
       `No máximo, a produção rende ${decimal(maxBonus)}% a mais.`,
     experienceMax: maxExperience,
     masteryMaxBonusPercent: maxBonus,
+    masterBonusPercent: masterBonusPercent(),
+    masterAdaptationSeconds: realSecondsCeil(balance.masters.adaptationMs, timeScale),
+    masterText: fillText(masterTexts.rules, {
+      bonus: decimal(masterBonusPercent()),
+      prazo: durationText(realSecondsCeil(balance.masters.adaptationMs, timeScale)),
+      parte: shareText(adaptationMultiplier),
+    }),
   };
 }
 
@@ -148,15 +156,31 @@ export function handsClause(
   timeScale: number,
 ): string {
   const workers = state.settlement.workers[building];
-  const cohorts = cohortsOf(state, building, timeScale);
-  const last = cohorts[cohorts.length - 1];
-  if (last === undefined) {
-    return hands(workers);
+  const now = state.lastProcessedAt;
+  const master = masterOf(state, building);
+  // O Mestre é um braço a mais, dito pelo nome: "4 trabalhadores e Mestre Odo".
+  const who =
+    master === null
+      ? hands(workers)
+      : workers === 0
+        ? masterLabel(master.masterId)
+        : `${hands(workers)} e ${masterLabel(master.masterId)}`;
+  const arms = workers + (master === null ? 0 : 1);
+  const ends = cohortsOf(state, building, timeScale);
+  if (master !== null && master.adaptingUntilMs !== null && masterAdaptingAt(master, now)) {
+    ends.push({
+      count: 1,
+      endsInSeconds: realSecondsCeil(master.adaptingUntilMs - now, timeScale),
+    });
   }
-  const adapting = cohorts.reduce((sum, cohort) => sum + cohort.count, 0);
+  const last = Math.max(...ends.map((cohort) => cohort.endsInSeconds));
+  if (ends.length === 0) {
+    return who;
+  }
+  const adapting = ends.reduce((sum, cohort) => sum + cohort.count, 0);
   const { num, den } = effectiveWorkers(handsOf(state, building));
-  const span = `${cohorts.length > 1 ? 'por até' : 'por'} ${durationText(last.endsInSeconds)}`;
+  const span = `${ends.length > 1 ? 'por até' : 'por'} ${durationText(last)}`;
   const worth = `valendo ${shareText(balance.craft.adaptationMultiplier)}`;
-  const counts = `${workers === 1 ? 'conta' : 'contam'} como ${decimal(num / den)}`;
-  return `${hands(workers)} (${adapting} em adaptação ${span}, ${worth}: ${counts})`;
+  const counts = `${arms === 1 ? 'conta' : 'contam'} como ${decimal(num / den)}`;
+  return `${who} (${adapting} em adaptação ${span}, ${worth}: ${counts})`;
 }

@@ -12,6 +12,7 @@ import type {
   InjurySeverityId,
   ItemSlotId,
   MarketResourceId,
+  MasterId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -39,6 +40,7 @@ export type {
   InjurySeverityId,
   ItemSlotId,
   MarketResourceId,
+  MasterId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -87,6 +89,30 @@ export type AdaptationCohort = {
   count: number;
   untilMs: number;
 };
+
+/**
+ * Um Mestre do feudo (GDD §5.4; ADR 0018, decisão 18): um aldeão com nome, que conta como
+ * habitante e, com edifício, como um trabalhador dele, a quem dá o bônus do conteúdo. **Não é um
+ * dos `population.villagers`**: as regras que tiram aldeões do feudo ou do trabalho não o
+ * alcançam.
+ */
+export type Master = {
+  /** `master-<n>`, de `nextId`: é o que a ordem `assignMaster` diz. */
+  id: string;
+  /** Quem ele é no conteúdo (`masters`): o nome, o tratamento e o ofício de origem. */
+  masterId: MasterId;
+  /** O edifício produtivo em que trabalha; `null` enquanto o senhor não lhe dá um. */
+  building: ProductionBuildingId | null;
+  /**
+   * Até quando ele se adapta ao edifício a que chegou, em tempo de jogo: enquanto dura, rende a
+   * fração de quem acabou de chegar e não dá o bônus. `null` quando já rende inteiro, e sem
+   * edifício. O fim é um evento da linha do tempo.
+   */
+  adaptingUntilMs: number | null;
+};
+
+/** Um Mestre que chegou sem vaga nas casas e espera à porta, já com o identificador dele. */
+export type WaitingMaster = { id: string; masterId: MasterId };
 
 /**
  * Um efeito temporário sobre a moral (GDD §5.7): quanto soma ou tira, com que nome aparece na
@@ -314,6 +340,8 @@ export type ExpeditionLogEntry = {
   cleared: string | null;
   /** Quem o nó tirou do cativeiro, pelo nome; `null` no resto. */
   rescued: string | null;
+  /** O Mestre que a equipe encontrou no nó e que tomou a estrada do feudo; `null` no resto. */
+  master: MasterId | null;
   /** O saque do nó se perdeu no caminho (o Ganancioso). */
   lootLost: boolean;
   /**
@@ -467,7 +495,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 22;
+  schemaVersion: 23;
   seed: string;
   settings: GameSettings;
   /**
@@ -577,6 +605,18 @@ export type GameState = {
      * dos habitantes que não estão feridos.
      */
     injured: InjuredVillager[];
+    /**
+     * Os Mestres do feudo, na ordem em que entraram (que é a do identificador). Contam como
+     * habitantes (casa, comida, lenha) e **não estão em `population.villagers`**. No máximo um
+     * por edifício produtivo, e nunca mais do que `balance.masters.rosterCap` somados aos que
+     * esperam.
+     */
+    masters: Master[];
+    /**
+     * Os Mestres que chegaram sem vaga nas casas, na ordem de chegada: entram no primeiro
+     * instante em que houver uma. Não moram, não comem e não trabalham enquanto esperam.
+     */
+    mastersWaiting: WaitingMaster[];
   };
   /**
    * O Conselho do Feudo (GDD §7; ADR 0014). Os efeitos temporários de moral que as cartas
@@ -789,6 +829,16 @@ export type Command =
       commandId: string;
       type: 'sendCaravan';
       payload: { resource: MarketResourceId; amount: number; escortHeroId: string | null };
+    }
+  /**
+   * Põe um Mestre para trabalhar em um edifício produtivo, ou o deixa sem edifício
+   * (`building: null`) (GDD §5.4; ADR 0018, decisão 18). `masterId` é o identificador que a
+   * visão mostra (`masters[].id`). Chegar a um edifício custa a adaptação.
+   */
+  | {
+      commandId: string;
+      type: 'assignMaster';
+      payload: { masterId: string; building: ProductionBuildingId | null };
     };
 
 export type CommandType = Command['type'];
@@ -841,6 +891,10 @@ export const REJECTION_CODES = [
   'STORAGE_FULL',
   'MARKET_LEVEL_REQUIRED',
   'CARAVAN_LIMIT',
+  'MASTER_NOT_FOUND',
+  'MASTER_WAITING',
+  'BUILDING_HAS_MASTER',
+  'NOT_A_PRODUCTION_BUILDING',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1933,6 +1987,11 @@ export type ViewState = {
      * Serraria."; `null` sem feridos.
      */
     injuredNote: string | null;
+    /**
+     * Os Mestres que moram no feudo (GDD §5.4): ocupam casa e comem como os aldeões, e não estão
+     * em `villagers` nem em `free`. Quem espera à porta não entra aqui.
+     */
+    masters: number;
     breakdown: string;
   };
   resources: Array<{
@@ -1999,6 +2058,12 @@ export type ViewState = {
     experienceMax: number;
     /** O bônus de produção com a experiência no máximo, em pontos percentuais: 30. */
     masteryMaxBonusPercent: number;
+    /** O que um Mestre soma ao edifício em que trabalha, em pontos percentuais: 15. */
+    masterBonusPercent: number;
+    /** Quanto dura a adaptação do Mestre que chegar a um edifício agora, em segundos reais. */
+    masterAdaptationSeconds: number;
+    /** As regras do Mestre em uma frase: é o que a tela mostra antes de o jogador o mover. */
+    masterText: string;
   };
   workers: Array<{
     building: ProductionBuildingId;
@@ -2042,6 +2107,13 @@ export type ViewState = {
      * estão em `assigned`: a ordem de trabalhadores não os conta nem os tira.
      */
     injured: number;
+    /**
+     * O Mestre que trabalha neste edifício (GDD §5.4), ou `null`. Não está em `assigned`: conta
+     * como um trabalhador a mais na produção (`grossPerHour` e `breakdown` já o incluem), e a
+     * ordem de trabalhadores não o conta nem o tira. `bonusText` diz o que ele soma agora:
+     * "+15% na produção", ou "em adaptação por 40 min: ainda sem o bônus".
+     */
+    master: null | { id: string; name: string; adapting: boolean; bonusText: string };
   }>;
   constructions: {
     /** Atalho para a primeira obra em curso, na ordem das filas; `null` sem nenhuma. */
@@ -2122,6 +2194,16 @@ export type ViewState = {
   tavern: TavernView;
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
   market: MarketView;
+  /** Os Mestres do feudo, na ordem em que entraram (GDD §5.4; ADR 0018, decisão 18). */
+  masters: MasterView[];
+  /** Os Mestres que chegaram e esperam uma vaga nas casas. */
+  mastersWaiting: {
+    count: number;
+    /** Quem espera, com o tratamento, na ordem de chegada: "Mestre Odo". */
+    names: string[];
+    /** "Mestre Odo espera uma vaga nas casas: entra assim que houver uma."; `null` sem ninguém. */
+    note: string | null;
+  };
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
    * Conselho e as expedições paradas em uma encruzilhada. É o resumo para a barra de status, a
@@ -2129,4 +2211,47 @@ export type ViewState = {
    * `guild.expeditions[].crossroads`.
    */
   pendingDecisions: PendingDecisionView[];
+};
+
+/**
+ * O que mudaria se um Mestre fosse para um edifício produtivo: é o que a tela mostra **antes**
+ * de o jogador confirmar. Os ganhos são por hora real, contra o edifício sem este Mestre.
+ */
+export type MasterOptionView = {
+  building: ProductionBuildingId;
+  /** "Pedreira". */
+  label: string;
+  level: number;
+  resource: ResourceId;
+  /** É o edifício em que ele já trabalha: a ordem não mudaria nada. */
+  current: boolean;
+  /** Quanto o edifício rende a mais com este Mestre já adaptado: o braço dele e o bônus. */
+  gainPerHour: number;
+  /**
+   * Quanto rende a mais enquanto ele se adapta: só a fração do braço, sem o bônus. No edifício
+   * em que ele já rende inteiro, é igual a `gainPerHour`.
+   */
+  gainWhileAdaptingPerHour: number;
+  /** Por que a ordem seria recusada ("já tem Mestra Berta"); `null` quando seria aceita. */
+  blockedReason: string | null;
+};
+
+export type MasterView = {
+  /** O identificador que a ordem `assignMaster` leva. */
+  id: string;
+  /** "Mestre Odo". */
+  name: string;
+  /** "canteiro das pedreiras velhas": de onde veio; é só narrativa. */
+  originText: string;
+  building: ProductionBuildingId | null;
+  /** "Pedreira", ou "Sem edifício". */
+  buildingLabel: string;
+  /** Segundos reais até ele terminar a adaptação e passar a dar o bônus; `null` fora dela. */
+  adaptationEndsInSeconds: number | null;
+  /** O que ele soma à produção do edifício em que trabalha, em pontos percentuais: 15. */
+  bonusPercent: number;
+  /** O bônus vale agora: tem edifício e já se adaptou. */
+  bonusActive: boolean;
+  /** Um edifício produtivo por linha, na ordem do conteúdo. */
+  options: MasterOptionView[];
 };

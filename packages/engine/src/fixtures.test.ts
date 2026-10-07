@@ -8,6 +8,8 @@ import { storageCapacity } from './storage';
 import {
   caravanEscortScenario,
   caravanScenario,
+  mastersScenario,
+  masterWaitingScenario,
   command,
   councilScenario,
   heroPromisedScenario,
@@ -25,6 +27,7 @@ import {
   marketOpeningScenario,
   HOUR,
   MINUTE,
+  SUMMER,
   newGame,
   objectivesScenario,
   play,
@@ -477,6 +480,14 @@ const scenarios: Record<string, () => GameState> = {
   // Duas caravanas na estrada, no ritmo 3, com o Mercado no nível 4: uma com Edda de escolta
   // (o herói em `escort`, com o soldo correndo) e outra sem ninguém.
   'caravan-escort': () => caravanEscortScenario(),
+
+  // Os Mestres (versão 23): Odo na Pedreira, já dando o bônus, e Berta na Fazenda, ainda em
+  // adaptação, com o prazo dela na linha do tempo.
+  masters: () => mastersScenario(),
+
+  // Um Mestre à porta, no ritmo 3: as casas cheias, Gil à espera de vaga, Odo no feudo sem
+  // edifício, e a obra das Habitações que abre a vaga em curso.
+  'master-waiting': () => masterWaitingScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -982,6 +993,38 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       expect(state.market.caravans).toEqual([]);
       expect(state.ids.caravan).toBeUndefined();
       expect(state.guild.heroes.some((hero) => hero.status === 'escort')).toBe(false);
+    }
+    // Os Mestres (versão 23). Um que já dá o bônus e outro em adaptação, fora de `villagers`.
+    const crafted = of('masters');
+    expect(crafted.settlement.masters).toEqual([
+      { id: 'master-1', masterId: 'odo', building: 'quarry', adaptingUntilMs: null },
+      {
+        id: 'master-2',
+        masterId: 'berta',
+        building: 'farm',
+        adaptingUntilMs: SUMMER + 6 * DAY + 30 * MINUTE,
+      },
+    ]);
+    expect(crafted.settlement.mastersWaiting).toEqual([]);
+    expect(crafted.settlement.population.villagers).toBe(10);
+    expect(crafted.ids.master).toBe(2);
+    // Um à porta, com as casas cheias e a obra que abre a vaga a caminho.
+    const atDoor = of('master-waiting');
+    expect(atDoor.settings.timeScale).toBe(3);
+    expect(atDoor.settlement.masters).toEqual([
+      { id: 'master-1', masterId: 'odo', building: null, adaptingUntilMs: null },
+    ]);
+    expect(atDoor.settlement.mastersWaiting).toEqual([{ id: 'master-2', masterId: 'gil' }]);
+    expect(atDoor.settlement.constructionQueues[0]?.building).toBe('housing');
+    expect(atDoor.ids.master).toBe(2);
+    // Nos outros retratos não há Mestre, nem no feudo nem à porta, e Mestre nenhum tem fluxo.
+    for (const state of all0().filter((entry) => entry !== crafted && entry !== atDoor)) {
+      expect(state.settlement.masters).toEqual([]);
+      expect(state.settlement.mastersWaiting).toEqual([]);
+      expect(state.ids.master).toBeUndefined();
+    }
+    for (const state of all0()) {
+      expect(Object.keys(state.rng).filter((key) => key.startsWith('master'))).toEqual([]);
     }
     // Nos outros retratos o Mercado não existe, e nada dele andou.
     for (const state of all0().filter(

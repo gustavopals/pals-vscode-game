@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 22,
+    schemaVersion: 23,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -64,6 +64,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       morale: balance.morale.base,
       moraleEffects: [],
       injured: [],
+      masters: [],
+      mastersWaiting: [],
     },
     council: {
       pending: [],

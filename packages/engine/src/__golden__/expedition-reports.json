@@ -31,6 +31,7 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
+     "master": null,
      "lootLost": false,
      "standout": null,
      "lesson": null
@@ -54,6 +55,7 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
+     "master": null,
      "lootLost": false,
      "standout": null,
      "lesson": null
@@ -79,6 +81,7 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
+     "master": null,
      "lootLost": false,
      "standout": "Edda",
      "lesson": null
@@ -137,6 +140,7 @@
      "revealed": "ruins",
      "cleared": null,
      "rescued": null,
+     "master": null,
      "lootLost": false,
      "standout": "Rolf",
      "lesson": null

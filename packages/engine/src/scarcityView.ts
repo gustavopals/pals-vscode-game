@@ -3,6 +3,7 @@ import { balance, craftGuilds } from '@lotg/content';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { producerOf } from './economy';
+import { masterOf } from './masters';
 import { famineDurationAt } from './famine';
 import { durationText, sentenceCase } from './format';
 import type { GameState, ViewState } from './types';
@@ -29,8 +30,10 @@ const RESOURCE_OF = { famine: 'food', cold: 'wood' } as const;
 function adaptationEndsIt(state: GameState, scarcity: Scarcity, endsInMs: number): boolean {
   const producer = producerOf(RESOURCE_OF[scarcity]);
   const at = state.lastProcessedAt + endsInMs;
-  return state.settlement.adaptation.some(
-    (cohort) => cohort.building === producer && cohort.untilMs === at,
+  return (
+    state.settlement.adaptation.some(
+      (cohort) => cohort.building === producer && cohort.untilMs === at,
+    ) || masterOf(state, producer)?.adaptingUntilMs === at
   );
 }
 

@@ -1,6 +1,7 @@
 import {
   balance,
   buildings,
+  masterTexts,
   PRODUCTION_BUILDING_IDS,
   type Ratio,
   RESOURCE_IDS,
@@ -10,6 +11,7 @@ import {
 import { seasonAt } from './clock';
 import { type Hands, handsOf, masteryRatio } from './craft';
 import { wageRate } from './heroes';
+import { inhabitants, masterArmAt, masterLabel, masterOf, masterRatio } from './masters';
 import { storeResource } from './storage';
 import type { GameState, ProductionBuildingId, ResourceId } from './types';
 import { HOUR_MS, MILLI } from './units';
@@ -37,7 +39,7 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'mastery' | 'season' | 'morale' | 'famine' | 'cold';
+  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold';
   ratio: Ratio;
   label: string;
 };
@@ -56,16 +58,19 @@ export function moraleRatio(morale: number): Ratio {
 
 /**
  * Os fatores que multiplicam a produção de um edifício agora, na ordem em que a explicação os
- * mostra: nível, mestria, estação, moral, fome e frio (GDD §5.3). É **a** lista:
+ * mostra: nível, mestria, Mestre, estação, moral, fome e frio (GDD §5.3 e §5.4). É **a** lista:
  * `productionRate` multiplica todos e a visão escreve um termo para cada um.
  *
  * `season` permite perguntar "e se fosse a outra estação?": é como a visão faz a conta da lenha
- * do inverno que ainda não chegou.
+ * do inverno que ainda não chegou. `master` diz se o bônus do Mestre entra: por padrão, entra se
+ * o edifício tem um Mestre já adaptado agora; quem pergunta por outro instante, ou por um
+ * Mestre que ainda não está lá, diz.
  */
 export function productionFactors(
   state: GameState,
   building: ProductionBuildingId,
   season: SeasonDef = seasonAt(state.lastProcessedAt),
+  master: boolean = masterArmAt(state, building, state.lastProcessedAt) === 'adapted',
 ): ProductionFactor[] {
   const { levelBonus } = balance.production;
   const { buildings: levels, famine, cold, craftExperience, morale } = state.settlement;
@@ -78,13 +83,23 @@ export function productionFactors(
       label: `Nv${level}`,
     },
     { id: 'mastery', ratio: masteryRatio(experience), label: `mestria ${experience}` },
+  ];
+  if (master) {
+    const holder = masterOf(state, building);
+    factors.push({
+      id: 'master',
+      ratio: masterRatio(),
+      label: holder === null ? masterTexts.titleMasculine : masterLabel(holder.masterId),
+    });
+  }
+  factors.push(
     {
       id: 'season',
       ratio: season.effects.production[producedBy(building)],
       label: season.label.toLowerCase(),
     },
     { id: 'morale', ratio: moraleRatio(morale), label: `moral ${morale}` },
-  ];
+  );
   if (famine) {
     factors.push({ id: 'famine', ratio: balance.famine.productionMultiplier, label: 'fome' });
   }
@@ -115,8 +130,8 @@ export function effectiveWorkers(hands: Hands): Ratio {
 /**
  * Produção bruta de um edifício, em milésimos por hora de jogo. É uma conta só, em frações, com
  * **um** arredondamento para baixo no fim (ADR 0013, decisão 13a):
- * trabalhadores (os em adaptação valem a fração) × taxa base × 1000 × nível × mestria × estação
- * × moral × fome × frio. A ordem dos fatores não muda o resultado. A fração é simplificada a cada
+ * trabalhadores (os em adaptação valem a fração; o Mestre do edifício é um deles) × taxa base ×
+ * 1000 × nível × mestria × Mestre × estação × moral × fome × frio. A ordem dos fatores não muda o resultado. A fração é simplificada a cada
  * fator, só para os números da conta ficarem pequenos: o quociente é o mesmo.
  *
  * `hands` permite perguntar "e com outros braços?": um trabalhador adaptado, um recém-chegado.
@@ -130,7 +145,7 @@ export function productionRate(
   const workers = effectiveWorkers(hands);
   let num = workers.num * balance.production.perWorkerPerHour[building] * MILLI;
   let den = workers.den;
-  for (const factor of productionFactors(state, building, season)) {
+  for (const factor of productionFactors(state, building, season, hands.master)) {
     num *= factor.ratio.num;
     den *= factor.ratio.den;
     const common = gcd(num, den);
@@ -140,10 +155,10 @@ export function productionRate(
   return Math.floor(num / den);
 }
 
-/** Comida consumida pelos habitantes, em milésimos por hora. */
+/** Comida consumida pelos habitantes (os aldeões e os Mestres), em milésimos por hora. */
 export function consumptionRate(state: GameState): number {
   const { foodPerVillagerPerHour } = balance.consumption;
-  return state.settlement.population.villagers * foodPerVillagerPerHour * MILLI;
+  return inhabitants(state) * foodPerVillagerPerHour * MILLI;
 }
 
 /**
@@ -155,7 +170,7 @@ export function firewoodRate(
   season: SeasonDef = seasonAt(state.lastProcessedAt),
 ): number {
   const { num, den } = season.effects.firewoodPerVillagerPerHour;
-  return Math.floor((state.settlement.population.villagers * MILLI * num) / den);
+  return Math.floor((inhabitants(state) * MILLI * num) / den);
 }
 
 /** Saldo líquido de cada recurso, em milésimos por hora. */

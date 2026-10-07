@@ -134,19 +134,19 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
     const state = accept(newGame(), order('lumberMill', 0)).state;
     expect(cohorts(state)).toEqual([]);
     expect(productionRate(state, 'lumberMill')).toBe(0);
-    expect(handsOf(state, 'lumberMill')).toEqual({ adapted: 0, adapting: 0 });
+    expect(handsOf(state, 'lumberMill')).toEqual({ adapted: 0, adapting: 0, master: false });
   });
 
   it('um trabalhador novo entra em adaptação por um dia de jogo e rende metade até lá', () => {
     const { state, events } = accept(midDay(), order('quarry', 1));
     expect(events).toEqual([]);
     expect(cohorts(state)).toEqual([{ building: 'quarry', count: 1, untilMs: 30 * MINUTE + DAY }]);
-    expect(handsOf(state, 'quarry')).toEqual({ adapted: 0, adapting: 1 });
+    expect(handsOf(state, 'quarry')).toEqual({ adapted: 0, adapting: 1, master: false });
     // 1 × 5 × 1,6 (Nv4) × metade.
     expect(productionRate(state, 'quarry')).toBe(4_000);
     const done = advanceTo(state, 30 * MINUTE + DAY);
     expect(cohorts(done.state)).toEqual([]);
-    expect(handsOf(done.state, 'quarry')).toEqual({ adapted: 1, adapting: 0 });
+    expect(handsOf(done.state, 'quarry')).toEqual({ adapted: 1, adapting: 0, master: false });
     // Inteiro, e com a moral que a virada das 2 h levou a 60 (os lavradores enchem a despensa):
     // 1 × 5 × 1,6 × 1,05.
     expect(productionRate(done.state, 'quarry')).toBe(8_400);
@@ -241,7 +241,7 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
     }
     // No meio do caminho, a segunda leva ainda se adapta.
     const between = advanceTo(second, 3 * HOUR).state;
-    expect(handsOf(between, 'lumberMill')).toEqual({ adapted: 2, adapting: 1 });
+    expect(handsOf(between, 'lumberMill')).toEqual({ adapted: 2, adapting: 1, master: false });
     expect(adaptingAt(second, 'lumberMill', 3 * HOUR)).toBe(1);
     expect(adaptingAt(second, 'lumberMill', 3 * HOUR + 30 * MINUTE)).toBe(0);
   });
@@ -258,11 +258,11 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
     expect(cohorts(four)).toEqual([
       { building: 'farm', count: 1, untilMs: 2 * HOUR + 30 * MINUTE },
     ]);
-    expect(handsOf(four, 'farm')).toEqual({ adapted: 3, adapting: 1 });
+    expect(handsOf(four, 'farm')).toEqual({ adapted: 3, adapting: 1, master: false });
     // Saem mais dois: o último novato e um veterano.
     const two = accept(four, order('farm', 2)).state;
     expect(cohorts(two)).toEqual([]);
-    expect(handsOf(two, 'farm')).toEqual({ adapted: 2, adapting: 0 });
+    expect(handsOf(two, 'farm')).toEqual({ adapted: 2, adapting: 0, master: false });
   });
 
   it('tirar gente de um edifício não mexe nas coortes dos outros', () => {
@@ -308,7 +308,7 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
       order('farm', 3),
     ]).state;
     expect(cohorts(round)).toEqual([{ building: 'farm', count: 1, untilMs: 90 * MINUTE + DAY }]);
-    expect(handsOf(round, 'farm')).toEqual({ adapted: 2, adapting: 1 });
+    expect(handsOf(round, 'farm')).toEqual({ adapted: 2, adapting: 1, master: false });
   });
 
   it('quem chega ao feudo e ganha ofício também se adapta', () => {

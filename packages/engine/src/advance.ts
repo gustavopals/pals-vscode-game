@@ -18,6 +18,7 @@ import { applyContinuous } from './economy';
 import { recallStranded, settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
 import { turnMarket } from './marketTurn';
+import { settleMasterArrivals } from './masterTurn';
 import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
 import { recoverHeroes, restoreTiles } from './outcomes';
@@ -94,12 +95,14 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam (os recrutas e os feridos que saram), heróis feridos que saram (`recoverHeroes`),
+ * que chegam (os recrutas e os feridos que saram), os Mestres que esperavam à porta e agora têm
+ * vaga (`settleMasterArrivals`, que roda de novo logo depois da virada do dia, para a vaga que
+ * um aldeão deixou ao partir nela), heróis feridos que saram (`recoverHeroes`),
  * virada do dia (o desperdício do dia que
  * acabou, o ano, a estação, o dia, a experiência do ofício, a moral: recálculo, sorteios e
  * deserção, a cobrança do soldo em atraso, o preço e o volume do Mercado, o sorteio do Conselho, a subida da Ameaça, os uivos
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
- * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício, as
+ * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício (os aldeões e os Mestres), as
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), a Taverna
  * (`settleTavern`: o festival que acabou e a troca dos candidatos), as expedições
  * (`settleExpeditions`: os nós que terminam, os prazos de encruzilhada e as equipes que voltam,
@@ -128,8 +131,17 @@ export function processEventsAt(
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   recoverInjured(draft, atMs, events);
+  // Os Mestres que esperavam à porta entram com os aldeões que chegam: a obra que ampliou as
+  // casas neste instante já terminou, e o recruta (que tinha a casa reservada) já entrou. Antes
+  // da virada do dia: a moral e a experiência do ofício daquela virada já os encontram no feudo.
+  settleMasterArrivals(draft, atMs, events);
   recoverHeroes(draft, atMs, events);
   processCalendar(draft, atMs, events, catalog);
+  // De novo depois da virada do dia: o aldeão que partiu ou desertou nela abriu uma vaga, e o
+  // Mestre à espera entra neste mesmo instante, e não no próximo que alguém processar. A vaga
+  // que o colono da moral alta poderia tomar não está em disputa: com Mestre à porta não havia
+  // vaga antes da virada, e o sorteio do colono só acontece havendo.
+  settleMasterArrivals(draft, atMs, events);
   settleCouncil(draft, atMs, events, catalog);
   // Os heróis prometidos cujo instante chegou, e o que uma carta que expirou agora acabou de
   // dar. Depois da virada do dia: a cobrança do soldo em atraso daquela virada não alcança quem
@@ -226,6 +238,8 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
   const unused: GameEvent[] = [];
   finishConstructions(draft, turn, unused);
   finishRecruitments(draft, turn, unused);
+  // O Mestre à porta que entra com a obra das casas pronta: as casas cheias são conta da moral.
+  settleMasterArrivals(draft, turn, unused);
   return draft;
 }
 

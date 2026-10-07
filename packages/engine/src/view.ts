@@ -60,6 +60,8 @@ import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
 import { marketEffect, marketView } from './marketView';
+import { inhabitants } from './masters';
+import { mastersView, mastersWaitingView, workerMasterView } from './mastersView';
 import { tavernEffect, tavernView } from './tavernView';
 import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
@@ -118,7 +120,8 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   const parts = [
     `${buildings[producer].label}: ${productionBreakdown(state, producer, timeScale)}`,
   ];
-  const { villagers } = state.settlement.population;
+  // Quem come e queima lenha: os aldeões e os Mestres.
+  const villagers = inhabitants(state);
   if (resource === 'food') {
     const perVillager = decimal(balance.consumption.foodPerVillagerPerHour * timeScale);
     const consumed = decimal((consumptionRate(state) * timeScale) / MILLI);
@@ -394,6 +397,7 @@ export function deriveViewState(
       secondsToNextRecruit:
         nextRecruit === undefined || settlement.famine ? null : until(nextRecruit.finishesAtMs),
       ...injuredView(state, timeScale),
+      masters: settlement.masters.length,
       breakdown: BUILDING_IDS.flatMap((id) => {
         const perLevel = balance.housing.capacityPerLevel[id];
         return perLevel === undefined
@@ -426,6 +430,7 @@ export function deriveViewState(
       perWorkerPerHour: perRealHour(productionRate(state, building, { adapted: 1, adapting: 0 })),
       breakdown: productionBreakdown(state, building, timeScale),
       ...craftRow(state, building, timeScale),
+      master: workerMasterView(state, building, timeScale),
     })),
     constructions: {
       active: queues.find((entry) => entry !== null) ?? null,
@@ -462,5 +467,7 @@ export function deriveViewState(
     guild: guild.guild,
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
+    masters: mastersView(state, timeScale),
+    mastersWaiting: mastersWaitingView(state),
   };
 }

@@ -1,4 +1,4 @@
-import { balance, buildings, type ResourceAmounts } from '@lotg/content';
+import { balance, buildings, PRODUCTION_BUILDING_IDS, type ResourceAmounts } from '@lotg/content';
 
 import { joinList, thousands } from './format';
 import type { Rejection, RejectionCode } from './types';
@@ -39,6 +39,11 @@ const is = (plural = false): string => (plural ? 'estão' : 'está');
 const { nameMinLength, nameMaxLength } = balance.settlement;
 const { maxPerOrder, maxQueue } = balance.recruitment;
 const { townHall } = buildings;
+
+/** "a Fazenda, a Serraria, a Pedreira e a Mina de Ouro": onde um Mestre pode trabalhar. */
+const PRODUCTION_PLACES = joinList(
+  PRODUCTION_BUILDING_IDS.map((id) => `${buildings[id].article} ${buildings[id].label}`),
+);
 
 /** "A segunda fila abre com o Salão do Senhor Nv4.": o que destrava a fila que falta. */
 export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} ${townHall.label} Nv${balance.construction.secondQueueTownHallLevel}.`;
@@ -197,6 +202,18 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `O ${label} mantém ${count === 1 ? '1 caravana' : `${count} caravanas`} na estrada por vez: espere a chegada${
       remedy === undefined ? '' : `, ou amplie o Mercado (${remedy})`
     }.`,
+  MASTER_NOT_FOUND: () => 'Esse Mestre não está no feudo.',
+  // `label` é o Mestre, com o tratamento: "Mestre Odo".
+  MASTER_WAITING: ({ label = 'Esse Mestre' }) =>
+    `${label} ainda espera uma vaga nas casas: só recebe ofício depois de entrar no feudo.`,
+  // `label` é o edifício, com artigo e maiúscula ("A Pedreira"); `remedy`, quem já trabalha nele.
+  BUILDING_HAS_MASTER: ({ label = 'Esse edifício', remedy = 'um Mestre' }) =>
+    `${label} já tem ${remedy}: cabe um Mestre por edifício, e o bônus não soma.`,
+  // Com `label`, é um edifício produtivo que ainda não foi erguido.
+  NOT_A_PRODUCTION_BUILDING: ({ label }) =>
+    label === undefined
+      ? `Um Mestre só trabalha em edifício produtivo: ${PRODUCTION_PLACES}.`
+      : `${label}: esse edifício ainda não foi erguido, e o Mestre não tem onde trabalhar.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

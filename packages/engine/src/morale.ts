@@ -4,6 +4,7 @@ import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { consumptionRate, stockBalance } from './economy';
 import { famineDurationAt, famineLedgerAt } from './famine';
 import { isAtHome, traitMorale } from './heroes';
+import { inhabitants } from './masters';
 import { housingCapacity } from './population';
 import type { GameState, MoraleEffect } from './types';
 import { HOUR_MS, MILLI, realToGameMs } from './units';
@@ -60,11 +61,11 @@ export function foodReserveNeeded(state: GameState): number {
  * bocas que estão a caminho: recrutar não tem mais o que tirar dela.
  */
 export function recruitsKeepingFoodReserve(state: GameState, maxQuantity: number): number | null {
-  const { population, recruitmentQueue } = state.settlement;
+  const { recruitmentQueue } = state.settlement;
   const perMouth = balance.consumption.foodPerVillagerPerHour * MILLI * rules.foodReserve.coverMs;
   const perRecruit = (balance.recruitment.cost.food ?? 0) * MILLI * HOUR_MS;
   const stock = stockBalance(state, 'food');
-  const mouths = population.villagers + recruitmentQueue.length;
+  const mouths = inhabitants(state) + recruitmentQueue.length;
   const keeps = (quantity: number) =>
     stock - perRecruit * quantity >= perMouth * (mouths + quantity);
   if (!keeps(0)) {
@@ -125,7 +126,7 @@ export function moraleTermsAt(state: GameState, atMs: number): MoraleTerm[] {
       terms.push({ id: 'famineDays', amount: rules.faminePerDay * days, days });
     }
   }
-  if (settlement.population.villagers >= housingCapacity(state)) {
+  if (inhabitants(state) >= housingCapacity(state)) {
     terms.push({ id: 'housingFull', amount: rules.housingFull });
   }
   if (coldCountsAt(state, atMs)) {
@@ -209,9 +210,13 @@ export function nextFamineDesertionAt(state: GameState, fromMs: number): number 
   return Math.max(Math.ceil(dueAt / DAY_MS), Math.ceil(fromMs / DAY_MS)) * DAY_MS;
 }
 
-/** Acima do piso: o feudo ainda pode perder um aldeão (GDD §5.6). */
+/**
+ * Acima do piso: o feudo ainda pode perder um aldeão (GDD §5.6). **O Mestre conta para o piso**
+ * (ADR 0018, decisão 18): o que o piso protege são os habitantes. E só há quem perder se houver
+ * aldeão: um Mestre nunca parte nem deserta, então um feudo só de Mestres não perde ninguém.
+ */
 export function aboveFloor(state: GameState): boolean {
-  return state.settlement.population.villagers > rules.populationFloor;
+  return inhabitants(state) > rules.populationFloor && state.settlement.population.villagers > 0;
 }
 
 /**

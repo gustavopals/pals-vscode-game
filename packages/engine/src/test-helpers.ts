@@ -7,6 +7,7 @@ import {
   type HeroTraitId,
   type ItemId,
   items,
+  type MasterId,
   objectives,
 } from '@lotg/content';
 
@@ -22,6 +23,7 @@ import {
   DRAW_INTERVAL_MS,
 } from './council';
 import { isPosture, modelOf, nextVariant } from './expeditions';
+import { deliverMaster } from './masterTurn';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { nextId } from './ids';
@@ -44,6 +46,7 @@ import type {
   GameState,
   Hero,
   Item,
+  ProductionBuildingId,
 } from './types';
 import { MILLI } from './units';
 import { deriveViewState } from './view';
@@ -464,6 +467,78 @@ export function caravanEscortScenario(): GameState {
     caravanOrder('stone', 120),
     { at: 50 * DAY + HOUR + 30 * MINUTE + 4_321 },
   ]).state;
+}
+
+/**
+ * Traz um Mestre ao feudo pela porta de toda chegada (`deliverMaster`), no instante em que o
+ * rascunho está: com vaga nas casas ele entra, sem edifício; sem vaga, espera à porta. Para os
+ * cenários que não querem depender do sorteio de uma expedição. Devolve os eventos da chegada.
+ */
+export function bringMaster(draft: GameState, masterId: MasterId = 'odo'): GameEvent[] {
+  const events: GameEvent[] = [];
+  if (!deliverMaster(draft, masterId, draft.lastProcessedAt, events)) {
+    throw new Error(`O Mestre ${masterId} não pôde chegar: já está no feudo, ou a lista encheu.`);
+  }
+  return events;
+}
+
+/** A ordem de pôr um Mestre em um edifício; com `null`, de o deixar sem edifício. */
+export function masterOrder(masterId: string, building: ProductionBuildingId | null): Command {
+  return command('assignMaster', { masterId, building });
+}
+
+/**
+ * Um feudo com Mestres, no verão, no meio de um dia de jogo: Odo trabalha na Pedreira há mais
+ * de um dia e já dá o bônus; Berta chegou há pouco e foi posta na Fazenda há 50 minutos de
+ * jogo, ainda em adaptação. Dez aldeões, dois deles sem ofício, e casas para doze habitantes.
+ */
+export function mastersScenario(): GameState {
+  const start = gameAt(SUMMER + 4 * DAY + 10 * MINUTE, (draft) => {
+    const { settlement } = draft;
+    councilWithoutNews(draft);
+    roomy(draft);
+    settlement.population.villagers = 10;
+    settlement.buildings.housing = 2;
+    settlement.workers = { farm: 3, lumberMill: 2, quarry: 2, goldMine: 1 };
+    settlement.resources = { food: 600_000, wood: 400_000, stone: 300_000, gold: 200_000 };
+    bringMaster(draft, 'odo');
+  });
+  const withOdo = play(start, [
+    masterOrder('master-1', 'quarry'),
+    { at: SUMMER + 5 * DAY + 30 * MINUTE },
+  ]);
+  const arrived = cloneState(withOdo.state);
+  bringMaster(arrived, 'berta');
+  return play(arrived, [
+    masterOrder('master-2', 'farm'),
+    { at: SUMMER + 5 * DAY + 80 * MINUTE + 1_234 },
+  ]).state;
+}
+
+/**
+ * Um Mestre à porta, no ritmo Rápido: as casas estão cheias (dez habitantes para dez vagas) e
+ * Gil chegou sem ter onde morar. As Habitações sobem ao nível 2 daqui a 20 minutos de jogo: é
+ * nesse instante que ele entra. Odo já estava no feudo, sem edifício.
+ */
+export function masterWaitingScenario(): GameState {
+  const start = gameAt(20 * DAY + 30 * MINUTE, (draft) => {
+    const { settlement } = draft;
+    draft.settings.timeScale = 3;
+    councilWithoutNews(draft);
+    roomy(draft);
+    settlement.population.villagers = 9;
+    settlement.workers = { farm: 4, lumberMill: 2, quarry: 1, goldMine: 1 };
+    settlement.resources = { food: 500_000, wood: 400_000, stone: 300_000, gold: 300_000 };
+    bringMaster(draft, 'odo');
+    bringMaster(draft, 'gil');
+    settlement.constructionQueues[0] = {
+      building: 'housing',
+      targetLevel: 2,
+      startedAtMs: draft.lastProcessedAt - 10 * MINUTE,
+      finishesAtMs: draft.lastProcessedAt + 30 * MINUTE,
+    };
+  });
+  return advanceTo(start, start.lastProcessedAt + 10 * MINUTE + 987).state;
 }
 
 /** A ordem de negociar com a cotação que o estado tem agora: é o que a tela devolveria. */

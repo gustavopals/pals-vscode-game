@@ -185,6 +185,19 @@ export const SendCaravanCommandSchema = command(
   }),
 );
 
+/**
+ * A alocação de um Mestre: o identificador que a visão mostra (`masters[].id`) e o edifício
+ * produtivo em que ele passa a trabalhar, ou `null` para deixá-lo sem edifício. O protocolo só
+ * confere a forma; se o Mestre está no feudo e se o edifício o aceita é com o motor.
+ */
+export const AssignMasterCommandSchema = command(
+  'assignMaster',
+  z.strictObject({
+    masterId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+    building: z.enum(PRODUCTION_BUILDING_IDS).nullable(),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -205,6 +218,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   UnequipItemCommandSchema,
   TradeCommandSchema,
   SendCaravanCommandSchema,
+  AssignMasterCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

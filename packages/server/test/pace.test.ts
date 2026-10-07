@@ -224,6 +224,7 @@ function atPace(view: ViewState, pace: number): ViewState {
     workersRules: {
       ...view.workersRules,
       adaptationSeconds: up(view.workersRules.adaptationSeconds),
+      masterAdaptationSeconds: up(view.workersRules.masterAdaptationSeconds),
     },
     workers: view.workers.map((entry) => ({
       ...entry,
@@ -420,7 +421,8 @@ function withoutRateTexts(view: ViewState): ViewState {
     })),
     workers: view.workers.map((entry) => ({ ...entry, breakdown: '' })),
     // A frase da troca de ofício diz o prazo da adaptação em tempo real.
-    workersRules: { ...view.workersRules, adaptationText: '' },
+    // E a das regras do Mestre, o da adaptação dele.
+    workersRules: { ...view.workersRules, adaptationText: '', masterText: '' },
     // As frases da moral citam prazos em tempo real (a comida guardada "para 8 h", a deserção
     // "depois de 4 h de fome"): os números e as faixas são conferidos, os textos, por extenso.
     morale: {

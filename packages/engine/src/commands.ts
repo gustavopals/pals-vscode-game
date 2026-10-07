@@ -14,6 +14,7 @@ import { answerCard } from './council';
 import { equipItem, unequipItem } from './equipment';
 import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
 import { trade } from './marketOrders';
+import { assignMaster } from './masterOrders';
 import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
@@ -107,6 +108,8 @@ function dispatch(
         nowMs,
         events,
       );
+    case 'assignMaster':
+      return assignMaster(draft, payload.masterId, payload.building, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

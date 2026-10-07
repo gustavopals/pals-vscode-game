@@ -162,6 +162,7 @@ export function logEntry(
     revealed: null,
     cleared: null,
     rescued: null,
+    master: null,
     lootLost: false,
     standout: null,
     lesson: null,

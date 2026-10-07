@@ -8,6 +8,7 @@ import {
   positive,
   type Shape,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildOf, guildWithinState, heroRoster } from './v14';
 import { tavernWithinState } from './v16';
@@ -156,8 +157,7 @@ export const caravansWithinState: Shape = (value, path) => {
  * - `rng` e `ids` não mudam de forma: a família `caravan` já era aceita desde a versão 13, e a
  *   conferência cruzada passa a exigir que o fluxo seja de uma caravana na estrada.
  *
- * Quem subir `schemaVersion` para 23 acrescenta aqui o passo `v22ToV23`, com esta forma como
- * entrada, e escreve a forma nova em `v23.ts`.
+ * O passo que sai daqui é o `v22ToV23`, abaixo; a forma da versão 23 está em `v23.ts`.
  */
 export const marketV22Fields: Readonly<Record<string, Shape>> = { ...marketV21Fields, caravans };
 
@@ -187,3 +187,45 @@ export const stateV22: Shape = (value, path) =>
   freedWithinState(value, path) ??
   marketWithinState(value, path) ??
   caravansWithinState(value, path);
+
+/** O que um registro do percurso da versão 22 ganha na 23: nenhum Mestre encontrado. */
+const logToV23 = (log: unknown): StoredState[] =>
+  (log as StoredState[]).map((entry) => ({ ...entry, master: null }));
+
+/**
+ * Versão 22 → 23: os Mestres (V3E-T3; ADR 0018, decisão 18).
+ *
+ * - `settlement` ganha `masters` e `mastersWaiting`, vazias: ninguém tinha Mestre, nem no feudo
+ *   nem à porta. `population.villagers` não muda: o Mestre não é um deles.
+ * - Cada registro do percurso, nas expedições em curso e nos relatórios guardados, ganha
+ *   `master: null`: a versão 22 não encontrava Mestre nenhum. O nó em que uma equipe está agora
+ *   é resolvido pelas regras novas no fim dele, e pode encontrar um.
+ *
+ * **O passo não cria prazo nenhum**, e por isso não usa a fronteira. Não emite evento, não dá
+ * identificador a ninguém e não toca o gerador: o contador `ids.master` nasce com o primeiro
+ * Mestre que chegar.
+ */
+export const v22ToV23: MigrationStep = {
+  from: 22,
+  summary: 'entram os Mestres: nenhum no feudo, nenhum à porta, nenhum achado em expedição',
+  shape: stateV22,
+  migrate(state) {
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 23,
+      settlement: { ...(state.settlement as StoredState), masters: [], mastersWaiting: [] },
+      guild: {
+        ...guild,
+        expeditions: (guild.expeditions as StoredState[]).map((expedition) => ({
+          ...expedition,
+          log: logToV23(expedition.log),
+        })),
+        reports: (guild.reports as StoredState[]).map((report) => ({
+          ...report,
+          log: logToV23(report.log),
+        })),
+      },
+    };
+  },
+};

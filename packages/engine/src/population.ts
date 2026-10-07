@@ -4,6 +4,7 @@ import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { missingResources, payResources } from './construction';
 import { beginAdaptation, leaveAdaptation } from './craft';
+import { inhabitants } from './masters';
 import { reject } from './rejections';
 import type { GameEvent, GameState, ProductionBuildingId, Rejection } from './types';
 import { positiveEntries } from './units';
@@ -35,10 +36,12 @@ export function freeVillagers(state: GameState): number {
   return ableVillagers(state) - assignedWorkers(state);
 }
 
-/** Vagas ainda não ocupadas nem reservadas por quem está em treinamento. */
+/**
+ * Vagas ainda não ocupadas nem reservadas por quem está em treinamento. Os Mestres moram nas
+ * casas como os aldeões; o que espera à porta não reserva vaga.
+ */
 export function housingVacancy(state: GameState): number {
-  const { population, recruitmentQueue } = state.settlement;
-  return housingCapacity(state) - population.villagers - recruitmentQueue.length;
+  return housingCapacity(state) - inhabitants(state) - state.settlement.recruitmentQueue.length;
 }
 
 export function isProductionBuilding(value: unknown): value is ProductionBuildingId {

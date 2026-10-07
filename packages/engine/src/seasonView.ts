@@ -12,6 +12,7 @@ import {
 } from './clock';
 import { buildingWithArticle, ofBuilding } from './construction';
 import { handsAt } from './craft';
+import { inhabitants, masterOf } from './masters';
 import { type CraftForecast, craftForecast, type CraftOutlook, inMs } from './craftProjection';
 import { firewoodRate, foodRunsOutIn, netRates, producerOf, productionRate } from './economy';
 import { decimal, durationText, joinList, plural, sentenceCase, thousands } from './format';
@@ -256,6 +257,11 @@ function producedBetween(
   const ends = state.settlement.adaptation
     .filter((cohort) => cohort.building === building)
     .map((cohort) => cohort.untilMs);
+  // O Mestre do edifício que ainda se adapta: no fim do prazo ele rende inteiro e dá o bônus.
+  const masterEnds = masterOf(state, building)?.adaptingUntilMs ?? null;
+  if (masterEnds !== null) {
+    ends.push(masterEnds);
+  }
   const inside = [...ends, turn].filter((cut) => cut > fromMs && cut < toMs);
   const cuts = [fromMs, ...[...new Set(inside)].sort((a, b) => a - b), toMs];
   const stretches: ProductionStretch[] = [];
@@ -403,7 +409,7 @@ function countFirewood(
       reserved: reserved.units,
       missing: Math.max(atEnd, before),
     },
-    villagers: state.settlement.population.villagers,
+    villagers: inhabitants(state),
     lumberMill: buildingWithArticle(producer),
     reservedFor: reserved.buildings,
     season,

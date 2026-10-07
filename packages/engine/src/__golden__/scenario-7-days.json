@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -678,7 +678,9 @@
      "adaptation": [],
      "morale": 50,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -791,7 +793,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -884,7 +886,9 @@
      "adaptation": [],
      "morale": 60,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -1018,7 +1022,7 @@
    "day": 3,
    "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1119,7 +1123,9 @@
      "adaptation": [],
      "morale": 60,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -1279,7 +1285,7 @@
    "day": 4,
    "eventsSoFar": 176,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1384,7 +1390,9 @@
      "adaptation": [],
      "morale": 26,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -1552,7 +1560,7 @@
    "day": 5,
    "eventsSoFar": 224,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1657,7 +1665,9 @@
      "adaptation": [],
      "morale": 60,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -1823,7 +1833,7 @@
    "day": 6,
    "eventsSoFar": 272,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1934,7 +1944,9 @@
      "adaptation": [],
      "morale": 60,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [
@@ -2121,7 +2133,7 @@
    "day": 7,
    "eventsSoFar": 323,
    "state": {
-    "schemaVersion": 22,
+    "schemaVersion": 23,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2232,7 +2244,9 @@
      "adaptation": [],
      "morale": 60,
      "moraleEffects": [],
-     "injured": []
+     "injured": [],
+     "masters": [],
+     "mastersWaiting": []
     },
     "council": {
      "pending": [

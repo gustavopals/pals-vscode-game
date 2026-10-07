@@ -26,7 +26,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
  * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
- * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício,
+ * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício (uma leva de aldeões ou um Mestre),
  * uma incursão que chega, o aviso da Torre de Vigia, a troca dos candidatos da Taverna, o fim de um nó de expedição, o
  * prazo de uma encruzilhada, a chegada de uma caravana, um ferido que sara, um herói ferido que sara, o momento em que a
  * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
@@ -49,7 +49,8 @@ export function nextEventAt(state: GameState): number | null {
   if (nextRecruit !== undefined && !famine) {
     candidates.push(nextRecruit.finishesAtMs);
   }
-  // Quem trocou de ofício passa a render inteiro: a taxa do edifício muda nesse instante.
+  // Quem trocou de ofício passa a render inteiro: a taxa do edifício muda nesse instante. Vale
+  // para as levas de aldeões e para o Mestre, que nele passa também a dar o bônus.
   const adaptationEnds = nextAdaptationEndAt(state);
   if (adaptationEnds !== null) {
     candidates.push(adaptationEnds);

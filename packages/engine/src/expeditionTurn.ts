@@ -30,6 +30,7 @@ import { lessonOf, standoutOf, trialTemplate } from './expeditionReport';
 import { joinList } from './format';
 import { itemDefOf } from './heroes';
 import { nextId } from './ids';
+import { deliverMaster, masterCanArrive } from './masterTurn';
 import {
   applyHarm,
   clearTile,
@@ -126,14 +127,18 @@ const hasTracker = (team: readonly Hero[]): boolean =>
  * 4. as **quantidades do saque**, na ordem dos recursos do conteúdo, cada uma um inteiro da
  *    faixa do nó (a faixa de um valor só não gasta sorteio);
  * 5. o **item**: a chance de achar um (a chance certa não gasta sorteio) e, achado, qual da
- *    lista (a lista de um só não gasta sorteio).
+ *    lista (a lista de um só não gasta sorteio);
+ * 6. o **Mestre**: a chance de a equipe o encontrar (a chance certa não gasta sorteio), só a
+ *    partir do Sucesso e **só se ele ainda pode chegar** (`masterCanArrive`): quem já está no
+ *    feudo ou à porta não é sorteado. O Mestre não é saque: a cobiça não o perde.
  *
- * O Desastre não deixa trazer nada: não sorteia cobiça, quantidade nem item. O saque que a
- * cobiça perdeu também não sorteia quantidade nem item. O item só vem a partir do Sucesso.
+ * O Desastre não deixa trazer nada: não sorteia cobiça, quantidade, item nem Mestre. O saque que
+ * a cobiça perdeu também não sorteia quantidade nem item. O item só vem a partir do Sucesso.
  *
  * Sorteado tudo, o que o nó faz, sem sorteio, na ordem das linhas da Crônica: a frase do nó
  * (com quem se destacou e, no Revés e no Desastre, a lição: `expeditionReport.ts`); o
- * dano a quem foi sorteado; o item; o destino revelado; o tile limpo; o cativo solto; e a
+ * dano a quem foi sorteado; o item; o destino revelado; o tile limpo; o cativo solto; o Mestre,
+ * que toma a estrada do feudo neste instante (`deliverMaster`: entra, ou espera à porta); e a
  * experiência de **quem continua na equipe**, com os níveis. O poder é o da equipe **como chegou
  * ao nó**, com os pesos dele: quem ficou Descontente no caminho rende menos aqui, e quem se fere
  * aqui ainda lutou.
@@ -228,6 +233,16 @@ function resolveStage(
       }
     }
   }
+  // 6. O Mestre.
+  const masterDrop = rewards?.master;
+  if (
+    masterDrop !== undefined &&
+    succeeded(entry.outcome) &&
+    masterCanArrive(draft, masterDrop.id) &&
+    (masterDrop.chance.num >= masterDrop.chance.den || chance(draft, stream, masterDrop.chance))
+  ) {
+    entry.master = masterDrop.id;
+  }
   if (victim !== null && harm !== null) {
     entry.harm = { heroName: victim.name, kind: harm.kind };
   }
@@ -297,6 +312,10 @@ function resolveStage(
     if (rewards?.rescues === true) {
       entry.rescued = rescueCaptive(draft, expedition, label, atMs, events)?.name ?? null;
     }
+  }
+  if (entry.master !== null) {
+    // Um instante da linha do tempo cria a entidade: o Mestre nasce com o identificador dele.
+    deliverMaster(draft, entry.master, atMs, events);
   }
   const standing = heroesOf(draft, expedition.heroIds);
   if (trial !== undefined) {

@@ -4,6 +4,7 @@ import { nextDayBoundary } from './clock';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { moraleRatio, producerOf } from './economy';
+import { inhabitants } from './masters';
 import { famineLedgerAt } from './famine';
 import { decimal, durationText, plural, sentenceCase, thousands } from './format';
 import {
@@ -136,7 +137,8 @@ function foodReserveView(
   reserveText: string,
 ): MoraleView['foodReserve'] {
   const { bonus } = rules.foodReserve;
-  const { villagers } = state.settlement.population;
+  // Quem come: os aldeões e os Mestres.
+  const villagers = inhabitants(state);
   const { needed, missing, neededMilli } = reserveOf(state);
   const later = reserveOf(atTurn);
   const covered = missing === 0;
@@ -150,7 +152,7 @@ function foodReserveView(
     };
   }
   if (covered) {
-    const mouths = people(atTurn.settlement.population.villagers);
+    const mouths = people(inhabitants(atTurn));
     return {
       ...numbers,
       text:
@@ -338,8 +340,13 @@ function populationNotes(
     }
   }
   if (!canLose && (mayLeave || mayDesert)) {
+    const villagers = plural(settlement.population.villagers, 'aldeão', 'aldeões');
+    const masters = settlement.masters.length;
     notes.push(
-      `Restam ${plural(settlement.population.villagers, 'aldeão', 'aldeões')}: com ${populationFloor} ou menos, ninguém mais parte nem deserta.`,
+      masters === 0
+        ? `Restam ${villagers}: com ${populationFloor} ou menos, ninguém mais parte nem deserta.`
+        : // O Mestre conta para o piso e nunca parte nem deserta (GDD §5.4).
+          `Restam ${villagers} e ${plural(masters, 'Mestre', 'Mestres')}: com ${populationFloor} habitantes ou menos, ninguém mais parte nem deserta, e um Mestre nunca parte.`,
     );
   }
   return notes;

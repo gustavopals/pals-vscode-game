@@ -37,6 +37,7 @@ import {
 import { lessonText, trialTemplate } from './expeditionReport';
 import { durationText, fillText, joinList, sentenceCase } from './format';
 import { canDepart, heroPowerRatio, powerWeights } from './heroes';
+import { isMasterId, masterLabel } from './masters';
 import { tileWithArticle } from './outcomes';
 import { describeLoss } from './storage';
 import type {
@@ -302,6 +303,9 @@ function logNotes(state: GameState, entry: ExpeditionLogEntry): string[] {
   if (entry.rescued !== null) {
     notes.push(fillText(expeditionTexts.reportRescued, { heroi: entry.rescued }));
   }
+  if (entry.master !== null && isMasterId(entry.master)) {
+    notes.push(fillText(expeditionTexts.reportMaster, { mestre: masterLabel(entry.master) }));
+  }
   for (const { heroName, level } of entry.leveled) {
     notes.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));
   }
@@ -443,6 +447,9 @@ function deedsText(state: GameState, report: ExpeditionReport): string | null {
     }
     if (entry.rescued !== null) {
       deeds.push(fillText(expeditionTexts.reportRescued, { heroi: entry.rescued }));
+    }
+    if (entry.master !== null && isMasterId(entry.master)) {
+      deeds.push(fillText(expeditionTexts.reportMaster, { mestre: masterLabel(entry.master) }));
     }
     for (const { heroName, level } of entry.leveled) {
       deeds.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));

@@ -65,9 +65,53 @@ export const REJECTION_CODES = [
   'STORAGE_FULL',
   'MARKET_LEVEL_REQUIRED',
   'CARAVAN_LIMIT',
+  'MASTER_NOT_FOUND',
+  'MASTER_WAITING',
+  'BUILDING_HAS_MASTER',
+  'NOT_A_PRODUCTION_BUILDING',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
+
+/**
+ * O que mudaria se um Mestre fosse para um edifício produtivo: é o que a tela mostra antes de o
+ * jogador confirmar. Os ganhos são por hora real, contra o edifício sem este Mestre.
+ */
+const MasterOptionSchema = z.strictObject({
+  building: z.enum(PRODUCTION_BUILDING_IDS),
+  label: z.string(),
+  level: z.number(),
+  resource: resourceId,
+  /** É o edifício em que ele já trabalha: a ordem não mudaria nada. */
+  current: z.boolean(),
+  /** Quanto o edifício rende a mais com este Mestre já adaptado: o braço dele e o bônus. */
+  gainPerHour: z.number(),
+  /** Quanto rende a mais enquanto ele se adapta: só a fração do braço, sem o bônus. */
+  gainWhileAdaptingPerHour: z.number(),
+  /** Por que a ordem seria recusada; `null` quando seria aceita. */
+  blockedReason: z.string().nullable(),
+});
+
+/** Um Mestre do feudo: quem é, onde trabalha, o que soma e o que mudaria em cada edifício. */
+const MasterSchema = z.strictObject({
+  /** O identificador que a ordem `assignMaster` leva. */
+  id: z.string(),
+  /** "Mestre Odo". */
+  name: z.string(),
+  /** De onde veio, para depois do nome; é só narrativa. */
+  originText: z.string(),
+  building: z.enum(PRODUCTION_BUILDING_IDS).nullable(),
+  /** "Pedreira", ou "Sem edifício". */
+  buildingLabel: z.string(),
+  /** Segundos reais até ele terminar a adaptação e passar a dar o bônus; `null` fora dela. */
+  adaptationEndsInSeconds: z.number().nullable(),
+  /** O que ele soma à produção do edifício em que trabalha, em pontos percentuais. */
+  bonusPercent: z.number(),
+  /** O bônus vale agora: tem edifício e já se adaptou. */
+  bonusActive: z.boolean(),
+  /** Um edifício produtivo por linha, na ordem do conteúdo. */
+  options: z.array(MasterOptionSchema),
+});
 
 const ResourceCostSchema = z.strictObject({
   resource: resourceId,
@@ -922,6 +966,11 @@ export const ViewStateSchema = z.strictObject({
      * Serraria."; `null` sem feridos.
      */
     injuredNote: z.string().nullable(),
+    /**
+     * Os Mestres que moram no feudo: ocupam casa e comem como os aldeões, e não estão em
+     * `villagers` nem em `free`. Quem espera à porta não entra aqui.
+     */
+    masters: z.number(),
     breakdown: z.string(),
   }),
   resources: z.array(
@@ -975,6 +1024,12 @@ export const ViewStateSchema = z.strictObject({
     experienceMax: z.number(),
     /** O bônus de produção com a experiência no máximo, em pontos percentuais. */
     masteryMaxBonusPercent: z.number(),
+    /** O que um Mestre soma ao edifício em que trabalha, em pontos percentuais. */
+    masterBonusPercent: z.number(),
+    /** Quanto dura a adaptação do Mestre que chegar a um edifício agora, em segundos reais. */
+    masterAdaptationSeconds: z.number(),
+    /** As regras do Mestre em uma frase: é o que a tela mostra antes de o jogador o mover. */
+    masterText: z.string(),
   }),
   workers: z.array(
     z.strictObject({
@@ -1010,6 +1065,19 @@ export const ViewStateSchema = z.strictObject({
        * `assigned`: a ordem de trabalhadores não os conta nem os tira.
        */
       injured: z.number(),
+      /**
+       * O Mestre que trabalha neste edifício, ou `null`. Não está em `assigned`: conta como um
+       * trabalhador a mais na produção (`grossPerHour` e `breakdown` já o incluem). `bonusText`
+       * diz o que ele soma agora: "+15% na produção", ou que ainda se adapta.
+       */
+      master: z
+        .strictObject({
+          id: z.string(),
+          name: z.string(),
+          adapting: z.boolean(),
+          bonusText: z.string(),
+        })
+        .nullable(),
     }),
   ),
   constructions: z.strictObject({
@@ -1070,6 +1138,16 @@ export const ViewStateSchema = z.strictObject({
   tavern: TavernSchema,
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
   market: MarketSchema,
+  /** Os Mestres do feudo, na ordem em que entraram. */
+  masters: z.array(MasterSchema),
+  /** Os Mestres que chegaram e esperam uma vaga nas casas. */
+  mastersWaiting: z.strictObject({
+    count: z.number(),
+    /** Quem espera, com o tratamento, na ordem de chegada: "Mestre Odo". */
+    names: z.array(z.string()),
+    /** A frase que diz quem espera e por quê; `null` sem ninguém. */
+    note: z.string().nullable(),
+  }),
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
    * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`, e a

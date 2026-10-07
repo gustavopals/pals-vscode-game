@@ -847,6 +847,7 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
       nodeId: 'fork',
       atMs: arrivedAt + 2 * HOUR,
       outcome: 'chosen',
+      master: null,
       optionId: 'stream',
       decidedBy: 'player',
       gained: { food: 0, wood: 0, stone: 0, gold: 0 },

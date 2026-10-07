@@ -2,13 +2,22 @@ import { balance, craftGuilds, PRODUCTION_BUILDING_IDS, type Ratio } from '@lotg
 
 import { emit } from './chronicle';
 import { nextDayBoundary } from './clock';
+import {
+  finishMasterAdaptations,
+  masterArmAt,
+  masterArms,
+  nextMasterAdaptationEndAt,
+} from './masters';
 import type { GameEvent, GameState, ProductionBuildingId } from './types';
 
 /**
- * Os trabalhadores de um edifício, separados pelo que rendem: quem já conhece o ofício e quem
- * chegou há menos de um dia de jogo e ainda rende uma fração (GDD §5.4).
+ * Os braços de um edifício, separados pelo que rendem: quem já conhece o ofício e quem chegou
+ * há menos de um dia de jogo e ainda rende uma fração (GDD §5.4). **O Mestre do edifício é um
+ * desses braços**: adaptado, entra em `adapted` e liga `master` (o bônus dele entra na conta da
+ * produção); em adaptação, entra em `adapting`, sem bônus. Sem `master`, quem pergunta "e com
+ * outros braços?" fica com o bônus que o edifício tem agora.
  */
-export type Hands = { adapted: number; adapting: number };
+export type Hands = { adapted: number; adapting: number; master?: boolean };
 
 /**
  * Trabalhadores de `building` ainda em adaptação no instante `atMs`: os das coortes que só
@@ -22,10 +31,26 @@ export function adaptingAt(state: GameState, building: ProductionBuildingId, atM
   );
 }
 
-/** Os braços de `building` em um instante: quem rende inteiro e quem rende a fração. */
+/**
+ * Os braços de `building` em um instante: quem rende inteiro e quem rende a fração, os aldeões
+ * do ofício e, havendo, o Mestre (um braço a mais, fora de `settlement.workers` e das coortes).
+ */
 export function handsAt(state: GameState, building: ProductionBuildingId, atMs: number): Hands {
   const adapting = adaptingAt(state, building, atMs);
-  return { adapted: state.settlement.workers[building] - adapting, adapting };
+  const master = masterArmAt(state, building, atMs);
+  return {
+    adapted: state.settlement.workers[building] - adapting + (master === 'adapted' ? 1 : 0),
+    adapting: adapting + (master === 'adapting' ? 1 : 0),
+    master: master === 'adapted',
+  };
+}
+
+/**
+ * Quantos trabalham em `building`: os aldeões do ofício e o Mestre, se houver. É o número que
+ * diz se o edifício está ocupado na virada do dia.
+ */
+export function armsOf(state: GameState, building: ProductionBuildingId): number {
+  return state.settlement.workers[building] + masterArms(state, building);
 }
 
 /** Os braços de `building` agora. */
@@ -95,12 +120,26 @@ export function finishAdaptations(draft: GameState, atMs: number): void {
   if (settlement.adaptation.some((cohort) => cohort.untilMs <= atMs)) {
     settlement.adaptation = settlement.adaptation.filter((cohort) => cohort.untilMs > atMs);
   }
+  // O Mestre que trocou de edifício: no mesmo passo, pela mesma razão (a taxa muda aqui).
+  finishMasterAdaptations(draft, atMs);
 }
 
-/** Instante, em ms de jogo, em que a próxima coorte termina a adaptação; `null` sem nenhuma. */
+/**
+ * Instante, em ms de jogo, em que a próxima adaptação termina: a de uma coorte ou a de um
+ * Mestre; `null` sem nenhuma.
+ */
 export function nextAdaptationEndAt(state: GameState): number | null {
-  const { adaptation } = state.settlement;
-  return adaptation.length === 0 ? null : Math.min(...adaptation.map((cohort) => cohort.untilMs));
+  const ends = state.settlement.adaptation.map((cohort) => cohort.untilMs);
+  const master = nextMasterAdaptationEndAt(state);
+  if (master !== null) {
+    ends.push(master);
+  }
+  return ends.length === 0 ? null : Math.min(...ends);
+}
+
+/** Alguém ainda se adapta: uma coorte de aldeões ou um Mestre. */
+export function anyoneAdapting(state: GameState): boolean {
+  return nextAdaptationEndAt(state) !== null;
 }
 
 /**
@@ -129,7 +168,7 @@ export type Occupancy = 'occupied' | 'short' | 'empty';
 export function occupancyOf(
   state: GameState,
   building: ProductionBuildingId,
-  workers: number = state.settlement.workers[building],
+  workers: number = armsOf(state, building),
 ): Occupancy {
   if (workers === 0) {
     return 'empty';
@@ -148,7 +187,7 @@ export function workersAtNextTurn(state: GameState, building: ProductionBuilding
   const returning = state.settlement.injured.filter(
     (hurt) => hurt.building === building && hurt.untilMs <= turn,
   ).length;
-  return state.settlement.workers[building] + returning;
+  return armsOf(state, building) + returning;
 }
 
 /**

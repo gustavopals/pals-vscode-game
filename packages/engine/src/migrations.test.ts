@@ -11,6 +11,7 @@ import {
   namedHeroes,
   POSTURE_IDS,
   MARKET_RESOURCE_IDS,
+  MASTER_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   RESOURCE_IDS,
@@ -23,6 +24,7 @@ import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { CATALOG, eligibleCards } from './council';
 import { nextId } from './ids';
+import { deliverMaster } from './masterTurn';
 import {
   CURRENT_SCHEMA_VERSION,
   currentShape,
@@ -76,12 +78,16 @@ import { EXPEDITION_LESSON_KINDS_V19 } from './migrations/v19';
 import { EXPEDITION_LESSON_KINDS_V20, MARKET_BASE_PRICES_V21 } from './migrations/v20';
 import { BUILDING_IDS_V21, MARKET_RESOURCE_IDS_V21, RNG_FIXED_STREAMS_V21 } from './migrations/v21';
 import { CARAVAN_SLOTS_CAP_V22, HERO_STATUS_IDS_V22 } from './migrations/v22';
+import { MASTER_IDS_V23, MASTERS_CAP_V23, PRODUCTION_BUILDING_IDS_V23 } from './migrations/v23';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
   addHero,
   caravanEscortScenario,
+  masterOrder,
+  mastersScenario,
+  masterWaitingScenario,
   command,
   eventsOfType,
   famineSince,
@@ -145,8 +151,39 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
-/** Tira de um estado, no lugar, o que o passo 20 → 21 acrescenta: o Mercado, o edifício e o resto. */
+/**
+ * Tira de um estado, no lugar, o que o passo 22 → 23 acrescenta: os Mestres do feudo, os da
+ * porta e o Mestre de cada registro do percurso.
+ */
+function stripMasters(copy: Draft): void {
+  if (copy.settlement !== undefined) {
+    delete copy.settlement.masters;
+    delete copy.settlement.mastersWaiting;
+  }
+  for (const journey of [
+    ...((copy.guild?.expeditions ?? []) as Draft[]),
+    ...((copy.guild?.reports ?? []) as Draft[]),
+  ]) {
+    for (const entry of (journey.log ?? []) as Draft[]) {
+      delete entry.master;
+    }
+  }
+}
+
+/** Um estado como a versão 22 o gravava, a partir de um da versão atual: sem os Mestres. */
+function asVersion22(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 22;
+  stripMasters(old);
+  return old;
+}
+
+/**
+ * Tira de um estado, no lugar, o que o passo 20 → 21 acrescenta: o Mercado, o edifício e o resto
+ * (e, com ele, o do 22 → 23).
+ */
 function stripMarket(copy: Draft): void {
+  stripMasters(copy);
   delete copy.market;
   if (copy.settlement?.buildings !== undefined) {
     delete copy.settlement.buildings.market;
@@ -885,6 +922,48 @@ const FROZEN: Record<string, string> = {
   'state-v21-wage-arrears-resumed.json': 'c4b11c60',
   'state-v21-wage-arrears.json': '9b237011',
   'state-v21-week-scripted.json': '91e53259',
+  'state-v22-caravan-escort.json': '3755d0a6',
+  'state-v22-caravan.json': '80c334bb',
+  'state-v22-cold.json': '91be95ee',
+  'state-v22-construction.json': '56035433',
+  'state-v22-council-hidden.json': '7a06bd7c',
+  'state-v22-council.json': 'f36b4d78',
+  'state-v22-crafts.json': 'fbaec917',
+  'state-v22-den-cleared.json': '3e478d37',
+  'state-v22-expedition-crossroads.json': '7a9a9240',
+  'state-v22-expedition-returning.json': 'fe9591f6',
+  'state-v22-expedition.json': 'c045df5a',
+  'state-v22-famine-3x.json': 'f3cda747',
+  'state-v22-famine-ended.json': 'b3004c11',
+  'state-v22-famine-half.json': 'd1d97e22',
+  'state-v22-famine-resumed.json': '175a396b',
+  'state-v22-famine.json': '9fb5786f',
+  'state-v22-fresh.json': 'be2dc7b4',
+  'state-v22-guild.json': 'b50669d8',
+  'state-v22-hero-captured.json': 'abd9a222',
+  'state-v22-hero-injured.json': '43058494',
+  'state-v22-hero-promised.json': '481336bd',
+  'state-v22-iron-king-half.json': 'ff0652fe',
+  'state-v22-market-opening.json': '73adf5c9',
+  'state-v22-market.json': '4a308a8b',
+  'state-v22-migrated-3x.json': '32fb3577',
+  'state-v22-migrated-iron-king-half.json': '25fee1f1',
+  'state-v22-migrated-peasant-3x.json': '4464d60e',
+  'state-v22-morale.json': 'ad41dcb1',
+  'state-v22-objectives.json': '5f726d63',
+  'state-v22-palisade.json': '1a3cec7b',
+  'state-v22-peasant-3x.json': 'b8610929',
+  'state-v22-queues.json': '4a3141f7',
+  'state-v22-raid-announced.json': '3849b448',
+  'state-v22-raid.json': '4d0dcc21',
+  'state-v22-storage.json': 'a17d46a7',
+  'state-v22-tavern-busy.json': '91f605b5',
+  'state-v22-tavern.json': 'e47ec7a4',
+  'state-v22-threat.json': 'b701e17c',
+  'state-v22-wage-arrears-ended.json': '8de74ca0',
+  'state-v22-wage-arrears-resumed.json': '8ad7d422',
+  'state-v22-wage-arrears.json': 'd743fe6f',
+  'state-v22-week-scripted.json': '676704a3',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -1257,9 +1336,11 @@ describe('a forma da versão atual', () => {
     ],
     ['o mapa sem os destinos revelados', (state) => delete state.map.discovered],
     ['um destino revelado que não é chave', (state) => (state.map.discovered = ['Ruínas!'])],
-    // Nada da Fase E (regra 6 do CLAUDE.md).
+    // O Mercado (versão 21) e os Mestres (versão 23).
     ['o estado com o Mercado', (state) => (state.market = { prices: {} })],
-    ['os Mestres no feudo', (state) => (state.settlement.masters = [])],
+    ['o feudo sem a lista dos Mestres', (state) => delete state.settlement.masters],
+    ['o feudo sem a porta dos Mestres', (state) => delete state.settlement.mastersWaiting],
+    ['um Mestre com posto', (state) => (state.settlement.masters = [{ post: 'quarry' }])],
     // A Taverna (versão 16).
     ['a Taverna ausente dos edifícios', (state) => delete state.settlement.buildings.tavern],
     ['a Taverna com nível quebrado', (state) => (state.settlement.buildings.tavern = 0.5)],
@@ -5070,6 +5151,7 @@ describe('versão 21 → 22', () => {
   const asVersion21 = (state: GameState): Draft => {
     const old = JSON.parse(JSON.stringify(state)) as Draft;
     old.schemaVersion = 21;
+    stripMasters(old);
     delete old.market.caravans;
     return old;
   };
@@ -5250,5 +5332,241 @@ describe('versão 21 → 22', () => {
     expect(broken((state) => (state.rng['caravan:caravan-7'] = [1, 2, 3, 4]))).toBe(
       'rng.caravan:caravan-7: fluxo de uma entidade além do contador de ids.caravan',
     );
+  });
+});
+
+describe('versão 22 → 23', () => {
+  const version22 = fixtures.filter((fixture) => fixture.version === 22);
+  const journeysOf = (state: Draft): Draft[] => [
+    ...(state.guild.expeditions as Draft[]),
+    ...(state.guild.reports as Draft[]),
+  ];
+
+  it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
+    expect(MASTER_IDS_V23).toEqual([...MASTER_IDS]);
+    expect(PRODUCTION_BUILDING_IDS_V23).toEqual([...PRODUCTION_BUILDING_IDS]);
+    expect(MASTERS_CAP_V23).toBe(balance.masters.rosterCap);
+    // A guarda recusa dois Mestres no mesmo edifício: é o `maxPerBuilding` do conteúdo.
+    expect(balance.masters.maxPerBuilding).toBe(1);
+  });
+
+  it('há retratos da versão 22 com expedição em curso, com relatório guardado, com casas cheias e com gente em adaptação', () => {
+    expect(version22.length).toBeGreaterThan(40);
+    const states = version22.map((fixture) => read(fixture) as Draft);
+    expect(states.some((state) => state.guild.expeditions.length > 0)).toBe(true);
+    expect(states.some((state) => state.guild.reports.length > 0)).toBe(true);
+    expect(
+      states.some((state) => journeysOf(state).some((journey) => journey.log.length > 0)),
+    ).toBe(true);
+    expect(states.some((state) => state.settlement.adaptation.length > 0)).toBe(true);
+    expect(states.some((state) => state.settlement.injured.length > 0)).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v22-fresh.json'));
+    expect(fresh.settlement.masters).toEqual([]);
+    expect(fresh.settlement.mastersWaiting).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version22)(
+    '$name: só acrescenta as duas listas de Mestres, vazias, e o Mestre de cada registro do percurso, nulo; os aldeões, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.masters).toEqual([]);
+      expect(after.settlement.mastersWaiting).toEqual([]);
+      expect(after.settlement.population).toStrictEqual(before.settlement.population);
+      expect(after.settlement.workers).toStrictEqual(before.settlement.workers);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids.master).toBeUndefined();
+      for (const journey of journeysOf(after as unknown as Draft)) {
+        for (const entry of journey.log as Draft[]) {
+          expect(entry.master).toBeNull();
+        }
+      }
+      expect(asVersion22(after)).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version22)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('master'))).toEqual([]);
+      expect(atBoundary.state.settlement.masters).toEqual([]);
+      expect(atBoundary.state.settlement.mastersWaiting).toEqual([]);
+      expect(atBoundary.state.ids.master).toBeUndefined();
+      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      // Trinta dias sem ordem nenhuma e sem expedição ao lugar certo: nenhum Mestre nasce sozinho
+      // do passo (o que uma expedição em curso encontrar é regra do motor, não do passo).
+      expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('master'))).toEqual(
+        [],
+      );
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    const old = asVersion22(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 22 que já traz Mestres, ou um registro com Mestre, é recusado', () => {
+    const old = read(named('state-v22-fresh.json')) as Draft;
+    old.settlement.masters = [];
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(
+      /settlement\.masters: campo desconhecido/,
+    );
+    const away = read(named('state-v22-expedition-returning.json')) as Draft;
+    (journeysOf(away)[0] as Draft).log[0].master = null;
+    expect(() => migrateState(away, { timeScale: 1 })).toThrow(
+      /log\.0\.master: campo desconhecido/,
+    );
+  });
+
+  it('a 23 recusa o Mestre fora da forma, repetido, fora da ordem, além do contador, em edifício ocupado e em adaptação sem edifício ou vencida', () => {
+    // Odo na Pedreira, já adaptado, e Berta na Fazenda, em adaptação.
+    const crafted = JSON.parse(JSON.stringify(mastersScenario())) as Draft;
+    const broken = (edit: (state: Draft) => void, from: Draft = crafted): string | null => {
+      const copy = JSON.parse(JSON.stringify(from)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const first = (state: Draft) => state.settlement.masters[0];
+    const second = (state: Draft) => state.settlement.masters[1];
+    expect(broken(() => undefined)).toBeNull();
+    expect(crafted.settlement.masters).toHaveLength(2);
+    expect(broken((state) => (first(state).id = 'master-0'))).toMatch(/masters\.0\.id/);
+    expect(broken((state) => (first(state).id = 'hero-1'))).toMatch(/masters\.0\.id/);
+    expect(broken((state) => (first(state).masterId = 'merlin'))).toMatch(/masters\.0\.masterId/);
+    expect(broken((state) => (first(state).building = 'tavern'))).toMatch(/masters\.0\.building/);
+    expect(broken((state) => (first(state).adaptingUntilMs = 1.5))).toMatch(
+      /masters\.0\.adaptingUntilMs/,
+    );
+    expect(broken((state) => delete first(state).building)).toBe(
+      'settlement.masters.0.building: campo ausente',
+    );
+    // O Mestre não tem nome gravado, nem posto, nem data de partida.
+    expect(broken((state) => (first(state).name = 'Odo'))).toBe(
+      'settlement.masters.0.name: campo desconhecido',
+    );
+    expect(broken((state) => (second(state).masterId = 'odo'))).toBe(
+      'settlement.masters.1.masterId: o mesmo Mestre duas vezes',
+    );
+    expect(broken((state) => state.settlement.masters.reverse())).toBe(
+      'settlement.masters.1.id: Mestres fora da ordem de chegada',
+    );
+    expect(broken((state) => (second(state).id = 'master-9'))).toBe(
+      'settlement.masters.1.id: Mestre além do contador de ids.master',
+    );
+    expect(broken((state) => (second(state).building = 'quarry'))).toBe(
+      'settlement.masters.1.building: dois Mestres no mesmo edifício',
+    );
+    expect(
+      broken((state) => {
+        second(state).building = null;
+      }),
+    ).toBe('settlement.masters.1.adaptingUntilMs: Mestre sem edifício em adaptação');
+    expect(broken((state) => (second(state).adaptingUntilMs = state.lastProcessedAt))).toBe(
+      'settlement.masters.1.adaptingUntilMs: adaptação vencida e não processada',
+    );
+    // O teto vale para a soma do feudo com a porta.
+    expect(
+      broken((state) => {
+        state.ids.master = 5;
+        state.settlement.masters.push(
+          { id: 'master-3', masterId: 'gil', building: null, adaptingUntilMs: null },
+          { id: 'master-4', masterId: 'ximena', building: null, adaptingUntilMs: null },
+        );
+        state.settlement.mastersWaiting.push({ id: 'master-5', masterId: 'odo' });
+      }),
+    ).toBe('settlement.masters: esperados até 4 Mestres, no feudo e à porta, vieram 5');
+    // A porta: só quem é; em ordem, depois de quem já entrou, sem repetir ninguém.
+    const atDoor = JSON.parse(JSON.stringify(masterWaitingScenario())) as Draft;
+    expect(broken(() => undefined, atDoor)).toBeNull();
+    expect(broken((state) => (state.settlement.mastersWaiting[0].building = null), atDoor)).toBe(
+      'settlement.mastersWaiting.0.building: campo desconhecido',
+    );
+    expect(broken((state) => (state.settlement.mastersWaiting[0].masterId = 'odo'), atDoor)).toBe(
+      'settlement.mastersWaiting.0.masterId: o mesmo Mestre duas vezes',
+    );
+    expect(broken((state) => (state.settlement.mastersWaiting[0].id = 'master-1'), atDoor)).toBe(
+      'settlement.mastersWaiting.0.id: Mestres fora da ordem de chegada',
+    );
+    expect(broken((state) => (state.settlement.mastersWaiting[0].id = 'master-3'), atDoor)).toBe(
+      'settlement.mastersWaiting.0.id: Mestre além do contador de ids.master',
+    );
+    // Mestre nenhum tem fluxo de sorteio: a família não existe.
+    expect(broken((state) => (state.rng['master:master-1'] = [1, 2, 3, 4]))).toMatch(/rng/);
+  });
+
+  it('a 23 recusa o registro do percurso sem o Mestre, com um Mestre que o conteúdo não tem e com Mestre em nó perdido ou em escolha', () => {
+    const away = migrated(named('state-v22-expedition-returning.json')) as unknown as Draft;
+    const broken = (edit: (entry: Draft, state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(away)) as Draft;
+      const journey = journeysOf(copy).find((entry) => entry.log.length > 0) as Draft;
+      edit(journey.log[0], copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((entry) => delete entry.master)).toMatch(/log\.0\.master: campo ausente/);
+    expect(broken((entry) => (entry.master = 'merlin'))).toMatch(/log\.0\.master/);
+    expect(
+      broken((entry) => {
+        entry.master = 'odo';
+        entry.outcome = 'chosen';
+        entry.optionId = 'stream';
+        entry.decidedBy = 'player';
+        entry.xp = 0;
+        entry.standout = null;
+        entry.lesson = null;
+        entry.harm = null;
+        entry.lootLost = false;
+        entry.found = [];
+      }),
+    ).toMatch(/log\.0\.master: só um nó vencido encontra um Mestre/);
+  });
+
+  it('quem migra recebe um Mestre, dá-lhe um edifício e o vê render logo depois da migração', () => {
+    const old = read(named('state-v22-crafts.json')) as Draft;
+    const state = JSON.parse(JSON.stringify(migrateState(old, { timeScale: 1 }))) as GameState;
+    const arrived: GameEvent[] = [];
+    expect(deliverMaster(state, 'odo', state.lastProcessedAt, arrived)).toBe(true);
+    expect(arrived.map((event) => event.type)).toEqual(['masterArrived']);
+    const assigned = applyCommand(
+      state,
+      masterOrder('master-1', 'goldMine'),
+      state.lastProcessedAt,
+    );
+    if (!assigned.ok) {
+      throw new Error(assigned.message);
+    }
+    expect(assigned.state.settlement.masters).toEqual([
+      {
+        id: 'master-1',
+        masterId: 'odo',
+        building: 'goldMine',
+        adaptingUntilMs: state.lastProcessedAt + balance.masters.adaptationMs,
+      },
+    ]);
+    const settled = advanceTo(
+      assigned.state,
+      state.lastProcessedAt + balance.masters.adaptationMs,
+    ).state;
+    expect(settled.settlement.masters[0]?.adaptingUntilMs).toBeNull();
+    expect(currentShape(settled, '')).toBeNull();
   });
 });

@@ -72,7 +72,7 @@ describe('pureza do motor', () => {
     // sorteio mora em `caravanTurn.ts` (a emboscada, na chegada); `caravans.ts` (as contas),
     // `caravanOrders.ts` (enviar) e `caravansView.ts` não sorteiam.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hash|market|marketOrders|marketView|caravans|caravanOrders|caravansView)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hash|market|marketOrders|marketView|caravans|caravanOrders|caravansView|masters|masterOrders|masterTurn|mastersView)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -104,6 +104,12 @@ describe('pureza do motor', () => {
         './caravans.ts',
         './caravanOrders.ts',
         './caravansView.ts',
+        // Os Mestres não sorteiam em lugar nenhum: a chance de encontrar um é do nó da
+        // expedição (`expeditionTurn.ts`).
+        './masters.ts',
+        './masterOrders.ts',
+        './masterTurn.ts',
+        './mastersView.ts',
       ]),
     );
     const offenders = guarded
@@ -149,7 +155,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hash|market|marketOrders|marketTurn|caravans|caravanTurn)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hash|market|marketOrders|marketTurn|caravans|caravanTurn|masters|masterOrders)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -195,6 +201,11 @@ describe('pureza do motor', () => {
         './caravanTurn.ts',
         './caravansView.ts',
         './migrations/v22.ts',
+        // Dos Mestres, as contas, a ordem de alocar e a visão: só a chegada cria um.
+        './masters.ts',
+        './masterOrders.ts',
+        './mastersView.ts',
+        './migrations/v23.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
@@ -209,11 +220,14 @@ describe('pureza do motor', () => {
     // Desde V3D-T2, `expeditionTurn.ts`: o item achado no fim de um nó nasce com o dele, em um
     // instante da linha do tempo. As ordens de equipar (`equipment.ts`) não criam nada.
     // Desde V3E-T2, `caravanOrders.ts`: a ordem de envio dá o identificador à caravana.
+    // Desde V3E-T3, `masterTurn.ts`: o Mestre que chega (pela recompensa de uma expedição, um
+    // instante da linha do tempo) nasce com o dele. A ordem `assignMaster` não cria nada.
     expect(creators).toEqual([
       './arrivals.ts',
       './caravanOrders.ts',
       './expeditionOrders.ts',
       './expeditionTurn.ts',
+      './masterTurn.ts',
       './tavernTurn.ts',
     ]);
     for (const allowed of [

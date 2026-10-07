@@ -331,6 +331,37 @@ describe('o pacote do app', () => {
     }
   });
 
+  it('não leva nenhum número de regra dos Mestres, nem as frases e a ficha deles (v0.3)', () => {
+    const { masters } = content.balance;
+    const markers = ['masters:{', 'bonus:{', 'maxPerBuilding:', 'adaptationMs:', 'rosterCap:'];
+    // Os marcadores são do conteúdo de hoje: a tabela, escrita como um objeto de JavaScript,
+    // tem de conter cada um.
+    const leaked = asJavaScript({ masters });
+    expect(markers.filter((marker) => !leaked.includes(marker))).toEqual([]);
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    expect(code.includes(asJavaScript(masters))).toBe(false);
+    // O que o estado guarda e a visão nunca mostra (o Mestre no conteúdo, o prazo em tempo de
+    // jogo) e os nomes das tabelas do conteúdo também não chegam.
+    expect(
+      ['masterTemplates', 'masterTexts', 'adaptingUntilMs', 'mastersWaiting:['].filter((key) =>
+        code.includes(key),
+      ),
+    ).toEqual([]);
+    // As frases da tela vêm prontas na visão; os nomes e as origens, também. Ficam de fora os
+    // textos curtos demais para servir de prova (os tratamentos e os rótulos de duas palavras).
+    for (const text of Object.values(content.masterTexts)) {
+      if (text.length > 12) {
+        expect(code.includes(text), text).toBe(false);
+      }
+    }
+    for (const def of Object.values(content.masters)) {
+      expect(code.includes(def.originText), def.originText).toBe(false);
+    }
+    for (const text of Object.values(content.masterTemplates)) {
+      expect(code.includes(text), text).toBe(false);
+    }
+  });
+
   // Revisão da Fase D (A25): os itens e o que cada nó rende têm números próprios, e os
   // marcadores acima não os conheciam.
   it('não leva os itens nem as recompensas das expedições: bônus, valor, raridade, chance de achado e faixas de saque (v0.3)', () => {
