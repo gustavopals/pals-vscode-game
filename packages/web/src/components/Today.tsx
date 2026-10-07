@@ -5,6 +5,7 @@ import { beforeLeaving, leavingItems, type LeavingSeverity } from '../game/befor
 import { coveredTopics, currentBlocks } from '../game/returnReport';
 import { cardDeadline, expiresSoon, nextAudience } from '../ui/council';
 import { CROSSROADS_ICON } from '../ui/expeditions';
+import { hasMarket } from '../ui/market';
 import { moraleBurdened, moraleIcon, moraleSince } from '../ui/morale';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
@@ -297,6 +298,8 @@ function StockTable(props: {
   rows: ReturnReport['resources'];
   /** Houve soldo a pagar na ausência: a nota diz que ele entra no consumo do ouro. */
   wage: boolean;
+  /** O Mercado está de pé: a venda no balcão e a carga da caravana saem do estoque como gasto. */
+  market: boolean;
 }) {
   const raided = props.rows.some((row) => (row.raided ?? 0) > 0);
   return (
@@ -374,6 +377,9 @@ function StockTable(props: {
           : ''}
         . Gasto e recebido vêm das ordens e dos acontecimentos da ausência
         {props.wage ? ': o trato de uma contratação e o custo de um festival estão em Gasto' : ''}.
+        {props.market
+          ? ' O que foi vendido no balcão do Mercado, ou seguiu na carga de uma caravana, também está em Gasto, e o ouro que rendeu, em Recebido.'
+          : ''}{' '}
         Perdido é o que não coube no depósito e foi ao chão, da produção ou de uma recompensa.
         {raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
       </p>
@@ -460,6 +466,7 @@ function Report(props: {
       ) : (
         <StockTable
           rows={report.resources}
+          market={hasMarket(view.market)}
           wage={
             view.guild.heroes.length > 0 ||
             [...blocks.prospered, ...blocks.cost].some(
