@@ -841,8 +841,11 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
     expect((await getView(server, other)).status).toBe(200);
     const after = (await rowOf(server, other.id)) as Row & { state: Starving };
     expect(after.schemaVersion).toBe(CURRENT);
+    const site = withTavernSite(calm.settlement);
     expect(after.state.settlement).toEqual({
-      ...withTavernSite(calm.settlement),
+      ...site,
+      // E o Mercado, da versão 21, também por construir.
+      buildings: { ...site.buildings, market: 0 },
       lastFamine: null,
     });
   });
