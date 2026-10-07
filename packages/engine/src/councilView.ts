@@ -17,7 +17,7 @@ import {
   seatedCards,
 } from './council';
 import { decimal, durationText, plural, sentenceCase, thousands } from './format';
-import { classLabel, namedHeroOf, traitLabel } from './heroes';
+import { classLabel, namedHeroOf, traitLabel, wagePerHourAt } from './heroes';
 import { storable, storagePlace } from './storage';
 import type {
   CouncilCardView,
@@ -80,7 +80,7 @@ function heroText(namedHeroId: string, afterDays: number | undefined, timeScale:
       : `chega em ${plural(afterDays, 'dia', 'dias')} de jogo (${durationText(
           realSecondsCeil(afterDays * DAY_MS, timeScale),
         )})`;
-  const wage = `${decimal(balance.heroes.wagePerHour * timeScale)} ${resourceName('gold')}/h`;
+  const wage = `${decimal(wagePerHourAt(named.level) * timeScale)} ${resourceName('gold')}/h`;
   return `${who}, ${when}, com soldo de ${wage}`;
 }
 

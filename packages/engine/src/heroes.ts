@@ -157,9 +157,37 @@ export function paidHeroes(state: GameState): number {
   return state.guild.heroes.filter((hero) => !isCaptive(hero)).length;
 }
 
-/** O soldo de toda a equipe, em milésimos de ouro por hora de jogo. */
+/**
+ * O soldo de um herói de um nível, em ouro por hora de jogo: a entrada do nível em
+ * `balance.heroes.wagePerHourByLevel` (resposta do autor de 2026-10-07: o soldo cresce com o
+ * nível). O schema do conteúdo garante uma entrada por nível; fora da tabela vale a ponta dela.
+ */
+export function wagePerHourAt(level: number): number {
+  const table = rules.wagePerHourByLevel;
+  return table[Math.min(Math.max(level, 1), table.length) - 1] ?? 0;
+}
+
+/**
+ * O soldo do nível seguinte ao dado, em ouro por hora de jogo; `null` no nível máximo. É o que a
+ * ficha avisa antes de o herói subir.
+ */
+export function wageAtNextLevel(level: number): number | null {
+  return level >= rules.maxLevel ? null : wagePerHourAt(level + 1);
+}
+
+/**
+ * O soldo de um herói agora, em milésimos de ouro por hora de jogo: o do nível dele, e zero para
+ * o cativo, que não recebe. **Derivado do nível, nunca gravado**: o herói que sobe de nível no
+ * fim de um nó de expedição passa a custar o soldo novo naquele instante, que já é um instante
+ * da linha do tempo.
+ */
+export function heroWageRate(hero: Hero): number {
+  return isCaptive(hero) ? 0 : wagePerHourAt(hero.level) * MILLI;
+}
+
+/** O soldo de toda a equipe, em milésimos de ouro por hora de jogo: a soma do de cada um. */
 export function wageRate(state: GameState): number {
-  return paidHeroes(state) * rules.wagePerHour * MILLI;
+  return state.guild.heroes.reduce((sum, hero) => sum + heroWageRate(hero), 0);
 }
 
 /**

@@ -208,6 +208,11 @@ export const guildTexts = {
   /** Desistir de quem está em cativeiro: o aviso antes da ordem. Não flexiona o herói. */
   dismissCaptive:
     'Desistir de quem está em cativeiro é para sempre: nenhum Resgate parte mais por essa pessoa, e o que ela levava fica no cativeiro. O lugar na lista do feudo fica livre.',
+  /**
+   * O aviso do soldo que cresce com o nível, na ficha: `{heroi}` é o nome e `{soldo}`, o soldo
+   * do próximo nível, por hora real (resposta do autor de 2026-10-07).
+   */
+  wageNextLevel: 'O soldo de {heroi} sobe para {soldo}/h no próximo nível.',
   /** Por que o cativo não pode ser dispensado agora, sem ponto: já há quem o vá buscar. */
   rescueOnTheWay: 'há um Resgate a caminho',
 } as const;

@@ -158,7 +158,7 @@ describe('painel dos heróis (GDD §9.1 e §13.1)', () => {
 
   it('o soldo em horas: quanto a equipe custa e por quanto tempo o ouro ainda a paga', () => {
     const sheet = text(heroes(guildPaidView));
-    expect(sheet).toContain('Soldo da equipe: 18/h de ouro. O ouro paga a equipe por mais 23 h.');
+    expect(sheet).toContain('Soldo da equipe: 21/h de ouro. O ouro paga a equipe por mais 23 h.');
     // O prazo desce com o relógio da página.
     expect(text(heroes(guildPaidView, { elapsed: 2 * 3600 }))).toContain('por mais 21 h.');
     // Sem prazo na visão, o ouro não acaba.
@@ -415,7 +415,7 @@ describe('os heróis fora da aba Guilda (GDD §13.3)', () => {
     expect(text(html(<Header view={initialView} elapsed={0} />))).not.toContain('Heróis');
     const paid = html(<Header view={guildPaidView} elapsed={0} />);
     expect(text(paid)).toContain('Heróis 3');
-    expect(paid).toContain('Soldo da equipe: 18/h de ouro. O ouro paga a equipe por mais 23 h.');
+    expect(paid).toContain('Soldo da equipe: 21/h de ouro. O ouro paga a equipe por mais 23 h.');
     const late = text(html(<Header view={guildArrearsView} elapsed={0} />));
     expect(late).toContain('Heróis 2');
     expect(late).toContain('soldo em atraso');
@@ -428,7 +428,7 @@ describe('os heróis fora da aba Guilda (GDD §13.3)', () => {
     expect(markup).toContain('−6/h (soldo de 1 herói)');
     expect(
       html(<ResourcesTable view={guildPaidView} disabled={false} actions={actions} />),
-    ).toContain('−18/h (soldo de 3 heróis)');
+    ).toContain('−21/h (soldo de 3 heróis)');
   });
 
   it('o Relatório de Retorno diz que a produção do ouro já desconta o soldo, e põe o atraso e quem partiu no preço', () => {

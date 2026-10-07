@@ -1788,8 +1788,22 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     expect(heroStatuses.expedition.label).toBe('Em expedição');
   });
 
-  it('o soldo é de 2 de ouro por hora de jogo por herói, e um herói sozinho começa cabendo no feudo', () => {
-    expect(heroes.wagePerHour).toBe(2);
+  it('o soldo cresce com o nível: 2 de ouro por hora de jogo no nível 1, 20 no nível 10, número a número; e um herói sozinho começa cabendo no feudo', () => {
+    // Resposta do autor de 2026-10-07: "o soldo cresce com o nível do herói".
+    expect(heroes.wagePerHourByLevel).toEqual([2, 3, 4, 6, 8, 10, 12, 15, 18, 20]);
+    expect(heroes.wagePerHourByLevel).toHaveLength(heroes.maxLevel);
+    // A forma recusa a tabela que não sobe, a que não tem um número por nível e o soldo que
+    // não é inteiro positivo.
+    const accepts = (table: number[]) =>
+      BalanceSchema.safeParse({ ...balance, heroes: { ...heroes, wagePerHourByLevel: table } })
+        .success;
+    expect(accepts([2, 3, 4, 6, 8, 10, 12, 15, 18, 20])).toBe(true);
+    expect(accepts([2, 3, 4, 6, 8, 10, 12, 15, 18])).toBe(false);
+    expect(accepts([2, 3, 4, 6, 8, 10, 12, 15, 18, 20, 22])).toBe(false);
+    expect(accepts([2, 3, 3, 6, 8, 10, 12, 15, 18, 20])).toBe(false);
+    expect(accepts([2, 3, 4, 6, 8, 10, 12, 15, 18, 17])).toBe(false);
+    expect(accepts([0, 3, 4, 6, 8, 10, 12, 15, 18, 20])).toBe(false);
+    expect(accepts([2.5, 3, 4, 6, 8, 10, 12, 15, 18, 20])).toBe(false);
     expect(heroes.limitBase).toBe(1);
     expect(heroes.rosterCap).toBe(12);
     expect(heroes.rosterCap).toBeGreaterThanOrEqual(heroes.limitBase);
@@ -1799,8 +1813,10 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     // Um herói com nome é prometido uma vez só (`promiseHero`): cabendo todos na lista dos
     // prometidos, o teto dela nunca tira a recompensa de ninguém.
     expect(Object.keys(namedHeroes).length).toBeLessThanOrEqual(heroes.arrivingCap);
-    // Um mineiro de nível 1 paga dois heróis: o soldo cabe na economia do começo.
-    expect(balance.production.perWorkerPerHour.goldMine).toBe(2 * heroes.wagePerHour);
+    // Um mineiro de nível 1 paga dois heróis de nível 1: o soldo cabe na economia do começo.
+    expect(balance.production.perWorkerPerHour.goldMine).toBe(
+      2 * (heroes.wagePerHourByLevel[0] ?? 0),
+    );
   });
 
   it('os prazos do atraso são tempo real: 12 h, 24 h, um a cada 2 h, e a janela de 2 h', () => {

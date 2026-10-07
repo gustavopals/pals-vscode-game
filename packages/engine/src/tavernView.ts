@@ -4,7 +4,7 @@ import { nextDayBoundary } from './clock';
 import { buildingWithArticle } from './construction';
 import { costView } from './costView';
 import { decimal, durationText, sentenceCase, thousands } from './format';
-import { classLabel, traitLabel } from './heroes';
+import { classLabel, traitLabel, wagePerHourAt } from './heroes';
 import {
   canAffordHire,
   candidateOf,
@@ -25,7 +25,7 @@ import { realSecondsCeil } from './units';
  * nunca sai. Tudo o que é prazo ou taxa sai em tempo real, no ritmo `timeScale`.
  */
 
-const { tavern: rules, heroes } = balance;
+const { tavern: rules } = balance;
 const gold = balance.resources.gold.label.toLowerCase();
 
 /** "110 de ouro", ou "88 de ouro: 110, menos 20% por Mécia, Carismática". */
@@ -57,7 +57,7 @@ function offerView(state: GameState, offer: TavernOffer, timeScale: number): Tav
       })),
       price: hirePrice(state, offer).price,
       priceText: priceText(state, offer),
-      wagePerHour: heroes.wagePerHour * timeScale,
+      wagePerHour: wagePerHourAt(template.level) * timeScale,
       affordable: canAffordHire(state, offer),
       blockedReason: hireBlock(state, offer)?.message ?? null,
     },

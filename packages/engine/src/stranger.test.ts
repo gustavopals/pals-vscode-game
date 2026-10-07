@@ -38,7 +38,7 @@ const INTERVAL = balance.council.drawIntervalDays * DAY;
 /** O começo do 13º dia de jogo: a terceira audiência de uma partida nova. */
 const DAY_13 = 12 * DAY;
 const DAY_REAL = 24 * HOUR;
-const WAGE = balance.heroes.wagePerHour * 1000;
+const WAGE = (balance.heroes.wagePerHourByLevel[0] ?? 0) * 1000;
 
 const of = (events: GameEvent[], ...types: string[]) =>
   events.filter((event) => types.includes(event.type));

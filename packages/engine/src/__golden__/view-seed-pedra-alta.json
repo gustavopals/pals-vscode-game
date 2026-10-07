@@ -16253,7 +16253,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 58,
+        "stock": 131,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -16263,9 +16263,9 @@
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": -4.6,
-        "depletesInSeconds": 83015,
-        "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) = 13,36/h; −18/h (soldo de 3 heróis)"
+        "perHour": -7.6,
+        "depletesInSeconds": 85901,
+        "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) = 13,36/h; −21/h (soldo de 3 heróis)"
       }
     ],
     "workersRules": {
@@ -16396,14 +16396,14 @@
               "resource": "gold",
               "label": "Ouro",
               "amount": 100,
-              "missing": 42
+              "missing": 0
             }
           ],
           "durationSeconds": 200,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 30 madeira, 35 pedra e 42 ouro.",
+          "blockedReason": "Faltam 30 madeira e 35 pedra.",
           "planned": false,
           "effect": null
         },
@@ -16678,7 +16678,7 @@
               "resource": "gold",
               "label": "Ouro",
               "amount": 120,
-              "missing": 62
+              "missing": 0
             }
           ],
           "durationSeconds": 300,
@@ -16711,7 +16711,7 @@
               "resource": "gold",
               "label": "Ouro",
               "amount": 200,
-              "missing": 142
+              "missing": 69
             }
           ],
           "durationSeconds": 400,
@@ -16744,7 +16744,7 @@
               "resource": "gold",
               "label": "Ouro",
               "amount": 150,
-              "missing": 92
+              "missing": 19
             }
           ],
           "durationSeconds": 300,
@@ -16877,7 +16877,7 @@
           "current": 1,
           "target": 2
         },
-        "missing": "Faltam 30 madeira, 35 pedra e 42 ouro.",
+        "missing": "Faltam 30 madeira e 35 pedra.",
         "target": {
           "kind": "building",
           "building": "townHall"
@@ -17038,6 +17038,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
           "discontent": false
         },
         {
@@ -17081,6 +17083,8 @@
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
           "discontent": false
         },
         {
@@ -17127,7 +17131,9 @@
           ],
           "power": 37.8,
           "powerBreakdown": "(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8",
-          "wagePerHour": 6,
+          "wagePerHour": 9,
+          "wageNextLevelPerHour": 12,
+          "wageNextLevelText": "O soldo de Isolda sobe para 12/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -17152,8 +17158,8 @@
       "captiveText": null,
       "rescueTargetName": null,
       "wage": {
-        "perHour": 18,
-        "coveredForSeconds": 83015,
+        "perHour": 21,
+        "coveredForSeconds": 85901,
         "afterArrivals": null,
         "arrears": null,
         "lingering": null
@@ -18140,6 +18146,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
           "discontent": false
         },
         {
@@ -18183,6 +18191,8 @@
           "power": 28.8,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) × 0,8 (descontente) = 28,8",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
           "discontent": true
         }
       ],
@@ -18211,7 +18221,7 @@
         "coveredForSeconds": 0,
         "afterArrivals": null,
         "arrears": {
-          "secondsElapsed": 95582,
+          "secondsElapsed": 94382,
           "text": "Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente na Mina de Ouro ou dispense um herói.",
           "discontentInSeconds": null,
           "nextDepartureInSeconds": 2818
@@ -20128,6 +20138,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -21210,6 +21222,8 @@
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Mécia sobe para 3/h no próximo nível.",
           "discontent": false
         },
         {
@@ -21253,6 +21267,8 @@
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Nuno sobe para 3/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -22429,6 +22445,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
           "discontent": false
         },
         {
@@ -22472,6 +22490,8 @@
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -23703,6 +23723,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
           "discontent": false
         },
         {
@@ -23746,6 +23768,8 @@
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -24933,6 +24957,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 1,
+          "wageNextLevelPerHour": 1.5,
+          "wageNextLevelText": "O soldo de Edda sobe para 1,5/h no próximo nível.",
           "discontent": false
         },
         {
@@ -24976,6 +25002,8 @@
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 1,
+          "wageNextLevelPerHour": 1.5,
+          "wageNextLevelText": "O soldo de Rolf sobe para 1,5/h no próximo nível.",
           "discontent": false
         },
         {
@@ -25019,6 +25047,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 1,
+          "wageNextLevelPerHour": 1.5,
+          "wageNextLevelText": "O soldo de Brann sobe para 1,5/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -25228,7 +25258,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 2016,
+        "stock": 2015,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -25238,9 +25268,9 @@
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 13.5,
+        "perHour": 10.5,
         "depletesInSeconds": null,
-        "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 25,5/h; −12/h (soldo de 2 heróis)"
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 25,5/h; −15/h (soldo de 2 heróis)"
       }
     ],
     "workersRules": {
@@ -26206,7 +26236,9 @@
           ],
           "power": 45.36,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1,08 (Nv2) = 45,36",
-          "wagePerHour": 6,
+          "wagePerHour": 9,
+          "wageNextLevelPerHour": 12,
+          "wageNextLevelText": "O soldo de Edda sobe para 12/h no próximo nível.",
           "discontent": false
         },
         {
@@ -26259,6 +26291,8 @@
           "power": 38.88,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) × 1,08 (arco de freixo) = 38,88",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -26294,7 +26328,7 @@
       "captiveText": null,
       "rescueTargetName": null,
       "wage": {
-        "perHour": 12,
+        "perHour": 15,
         "coveredForSeconds": null,
         "afterArrivals": null,
         "arrears": null,
@@ -27547,6 +27581,8 @@
           "power": 33.6,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) × 1,05 (lança de caça) = 33,6",
           "wagePerHour": 0,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
           "discontent": false
         },
         {
@@ -27599,6 +27635,8 @@
           "power": 26.88,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) × 0,8 (descontente) × 1,05 (gibão acolchoado) = 26,88",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
           "discontent": true
         },
         {
@@ -27642,6 +27680,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
+          "wageNextLevelPerHour": 3,
+          "wageNextLevelText": "O soldo de Brann sobe para 3/h no próximo nível.",
           "discontent": false
         }
       ],
@@ -27856,7 +27896,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 2072,
+        "stock": 1963,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -27866,9 +27906,9 @@
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 2.3,
-        "depletesInSeconds": null,
-        "breakdown": "Mina de Ouro: 2 trabalhadores × 2 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 4,3/h; −2/h (soldo de 2 heróis)"
+        "perHour": -15.7,
+        "depletesInSeconds": 472490,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 2 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 4,3/h; −20/h (soldo de 2 heróis)"
       }
     ],
     "workersRules": {
@@ -28868,7 +28908,9 @@
           ],
           "power": 72.24,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1,72 (Nv10) = 72,24",
-          "wagePerHour": 1,
+          "wagePerHour": 10,
+          "wageNextLevelPerHour": null,
+          "wageNextLevelText": null,
           "discontent": false
         },
         {
@@ -28911,7 +28953,9 @@
           ],
           "power": 61.92,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1,72 (Nv10) = 61,92",
-          "wagePerHour": 1,
+          "wagePerHour": 10,
+          "wageNextLevelPerHour": null,
+          "wageNextLevelText": null,
           "discontent": false
         }
       ],
@@ -28936,8 +28980,8 @@
       "captiveText": null,
       "rescueTargetName": null,
       "wage": {
-        "perHour": 2,
-        "coveredForSeconds": null,
+        "perHour": 20,
+        "coveredForSeconds": 472490,
         "afterArrivals": null,
         "arrears": null,
         "lingering": null
@@ -33165,6 +33209,8 @@
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
           "discontent": false
         },
         {
@@ -33208,6 +33254,8 @@
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
+          "wageNextLevelPerHour": 9,
+          "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
           "discontent": false
         }
       ],

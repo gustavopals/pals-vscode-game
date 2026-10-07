@@ -116,6 +116,8 @@ describe('a guilda na visão', () => {
         power: 42,
         powerBreakdown: '(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42',
         wagePerHour: 2,
+        wageNextLevelPerHour: 3,
+        wageNextLevelText: 'O soldo de Edda sobe para 3/h no próximo nível.',
         discontent: false,
       },
       {
@@ -144,7 +146,10 @@ describe('a guilda na visão', () => {
         ],
         power: 37.8,
         powerBreakdown: '(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8',
-        wagePerHour: 2,
+        // O soldo cresce com o nível (resposta do autor de 2026-10-07): 3 no nível 2.
+        wagePerHour: 3,
+        wageNextLevelPerHour: 4,
+        wageNextLevelText: 'O soldo de Isolda sobe para 4/h no próximo nível.',
         discontent: false,
       },
       {
@@ -171,7 +176,9 @@ describe('a guilda na visão', () => {
         ],
         power: 55.04,
         powerBreakdown: '(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1,72 (Nv10) = 55,04',
-        wagePerHour: 2,
+        wagePerHour: 20,
+        wageNextLevelPerHour: null,
+        wageNextLevelText: null,
         discontent: false,
       },
     ]);
@@ -230,8 +237,9 @@ describe('a guilda na visão', () => {
     const state = guildScenario();
     const fast = guildOf(state);
     const normal = guildOf(state, 1);
-    expect(fast.wage.perHour).toBe(18);
-    expect(normal.wage.perHour).toBe(6);
+    // Edda e Rolf no nível 1 (2 cada) e Isolda no 2 (3): 7 por hora de jogo.
+    expect(fast.wage.perHour).toBe(21);
+    expect(normal.wage.perHour).toBe(7);
     expect(normal.heroes.map((hero) => hero.power)).toEqual(fast.heroes.map((hero) => hero.power));
     expect(fast.wage.coveredForSeconds).not.toBeNull();
     // O mesmo prazo de jogo, em tempo real três vezes mais longo no ritmo 1 (a menos do segundo).
@@ -333,13 +341,13 @@ describe('o soldo em atraso na visão', () => {
     expect(heroes[1]?.powerBreakdown).toBe(
       '(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) × 0,8 (descontente) = 28,8',
     );
-    // Aberto às 6 h 40 e parado às 33 h 13: 26 h 33 de atraso. Rolf já está Descontente, e o
+    // Aberto às 7 h e parado às 33 h 13: 26 h 13 de atraso. Rolf já está Descontente, e o
     // segundo herói é devido com 26 h: parte na virada das 34 h, em 47 minutos.
     expect(wage).toMatchObject({
       perHour: 4,
       coveredForSeconds: 0,
       arrears: {
-        secondsElapsed: 26 * 3600 + 33 * 60 + 2,
+        secondsElapsed: 26 * 3600 + 13 * 60 + 2,
         discontentInSeconds: null,
         nextDepartureInSeconds: 46 * 60 + 58,
       },
@@ -371,8 +379,8 @@ describe('o soldo em atraso na visão', () => {
   it('o atraso que reabriu traz na duração o que já tinha durado, e o que fechou some da tela', () => {
     const resumed = wageArrearsPaid(3_000, 46 * MINUTE);
     const elapsed = guildOf(resumed).wage.arrears?.secondsElapsed ?? 0;
-    // 26 h 33 de antes e mais um minuto desde que reabriu; os 45 minutos pagos não contam.
-    expect(elapsed).toBe(26 * 3600 + 33 * 60 + 2 + 60);
+    // 26 h 13 de antes e mais um minuto desde que reabriu; os 45 minutos pagos não contam.
+    expect(elapsed).toBe(26 * 3600 + 13 * 60 + 2 + 60);
     const ended = wageArrearsPaid(3_000, 18 * MINUTE);
     expect(guildOf(ended).wage).toMatchObject({ perHour: 4, arrears: null });
     expect(guildOf(ended).wage.coveredForSeconds).toBe(27 * 60);

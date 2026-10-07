@@ -719,7 +719,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(guild.settlement.resources.gold).toBeGreaterThan(0);
     expect(guild.settlement.accumulators.gold).not.toBe(0);
     const arrears = of('wage-arrears').guild;
-    const openedAt = 6 * HOUR + 40 * MINUTE;
+    const openedAt = 7 * HOUR;
     expect(arrears.wageArrears).toEqual({ sinceMs: openedAt, carriedMs: 0, departed: 1 });
     expect(arrears.lastWageArrears).toBeNull();
     expect(arrears.heroes.map((hero) => [hero.name, hero.discontent])).toEqual([

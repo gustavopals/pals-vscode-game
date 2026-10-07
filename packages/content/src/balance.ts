@@ -327,8 +327,11 @@ export type TavernDef = {
 };
 
 export type HeroesDef = {
-  /** Ouro por hora de jogo, por herói que recebe. */
-  readonly wagePerHour: number;
+  /**
+   * O soldo de um herói, em ouro por hora de jogo, pelo nível dele: uma entrada por nível, do 1
+   * a `maxLevel`, sempre crescente (resposta do autor de 2026-10-07: o soldo cresce com o nível).
+   */
+  readonly wagePerHourByLevel: readonly number[];
   /** Quantos heróis o feudo contrata antes de ter a Taverna. */
   readonly limitBase: number;
   /**
@@ -866,13 +869,15 @@ export const balance: Balance = {
     moraleLossDays: 2,
     moraleLabel: 'Incursão sofrida',
   },
-  // GDD §9.1 (ADR 0017, decisões 3, 5 e 7). O soldo é de 2 de ouro por hora de jogo por herói.
+  // GDD §9.1 (ADR 0017, decisões 3, 5 e 7). O soldo é por hora de jogo e cresce com o nível do
+  // herói (resposta do autor de 2026-10-07): 2 no nível 1, como sempre foi, e dez vezes isso no
+  // nível 10. A tabela é escrita número a número, e o teste do motor a confere.
   // Os prazos do atraso contam tempo real, em qualquer ritmo: 12 h para o Descontente, 24 h
   // para o primeiro herói partir, depois um a cada 2 h; e o atraso que reabre menos de 2 h
   // depois de fechar é o mesmo. O poder é ataque + defesa + vida ÷ 10. A tabela de experiência
   // é 100 × n^1,5, arredondado para baixo: o teste de conteúdo confere número a número.
   heroes: {
-    wagePerHour: 2,
+    wagePerHourByLevel: [2, 3, 4, 6, 8, 10, 12, 15, 18, 20],
     limitBase: 1,
     rosterCap: 12,
     arrivingCap: 4,

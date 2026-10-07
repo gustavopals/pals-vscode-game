@@ -31,6 +31,7 @@ import {
   heroFactors,
   heroLimit,
   heroPower,
+  heroWageRate,
   isAtHome,
   isBeyondArrears,
   isCaptive,
@@ -40,6 +41,8 @@ import {
   rosterHasRoom,
   servingSinceMs,
   traitLabel,
+  wageAtNextLevel,
+  wagePerHourAt,
   wageRate,
 } from './heroes';
 import type {
@@ -145,6 +148,7 @@ function statusText(state: GameState, hero: Hero, timeScale: number): string {
 
 function heroView(state: GameState, hero: Hero, timeScale: number, target: Hero | null): HeroView {
   const dismissal = dismissBlock(state, hero);
+  const nextWage = wageAtNextLevel(hero.level);
   return {
     id: hero.id,
     name: hero.name,
@@ -189,7 +193,15 @@ function heroView(state: GameState, hero: Hero, timeScale: number, target: Hero 
     power: heroPower(hero) / MILLI,
     powerBreakdown: powerBreakdown(hero),
     // O cativo não recebe soldo (ADR 0017, decisão 3).
-    wagePerHour: isCaptive(hero) ? 0 : rules.wagePerHour * timeScale,
+    wagePerHour: (heroWageRate(hero) * timeScale) / MILLI,
+    wageNextLevelPerHour: nextWage === null ? null : nextWage * timeScale,
+    wageNextLevelText:
+      nextWage === null
+        ? null
+        : fillText(guildTexts.wageNextLevel, {
+            heroi: hero.name,
+            soldo: decimal(nextWage * timeScale),
+          }),
     discontent: hero.discontent,
   };
 }
@@ -307,8 +319,11 @@ function afterArrivals(
   if (coming.length === 0) {
     return null;
   }
-  const wage = rules.wagePerHour * MILLI;
-  const perHour = ((wageRate(state) + coming.length * wage) * timeScale) / MILLI;
+  // O soldo de cada um que vem é o do nível com que ele chega.
+  const wageOf = (entry: (typeof coming)[number]): number =>
+    wagePerHourAt(namedHeroOf(entry.namedHeroId)?.level ?? 1) * MILLI;
+  const perHour =
+    ((wageRate(state) + coming.reduce((sum, entry) => sum + wageOf(entry), 0)) * timeScale) / MILLI;
   if (state.guild.wageArrears !== null) {
     return { perHour, coveredForSeconds: 0 };
   }
@@ -326,7 +341,7 @@ function afterArrivals(
       break;
     }
     balance = Math.min(Math.max(balance, cap), balance + rate * (entry.atMs - at));
-    rate -= wage;
+    rate -= wageOf(entry);
     at = entry.atMs;
   }
   const out = runsOutAt();

@@ -1506,7 +1506,8 @@ describe('ViewStateSchema', () => {
       ['Isolda', 'Maga', 10],
     ]);
     expect(paid.guild.heroes[2]?.xpToNext).toBeNull();
-    expect(paid.guild.wage).toMatchObject({ perHour: 6, arrears: null });
+    // O soldo cresce com o nível (resposta do autor de 2026-10-07): 2 + 3 + 20.
+    expect(paid.guild.wage).toMatchObject({ perHour: 25, arrears: null });
     expect(typeof paid.guild.wage.coveredForSeconds).toBe('number');
 
     // Em toda hora de jogo de dois dias reais a visão passa pelo contrato: o soldo em dia, o
@@ -2072,6 +2073,8 @@ describe('ViewStateSchema', () => {
       power: 42,
       powerBreakdown: '42',
       wagePerHour: 2,
+      wageNextLevelPerHour: 3,
+      wageNextLevelText: 'O soldo de Edda sobe para 3/h no próximo nível.',
       discontent: false,
     };
     const item = {

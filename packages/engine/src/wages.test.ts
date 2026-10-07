@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { goldCoversWages, goldRunsOutIn, netRates } from './economy';
+import { heroWageRate, wagePerHourAt, wageRate } from './heroes';
 import {
   accept,
   addHero,
@@ -852,7 +853,7 @@ describe('ler não gasta nada', () => {
   });
 
   it('os números do conteúdo são os que o motor usa', () => {
-    expect(balance.heroes.wagePerHour).toBe(2);
+    expect(balance.heroes.wagePerHourByLevel[0]).toBe(2);
     expect(balance.heroes.arrears.leaveEveryRealMs).toBe(2 * HOUR);
   });
 });
@@ -1158,4 +1159,89 @@ describe('as regras da revisão e a divisão de intervalo', () => {
     ).toHaveLength(3);
     splitsExactly(draft, endMs);
   });
+});
+
+describe('o soldo cresce com o nível do herói (resposta do autor de 2026-10-07: "ouro com destino")', () => {
+  const TABLE = [2, 3, 4, 6, 8, 10, 12, 15, 18, 20];
+
+  it('a tabela do conteúdo, número a número: 2 no nível 1 e dez vezes isso no nível 10', () => {
+    expect(balance.heroes.wagePerHourByLevel).toEqual(TABLE);
+    expect(TABLE).toHaveLength(balance.heroes.maxLevel);
+    expect(TABLE.map((_, index) => wagePerHourAt(index + 1))).toEqual(TABLE);
+  });
+
+  it('o soldo da equipe é a soma do de cada um, pelo nível: o cativo não recebe', () => {
+    const state = court(1, (draft) => {
+      addHero(draft);
+      addHero(draft, { level: 2 });
+      addHero(draft, { level: 10 });
+      addHero(draft, { level: 7 }).status = 'captured';
+    });
+    expect(state.guild.heroes.map(heroWageRate)).toEqual([2_000, 3_000, 20_000, 0]);
+    expect(wageRate(state)).toBe(25_000);
+    expect(netRates(state).gold).toBe(-25_000);
+  });
+
+  it('sai do ouro exato em milésimos, e o prazo do ouro encolhe com o nível: 60 de ouro pagam 30 h a um herói de nível 1 e 3 h a um de nível 10', () => {
+    for (const [level, hours] of [
+      [1, 30],
+      [4, 10],
+      [10, 3],
+    ] as const) {
+      const start = court(1, (draft) => {
+        draft.settlement.resources.gold = 60_000;
+        addHero(draft, { level });
+      });
+      expect(goldRunsOutIn(start)).toBe(hours * HOUR);
+      expect(deriveViewState(start, 0).guild.wage.coveredForSeconds).toBe(hours * 3600);
+      // Uma hora de jogo depois saiu exatamente o soldo do nível.
+      const later = advanceTo(start, HOUR).state;
+      expect(later.settlement.resources.gold).toBe(60_000 - TABLE[level - 1]! * 1000);
+      // E o atraso abre no instante dito.
+      const opened = advanceTo(start, hours * HOUR);
+      expect(guildEvents(opened.events).map((event) => [event.type, event.atMs])).toEqual([
+        ['wageArrearsStarted', hours * HOUR],
+      ]);
+    }
+  });
+
+  it.each(PACES)(
+    'ritmo %s: a ficha diz o soldo de cada um e o do próximo nível, a equipe soma os dois e a linha do ouro continua dizendo de quantos heróis',
+    (timeScale) => {
+      const state = court(timeScale, (draft) => {
+        draft.settlement.resources.gold = 500_000;
+        addHero(draft, { name: 'Edda', gender: 'f' });
+        addHero(draft, { name: 'Rolf', level: 5 });
+        addHero(draft, { name: 'Brann', level: 10 });
+      });
+      const view = deriveViewState(state, 0, { timeScale });
+      const wage = (perHour: number) => perHour * timeScale;
+      expect(
+        view.guild.heroes.map((hero) => [
+          hero.wagePerHour,
+          hero.wageNextLevelPerHour,
+          hero.wageNextLevelText,
+        ]),
+      ).toEqual([
+        [
+          wage(2),
+          wage(3),
+          `O soldo de Edda sobe para ${String(wage(3)).replace('.', ',')}/h no próximo nível.`,
+        ],
+        [
+          wage(8),
+          wage(10),
+          `O soldo de Rolf sobe para ${String(wage(10)).replace('.', ',')}/h no próximo nível.`,
+        ],
+        // No nível máximo não há para onde subir.
+        [wage(20), null, null],
+      ]);
+      expect(view.guild.wage.perHour).toBe(wage(30));
+      const goldRow = view.resources.find((row) => row.id === 'gold');
+      expect(goldRow?.perHour).toBe(-wage(30));
+      expect(goldRow?.breakdown).toContain(
+        `−${String(wage(30)).replace('.', ',')}/h (soldo de 3 heróis)`,
+      );
+    },
+  );
 });

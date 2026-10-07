@@ -1456,8 +1456,15 @@ export type HeroView = {
   power: number;
   /** "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1,08 (Nv2) × 0,8 (descontente) = 36,288". */
   powerBreakdown: string;
-  /** O soldo dele, em ouro por hora real. */
+  /** O soldo dele, em ouro por hora real: o do nível dele; zero para quem está em cativeiro. */
   wagePerHour: number;
+  /**
+   * O soldo que ele passa a cobrar no próximo nível, em ouro por hora real; `null` no nível
+   * máximo. O soldo muda no instante em que ele sobe de nível.
+   */
+  wageNextLevelPerHour: number | null;
+  /** "O soldo de Edda sobe para 9/h no próximo nível."; `null` no nível máximo. */
+  wageNextLevelText: string | null;
   /** Descontente com o soldo em atraso: os atributos valem menos enquanto o atraso durar. */
   discontent: boolean;
 };
@@ -1757,7 +1764,7 @@ export type TavernOfferView = {
   price: number;
   /** "110 de ouro", ou "88 de ouro: 110, menos 20% por Mécia, Carismática". */
   priceText: string;
-  /** O soldo dele depois de contratado, em ouro por hora real. */
+  /** O soldo dele depois de contratado, em ouro por hora real: o do nível com que chega. */
   wagePerHour: number;
   /** O ouro do cofre paga o preço. */
   affordable: boolean;

@@ -193,12 +193,12 @@ export function heroesStart(
 }
 
 /**
- * A guilda com o soldo quase coberto, no ritmo Rápido: os três heróis de `heroesStart`, 60 de
+ * A guilda com o soldo quase coberto, no ritmo Rápido: os três heróis de `heroesStart`, 143 de
  * ouro no cofre e um mineiro, que paga dois deles. O ouro cai devagar e tem prazo. Parado no
  * 6º dia de jogo, no meio de um trecho.
  */
 export function guildScenario(): GameState {
-  return play(heroesStart('fixture-guild-view', 60_000, { timeScale: 3 }), [
+  return play(heroesStart('fixture-guild-view', 143_000, { timeScale: 3 }), [
     command('setWorkers', { building: 'farm', count: 3 }),
     command('setWorkers', { building: 'goldMine', count: 1 }),
     { at: 5 * DAY + 7 * MINUTE + 1_234 },
@@ -206,13 +206,14 @@ export function guildScenario(): GameState {
 }
 
 /**
- * O soldo em atraso há mais de um dia real, no ritmo Normal: os 20 de ouro do cofre e os 20 do
- * primeiro objetivo pagam os três heróis por 6 h 40 de jogo; às 20 h Rolf e Isolda ficam
+ * O soldo em atraso há mais de um dia real, no ritmo Normal: os 29 de ouro do cofre e os 20 do
+ * primeiro objetivo pagam os três heróis (2 + 2 + 3 por hora de jogo: Isolda está no nível 2 e
+ * o soldo cresce com o nível) por 7 h de jogo; às 20 h Rolf e Isolda ficam
  * Descontentes, e às 32 h Isolda, a de identificador mais alto entre os que não são Leais (os
  * três chegaram juntos), parte. O feudo fica parado às 33 h 13 de jogo.
  */
 export function wageArrearsScenario(): GameState {
-  return play(heroesStart('fixture-wage-arrears', 20_000), [
+  return play(heroesStart('fixture-wage-arrears', 29_000), [
     command('setWorkers', { building: 'farm', count: 3 }),
     { at: 33 * HOUR + 13 * MINUTE + 2_345 },
   ]).state;

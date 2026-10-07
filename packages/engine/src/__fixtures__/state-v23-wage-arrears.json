@@ -192,7 +192,7 @@
   "arriving": [],
   "inventory": [],
   "wageArrears": {
-   "sinceMs": 24000000,
+   "sinceMs": 25200000,
    "carriedMs": 0,
    "departed": 1
   },

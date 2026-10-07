@@ -4129,7 +4129,10 @@ describe('versão 16 → 17', () => {
       expect(view.pendingDecisions.every((entry) => entry.kind === 'card')).toBe(true);
       // O soldo de ninguém muda com o passo.
       expect(view.guild.wage.perHour).toBe(
-        state.guild.heroes.length * balance.heroes.wagePerHour * state.settings.timeScale,
+        state.guild.heroes.reduce(
+          (sum, hero) => sum + (balance.heroes.wagePerHourByLevel[hero.level - 1] ?? 0),
+          0,
+        ) * state.settings.timeScale,
       );
       // Um mês real depois, sem ninguém mandar erguê-la: nenhuma expedição, nenhum
       // identificador e nenhum fluxo de expedição.
@@ -4628,7 +4631,10 @@ describe('versão 17 → 18', () => {
       expect(view.threat.clearedText).toBeNull();
       // O soldo de ninguém muda com o passo.
       expect(view.guild.wage.perHour).toBe(
-        state.guild.heroes.length * balance.heroes.wagePerHour * state.settings.timeScale,
+        state.guild.heroes.reduce(
+          (sum, hero) => sum + (balance.heroes.wagePerHourByLevel[hero.level - 1] ?? 0),
+          0,
+        ) * state.settings.timeScale,
       );
     },
   );

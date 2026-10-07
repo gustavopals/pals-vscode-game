@@ -276,13 +276,20 @@ const pace = z.strictObject({
 });
 
 /**
- * Heróis e soldo (GDD §9.1; ADR 0017). O Descontente nunca rende mais; a tabela de experiência
+ * Heróis e soldo (GDD §9.1; ADR 0017). O soldo tem um número por nível e sobe sempre; o
+ * Descontente nunca rende mais; a tabela de experiência
  * sobe sempre e tem uma entrada por nível que ainda tem para onde subir; o poder conta ao menos
  * um atributo; e o teto da lista nunca fica abaixo do que o feudo contrata sem Taverna.
  */
 const heroes = z
   .strictObject({
-    wagePerHour: positiveInt,
+    wagePerHourByLevel: z
+      .array(positiveInt)
+      .min(1)
+      .refine(
+        (table) => table.every((wage, index) => index === 0 || wage > (table[index - 1] ?? 0)),
+        'tabela de soldo que não sobe com o nível',
+      ),
     limitBase: positiveInt,
     rosterCap: positiveInt,
     arrivingCap: positiveInt,
@@ -314,6 +321,10 @@ const heroes = z
   .refine(
     ({ maxLevel, xpToNext }) => xpToNext.length === maxLevel - 1,
     'a tabela de experiência tem uma entrada por nível abaixo do máximo',
+  )
+  .refine(
+    ({ maxLevel, wagePerHourByLevel }) => wagePerHourByLevel.length === maxLevel,
+    'a tabela de soldo tem uma entrada por nível',
   )
   .refine(({ limitBase, rosterCap }) => rosterCap >= limitBase, 'teto abaixo do limite inicial');
 

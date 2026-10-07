@@ -32,13 +32,13 @@
    "food": 481571,
    "wood": 120000,
    "stone": 65000,
-   "gold": 287551
+   "gold": 277434
   },
   "accumulators": {
    "food": 1033912,
    "wood": 0,
    "stone": 0,
-   "gold": 2863536
+   "gold": 2829536
   },
   "population": {
    "villagers": 5

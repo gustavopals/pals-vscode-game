@@ -157,8 +157,9 @@ describe('o pacote do app', () => {
   it('não leva nenhum número de regra da Guilda nem da Taverna (v0.3)', () => {
     const { heroes, tavern } = content.balance;
     const markers = [
-      // `wagePerHour` é também um campo da visão: o que não pode chegar é o número do conteúdo.
-      `wagePerHour:${heroes.wagePerHour},`,
+      // `wagePerHour` é um campo da visão; o que não pode chegar é a tabela do conteúdo.
+      'wagePerHourByLevel:',
+      `[${heroes.wagePerHourByLevel.join(',')}]`,
       'limitBase:',
       'rosterCap:',
       'arrivingCap:',

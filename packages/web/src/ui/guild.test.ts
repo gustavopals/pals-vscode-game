@@ -151,7 +151,7 @@ describe('as frases da Guilda', () => {
     expect(guildLines(initialView.guild, 0)).toEqual([initialView.guild.text]);
     expect(guildLines(guildPaidView.guild, 0)).toEqual([
       guildPaidView.guild.text,
-      'Soldo da equipe: 18/h de ouro.',
+      'Soldo da equipe: 21/h de ouro.',
       'O ouro paga a equipe por mais 23 h.',
     ]);
     const late = guildLines(guildArrearsView.guild, 0);
@@ -181,7 +181,7 @@ describe('a Guilda na árvore (GDD §13.2)', () => {
     expect(node.children?.map((child) => [child.id, child.label, child.description])).toEqual([
       ['hero:hero-1', 'Edda', 'Guerreira Nv1 · 6/h'],
       ['hero:hero-2', 'Rolf', 'Arqueiro Nv1 · 6/h'],
-      ['hero:hero-3', 'Isolda', 'Maga Nv2 · 6/h'],
+      ['hero:hero-3', 'Isolda', 'Maga Nv2 · 9/h'],
     ]);
     const edda = find(tree(guildPaidView), 'hero:hero-1');
     // O clique só navega; a ordem sai do botão da linha.

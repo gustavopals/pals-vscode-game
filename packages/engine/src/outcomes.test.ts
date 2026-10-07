@@ -13,6 +13,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { netRates, stockBalance } from './economy';
 import { heroLimit, heroPower, lodgedHeroes, paidHeroes, wageRate } from './heroes';
 import { currentShape } from './migrations';
 import {
@@ -350,7 +351,11 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     // Três servem ao feudo, dois recebem: o cativo não.
     expect(after.state.guild.heroes).toHaveLength(3);
     expect(paidHeroes(after.state)).toBe(2);
-    expect(wageRate(after.state)).toBe(2 * heroRules.wagePerHour * MILLI);
+    expect(wageRate(after.state)).toBe(
+      after.state.guild.heroes
+        .filter((hero) => hero.status !== 'captured')
+        .reduce((sum, hero) => sum + heroRules.wagePerHourByLevel[hero.level - 1]! * MILLI, 0),
+    );
     // Sem Taverna o limite é 1, e o cativo não ocupa lugar nele (D-17, resposta de 2026-10-06).
     expect(heroLimit(after.state)).toBe(1);
     expect(lodgedHeroes(after.state)).toBe(2);
@@ -644,6 +649,55 @@ describe('experiência e nível (GDD §9.1; ADR 0017, decisão 7)', () => {
     expect(heroPower(heroOf(after.state, 'hero-1'))).toBe(58_800);
   });
 
+  it('o soldo muda no instante exato em que o herói sobe de nível, e cortar o avanço em volta dele dá o mesmo estado (resposta de 2026-10-07)', () => {
+    const start = hall(1, {}, (draft) => {
+      draft.settlement.resources.gold = 400_000;
+    });
+    Object.assign(heroOf(start, 'hero-1'), { level: 5, xp: 1_117 });
+    const sent = send(start, 'patrol', ['hero-1'], 'bold', 0);
+    const at = sent.expedition.nodeEndsAtMs ?? 0;
+    const table = heroRules.wagePerHourByLevel;
+    // Edda no nível 5, Rolf e Brann no 1.
+    const before = (table[4]! + 2 * table[0]!) * MILLI;
+    const after = (table[5]! + 2 * table[0]!) * MILLI;
+    expect(wageRate(sent.state)).toBe(before);
+    const justBefore = advanceTo(sent.state, at - 1).state;
+    expect(wageRate(justBefore)).toBe(before);
+    const there = advanceTo(sent.state, at);
+    expect(heroOf(there.state, 'hero-1').level).toBe(6);
+    expect(wageRate(there.state)).toBe(after);
+    // O instante do nível novo é fim de nó: já era corte de trecho da linha do tempo.
+    expect(nextEventAt(justBefore)).toBe(at);
+    // Até ele sai o soldo velho; dele em diante, o novo (um minuto adiante: a equipe ainda
+    // não voltou com o saque).
+    const mine = netRates(sent.state).gold + before;
+    const goldAt = (state: GameState) => stockBalance(state, 'gold');
+    const half = at / 2;
+    const early = advanceTo(sent.state, at - half).state;
+    const late = advanceTo(sent.state, at + MINUTE).state;
+    expect(goldAt(there.state) - goldAt(early)).toBe((mine - before) * half);
+    expect(goldAt(late) - goldAt(there.state)).toBe((mine - after) * MINUTE);
+    // A divisão de intervalo: de uma vez, e aos pedaços em volta do instante.
+    const whole = advanceTo(sent.state, at + 2 * HOUR);
+    let state = sent.state;
+    const events: GameEvent[] = [];
+    for (const cut of [at - half, at - 1, at, at + 1, at + half, at + 2 * HOUR]) {
+      const step = advanceTo(JSON.parse(JSON.stringify(state)) as GameState, cut);
+      state = step.state;
+      events.push(...step.events);
+    }
+    expect(state).toEqual(whole.state);
+    expect(events).toEqual(whole.events);
+    // E a tela já mostra o soldo novo e o prazo do ouro refeito.
+    const view = deriveViewState(there.state, at).guild;
+    expect(view.heroes[0]).toMatchObject({
+      level: 6,
+      wagePerHour: table[5],
+      wageNextLevelPerHour: table[6],
+    });
+    expect(view.wage.perHour).toBe(after / MILLI);
+  });
+
   it('o nível 10 não passa: quem chega a ele zera a experiência, e quem já está nele não junta mais', () => {
     const rising = patrol((hero) => Object.assign(hero, { level: 9, xp: 2_699 }));
     expect(heroOf(rising.after.state, 'hero-1')).toMatchObject({ level: 10, xp: 0 });
@@ -873,7 +927,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     );
     expect(sold?.data).toMatchObject({ defId: 'veltharBlade', gained_gold: 120 });
     // 120 de ouro a mais, fora o soldo de três heróis por dez minutos (1 de ouro).
-    const paid = (3 * heroRules.wagePerHour * MILLI * 10) / 60;
+    const paid = (3 * heroRules.wagePerHourByLevel[0]! * MILLI * 10) / 60;
     expect(home.state.settlement.resources.gold).toBe(goldBefore + 120 * MILLI - paid);
     expect(home.state.guild.reports[0]?.sold).toEqual(['veltharBlade']);
     const view = deriveViewState(home.state, placed.endsAt).guild;

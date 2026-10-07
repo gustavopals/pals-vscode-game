@@ -9,6 +9,7 @@ Com a Fase E implementada e a revisão independente feita, o autor respondeu a q
 | Item | Pergunta | Resposta |
 |---|---|---|
 | **D1 da revisão da Fase E**, a arbitragem balcão → caravana | A caravana pagava 1,19 do preço de compra: comprar no balcão e enviar no mesmo instante dava lucro certo. O que fazer? | **"Caravana paga +15% sobre o balcão."** MUDA REGRA: `market.caravan.priceRatio` de 7/5 para 23/20 (0,9775 do preço de compra). Provado por propriedade no motor e por um teste de conteúdo que recusa o número que reabrir a manobra. A especulação sazonal da comida (verão → outono) continua, com 0,27 de ouro por unidade na base |
+| **C-23**, o ouro com destino | O ouro parado não caiu com as Fases C, D e E. O que dá destino a ele? | **"Soldo cresce com o nível do herói."** MUDA REGRA: `balance.heroes.wagePerHourByLevel` = **2, 3, 4, 6, 8, 10, 12, 15, 18, 20** (ouro por hora de jogo, do nível 1 ao 10), no lugar de `wagePerHour: 2`. **A tabela foi proposta pelo agente** (o autor deu as pontas: 2 no nível 1 e cerca de dez vezes no 10) e fica para ele rever. Sem versão nova do estado. A visão ganhou `guild.heroes[].wageNextLevelPerHour` e `wageNextLevelText`; o candidato da Taverna mostra o soldo do nível dele |
 
 ## 0. Respostas do autor em 2026-10-06
 

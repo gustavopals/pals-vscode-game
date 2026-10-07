@@ -432,6 +432,8 @@ const HeroSchema = z.strictObject({
   power: z.number(),
   powerBreakdown: z.string(),
   wagePerHour: z.number(),
+  wageNextLevelPerHour: z.number().nullable(),
+  wageNextLevelText: z.string().nullable(),
   discontent: z.boolean(),
 });
 
