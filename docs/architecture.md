@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 20) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 21) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -347,7 +347,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 | Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| Mecânicas de versões futuras (ferimento, captura e equipamento, Mercado, caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), e o motor das expedições, desde a V3D-T1 (seção 15) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
+| Mecânicas de versões futuras (caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), o motor das expedições, desde a V3D-T1 (seção 15), os desfechos e o equipamento, desde a V3D-T2 (seção 16), e o Mercado, sem tela, desde a V3E-T1 (seção 20) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
 
 ## 13. Limites conhecidos
 
@@ -506,3 +506,27 @@ O que existe ao fim da Fase D, por cima das seções 14 a 18, e o que ela deixa 
 **Tamanhos** ([balance-v0.3.md](balance-v0.3.md), seção 10.6): com seis heróis, três expedições em curso e três relatórios guardados, o estado fica em 6,1 a 6,7 kB e a visão em 26,6 a 28,8 kB; cada recibo de comando guarda uma visão inteira.
 
 **Limites conhecidos da fase:** com uma visita por dia o jogador não decide encruzilhada nenhuma, e com duas visitas a 12 h exatas decide todas (nada se mediu com visitas irregulares); quase ninguém é capturado no simulador (nenhum cativo nas 150 partidas do bot que arrisca, em Senhor, na rodada de agora; um na anterior); **o ouro parado não caiu** (a decisão é depois da Fase E); os 18 grafos, os rótulos de risco e as frases do relatório são rascunho que o autor não leu; **ninguém além dos testes e dos bots usou a tela das expedições** (o roteiro de 15 minutos está em [pendencias-v0.3.md](pendencias-v0.3.md), seção 8); a migração 12 → 20 só foi provada pelos retratos congelados e pelos testes de integração, nunca em uma partida de produção.
+
+## 20. O Mercado (V3E-T1, 2026-10-06)
+
+O que a primeira tarefa da Fase E construiu por cima da seção 19: **o Mercado no motor, no protocolo, no servidor e no simulador, sem a interface** (V3E-T4), sem caravanas (V3E-T2) e sem efeito de carta sobre o preço (V3F-T1). Está no `main` **local**, com o estado na **versão 21** e o protocolo 3 (a visão cresceu por adição), e não está em produção; o `main` local passou do ponto que a nota de publicação da Fase D descreve ([deploy/README.md](../deploy/README.md); pendência E-0). O detalhe está no [README do motor](../packages/engine/README.md), "Mercado"; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), "Fase E".
+
+**Estado** (versão 21; o passo `v20ToV21` não cria prazo, evento, identificador nem sorteio): `settlement.buildings.market` (até o nível 5) e `market: { prices, previousPrices, quoteDay, tradedToday }`, com os preços em milésimos de ouro por unidade. Na migração os preços entram na base, e **só andam depois que o Mercado existe**. O fluxo fixo `market` nasce no primeiro passeio. A guarda exige que, sem o edifício, nada tenha andado, e que o fluxo exista se, e só se, há dia de cotação.
+
+| Peça | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `balance.market`, `buildings.market`, `marketTemplates`, `MARKET_RESOURCE_IDS` | Os preços-base (1,0, 1,2 e 2,0), a venda a 17/20, 200 por nível, o passo de ±5% com volta de um décimo, o piso e o teto, a comida × 13/10 no outono e no inverno e as marcas da Crônica (4/5 e 5/4). O schema exige a venda abaixo da compra e que piso, teto e marcas deem milésimos inteiros |
+| Contas | `market.ts` | Não sorteiam: o preço negociado (`quoteOf`: a compra arredonda para cima e a venda para baixo, **por unidade**), o volume do dia, o que ainda cabe, a maior compra e a maior venda, as recusas |
+| Linha do tempo | `marketTurn.ts` (`turnMarket`), dentro de `processCalendar` | Na virada de cada dia de jogo, **só com o Mercado de pé**: um sorteio por recurso no fluxo `market`, o preço novo em uma conta com um arredondamento, o volume zerado e o dia da cotação. **Depois da moral e do soldo em atraso, antes do sorteio do Conselho.** Não acrescenta instante a `nextEventAt`: a virada do dia já era um |
+| Ordem | `marketOrders.ts` (`trade`) | Compra ou venda de unidades inteiras, com o dia da cotação da tela. **Não sorteia.** A ordem custa ou paga `unidades × preço da unidade`. Recusas, na ordem: `MARKET_REQUIRED`, `INVALID_AMOUNT`, `PRICE_CHANGED`, `DAILY_VOLUME_EXCEEDED`, `INSUFFICIENT_RESOURCES`, `STORAGE_FULL` (a compra que não cabe é recusada inteira) |
+| Crônica | `marketTraded`, `marketPriceSwing` | A negociação, com as quantidades exatas e os totais `spent_`/`gained_`. O preço só é notícia quando entra em uma das zonas das marcas, sem contar a estação; a mudança de todo dia não gera linha |
+| Visão | `marketView.ts` | `market`, sempre presente: `building`, `level`, `text`, `quoteDay`, `nextChangeInSeconds`, `dailyVolume` e, com o Mercado, um preço por recurso (`buy` e `sell` em milésimos de ouro, os textos, `trend`, `breakdown`, `tradedToday`, `remainingToday`, `maxBuyable`, `maxSellable` e o motivo de não caber nada). **Névoa:** nunca o preço de amanhã, o de ontem, o fluxo nem os números do conteúdo |
+| Protocolo e servidor | `packages/protocol` (`TradeCommandSchema`, `MarketSchema`); sem rota nova | A ordem passa pelo caminho de todo comando (seção 11): o duplo envio negocia uma vez, o reenvio depois da virada devolve o recibo original, e a ordem nova com a cotação de ontem recebe `422 GAME_RULE` com `PRICE_CHANGED` e a visão de hoje em `details` (`packages/server/test/market.test.ts`) |
+| App | nenhuma tela | O Mercado aparece na lista de obras, com custo e efeito, como todo edifício; **não há onde negociar** até a V3E-T4. O Relatório de Retorno ainda não trata `marketTraded` |
+| Simulador | `bots/policies.ts` (`vender o excedente`, `erguer o Mercado`, `comprar lenha`) | O `economico` e o `explorador` as têm; o `preguicoso`, não. O Mercado fica fora da corrida das obras, como a Guilda. Colunas `traded_<recurso>` e `market_volume_used_percent` medidas; as 54 faixas dos perfis que negociam, remedidas ([balance-v0.3.md](balance-v0.3.md), seção 11) |
+
+**Nenhuma sequência de compra e venda no mesmo dia dá lucro** (critério 4 do GDD §16.2, ao lado do volume diário): provado por propriedade em `market.property.test.ts`, com o valor do feudo medido pelo preço de compra e pelo de venda do dia. Comprar no fim do verão e vender no outono dá lucro, e é intencional.
+
+**O que ainda não existe, e é erro antecipar:** caravanas e escolta (V3E-T2), Mestres (V3E-T3), a tela (V3E-T4), `market.effects` e as cartas que mexem no preço (V3F-T1), o objetivo de vender o excedente (V3F-T2), ferro (v0.4).
+
+**Limites conhecidos:** o volume diário alcança um dia de jogo por visita, e os bots usam de 0% a 3% dele (E-1); as marcas da Crônica quase nunca são cruzadas (E-2); o ouro parado ficou onde estava (E-4); nenhum bot comprou nada na matriz; ninguém jogou o Mercado, e as frases são rascunho.

@@ -168,6 +168,62 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase E: o Mercado (V3E-T1)
+
+Vêm da tarefa V3E-T1 (o Mercado: preço, compra, venda e volume diário), aplicada em 2026-10-06 ao conteúdo, ao motor, ao protocolo, ao servidor e ao simulador. **Estado na versão 21; protocolo ainda 3** (a visão cresceu por adição: `market`). O app não tem tela do Mercado: é a V3E-T4. **Nenhuma foi perguntada ao autor.** A E-0 é sobre o que publicar; as que mudam o que o jogador vive são a E-1, a E-2, a E-3 e a E-4.
+
+**E-0. O `main` local passou do fim da Fase D, e o autor ainda não deu o `push` dela.** *(Pergunta para o autor: é a mais urgente.)*
+- Enquanto isso: nada foi publicado (`origin/main` continua no `7bff36b`, a v0.2.0). O `main` local tem a Fase D fechada (`27fceb5`, estado 20) **e** a V3E-T1 (estado 21): o Mercado no motor e na API, **sem tela**. No app de hoje o Mercado aparece na lista de obras, com custo e efeito, pode ser erguido, e depois disso não há onde comprar nem vender.
+- Se decidir publicar agora: `git push origin 27fceb5:main` leva só a Fase D, como o `deploy/README.md` descreve (estado 20). `git push origin main` leva também o Mercado sem tela (estado 21). Se decidir esperar: a V3E-T4 traz a tela, e a publicação seguinte leva as duas fases de uma vez.
+
+**E-1. O volume diário alcança um dia de jogo por visita, e no Rápido isso é 1/18 do tempo de quem visita duas vezes por dia.** *(Pergunta para o autor: é a decisão 16 do ADR 0018, medida.)*
+- Enquanto isso: vale a regra do ADR (`200 × nível` por recurso por dia de jogo, sem acumular). Medido na matriz (balance-v0.3.md, seção 11.5): os bots usam de 0% a 3% do volume oferecido na mediana (11% no melhor caso), o desperdício total cai 15% em Senhor, e **no ano de jogo do Rápido o Regular e o Explorador não negociam nada**. O Mercado leva o que transborda na hora da visita; o que vai ao chão nos 17 dias de jogo seguintes continua indo.
+- Se decidir diferente: (a) o volume acumula por alguns dias (um teto de 3 ou de 6 dias de volume guardado); (b) o volume passa a ser por dia **real**; (c) uma ordem de venda permanente ("vender o que passar de X"), que o ADR recusou ao dizer que o Mercado não tem ordem automática; (d) fica como está, e o destino do excedente no Rápido é a caravana (V3E-T2). Qualquer uma das três primeiras muda `balance.market`, o motor e o estado.
+
+**E-2. As marcas da Crônica (80% e 125% da base) quase nunca são cruzadas.** *(Pergunta para o autor.)*
+- Enquanto isso: `marketPriceSwing` sai quando o preço **do passeio** (sem o fator da estação) entra em uma das duas zonas. Com o passo de até ±5% e a volta de um décimo, o preço fica quase sempre a menos de 15% da base: em 50 sementes de dois anos de jogo, **seis linhas ao todo**, nos três recursos. O evento existe, é provado, e o jogador quase nunca o verá.
+- Se decidir diferente: aproximar as marcas (90% e 110% dariam uma linha a cada poucos dias de jogo); medir com o fator da estação (a comida cruzaria 125% em quase todo outono, e ficaria indo e voltando: foi por isso que o agente não fez assim); ou tirar o evento. As marcas estão em `balance.market.swing`.
+
+**E-3. O piso (60%) e o teto (160%) do preço não são alcançados pelo passeio.** *(Leitura do agente.)*
+- Enquanto isso: são os números do ADR. A volta de um décimo da distância, perto do piso, vale mais do que o maior passo para baixo: o preço não chega lá sozinho. Servem como guarda para um preço que chegue fora da faixa (um conteúdo que mudou) e para os efeitos de carta da V3F-T1, **que multiplicam o preço negociado e não passam pelo piso nem pelo teto**: um boicote de +20% sobre um preço a 150% daria 180% da base.
+- Se decidir diferente: limitar também o preço negociado (com os efeitos) é uma linha em `quoteOf`, e muda o que as cartas da V3F-T1 podem fazer.
+
+**E-4. O ouro parado não tem destino no Mercado.** *(É a C-23, medida depois da primeira tarefa da Fase E.)*
+- Enquanto isso: o ouro parado ficou onde estava (−1,3% somado em Senhor; a mediana sobe em três células e cai em sete). Vender põe ouro no cofre; para tirá-lo o jogador teria de comprar, e nada no jogo pede comida, madeira ou pedra depois que as obras acabam.
+- Se decidir diferente: é assunto da V3E-T5.2, que leva propostas concretas; esta tarefa só mede.
+
+**E-5. O preço da unidade é arredondado uma vez, e a ordem é `unidades × preço`.** *(Leitura do agente da decisão 16: "o ouro pago arredonda para cima e o recebido, para baixo, em milésimos".)*
+- Enquanto isso: a compra custa `teto(preço × estação)` por unidade e a venda paga `piso(preço × estação × 17/20)` por unidade, em milésimos de ouro; uma ordem de N unidades custa ou paga N vezes isso. Contra arredondar o total da ordem, o jogador perde menos de um milésimo de ouro por unidade, e ganha duas coisas: **dividir a ordem não muda o ouro** (não há tamanho de ordem melhor que outro) e a tela multiplica a quantidade pelo preço que mostra e acerta.
+- Se decidir diferente: arredondar o total da ordem é trocar duas linhas em `marketOrders.ts`; a propriedade "nenhuma sequência dá lucro" continua valendo, e a de "dividir não muda" deixa de valer.
+
+**E-6. O Mercado que fica pronto no meio de um dia negocia pelos preços-base até a primeira virada.** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: os preços só andam depois que o Mercado existe (ADR 0018), e a primeira virada de dia com ele de pé faz o primeiro passeio. No dia da inauguração o volume vale inteiro, a tendência é "estável" e a cotação é a de número 0. O Mercado que fica pronto no instante exato de uma virada já tem o preço dela.
+- Se decidir diferente: sortear o primeiro preço na inauguração pede um instante de sorteio fora da virada do dia (como a Taverna tem), e muda a regra "o preço só anda na virada".
+
+**E-7. A tendência compara o preço negociado de hoje com o de ontem, estação incluída.** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: o estado guarda o preço de antes do último passeio (`market.previousPrices`, que nunca sai na visão), e `trend` é `up`, `down` ou `flat` pelo preço de compra, cada dia com o fator da estação dele: na virada para o outono a comida aparece subindo (é o "comida 1,3 ▲" do GDD §13.2), e na da primavera, caindo.
+- Se decidir diferente: comparar só o passeio é trocar uma linha em `yesterdayQuote`.
+
+**E-8. As recusas da ordem `trade` têm uma ordem fixa, e o recurso que o Mercado não negocia responde `INVALID_AMOUNT`.**
+- Enquanto isso: `MARKET_REQUIRED`, `INVALID_AMOUNT`, `PRICE_CHANGED`, `DAILY_VOLUME_EXCEEDED`, `INSUFFICIENT_RESOURCES`, `STORAGE_FULL`. A cotação vencida vem antes do volume: quem tinha a tela de ontem recebe a visão de hoje antes de qualquer outra conta. O protocolo já barra o recurso e o sentido errados (`400`); se chegarem ao motor, a recusa é `INVALID_AMOUNT` com a frase "O Mercado só negocia comida, madeira e pedra, por ouro.", para a lista de códigos continuar a do roadmap.
+- Se decidir diferente: um código próprio (`INVALID_RESOURCE`) é uma linha no motor e outra no protocolo.
+
+**E-9. A visão do Mercado tem campos que o Apêndice B não previa.**
+- Enquanto isso: além dos do roadmap, `market` traz `building` (o edifício, para o bot e a tela pedirem a obra), `text`, `dailyVolume` e, em cada preço, `label`, `buyText`, `sellText`, `tradedToday`, `buyBlockedReason` e `sellBlockedReason`. `buy` e `sell` são **milésimos de ouro por unidade**, inteiros. O Apêndice B foi atualizado.
+- Se decidir diferente: são adições; tirar uma é mexer na visão, no protocolo e no golden.
+
+**E-10. Os bots: quem ergue o Mercado, quem vende e quando.** *(Decisão que o roadmap deixou à tarefa.)*
+- Enquanto isso: o Regular, o Dedicado e o Explorador (os bots `economico` e `explorador`) erguem o Mercado assim que o Salão chega ao nível 3, só o melhoram quando esgotam o volume do dia, vendem o que está no limite do depósito ou a 8 horas reais de enchê-lo, e comprariam lenha se a conta do inverno não fechasse (não fecha nunca: nenhuma compra em 3.600 partidas). **O Mercado está fora da corrida das obras** (`obra mais barata` não o ergue), como a Guilda: na primeira medição, com ele na corrida, todo bot o levava ao nível 5 e o Salão do Preguiçoso do Normal ficava um nível abaixo em 48 de 50 sementes. **O Preguiçoso não ergue o Mercado**: é a comparação, e as células dele não mudaram. As 54 faixas dos outros três perfis foram remedidas (balance-v0.3.md, seção 11.6).
+- Se decidir diferente: pôr o Mercado no Preguiçoso remede as 18 células dele; uma política que vende antes de sair, contando a ausência inteira, mudaria a parcela do volume usada.
+
+**E-11. Regressões medidas com o Mercado.** *(Para o autor saber; nenhum número além dos do Mercado foi mexido.)*
+- No Regular do Normal passam da meta de desperdício (8 h de jogo) **cinco das 50 sementes, e era uma**; o pior caso da célula continua em 10 h. Na semana do Tranquilo, o Dedicado termina com o Salão um nível abaixo na pior semente (5, era 6), em Senhor e em Camponês; em Rei de Ferro, três células perdem um nível de Salão na pior semente. A Paliçada do Regular do Normal sai até a hora 59 (era 56), e a Taverna do Regular do Tranquilo, até a 105 (era 97). A causa é uma só: a obra do Mercado entra na fila logo depois do Salão Nv3, onde o material é curto.
+- Se decidir diferente: baixar o custo do Mercado Nv1, ou o bot esperar folga para erguê-lo (como faz com a Torre de Vigia), devolve esses números; o segundo é mexer no bot, o que a regra das faixas só deixa fazer com a mudança dita.
+
+**E-12. `stats` ganhou dois contadores por recurso.**
+- Enquanto isso: `stats.bought_<recurso>` e `stats.sold_<recurso>`, em unidades, de sempre. O Apêndice B previa `traded_<recurso>`; separados, servem ao objetivo 14 ("Venda no Mercado o que iria para o chão", V3F-T2), que precisa saber o que foi **vendido**.
+- Se decidir diferente: somar os dois dá o `traded_` do apêndice.
+
 ### Fase D: correções da revisão independente (V3D-T5)
 
 Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, servidor e simulador; app e editorial dos 18 grafos), aplicadas em 2026-10-06 ao motor, ao conteúdo, ao protocolo, ao servidor e ao simulador, um commit `V3D: corrige …` por achado. **Estado na versão 20; protocolo ainda 3** (a visão só cresceu por adição). **Nenhuma foi perguntada ao autor.** As que mudam regra de jogo e pedem a palavra dele são a D-54, a D-58, a D-59, a D-62, a D-65, a D-66 e a D-71. Os achados A-* do app foram corrigidos na tarefa seguinte, com os campos novos da visão (D-70): estão em "Fase D: correções da revisão independente no app", logo abaixo (D-73 a D-76).
@@ -937,6 +993,18 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase E: o Mercado (V3E-T1)
+
+- **Ninguém jogou o Mercado, e não há tela para jogá-lo**: a interface é a V3E-T4. O que existe é a ordem `trade` pela API e a visão `market`, provadas por teste de motor, de protocolo e de integração.
+- **Ninguém leu as frases novas**: as duas linhas da Crônica da negociação, as duas do preço que cruza uma marca, as recusas, o texto do Mercado na visão e a explicação do preço são rascunho.
+- **A política "comprar lenha" não foi exercida por nenhuma partida da matriz** (nenhum bot fica sem lenha); só tem teste de unidade.
+- **A divisão de intervalo com o Mercado** é provada em feudos de verdade nos três ritmos (`market.property.test.ts`), mas o cenário integrado QA-02 (30 dias com heróis em expedição, soldo em atraso, Mercado, caravana e Mestre juntos) é da V3E-T5.
+- **O evento `marketPriceSwing` nunca aconteceu em uma partida jogada pela API ou pelo simulador de ponta a ponta com conferência do texto**: o teste de motor força a situação (um preço a um passo da marca) e procura a semente em que o passo o leva para dentro.
+- **O Relatório de Retorno do app não trata `marketTraded`** (cai no "nem ganho nem perda"; os totais `spent_`/`gained_` estão no evento): é da V3E-T4 e da V3F-T3.
+- **`--perf`, os bytes do estado e da visão com o Mercado, `pnpm docker:build`, `pnpm capture:landing` e `pnpm test:e2e:landing` não foram rodados.** O estado cresceu o bloco `market` (cerca de 170 bytes) em toda partida, e a visão, cerca de 210 bytes sem Mercado e 1,2 kB com ele (medidos nos retratos e no golden); o teto de `perf.test.ts` continua passando.
+- **A matriz "antes" foi rodada em uma árvore de trabalho à parte, no commit `27fceb5`**, com as mesmas 50 sementes; as saídas das duas rodadas não foram guardadas no repositório.
+- **Nenhum ensaio de reversão**: a imagem anterior diante de um estado 21 responde `500` sem gravar, como em toda versão, e isso não foi exercitado com imagens.
 
 ### Fase D: correções da revisão independente (V3D-T5)
 
