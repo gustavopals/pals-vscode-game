@@ -179,6 +179,23 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase F: os objetivos 11 a 16 na matriz (V3F-T2, retomada de 2026-10-15)
+
+Vêm da rodada do simulador feita na retomada ([balance-v0.3.md](balance-v0.3.md), seção 15). A V3F-T2 não tinha rodado a matriz, e os testes do simulador estavam vermelhos. As faixas foram remedidas de propósito: a mudança é de regra (os objetivos), e nenhum bot foi tocado.
+
+**F-1. O objetivo 12 ("Erga a Guilda dos Aventureiros") manda erguer a Guilda mesmo a quem não vai enviar expedição.** *(Medido; pergunta para o autor.)*
+- `seguir os objetivos` ergue o que o objetivo aponta. Todo bot passou a erguer a Guilda, inclusive o Preguiçoso, o Regular e o Dedicado, que nunca enviam. Para eles a obra é só custo: **o Preguiçoso da semana do Tranquilo termina com o Salão no nível 3, e não no 4, nas 50 sementes**, e o Regular do ano do Rápido cai de 27 para 22 aldeões na pior semente.
+- Vale enquanto não houver resposta: o objetivo fica como a ADR 0018 (decisão 20) o aprovou, em bloco. Para quem segue a lista, o objetivo seguinte é a Patrulha (+50 de ouro), que dá trabalho ao herói que já recebe soldo.
+- Se decidir diferente: a frase do objetivo, a recompensa (+60 de pedra) ou a ordem da lista são conteúdo (`packages/content/src/objectives.ts`), com goldens e matriz no mesmo commit.
+
+**F-2. O Explorador da semana do Tranquilo pode terminar sem contratar.** *(Medido; registrado.)*
+- Na semente `pedra-alta-023` de Senhor ele ergue a Guilda e o Mercado que os objetivos apontam, e o ouro não chega ao preço de um candidato mais um dia de soldo até o fim da semana. O teste que exigia contratação em toda partida do Explorador deixou de valer só nessa janela (`balance.test.ts`).
+
+**F-3. O lote 2 do Conselho (V3F-T1) fica fora da v0.3.0.** *(Decisão do agente na retomada, para publicar a versão; pergunta para o autor.)*
+- O roadmap pede que as 24 cartas sejam aprovadas pelo autor em lotes de cinco antes da transcrição, e o branch `wip/v3f-t1-lote2` está pela metade e sem nenhum teste rodado. Os critérios do GDD §16.2 não dependem dele.
+- Vale enquanto não houver resposta: a v0.3.0 sai com as 21 cartas do lote 1 e a "Estrangeira ferida". **Os Mestres Gil e Ximena ficam sem origem** (só chegariam por carta), e Odo e Berta continuam chegando pelas expedições. O branch fica guardado, sem junção, para uma v0.3.1.
+- Se decidir diferente: retomar o branch é a V3F-T1 inteira, com as fichas apresentadas em lotes de cinco.
+
 ### Fase E: a revisão independente no motor, no conteúdo e no simulador (V3E-T5)
 
 Vêm da aplicação, em 2026-10-07, das quatro respostas do autor (seção 0a) e dos achados da revisão independente da Fase E. **Estado na versão 24.** Um commit por item (`V3E: aplica …` e `V3E: corrige …`). O que segue é o que ficou **decidido na revisão ou pelo agente, sem o autor**, e o que ficou só registrado.
