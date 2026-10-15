@@ -6,13 +6,13 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 
 Nada ainda.
 
-## [0.3.0] — 2026-10-07
+## [0.3.0] — 2026-10-15
 
 **v0.3 "A Guilda"** (GDD §16.2 e §18.2; plano em [`docs/roadmap-v0.3.md`](docs/roadmap-v0.3.md)): o feudo ganha uma equipe. Heróis com nome, soldo e classe vêm de uma carta do Conselho e da Taverna, saem em expedição de seis tipos com encruzilhadas e Posturas, voltam com um relatório nó a nó, e o excedente do estoque vira ouro no Mercado, por balcão ou por caravana.
 
 A versão foi implementada por agentes de código entre 2026-10-05 e 2026-10-07, tudo no `main`, por fases (A a F; a Fase G é o fechamento), cada uma com revisão independente depois do portão verde. As decisões de regra 1 a 21 foram fechadas pelo autor em 2026-10-05 ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)), e outras rodadas de perguntas em 2026-10-06 e 2026-10-07 mudaram regras (abaixo). O que foi feito, fase por fase: [`docs/relatorio-v0.3.md`](docs/relatorio-v0.3.md).
 
-O que esta versão **não** tem, dito antes de tudo: **nenhum playtest aconteceu** (nem o desta versão, nem o da v0.1 e o da v0.2: não há linha de base de pessoas); **o autor não jogou nenhuma fase** antes da seguinte, como o roadmap pedia; o quadro em [`docs/acceptance-v0.3.md`](docs/acceptance-v0.3.md) tem a prova automática de cada critério e a coluna de evidência manual **vazia**; **todo o conteúdo narrativo** (os 18 grafos de expedição, os relatórios, os candidatos da Taverna, os heróis com nome, as cartas do lote 2 do Conselho) é **rascunho que o autor não leu**, e as decisões 1 e 4 a 21 foram aprovadas em bloco, sem leitura item a item; só o **Chromium** foi usado (Firefox, Safari, celular e leitor de tela, não); **nenhuma partida real de produção passou pela migração** do estado 12 para o atual, só retratos congelados; **o ensaio de reversão com imagens nunca foi feito**; o backup fora do servidor e a cópia do `RECOVERY_CODE_SECRET` fora do Coolify continuam pendentes; e a matriz de balanceamento de fechamento (V3G-T1) e o desempenho com 50 bots não foram registrados. A tag e a release são do autor.
+O que esta versão **não** tem, dito antes de tudo: **nenhum playtest aconteceu** (nem o desta versão, nem o da v0.1 e o da v0.2: não há linha de base de pessoas); **o autor não jogou nenhuma fase** antes da seguinte, como o roadmap pedia; o quadro em [`docs/acceptance-v0.3.md`](docs/acceptance-v0.3.md) tem a prova automática de cada critério e a coluna de evidência manual **vazia**; **todo o conteúdo narrativo** (os 18 grafos de expedição, os relatórios, os candidatos da Taverna, os heróis com nome) é **rascunho que o autor não leu**, e as decisões 1 e 4 a 21 foram aprovadas em bloco, sem leitura item a item; só o **Chromium** foi usado (Firefox, Safari, celular e leitor de tela, não); **nenhuma partida real de produção passou pela migração** do estado 12 para o atual, só retratos congelados; **o ensaio de reversão com imagens nunca foi feito**; o backup fora do servidor e a cópia do `RECOVERY_CODE_SECRET` fora do Coolify continuam pendentes; e a matriz de balanceamento de fechamento (V3G-T1) e o desempenho com 50 bots não foram registrados. A tag e a release são do autor.
 
 ### O que muda nas partidas em andamento
 
@@ -47,8 +47,8 @@ Com as respostas do autor (2026-10-06 e 2026-10-07):
 - **Taverna** (níveis 1 a 5): candidatos em rotação, contratação, dispensa, moral e festival (um por estação).
 - **Guilda dos Aventureiros** (níveis 1 a 4) e **expedições**: seis modelos (Patrulha dos Arredores, Floresta Antiga, Covil de Lobos, Resgate, Ruínas de Vel'Thar e Pântano Nebuloso), três variantes cada, 18 grafos; encruzilhada com prazo real e **Postura** (Cautelosa, Equilibrada, Ousada); relatório nó a nó; ferimento (2 h e 12 h de jogo), captura e **Resgate**, morte em Rei de Ferro; experiência; equipamento em três espaços, quatro raridades e doze itens; Covil de Lobos que pode ser limpo (a Ameaça cai e o tile para de somar, até a virada do ano).
 - **Mercado** (níveis 1 a 5): preço que anda a cada dia de jogo, compra, venda a 85% do preço e volume diário por recurso. **Caravanas a Porto do Rio** (Mercado nível 2), com preço fixado no envio, emboscada sorteada na chegada e escolta. **Mestres** (Odo, Berta, Gil e Ximena): +15% no edifício em que trabalham.
-- **Objetivos 11 a 16** e o **lote 2 do Conselho** (as cartas que entraram estão em [`docs/content-v0.3.md`](docs/content-v0.3.md)).
-- **Estado na versão 24 ou posterior** (veja `CURRENT_SCHEMA_VERSION`; o lote 2 do Conselho pode ter subido a versão), em passos de 12 a 24 ou mais, com contadores de identidade (`state.ids`) e fluxos de sorteio por entidade (`expedition:` e `caravan:`), apagados quando a entidade termina.
+- **Objetivos 11 a 16**. O **lote 2 do Conselho ficou fora** desta versão (pendência F-3): o Conselho continua com as 21 cartas da v0.2 e a "Estrangeira ferida".
+- **Estado na versão 24**, em doze passos de 12 a 24, com contadores de identidade (`state.ids`) e fluxos de sorteio por entidade (`expedition:` e `caravan:`), apagados quando a entidade termina.
 - Eventos novos com frase na Crônica para cada mecânica acima.
 
 **Servidor (`@lotg/server`), protocolo (`@lotg/protocol`) e SDK (`@lotg/client-sdk`)**
