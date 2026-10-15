@@ -1141,6 +1141,26 @@ describe('antes de partir: a equipe, o ouro e o Mercado (roadmap da v0.3, V3F-T3
       expect(item(tavern({ nextRotationInSeconds: LEAVING_HORIZON_SECONDS }))).toBeUndefined();
       expect(item(tavern({ nextRotationInSeconds: LEAVING_HORIZON_SECONDS - 1 }))).toBeDefined();
     });
+
+    it('estado de risco: o candidato que não pode ser contratado agora não é lembrado', () => {
+      // O feudo no limite de heróis: a visão traz o motivo em cada candidato, e a ordem seria
+      // recusada. Com um só contratável, só ele entra na frase.
+      const offers = tavernOpenView.tavern.offers;
+      const blocked = offers.map((offer) => ({
+        ...offer,
+        blockedReason: 'O feudo já abriga todos os heróis que a Taverna sustenta.',
+      }));
+      expect(item(tavern({ offers: blocked }))).toBeUndefined();
+      const [first, ...rest] = offers;
+      if (first === undefined || rest.length === 0) {
+        throw new Error('A visão de exemplo precisa de dois candidatos.');
+      }
+      const one = item(tavern({ offers: [first, ...blocked.slice(1)] }));
+      expect(one?.text).toContain(`${first.name} (${first.classLabel}) pode sair da lista`);
+      for (const other of rest) {
+        expect(one?.text).not.toContain(other.name);
+      }
+    });
   });
 
   describe('o teto e a ordem por gravidade', () => {

@@ -647,19 +647,22 @@ function idleHeroesItem(view: ViewState): LeavingItem | null {
 function tavernItem(view: ViewState): LeavingItem | null {
   const { tavern } = view;
   const left = tavern.nextRotationInSeconds;
+  // Só quem o jogador pode contratar agora (`blockedReason` vazio, na frase do servidor): com o
+  // feudo no limite de heróis, lembrar que o candidato vai embora é mandar a uma ordem recusada.
+  const hireable = tavern.offers.filter((offer) => offer.blockedReason === null);
   if (
     tavern.level <= 0 ||
-    tavern.offers.length === 0 ||
+    hireable.length === 0 ||
     left === null ||
     left >= LEAVING_HORIZON_SECONDS
   ) {
     return null;
   }
-  const names = joinList(tavern.offers.map((offer) => `${offer.name} (${offer.classLabel})`));
+  const names = joinList(hireable.map((offer) => `${offer.name} (${offer.classLabel})`));
   return {
     id: 'tavern',
     severity: 'info',
-    text: `A Taverna troca os candidatos em ${formatApprox(left)}: ${names} ${tavern.offers.length === 1 ? 'pode sair' : 'podem sair'} da lista.`,
+    text: `A Taverna troca os candidatos em ${formatApprox(left)}: ${names} ${hireable.length === 1 ? 'pode sair' : 'podem sair'} da lista.`,
     command: { id: 'lords.openPanel', arg: TAVERN_SECTION, label: 'Ver a Taverna' },
   };
 }
