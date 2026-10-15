@@ -1077,6 +1077,24 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       expect(lost.cost.map((item) => item.text)).toEqual([`Ninguém voltou. ${POSTURE_MARK}`]);
     });
 
+    it('estado de risco: a equipe que achou um item e depois não voltou não conta o item como ganho, e a marca sai uma vez', () => {
+      // O saque, itens inclusive, se perde com a equipe (`endLost`, no motor): o item achado no
+      // primeiro nó nunca chegou ao arsenal. O destino revelado fica.
+      const blocks = blocksOf(guildView, guildView, [
+        event('expeditionPostureDecided', 'A Postura escolheu.', trip(1)),
+        event('itemFound', 'A equipe achou um item (Lança de caça).', trip(1)),
+        event('destinationRevealed', 'O caminho das Ruínas apareceu.', trip(1)),
+        event('expeditionLost', 'Ninguém voltou.', trip(1)),
+      ]);
+      expect(texts(blocks.prospered)).toEqual(['O caminho das Ruínas apareceu.']);
+      expect(blocks.cost.map((item) => item.text)).toEqual([`Ninguém voltou. ${POSTURE_MARK}`]);
+      const onlyItem = blocksOf(guildView, guildView, [
+        event('itemFound', 'A equipe achou um item (Lança de caça).', trip(1)),
+        event('expeditionLost', 'Ninguém voltou.', trip(1)),
+      ]);
+      expect(onlyItem.prospered).toEqual([]);
+    });
+
     it('estado de risco: o caminho escolhido pelo jogador, ou pela Postura em outra equipe, não leva a marca', () => {
       const chosen = blocksOf(guildView, guildView, [
         event('expeditionPathChosen', 'Você escolheu.', { ...trip(1), decidedBy: 'player' }),

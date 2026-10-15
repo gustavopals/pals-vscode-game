@@ -465,9 +465,11 @@ export function buildBlocks(
     });
   }
 
-  // Uma expedição, um item: a volta, o saque, o herói que subiu de nível e o item achado de uma
-  // mesma equipe saem em uma linha só, no bloco do desfecho dela. Quem decidiu o caminho é dito
-  // (`expeditionPostureDecided`): o jogador que volta precisa saber que não foi ele.
+  // Uma expedição, um item: a volta, o saque, o item achado e o destino revelado de uma mesma
+  // equipe saem em uma linha só, no bloco do desfecho dela. O herói que subiu de nível e o item
+  // vendido por não caber no arsenal saem em linhas próprias: os eventos não dizem de que
+  // expedição vieram. Quem decidiu o caminho é dito (`expeditionPostureDecided`): o jogador que
+  // volta precisa saber que não foi ele.
   const decidedByPosture = new Set(
     events.flatMap((event) => {
       const id = expeditionOf(event);
@@ -507,12 +509,26 @@ export function buildBlocks(
     }
   }
 
-  for (const [journey, group] of journeys) {
+  // A equipe que não voltou perde o saque, e o item que ela achou no caminho só iria ao arsenal
+  // na volta: ele não é ganho. O que fica dela em "prosperou" é o que o feudo guarda mesmo assim
+  // (o destino revelado), sem a marca da Postura, que já está na linha da perda.
+  const lost = new Set(
+    events.flatMap((event) => {
+      const id = expeditionOf(event);
+      return event.type === 'expeditionLost' && id !== null ? [id] : [];
+    }),
+  );
+  for (const [journey, all] of journeys) {
+    const group = lost.has(journey) ? all.filter((event) => event.type !== 'itemFound') : all;
+    if (group.length === 0) {
+      continue;
+    }
     const texts = group.map((event) => event.text);
+    const marked = decidedByPosture.has(journey) && !lost.has(journey);
     prospered.push({
       at: group[0]?.seq ?? Number.MAX_SAFE_INTEGER,
       item: {
-        text: (decidedByPosture.has(journey) ? [...texts, POSTURE_MARK] : texts).join(' '),
+        text: (marked ? [...texts, POSTURE_MARK] : texts).join(' '),
         topic: 'expedition',
       },
     });
