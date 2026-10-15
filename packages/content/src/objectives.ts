@@ -182,7 +182,7 @@ export const objectives: readonly ObjectiveDef[] = [
   {
     id: 'sendPatrol',
     title: 'Envie uma Patrulha',
-    hint: 'A Patrulha é a saída mais curta e mais segura: o herói aprende o ofício sem se arriscar.',
+    hint: 'A Patrulha é a saída mais curta e de menor risco: quem volta traz notícia dos caminhos.',
     condition: { type: 'expeditionSent', model: 'patrol', count: 1 },
     reward: { gold: 50 },
   },
