@@ -2023,6 +2023,11 @@ describe('a expedição que ficou sem caminho volta para casa na fronteira (revi
       });
       expect(Object.hasOwn(after.state.rng, stream)).toBe(false);
       expect(shaped(after.state)).toBeNull();
+      // A volta recolhida não conta como o destino concluído (objetivo "Explore as Ruínas").
+      const doneKeys = Object.keys(after.state.stats).filter((key) =>
+        key.startsWith('expeditionsReturned:'),
+      );
+      expect(doneKeys).toEqual([]);
       // A tela não fica com uma encruzilhada sem opções, e a visão do relatório não deixa lacuna.
       const view = deriveViewState(after.state, after.state.lastProcessedAt);
       expect(view.guild.expeditions).toEqual([]);
@@ -2068,6 +2073,10 @@ describe('a expedição que ficou sem caminho volta para casa na fronteira (revi
     const [line] = ofExpeditions(after.events);
     expect([line?.type, line?.atMs]).toEqual(['expeditionReturned', endsAt]);
     expect(line?.text).not.toContain('já não levava a parte alguma');
+    // A volta por um nó sumido não conta como o destino concluído.
+    expect(
+      Object.keys(after.state.stats).filter((key) => key.startsWith('expeditionsReturned:')),
+    ).toEqual([]);
     const once = advanceTo(state, endsAt + MINUTE);
     expect(once.state).toEqual(after.state);
     expect(once.events).toEqual([...before.events, ...after.events]);

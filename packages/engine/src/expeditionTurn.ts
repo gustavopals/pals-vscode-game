@@ -423,6 +423,7 @@ function returnHome(
   atMs: number,
   events: GameEvent[],
   recalled = false,
+  completed = !recalled,
 ): void {
   const team = heroesOf(draft, expedition.heroIds);
   const stored = noAmounts();
@@ -436,8 +437,9 @@ function returnHome(
     hero.status = hero.injury === null ? 'idle' : 'injured';
   }
   draft.stats.expeditionsReturned = (draft.stats.expeditionsReturned ?? 0) + 1;
-  // Por modelo, só a que chegou ao fim: a recolhida antes não conta (objetivo "Explore as Ruínas").
-  if (!recalled) {
+  // Por modelo, só a que chegou ao fim do caminho: a recolhida antes e a que volta porque o
+  // conteúdo deixou de ter o nó não contam (objetivo "Explore as Ruínas").
+  if (completed) {
     const doneKey = `expeditionsReturned:${expedition.modelId}`;
     draft.stats[doneKey] = (draft.stats[doneKey] ?? 0) + 1;
   }
@@ -522,8 +524,9 @@ function decideByPosture(
   const team = heroesOf(draft, expedition.heroIds);
   const choice = node?.kind === 'crossroads' ? postureChoice(team, node, expedition.posture) : null;
   if (choice === null) {
-    // O conteúdo já não tem esta encruzilhada: a equipe volta com o que juntou.
-    returnHome(draft, expedition, atMs, events);
+    // O conteúdo já não tem esta encruzilhada: a equipe volta com o que juntou, e a volta não
+    // conta como o destino concluído.
+    returnHome(draft, expedition, atMs, events, false, false);
     return;
   }
   const fallback = choice.blocked !== null;
@@ -622,8 +625,9 @@ function stepExpedition(
   }
   const node = nodeOf(expedition);
   if (node === null || node.kind === 'return' || node.kind === 'crossroads') {
-    // O fim do caminho de volta, ou um nó que o conteúdo já não tem.
-    returnHome(draft, expedition, atMs, events);
+    // O fim do caminho de volta, ou um nó que o conteúdo já não tem: esta volta não conta como
+    // o destino concluído.
+    returnHome(draft, expedition, atMs, events, false, node?.kind === 'return');
     return true;
   }
   resolveStage(draft, expedition, node, atMs, events);
