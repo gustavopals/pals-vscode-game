@@ -6,7 +6,7 @@
 
 | O quê | Onde | Estado |
 |---|---|---|
-| Produção | `origin/main` = `7bff36b` (v0.2.0, estado 12, protocolo 2) | No ar. Nada da v0.3 foi publicado |
+| Produção | `origin/main` = `c2cb21e` (v0.3.0, estado 24, protocolo 3) | **No ar desde 2026-10-15, 19:54 UTC** (`builtAt` de `GET /v1/version`). Backup de antes do `push`: `pg-dump-lotg-1792093376.dmp` (19:42:56 UTC, 631 kB). O job do arranque migrou e avançou 4 partidas, nenhuma falhou; o app antigo aberto recebeu `426`, como previsto. A volta para a v0.2.0 é o SHA `7bff36b` **com** esse backup restaurado |
 | A v0.3 inteira, menos o lote 2 do Conselho | `main` local | **Pronta para publicar**: o portão inteiro verde no commit candidato `3cb6e01` em 2026-10-15 (Registro do [roadmap](roadmap-v0.3.md), §12, linha "Retomada"); depois dele, só documentos |
 | Lote 2 do Conselho (V3F-T1), pela metade | branch `wip/v3f-t1-lote2` = `2352e39` | **Fora da v0.3.0** (pendência F-3). Não verde, nenhum teste rodado. Não juntar sem revisar |
 
@@ -22,11 +22,7 @@ Estado do jogo na versão **24**; protocolo **3**.
 
 ## O que falta, e é do autor
 
-1. **Publicar:**
-   - Disparar o backup manual do `lotg-db` (aba "Backups" no Coolify), esperar terminar e anotar o nome do arquivo.
-   - Rodar `git push origin main`: o CI testa e implanta sozinho.
-   - Depois, conferir `GET /v1/version` (`protocol` 3), esperar pouco mais de uma hora e conferir `schema_version = 24` ([deploy/README.md](../deploy/README.md), "A primeira publicação da v0.3").
-   - Publicar só até a Fase D continua possível: `git push origin 27fceb5:main`.
+1. **Conferir a migração:** a publicação foi feita em 2026-10-15, a pedido do autor (backup, `push` e CI verde, com o deploy do Coolify). Falta conferir no banco, com o SQL de [deploy/README.md](../deploy/README.md), que nenhuma partida ativa ficou abaixo do estado 24, depois de o job de avanço passar (pouco mais de uma hora).
 2. **Responder às pendências novas:** F-1 a F-6 ([pendencias-v0.3.md](pendencias-v0.3.md), "Fase F").
 3. **Sem data:**
    - jogar as fases (roteiros em [pendencias-v0.3.md](pendencias-v0.3.md), seções 7 e 8, e [manual-test-v0.3.md](manual-test-v0.3.md));
