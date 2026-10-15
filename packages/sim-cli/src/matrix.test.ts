@@ -222,7 +222,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 223.376 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 67 a 94 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.395 | ≤ 210.257 | ≤ 32 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -244,12 +244,15 @@ describe('relatório da matriz', () => {
       // no ano do Tranquilo (eram até 5,5 h); no Normal uma semente passa de 3 para 7 h.
       // Com as caravanas (V3E-T2; seção 12) a semana do Rápido encurta mais um pouco (27 e 21 h,
       // eram 30 e 24) e o ano do Tranquilo volta a 4,5 h na madeira (eram 3).
-      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 12 a 27 | 0 a 21 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
+      // Com os objetivos 11 a 16 (V3F-T2; seção 15) a Guilda entra na fila: na semana do Rápido
+      // a madeira fica em 27 h nas três sementes e a pedra chega a 24; no Normal a madeira cai
+      // para até 3 h; e no ano do Rápido a pedra passa a ir ao chão por 3 a 6 h.
+      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 27 | 3 a 24 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 1 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 1 a 4,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 3 a 6 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 1 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 1 a 2,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -260,7 +263,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([75, 85], 7, 0, 0, 2790, 4781, 208461, 27),",
+      "  'week/3/regular': measured([85, 85], 8, 0, 0, 3414, 4972, 184501, 27),",
     );
   });
 
@@ -282,14 +285,17 @@ describe('relatório da matriz', () => {
     // três sementes esgota as obras dentro da semana.
     // Com o Mercado (V3E-T1) fora da corrida das obras e erguido por política própria, os
     // marcos ficam onde estavam, e uma das três sementes volta a esgotar as obras na hora 154.
+    // Com os objetivos 11 a 16 (V3F-T2; docs/balance-v0.3.md, seção 15) os marcos ficam onde
+    // estavam, as três sementes esgotam as obras na hora 154 da semana, e a lista de dezesseis
+    // não fecha: o Regular conclui treze na semana e doze no ano, e o Preguiçoso, onze.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 a — | 52 a 60 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 | 61 | 7 | 13 | — |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 34 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 34 | 7 | 12 | — |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Preguiçoso | 29 | 53 a 55 | — | 31 | 33 | 50 a 51 | 54 a 55 | — | 16 | 7 | 10 | 56 |',
+      '| Rápido 3× | Preguiçoso | 29 | 53 a 55 | — | 31 | 33 | 50 a 51 | 54 a 55 | — | 16 | 7 | 11 | — |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
@@ -298,17 +304,17 @@ describe('relatório da matriz', () => {
       watchtower: { min: 20, max: 20 },
       palisade: { min: 25, max: 25 },
     });
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 154, max: null });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 154, max: 154 });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
-    expect(cell?.measure.objectivesDone).toEqual({ min: 10, max: 10 });
-    expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: 56 });
+    expect(cell?.measure.objectivesDone).toEqual({ min: 13, max: 13 });
+    expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
     expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: 51 });
     expect(lazy?.measure.milestones.palisade).toEqual({ min: 54, max: 55 });
     expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
-    expect(lazy?.measure.objectivesDone).toEqual({ min: 10, max: 10 });
-    expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: 56 });
+    expect(lazy?.measure.objectivesDone).toEqual({ min: 11, max: 11 });
+    expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
   });
 
   it('cada janela traz os lobos: as incursões, os feridos, o que levaram e a Ameaça no fim', () => {
@@ -352,15 +358,16 @@ describe('relatório da matriz', () => {
     // soma traz mais gente, e o Regular do ritmo 3 passou a perder de 7% a 15% da comida e até
     // 28% da madeira (eram até 6% e até 9%), com sequências de até 33 h de jogo.
     expect(week).toContain(
-      '| Rápido 3× | Preguiçoso | 51% a 54% | 57% a 61% | 38% a 49% | 63 a 75 | 63 | 42 a 45 |',
+      '| Rápido 3× | Preguiçoso | 51% a 54% | 57% a 60% | 38% a 49% | 63 a 75 | 63 | 36 a 57 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
-    // as caravanas (V3E-T2; seção 12), de 13% a 17% e sequências de até 27 h.
+    // as caravanas (V3E-T2; seção 12), de 13% a 17% e sequências de até 27 h. Com os objetivos
+    // 11 a 16 (V3F-T2; seção 15), de 13% a 16%, e a pedra passa a ir ao chão em toda semente.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 13% a 17% | 6% a 11% | 0% a 8% | 21 a 24 | 12 a 27 | 0 a 21 |',
+      '| Rápido 3× | Regular | 13% a 16% | 10% a 11% | 1% a 9% | 21 a 24 | 27 | 3 a 24 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 1 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -496,12 +503,15 @@ describe('CSV da matriz', () => {
     expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('53');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
-    // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum.
-    expect(lazyYear[header.indexOf('objectives_done')]).toBe('10');
-    expect(lazyYear[header.indexOf('objectives_done_hour')]).toBe('56');
-    // Na semana do ritmo Tranquilo o inverno ainda não chegou: falta um, e a hora fica vazia.
+    // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum. O
+    // Preguiçoso do ano do Rápido cumpre os dez da v0.2 e o primeiro herói, e a lista de
+    // dezesseis (V3F-T2) não fecha.
+    expect(lazyYear[header.indexOf('objectives_done')]).toBe('11');
+    expect(lazyYear[header.indexOf('objectives_done_hour')]).toBe('');
+    // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 falta um, e o
+    // primeiro herói e a Guilda já caíram.
     const short = lines.find((line) => line.startsWith('week,0.5,regular,'))?.split(',');
-    expect(short?.[header.indexOf('objectives_done')]).toBe('9');
+    expect(short?.[header.indexOf('objectives_done')]).toBe('12');
     expect(short?.[header.indexOf('objectives_done_hour')]).toBe('');
   });
 

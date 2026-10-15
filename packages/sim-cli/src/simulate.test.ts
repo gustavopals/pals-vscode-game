@@ -656,24 +656,23 @@ describe('resumo de uma partida', () => {
   });
 
   it('diz quantos Objetivos do Senhor o bot concluiu e a hora do último', async () => {
-    // Um ano de jogo no ritmo 1: o bot econômico percorre a sequência inteira, e o último a
-    // cair é o do inverno sem frio, na virada para a primavera (a hora 168).
+    // Um ano de jogo no ritmo 1: o bot econômico percorre os dez da v0.2 e, dos seis da v0.3
+    // (V3F-T2), os três que alcança sem enviar expedição (o primeiro herói, a Guilda e a venda
+    // no Mercado). A sequência inteira não fecha, e a linha não traz a hora do último.
     const summary = summarize(twoSessions);
-    expect(summary.objectives).toEqual({ done: 10, total: objectives.length, allDoneAtHour: 168 });
-    expect(formatSummary(twoSessions)).toContain(
-      'Objetivos: 10 de 10 concluídos, o último na hora 168\n',
-    );
+    expect(summary.objectives).toEqual({ done: 13, total: objectives.length, allDoneAtHour: null });
+    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 16 concluídos\n');
     // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
     const done = twoSessions.rows.map((row) => row.objectives);
     expect(done[0]).toBeGreaterThanOrEqual(2);
-    expect(done[done.length - 1]).toBe(10);
+    expect(done[done.length - 1]).toBe(13);
     expect(done.every((count, index) => index === 0 || count >= (done[index - 1] ?? 0))).toBe(true);
     // Dois dias reais não bastam: falta o que o Salão no nível 3 e o inverno trazem.
     const twoDays = await simulate({ ...twoSessions.options, days: 2 });
     const short = summarize(twoDays);
     expect(short.objectives.allDoneAtHour).toBeNull();
     expect(short.objectives.done).toBeLessThan(10);
-    expect(formatSummary(twoDays)).toMatch(/Objetivos: \d de 10 concluídos\n/);
+    expect(formatSummary(twoDays)).toMatch(/Objetivos: \d de 16 concluídos\n/);
   });
 
   it('traz os sinais de tédio: fila ociosa, aldeões sem ofício e excedente parado', () => {

@@ -164,7 +164,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         if (run.profile.id === 'explorador') {
           // Quem contrata não atrasa o soldo: a política guarda um dia de soldo no cofre.
           expect(guild.arrearsHours, where).toBe(0);
-          expect(guild.hired, where).toBeGreaterThan(0);
+          // Na semana do Tranquilo (meio ano de jogo) o ouro é curto: desde os objetivos 11 a
+          // 16 (V3F-T2) o bot ergue a Guilda e o Mercado que eles apontam, e em uma das 50
+          // sementes de Senhor (pedra-alta-023) o cofre nunca paga um contrato com um dia de
+          // soldo de folga. Nas outras janelas todo Explorador contrata.
+          if (!(run.window === 'week' && run.timeScale === 0.5)) {
+            expect(guild.hired, where).toBeGreaterThan(0);
+          }
         } else {
           expect(guild.festivals, where).toBe(0);
         }
@@ -194,7 +200,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // o balcão, e não 40%, e o soldo passou a crescer com o nível: em alguma das 50 sementes o
     // ouro já não paga o sexto contrato na semana, e ele termina com cinco.
     expect(heroes('week/1/explorador')).toEqual({ min: 5, max: 6 });
-    expect(heroes('week/0.5/explorador')).toEqual({ min: 2, max: 5 });
+    // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
+    // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
+    expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
     expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
@@ -205,8 +213,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
     expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 59 });
     // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
-    // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97).
-    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 105 });
+    // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97); com os
+    // objetivos 11 a 16 (V3F-T2), na hora 103.
+    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 103 });
     expect(tavernAt('week/3/explorador')).toEqual(tavernAt('week/3/regular'));
     expect(tavernAt('year/3/preguicoso')).toEqual({ min: 55, max: null });
     // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
@@ -292,38 +301,43 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     ).toHaveLength(0);
   });
 
-  it('os bots percorrem a sequência dos objetivos: os dez em um ano de jogo, em toda semente do Regular e do Dedicado (V2E-T4)', () => {
-    // O bot segue o que cada objetivo ativo aponta na visão (`seguir os objetivos`). O último a
-    // cair é o do inverno sem frio, na virada para a primavera: a hora do último objetivo é o
-    // fim do ano de jogo (56 h reais no ritmo Rápido, 168 no Normal, 336 no Tranquilo).
+  it('os bots percorrem a sequência dos objetivos: os dez da v0.2 e os da v0.3 que a equipe alcança (V2E-T4, V3F-T2)', () => {
+    // O bot segue o que cada objetivo ativo aponta na visão (`seguir os objetivos`). Até a v0.2
+    // a lista tinha dez, e o último a cair era o do inverno, na virada para a primavera. Com os
+    // seis da v0.3 (V3F-T2) a lista tem dezesseis, e ninguém que não envia expedição a fecha: o
+    // Regular e o Dedicado cumprem os dez, o primeiro herói (a carta do 13º dia), a Guilda (que
+    // `seguir os objetivos` ergue porque o objetivo a aponta) e, onde chegam ao Mercado, a venda.
+    // Que os dez da v0.2 caem todos, com o do inverno por último, é o que `bots.test.ts` prova.
     for (const difficulty of DIFFICULTY_IDS) {
       const year = byDifficulty[difficulty].cells.filter((cell) => cell.window === 'year');
       for (const cell of year.filter((entry) => entry.profile.id !== 'preguicoso')) {
         const where = `${difficulty} ${cell.key}`;
-        expect(cell.measure.objectivesDone, where).toEqual({ min: 10, max: 10 });
-        expect(cell.measure.objectivesAllDoneAtHour, where).toEqual({
-          min: cell.realHours,
-          max: cell.realHours,
-        });
+        expect(cell.measure.objectivesDone.min, where).toBeGreaterThanOrEqual(12);
+        if (cell.profile.id !== 'explorador') {
+          expect(cell.measure.objectivesDone.max, where).toBeLessThanOrEqual(13);
+          expect(cell.measure.objectivesAllDoneAtHour, where).toEqual({ min: null, max: null });
+        }
       }
+      // Só o Explorador envia a Patrulha, escolhe na encruzilhada e explora as Ruínas: no ano do
+      // Tranquilo, em alguma das 50 sementes, ele fecha a lista inteira na virada do ano.
+      const tranquil = year.find((cell) => cell.key === 'year/0.5/explorador');
+      expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(16);
     }
-    // Na semana do ritmo Tranquilo o inverno ainda não chegou: ficam nove.
+    // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 ficam nove, mais
+    // os da v0.3 que já couberam na lista.
     const half = matrix.cells.filter((cell) => cell.window === 'week' && cell.timeScale === 0.5);
     for (const cell of half) {
-      expect(cell.measure.objectivesDone, cell.key).toEqual({ min: 9, max: 9 });
+      expect(cell.measure.objectivesDone.min, cell.key).toBeGreaterThanOrEqual(11);
+      expect(cell.measure.objectivesDone.max, cell.key).toBeLessThanOrEqual(14);
     }
-    // O Preguiçoso, com uma visita por dia, também chega aos dez nos ritmos Tranquilo e Normal.
-    // No Rápido parte das sementes fecha o ano sem a Paliçada (o Salão não chega ao nível 3 a
-    // tempo), e ficam nove. Com a Ameaça reequilibrada os lobos levam menos e o Salão sobe antes
-    // (eram nove ou dez no Normal e oito a dez no Rápido; docs/balance-v0.2.md, seção 16). Com
-    // os 50 de ouro do objetivo 4 (ADR 0016, item 7) a Paliçada sai a tempo também no Rápido, e
-    // as 50 sementes chegam aos dez (seção 18).
+    // O Preguiçoso, com uma visita por dia, chega aos dez da v0.2 e ao primeiro herói em toda
+    // janela de Senhor; no ano do Rápido não chega à Guilda.
     const lazy = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.objectivesDone;
-    expect(lazy('year/0.5/preguicoso')).toEqual({ min: 10, max: 10 });
-    expect(lazy('year/1/preguicoso')).toEqual({ min: 10, max: 10 });
-    expect(lazy('year/3/preguicoso')).toEqual({ min: 10, max: 10 });
-    expect(lazy('week/3/preguicoso')).toEqual({ min: 10, max: 10 });
+    expect(lazy('year/0.5/preguicoso')).toEqual({ min: 12, max: 12 });
+    expect(lazy('year/1/preguicoso')).toEqual({ min: 12, max: 12 });
+    expect(lazy('year/3/preguicoso')).toEqual({ min: 11, max: 11 });
+    expect(lazy('week/3/preguicoso')).toEqual({ min: 12, max: 12 });
   });
 
   it('a Torre de Vigia chega cedo para quem segue os objetivos (V2E-T1, V2E-T4)', () => {
@@ -468,9 +482,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // pedra da Ponte e a Paliçada mostrada aos aldeões por +20, seção 17), entre 63 e 73: os
     // dias em 80 trazem colonos. Com os dois números do ADR 0016 (seção 18), entre 64 e 73.
     // Com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4), entre 64 e 75: a moral que ela
-    // soma mantém o feudo acima dos 80, e os colonos vêm.
+    // soma mantém o feudo acima dos 80, e os colonos vêm. Com os objetivos 11 a 16 (V3F-T2;
+    // docs/balance-v0.3.md, seção 15), entre 65 e 75.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 57, max: 83 });
+    expect(band?.villagers).toEqual({ min: 58, max: 83 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
@@ -534,14 +549,17 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular vende o que iria ao chão:
     // a semana do Rápido volta de 36 para 33 h. As outras três células ficam onde estavam.
+    // Com os objetivos 11 a 16 (V3F-T2; docs/balance-v0.3.md, seção 15) o objetivo 14 manda
+    // vender o que iria ao chão, e as recompensas mudam o caminho de obras: a semana do Rápido
+    // cai para 30 h, e o ano do Rápido volta a caber na meta (pior caso de 6 h).
     expect(over).toEqual({
-      'week/3/regular': 33,
+      'week/3/regular': 30,
       'week/1/regular': 10,
-      'year/3/regular': 9,
       'year/1/regular': 10,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
       'week/0.5/regular',
+      'year/3/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -555,13 +573,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // passam da meta cinco das 50 sementes (era uma, a 021), todas com 9 ou 10 h de jogo. A obra
     // do Mercado entra na fila logo depois do Salão Nv3 e atrasa o Armazém em algumas sementes;
     // o pior caso da célula continua em 10 h. Nenhum número além dos do Mercado foi mexido: fica
-    // à espera do autor.
+    // à espera do autor. Com os objetivos 11 a 16 (V3F-T2) são três, outras, com 9 ou 10 h.
     expect(beyond.map((run) => run.seed)).toEqual([
-      'pedra-alta-007',
-      'pedra-alta-015',
-      'pedra-alta-021',
-      'pedra-alta-022',
-      'pedra-alta-032',
+      'pedra-alta-023',
+      'pedra-alta-025',
+      'pedra-alta-035',
     ]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).

@@ -2095,6 +2095,18 @@ describe('os bots jogando contra o motor', () => {
     },
   );
 
+  // Os objetivos da v0.3 que cada bot cumpre em um ano de jogo, por ritmo. No ritmo Rápido o
+  // ano é curto: o econômico não chega ao Mercado, e o preguiçoso não chega nem à Guilda.
+  const withoutExpedition = ['welcomeFirstHero', 'buildGuild', 'sellSurplus'];
+  const V03_REACHED: Record<string, Partial<Record<number, string[]>>> = {
+    economico: {
+      1: withoutExpedition,
+      3: withoutExpedition.slice(0, 2),
+      0.5: withoutExpedition,
+    },
+    preguicoso: { 1: withoutExpedition.slice(0, 2), 3: withoutExpedition.slice(0, 1) },
+  };
+
   it.each([
     ['economico', 1],
     ['economico', 3],
@@ -2130,13 +2142,27 @@ describe('os bots jogando contra o motor', () => {
         }
       }
       expect(feudo.refused).toEqual([]);
-      // A visão os lista na ordem da sequência: todos concluídos na virada do ano.
+      // A visão os lista na ordem da sequência. Os dez da v0.2 estão todos concluídos na
+      // virada do ano, e o último deles a cair é o do inverno, na virada para a primavera.
       const all = feudo.view().objectives;
-      expect(all).toHaveLength(10);
-      expect(all.every((entry) => entry.status === 'completed')).toBe(true);
-      expect(all[all.length - 1]?.target).toEqual({ kind: 'season', season: 'winter' });
-      // O último a cair é o do inverno, na virada para a primavera.
-      expect(order[order.length - 1]).toBe(all[all.length - 1]?.id);
+      // A visão só mostra os objetivos já revelados: os da v0.3 aparecem conforme os
+      // anteriores caem, e a lista não passa de dezesseis.
+      expect(all.length).toBeGreaterThanOrEqual(10);
+      expect(all.length).toBeLessThanOrEqual(16);
+      const v02 = all.slice(0, 10);
+      expect(v02.every((entry) => entry.status === 'completed')).toBe(true);
+      expect(v02[v02.length - 1]?.target).toEqual({ kind: 'season', season: 'winter' });
+      const v02Order = order.filter((id) => v02.some((entry) => entry.id === id));
+      expect(v02Order[v02Order.length - 1]).toBe(v02[v02.length - 1]?.id);
+      // Dos seis da v0.3 (V3F-T2), estes bots, que não enviam expedição, cumprem os que a
+      // equipe sem expedição alcança: o primeiro herói (a carta do 13º dia), a Guilda, que
+      // `seguir os objetivos` ergue porque o objetivo a aponta, e, onde há Mercado, a venda.
+      expect(
+        all
+          .slice(10)
+          .filter((entry) => entry.status === 'completed')
+          .map((entry) => entry.id),
+      ).toEqual(V03_REACHED[strategy]?.[timeScale]);
     },
   );
 

@@ -1281,7 +1281,10 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       expect(row.state.guild.heroes.map((hero) => hero.id)).toEqual(
         before.guild.heroes.map((hero) => hero.id),
       );
-      expect(row.state.ids).toEqual(before.ids);
+      // Nenhum herói novo. O único identificador novo é o item do objetivo 11 ("Acolha ou
+      // contrate o primeiro herói", V3F-T2.2): a heroína que já servia conta na avaliação
+      // seguinte à migração, e a recompensa sai uma vez.
+      expect(row.state.ids).toEqual({ ...before.ids, item: 1 });
       expect(Object.keys(row.state.rng)).not.toContain('tavern');
       expect(
         await countRows(

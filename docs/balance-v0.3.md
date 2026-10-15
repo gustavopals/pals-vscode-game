@@ -2350,6 +2350,63 @@ Medido no motor (`market.test.ts`), 50 sementes de dois anos de jogo, os três r
 - **Os níveis dos heróis vêm de dez sementes**, não das cinquenta: a matriz não tem coluna de nível.
 - **Ninguém jogou.** A rodada mede regras e bots.
 
-## 15. Rodadas seguintes das Fases F e G
+## 15. Os objetivos 11 a 16 (V3F-T2), na retomada de 2026-10-15
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 14.*
+Rodada de 2026-10-15, no `main` depois de `4db6de1`, quando a execução da v0.3 foi retomada ([retomada-v0.3.md](retomada-v0.3.md), passo 1). O que mudou de regra entre a seção 14 e esta: **os seis objetivos da v0.3** (`welcomeFirstHero`, item comum; `buildGuild`, +60 de pedra; `sendPatrol`, +50 de ouro; `sellSurplus`, +40 de madeira; `chooseAtCrossroads`, +10 de moral por um dia de jogo; `exploreRuins`, item incomum). Nenhum bot foi tocado: `seguir os objetivos` já segue o que o objetivo aponta na visão, e por isso **todo perfil passou a erguer a Guilda dos Aventureiros** quando o objetivo 12 fica ativo, inclusive o Preguiçoso, o Regular e o Dedicado, que nunca enviam expedição. A V3F-T2 não tinha rodado a matriz; os testes do simulador estavam vermelhos desde então.
+
+### 15.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix --difficulty lord > m-lord.csv 2> m-lord.md
+pnpm -s sim -- --matrix --difficulty peasant > m-peasant.csv 2> m-peasant.md
+pnpm -s sim -- --matrix --difficulty ironKing > m-ironKing.csv 2> m-ironKing.md
+```
+
+A comparação de Senhor, célula a célula, foi feita com a mesma matriz no commit `4e6ea0c` (a revisão da Fase E, antes dos objetivos).
+
+### 15.2 As faixas, antes e depois
+
+Mudaram **67 das 72 células** de `MEASURED` (22 em Camponês, 23 em Senhor e 22 em Rei de Ferro). A soma do maior ouro parado das 24 células **quase não mexeu**: +0,5% em Camponês, −2,5% em Senhor e +0,3% em Rei de Ferro. As recompensas são pequenas (210 unidades no total, e dois itens); o que muda os números é o caminho de obras com a Guilda na fila.
+
+O que mudou além do ouro parado, em Senhor:
+
+- **O Preguiçoso da semana do Tranquilo termina com o Salão no nível 3, e não no 4, nas 50 sementes.** A Guilda que o objetivo 12 manda erguer custa a obra que faltava. Na mesma célula a madeira parada sobe de 116 para 1.032 e a pedra de 1.225 para 1.600. É a maior piora da rodada.
+- **O Regular do ano do Rápido** cai de 27 para 22 aldeões na pior semente (`pedra-alta-018`), com a pedra parada de 750 para 1.033.
+- **O Regular da semana do Rápido** chega ao Salão no nível 8 em toda semente (era 7 em quatro delas).
+- **O Preguiçoso do ano do Tranquilo** sobe de 59 para 64 aldeões no pior caso, com o Salão no nível 7 (era 6), e o ouro parado cai de 10.670 para 3.963.
+
+Em Rei de Ferro, no Normal, o Regular e o Explorador terminam em alguma semente com o Salão no nível 6 (era 7). Em Camponês, a população mínima do Regular da semana do Rápido sobe de 77 para 84. Fome e frio continuam em zero em todas as células, nas três dificuldades, e ninguém vai embora.
+
+### 15.3 Os objetivos que cada perfil cumpre
+
+Dos dezesseis, ninguém que não envia expedição fecha a lista. Em Senhor, com 50 sementes:
+
+| Janela | Preguiçoso | Regular | Dedicado | Explorador |
+| --- | --- | --- | --- | --- |
+| Semana do Rápido | 12 | 12 a 13 | 13 | 13 a 16 |
+| Semana do Normal | 12 | 12 a 13 | 12 a 13 | 13 a 15 |
+| Semana do Tranquilo | 11 | 11 a 12 | 11 a 12 | 11 a 14 |
+| Ano do Rápido | 11 | 12 | 12 a 13 | 12 a 13 |
+| Ano do Tranquilo | 12 | 12 a 13 | 13 | 14 a 16 |
+
+Os dez da v0.2 continuam caindo todos no ano de jogo, com o do inverno por último (`bots.test.ts`). O Regular e o Dedicado somam o primeiro herói (a carta do 13º dia), a Guilda e, onde chegam ao Mercado, a venda; o Preguiçoso do ano do Rápido não chega à Guilda. Só o Explorador envia a Patrulha, escolhe na encruzilhada e explora as Ruínas, e no ano do Tranquilo fecha os dezesseis em alguma semente das três dificuldades.
+
+### 15.4 A Taverna e a meta de desperdício
+
+- **O Explorador da semana do Tranquilo contrata de 0 a 4 heróis** (eram de 1 a 4). Na semente `pedra-alta-023` ele não contrata ninguém: com a Guilda e o Mercado na fila o ouro fica abaixo do preço mais um dia de soldo até o fim da semana, e ele termina com 911 de ouro, só a heroína da carta e a Taverna no nível 4. O teste que exigia contratação em toda partida do Explorador deixou de valer só nessa janela.
+- **A meta de desperdício** (no máximo 8 h de jogo seguidas indo ao chão, com 2 sessões por dia): a semana do Rápido cai de 33 para 30 h, **o ano do Rápido volta a caber na meta** (6 h; eram 9), e o Normal continua com 10 h na pior semente, agora em três sementes (023, 025 e 035; eram cinco).
+
+### 15.5 O que fica para o autor
+
+- **O objetivo 12 manda erguer a Guilda mesmo a quem não vai enviar expedição.** Para o bot que não envia é só custo, e no Preguiçoso do Tranquilo custa o Salão Nv4 na semana. Para um jogador que segue a lista, o objetivo seguinte é a Patrulha, que paga 50 de ouro e dá trabalho ao herói que já recebe soldo. Nenhum número foi mexido. Dúvida F-1 em [pendencias-v0.3.md](pendencias-v0.3.md).
+- **O ouro parado continua onde estava** (seção 14): os objetivos não o resolvem.
+
+### 15.6 Limites desta medição
+
+- **Os bots Regular e Dedicado não enviam expedição.** A Guilda que eles erguem fica parada, e a matriz não mede o jogador que segue a lista inteira sem ser o Explorador.
+- **A comparação com o antes é só de Senhor**; em Camponês e em Rei de Ferro a linha de base antiga é a de `MEASURED` na seção 14.
+- **Ninguém jogou.** A rodada mede regras e bots.
+
+## 16. Rodadas seguintes das Fases F e G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 15.*

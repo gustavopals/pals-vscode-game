@@ -967,8 +967,8 @@ function raidsLine({ raids, milestones }: Summary): string {
 }
 
 /**
- * "Objetivos: 10 de 10 concluídos, o último na hora 168"; com algum por cumprir, "Objetivos: 9
- * de 10 concluídos". É o tutorial do jogo: o bot que o percorre inteiro passou por todas as
+ * "Objetivos: 16 de 16 concluídos, o último na hora 168"; com algum por cumprir, "Objetivos: 13
+ * de 16 concluídos". É o tutorial do jogo: o bot que o percorre inteiro passou por todas as
  * ferramentas da versão.
  */
 function objectivesLine({ objectives: tally }: Summary): string {
