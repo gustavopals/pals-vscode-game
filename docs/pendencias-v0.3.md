@@ -196,6 +196,26 @@ Vêm da rodada do simulador feita na retomada ([balance-v0.3.md](balance-v0.3.md
 - Vale enquanto não houver resposta: a v0.3.0 sai com as 21 cartas do lote 1 e a "Estrangeira ferida". **Os Mestres Gil e Ximena ficam sem origem** (só chegariam por carta), e Odo e Berta continuam chegando pelas expedições. O branch fica guardado, sem junção, para uma v0.3.1.
 - Se decidir diferente: retomar o branch é a V3F-T1 inteira, com as fichas apresentadas em lotes de cinco.
 
+### Fase F: a revisão independente (V3F-T4, 2026-10-15)
+
+Um revisor que não escreveu o código leu a V3F-T2 e a V3F-T3 e confirmou nove achados. Seis foram corrigidos, um commit por item (`V3F: corrige …`): o Retorno que contava como ganho o item da equipe que não voltou, e a marca da Postura que saía duas vezes (C2); o comentário do agrupamento por expedição (C3); o objetivo das Ruínas que dizia só faltar a ordem a quem não tem equipe (C4); a volta por um nó que o conteúdo deixou de ter, que contava como as Ruínas concluídas (C6); a dica da Patrulha (C7); e o "Antes de partir" que lembrava candidatos que não podem ser contratados (C8). Ficam os três abaixo e três plausíveis.
+
+**F-4. Os alarmes passam do limite de 3 avisos por hora.** *(Achado C1; pergunta para o autor.)*
+- Desde a correção `c26c12b`, da revisão da Fase E, todo lote com um aviso essencial (atraso do soldo, herói que parte, emboscada) mostra ao menos um aviso, mesmo com a hora cheia, e esse aviso entra na conta. Com três avisos na hora, três alarmes em leituras seguidas dão seis. O GDD (§13.5) diz "3 por hora; o excedente vira badge", e a V3F-T3.4, "o limite continua".
+- Vale enquanto não houver resposta: o comportamento da correção da Fase E. Ela tinha um motivo: a emboscada era barrada pela cota gasta com as ordens do próprio jogador. `policy.test.ts` o fixa.
+- Se decidir pelo GDD: o alarme volta a respeitar o teto, e a correção da Fase E passa a só descontar da cota os avisos das ordens do próprio jogador.
+
+**F-5. A partida migrada não conta as Ruínas que já concluiu.** *(Achado C5; registrado.)*
+- O contador `expeditionsReturned:<modelo>` nasceu na V3F-T2, e nenhum passo o preenche a partir de `guild.reports`. Uma partida nos estados 20 a 24 que já voltou das Ruínas fica com o objetivo 16 pendente até voltar de novo.
+- Hoje não alcança ninguém: a produção está no estado 12, sem expedições, e a primeira publicação da v0.3 já nasce com o contador. O teste "partida migrada" de `objectives.v03.test.ts` grava o contador à mão.
+- Se for preciso: uma acomodação que some os relatórios não perdidos por modelo, ou um passo de estado.
+
+**F-6. A ordem de "Antes de partir" não é a do roadmap.** *(Achado C9; registrado.)*
+- A V3F-T3.1 pede: encruzilhada, ouro do soldo, herói livre, depósito, Taverna. O código põe o soldo antes da encruzilhada (decisão da Fase D, comentada no código) e corta por gravidade: o herói livre (informação) sempre perde para o depósito (alerta) quando o teto de cinco aperta.
+- Vale enquanto não houver resposta: a ordem do código.
+
+**Plausíveis, não confirmados pelo revisor:** o depósito que encheu na ausência pode aparecer em "custou" e em "ainda pode decidir" com o mesmo botão "Vender…" (P1); a caravana sem escolta é "alerta" com a frase "perda que o jogador evita com a escolta", mas a caravana já está na estrada e não se põe escolta depois (P2); a marca "Decidido pela Postura" só sai se a decisão da Postura e a volta caem na mesma ausência (P3).
+
 ### Fase E: a revisão independente no motor, no conteúdo e no simulador (V3E-T5)
 
 Vêm da aplicação, em 2026-10-07, das quatro respostas do autor (seção 0a) e dos achados da revisão independente da Fase E. **Estado na versão 24.** Um commit por item (`V3E: aplica …` e `V3E: corrige …`). O que segue é o que ficou **decidido na revisão ou pelo agente, sem o autor**, e o que ficou só registrado.
