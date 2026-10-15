@@ -190,4 +190,27 @@ describe('objetivos da v0.3 (V3F-T2)', () => {
     });
     expect(viewOf(state, 'sendPatrol').missing).not.toBeNull();
   });
+
+  it('estado de risco: as Ruínas pedem uma equipe que o feudo não tem, e o objetivo diz o que falta', () => {
+    // As Ruínas pedem de 2 a 3 heróis de nível 2 ou mais. Com a Guilda de pé, o destino
+    // revelado e um herói de nível 1 livre, a ordem de envio seria recusada: o objetivo não
+    // pode dizer que só falta a ordem (`missing: null`), e diz o mesmo que o envio na visão.
+    const start = cloneState(newGame());
+    start.objectives = { completed: [...v02, ...v03.slice(0, 5)], active: [] };
+    start.map.discovered = ['ruins'];
+    start.settlement.buildings.guild = 1;
+    addHero(start, { level: 1 });
+    const { state } = accept(start, command('renameSettlement', { name: 'Vau Alto' }));
+    const ruins = deriveViewState(state, state.lastProcessedAt).guild.available.find(
+      (offer) => offer.modelId === 'ruins',
+    );
+    expect(ruins?.canSend).toBe(false);
+    expect(viewOf(state, 'exploreRuins').status).toBe('active');
+    expect(viewOf(state, 'exploreRuins').missing).toBe(ruins?.sendBlockedReason);
+    // Com a equipe que serve, só falta a ordem.
+    const ready = cloneState(state);
+    addHero(ready, { level: 2 });
+    ready.guild.heroes[0]!.level = 2;
+    expect(viewOf(ready, 'exploreRuins').missing).toBeNull();
+  });
 });

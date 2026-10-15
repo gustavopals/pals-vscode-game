@@ -1,6 +1,8 @@
 import {
   balance,
   buildings,
+  expeditionModels,
+  expeditionTexts,
   type ObjectiveCondition,
   MARKET_RESOURCE_IDS,
   type ObjectiveDef,
@@ -9,8 +11,8 @@ import {
 
 import { seasonAt, seasonWithArticle } from './clock';
 import { constructionOf, ofBuilding, upgradeQuote } from './construction';
-import { destinationBlock } from './expeditions';
-import { sentenceCase } from './format';
+import { destinationBlock, teamOutlook } from './expeditions';
+import { fillText, sentenceCase } from './format';
 import { canDepart } from './heroes';
 import { marketRequired, surplusSellable } from './market';
 import { describeReward, objectiveProgress } from './objectives';
@@ -61,13 +63,26 @@ function nearestBuilding(
   );
 }
 
-/** O que impede de enviar uma equipe a um destino agora: o destino, ou não haver quem parta. */
+/**
+ * O que impede de enviar uma equipe a um destino agora: o destino, ou a equipe que o feudo tem
+ * (quantos podem partir, o nível e as classes que o destino pede). É a mesma conta do envio na
+ * visão (`sendBlockedReason`): o objetivo não diz "só falta a ordem" a quem a ordem seria recusada.
+ */
 function expeditionMissing(state: GameState, modelId: string): string | null {
   const blocked = destinationBlock(state, modelId);
   if (blocked !== null) {
     return blocked.message;
   }
-  return state.guild.heroes.some(canDepart) ? null : 'Nenhum herói está em condições de partir.';
+  const model = expeditionModels.find((entry) => entry.id === modelId);
+  if (model === undefined) {
+    throw new Error(`Expedição fora do conteúdo: ${modelId}`);
+  }
+  if (!state.guild.heroes.some(canDepart)) {
+    return 'Nenhum herói está em condições de partir.';
+  }
+  // A falta de gente, de nível ou de classe não depende do poder: a ordenação não importa aqui.
+  const { shortfall } = teamOutlook(state, model, () => 0);
+  return shortfall === null ? null : fillText(expeditionTexts.noTeam, { motivo: shortfall });
 }
 
 /**
