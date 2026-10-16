@@ -44,12 +44,6 @@ Estado do jogo na versão **24**; protocolo **3**.
 
 ## Limpeza
 
-Sobraram árvores de trabalho de agentes, todas já juntadas ou superadas:
-
-- `.claude/worktrees/agent-*` (quatro);
-- uma em `/tmp/.../scratchpad/e2e-tree` (branch `e2e-fixes`);
-- a cópia de comparação da retomada, no scratchpad da sessão de 2026-10-15 (`antes`, destacada em `4e6ea0c`).
-
-Para remover: `git worktree remove <caminho>` (ou `git worktree prune` para as que sumiram), depois apagar os branches `worktree-agent-*` e `e2e-fixes`. O banco `lotg_test_e2e` no contêiner `lotg-db-test` também é descartável.
+Feita em 2026-10-16: as quatro árvores `.claude/worktrees/agent-*` da v0.3 e os branches `worktree-agent-*`, todos já contidos no `main`, foram removidos, e o registro da árvore `e2e-tree`, que já não existia, foi limpo (`git worktree prune`). **O branch `e2e-fixes` ficou**: tem 5 commits fora do `main` (superados pelas correções juntadas em 2026-10-07, segundo esta nota, mas não conferidos um a um). O `wip/v3f-t1-lote2` fica para a Fase H da v0.4. O banco `lotg_test_e2e` no contêiner `lotg-db-test` continua descartável.
 
 Em produção, `RATE_LIMIT_PER_MINUTE` do `lotg-api` foi de 60 para 600 em 2026-10-06, a pedido do autor.
