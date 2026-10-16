@@ -24,6 +24,8 @@ const MINUTE = 60_000;
  */
 const WIDE = { width: 1040, height: 765 };
 const NARROW = { width: 480, height: 780 };
+/** A janela da captura da Guilda: a largura do herói, alta o bastante para a folha da encruzilhada. */
+const TALL = { width: WIDE.width, height: 1100 };
 
 /**
  * Onde ficam, em % da captura larga, os cinco pedaços da tela que a página rotula. As posições
@@ -178,6 +180,33 @@ test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto'
   await shoot(small, 'jogo-feudo-estreito');
   await narrow.close();
 
+  // A Guilda: Edda e Rolf na encruzilhada da Floresta Antiga, à espera da palavra do senhor. A
+  // captura é só a folha da encruzilhada, como a aba Guilda a mostra.
+  await control('hero', { name: 'Edda', classId: 'warrior', gender: 'f' });
+  await control('hero', { name: 'Rolf', classId: 'archer', gender: 'm' });
+  await control('crossroads', { posture: 'balanced' });
+  // A janela é mais alta que a do herói, para a folha inteira caber abaixo do cabeçalho fixo
+  // do painel, que de outro modo cobriria o alto dela.
+  const guildContext = await newContext(browser, TALL, await context.storageState());
+  const guildPage = await open(guildContext, '/#/guilda');
+  const crossroads = guildPage
+    .getByRole('tabpanel', { name: 'Guilda' })
+    .locator('article[data-crossroads]');
+  await expect(crossroads).toContainText('A trilha se divide');
+  await expect(crossroads).toContainText('Equilibrada');
+  await crossroads.evaluate((card) => card.scrollIntoView({ block: 'center' }));
+  await guildPage.mouse.move(8, 8);
+  await crossroads.screenshot({
+    path: resolve(OUT, 'jogo-encruzilhada.png'),
+    caret: 'hide',
+    animations: 'disabled',
+  });
+  const crossroadsBox = await crossroads.boundingBox();
+  console.log(
+    `jogo-encruzilhada: ${Math.round(crossroadsBox?.width ?? 0)} × ${Math.round(crossroadsBox?.height ?? 0)} px de CSS (a imagem sai em 2×)`,
+  );
+  await guildContext.close();
+
   // Modo discreto: a barra de status vira um contador.
   await page.setViewportSize({ width: 1280, height: WIDE.height });
   await page.keyboard.press('F1');
@@ -207,8 +236,8 @@ test('prévia do link: o título em duas vozes sobre a captura do jogo, em 1200 
   await page.addStyleTag({
     content: `
       .skip-link, .statusbar, .pitch, .readings-title, .readings > label, .readings > input,
-      .labels, .reading-heads, .reading-figure figcaption, .seasons, .fief, .alibi, .vacancy,
-      .colophon { display: none !important; }
+      .labels, .reading-heads, .reading-figure figcaption, .masthead-note, .rhythm, .codex,
+      .alibi, .vacancy, .colophon { display: none !important; }
       body { overflow: hidden; }
       .masthead { padding: 44px 64px 0 !important; }
       .hero { padding: 26px 64px 0 !important; }
