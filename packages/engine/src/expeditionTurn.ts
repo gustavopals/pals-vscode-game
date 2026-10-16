@@ -66,7 +66,13 @@ import { chargeReturned } from './wages';
 
 const { expeditions: rules } = balance;
 
-const noAmounts = (): Record<ResourceId, number> => ({ food: 0, wood: 0, stone: 0, gold: 0 });
+const noAmounts = (): Record<ResourceId, number> => ({
+  food: 0,
+  wood: 0,
+  stone: 0,
+  gold: 0,
+  iron: 0,
+});
 
 /** As chaves `<prefixo>_<recurso>` de um evento, só para o que é maior que zero. */
 function amountKeys(prefix: string, amounts: Record<ResourceId, number>): Record<string, number> {

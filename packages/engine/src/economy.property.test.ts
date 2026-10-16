@@ -347,7 +347,7 @@ describe('invariante de divisão de intervalo', () => {
             settlement.buildings[building] = scenario.levels[index] as number;
             settlement.craftExperience[building] = scenario.experience[index] as number;
           });
-          settlement.resources = { food: 400_000, wood: 300_000, stone: 100_000, gold: 0 };
+          settlement.resources = { food: 400_000, wood: 300_000, stone: 100_000, gold: 0, iron: 0 };
         });
         for (const visit of scenario.visits) {
           state = advanceTo(state, state.lastProcessedAt + visit.afterMs).state;

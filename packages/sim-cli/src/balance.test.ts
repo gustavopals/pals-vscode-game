@@ -159,8 +159,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         // Explorador com a Taverna cheia. E nenhum bot dispensa.
         expect(guild.departed, where).toBe(0);
         expect(guild.dismissed, where).toBe(0);
-        // Nunca mais heróis do que a Taverna abriga.
-        expect(guild.heroes, where).toBeLessThanOrEqual(1 + guild.tavernLevel);
+        // Nunca mais heróis do que a Taverna abriga, fora quem volta do cativeiro: o resgatado
+        // volta mesmo com a casa cheia (resposta do autor à D-17). Com a Mina Abandonada
+        // (V4B-T1), que captura no veio fundo, o Explorador passou a ver a captura e o Resgate.
+        expect(guild.heroes, where).toBeLessThanOrEqual(
+          1 + guild.tavernLevel + run.summary.expeditions.fates.rescued,
+        );
         if (run.profile.id === 'explorador') {
           // Quem contrata não atrasa o soldo: a política guarda um dia de soldo no cofre.
           expect(guild.arrearsHours, where).toBe(0);
@@ -182,7 +186,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // soldo; na semana do Tranquilo (meio ano de jogo) ele tem de três a cinco.
     const heroes = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 6 });
+    // Desde a Mina Abandonada (V4B-T1), que captura no veio fundo, em uma semente o resgatado
+    // volta com a casa cheia e o feudo termina com sete (o resgatado não respeita o limite).
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -205,7 +211,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
     expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
-    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
+    // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1).
+    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 7 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
     const tavernAt = (key: string) =>

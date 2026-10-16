@@ -61,7 +61,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       repelled: 0,
       announced: 0,
       injured: 5,
-      lost: { food: 120, wood: 90, stone: 0, gold: 0 },
+      lost: { food: 120, wood: 90, stone: 0, gold: 0, iron: 0 },
       losses: 210,
       palisade: 0,
     },
@@ -99,8 +99,8 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       lootGold: 0,
     },
     market: {
-      sold: { food: 0, wood: 0, stone: 0 },
-      bought: { food: 0, wood: 0, stone: 0 },
+      sold: { food: 0, wood: 0, stone: 0, iron: 0 },
+      bought: { food: 0, wood: 0, stone: 0, iron: 0 },
       goldEarned: 0,
       goldSpent: 0,
       offered: 0,
@@ -112,16 +112,16 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       caravanLost: 0,
       goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
       goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
-      boughtGold: { food: 0, wood: 0, stone: 0 },
-      caravanGoldBy: { food: 0, wood: 0, stone: 0 },
-      caravanUnits: { food: 0, wood: 0, stone: 0 },
+      boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
+      caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
+      caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },
       mineGold: 0,
       level: 0,
       atHour: null,
       volumeUsedPercent: null,
     },
     masters: { count: 0, waiting: 0, at: [], active: 0, atHour: null, idleHours: 0 },
-    stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
+    stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637, iron: 0 },
     ...overrides,
   };
 }
@@ -205,7 +205,7 @@ describe('faixas a partir da linha de base medida', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
     // Regular, 7 dias reais, ritmo 3, em Senhor, com os objetivos 11 a 16 (V3F-T2): de 75 a 85
     // aldeões conforme a semente, Salão Nv8 em toda semente, até 5.200 de madeira e 5.138 de
-    // pedra no Armazém, até 200.244 de ouro parado (com as obras esgotadas o bot manda todo
+    // pedra no Armazém, até 200.203 de ouro parado (com as obras esgotadas o bot manda todo
     // mundo para a Mina, e desde o Mercado, V3E-T1, vende o que iria ao chão) e até 30 h de jogo
     // seguidas com um recurso indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
@@ -213,7 +213,7 @@ describe('faixas a partir da linha de base medida', () => {
       townHallMin: 8,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_395, gold: 210_257 },
+      surplusMax: { wood: 5_460, stone: 5_395, gold: 210_214 },
       wasteStreakMax: 32,
     });
   });

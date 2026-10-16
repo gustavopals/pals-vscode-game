@@ -24,9 +24,12 @@ import {
   type SimulationResult,
 } from './simulate';
 
-/** Os materiais em que se mede o excedente parado. A comida fica de fora: ela é consumida. */
+/**
+ * Os materiais em que se mede o excedente parado. A comida fica de fora: ela é consumida. O ferro
+ * também (V4B-T1): até o Ferreiro não há uso para ele, e o bot vende o que acha.
+ */
 export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
-  (id): id is Exclude<ResourceId, 'food'> => id !== 'food',
+  (id): id is Exclude<ResourceId, 'food' | 'iron'> => id !== 'food' && id !== 'iron',
 );
 export type SurplusResource = (typeof SURPLUS_RESOURCES)[number];
 

@@ -222,7 +222,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 67 a 94 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.395 | ≤ 210.257 | ≤ 32 | 0 |',
+      '| Rápido 3× | Regular | 67 a 94 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.395 | ≤ 210.214 | ≤ 32 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -263,7 +263,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([85, 85], 8, 0, 0, 3414, 4972, 184501, 27),",
+      "  'week/3/regular': measured([85, 85], 8, 0, 0, 3414, 4972, 184601, 27),",
     );
   });
 
@@ -427,7 +427,7 @@ describe('CSV da matriz', () => {
         'villagers_min,town_hall_2_hour,town_hall_3_hour,town_hall_4_hour,granary_hour,' +
         'warehouse_hour,watchtower_hour,palisade_hour,exhausted_hour,auto_started,' +
         'objectives_done_hour,villagers_lost,' +
-        'food,wood,stone,gold,commands_accepted,commands_refused,' +
+        'food,wood,stone,gold,iron,commands_accepted,commands_refused,' +
         `refused_by_code,${MECHANIC_COLUMN_NAMES.join(',')}`,
     );
     expect(MECHANIC_COLUMN_NAMES).toEqual([

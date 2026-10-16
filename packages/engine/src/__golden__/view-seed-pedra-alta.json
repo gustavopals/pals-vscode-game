@@ -126,6 +126,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -454,7 +471,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -841,7 +858,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -1003,6 +1020,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -1336,7 +1370,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -1739,7 +1773,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -1901,6 +1935,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -2229,7 +2280,7 @@
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 139 madeira e 72 pedra.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -2674,7 +2725,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -2847,6 +2898,23 @@
         "perHour": 13.2,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 1000,
+        "capBreakdown": "Armazém Nv1: 1.000",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -3175,7 +3243,7 @@
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 196 madeira.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 1.000 → 1.600 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 1.000 → 1.600 cada."
         },
         {
           "building": "watchtower",
@@ -3763,7 +3831,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -3913,6 +3981,23 @@
         "perHour": 10.7,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) × 0,8 (frio) = 10,68/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 1000,
+        "capBreakdown": "Armazém Nv1: 1.000",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -4241,7 +4326,7 @@
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 256 madeira.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 1.000 → 1.600 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 1.000 → 1.600 cada."
         },
         {
           "building": "watchtower",
@@ -4851,7 +4936,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -5013,6 +5098,23 @@
         "perHour": 8,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) = 8/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -5523,7 +5625,7 @@
           "blockedCode": "QUEUE_BUSY",
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -6111,7 +6213,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -6284,6 +6386,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 1,048 (mestria 16) × 1,1 (outono) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 1600,
+        "capBreakdown": "Armazém Nv2: 1.600",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -6622,7 +6741,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 1.600 → 2.200 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 1.600 → 2.200 cada."
         },
         {
           "building": "watchtower",
@@ -7210,7 +7329,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -7355,6 +7474,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -7683,7 +7819,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -8305,7 +8441,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -8467,6 +8603,23 @@
         "perHour": 14.6,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (moral 80) = 14,63/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -8795,7 +8948,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -9391,7 +9544,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -9553,6 +9706,23 @@
         "perHour": 14.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 14,41/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -9881,7 +10051,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -10575,7 +10745,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -10737,6 +10907,23 @@
         "perHour": 14.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 14,41/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -11065,7 +11252,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -11742,7 +11929,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -11915,6 +12102,23 @@
         "perHour": 28.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,024 (mestria 8) × 1,1 (outono) × 1,05 (moral 60) = 28,38/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -12243,7 +12447,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -12855,7 +13059,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -13028,6 +13232,23 @@
         "perHour": 28.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,024 (mestria 8) × 1,1 (outono) × 1,05 (moral 60) = 28,38/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -13356,7 +13577,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "palisade",
@@ -13943,7 +14164,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -14116,6 +14337,23 @@
         "perHour": 28.7,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,036 (mestria 12) × 1,1 (outono) × 1,05 (moral 60) = 28,72/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -14444,7 +14682,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -15067,7 +15305,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -15240,6 +15478,23 @@
         "perHour": 28.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,024 (mestria 8) × 1,1 (outono) × 1,05 (moral 60) = 28,38/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -15568,7 +15823,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "palisade",
@@ -16155,7 +16410,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -16317,6 +16572,23 @@
         "perHour": 26.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,048 (mestria 16) × 1,05 (moral 60) = 26,41/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 1000,
+        "capBreakdown": "Armazém Nv1: 1.000",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -16645,7 +16917,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 1.000 → 1.600 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 1.000 → 1.600 cada."
         },
         {
           "building": "watchtower",
@@ -17287,7 +17559,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -17449,6 +17721,23 @@
         "perHour": -7.6,
         "depletesInSeconds": 85901,
         "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) = 13,36/h; −21/h (soldo de 3 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -17777,7 +18066,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -18377,7 +18666,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -18539,6 +18828,23 @@
         "perHour": -4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h; −4/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -18867,7 +19173,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 500 → 1.000 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
           "building": "watchtower",
@@ -19441,7 +19747,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -19598,6 +19904,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 0,95 (moral 40) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 400,
+        "capBreakdown": "500 iniciais × 0,8 (Rei de Ferro) = 400",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -19926,7 +20249,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 400 → 800 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 400 → 800 cada."
         },
         {
           "building": "watchtower",
@@ -20345,7 +20668,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -20507,6 +20830,23 @@
         "perHour": 18,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) = 24/h; −6/h (soldo de 1 herói)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -20835,7 +21175,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -21509,7 +21849,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -21671,6 +22011,23 @@
         "perHour": 6.8,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) × 1,144 (mestria 48) × 1,175 (moral 85) = 10,75/h; −4/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -21999,7 +22356,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -22729,7 +23086,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -22891,6 +23248,23 @@
         "perHour": 12,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) = 24/h; −12/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -23219,7 +23593,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -24008,7 +24382,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -24170,6 +24544,23 @@
         "perHour": 4.5,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 8,5/h; −4/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -24498,7 +24889,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -25377,7 +25768,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -25539,6 +25930,23 @@
         "perHour": 1.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 2 × 1 (Nv1) × 1,048 (mestria 16) × 1,05 (moral 60) = 4,4/h; −3/h (soldo de 3 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2240,
+        "capBreakdown": "Armazém Nv4: 2.800 × 0,8 (Rei de Ferro) = 2.240",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -25867,7 +26275,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.240 → 2.720 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.240 → 2.720 cada."
         },
         {
           "building": "watchtower",
@@ -26747,7 +27155,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -26909,6 +27317,23 @@
         "perHour": 10.5,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 25,5/h; −15/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -27237,7 +27662,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -28093,7 +28518,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -28266,6 +28691,23 @@
         "perHour": -4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) × 1,05 (moral 60) = 0/h; −4/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -28594,7 +29036,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -29567,7 +30009,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -29729,6 +30171,23 @@
         "perHour": -15.7,
         "depletesInSeconds": 472490,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 2 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 4,3/h; −20/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -30057,7 +30516,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -30927,7 +31386,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -31089,6 +31548,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -31471,7 +31947,7 @@
           "blockedCode": "QUEUE_LOCKED",
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -32090,6 +32566,26 @@
           "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
+        },
+        {
+          "resource": "iron",
+          "label": "Ferro",
+          "buy": 8000,
+          "sell": 6800,
+          "buyText": "8,00",
+          "sellText": "6,80",
+          "baseText": "8,00",
+          "trend": "flat",
+          "breakdown": "8,00 (cotação de hoje; a base é 8,00). A venda paga 85%: 6,80.",
+          "tradedToday": 0,
+          "remainingToday": 200,
+          "maxBuyable": 200,
+          "maxSellable": 0,
+          "surplusSellable": 0,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda ferro agora: o que há no estoque pode sair.",
+          "buyBlockedReason": null,
+          "sellBlockedReason": "Faltam 1 ferro."
         }
       ],
       "caravans": [],
@@ -32247,7 +32743,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 2059,
+        "stock": 2041,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -32260,6 +32756,23 @@
         "perHour": 29.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,1 (outono) × 1,05 (moral 60) = 29,38/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -32588,7 +33101,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -33184,13 +33697,13 @@
         {
           "resource": "food",
           "label": "Comida",
-          "buy": 1515,
-          "sell": 1287,
-          "buyText": "1,515",
-          "sellText": "1,287",
+          "buy": 1385,
+          "sell": 1176,
+          "buyText": "1,385",
+          "sellText": "1,176",
           "baseText": "1,00",
-          "trend": "up",
-          "breakdown": "1,515 = 1,165 (cotação de hoje; a base é 1,00) × 1,3 (Outono). A venda paga 85%: 1,287.",
+          "trend": "down",
+          "breakdown": "1,385 = 1,065 (cotação de hoje; a base é 1,00) × 1,3 (Outono). A venda paga 85%: 1,176.",
           "tradedToday": 150,
           "remainingToday": 50,
           "maxBuyable": 50,
@@ -33204,13 +33717,13 @@
         {
           "resource": "wood",
           "label": "Madeira",
-          "buy": 1184,
-          "sell": 1006,
-          "buyText": "1,184",
-          "sellText": "1,006",
+          "buy": 1186,
+          "sell": 1008,
+          "buyText": "1,186",
+          "sellText": "1,008",
           "baseText": "1,20",
           "trend": "down",
-          "breakdown": "1,184 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,006.",
+          "breakdown": "1,186 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,008.",
           "tradedToday": 0,
           "remainingToday": 200,
           "maxBuyable": 150,
@@ -33224,13 +33737,13 @@
         {
           "resource": "stone",
           "label": "Pedra",
-          "buy": 2130,
-          "sell": 1810,
-          "buyText": "2,13",
-          "sellText": "1,81",
+          "buy": 2155,
+          "sell": 1831,
+          "buyText": "2,155",
+          "sellText": "1,831",
           "baseText": "2,00",
           "trend": "up",
-          "breakdown": "2,13 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,81.",
+          "breakdown": "2,155 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,831.",
           "tradedToday": 35,
           "remainingToday": 165,
           "maxBuyable": 165,
@@ -33240,6 +33753,26 @@
           "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
+        },
+        {
+          "resource": "iron",
+          "label": "Ferro",
+          "buy": 7588,
+          "sell": 6449,
+          "buyText": "7,588",
+          "sellText": "6,449",
+          "baseText": "8,00",
+          "trend": "down",
+          "breakdown": "7,588 (cotação de hoje; a base é 8,00). A venda paga 85%: 6,449.",
+          "tradedToday": 0,
+          "remainingToday": 200,
+          "maxBuyable": 200,
+          "maxSellable": 0,
+          "surplusSellable": 0,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda ferro agora: o que há no estoque pode sair.",
+          "buyBlockedReason": null,
+          "sellBlockedReason": "Faltam 1 ferro."
         }
       ],
       "caravans": [],
@@ -33399,6 +33932,23 @@
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -33727,7 +34277,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -34346,13 +34896,13 @@
         {
           "resource": "food",
           "label": "Comida",
-          "buy": 1012,
-          "sell": 860,
-          "buyText": "1,012",
-          "sellText": "0,86",
+          "buy": 1013,
+          "sell": 861,
+          "buyText": "1,013",
+          "sellText": "0,861",
           "baseText": "1,00",
           "trend": "down",
-          "breakdown": "1,012 (cotação de hoje; a base é 1,00). A venda paga 85%: 0,86.",
+          "breakdown": "1,013 (cotação de hoje; a base é 1,00). A venda paga 85%: 0,861.",
           "tradedToday": 0,
           "remainingToday": 400,
           "maxBuyable": 400,
@@ -34366,13 +34916,13 @@
         {
           "resource": "wood",
           "label": "Madeira",
-          "buy": 1211,
-          "sell": 1029,
-          "buyText": "1,211",
-          "sellText": "1,029",
+          "buy": 1265,
+          "sell": 1075,
+          "buyText": "1,265",
+          "sellText": "1,075",
           "baseText": "1,20",
-          "trend": "down",
-          "breakdown": "1,211 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,029.",
+          "trend": "up",
+          "breakdown": "1,265 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,075.",
           "tradedToday": 0,
           "remainingToday": 400,
           "maxBuyable": 254,
@@ -34386,13 +34936,13 @@
         {
           "resource": "stone",
           "label": "Pedra",
-          "buy": 2013,
-          "sell": 1711,
-          "buyText": "2,013",
-          "sellText": "1,711",
+          "buy": 2044,
+          "sell": 1737,
+          "buyText": "2,044",
+          "sellText": "1,737",
           "baseText": "2,00",
           "trend": "up",
-          "breakdown": "2,013 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,711.",
+          "breakdown": "2,044 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,737.",
           "tradedToday": 0,
           "remainingToday": 400,
           "maxBuyable": 400,
@@ -34402,6 +34952,26 @@
           "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
+        },
+        {
+          "resource": "iron",
+          "label": "Ferro",
+          "buy": 7955,
+          "sell": 6761,
+          "buyText": "7,955",
+          "sellText": "6,761",
+          "baseText": "8,00",
+          "trend": "up",
+          "breakdown": "7,955 (cotação de hoje; a base é 8,00). A venda paga 85%: 6,761.",
+          "tradedToday": 0,
+          "remainingToday": 400,
+          "maxBuyable": 251,
+          "maxSellable": 0,
+          "surplusSellable": 0,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda ferro agora: o que há no estoque pode sair.",
+          "buyBlockedReason": null,
+          "sellBlockedReason": "Faltam 1 ferro."
         }
       ],
       "caravans": [
@@ -34436,9 +35006,9 @@
           {
             "resource": "food",
             "label": "Comida",
-            "unitPrice": 989,
-            "unitPriceText": "0,989",
-            "breakdown": "0,989 = 0,86 (venda de hoje) × 1,15.",
+            "unitPrice": 990,
+            "unitPriceText": "0,99",
+            "breakdown": "0,99 = 0,861 (venda de hoje) × 1,15.",
             "maxSendable": 0,
             "surplusSendable": 0,
             "reserve": 120,
@@ -34447,9 +35017,9 @@
           {
             "resource": "wood",
             "label": "Madeira",
-            "unitPrice": 1183,
-            "unitPriceText": "1,183",
-            "breakdown": "1,183 = 1,029 (venda de hoje) × 1,15.",
+            "unitPrice": 1236,
+            "unitPriceText": "1,236",
+            "breakdown": "1,236 = 1,075 (venda de hoje) × 1,15.",
             "maxSendable": 0,
             "surplusSendable": 0,
             "reserve": 0,
@@ -34458,9 +35028,9 @@
           {
             "resource": "stone",
             "label": "Pedra",
-            "unitPrice": 1967,
-            "unitPriceText": "1,967",
-            "breakdown": "1,967 = 1,711 (venda de hoje) × 1,15.",
+            "unitPrice": 1997,
+            "unitPriceText": "1,997",
+            "breakdown": "1,997 = 1,737 (venda de hoje) × 1,15.",
             "maxSendable": 0,
             "surplusSendable": 0,
             "reserve": 0,
@@ -34620,6 +35190,23 @@
         "perHour": 14.4,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,1 (outono) = 26,4/h; −12/h (soldo de 2 heróis)"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -34948,7 +35535,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
         },
         {
           "building": "watchtower",
@@ -35691,6 +36278,26 @@
           "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
           "buyBlockedReason": null,
           "sellBlockedReason": null
+        },
+        {
+          "resource": "iron",
+          "label": "Ferro",
+          "buy": 8000,
+          "sell": 6800,
+          "buyText": "8,00",
+          "sellText": "6,80",
+          "baseText": "8,00",
+          "trend": "flat",
+          "breakdown": "8,00 (cotação de hoje; a base é 8,00). A venda paga 85%: 6,80.",
+          "tradedToday": 0,
+          "remainingToday": 800,
+          "maxBuyable": 250,
+          "maxSellable": 0,
+          "surplusSellable": 0,
+          "reserve": 0,
+          "surplusText": "O feudo não guarda ferro agora: o que há no estoque pode sair.",
+          "buyBlockedReason": null,
+          "sellBlockedReason": "Faltam 1 ferro."
         }
       ],
       "caravans": [
@@ -35913,6 +36520,23 @@
         "perHour": 4.3,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 1 trabalhador × 4 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 4,25/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 5200,
+        "capBreakdown": "Armazém Nv8: 5.200",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -36785,7 +37409,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,
@@ -37056,6 +37680,23 @@
         "perHour": 12,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) = 12/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 0,
+        "cap": 5200,
+        "capBreakdown": "Armazém Nv8: 5.200",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
       }
     ],
     "workersRules": {
@@ -37933,7 +38574,7 @@
     "market": {
       "building": "market",
       "level": 0,
-      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
       "quoteDay": 0,
       "nextChangeInSeconds": null,
       "dailyVolume": 0,

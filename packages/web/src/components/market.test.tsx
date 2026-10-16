@@ -64,7 +64,8 @@ describe('a tabela de preços (V3E-T4.1)', () => {
   const rows = page.match(/<tr[^>]*data-resource="[^"]+".*?<\/tr>/g) ?? [];
 
   it('uma linha por recurso: compra, venda, base, tendência em palavra e o que cabe hoje', () => {
-    expect(rows).toHaveLength(3);
+    // Com o ferro (V4B-T1), quatro linhas.
+    expect(rows).toHaveLength(4);
     const food = text(rows[0] ?? '');
     expect(food).toContain('Comida 1,00 0,85 1,00');
     expect(food).toContain('estável');
@@ -74,7 +75,8 @@ describe('a tabela de preços (V3E-T4.1)', () => {
 
   it('a tendência é dita em palavra e ícone, nunca só pela cor', () => {
     const day = tab(marketDayView);
-    const first = day.match(/<tr[^>]*data-resource="food".*?<\/tr>/)?.[0] ?? '';
+    // No dia de feira do golden (regravado com o ferro na V4B-T1) a pedra sobe e a comida desce.
+    const first = day.match(/<tr[^>]*data-resource="stone".*?<\/tr>/)?.[0] ?? '';
     expect(text(first)).toContain('subindo');
     expect(first).toContain('codicon-arrow-up');
     expect(day).toContain('codicon-arrow-down');
@@ -96,6 +98,8 @@ describe('a tabela de preços (V3E-T4.1)', () => {
     const all = buttons(page);
     const trade = all.filter((button) => button.direction !== null);
     expect(trade.map((button) => button.direction)).toEqual([
+      'buy',
+      'sell',
       'buy',
       'sell',
       'buy',

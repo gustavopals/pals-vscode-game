@@ -120,7 +120,7 @@ export function grantResources(
   draft: GameState,
   amounts: ResourceAmounts,
 ): Record<ResourceId, number> {
-  const stored: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
+  const stored: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
   for (const [resource, amount] of positiveEntries(amounts)) {
     stored[resource] = storeResource(draft, resource, amount * MILLI);
   }

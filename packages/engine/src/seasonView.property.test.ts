@@ -61,7 +61,7 @@ const fiefs = fc
         quarry: 0,
         goldMine: 0,
       };
-      settlement.resources = { food: fief.food, wood: fief.wood, stone: 0, gold: 0 };
+      settlement.resources = { food: fief.food, wood: fief.wood, stone: 0, gold: 0, iron: 0 };
       settlement.morale = fief.morale;
       settlement.craftExperience.farm = fief.experience;
       draft.settings.timeScale = fief.timeScale;
@@ -165,7 +165,7 @@ function winterFief(fief: {
       quarry: 0,
       goldMine: fief.miners,
     };
-    settlement.resources = { food: 1_500_000, wood: fief.wood, stone: 0, gold: fief.gold };
+    settlement.resources = { food: 1_500_000, wood: fief.wood, stone: 0, gold: fief.gold, iron: 0 };
     settlement.morale = fief.morale;
     settlement.planned = [{ building: 'farm', targetLevel: 2, autoStart: true }];
     draft.settings.timeScale = fief.timeScale;
@@ -301,7 +301,7 @@ function leanFief(fief: LeanFief): GameState {
     settlement.population.villagers = fief.villagers;
     settlement.buildings.housing = 5;
     settlement.workers = { farm: veterans, lumberMill: 0, quarry: 0, goldMine: 0 };
-    settlement.resources = { food: fief.food, wood: fief.wood, stone: 0, gold: 0 };
+    settlement.resources = { food: fief.food, wood: fief.wood, stone: 0, gold: 0, iron: 0 };
     settlement.morale = fief.morale;
     settlement.craftExperience.farm = fief.experience;
     settlement.craftExperience.lumberMill = fief.experience;

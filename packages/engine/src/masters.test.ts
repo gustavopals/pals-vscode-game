@@ -56,7 +56,7 @@ function fief(
     settlement.population.villagers = 10;
     settlement.buildings.housing = 2;
     settlement.workers = { farm: 4, lumberMill: 2, quarry: 2, goldMine: 1 };
-    settlement.resources = { food: 900_000, wood: 500_000, stone: 100_000, gold: 100_000 };
+    settlement.resources = { food: 900_000, wood: 500_000, stone: 100_000, gold: 100_000, iron: 0 };
     edit(draft);
   });
 }
@@ -736,7 +736,7 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
       settlement.population.villagers = villagers;
       settlement.buildings.housing = 3;
       settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
-      settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+      settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
       settlement.morale = 0;
       settlement.famine = famineSince(draft.lastProcessedAt - 30 * DAY);
       settlement.cold = { sinceMs: WINTER };
@@ -835,7 +835,7 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
       const { settlement } = draft;
       settlement.population.villagers = 1;
       settlement.workers = { farm: 0, lumberMill: 0, quarry: 1, goldMine: 0 };
-      settlement.resources = { food: 400_000, wood: 300_000, stone: 0, gold: 0 };
+      settlement.resources = { food: 400_000, wood: 300_000, stone: 0, gold: 0, iron: 0 };
       bringMaster(draft, 'odo');
       bringMaster(draft, 'berta');
       Object.assign(settlement.masters[0] as object, { building: 'quarry', worked: true });
@@ -1106,7 +1106,7 @@ describe('o Mestre na visão (V3E-T3.7)', () => {
     const state = gameAt(WINTER + 2 * DAY + 20 * MINUTE, (draft) => {
       const { settlement } = draft;
       settlement.population.villagers = 2;
-      settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+      settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
       settlement.morale = 0;
       settlement.famine = famineSince(draft.lastProcessedAt - 30 * DAY);
       bringMaster(draft, 'odo');

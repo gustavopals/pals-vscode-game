@@ -111,6 +111,7 @@ describe('deriveViewState', () => {
       ['wood', 120, 500, 0],
       ['stone', 65, 500, 0],
       ['gold', 250, null, 0],
+      ['iron', 0, 500, 0],
     ]);
     expect(initial.resources[0]?.depletesInSeconds).toBe(36 * 3600);
     expect(initial.constructions.active).toBeNull();

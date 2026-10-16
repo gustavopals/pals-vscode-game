@@ -21,6 +21,9 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Ruínas de Vel'Thar | Médio | Fraca: Clérigo + Clérigo Nv2 | 82% | 34% / 64% / 1% | 35% / 59% / 6% | 1% / 6% |
 | Ruínas de Vel'Thar | Médio | Mínima: Guerreiro + Arqueiro Nv2 | 100% | 29% / 71% / 0% | 41% / 59% / 0% | 0% / 0% |
 | Ruínas de Vel'Thar | Médio | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| Mina Abandonada | Médio | Fraca: Guerreiro + Clérigo Nv1 | 70% | 9% / 91% / 0% | 3% / 83% / 14% | 0% / 14% |
+| Mina Abandonada | Médio | Mínima: Guerreiro + Arqueiro Nv1 | 81% | 28% / 72% / 0% | 3% / 91% / 5% | 0% / 5% |
+| Mina Abandonada | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 96% | 75% / 25% / 0% | 39% / 61% / 0% | 0% / 0% |
 | Pântano Nebuloso | Alto | Fraca: Mago + Clérigo + Clérigo Nv1 | 59% | 6% / 92% / 2% | 16% / 69% / 15% | 2% / 15% |
 | Pântano Nebuloso | Alto | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 80% | 20% / 80% / 0% | 53% / 44% / 2% | 0% / 2% |
 | Pântano Nebuloso | Alto | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 100% | 76% / 24% / 0% | 74% / 26% / 0% | 0% / 0% |
@@ -71,6 +74,15 @@ Em 31 sortes:
 | Ruínas de Vel'Thar | C | Os selos da torre | 104 | vontade ×1,5 | Mago | fere | 4/26/1/0 | 0/21/10/0 | 31/0/0/0 |
 | Ruínas de Vel'Thar | C | O ninho na cisterna | 64 | o padrão | Guerreiro | fere | 0/23/8/0 | 17/14/0/0 | 31/0/0/0 |
 | Ruínas de Vel'Thar | C | A sentinela sem rosto | 105 | perícia ×1 | Arqueiro | captura | 0/0/30/1 | 0/16/15/0 | 31/0/0/0 |
+| Mina Abandonada | A | O poço escorado | 78 | perícia ×1 | Arqueiro | fere | 0/27/4/0 | 12/19/0/0 | 26/5/0/0 |
+| Mina Abandonada | A | O que mora no veio fundo | 96 | o padrão | Guerreiro | captura | 0/0/25/6 | 0/0/29/2 | 0/9/22/0 |
+| Mina Abandonada | A | A galeria escorada | 84 | o padrão | Guerreiro | fere | 0/2/29/0 | 0/8/23/0 | 0/23/8/0 |
+| Mina Abandonada | B | Os ratos da rampa | 80 | o padrão | Guerreiro | fere | 0/7/24/0 | 0/13/18/0 | 1/26/4/0 |
+| Mina Abandonada | B | A galeria alagada | 102 | vontade ×1 | Mago | captura | 0/11/20/0 | 0/7/24/0 | 0/22/9/0 |
+| Mina Abandonada | B | Os degraus de rocha | 82 | perícia ×1 | Arqueiro | fere | 0/22/9/0 | 7/24/0/0 | 22/9/0/0 |
+| Mina Abandonada | C | O acampamento dos mineiros | 76 | vontade ×1 | Mago | fere | 15/16/0/0 | 10/21/0/0 | 25/6/0/0 |
+| Mina Abandonada | C | O veio da cruz | 97 | o padrão | Guerreiro | captura | 0/0/24/7 | 0/0/28/3 | 0/8/23/0 |
+| Mina Abandonada | C | A porta de tábuas | 86 | o padrão | Guerreiro | fere | 0/0/31/0 | 0/5/26/0 | 0/20/11/0 |
 | Pântano Nebuloso | A | O atoleiro | 130 | perícia ×1 | Arqueiro | fere | 0/12/19/0 | 0/25/6/0 | 14/17/0/0 |
 | Pântano Nebuloso | A | As luzes do charco | 140 | o padrão | Guerreiro | captura | 0/0/17/14 | 0/0/29/2 | 0/9/22/0 |
 | Pântano Nebuloso | A | A margem dos salgueiros | 132 | vontade ×1 | Mago | fere | 0/26/5/0 | 0/24/7/0 | 13/18/0/0 |
@@ -92,8 +104,8 @@ Em 31 sortes:
 | Floresta Antiga | A | Abrir caminho pela mata fechada | Ousada | Guerreiro | Guerreiro + Arqueiro Nv2 (passa em 100%) | Guerreiro Nv2 (passa em 3%) | 17 de 52 |
 | Floresta Antiga | A | Seguir o riacho | Equilibrada | — | Arqueiro + Arqueiro Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv2 (passa em 100%) | 34 de 52 |
 | Floresta Antiga | A | Voltar com o que já têm | Cautelosa | — | Clérigo Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv2 (passa em 100%) | 1 de 52 |
-| Floresta Antiga | B | Abrir caminho pela mata fechada | Ousada | Guerreiro | Guerreiro + Arqueiro Nv2 (passa em 100%) | Guerreiro Nv1 (passa em 0%) | 17 de 52 |
-| Floresta Antiga | B | Seguir o riacho | Equilibrada | — | Guerreiro Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv2 (passa em 100%) | 35 de 52 |
+| Floresta Antiga | B | Abrir caminho pela mata fechada | Ousada | Guerreiro | Guerreiro + Arqueiro Nv2 (passa em 100%) | Guerreiro Nv1 (passa em 0%) | 16 de 52 |
+| Floresta Antiga | B | Seguir o riacho | Equilibrada | — | Guerreiro Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv2 (passa em 100%) | 36 de 52 |
 | Floresta Antiga | B | Voltar com o que já têm | Cautelosa | — | — | Guerreiro + Arqueiro Nv2 (passa em 100%) | 0 de 52 |
 | Floresta Antiga | C | Subir ao ninho | Ousada | Arqueiro | Arqueiro Nv1 (passa em 90%) | Guerreiro + Arqueiro Nv1 (passa em 100%) | 4 de 52 |
 | Floresta Antiga | C | Descer o barranco | Equilibrada | — | Guerreiro + Guerreiro Nv1 (passa em 100%) | Arqueiro Nv1 (passa em 13%) | 45 de 52 |
@@ -125,6 +137,15 @@ Em 31 sortes:
 | Ruínas de Vel'Thar | C | Romper os selos da torre | Ousada | Mago | Mago + Clérigo Nv2 (passa em 3%) | Arqueiro + Mago Nv2 (passa em 35%) | 31 de 60 |
 | Ruínas de Vel'Thar | C | Descer à cisterna | Equilibrada | — | Guerreiro + Arqueiro + Clérigo Nv4 (passa em 100%) | Mago + Clérigo Nv2 (passa em 3%) | 29 de 60 |
 | Ruínas de Vel'Thar | C | Catar a pedra do pátio e voltar | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv3 (passa em 100%) | 0 de 60 |
+| Mina Abandonada | A | Descer ao veio fundo | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 94%) | Guerreiro + Clérigo Nv1 (passa em 0%) | 3 de 16 |
+| Mina Abandonada | A | Seguir a galeria escorada | Equilibrada | — | Guerreiro + Guerreiro Nv1 (passa em 52%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 10 de 16 |
+| Mina Abandonada | A | Subir com o que já têm | Cautelosa | — | Guerreiro + Clérigo Nv1 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 3 de 16 |
+| Mina Abandonada | B | Atravessar a galeria alagada | Ousada | — | Guerreiro + Mago Nv5 (passa em 100%) | Guerreiro + Arqueiro Nv1 (passa em 23%) | 13 de 16 |
+| Mina Abandonada | B | Subir pelos degraus de rocha | Equilibrada | Arqueiro | Guerreiro + Arqueiro Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv5 (passa em 100%) | 3 de 16 |
+| Mina Abandonada | B | Subir com o que já têm | Cautelosa | — | — | Guerreiro + Mago Nv5 (passa em 100%) | 0 de 16 |
+| Mina Abandonada | C | Seguir até o veio marcado com a cruz | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 90%) | Guerreiro + Clérigo Nv1 (passa em 0%) | 5 de 16 |
+| Mina Abandonada | C | Abrir a porta de tábuas | Equilibrada | — | Guerreiro + Clérigo Nv3 (passa em 48%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 7 de 16 |
+| Mina Abandonada | C | Subir com o que já têm | Cautelosa | — | Guerreiro + Clérigo Nv1 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 4 de 16 |
 | Pântano Nebuloso | A | Atravessar o charco, direto à ilha | Ousada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 84%) | Mago + Clérigo + Clérigo Nv1 (passa em 0%) | 5 de 20 |
 | Pântano Nebuloso | A | Contornar pela margem dos salgueiros | Equilibrada | — | Mago + Clérigo + Clérigo Nv1 (passa em 43%) | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 15 de 20 |
 | Pântano Nebuloso | A | Dar meia-volta | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 0 de 20 |
@@ -149,5 +170,7 @@ Em 31 sortes:
 | Resgate | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 6,1 | 36,7 |
 | Ruínas de Vel'Thar | 180 min | Mínima: Guerreiro + Arqueiro Nv2 | 33,3 | 30,3 |
 | Ruínas de Vel'Thar | 180 min | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 33,6 | 45,1 |
+| Mina Abandonada | 240 min | Mínima: Guerreiro + Arqueiro Nv1 | 9,6 | 10,5 |
+| Mina Abandonada | 240 min | Com folga: Guerreiro + Arqueiro Nv3 | 11,2 | 12,8 |
 | Pântano Nebuloso | 300 min | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 8,6 | 30,5 |
 | Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |

@@ -27,6 +27,7 @@ export function amountsToMilli(amounts: ResourceAmounts): Record<ResourceId, num
     wood: toMilli(amounts.wood ?? 0),
     stone: toMilli(amounts.stone ?? 0),
     gold: toMilli(amounts.gold ?? 0),
+    iron: toMilli(amounts.iron ?? 0),
   };
 }
 

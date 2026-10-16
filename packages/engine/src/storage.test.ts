@@ -97,9 +97,9 @@ describe('capacidade (GDD §5.5)', () => {
   it('antes do edifício são 500 por recurso, vezes o fator da dificuldade; o ouro não tem limite', () => {
     const caps = (difficulty: DifficultyId) =>
       RESOURCE_IDS.map((id) => storageCapacity(withDifficulty(difficulty), id));
-    expect(caps('peasant')).toEqual([625_000, 625_000, 625_000, null]);
-    expect(caps('lord')).toEqual([500_000, 500_000, 500_000, null]);
-    expect(caps('ironKing')).toEqual([400_000, 400_000, 400_000, null]);
+    expect(caps('peasant')).toEqual([625_000, 625_000, 625_000, null, 625_000]);
+    expect(caps('lord')).toEqual([500_000, 500_000, 500_000, null, 500_000]);
+    expect(caps('ironKing')).toEqual([400_000, 400_000, 400_000, null, 400_000]);
   });
 
   it.each([
@@ -117,6 +117,8 @@ describe('capacidade (GDD §5.5)', () => {
       expect(storageCapacity(state, 'food'), difficulty).toBe(expected);
       expect(storageCapacity(state, 'wood'), difficulty).toBe(expected);
       expect(storageCapacity(state, 'stone'), difficulty).toBe(expected);
+      // O ferro divide o Armazém, com o mesmo limite (V4B-T1).
+      expect(storageCapacity(state, 'iron'), difficulty).toBe(expected);
     }
   });
 
@@ -127,6 +129,7 @@ describe('capacidade (GDD §5.5)', () => {
       1_000_000,
       1_000_000,
       null,
+      1_000_000,
     ]);
   });
 
@@ -142,7 +145,7 @@ describe('capacidade (GDD §5.5)', () => {
   it('uma partida nova nasce sem Celeiro, sem Armazém e sem desperdício', () => {
     const { settlement, stats } = newGame();
     expect(settlement.buildings).toMatchObject({ granary: 0, warehouse: 0 });
-    expect(settlement.wasted).toEqual({ food: 0, wood: 0, stone: 0, gold: 0 });
+    expect(settlement.wasted).toEqual({ food: 0, wood: 0, stone: 0, gold: 0, iron: 0 });
     expect(stats).toEqual({});
     expect(fullStores(newGame())).toEqual([]);
   });
@@ -359,7 +362,13 @@ describe('desperdício contado', () => {
       draft.settlement.population.villagers = 10;
       draft.settlement.buildings.housing = 2;
       draft.settlement.workers = { farm: 5, lumberMill: 3, quarry: 2, goldMine: 0 };
-      draft.settlement.resources = { food: 500_000, wood: 500_000, stone: 500_000, gold: 0 };
+      draft.settlement.resources = {
+        food: 500_000,
+        wood: 500_000,
+        stone: 500_000,
+        gold: 0,
+        iron: 0,
+      };
     });
     const { events } = advanceTo(start, DAY);
     const wasted = eventsOfType(events, 'storageWasted');
@@ -374,7 +383,7 @@ describe('desperdício contado', () => {
   it('a linha leva a data do dia que acabou, também na virada de estação e de ano', () => {
     const start = gameAt(WINTER + 11 * DAY, (draft) => {
       draft.settlement.workers = { farm: 5, lumberMill: 0, quarry: 0, goldMine: 0 };
-      draft.settlement.resources = { food: 500_000, wood: 500_000, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 500_000, wood: 500_000, stone: 0, gold: 0, iron: 0 };
       draft.settlement.population.villagers = 5;
     });
     const { events } = advanceTo(start, WINTER + 12 * DAY);
@@ -470,7 +479,13 @@ describe('limite com consumo contínuo (comida)', () => {
       draft.settlement.population.villagers = 12;
       draft.settlement.buildings.housing = 3;
       draft.settlement.workers = { farm: 3, lumberMill: 2, quarry: 4, goldMine: 3 };
-      draft.settlement.resources = { food: 499_000, wood: 499_000, stone: 499_000, gold: 0 };
+      draft.settlement.resources = {
+        food: 499_000,
+        wood: 499_000,
+        stone: 499_000,
+        gold: 0,
+        iron: 0,
+      };
     });
     const { state, events } = advanceTo(start, AUTUMN + 84 * DAY);
     expect(state.lastProcessedAt).toBe(AUTUMN + 84 * DAY);
@@ -650,7 +665,13 @@ describe('estoque herdado acima do limite (ADR 0013, decisão 4)', () => {
   it('pode ser gasto, inclusive em obra que pede mais do que o limite', () => {
     const state = gameWith((draft) => {
       draft.settlement.buildings.townHall = 4;
-      draft.settlement.resources = { food: 0, wood: 2_000_000, stone: 2_000_000, gold: 2_000_000 };
+      draft.settlement.resources = {
+        food: 0,
+        wood: 2_000_000,
+        stone: 2_000_000,
+        gold: 2_000_000,
+        iron: 0,
+      };
       draft.settlement.workers.farm = 5;
     });
     // Salão 4→5: 875 de madeira, com 500 de limite. Quem tem, pode gastar.
@@ -699,13 +720,19 @@ describe('construir o Celeiro e o Armazém', () => {
     gameAt(SPRING, (draft) => {
       draft.settlement.buildings.townHall = 2;
       draft.settlement.workers.farm = 1;
-      draft.settlement.resources = { food: 200_000, wood: 450_000, stone: 300_000, gold: 100_000 };
+      draft.settlement.resources = {
+        food: 200_000,
+        wood: 450_000,
+        stone: 300_000,
+        gold: 100_000,
+        iron: 0,
+      };
       edit(draft);
     });
 
   it('antes do Salão no nível 2 a obra não começa, e o motivo diz o que fazer', () => {
     const rich = gameWith((draft) => {
-      draft.settlement.resources = { food: 0, wood: 450_000, stone: 300_000, gold: 0 };
+      draft.settlement.resources = { food: 0, wood: 450_000, stone: 300_000, gold: 0, iron: 0 };
       draft.settlement.workers.farm = 5;
     });
     for (const building of ['granary', 'warehouse'] as const) {
@@ -977,6 +1004,7 @@ describe('a visão do armazenamento', () => {
       ['wood', 120, 500, '500 iniciais', 'warehouse', 'Pátio'],
       ['stone', 65, 500, '500 iniciais', 'warehouse', 'Pátio'],
       ['gold', 250, null, null, null, null],
+      ['iron', 0, 500, '500 iniciais', 'warehouse', 'Pátio'],
     ]);
   });
 
@@ -1377,7 +1405,13 @@ describe('a visão do armazenamento', () => {
     it('a lenha acabando, no inverno: o frio corta toda a produção', () => {
       const start = gameAt(WINTER, (draft) => {
         draft.settlement.workers = { farm: 0, lumberMill: 0, quarry: 5, goldMine: 0 };
-        draft.settlement.resources = { food: 400_000, wood: 5_000, stone: 400_000, gold: 0 };
+        draft.settlement.resources = {
+          food: 400_000,
+          wood: 5_000,
+          stone: 400_000,
+          gold: 0,
+          iron: 0,
+        };
       });
       // 5 de madeira a 2,5 por hora de lenha: o frio chega em 2 horas; a pedra levaria 5.
       expect(row(start, 'stone')).toMatchObject({
@@ -1439,7 +1473,7 @@ describe('a visão do armazenamento', () => {
       goldMine: null,
       housing: null,
       granary: 'Capacidade de comida: 500 → 1.000.',
-      warehouse: 'Capacidade de madeira e de pedra: 500 → 1.000 cada.',
+      warehouse: 'Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada.',
       // A Torre de Vigia também diz o que dá (threat.test.ts).
       watchtower:
         'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
@@ -1460,7 +1494,7 @@ describe('a visão do armazenamento', () => {
     });
     expect(effects(iron)).toMatchObject({
       granary: 'Capacidade de comida: 1.280 → 1.760.',
-      warehouse: 'Capacidade de madeira e de pedra: 800 → 1.280 cada.',
+      warehouse: 'Capacidade de madeira, de pedra e de ferro: 800 → 1.280 cada.',
     });
   });
 
@@ -1541,7 +1575,13 @@ describe('objetivo 4: a recompensa é o desbloqueio e 50 de ouro (ADR 0016, item
   it('quem libera a obra é o Salão, não o objetivo', () => {
     const state = gameWith((draft) => {
       draft.settlement.buildings.townHall = 2;
-      draft.settlement.resources = { food: 100_000, wood: 400_000, stone: 400_000, gold: 0 };
+      draft.settlement.resources = {
+        food: 100_000,
+        wood: 400_000,
+        stone: 400_000,
+        gold: 0,
+        iron: 0,
+      };
       draft.settlement.workers.farm = 5;
     });
     // O quarto objetivo nem foi revelado ainda.

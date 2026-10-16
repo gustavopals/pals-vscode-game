@@ -139,7 +139,13 @@ function readyForTower(seed: string, timeScale: number): GameState {
   });
   state.settlement.buildings.townHall = 2;
   state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
-  state.settlement.resources = { food: 400_000, wood: 450_000, stone: 450_000, gold: 300_000 };
+  state.settlement.resources = {
+    food: 400_000,
+    wood: 450_000,
+    stone: 450_000,
+    gold: 300_000,
+    iron: 0,
+  };
   return state;
 }
 

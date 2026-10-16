@@ -94,11 +94,12 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
 
   it('os números são os do ADR 0018: comida, madeira e pedra a 1,0, 1,2 e 2,0; venda a 85%; 200 por nível; passo de 5%, volta de um décimo, piso em 60% e teto em 160%', () => {
     expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
-    expect(MARKET_RESOURCE_IDS).toEqual(['food', 'wood', 'stone']);
+    // O ferro entrou na v0.4, por último (V4B-T1; ADR 0019, decisão 3).
+    expect(MARKET_RESOURCE_IDS).toEqual(['food', 'wood', 'stone', 'iron']);
     expect(TRADE_DIRECTION_IDS).toEqual(['buy', 'sell']);
     expect(market).toEqual({
-      resources: ['food', 'wood', 'stone'],
-      basePrice: { food: 1000, wood: 1200, stone: 2000 },
+      resources: ['food', 'wood', 'stone', 'iron'],
+      basePrice: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       sellRatio: { num: 17, den: 20 },
       dailyVolumePerLevel: 200,
       walk: {
@@ -137,6 +138,7 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
       ['food', 600, 850, 1000, 1150, 1600],
       ['wood', 720, 1020, 1200, 1380, 1920],
       ['stone', 1200, 1700, 2000, 2300, 3200],
+      ['iron', 4800, 6800, 8000, 9200, 12800],
     ]);
   });
 
@@ -169,8 +171,8 @@ describe('Mercado (GDD §4.1, §5.9 e §6.1; ADR 0018, decisão 16)', () => {
     expect(parse({ sellRatio: { num: 21, den: 20 } })).toBe(false);
     expect(parse({ dailyVolumePerLevel: 0 })).toBe(false);
     expect(parse({ resources: ['wood', 'food', 'stone'] })).toBe(false);
-    expect(parse({ resources: ['food', 'wood'] })).toBe(false);
-    expect(parse({ basePrice: { food: 1000, wood: 1200 } })).toBe(false);
+    expect(parse({ resources: ['food', 'wood', 'stone'] })).toBe(false);
+    expect(parse({ basePrice: { food: 1000, wood: 1200, stone: 2000 } })).toBe(false);
     expect(parse({ basePrice: { ...market.basePrice, food: 0 } })).toBe(false);
     // 1001 × 3/5 não é inteiro.
     expect(parse({ basePrice: { ...market.basePrice, food: 1001 } })).toBe(false);
@@ -230,6 +232,8 @@ describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
   it('os números são os do ADR 0018: Mercado Nv2, 300 unidades, 4 h de jogo, × 23/20, um lugar e dois a partir do Nv4', () => {
     expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
     expect(caravan).toEqual({
+      // Sem caravana de ferro (ADR 0019, decisão 3).
+      resources: ['food', 'wood', 'stone'],
       requiresLevel: 2,
       maxUnits: 300,
       tripMs: 4 * 60 * 60_000,
@@ -247,6 +251,24 @@ describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
     // A viagem dura dois dias de jogo: o preço do Mercado anda duas vezes com a carga na
     // estrada, e é por isso que o da caravana fica fixado no envio.
     expect(caravan.tripMs).toBe(2 * balance.calendar.dayMs);
+  });
+
+  it('o ferro é do Mercado, sem fator de estação, e não vai por caravana (V4B-T1; ADR 0019, decisão 3)', () => {
+    expect(balance.market.basePrice.iron).toBe(8000);
+    expect(Object.keys(balance.market.seasonal)).not.toContain('iron');
+    expect(caravan.resources).not.toContain('iron');
+    for (const resource of caravan.resources) {
+      expect(balance.market.resources).toContain(resource);
+    }
+    const parse = (resources: string[]) =>
+      BalanceSchema.safeParse({
+        ...balance,
+        market: { ...balance.market, caravan: { ...caravan, resources } },
+      }).success;
+    expect(parse(['food', 'wood', 'stone'])).toBe(true);
+    expect(parse(['wood', 'food'])).toBe(false);
+    expect(parse([])).toBe(false);
+    expect(parse(['gold'])).toBe(false);
   });
 
   it('a caravana nunca paga o preço de compra: `sellRatio × caravan.priceRatio` fica abaixo de 1, e a forma recusa o número que reabre a arbitragem', () => {

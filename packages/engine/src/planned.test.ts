@@ -34,7 +34,7 @@ import { deriveViewState } from './view';
 function lumberCamp(wood: number, edit: (draft: GameState) => void = () => {}): GameState {
   return gameAt(SPRING, (draft) => {
     draft.settlement.workers.lumberMill = 5;
-    draft.settlement.resources = { food: 500_000, wood, stone: 400_000, gold: 400_000 };
+    draft.settlement.resources = { food: 500_000, wood, stone: 400_000, gold: 400_000, iron: 0 };
     edit(draft);
   });
 }
@@ -61,7 +61,7 @@ describe('segunda fila de obras (GDD §6.3)', () => {
     gameAt(SPRING, (draft) => {
       draft.settlement.buildings.townHall = townHall;
       draft.settlement.buildings.warehouse = 8;
-      draft.settlement.resources = { food: 500_000, wood: 5e6, stone: 5e6, gold: 5e6 };
+      draft.settlement.resources = { food: 500_000, wood: 5e6, stone: 5e6, gold: 5e6, iron: 0 };
     });
 
   it('o estado guarda sempre duas filas, e a segunda nasce fechada', () => {
@@ -164,7 +164,7 @@ describe('segunda fila de obras (GDD §6.3)', () => {
       const { settlement } = draft;
       settlement.buildings.townHall = 3;
       settlement.buildings.warehouse = 8;
-      settlement.resources = { food: 500_000, wood: 5e6, stone: 5e6, gold: 5e6 };
+      settlement.resources = { food: 500_000, wood: 5e6, stone: 5e6, gold: 5e6, iron: 0 };
       settlement.constructionQueues = [
         { building: 'townHall', targetLevel: 4, startedAtMs: 0, finishesAtMs: HOUR },
         null,
@@ -899,7 +899,7 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
           const { settlement } = draft;
           settlement.population.villagers = 10;
           settlement.workers.quarry = quarrymen;
-          settlement.resources = { food: 500_000, wood: 100_000, stone: 0, gold: 0 };
+          settlement.resources = { food: 500_000, wood: 100_000, stone: 0, gold: 0, iron: 0 };
         }),
         auto('housing'),
       ).state;
@@ -982,7 +982,7 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
 });
 
 describe('a conta do instante (coversIn)', () => {
-  const still = { food: 0, wood: 0, stone: 0, gold: 0 };
+  const still = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
   const stock = (resources: Partial<GameState['settlement']['resources']>, rests = still) =>
     gameAt(SPRING, (draft) => {
       draft.settlement.resources = { ...still, ...resources };

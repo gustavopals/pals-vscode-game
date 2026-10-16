@@ -410,8 +410,8 @@ export type MasterCounts = {
 /** O começo da contagem: nada negociado, nada oferecido. */
 export function noMarket(): MarketCounts {
   return {
-    sold: { food: 0, wood: 0, stone: 0 },
-    bought: { food: 0, wood: 0, stone: 0 },
+    sold: { food: 0, wood: 0, stone: 0, iron: 0 },
+    bought: { food: 0, wood: 0, stone: 0, iron: 0 },
     goldEarned: 0,
     goldSpent: 0,
     offered: 0,
@@ -423,9 +423,9 @@ export function noMarket(): MarketCounts {
     caravanLost: 0,
     goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
     goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
-    boughtGold: { food: 0, wood: 0, stone: 0 },
-    caravanGoldBy: { food: 0, wood: 0, stone: 0 },
-    caravanUnits: { food: 0, wood: 0, stone: 0 },
+    boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
+    caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
+    caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },
   };
 }
 
@@ -626,14 +626,20 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const events: GameEvent[] = [];
   const rows: HourRow[] = [];
   const commands: CommandCounts = { accepted: 0, refused: {} };
-  const reportedWaste: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
+  const reportedWaste: Record<ResourceId, number> = {
+    food: 0,
+    wood: 0,
+    stone: 0,
+    gold: 0,
+    iron: 0,
+  };
   const cards: CardCounts = { seen: 0, answered: 0, expired: 0 };
   const raids: RaidCounts = {
     suffered: 0,
     repelled: 0,
     announced: 0,
     injured: 0,
-    lost: { food: 0, wood: 0, stone: 0, gold: 0 },
+    lost: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
   };
   const guild: GuildCounts = { heroes: 0, arrearsHours: 0, departed: 0 };
   const expeditions = noExpeditions();

@@ -38,7 +38,13 @@ function feud(
     draft.settlement.buildings.townHall = 3;
     draft.settlement.buildings.palisade = palisade;
     draft.settlement.buildings.watchtower = watchtower;
-    draft.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
+    draft.settlement.resources = {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 400_000,
+      iron: 0,
+    };
     draft.map.threat = 55;
     edit(draft);
   });
@@ -406,6 +412,7 @@ describe('a divisão de intervalo continua exata com a Paliçada', () => {
               wood: order === 'plan' ? 90_000 : 400_000,
               stone: order === 'plan' ? 20_000 : 400_000,
               gold: 300_000,
+              iron: 0,
             };
           });
           const cmd =

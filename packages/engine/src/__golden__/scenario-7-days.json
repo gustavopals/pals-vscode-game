@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -610,13 +610,15 @@
       "food": 173732,
       "wood": 449120,
       "stone": 132912,
-      "gold": 235164
+      "gold": 235164,
+      "iron": 0
      },
      "accumulators": {
       "food": 0,
       "wood": 2700000,
       "stone": 0,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "population": {
       "villagers": 13
@@ -661,7 +663,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 48,
@@ -750,18 +753,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -793,7 +799,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -824,13 +830,15 @@
       "food": 500000,
       "wood": 938541,
       "stone": 448964,
-      "gold": 489578
+      "gold": 489578,
+      "iron": 0
      },
      "accumulators": {
       "food": 1500000,
       "wood": 2700000,
       "stone": 1920000,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "population": {
       "villagers": 13
@@ -869,7 +877,8 @@
       "food": 706,
       "wood": 0,
       "stone": 0,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 96,
@@ -963,18 +972,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -1023,7 +1035,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1063,13 +1075,15 @@
       "food": 642527,
       "wood": 1000000,
       "stone": 1000000,
-      "gold": 693461
+      "gold": 693461,
+      "iron": 0
      },
      "accumulators": {
       "food": 2700000,
       "wood": 2700000,
       "stone": 1920000,
-      "gold": 720000
+      "gold": 720000,
+      "iron": 0
      },
      "population": {
       "villagers": 17
@@ -1108,7 +1122,8 @@
       "food": 706,
       "wood": 969,
       "stone": 238,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 100,
@@ -1226,18 +1241,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -1294,7 +1312,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1334,13 +1352,15 @@
       "food": 0,
       "wood": 1000000,
       "stone": 1000000,
-      "gold": 964960
+      "gold": 964960,
+      "iron": 0
      },
      "accumulators": {
       "food": 0,
       "wood": 2592360,
       "stone": 917675,
-      "gold": 696600
+      "gold": 696600,
+      "iron": 0
      },
      "population": {
       "villagers": 22
@@ -1383,7 +1403,8 @@
       "food": 706,
       "wood": 328,
       "stone": 558,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 4,
@@ -1506,18 +1527,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -1578,7 +1602,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1618,13 +1642,15 @@
       "food": 1000000,
       "wood": 1000000,
       "stone": 1000000,
-      "gold": 1321984
+      "gold": 1321984,
+      "iron": 0
      },
      "accumulators": {
       "food": 1200000,
       "wood": 2592360,
       "stone": 917675,
-      "gold": 696600
+      "gold": 696600,
+      "iron": 0
      },
      "population": {
       "villagers": 23
@@ -1667,7 +1693,8 @@
       "food": 573,
       "wood": 934,
       "stone": 614,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 52,
@@ -1784,18 +1811,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -1860,7 +1890,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1906,13 +1936,15 @@
       "food": 1600000,
       "wood": 998955,
       "stone": 1000000,
-      "gold": 1744332
+      "gold": 1744332,
+      "iron": 0
      },
      "accumulators": {
       "food": 3450000,
       "wood": 2592360,
       "stone": 917675,
-      "gold": 696600
+      "gold": 696600,
+      "iron": 0
      },
      "population": {
       "villagers": 23
@@ -1955,7 +1987,8 @@
       "food": 748,
       "wood": 318,
       "stone": 194,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 100,
@@ -2089,18 +2122,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },
@@ -2169,7 +2205,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 24,
+    "schemaVersion": 25,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2215,13 +2251,15 @@
       "food": 1600000,
       "wood": 42009,
       "stone": 895255,
-      "gold": 1724659
+      "gold": 1724659,
+      "iron": 0
      },
      "accumulators": {
       "food": 348834,
       "wood": 0,
       "stone": 2679921,
-      "gold": 2773096
+      "gold": 2773096,
+      "iron": 0
      },
      "population": {
       "villagers": 26
@@ -2264,7 +2302,8 @@
       "food": 44,
       "wood": 318,
       "stone": 709,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "craftExperience": {
       "farm": 100,
@@ -2376,18 +2415,21 @@
      "prices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "previousPrices": {
       "food": 1000,
       "wood": 1200,
-      "stone": 2000
+      "stone": 2000,
+      "iron": 8000
      },
      "quoteDay": 0,
      "tradedToday": {
       "food": 0,
       "wood": 0,
-      "stone": 0
+      "stone": 0,
+      "iron": 0
      },
      "caravans": []
     },

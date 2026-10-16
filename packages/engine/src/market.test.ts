@@ -234,10 +234,10 @@ describe('o preço que anda (V3E-T1.2)', () => {
     expect(later.settlement.buildings.market).toBe(0);
     expect(later.market).toStrictEqual(fresh.market);
     expect(later.market).toStrictEqual({
-      prices: { food: 1000, wood: 1200, stone: 2000 },
-      previousPrices: { food: 1000, wood: 1200, stone: 2000 },
+      prices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
+      previousPrices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       quoteDay: 0,
-      tradedToday: { food: 0, wood: 0, stone: 0 },
+      tradedToday: { food: 0, wood: 0, stone: 0, iron: 0 },
       caravans: [],
     });
     expect(later.rng.market).toBeUndefined();
@@ -265,7 +265,7 @@ describe('o preço que anda (V3E-T1.2)', () => {
     expect(after.market.quoteDay).toBe(7);
     expect(after.market.quoteDay).toBe(gameDay(turn));
     expect(after.market.previousPrices).toStrictEqual({ ...BASE });
-    expect(after.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 0 });
+    expect(after.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 0, iron: 0 });
     expect(after.rng.market).toBeDefined();
     for (const resource of RESOURCES) {
       // Da base, o primeiro passo é só o passo: até 5% para cada lado.
@@ -384,8 +384,10 @@ describe('a Crônica sem ruído (V3E-T1.5)', () => {
     }
     // Medido (revisão da Fase E, R3): 221 linhas em 50 partidas de dois anos de jogo, nos três
     // recursos: 2,2 por ano de jogo. São algumas por ano, e não uma por semana (um ano tem 12
-    // semanas de jogo). Com as marcas a 80% e 125% eram 6 ao todo; a 90% e 110%, 1.226.
-    expect(swings).toBe(221);
+    // semanas de jogo). Com as marcas a 80% e 125% eram 6 ao todo; a 90% e 110%, 1.226. Com o
+    // ferro (V4B-T1), quatro recursos no mesmo fluxo e outro sorteio a cada virada: 336 linhas,
+    // 3,4 por ano de jogo.
+    expect(swings).toBe(336);
   });
 
   it('o preço que sobe até a marca de cima e o que cai até a de baixo têm cada um a sua frase, com o recurso', () => {
@@ -528,7 +530,7 @@ describe('o volume diário (V3E-T1.3)', () => {
     const before = advanceTo(full, 5 * DAY - 1).state;
     expect(remainingToday(before, 'food')).toBe(0);
     const turned = advanceTo(before, 5 * DAY).state;
-    expect(turned.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 0 });
+    expect(turned.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 0, iron: 0 });
     expect(remainingToday(turned, 'food')).toBe(200);
     expect(apply(turned, tradeOrder(turned, 'food', 'sell', 200)).ok).toBe(true);
 
@@ -581,9 +583,10 @@ describe('a ordem de negociar (V3E-T1.4)', () => {
     }
     expect(order({ resource: 'gold' })).toEqual({
       code: 'INVALID_AMOUNT',
-      message: 'O Mercado só negocia comida, madeira e pedra, por ouro.',
+      message: 'O Mercado só negocia comida, madeira, pedra e ferro, por ouro.',
     });
-    expect(order({ resource: 'iron' }).code).toBe('INVALID_AMOUNT');
+    // O ferro passou a ser do Mercado (V4B-T1); a arma, que ainda nem existe, não é.
+    expect(order({ resource: 'weapons' }).code).toBe('INVALID_AMOUNT');
     expect(order({ direction: 'barter' })).toEqual({
       code: 'INVALID_AMOUNT',
       message: 'No Mercado se compra ou se vende.',
@@ -632,7 +635,7 @@ describe('a ordem de negociar (V3E-T1.4)', () => {
       },
     });
     expect(sold.state.stats).toMatchObject({ bought_stone: 40, sold_stone: 7 });
-    expect(sold.state.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 47 });
+    expect(sold.state.market.tradedToday).toStrictEqual({ food: 0, wood: 0, stone: 47, iron: 0 });
     // A ordem não sorteia e não dá identificador a ninguém.
     expect(sold.state.rng).toStrictEqual(stall.rng);
     expect(sold.state.ids).toStrictEqual(stall.ids);
@@ -807,14 +810,14 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
     expect(early).toEqual({
       building: 'market',
       level: 0,
-      text: 'O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.',
+      text: 'O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.',
       quoteDay: 0,
       nextChangeInSeconds: null,
       dailyVolume: 0,
       prices: [],
     });
     expect(view(tavernSite()).market.text).toBe(
-      'Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.',
+      'Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.',
     );
     expect(maxBuyable(tavernSite(), 'food')).toBe(0);
     expect(maxSellable(tavernSite(), 'food')).toBe(0);
@@ -838,7 +841,7 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
     expect(
       deriveViewState(stall, stall.lastProcessedAt, { timeScale: 3 }).market.nextChangeInSeconds,
     ).toBe(1800);
-    expect(market.prices.map((row) => row.resource)).toEqual(['food', 'wood', 'stone']);
+    expect(market.prices.map((row) => row.resource)).toEqual(['food', 'wood', 'stone', 'iron']);
     expect(market.prices[1]).toEqual({
       resource: 'wood',
       label: 'Madeira',
@@ -1095,11 +1098,17 @@ describe('a névoa do Mercado (roadmap §0.7, "Visão e privacidade")', () => {
     ]);
     for (const resource of RESOURCES) {
       const price = tomorrow.market.prices[resource];
-      const { buy, sell } = quote(tomorrow, resource);
+      const { buy } = quote(tomorrow, resource);
       if (price !== today.market.prices[resource]) {
-        const numbers = view(today).market.prices.flatMap((row) => [row.buy, row.sell]);
-        expect(numbers).not.toContain(buy);
-        expect(numbers).not.toContain(sell);
+        // Na linha do próprio recurso, compra com compra e venda com venda: com o ferro, o
+        // preço de amanhã pode coincidir com outro número de hoje, e o arredondamento pode
+        // deixar a venda de amanhã igual à de hoje (V4B-T1). A linha é a cotação de hoje.
+        const row = view(today).market.prices.find((entry) => entry.resource === resource);
+        expect(row?.buy).toBe(quote(today, resource).buy);
+        expect(row?.sell).toBe(quote(today, resource).sell);
+        if (buy !== quote(today, resource).buy) {
+          expect(row?.buy).not.toBe(buy);
+        }
       }
     }
     for (const word of today.rng.market ?? []) {

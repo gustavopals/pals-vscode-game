@@ -114,6 +114,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'resource:wood',
       'resource:stone',
       'resource:gold',
+      'resource:iron',
       'workers',
       'worker:farm',
       'worker:lumberMill',
@@ -160,7 +161,8 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
     expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 9 });
     expect(byId.get('objective:recruitVillagers')).toMatchObject({ position: 2, setSize: 3 });
-    expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
+    expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 5 });
+    expect(byId.get('resource:iron')).toMatchObject({ position: 5, setSize: 5 });
   });
 
   it('o que o jogador abriu ou fechou vale mais que o padrão do nó', () => {
@@ -198,7 +200,7 @@ describe('teclado da árvore no padrão ARIA (treeKey)', () => {
     expect(treeKey(rows, 'fief', 'ArrowDown')).toEqual({ focus: 'resources' });
     expect(treeKey(rows, 'resources', 'ArrowUp')).toEqual({ focus: 'fief' });
     // Do último filho de um ramo para o próximo ramo, sem pular nada.
-    expect(treeKey(rows, 'resource:gold', 'ArrowDown')).toEqual({ focus: 'workers' });
+    expect(treeKey(rows, 'resource:iron', 'ArrowDown')).toEqual({ focus: 'workers' });
     expect(treeKey(rows, last, 'ArrowDown')).toEqual({ focus: last });
     expect(treeKey(rows, first, 'ArrowUp')).toEqual({ focus: first });
   });

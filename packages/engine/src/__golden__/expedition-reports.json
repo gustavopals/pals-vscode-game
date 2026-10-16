@@ -22,7 +22,8 @@
       "food": 0,
       "wood": 15,
       "stone": 0,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "xp": 0,
      "harm": null,
@@ -46,7 +47,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0,
-      "gold": 0
+      "gold": 0,
+      "iron": 0
      },
      "xp": 0,
      "harm": null,
@@ -70,7 +72,8 @@
       "food": 0,
       "wood": 83,
       "stone": 0,
-      "gold": 35
+      "gold": 35,
+      "iron": 0
      },
      "xp": 27,
      "harm": null,
@@ -78,7 +81,7 @@
      "found": [
       "paddedJerkin"
      ],
-     "revealed": null,
+     "revealed": "abandonedMine",
      "cleared": null,
      "rescued": null,
      "master": null,
@@ -92,7 +95,8 @@
      "food": 0,
      "wood": 98,
      "stone": 0,
-     "gold": 35
+     "gold": 35,
+     "iron": 0
     },
     "items": [
      {
@@ -105,7 +109,8 @@
     "food": 0,
     "wood": 98000,
     "stone": 0,
-    "gold": 0
+    "gold": 0,
+    "iron": 0
    },
    "sold": [],
    "lost": false
@@ -131,7 +136,8 @@
       "food": 0,
       "wood": 0,
       "stone": 0,
-      "gold": 3
+      "gold": 3,
+      "iron": 0
      },
      "xp": 2,
      "harm": null,
@@ -151,7 +157,8 @@
      "food": 0,
      "wood": 0,
      "stone": 0,
-     "gold": 3
+     "gold": 3,
+     "iron": 0
     },
     "items": []
    },
@@ -159,7 +166,8 @@
     "food": 0,
     "wood": 0,
     "stone": 0,
-    "gold": 0
+    "gold": 0,
+    "iron": 0
    },
    "sold": [],
    "lost": false
@@ -234,7 +242,8 @@
      "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
-      "Achado: Gibão acolchoado."
+      "Achado: Gibão acolchoado.",
+      "Caminho novo: Mina Abandonada."
      ],
      "standoutName": "Edda",
      "lessonText": null
@@ -250,7 +259,7 @@
     }
    ],
    "lossesText": "Sem perdas: todos voltaram inteiros.",
-   "deedsText": null,
+   "deedsText": "Caminho novo: Mina Abandonada.",
    "lootText": "Trouxe 98 de madeira e 35 de ouro. Faltou lugar no depósito, e foi ao chão: 98 de madeira.",
    "itemsText": "Para o arsenal: Gibão acolchoado.",
    "lost": false

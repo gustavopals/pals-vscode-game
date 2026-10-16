@@ -77,6 +77,7 @@ function prepare(plan: Scenario): GameState {
     wood: plan.wood,
     stone: 400_000,
     gold: plan.gold,
+    iron: 0,
   });
   let state: GameState = warm;
   const [farm, lumberMill, quarry, goldMine] = plan.workers;
@@ -383,8 +384,8 @@ describe('nenhuma sequência de compra e venda no mesmo dia dá lucro (critério
     fc.assert(
       fc.property(day, (plan) => {
         const start = marketDay(plan);
-        const buyAt = { food: 0, wood: 0, stone: 0 };
-        const sellAt = { food: 0, wood: 0, stone: 0 };
+        const buyAt = { food: 0, wood: 0, stone: 0, iron: 0 };
+        const sellAt = { food: 0, wood: 0, stone: 0, iron: 0 };
         for (const id of RESOURCES) {
           const today = quote(start, id);
           buyAt[id] = today.buy;
@@ -467,7 +468,7 @@ describe('nenhuma sequência de compra e venda no mesmo dia dá lucro (critério
         (plan, waits) => {
           const start = marketDay(plan);
           const dayEnd = (Math.floor(plan.atMs / DAY) + 1) * DAY;
-          const buyAt = { food: 0, wood: 0, stone: 0 };
+          const buyAt = { food: 0, wood: 0, stone: 0, iron: 0 };
           for (const id of RESOURCES) {
             buyAt[id] = quote(start, id).buy;
           }

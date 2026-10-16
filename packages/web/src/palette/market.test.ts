@@ -137,7 +137,12 @@ describe('comprar e vender', () => {
     ) {
       throw new Error('esperava os quatro diálogos');
     }
-    expect(resource.items.map((item) => item.label)).toEqual(['Comida', 'Madeira', 'Pedra']);
+    expect(resource.items.map((item) => item.label)).toEqual([
+      'Comida',
+      'Madeira',
+      'Pedra',
+      'Ferro',
+    ]);
     expect(resource.items[1]?.description).toBe('compra 1,20 · venda 1,02 · estável');
     expect(side.items.map((item) => [item.label, item.description])).toEqual([
       ['Comprar', 'a 1,20 · cabem até 80'],
@@ -181,9 +186,9 @@ describe('comprar e vender', () => {
     await run('lords.trade', { resource: 'food', direction: 'sell', amount: 50 });
     expect(shown.map((dialog) => dialog.kind)).toEqual(['confirm']);
     const [confirm] = shown;
-    // 50 de comida a 1,287: 64,35 de ouro.
+    // 50 de comida a 1,176: 58,8 de ouro.
     expect(confirm?.kind === 'confirm' ? confirm.title : '').toBe(
-      'Vender 50 de comida por 64,35 de ouro?',
+      'Vender 50 de comida por 58,8 de ouro?',
     );
     expect(orders()).toEqual([
       {

@@ -2,6 +2,7 @@ import {
   balance,
   BUILDING_IDS,
   buildings,
+  marketTexts,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
 } from '@lotg/content';
@@ -21,7 +22,7 @@ import {
   firewoodRate,
   netRates,
   producedBy,
-  producerOf,
+  producerOrNull,
   productionFactors,
   productionRate,
 } from './economy';
@@ -116,7 +117,14 @@ function productionBreakdown(
 }
 
 function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: number): string {
-  const producer = producerOf(resource);
+  const producer = producerOrNull(resource);
+  if (producer === null) {
+    // O ferro (V4B-T1): ninguém o produz, ninguém o consome; ele só chega e só sai por ordem.
+    return marketTexts.unproduced.replace(
+      '{recurso}',
+      balance.resources[resource].label.toLowerCase(),
+    );
+  }
   const parts = [
     `${buildings[producer].label}: ${productionBreakdown(state, producer, timeScale)}`,
   ];

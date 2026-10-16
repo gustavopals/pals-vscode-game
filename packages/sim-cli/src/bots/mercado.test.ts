@@ -44,6 +44,7 @@ function feud(edit: (state: GameState) => void = () => {}, atMs = 10 * DAY + HOU
     wood: 400_000,
     stone: 400_000,
     gold: 500_000,
+    iron: 0,
   });
   state.settlement.population.villagers = 12;
   state.council.nextDrawAtMs = 1000 * 84 * DAY;

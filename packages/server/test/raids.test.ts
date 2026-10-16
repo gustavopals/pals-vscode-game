@@ -162,7 +162,13 @@ function feud(
     palisade: levels.palisade ?? 0,
   };
   state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
-  state.settlement.resources = { food: 300_000, wood: 300_000, stone: 200_000, gold: 200_000 };
+  state.settlement.resources = {
+    food: 300_000,
+    wood: 300_000,
+    stone: 200_000,
+    gold: 200_000,
+    iron: 0,
+  };
   return state;
 }
 

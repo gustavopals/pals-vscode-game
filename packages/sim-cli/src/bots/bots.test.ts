@@ -1210,6 +1210,7 @@ describe('política "ampliar o estoque"', () => {
       ['wood', 'warehouse'],
       ['stone', 'warehouse'],
       ['gold', null],
+      ['iron', 'warehouse'],
     ]);
   });
 

@@ -307,11 +307,11 @@ describe('estações (GDD §4.1)', () => {
   it('os fatores de produção são os da tabela', () => {
     const table = (id: (typeof SEASON_IDS)[number]) =>
       RESOURCE_IDS.map((resource) => value(bySeason[id]!.production[resource]));
-    // Comida, madeira, pedra, ouro.
-    expect(table('spring')).toEqual([1.2, 1, 1, 1]);
-    expect(table('summer')).toEqual([1, 1.15, 1.15, 1]);
-    expect(table('autumn')).toEqual([1.3, 1, 1, 1.1]);
-    expect(table('winter')).toEqual([0.4, 0.8, 0.8, 1]);
+    // Comida, madeira, pedra, ouro e ferro (o ferro não é produzido: fator neutro; V4B-T1).
+    expect(table('spring')).toEqual([1.2, 1, 1, 1, 1]);
+    expect(table('summer')).toEqual([1, 1.15, 1.15, 1, 1]);
+    expect(table('autumn')).toEqual([1.3, 1, 1, 1.1, 1]);
+    expect(table('winter')).toEqual([0.4, 0.8, 0.8, 1, 1]);
   });
 
   it('só a primavera apressa o recrutamento e só o inverno atrasa as obras e queima lenha', () => {
@@ -869,7 +869,7 @@ describe('armazenamento (GDD §5.5)', () => {
       perLevel: 600,
     });
     expect(storage.buildings.warehouse).toMatchObject({
-      resources: ['wood', 'stone'],
+      resources: ['wood', 'stone', 'iron'],
       level1: 1000,
       perLevel: 600,
     });
@@ -878,7 +878,8 @@ describe('armazenamento (GDD §5.5)', () => {
 
   it('o ouro não tem limite, e cada recurso guardado tem um edifício só', () => {
     const stored = stores.flatMap(([, def]) => def.resources);
-    expect(stored).toEqual(['food', 'wood', 'stone']);
+    // O ferro divide o Armazém com a madeira e a pedra (V4B-T1; ADR 0019, decisão 3).
+    expect(stored).toEqual(['food', 'wood', 'stone', 'iron']);
     expect(stored).not.toContain('gold');
     expect(new Set(stored).size).toBe(stored.length);
   });

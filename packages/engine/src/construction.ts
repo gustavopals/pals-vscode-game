@@ -433,6 +433,7 @@ export function cancelRefund(building: BuildingId, fromLevel: number): Record<Re
     wood: refundOf('wood'),
     stone: refundOf('stone'),
     gold: refundOf('gold'),
+    iron: refundOf('iron'),
   };
 }
 

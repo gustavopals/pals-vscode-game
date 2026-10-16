@@ -83,7 +83,7 @@ describe('o Mercado na árvore (V3E-T4.5)', () => {
     const node = find(tree(marketDayView), 'market');
     expect(node).toMatchObject({
       label: 'Mercado',
-      description: 'comida 1,515 ▲ · madeira 1,184 ▼ · pedra 2,13 ▲',
+      description: 'comida 1,385 ▼ · madeira 1,186 ▼ · pedra 2,155 ▲ · ferro 7,588 ▼',
       command: { id: 'lords.openPanel', args: ['market'] },
     });
     // O botão "Negociar" é da linha; sem lugar na estrada, não há "Caravana".
@@ -93,7 +93,7 @@ describe('o Mercado na árvore (V3E-T4.5)', () => {
 
   it('uma linha por recurso, com os dois preços, a tendência por extenso e o que cabe', () => {
     const food = find(tree(marketDayView), 'price:food');
-    expect(food?.description).toBe('compra 1,515 · venda 1,287 · subindo');
+    expect(food?.description).toBe('compra 1,385 · venda 1,176 · descendo');
     expect(food?.tooltip).toContain(marketDayView.market.prices[0]?.breakdown);
   });
 

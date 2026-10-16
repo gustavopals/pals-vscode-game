@@ -25,7 +25,7 @@ import type { BuildingId, GameState } from './types';
 import { deriveViewState } from './view';
 
 const rich = gameWith((draft) => {
-  draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+  draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
 });
 
 describe('fórmulas de custo e tempo (GDD §6.2)', () => {
@@ -240,7 +240,7 @@ describe('obras e estações (GDD §4.1)', () => {
   const richAt = (atMs: number) =>
     gameAt(atMs, (draft) => {
       draft.settlement.workers.farm = 5;
-      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
     });
   const finishOf = (state: GameState) => state.settlement.constructionQueues[0]?.finishesAtMs;
 
@@ -332,7 +332,13 @@ describe('cancelar', () => {
 
   it('arredonda o reembolso para baixo, em milésimos', () => {
     const state = gameWith((draft) => {
-      draft.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
+      draft.settlement.resources = {
+        food: 400_000,
+        wood: 400_000,
+        stone: 400_000,
+        gold: 400_000,
+        iron: 0,
+      };
       draft.settlement.buildings = { ...draft.settlement.buildings, townHall: 4, housing: 4 };
     });
     // Habitações 4→5: 328 madeira e 82 pedra; 80% = 262,4 e 65,6.
@@ -463,7 +469,13 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
     gameAt(atMs, (draft) => {
       draft.settlement.buildings.townHall = townHall;
       draft.settlement.buildings.palisade = palisade;
-      draft.settlement.resources = { food: 400_000, wood: 450_000, stone: 400_000, gold: 400_000 };
+      draft.settlement.resources = {
+        food: 400_000,
+        wood: 450_000,
+        stone: 400_000,
+        gold: 400_000,
+        iron: 0,
+      };
     });
   const palisade = (state: GameState) =>
     deriveViewState(state, state.lastProcessedAt).constructions.available.find(
@@ -520,6 +532,7 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
       wood: 250_000,
       stone: 350_000,
       gold: 400_000,
+      iron: 0,
     });
     expect(started.events.map((event) => [event.type, event.data, event.text])).toEqual([
       [
@@ -593,7 +606,7 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
     const high = gameWith((draft) => {
       draft.settlement.buildings.townHall = buildings.townHall.maxLevel;
       draft.settlement.buildings.palisade = 2;
-      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
     });
     expect(refuse(high, start).code).toBe('MAX_LEVEL');
   });
@@ -656,7 +669,13 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
   it('planejada como automática, começa sozinha no instante em que o Salão chega ao nível 3', () => {
     const waiting = gameAt(3 * DAY, (draft) => {
       draft.settlement.buildings.townHall = 2;
-      draft.settlement.resources = { food: 400_000, wood: 450_000, stone: 400_000, gold: 400_000 };
+      draft.settlement.resources = {
+        food: 400_000,
+        wood: 450_000,
+        stone: 400_000,
+        gold: 400_000,
+        iron: 0,
+      };
       draft.settlement.constructionQueues[0] = {
         building: 'townHall',
         targetLevel: 3,

@@ -151,7 +151,8 @@ function stockOf(state: GameState, resource: MarketResourceId): number {
  * falta).
  */
 export function cargoBlock(state: GameState, resource: unknown, amount: unknown): Rejection | null {
-  if (!isMarketResource(resource)) {
+  // O ferro é do Mercado, mas não vai por caravana (ADR 0019, decisão 3).
+  if (!isMarketResource(resource) || !rules.resources.includes(resource)) {
     return reject('INVALID_AMOUNT', { note: caravanTexts.cargoOnly });
   }
   if (

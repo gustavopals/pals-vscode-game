@@ -273,7 +273,7 @@ describe('enviar uma expedição (sendExpedition)', () => {
       nodeId: 'fences',
       nodeEndsAtMs: 10 * MINUTE,
       crossroads: null,
-      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 }, items: [] },
+      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 }, items: [] },
       log: [],
     });
     expect(state.guild.heroes.map((entry) => entry.status)).toEqual(['expedition', 'idle']);
@@ -492,7 +492,7 @@ describe('o percurso por eventos da linha do tempo', () => {
     // A Patrulha rende umas poucas moedas (revisão da Fase D, B10).
     expect(found).toBeGreaterThanOrEqual(1);
     expect(found).toBeLessThanOrEqual(3);
-    expect(expedition.loot.resources).toEqual({ food: 0, wood: 0, stone: 0, gold: found });
+    expect(expedition.loot.resources).toEqual({ food: 0, wood: 0, stone: 0, gold: found, iron: 0 });
     expect(nodeEvent?.data).toEqual({
       expeditionId: 'expedition-1',
       modelId: 'patrol',
@@ -545,8 +545,8 @@ describe('o percurso por eventos da linha do tempo', () => {
         sentAtMs: 0,
         returnedAtMs: 15 * MINUTE,
         log: expedition.log,
-        loot: { resources: { food: 0, wood: 0, stone: 0, gold: found }, items: [] },
-        wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+        loot: { resources: { food: 0, wood: 0, stone: 0, gold: found, iron: 0 }, items: [] },
+        wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
         sold: [],
         lost: false,
       },
@@ -595,7 +595,7 @@ describe('o percurso por eventos da linha do tempo', () => {
     // Guerreiro Nv1 (42) contra 55: Revés da sorte 92 em diante, Desastre abaixo.
     expect(['setback', 'disaster']).toContain(entry?.outcome);
     if (entry?.outcome === 'disaster') {
-      expect(entry.gained).toEqual({ food: 0, wood: 0, stone: 0, gold: 0 });
+      expect(entry.gained).toEqual({ food: 0, wood: 0, stone: 0, gold: 0, iron: 0 });
     } else {
       // Metade de 60 a 90 de madeira e de 20 a 30 de ouro, para baixo.
       expect(entry?.gained.wood).toBeGreaterThanOrEqual(30);
@@ -850,7 +850,7 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
       master: null,
       optionId: 'stream',
       decidedBy: 'player',
-      gained: { food: 0, wood: 0, stone: 0, gold: 0 },
+      gained: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
       xp: 0,
       standout: null,
       lesson: null,
@@ -1182,7 +1182,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
     // A Patrulha sai 15 min antes de T; a Floresta chega à encruzilhada 12 h reais antes de T.
     state.guild.heroes.forEach((entry) => (entry.status = 'expedition'));
     state.ids.expedition = 2;
-    const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
+    const blank = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
     state.guild.expeditions = [
       {
         id: 'expedition-1',
@@ -1258,7 +1258,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
     // (ela ainda está fora); a volta, no mesmo instante, cobra: quem deve não espera em casa
     // uma virada que uma equipe sempre na estrada nunca encontraria.
     const T = 20 * DAY;
-    const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
+    const blank = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
     const start = guildHall(T - 5 * MINUTE, (draft) => {
       const edda = addHero(draft, { name: 'Edda', gender: 'f', joinedAtMs: 0 });
       edda.discontent = true;
@@ -1307,7 +1307,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
 
   it('quem volta de expedição com o soldo em dia, ou antes do prazo, fica', () => {
     const T = 20 * DAY + 30 * MINUTE;
-    const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
+    const blank = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
     const away = (sinceMs: number) =>
       guildHall(T - 5 * MINUTE, (draft) => {
         const edda = addHero(draft, { name: 'Edda', gender: 'f', joinedAtMs: 0 });

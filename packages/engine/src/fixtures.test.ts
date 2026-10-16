@@ -190,7 +190,13 @@ const scenarios: Record<string, () => GameState> = {
         const start = createInitialState('fixture-queues', { ...settings, timeScale: 3 });
         start.settlement.buildings.townHall = 4;
         start.settlement.buildings.warehouse = 2;
-        start.settlement.resources = { food: 400_000, wood: 420_000, stone: 300_000, gold: 90_000 };
+        start.settlement.resources = {
+          food: 400_000,
+          wood: 420_000,
+          stone: 300_000,
+          gold: 90_000,
+          iron: 0,
+        };
         return start;
       })(),
       [
@@ -241,6 +247,7 @@ const scenarios: Record<string, () => GameState> = {
           wood: 400_000,
           stone: 400_000,
           gold: 200_000,
+          iron: 0,
         };
         return start;
       })(),
@@ -260,7 +267,13 @@ const scenarios: Record<string, () => GameState> = {
   palisade: () => {
     const start = createInitialState('fixture-palisade', settings);
     start.settlement.buildings = { ...start.settlement.buildings, townHall: 3, warehouse: 1 };
-    start.settlement.resources = { food: 400_000, wood: 700_000, stone: 300_000, gold: 200_000 };
+    start.settlement.resources = {
+      food: 400_000,
+      wood: 700_000,
+      stone: 300_000,
+      gold: 200_000,
+      iron: 0,
+    };
     const plea = dealt(start, 'palisadePromisePlea');
     const promised = play(plea.state, [
       command('setWorkers', { building: 'farm', count: 3 }),
@@ -975,7 +988,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(opening.settlement.buildings.market).toBe(1);
     expect(opening.market.quoteDay).toBe(0);
     expect(opening.market.prices).toEqual(of('fresh').market.prices);
-    expect(opening.market.tradedToday).toEqual({ food: 0, wood: 120, stone: 0 });
+    expect(opening.market.tradedToday).toEqual({ food: 0, wood: 120, stone: 0, iron: 0 });
     expect(opening.rng.market).toBeUndefined();
     expect(opening.settlement.constructionQueues[0]).toMatchObject({
       building: 'market',
@@ -989,7 +1002,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(fair.market.quoteDay).toBe(Math.floor(fair.lastProcessedAt / DAY) + 1);
     expect(fair.market.prices).not.toEqual(of('fresh').market.prices);
     expect(fair.market.previousPrices).not.toEqual(fair.market.prices);
-    expect(fair.market.tradedToday).toEqual({ food: 150, wood: 0, stone: 35 });
+    expect(fair.market.tradedToday).toEqual({ food: 150, wood: 0, stone: 35, iron: 0 });
     expect(fair.rng.market).toBeDefined();
     expect(fair.stats).toMatchObject({ sold_food: 150, bought_stone: 35 });
     // As caravanas (versão 22). Uma sem escolta, com o dia já virado no caminho: o preço dela
@@ -1008,7 +1021,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ]);
     expect(road.market.caravans[0]?.arrivesAtMs).toBeGreaterThan(road.lastProcessedAt);
     expect(road.market.quoteDay).toBeGreaterThan(0);
-    expect(road.market.tradedToday).toEqual({ food: 0, wood: 0, stone: 0 });
+    expect(road.market.tradedToday).toEqual({ food: 0, wood: 0, stone: 0, iron: 0 });
     expect(road.ids.caravan).toBe(1);
     expect(road.stats.caravansSent).toBe(1);
     // Duas na estrada, uma com escolta: Edda fora do feudo, Rolf nele.

@@ -51,7 +51,7 @@ function hungryFief(fief: Fief): GameState {
     settlement.buildings.housing = 4;
     // Alguns lavradores já conhecem o ofício: sozinhos não bastam, ou a fome não estaria aberta.
     settlement.workers = { farm: veterans, lumberMill: 0, quarry: 0, goldMine: 0 };
-    settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+    settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
     starve(draft, fief.atMs - fief.famineHours * HOUR);
     settlement.morale = fief.morale;
   });

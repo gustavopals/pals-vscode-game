@@ -119,7 +119,7 @@ describe('as contas das caravanas (V3E-T2.1; ADR 0018, decisão 17)', () => {
 });
 
 describe('comprar no balcão e enviar por caravana nunca rende (resposta do autor de 2026-10-07; revisão da Fase E, D1)', () => {
-  const RESOURCES = balance.market.resources;
+  const RESOURCES = balance.market.caravan.resources;
 
   it('a reprodução do defeito: Mercado Nv2, preços na base, escolta, comprar 300 e enviar 300 no mesmo instante perde ouro nos três recursos', () => {
     for (const resource of RESOURCES) {
@@ -233,7 +233,7 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
         escortHeroId: null,
       },
     ]);
-    expect(state.market.tradedToday).toEqual({ food: 0, wood: 0, stone: 0 });
+    expect(state.market.tradedToday).toEqual({ food: 0, wood: 0, stone: 0, iron: 0 });
     expect(state.stats.caravansSent).toBe(1);
     expect(state.stats.sold_wood).toBeUndefined();
     expect(events).toHaveLength(1);
@@ -318,7 +318,8 @@ describe('a ordem de enviar (V3E-T2.2)', () => {
       refuse(state, command('sendCaravan', { quoteDay: QUOTE_OF_NOW, ...payload } as never));
     expect(order({ resource: 'gold', amount: 10, escortHeroId: null })).toEqual({
       code: 'INVALID_AMOUNT',
-      message: 'Uma caravana leva um recurso só: comida, madeira ou pedra.',
+      message:
+        'Uma caravana leva um recurso só: comida, madeira ou pedra. O ferro não vai por caravana.',
     });
     for (const amount of [0, -5, 1.5, 301, Number.NaN, '10']) {
       expect(order({ resource: 'wood', amount, escortHeroId: null })).toEqual({

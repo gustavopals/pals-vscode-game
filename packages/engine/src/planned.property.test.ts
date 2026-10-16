@@ -123,9 +123,10 @@ function build(plan: Feud): GameState {
       wood: plan.wood,
       stone: plan.stone,
       gold: plan.gold,
+      iron: 0,
     };
     const [food, wood, stone, gold] = plan.rests;
-    settlement.accumulators = { food, wood, stone, gold };
+    settlement.accumulators = { food, wood, stone, gold, iron: 0 };
   });
   const [farm, lumberMill, quarry, goldMine] = plan.workers;
   return order(base, [

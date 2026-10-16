@@ -66,7 +66,7 @@ const ratio = z.strictObject({ num: positiveInt, den: positiveInt });
 const ratioOrZero = z.strictObject({ num: z.number().int().nonnegative(), den: positiveInt });
 
 const perResource = <T extends z.ZodType>(value: T) =>
-  z.strictObject({ food: value, wood: value, stone: value, gold: value });
+  z.strictObject({ food: value, wood: value, stone: value, gold: value, iron: value });
 
 const exactlyOneRecommended = (items: ReadonlyArray<{ recommended: boolean }>) =>
   items.filter((item) => item.recommended).length === 1;
@@ -430,7 +430,7 @@ const expeditions = z.strictObject({
 });
 
 const perMarketResource = <T extends z.ZodType>(value: T) =>
-  z.strictObject({ food: value, wood: value, stone: value });
+  z.strictObject({ food: value, wood: value, stone: value, iron: value });
 
 /** Uma fração de um preço-base que dá milésimos inteiros: é o que o piso, o teto e as marcas pedem. */
 const wholeShareOf = (price: number, { num, den }: { num: number; den: number }) =>
@@ -464,6 +464,19 @@ const ONE = { num: 1, den: 1 };
  */
 const caravan = z
   .strictObject({
+    resources: z
+      .array(z.enum(MARKET_RESOURCE_IDS))
+      .min(1)
+      .refine(
+        (list) =>
+          list.every(
+            (id, index) =>
+              index === 0 ||
+              MARKET_RESOURCE_IDS.indexOf(id) >
+                MARKET_RESOURCE_IDS.indexOf(list[index - 1] as (typeof list)[number]),
+          ),
+        'recursos de caravana fora da ordem do Mercado',
+      ),
     requiresLevel: positiveInt,
     maxUnits: positiveInt,
     tripMs: positiveInt,
@@ -1202,7 +1215,9 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
     type: z.literal('resources'),
     amounts: z
       .partialRecord(resourceId, nonZeroInt)
-      .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso'),
+      .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso')
+      // O ferro não chega por carta (V4B-T1; ADR 0019, decisão 3).
+      .refine((amounts) => !Object.hasOwn(amounts, 'iron'), 'ferro em carta do Conselho'),
   }),
   z.strictObject({ type: z.literal('morale'), amount: nonZeroInt, durationDays: positiveInt }),
   z.strictObject({ type: z.literal('setFlag'), flag }),
@@ -1638,6 +1653,9 @@ function inspectExpeditionGraph(
  * acíclico em que todo caminho chega a um retorno dentro dos limites. A duração anunciada do
  * modelo é a do caminho mais longo de qualquer variante.
  */
+/** Os destinos que rendem ferro (V4B-T1): só a Mina Abandonada. */
+const IRON_SOURCES: readonly string[] = ['abandonedMine'];
+
 export function expeditionModelsSchema(rules: ExpeditionsDef) {
   const model = z
     .strictObject({
@@ -1677,6 +1695,16 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
         longestMs = Math.max(longestMs, found.longestMs);
         for (const problem of found.problems) {
           context.addIssue({ code: 'custom', message: `variante ${index}: ${problem}` });
+        }
+      }
+      // O ferro só vem da Mina Abandonada (V4B-T1; ADR 0019, decisão 3).
+      if (!IRON_SOURCES.includes(entry.id)) {
+        for (const variant of entry.variants) {
+          for (const node of Object.values(variant.nodes)) {
+            if ('rewards' in node && node.rewards?.resources?.iron !== undefined) {
+              context.addIssue({ code: 'custom', message: 'ferro fora da Mina Abandonada' });
+            }
+          }
         }
       }
       if (context.issues.length === 0 && longestMs !== entry.durationMs) {

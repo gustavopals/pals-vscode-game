@@ -66,8 +66,8 @@ const twoSessions = await simulate({
 });
 
 const HEADER =
-  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
-  'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
+  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,' +
+  'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,iron_per_hour,' +
   'villagers,capacity,free,in_training,' +
   'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,' +
   'famine,' +
@@ -475,7 +475,7 @@ describe('fila ociosa', () => {
       settlement: {
         ...fresh.settlement,
         buildings: { ...fresh.settlement.buildings, townHall: 4 },
-        resources: { food: 500_000, wood: 500_000, stone: 500_000, gold: 500_000 },
+        resources: { food: 500_000, wood: 500_000, stone: 500_000, gold: 500_000, iron: 0 },
       },
     };
     const one = order(hall4, 'startConstruction', { building: 'farm' });
@@ -495,7 +495,10 @@ describe('fila ociosa', () => {
     const fresh = createInitialState('fila', settings);
     const broke: GameState = {
       ...fresh,
-      settlement: { ...fresh.settlement, resources: { food: 0, wood: 0, stone: 0, gold: 0 } },
+      settlement: {
+        ...fresh.settlement,
+        resources: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
+      },
     };
     // Planejar não exige estoque: a planejada existe, mas ainda não podia começar.
     const planned = order(broke, 'planConstruction', { building: 'farm' });
@@ -717,6 +720,7 @@ describe('resumo de uma partida', () => {
         wood: Math.round(sum('raided_wood')),
         stone: 0,
         gold: 0,
+        iron: 0,
       },
       losses: Math.round(sum('raided_food') + sum('raided_wood')),
       palisade: 2,

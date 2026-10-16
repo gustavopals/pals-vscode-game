@@ -315,6 +315,85 @@
    "lost": false
   }
  },
+ "abandonedMine": {
+  "variant": "B",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Mina Abandonada. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, a expedição de Pedra Alta acendeu as tochas e desceu pela boca da Mina Abandonada, juntando a pedra solta da rampa.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionNodeFailed: No 2º dia da Primavera, os ratos da rampa subiram pelas pernas de Edda, e a expedição de Pedra Alta largou metade da pedra para fugir deles. A prova pedia mais do que a equipe tinha: gente mais calejada.",
+   "heroInjured: No 2º dia da Primavera, Rolf sofreu um ferimento leve em \"Mina Abandonada\". Termina a jornada, mas depois precisa de descanso.",
+   "expeditionAtCrossroads: No 2º dia da Primavera, a expedição \"Mina Abandonada\" parou em uma encruzilhada: A água no fundo. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 2º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Mina Abandonada\": subir pelos degraus de rocha.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Rolf venceu os degraus de rocha, e a expedição de Pedra Alta tirou o ferro do veio seco.",
+   "heroRecovered: No 3º dia da Primavera, Rolf sarou das feridas e já pode partir de Pedra Alta outra vez.",
+   "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 3º dia da Primavera, a expedição \"Mina Abandonada\" voltou a Pedra Alta com 22 de pedra e 45 de ferro. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Mina Abandonada",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A descida pela boca da mina",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta acendeu as tochas e desceu pela boca da Mina Abandonada, juntando a pedra solta da rampa. Trouxe 10 de pedra.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "Os ratos da rampa",
+     "text": "No 2º dia da Primavera, os ratos da rampa subiram pelas pernas de Edda, e a expedição de Pedra Alta largou metade da pedra para fugir deles. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 12 de pedra.",
+     "outcome": "setback",
+     "outcomeLabel": "Revés",
+     "notes": [
+      "Rolf sofreu um ferimento leve."
+     ],
+     "standoutName": "Edda",
+     "lessonText": "A prova pedia mais do que a equipe tinha: gente mais calejada."
+    },
+    {
+     "title": "A água no fundo",
+     "text": "Por ordem do senhor: Subir pelos degraus de rocha.",
+     "outcome": "chosen",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "Os degraus de rocha",
+     "text": "No 2º dia da Primavera, Rolf venceu os degraus de rocha, e a expedição de Pedra Alta tirou o ferro do veio seco. Trouxe 45 de ferro.",
+     "outcome": "success",
+     "outcomeLabel": "Sucesso",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "A subida pela rampa",
+     "text": "No 3º dia da Primavera, a expedição de Pedra Alta subiu a rampa da Mina Abandonada e voltou a ver o céu.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "O preço: Rolf, com um ferimento leve.",
+   "deedsText": null,
+   "lootText": "Trouxe 22 de pedra e 45 de ferro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
  "swamp": {
   "variant": "A",
   "events": [

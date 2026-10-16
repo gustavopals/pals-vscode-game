@@ -144,7 +144,13 @@ function readyForPalisade(seed: string, timeScale: number): GameState {
   state.settlement.buildings.townHall = 3;
   state.settlement.buildings.warehouse = 1;
   state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
-  state.settlement.resources = { food: 400_000, wood: 800_000, stone: 450_000, gold: 300_000 };
+  state.settlement.resources = {
+    food: 400_000,
+    wood: 800_000,
+    stone: 450_000,
+    gold: 300_000,
+    iron: 0,
+  };
   state.council.nextDrawAtMs = 1000 * 84 * GAME_DAY;
   return state;
 }

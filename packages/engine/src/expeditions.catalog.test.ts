@@ -51,6 +51,9 @@ const STREAM = entityStream('expedition', 'expedition-1');
 /** O que é de outra versão e não pode aparecer em frase nenhuma de expedição. */
 const FUTURE =
   /\bferros?\b|\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
+/** Na Mina Abandonada (V4B-T1) o ferro é desta versão: a expressão afrouxa só ele. */
+const FUTURE_IN_MINE =
+  /\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
 
 type Path = { name: string; choices: Record<string, string> };
 type Graph = {
@@ -367,8 +370,8 @@ const everyBranch = graphs.flatMap((graph) =>
 );
 
 describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)', () => {
-  it('são 18 grafos, e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
-    expect(graphs).toHaveLength(18);
+  it('são 21 grafos (os 18 da v0.3 e os 3 da Mina Abandonada), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
+    expect(graphs).toHaveLength(21);
     expect(everyBranch.length).toBe(
       4 * graphs.reduce((sum, graph) => sum + pathsOf(graph.variant).length, 0),
     );
@@ -432,7 +435,7 @@ describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)',
         ...events.filter((event) => event.type.startsWith('expeditionNode')).map((e) => e.text),
       ];
       for (const text of fromGraph) {
-        expect(text).not.toMatch(FUTURE);
+        expect(text).not.toMatch(name.startsWith('abandonedMine/') ? FUTURE_IN_MINE : FUTURE);
       }
       for (const step of report.log) {
         expect(step.text).toMatch(/^\p{Lu}.*\.$/u);

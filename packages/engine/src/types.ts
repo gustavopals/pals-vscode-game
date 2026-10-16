@@ -501,7 +501,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 24;
+  schemaVersion: 25;
   seed: string;
   settings: GameSettings;
   /**

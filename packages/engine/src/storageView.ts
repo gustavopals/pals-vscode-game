@@ -4,6 +4,7 @@ import {
   type BuildingId,
   buildings,
   craftGuilds,
+  marketTexts,
   type Ratio,
 } from '@lotg/content';
 
@@ -15,7 +16,7 @@ import {
   upgradeStillPossible,
 } from './construction';
 import { type CraftForecast, type CraftOutlook, inMs } from './craftProjection';
-import { producerOf } from './economy';
+import { producerOrNull } from './economy';
 import { decimal, joinList, sentenceCase, thousands } from './format';
 import { planCost } from './planned';
 import { recruitmentBlock } from './population';
@@ -111,7 +112,7 @@ function nextRateChange(
   for (const slot of settlement.constructionQueues) {
     if (
       slot !== null &&
-      (slot.building === producerOf(resource) || storedBy(slot.building).includes(resource))
+      (slot.building === producerOrNull(resource) || storedBy(slot.building).includes(resource))
     ) {
       changes.push({
         atMs: slot.finishesAtMs,
@@ -180,7 +181,12 @@ function joinOr(options: readonly string[]): string {
  */
 function spendOptions(state: GameState, resource: ResourceId): string[] {
   const name = lower(resource);
-  const moveHands = `ponha parte d${craftGuilds[producerOf(resource)].artisans} em outro ofício`;
+  const producer = producerOrNull(resource);
+  if (producer === null) {
+    // O que nenhum ofício produz (o ferro) só sai pelo Mercado.
+    return [marketTexts.sellUnproduced.replace('{recurso}', name)];
+  }
+  const moveHands = `ponha parte d${craftGuilds[producer].artisans} em outro ofício`;
   const payers = BUILDING_IDS.filter(
     (building) => (buildings[building].baseCost[resource] ?? 0) > 0,
   );
@@ -303,7 +309,7 @@ export function storageRow(
 
 /**
  * O que a obra de um depósito muda, para ficar ao lado do custo: "Capacidade de comida: 500 →
- * 1.000." ou "Capacidade de madeira e de pedra: 500 → 1.000 cada." `null` para os outros
+ * 1.000." ou "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada." `null` para os outros
  * edifícios.
  */
 export function storageEffect(

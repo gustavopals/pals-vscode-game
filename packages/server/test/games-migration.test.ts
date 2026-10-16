@@ -187,7 +187,7 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       guild: 0,
       market: 0,
     },
-    wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+    wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
     // Os Mestres (V3E-T3): ninguém no feudo, ninguém à porta.
     masters: [],
     mastersWaiting: [],

@@ -950,7 +950,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
       'Pátio cheio: 72/h de madeira indo ao chão. Construa o Armazém ou gaste madeira. Hoje já se perderam 24.',
     );
     expect(text(note ?? '')).toContain(
-      '160 madeira, 80 pedra · 10 min · Capacidade de madeira e de pedra: 500 → 1.000 cada.',
+      '160 madeira, 80 pedra · 10 min · Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada.',
     );
     expect(buttons(note ?? '')).toEqual(['<button type="button">Construir Armazém</button>']);
   });
@@ -1127,7 +1127,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     const lockedList = text(construct(locked));
     expect(lockedList).toContain('Celeiro · 10 min');
     expect(lockedList).toContain('Capacidade de comida: 500 → 1.000.');
-    expect(lockedList).toContain('Capacidade de madeira e de pedra: 500 → 1.000 cada.');
+    expect(lockedList).toContain('Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada.');
     expect(lockedList).toContain('Melhore antes o Salão do Senhor para o nível 2.');
     // Nada de "Nv0": o que não existe se constrói.
     expect(locked).not.toContain('Nv0');

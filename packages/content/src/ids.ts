@@ -1,4 +1,8 @@
-export const RESOURCE_IDS = ['food', 'wood', 'stone', 'gold'] as const;
+/**
+ * Os recursos (GDD §5.1), na ordem canônica. O ferro (V4B-T1; ADR 0019, decisão 3) entra no fim,
+ * depois do ouro, para a ordem dos que já existiam não mudar em nenhuma conta nem em tela.
+ */
+export const RESOURCE_IDS = ['food', 'wood', 'stone', 'gold', 'iron'] as const;
 export type ResourceId = (typeof RESOURCE_IDS)[number];
 
 export const BUILDING_IDS = [
@@ -20,10 +24,11 @@ export type BuildingId = (typeof BUILDING_IDS)[number];
 
 /**
  * O que o Mercado negocia por ouro (GDD §5.9; ADR 0018, decisão 16), **na ordem do sorteio** do
- * preço de cada dia. O ferro fica para a versão que o traz. A lista fica gravada no estado
+ * preço de cada dia. O ferro entrou na v0.4 (V4B-T1; ADR 0019, decisão 3), por último: o sorteio
+ * de cada virada passa a ser comida, madeira, pedra e ferro. A lista fica gravada no estado
  * (`market.prices`): mudar um identificador pede passo de migração.
  */
-export const MARKET_RESOURCE_IDS = ['food', 'wood', 'stone'] as const;
+export const MARKET_RESOURCE_IDS = ['food', 'wood', 'stone', 'iron'] as const;
 export type MarketResourceId = (typeof MARKET_RESOURCE_IDS)[number];
 
 /** Os dois sentidos de uma negociação no Mercado: comprar com ouro, ou vender por ouro. */
@@ -192,6 +197,8 @@ export const EXPEDITION_MODEL_IDS = [
   'wolfDen',
   'rescue',
   'ruins',
+  // V4B-T1: a Mina Abandonada, o único destino que rende ferro (ADR 0019, decisão 3).
+  'abandonedMine',
   'swamp',
 ] as const;
 export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];

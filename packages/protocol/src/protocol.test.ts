@@ -330,11 +330,11 @@ describe('CommandSchema', () => {
       },
     ],
     [
-      'negociação de ferro, que é de outra versão',
+      'negociação de armas, que são de outra tarefa (o ferro entrou na V4B-T1)',
       {
         commandId: uuid,
         type: 'trade',
-        payload: { resource: 'iron', direction: 'buy', amount: 10, quoteDay: 3 },
+        payload: { resource: 'weapons', direction: 'buy', amount: 10, quoteDay: 3 },
       },
     ],
     [

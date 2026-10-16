@@ -154,7 +154,7 @@ export function logEntry(
     outcome,
     optionId: null,
     decidedBy: null,
-    gained: { food: 0, wood: 0, stone: 0, gold: 0 },
+    gained: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
     xp: 0,
     harm: null,
     leveled: [],

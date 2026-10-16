@@ -9,6 +9,9 @@ import type {
  * "Floresta Antiga" (GDD §9.3; ADR 0018, decisão 12): uma hora de jogo, três nós, um ou dois
  * heróis, risco de baixo a médio. Rende madeira, algum ouro e, na mata fechada, um item comum.
  *
+ * Do Sucesso em diante, o último nó de cada caminho acha a entrada da Mina Abandonada (V4B-T1;
+ * com um Rastreador, também no Revés).
+ *
  * É a primeira encruzilhada do jogo, e a lição dela é **a equipe decide o caminho**: o caminho
  * de quem vai sozinho (o riacho, o barranco) não é o de quem vai em dupla (a mata fechada, que
  * pede um Guerreiro e é demais para um só), e o ninho é de Arqueiro. Voltar com o que já se tem
@@ -99,6 +102,7 @@ export const oldForest: ExpeditionModelDef = {
             },
           },
           rewards: {
+            reveals: 'abandonedMine',
             resources: { wood: { min: 60, max: 90 }, gold: { min: 20, max: 30 } },
             item: {
               chance: { num: 1, den: 3 },
@@ -128,7 +132,7 @@ export const oldForest: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, as pedras do riacho derrubaram {heroi}, e a lenha da outra margem ficou onde estava.',
             },
           },
-          rewards: { resources: { wood: { min: 40, max: 60 } } },
+          rewards: { resources: { wood: { min: 40, max: 60 } }, reveals: 'abandonedMine' },
           next: 'home',
         },
         home,
@@ -159,6 +163,7 @@ export const oldForest: ExpeditionModelDef = {
             },
           },
           rewards: {
+            reveals: 'abandonedMine',
             resources: { wood: { min: 70, max: 100 }, gold: { min: 10, max: 20 } },
             // O que os lenhadores largam na fuga: é onde a Floresta dá um item incomum.
             item: { chance: { num: 1, den: 4 }, from: ['boiledLeather', 'trackerHorn'] },
@@ -170,7 +175,7 @@ export const oldForest: ExpeditionModelDef = {
           title: 'A cabana do carvoeiro',
           durationMs: 25 * MINUTE_MS,
           text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} achou à beira do riacho a cabana vazia de um carvoeiro, com a lenha empilhada.',
-          rewards: { resources: { wood: { min: 30, max: 50 } } },
+          rewards: { resources: { wood: { min: 30, max: 50 } }, reveals: 'abandonedMine' },
           next: 'home',
         },
         home,
@@ -234,6 +239,7 @@ export const oldForest: ExpeditionModelDef = {
             },
           },
           rewards: {
+            reveals: 'abandonedMine',
             resources: { gold: { min: 30, max: 50 } },
             // Uma gralha junta o que brilha e cabe no bico: moedas e, com sorte, um amuleto.
             item: { chance: { num: 1, den: 2 }, from: ['luckyCharm'] },
@@ -260,7 +266,7 @@ export const oldForest: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o urso do barranco derrubou {heroi} e expulsou a expedição de {feudo}, que largou os troncos na subida.',
             },
           },
-          rewards: { resources: { wood: { min: 50, max: 70 } } },
+          rewards: { resources: { wood: { min: 50, max: 70 } }, reveals: 'abandonedMine' },
           next: 'home',
         },
         home,

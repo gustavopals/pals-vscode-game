@@ -52,7 +52,7 @@ export function trade(
   }
   if (!isMarketResource(resource)) {
     return reject('INVALID_AMOUNT', {
-      note: 'O Mercado só negocia comida, madeira e pedra, por ouro.',
+      note: 'O Mercado só negocia comida, madeira, pedra e ferro, por ouro.',
     });
   }
   if (!isTradeDirection(direction)) {

@@ -346,7 +346,13 @@ describe('objetivos da v0.2: a sequência inteira', () => {
           watchtower: 1,
           warehouse: 1,
         };
-        settlement.resources = { food: 200_000, wood: 100_000, stone: 100_000, gold: 100_000 };
+        settlement.resources = {
+          food: 200_000,
+          wood: 100_000,
+          stone: 100_000,
+          gold: 100_000,
+          iron: 0,
+        };
         settlement.planned = [{ building: 'townHall', targetLevel: 3, autoStart: true }];
         draft.stats.cardsAnswered = 2;
       }),
@@ -491,7 +497,13 @@ describe('objetivo: construa o Celeiro ou o Armazém', () => {
       gameWith((draft) => {
         reached(6)(draft);
         draft.settlement.buildings.townHall = 2;
-        draft.settlement.resources = { food: 100_000, wood: 300_000, stone: 200_000, gold: 0 };
+        draft.settlement.resources = {
+          food: 100_000,
+          wood: 300_000,
+          stone: 200_000,
+          gold: 0,
+          iron: 0,
+        };
       }),
     );
 
@@ -617,7 +629,7 @@ describe('objetivo: construa a Paliçada', () => {
         reached(8)(draft);
         const { settlement } = draft;
         settlement.buildings.townHall = 3;
-        settlement.resources = { food: 100_000, wood: 450_000, stone: 0, gold: 0 };
+        settlement.resources = { food: 100_000, wood: 450_000, stone: 0, gold: 0, iron: 0 };
         settlement.constructionQueues = [
           { building: 'palisade', targetLevel: 1, startedAtMs: 0, finishesAtMs: 20 * MINUTE },
           null,
@@ -641,7 +653,7 @@ describe('objetivo: atravesse o inverno sem passar frio', () => {
     gameAt(atMs, (draft) => {
       reached(9)(draft);
       // Comida para o inverno inteiro, sem ninguém na Fazenda: nada enche, nada vai ao chão.
-      draft.settlement.resources = { food: 400_000, wood: wood * 1000, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 400_000, wood: wood * 1000, stone: 0, gold: 0, iron: 0 };
     });
   const winterDone = (state: GameState) =>
     state.objectives.completed.includes('surviveWinterWithoutCold');
@@ -920,6 +932,7 @@ describe('objetivos na visão: o que falta e onde se cumpre', () => {
           wood: 400_000,
           stone: 400_000,
           gold: 200_000,
+          iron: 0,
         };
       }),
     );

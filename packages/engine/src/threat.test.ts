@@ -513,6 +513,7 @@ describe('névoa de informação: a visão sem a Torre de Vigia', () => {
           wood: 300_000,
           stone: 300_000,
           gold: 300_000,
+          iron: 0,
         };
       }),
       command('startConstruction', { building: 'watchtower' }),
@@ -760,7 +761,13 @@ describe('a incursão marcada, vista da Torre', () => {
 
 describe('a Torre de Vigia como obra (GDD §6.1 e §6.2)', () => {
   const rich = (draft: GameState) => {
-    draft.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
+    draft.settlement.resources = {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 400_000,
+      iron: 0,
+    };
   };
   const tower = (state: GameState) =>
     deriveViewState(state, state.lastProcessedAt).constructions.available.find(
@@ -795,6 +802,7 @@ describe('a Torre de Vigia como obra (GDD §6.1 e §6.2)', () => {
       wood: 280_000,
       stone: 280_000,
       gold: 350_000,
+      iron: 0,
     });
     expect(started.events.map((event) => event.text)).toEqual([
       'No 11º dia da Primavera, os pedreiros começaram a levantar a Torre de Vigia em Pedra Alta.',

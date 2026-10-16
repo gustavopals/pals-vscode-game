@@ -36,6 +36,7 @@ function feud(masters: string[], edit: (state: GameState) => void = () => {}): G
     wood: 300_000,
     stone: 200_000,
     gold: 200_000,
+    iron: 0,
   });
   state.settlement.population.villagers = 10;
   Object.assign(state.settlement.workers, { farm: 4, lumberMill: 2, quarry: 1, goldMine: 1 });

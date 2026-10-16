@@ -172,7 +172,7 @@ describe('a conta da moral (GDD §5.7; ADR 0013, decisão 19)', () => {
   it('frio: −20 enquanto a estação queima lenha', () => {
     const cold = gameAt(WINTER + 3 * DAY, (draft) => {
       draft.settlement.workers.farm = 5;
-      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0, iron: 0 };
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });
     expect(termsAt(cold, WINTER + 4 * DAY)).toEqual([
@@ -186,7 +186,7 @@ describe('a conta da moral (GDD §5.7; ADR 0013, decisão 19)', () => {
   it('fome e frio juntos somam, com as casas cheias e os dias de fome: tudo em uma conta', () => {
     const state = gameAt(WINTER + 3 * DAY, (draft) => {
       draft.settlement.population.villagers = 10;
-      draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
       starve(draft, WINTER + DAY);
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });
@@ -256,7 +256,7 @@ describe('a moral só muda na virada do dia', () => {
   it('o frio que passa com a primavera já não pesa na primeira virada dela', () => {
     const cold = gameAt(YEAR - DAY, (draft) => {
       draft.settlement.workers.farm = 5;
-      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0, iron: 0 };
       draft.settlement.cold = { sinceMs: WINTER };
       draft.settlement.morale = 30;
     });
@@ -1377,14 +1377,14 @@ describe('a moral na visão', () => {
   it('frio: o que pesa e o que fazer; com fome e frio empatados, a fome vem primeiro', () => {
     const cold = gameAt(WINTER + 3 * DAY, (draft) => {
       draft.settlement.workers.farm = 5;
-      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 40_000, wood: 0, stone: 0, gold: 0, iron: 0 };
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });
     expect(view(cold).morale.advice).toBe(
       'O que mais pesa é o frio (−20). Ponha gente na Serraria: com lenha na lareira o frio passa, e a moral sobe na virada seguinte.',
     );
     const both = gameAt(WINTER + 3 * DAY, (draft) => {
-      draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+      draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
       starve(draft, WINTER + 3 * DAY);
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });

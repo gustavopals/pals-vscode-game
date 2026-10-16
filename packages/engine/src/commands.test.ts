@@ -104,7 +104,7 @@ describe('renameSettlement', () => {
 describe('catálogo de recusas', () => {
   // Um cenário por código: nenhuma recusa fica sem teste.
   const rich = gameWith((draft) => {
-    draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+    draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
   });
   const building = accept(rich, command('startConstruction', { building: 'farm' })).state;
   // Com o Salão no nível 4 as duas filas estão abertas, e as duas têm obra.

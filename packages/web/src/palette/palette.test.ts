@@ -1109,7 +1109,7 @@ describe('construir, cancelar e planejar', () => {
       value: 'granary',
     });
     expect(byLabel.get('Construir: Armazém')?.detail).toBe(
-      'Capacidade de madeira e de pedra: 500 → 1.000 cada. Melhore antes o Salão do Senhor para o nível 2.',
+      'Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada. Melhore antes o Salão do Senhor para o nível 2.',
     );
     expect([...byLabel.keys()].some((label) => label.includes('Nv0'))).toBe(false);
   });

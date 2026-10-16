@@ -289,7 +289,9 @@ describe('aba Conselho', () => {
     const markup = html(tab({ view: withCards(goldenView, [mealCard]) }));
     expect(cards(markup)).toHaveLength(1);
     expect(text(markup)).toContain('Conselho do Feudo · 1 carta pendente');
-    expect(text(markup)).toContain('Em estoque: 180 comida · 120 madeira · 65 pedra · 270 ouro.');
+    expect(text(markup)).toContain(
+      'Em estoque: 180 comida · 120 madeira · 65 pedra · 270 ouro · 0 ferro.',
+    );
     expect(text(markup)).toContain('Próxima audiência em 8 h.');
     expect(markup).not.toContain('o conselho não traz outra');
   });

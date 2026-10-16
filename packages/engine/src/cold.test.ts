@@ -192,7 +192,7 @@ describe('durante o frio', () => {
 
   it('as obras e o recrutamento continuam: o frio não congela nada', () => {
     const rich = cloneState(freezing);
-    rich.settlement.resources = { food: 900_000, wood: 0, stone: 900_000, gold: 900_000 };
+    rich.settlement.resources = { food: 900_000, wood: 0, stone: 900_000, gold: 900_000, iron: 0 };
     const ordered = accept(rich, command('recruitVillagers', { quantity: 1 })).state;
     const { state, events } = advanceTo(ordered, WINTER + HOUR + 20 * MINUTE);
     expect(state.settlement.population.villagers).toBe(6);
@@ -328,7 +328,7 @@ describe('fim do frio', () => {
     let state = cloneState(freezing);
     state.settlement.population.villagers = 40;
     state.settlement.workers.farm = 40;
-    state.settlement.resources = { food: 900_000, wood: 0, stone: 900_000, gold: 900_000 };
+    state.settlement.resources = { food: 900_000, wood: 0, stone: 900_000, gold: 900_000, iron: 0 };
     const events: GameEvent[] = [];
     for (let round = 0; round < 3; round += 1) {
       state.settlement.constructionQueues = [

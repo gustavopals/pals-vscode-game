@@ -589,7 +589,13 @@ describe('previsões do inverno que olham a ordem dos acontecimentos (C-8)', () 
       accept(
         tenAt((draft) => {
           draft.settlement.workers = { farm: 0, lumberMill: 1, quarry: 0, goldMine: 2 };
-          draft.settlement.resources = { food: 400_000, wood: 80_300, stone: 100_000, gold };
+          draft.settlement.resources = {
+            food: 400_000,
+            wood: 80_300,
+            stone: 100_000,
+            gold,
+            iron: 0,
+          };
           draft.settlement.morale = 0;
         }),
         command('planConstruction', { building: 'farm', autoStart: true }),
@@ -823,7 +829,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
       settlement.population.villagers = 10;
       settlement.buildings.housing = 2;
       settlement.workers = { farm: 4, lumberMill: 0, quarry: 4, goldMine: 2 };
-      settlement.resources = { food: 300_000, wood: wood * 1000, stone: 100_000, gold: 0 };
+      settlement.resources = { food: 300_000, wood: wood * 1000, stone: 100_000, gold: 0, iron: 0 };
     });
   const planned = (state: GameState) =>
     accept(state, command('planConstruction', { building: 'farm', autoStart: true })).state;
@@ -934,7 +940,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
         settlement.population.villagers = 10;
         settlement.buildings.housing = 2;
         settlement.workers = { farm: 6, lumberMill: 0, quarry: 4, goldMine: 0 };
-        settlement.resources = { food: 300_000, wood: 125_000, stone: 100_000, gold: 0 };
+        settlement.resources = { food: 300_000, wood: 125_000, stone: 100_000, gold: 0, iron: 0 };
       }),
     );
     expect(view(stalled).constructions.planned[0]?.waiting?.etaSeconds).toBeNull();
@@ -972,7 +978,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
 describe('prazos com o fator da estação', () => {
   const rich = (atMs: number) =>
     fedAt(atMs, (draft) => {
-      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
     });
   const upgrade = (derived: ViewState, building: string) =>
     derived.constructions.available.find((entry) => entry.building === building);

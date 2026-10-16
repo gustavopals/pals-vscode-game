@@ -328,6 +328,7 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
       ['wood', 0],
       ['stone', 0],
       ['gold', 0],
+      ['iron', 0],
     ]);
   });
 

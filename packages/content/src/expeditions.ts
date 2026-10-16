@@ -17,6 +17,7 @@ import { patrol } from './missions/patrol';
 import { rescue } from './missions/rescue';
 import { ruins } from './missions/ruins';
 import { swamp } from './missions/swamp';
+import { abandonedMine } from './missions/abandonedMine';
 import { wolfDen } from './missions/wolfDen';
 
 /**
@@ -193,6 +194,7 @@ export const expeditionModels: readonly ExpeditionModelDef[] = [
   wolfDen,
   rescue,
   ruins,
+  abandonedMine,
   swamp,
 ];
 

@@ -8,6 +8,7 @@ import {
   oneOf,
   type Shape,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -136,8 +137,7 @@ export const workedWithinState: Shape = (value, path) => {
  * entra no feudo com `worked: false`. `rng` e `ids` não mudam de forma. A guarda desta versão
  * confere também os limites do Mercado e das caravanas (`marketLimitsWithinState`; R5).
  *
- * Quem subir `schemaVersion` para 25 acrescenta aqui o passo `v24ToV25`, com esta forma como
- * entrada, e escreve a forma nova em `v25.ts`.
+ * O passo que sai daqui é o `v24ToV25`, abaixo; a forma da versão 25 está em `v25.ts`.
  */
 export const settlementV24Fields: Readonly<Record<string, Shape>> = {
   ...settlementV23Fields,
@@ -170,3 +170,76 @@ export const stateV24: Shape = (value, path) =>
   mastersWithinState(value, path) ??
   workedWithinState(value, path) ??
   marketLimitsWithinState(value, path);
+
+/** O preço-base do ferro, em milésimos de ouro por unidade, escrito como retrato da data. */
+const IRON_BASE_PRICE = 8000;
+
+type Amounts = Record<string, number>;
+type LogEntry = { gained?: Amounts } & Record<string, unknown>;
+type ExpeditionRecord = {
+  log: LogEntry[];
+  loot: { resources: Amounts } & Record<string, unknown>;
+  wasted?: Amounts;
+} & Record<string, unknown>;
+
+const withIron = (amounts: Amounts): Amounts => ({ ...amounts, iron: 0 });
+
+function ironRecords(entry: ExpeditionRecord, report: boolean): ExpeditionRecord {
+  return {
+    ...entry,
+    log: entry.log.map((record) =>
+      record.gained === undefined ? record : { ...record, gained: withIron(record.gained) },
+    ),
+    loot: { ...entry.loot, resources: withIron(entry.loot.resources) },
+    ...(report && entry.wasted !== undefined ? { wasted: withIron(entry.wasted) } : {}),
+  };
+}
+
+/**
+ * 24 → 25: o ferro (V4B-T1; ADR 0019, decisão 3).
+ *
+ * - O feudo entra **sem ferro**: estoque, resto do acumulador e desperdício em zero. O Armazém
+ *   passa a guardar um quarto recurso com o mesmo limite, sem mudar o que já está nele.
+ * - O Mercado ganha o ferro **na base** (8,0 de ouro: hoje e ontem iguais) e nada negociado. O
+ *   preço só anda na próxima virada com o Mercado de pé; o sorteio de cada virada passa a ser
+ *   comida, madeira, pedra e ferro, no mesmo fluxo `market`.
+ * - Cada registro de quantidades de uma expedição, em curso ou já no relatório, ganha `iron: 0`:
+ *   nenhuma expedição da versão 24 achava ferro.
+ *
+ * **O passo não cria prazo** (e por isso não usa a fronteira), não emite evento, não dá
+ * identificador a ninguém e não toca o gerador. `stats` não muda: os totais de ferro nascem com
+ * a primeira compra, venda ou desperdício.
+ */
+export const v24ToV25: MigrationStep = {
+  from: 24,
+  summary: 'entra o ferro: nenhum no feudo, o preço na base, nada negociado',
+  shape: stateV24,
+  migrate(state) {
+    const settlement = state.settlement as StoredState;
+    const market = state.market as StoredState;
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 25,
+      settlement: {
+        ...settlement,
+        resources: withIron(settlement.resources as Amounts),
+        accumulators: withIron(settlement.accumulators as Amounts),
+        wasted: withIron(settlement.wasted as Amounts),
+      },
+      market: {
+        ...market,
+        prices: { ...(market.prices as Amounts), iron: IRON_BASE_PRICE },
+        previousPrices: { ...(market.previousPrices as Amounts), iron: IRON_BASE_PRICE },
+        tradedToday: withIron(market.tradedToday as Amounts),
+      },
+      guild: {
+        ...guild,
+        expeditions: (guild.expeditions as ExpeditionRecord[]).map((entry) =>
+          ironRecords(entry, false),
+        ),
+        reports: (guild.reports as ExpeditionRecord[]).map((entry) => ironRecords(entry, true)),
+      },
+    };
+  },
+};

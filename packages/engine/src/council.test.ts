@@ -485,7 +485,7 @@ describe('expiração', () => {
 
   it('a expiração nunca cobra: a opção automática não tem custo, e o estoque zerado não a impede', () => {
     const broke = fed();
-    broke.settlement.resources = { food: 400_000, wood: 0, stone: 0, gold: 0 };
+    broke.settlement.resources = { food: 400_000, wood: 0, stone: 0, gold: 0, iron: 0 };
     const { state, events } = advanceWithCards(broke, INTERVAL + 24 * HOUR, only('toll'));
     const [expired] = eventsOfType(events, 'cardExpired');
     expect(expired?.data).toMatchObject({ optionId: 'refuse' });

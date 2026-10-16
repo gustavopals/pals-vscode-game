@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 24,
+    schemaVersion: 25,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -46,7 +46,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
     settlement: {
       name: settings.settlementName,
       resources: amountsToMilli(balance.initial.resources),
-      accumulators: { food: 0, wood: 0, stone: 0, gold: 0 },
+      accumulators: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
       population: { villagers: balance.initial.villagers },
       workers: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       buildings: levels,
@@ -56,7 +56,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       famine: null,
       lastFamine: null,
       cold: null,
-      wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+      wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
       craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       craftMasteredYear: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       adaptation: [],
@@ -111,7 +111,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       prices: { ...balance.market.basePrice },
       previousPrices: { ...balance.market.basePrice },
       quoteDay: 0,
-      tradedToday: { food: 0, wood: 0, stone: 0 },
+      tradedToday: { food: 0, wood: 0, stone: 0, iron: 0 },
       caravans: [],
     },
     objectives: {

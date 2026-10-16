@@ -46,6 +46,7 @@ import type {
   GameState,
   Hero,
   Item,
+  MarketResourceId,
   ProductionBuildingId,
 } from './types';
 import { MILLI } from './units';
@@ -269,6 +270,7 @@ export function tavernSite(
     wood: 2_800_000,
     stone: 1_000_000,
     gold: 2_000_000,
+    iron: 0,
   });
   edit(draft);
   return draft;
@@ -430,7 +432,7 @@ export const QUOTE_OF_NOW = -1;
  * cotação do estado em que for aplicada (`QUOTE_OF_NOW`); com ele, o jogador "viu" aquele dia.
  */
 export function caravanOrder(
-  resource: 'food' | 'wood' | 'stone',
+  resource: MarketResourceId,
   amount: number,
   escortHeroId: string | null = null,
   quoteDay: number = QUOTE_OF_NOW,
@@ -512,7 +514,7 @@ export function mastersScenario(): GameState {
     settlement.population.villagers = 10;
     settlement.buildings.housing = 2;
     settlement.workers = { farm: 3, lumberMill: 2, quarry: 2, goldMine: 1 };
-    settlement.resources = { food: 600_000, wood: 400_000, stone: 300_000, gold: 200_000 };
+    settlement.resources = { food: 600_000, wood: 400_000, stone: 300_000, gold: 200_000, iron: 0 };
     bringMaster(draft, 'odo');
   });
   const withOdo = play(start, [
@@ -541,7 +543,7 @@ export function masterWaitingScenario(): GameState {
     roomy(draft);
     settlement.population.villagers = 9;
     settlement.workers = { farm: 4, lumberMill: 2, quarry: 1, goldMine: 1 };
-    settlement.resources = { food: 500_000, wood: 400_000, stone: 300_000, gold: 300_000 };
+    settlement.resources = { food: 500_000, wood: 400_000, stone: 300_000, gold: 300_000, iron: 0 };
     bringMaster(draft, 'odo');
     bringMaster(draft, 'gil');
     settlement.constructionQueues[0] = {
@@ -557,7 +559,7 @@ export function masterWaitingScenario(): GameState {
 /** A ordem de negociar com a cotação que o estado tem agora: é o que a tela devolveria. */
 export function tradeOrder(
   state: GameState,
-  resource: 'food' | 'wood' | 'stone',
+  resource: MarketResourceId,
   direction: 'buy' | 'sell',
   amount: number,
 ): Command {
@@ -1259,7 +1261,7 @@ export function autumnScenario(): GameState {
       granary: 3,
       warehouse: 1,
     };
-    settlement.resources = { food: 640_000, wood: 60_000, stone: 310_000, gold: 420_000 };
+    settlement.resources = { food: 640_000, wood: 60_000, stone: 310_000, gold: 420_000, iron: 0 };
   });
 }
 
@@ -1284,7 +1286,7 @@ export function queuesScenario(): GameState {
     settlement.population.villagers = 20;
     settlement.workers = { farm: 8, lumberMill: 5, quarry: 3, goldMine: 2 };
     settlement.buildings = { ...settlement.buildings, townHall: 4, quarry: 5, granary: 1 };
-    settlement.resources = { food: 600_000, wood: 420_000, stone: 300_000, gold: 25_000 };
+    settlement.resources = { food: 600_000, wood: 420_000, stone: 300_000, gold: 25_000, iron: 0 };
   });
   return play(start, [
     command('startConstruction', { building: 'lumberMill' }),
@@ -1320,7 +1322,7 @@ export function craftScenario(): GameState {
       granary: 2,
       warehouse: 2,
     };
-    settlement.resources = { food: 420_000, wood: 380_000, stone: 240_000, gold: 310_000 };
+    settlement.resources = { food: 420_000, wood: 380_000, stone: 240_000, gold: 310_000, iron: 0 };
     settlement.craftExperience = { farm: 40, lumberMill: 100, quarry: 20, goldMine: 16 };
     settlement.craftMasteredYear.lumberMill = 1;
   });
@@ -1345,7 +1347,7 @@ export function impoverishedScenario(difficulty: GameSettings['difficulty'] = 'l
     draft.settings.difficulty = difficulty;
     settlement.population.villagers = 3;
     settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
-    settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+    settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
     starve(draft, WINTER - 18 * DAY);
     settlement.cold = { sinceMs: WINTER };
     settlement.morale = 0;
@@ -1366,7 +1368,7 @@ export function proudScenario(): GameState {
     settlement.population.villagers = 22;
     settlement.workers = { farm: 6, lumberMill: 6, quarry: 5, goldMine: 3 };
     settlement.buildings = { ...settlement.buildings, townHall: 2, housing: 3, farm: 2 };
-    settlement.resources = { food: 400_000, wood: 300_000, stone: 200_000, gold: 150_000 };
+    settlement.resources = { food: 400_000, wood: 300_000, stone: 200_000, gold: 150_000, iron: 0 };
     addMoraleEffect(draft, {
       id: 'teste:festa',
       label: 'festa da colheita',
@@ -1402,7 +1404,7 @@ export function watchScenario(): GameState {
       farm: 2,
       watchtower: 1,
     };
-    settlement.resources = { food: 320_000, wood: 300_000, stone: 250_000, gold: 180_000 };
+    settlement.resources = { food: 320_000, wood: 300_000, stone: 250_000, gold: 180_000, iron: 0 };
     draft.map.threat = 36;
   });
   return advanceTo(start, AUTUMN + 4 * DAY + 13 * MINUTE).state;
@@ -1494,7 +1496,7 @@ export function promiseDueScenario(): GameState {
       granary: 1,
       warehouse: 1,
     };
-    settlement.resources = { food: 380_000, wood: 260_000, stone: 140_000, gold: 120_000 };
+    settlement.resources = { food: 380_000, wood: 260_000, stone: 140_000, gold: 120_000, iron: 0 };
   });
   const plea = dealt(start, 'palisadePromisePlea');
   const promised = accept(

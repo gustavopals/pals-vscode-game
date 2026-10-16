@@ -86,6 +86,13 @@ import {
   DAILY_VOLUME_PER_LEVEL_V24,
   DAY_MS_V24,
 } from './migrations/v24';
+import {
+  IRON_BASE_PRICE_V25,
+  IRON_PRICE_CEILING_V25,
+  IRON_PRICE_FLOOR_V25,
+  MARKET_RESOURCE_IDS_V25,
+  RESOURCE_IDS_V25,
+} from './migrations/v25';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -161,10 +168,44 @@ const LOG_FIELDS_V18 = [
 ] as const;
 
 /**
+ * Tira de um estado, no lugar, o que o passo 24 → 25 acrescenta: o ferro no estoque, no
+ * acumulador, no desperdício, no Mercado e nas quantidades de cada expedição.
+ */
+function stripIron(copy: Draft): void {
+  for (const field of ['resources', 'accumulators', 'wasted']) {
+    if (copy.settlement?.[field] !== undefined) {
+      delete copy.settlement[field].iron;
+    }
+  }
+  for (const field of ['prices', 'previousPrices', 'tradedToday']) {
+    if (copy.market?.[field] !== undefined) {
+      delete copy.market[field].iron;
+    }
+  }
+  for (const journey of [
+    ...((copy.guild?.expeditions ?? []) as Draft[]),
+    ...((copy.guild?.reports ?? []) as Draft[]),
+  ]) {
+    for (const entry of (journey.log ?? []) as Draft[]) {
+      if (entry.gained !== undefined) {
+        delete entry.gained.iron;
+      }
+    }
+    if (journey.loot?.resources !== undefined) {
+      delete journey.loot.resources.iron;
+    }
+    if (journey.wasted !== undefined) {
+      delete journey.wasted.iron;
+    }
+  }
+}
+
+/**
  * Tira de um estado, no lugar, o que o passo 22 → 23 acrescenta: os Mestres do feudo, os da
- * porta e o Mestre de cada registro do percurso.
+ * porta e o Mestre de cada registro do percurso (e, com eles, o do 24 → 25).
  */
 function stripMasters(copy: Draft): void {
+  stripIron(copy);
   if (copy.settlement !== undefined) {
     delete copy.settlement.masters;
     delete copy.settlement.mastersWaiting;
@@ -1034,6 +1075,52 @@ const FROZEN: Record<string, string> = {
   'state-v23-wage-arrears-resumed.json': 'f62d4fe5',
   'state-v23-wage-arrears.json': '78ebf6c2',
   'state-v23-week-scripted.json': 'f2375cfb',
+  'state-v24-caravan-escort.json': '9ea2a95f',
+  'state-v24-caravan.json': '2ad7f363',
+  'state-v24-cold.json': '371ac061',
+  'state-v24-construction.json': 'f22d7a3e',
+  'state-v24-council-hidden.json': '8f29128f',
+  'state-v24-council.json': '4fa66599',
+  'state-v24-crafts.json': '7ad58222',
+  'state-v24-den-cleared.json': 'afe2751e',
+  'state-v24-expedition-crossroads.json': 'cb46fd1b',
+  'state-v24-expedition-returning.json': '76684ec6',
+  'state-v24-expedition.json': '422490a5',
+  'state-v24-famine-3x.json': 'f80a2872',
+  'state-v24-famine-ended.json': '1bf7ffce',
+  'state-v24-famine-half.json': '0a072503',
+  'state-v24-famine-resumed.json': '8b2955b8',
+  'state-v24-famine.json': 'd2f9207a',
+  'state-v24-fresh.json': 'dcb49361',
+  'state-v24-guild.json': 'b5ad44e8',
+  'state-v24-hero-captured.json': '4e7e4aeb',
+  'state-v24-hero-injured.json': '560dcfb4',
+  'state-v24-hero-promised.json': 'edfd6eb6',
+  'state-v24-iron-king-half.json': '86b4eea9',
+  'state-v24-market-opening.json': '6d539c1e',
+  'state-v24-market.json': '4469206c',
+  'state-v24-master-waiting.json': '36e80eb9',
+  'state-v24-masters.json': 'b83747b0',
+  'state-v24-migrated-3x.json': '9c45ed1a',
+  'state-v24-migrated-iron-king-caravan.json': '12d6bbf1',
+  'state-v24-migrated-iron-king-half.json': '0ce7a188',
+  'state-v24-migrated-peasant-3x.json': '6bf94673',
+  'state-v24-morale.json': '72512104',
+  'state-v24-objectives.json': '9005a1d8',
+  'state-v24-palisade.json': '369aadfa',
+  'state-v24-peasant-3x.json': 'a3785566',
+  'state-v24-queues.json': 'a262f578',
+  'state-v24-raid-announced.json': 'ab456df3',
+  'state-v24-raid.json': '0fa2b116',
+  'state-v24-storage.json': 'ab7503ae',
+  'state-v24-tavern-busy.json': 'f03d1d90',
+  'state-v24-tavern.json': 'e48084f3',
+  'state-v24-threat.json': '9262979d',
+  'state-v24-wage-arrears-ended.json': 'd5598bac',
+  'state-v24-wage-arrears-resumed.json': 'a6c05eb4',
+  'state-v24-wage-arrears.json': 'd3dcc347',
+  'state-v24-warehouse-full.json': '03cce210',
+  'state-v24-week-scripted.json': '32a4aa97',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2370,8 +2457,9 @@ describe('versão 2 → 3', () => {
     const before = read(fixture) as unknown as GameState;
     const after = migrated(fixture);
     // O estoque na fronteira é o que as regras antigas deixaram.
-    expect(after.settlement.resources).toEqual(before.settlement.resources);
-    expect(after.settlement.accumulators).toEqual(before.settlement.accumulators);
+    // (O ferro entra na versão 25, em zero.)
+    expect(after.settlement.resources).toEqual({ ...before.settlement.resources, iron: 0 });
+    expect(after.settlement.accumulators).toEqual({ ...before.settlement.accumulators, iron: 0 });
     // Dali em diante, primavera: os 2 fazendeiros rendem 24 por hora, e não 20.
     const view = deriveViewState(after, after.lastProcessedAt);
     expect(view.workers.find((row) => row.building === 'farm')?.grossPerHour).toBe(24);
@@ -2460,7 +2548,7 @@ describe('versão 3 → 4', () => {
     const fixture = named('state-v3-migrated-3x.json');
     const before = read(fixture) as unknown as GameState;
     const state = migrated(fixture);
-    expect(state.settlement.resources).toEqual(before.settlement.resources);
+    expect(state.settlement.resources).toEqual({ ...before.settlement.resources, iron: 0 });
     expect(milli(state, 'wood')).toBeGreaterThan(10_000_000);
     expect(milli(state, 'stone')).toBeGreaterThan(5_000_000);
 
@@ -3110,7 +3198,13 @@ describe('versão 8 → 9', () => {
     const migratedState = migrated(named('state-v8-fresh.json'));
     const rich = JSON.parse(JSON.stringify(migratedState)) as GameState;
     rich.settlement.buildings.townHall = 2;
-    rich.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
+    rich.settlement.resources = {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 400_000,
+      iron: 0,
+    };
     const started = applyCommand(rich, command('startConstruction', { building: 'watchtower' }), 0);
     expect(started.ok).toBe(true);
     if (!started.ok) {
@@ -5024,21 +5118,23 @@ describe('versão 19 → 20', () => {
 
 describe('versão 20 → 21', () => {
   const version20 = fixtures.filter((fixture) => fixture.version === 20);
+  // O ferro entra na versão 25, na base e sem nada negociado: toda partida antiga chega assim.
   const NO_MARKET = {
-    prices: { food: 1000, wood: 1200, stone: 2000 },
-    previousPrices: { food: 1000, wood: 1200, stone: 2000 },
+    prices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
+    previousPrices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
     quoteDay: 0,
-    tradedToday: { food: 0, wood: 0, stone: 0 },
+    tradedToday: { food: 0, wood: 0, stone: 0, iron: 0 },
     // As caravanas são da versão 22: toda partida antiga chega sem nenhuma na estrada.
     caravans: [],
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
     expect(BUILDING_IDS_V21).toEqual([...BUILDING_IDS]);
-    expect(MARKET_RESOURCE_IDS_V21).toEqual([...MARKET_RESOURCE_IDS]);
-    expect(MARKET_RESOURCE_IDS_V21).toEqual([...balance.market.resources]);
+    // O ferro entrou na versão 25: o conteúdo de hoje é o da 21 com ele no fim.
+    expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...MARKET_RESOURCE_IDS]);
+    expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...balance.market.resources]);
     expect(RNG_FIXED_STREAMS_V21).toEqual([...RNG_FIXED_STREAMS_V16, 'market']);
-    expect(MARKET_BASE_PRICES_V21).toEqual(balance.market.basePrice);
+    expect({ ...MARKET_BASE_PRICES_V21, iron: 8000 }).toEqual(balance.market.basePrice);
   });
 
   it('há retratos da versão 20 com o Salão no nível 3 ou mais, com obra em curso e com o gerador em uso', () => {
@@ -5179,7 +5275,9 @@ describe('versão 20 → 21', () => {
     expect(broken((state) => delete state.market)).toMatch(/market/);
     expect(broken((state) => (state.market.prices.food = 0))).toMatch(/market\.prices\.food/);
     expect(broken((state) => (state.market.prices.food = 1.5))).toMatch(/market\.prices\.food/);
-    expect(broken((state) => (state.market.prices.iron = 8000))).toMatch(/market\.prices\.iron/);
+    expect(broken((state) => (state.market.prices.weapons = 8000))).toMatch(
+      /market\.prices\.weapons/,
+    );
     expect(broken((state) => delete state.market.prices.stone)).toMatch(/market\.prices\.stone/);
     expect(broken((state) => (state.market.tradedToday.wood = -1))).toMatch(
       /market\.tradedToday\.wood/,
@@ -5381,7 +5479,7 @@ describe('versão 21 → 22', () => {
         state.settlement.buildings.market = 0;
         state.market.quoteDay = 0;
         state.market.previousPrices = { ...state.market.prices };
-        state.market.tradedToday = { food: 0, wood: 0, stone: 0 };
+        state.market.tradedToday = { food: 0, wood: 0, stone: 0, iron: 0 };
         delete state.rng.market;
       }),
     ).toBe('market.caravans: caravana sem Mercado');
@@ -5667,6 +5765,7 @@ describe('versão 23 → 24', () => {
   const asVersion23 = (state: GameState): Draft => {
     const old = JSON.parse(JSON.stringify(state)) as Draft;
     old.schemaVersion = 23;
+    stripIron(old);
     for (const entry of old.settlement.masters as Draft[]) {
       delete entry.worked;
     }
@@ -5861,5 +5960,115 @@ describe('os limites do Mercado e das caravanas na guarda da versão 24 (revisã
     expect(broken(two, (state) => (state.settlement.buildings.market = 3))).toBe(
       'market.caravans: 2 na estrada, e o Mercado Nv3 mantém 1',
     );
+  });
+});
+
+/**
+ * Um estado como a versão 24 o gravava, a partir de um da versão 25: sem o ferro em lugar
+ * nenhum (estoque, acumulador, desperdício, Mercado e as quantidades de cada expedição).
+ */
+function asVersion24(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 24;
+  stripIron(old);
+  return old;
+}
+
+describe('versão 24 → 25 (V4B-T1: o ferro)', () => {
+  const version24 = fixtures.filter((fixture) => fixture.version === 24);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(RESOURCE_IDS_V25).toEqual([...RESOURCE_IDS]);
+    expect(MARKET_RESOURCE_IDS_V25).toEqual([...MARKET_RESOURCE_IDS]);
+    expect(MARKET_RESOURCE_IDS_V25).toEqual([...balance.market.resources]);
+    expect(IRON_BASE_PRICE_V25).toBe(balance.market.basePrice.iron);
+    const { floor, ceiling } = balance.market.walk;
+    expect(IRON_PRICE_FLOOR_V25).toBe((IRON_BASE_PRICE_V25 * floor.num) / floor.den);
+    expect(IRON_PRICE_CEILING_V25).toBe((IRON_BASE_PRICE_V25 * ceiling.num) / ceiling.den);
+  });
+
+  it('há retratos da versão 24 com o Armazém cheio, com Mercado e caravana, com expedição em curso e com relatório', () => {
+    expect(version24.length).toBeGreaterThan(40);
+    const all = version24.map((fixture) => read(fixture) as Draft);
+    expect(all.some((state) => state.settlement.wasted.wood > 0)).toBe(true);
+    expect(all.some((state) => state.market.caravans.length > 0)).toBe(true);
+    expect(all.some((state) => state.market.quoteDay > 0)).toBe(true);
+    expect(all.some((state) => state.guild.expeditions.length > 0)).toBe(true);
+    expect(all.some((state) => state.guild.reports.length > 0)).toBe(true);
+    expect(all.some((state) => state.settings.difficulty === 'ironKing')).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v24-fresh.json'));
+    expect(fresh.settlement.resources.iron).toBe(0);
+    expect(fresh.market.prices.iron).toBe(8000);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version24)(
+    '$name: só acrescenta o ferro, em zero no feudo e na base no Mercado; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.resources.iron).toBe(0);
+      expect(after.settlement.accumulators.iron).toBe(0);
+      expect(after.settlement.wasted.iron).toBe(0);
+      expect(after.market.prices.iron).toBe(8000);
+      expect(after.market.previousPrices.iron).toBe(8000);
+      expect(after.market.tradedToday.iron).toBe(0);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.stats).toStrictEqual(before.stats);
+      expect(asVersion24(after)).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      // Nada acontece na fronteira: o passo não cria prazo nem evento.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => JSON.stringify(event).includes('iron'))).toEqual(
+        [],
+      );
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion24(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda recusa o ferro ausente, negativo, negociado sem Mercado e o preço fora do piso e do teto', () => {
+    const broken = (from: GameState, edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(from)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const fresh = newGame('guarda-do-ferro');
+    expect(broken(fresh, () => undefined)).toBeNull();
+    expect(broken(fresh, (state) => delete state.settlement.resources.iron)).not.toBeNull();
+    expect(broken(fresh, (state) => (state.settlement.resources.iron = -1))).not.toBeNull();
+    expect(broken(fresh, (state) => (state.market.tradedToday.iron = 5))).toBe(
+      'market.tradedToday.iron: negociação sem Mercado',
+    );
+    expect(broken(fresh, (state) => (state.market.prices.iron = 4799))).not.toBeNull();
+    const fair = marketDayScenario();
+    expect(broken(fair, () => undefined)).toBeNull();
+    expect(broken(fair, (state) => (state.market.prices.iron = 4800))).toBeNull();
+    expect(broken(fair, (state) => (state.market.prices.iron = 12_801))).toBe(
+      'market.prices.iron: preço fora do piso e do teto do passeio',
+    );
+    // As quantidades de uma expedição pedem o ferro também.
+    const away = migrated(named('state-v24-expedition-returning.json'));
+    expect(currentShape(away, '')).toBeNull();
+    expect(
+      broken(away, (state) => delete state.guild.expeditions[0].loot.resources.iron),
+    ).not.toBeNull();
+    expect(
+      broken(away, (state) => delete state.guild.expeditions[0].log[0].gained.iron),
+    ).not.toBeNull();
   });
 });

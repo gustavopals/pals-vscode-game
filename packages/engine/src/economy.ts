@@ -25,10 +25,15 @@ export function producedBy(building: ProductionBuildingId): ResourceId {
   return resource;
 }
 
+/** O edifício que entrega um recurso, ou `null` para o que nenhum ofício produz (o ferro). */
+export function producerOrNull(resource: ResourceId): ProductionBuildingId | null {
+  return PRODUCTION_BUILDING_IDS.find((id) => buildings[id].produces === resource) ?? null;
+}
+
 /** O edifício que entrega um recurso. */
 export function producerOf(resource: ResourceId): ProductionBuildingId {
-  const producer = PRODUCTION_BUILDING_IDS.find((id) => buildings[id].produces === resource);
-  if (producer === undefined) {
+  const producer = producerOrNull(resource);
+  if (producer === null) {
     throw new Error(`Nenhum edifício produz ${resource}.`);
   }
   return producer;
@@ -175,7 +180,7 @@ export function firewoodRate(
 
 /** Saldo líquido de cada recurso, em milésimos por hora. */
 export function netRates(state: GameState): Record<ResourceId, number> {
-  const rates: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
+  const rates: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 };
   const season = seasonAt(state.lastProcessedAt);
   for (const building of PRODUCTION_BUILDING_IDS) {
     rates[producedBy(building)] += productionRate(state, building, undefined, season);

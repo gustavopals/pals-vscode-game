@@ -18,6 +18,10 @@ export const marketTexts = {
   reasonFoodReserve: 'a comida guardada que sustenta a moral',
   reasonFirewood: 'a lenha do resto do inverno',
   reasonPlanned: 'o custo das obras automáticas',
+  /** O recurso que nenhum ofício produz (o ferro; V4B-T1): de onde ele vem. */
+  unproduced: 'Nenhum ofício produz {recurso}: ele chega pelas expedições e pelo Mercado.',
+  /** A saída do que nenhum ofício produz, para o meio da frase. */
+  sellUnproduced: 'venda {recurso} no Mercado',
 } as const;
 
 export const caravanTexts = {
@@ -48,6 +52,7 @@ export const caravanTexts = {
   /** O estado de quem escolta: `{prazo}` é o tempo real até a chegada. */
   escorting: 'Escolta a caravana: volta em {prazo}',
   /** O que não é uma carga: a ordem pede um recurso que o Mercado negocia e uma quantidade. */
-  cargoOnly: 'Uma caravana leva um recurso só: comida, madeira ou pedra.',
+  cargoOnly:
+    'Uma caravana leva um recurso só: comida, madeira ou pedra. O ferro não vai por caravana.',
   cargoRange: 'Uma caravana leva de uma a {maximo} unidades, em número inteiro.',
 } as const;

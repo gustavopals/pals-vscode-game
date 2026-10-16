@@ -1,4 +1,10 @@
-import { balance, type DifficultyId, expeditionModels, RESOURCE_IDS } from '@lotg/content';
+import {
+  balance,
+  type DifficultyId,
+  expeditionModels,
+  type MarketResourceId,
+  RESOURCE_IDS,
+} from '@lotg/content';
 
 import type { StrategyName } from './bots';
 import { type Band, bandFor, type CellKey, cellKey, checkBand } from './bands';
@@ -300,8 +306,8 @@ export type MarketTotals = {
   runs: number;
   built: number;
   level: Range;
-  sold: Record<'food' | 'wood' | 'stone', number>;
-  bought: Record<'food' | 'wood' | 'stone', number>;
+  sold: Record<MarketResourceId, number>;
+  bought: Record<MarketResourceId, number>;
   goldEarned: number;
   goldSpent: number;
   offered: number;
@@ -318,9 +324,9 @@ export type MarketTotals = {
   goldIn: GoldIn;
   goldOut: GoldOut;
   /** O ouro pago nas compras e o recebido das caravanas, e as unidades delas, por recurso. */
-  boughtGold: Record<'food' | 'wood' | 'stone', number>;
-  caravanGoldBy: Record<'food' | 'wood' | 'stone', number>;
-  caravanUnits: Record<'food' | 'wood' | 'stone', number>;
+  boughtGold: Record<MarketResourceId, number>;
+  caravanGoldBy: Record<MarketResourceId, number>;
+  caravanUnits: Record<MarketResourceId, number>;
   /** O ouro parado no fim, somado nas sementes: o que as fontes deixaram sem destino. */
   goldLeft: number;
 };
@@ -415,8 +421,8 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     runs: summaries.length,
     built: levels.filter((level) => level > 0).length,
     level: { min: Math.min(...levels), max: Math.max(...levels) },
-    sold: { food: 0, wood: 0, stone: 0 },
-    bought: { food: 0, wood: 0, stone: 0 },
+    sold: { food: 0, wood: 0, stone: 0, iron: 0 },
+    bought: { food: 0, wood: 0, stone: 0, iron: 0 },
     goldEarned: 0,
     goldSpent: 0,
     offered: 0,
@@ -428,9 +434,9 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     mineGold: 0,
     goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
     goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
-    boughtGold: { food: 0, wood: 0, stone: 0 },
-    caravanGoldBy: { food: 0, wood: 0, stone: 0 },
-    caravanUnits: { food: 0, wood: 0, stone: 0 },
+    boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
+    caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
+    caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },
     goldLeft: 0,
   };
   for (const { market, surplus } of summaries) {
@@ -576,7 +582,7 @@ export function speculationTable(cells: readonly MatrixCell[]): string | null {
     formatDecimal(Math.round((total * 10) / Math.max(1, runs)) / 10);
   const leg = (cell: MatrixCell, ids: ReadonlyArray<'food' | 'wood' | 'stone'>) => {
     const { market } = cell;
-    const sum = (amounts: Record<'food' | 'wood' | 'stone', number>) =>
+    const sum = (amounts: Record<MarketResourceId, number>) =>
       ids.reduce((total, id) => total + amounts[id], 0);
     const paid = sum(market.boughtGold);
     const got = sum(market.caravanGoldBy);

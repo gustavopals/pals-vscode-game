@@ -335,7 +335,7 @@ describe('a deserção por fome em tempo real, nos três ritmos (V2G-T2; ADR 001
         game.id,
         JSON.stringify({
           population: { villagers: 40 },
-          resources: { food: 20_000, wood: 0, stone: 0, gold: 0 },
+          resources: { food: 20_000, wood: 0, stone: 0, gold: 0, iron: 0 },
           moraleEffects: [{ id: 'teste', label: 'efeito de teste', amount: 100, untilMs: year }],
         }),
       ],

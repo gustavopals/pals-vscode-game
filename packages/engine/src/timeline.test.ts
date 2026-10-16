@@ -139,7 +139,13 @@ describe('nextEventAt', () => {
     const camp = (edit: (draft: GameState) => void = () => {}) =>
       gameAt(SPRING, (draft) => {
         draft.settlement.workers.lumberMill = 5;
-        draft.settlement.resources = { food: 500_000, wood: 60_000, stone: 400_000, gold: 400_000 };
+        draft.settlement.resources = {
+          food: 500_000,
+          wood: 60_000,
+          stone: 400_000,
+          gold: 400_000,
+          iron: 0,
+        };
         edit(draft);
       });
     const auto = (building: 'lumberMill' | 'townHall' | 'farm' | 'housing') =>
@@ -219,7 +225,13 @@ describe('nextEventAt', () => {
       // Serraria ganha na mesma virada e × 1,05 da moral, que a virada leva a 60).
       const start = gameAt(24 * DAY - HOUR, (draft) => {
         draft.settlement.workers.lumberMill = 5;
-        draft.settlement.resources = { food: 500_000, wood: 0, stone: 400_000, gold: 400_000 };
+        draft.settlement.resources = {
+          food: 500_000,
+          wood: 0,
+          stone: 400_000,
+          gold: 400_000,
+          iron: 0,
+        };
       });
       const state = accept(start, auto('lumberMill')).state;
       // Com a taxa da primavera a conta dá 2 h 30 min; a virada chega antes.

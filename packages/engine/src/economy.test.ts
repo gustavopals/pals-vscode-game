@@ -49,7 +49,7 @@ describe('taxas', () => {
     });
     expect(productionRate(state, 'farm')).toBe(20_000);
     expect(consumptionRate(state)).toBe(5_000);
-    expect(netRates(state)).toEqual({ food: 15_000, wood: 0, stone: 0, gold: 0 });
+    expect(netRates(state)).toEqual({ food: 15_000, wood: 0, stone: 0, gold: 0, iron: 0 });
   });
 
   it('1 hora produz exatamente 15.000 milésimos de comida', () => {
@@ -127,21 +127,30 @@ describe('estações (GDD §4.1)', () => {
       wood: 8_000,
       stone: 5_000,
       gold: 4_000,
+      iron: 0,
     });
     expect(netRates(oneEach(SUMMER))).toEqual({
       food: 6_000,
       wood: 9_200,
       stone: 5_750,
       gold: 4_000,
+      iron: 0,
     });
     expect(netRates(oneEach(AUTUMN))).toEqual({
       food: 9_000,
       wood: 8_000,
       stone: 5_000,
       gold: 4_400,
+      iron: 0,
     });
     // Inverno: 4 − 4 de comida; 6,4 − 4 × 0,5 de lenha.
-    expect(netRates(oneEach(WINTER))).toEqual({ food: 0, wood: 4_400, stone: 4_000, gold: 4_000 });
+    expect(netRates(oneEach(WINTER))).toEqual({
+      food: 0,
+      wood: 4_400,
+      stone: 4_000,
+      gold: 4_000,
+      iron: 0,
+    });
   });
 
   it('a lenha é 0,5 de madeira por habitante por hora, só no inverno', () => {
@@ -276,6 +285,7 @@ describe('estações (GDD §4.1)', () => {
       wood: 120_000 + 8_000 + 9_775,
       stone: 65_000 + 5_000 + 6_109,
       gold: 250_000 + 4_000 + 4_250,
+      iron: 0,
     });
     // E o mesmo com o intervalo cortado em qualquer lugar, inclusive em cima da virada.
     for (const cut of [SUMMER - HOUR + 1, SUMMER - 1, SUMMER, SUMMER + 1, SUMMER + HOUR - 1]) {

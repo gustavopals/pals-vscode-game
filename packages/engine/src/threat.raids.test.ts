@@ -98,7 +98,7 @@ function feud(
     };
     settlement.population.villagers = 10;
     settlement.workers = { farm: 4, lumberMill: 3, quarry: 2, goldMine: 1 };
-    settlement.resources = { food: 400_000, wood: 300_000, stone: 200_000, gold: 100_000 };
+    settlement.resources = { food: 400_000, wood: 300_000, stone: 200_000, gold: 100_000, iron: 0 };
     draft.map.threat = 20;
     draft.horde.scheduledRaids = [raid(RAID_AT, size)];
     edit(draft);
@@ -518,7 +518,13 @@ describe('a resolução no instante marcado', () => {
       edit: (draft) => {
         draft.settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
         draft.settlement.population.villagers = 5;
-        draft.settlement.resources = { food: 123_457, wood: 99_999, stone: 77_777, gold: 5_555 };
+        draft.settlement.resources = {
+          food: 123_457,
+          wood: 99_999,
+          stone: 77_777,
+          gold: 5_555,
+          iron: 0,
+        };
       },
     });
     const before = advanceTo(start, RAID_AT - 1).state.settlement.resources;
@@ -530,6 +536,7 @@ describe('a resolução no instante marcado', () => {
       wood: 99_999 - 9_999,
       stone: 77_777,
       gold: 5_555,
+      iron: 0,
     });
     const suffered = only(events, 'raidSuffered');
     expect(suffered.data).toMatchObject({ raided_food: 12.345, raided_wood: 9.999, injured: 1 });
@@ -547,7 +554,7 @@ describe('a resolução no instante marcado', () => {
       edit: (draft) => {
         draft.settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
         draft.settlement.population.villagers = 5;
-        draft.settlement.resources = { food: 200_000, wood: 100_000, stone: 0, gold: 0 };
+        draft.settlement.resources = { food: 200_000, wood: 100_000, stone: 0, gold: 0, iron: 0 };
       },
     });
     const { state, events } = advanceTo(start, RAID_AT);
@@ -628,7 +635,7 @@ describe('a resolução no instante marcado', () => {
       atMs: RAID_AT - 1,
       edit: (draft) => {
         const { settlement } = draft;
-        settlement.resources = { food: 0, wood: 0, stone: 50_000, gold: 50_000 };
+        settlement.resources = { food: 0, wood: 0, stone: 50_000, gold: 50_000, iron: 0 };
         settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
         settlement.population.villagers = 3;
         starve(draft, RAID_AT - DAY);
@@ -1429,7 +1436,7 @@ describe('interações no mesmo instante (roadmap V2E-T3.4)', () => {
         settlement.population.villagers = 10;
         settlement.workers = { farm: 10, lumberMill: 0, quarry: 0, goldMine: 0 };
         // 10 habitantes queimam 5 de madeira por hora: 30 duram 6 h.
-        settlement.resources = { food: 400_000, wood: 30_000, stone: 0, gold: 0 };
+        settlement.resources = { food: 400_000, wood: 30_000, stone: 0, gold: 0, iron: 0 };
         draft.horde.scheduledRaids = [raid(winterRaid)];
       });
     const coldAt = (state: GameState) =>
@@ -2059,7 +2066,13 @@ describe('a divisão de intervalo continua exata com as incursões (GDD §14.3)'
             settlement.population.villagers = 10;
             const [farm, lumberMill, quarry, goldMine] = workers;
             settlement.workers = { farm, lumberMill, quarry, goldMine };
-            settlement.resources = { food: 300_000, wood: 200_000, stone: 100_000, gold: 50_000 };
+            settlement.resources = {
+              food: 300_000,
+              wood: 200_000,
+              stone: 100_000,
+              gold: 50_000,
+              iron: 0,
+            };
             draft.map.threat = threat;
             hordeAwake(draft);
           });

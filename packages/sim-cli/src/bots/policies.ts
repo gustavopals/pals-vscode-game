@@ -32,7 +32,11 @@ const SPARE_BED_FROM = 20;
 /** Bocas a mais que a alocação por demanda alimenta, de folga. */
 const SPARE_MOUTHS = 2;
 /** Pesos usados quando nenhuma obra está esperando recurso. */
-const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food'>, number> = { wood: 3, stone: 2, gold: 1 };
+const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food' | 'iron'>, number> = {
+  wood: 3,
+  stone: 2,
+  gold: 1,
+};
 /**
  * Com quantas horas reais de antecedência o bot amplia um depósito que vai encher: o tempo de
  * uma noite fora, que é quando a produção iria para o chão sem ninguém ver.
@@ -59,7 +63,8 @@ const FARM_SLACK = 1;
  */
 const SWITCH_PAYBACK = 2;
 
-type Material = Exclude<ResourceId, 'food'>;
+/** Os materiais das obras: o ferro não entra em obra nenhuma (V4B-T1). */
+type Material = Exclude<ResourceId, 'food' | 'iron'>;
 const MATERIALS: Material[] = ['wood', 'stone', 'gold'];
 
 type Workplace = ViewState['workers'][number];
@@ -199,7 +204,7 @@ function costsOf(upgrades: readonly Upgrade[]): Record<Material, number> {
   const total: Record<Material, number> = { wood: 0, stone: 0, gold: 0 };
   for (const upgrade of upgrades) {
     for (const cost of upgrade.cost) {
-      if (cost.resource !== 'food') {
+      if (cost.resource !== 'food' && cost.resource !== 'iron') {
         total[cost.resource] += cost.amount;
       }
     }
@@ -1643,6 +1648,10 @@ function keptFromMarket(view: ViewState, resource: ResourceId): number {
   }
   if (resource === 'gold') {
     return Infinity;
+  }
+  // Até o Ferreiro (V4B-T2) o ferro não tem uso: o bot não guarda nenhum (V4B-T1.8).
+  if (resource === 'iron') {
+    return 0;
   }
   const needed = materialNeeds(view)[resource];
   return resource === 'wood' ? needed + firewoodReserve(view) : needed;

@@ -171,7 +171,7 @@ describe('advanceTo', () => {
       ];
       draft.stats.cardsDrawn = 2;
       const { settlement } = draft;
-      settlement.resources = { food: 5_000, wood: 0, stone: 0, gold: 0 };
+      settlement.resources = { food: 5_000, wood: 0, stone: 0, gold: 0, iron: 0 };
       settlement.workers.goldMine = 1;
       settlement.craftExperience.goldMine = 96;
       settlement.adaptation = [{ building: 'goldMine', count: 1, untilMs: YEAR_MS }];

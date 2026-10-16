@@ -21,7 +21,7 @@ function withWaste(
     if (row === undefined) {
       throw new Error(`A partida de base só tem ${base.rows.length} horas.`);
     }
-    return { ...row, wasted: { food: 0, wood: 0, stone: 0, gold: 0, ...entry } };
+    return { ...row, wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0, ...entry } };
   });
   return {
     ...base,

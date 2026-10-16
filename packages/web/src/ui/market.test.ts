@@ -74,8 +74,8 @@ describe('o total de uma ordem', () => {
     expect(tradeTotal(wood, 'sell', 150)).toBe(153_000);
     expect(goldText(153_000)).toBe('153');
     const food = priceOf(marketDayView.market, 'food');
-    expect(food?.buy).toBe(1515);
-    expect(goldText(100 * 1515)).toBe('151,5');
+    expect(food?.buy).toBe(1385);
+    expect(goldText(100 * 1385)).toBe('138,5');
     expect(goldText(1_904_000)).toBe('1.904');
     expect(goldText(850)).toBe('0,85');
   });
@@ -129,7 +129,7 @@ describe('a tabela e a árvore', () => {
   it('a explicação traz, por recurso, os dois preços, a tendência por extenso e o que cabe, e quando o preço muda', () => {
     const lines = marketLines(marketDayView.market, 60);
     expect(lines[0]).toBe(marketDayView.market.text);
-    expect(lines[1]).toContain('Comida: compra 1,515, venda 1,287 (subindo). Cabem mais 50 hoje.');
+    expect(lines[1]).toContain('Comida: compra 1,385, venda 1,176 (descendo). Cabem mais 50 hoje.');
     expect(lines.at(-1)).toMatch(/^O preço muda em \d+ (min|h)\.$/);
   });
 

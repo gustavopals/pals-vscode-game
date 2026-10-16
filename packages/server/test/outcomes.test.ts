@@ -99,6 +99,7 @@ async function campaign(name: string, difficulty: Difficulty): Promise<Player> {
       wood: 400_000,
       stone: 400_000,
       gold: 2_000_000,
+      iron: 0,
     });
     state.guild.heroes = [
       hero('hero-1', 'Edda', 'f'),

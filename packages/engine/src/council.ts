@@ -287,9 +287,9 @@ type Outcome = {
 };
 
 const noOutcome = (): Outcome => ({
-  spent: { food: 0, wood: 0, stone: 0, gold: 0 },
-  gained: { food: 0, wood: 0, stone: 0, gold: 0 },
-  lost: { food: 0, wood: 0, stone: 0, gold: 0 },
+  spent: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
+  gained: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
+  lost: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
   morale: null,
   hero: null,
 });

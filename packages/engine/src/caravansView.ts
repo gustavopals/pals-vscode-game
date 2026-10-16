@@ -148,9 +148,7 @@ export function caravanOfferView(state: GameState, timeScale: number): CaravanOf
     slots: caravanSlots(state),
     slotsInUse: state.market.caravans.length,
     // Sem o Mercado no nível das caravanas não há o que oferecer (descoberta gradual).
-    resources: open
-      ? balance.market.resources.map((resource) => resourceView(state, resource))
-      : [],
+    resources: open ? rules.resources.map((resource) => resourceView(state, resource)) : [],
     eligibleEscortIds: open ? eligibleEscorts(state).map((hero) => hero.id) : [],
   };
 }

@@ -181,6 +181,12 @@ const STABLE_IDS: Record<
       options: { cisternAndTower: ['readSeals', 'descendCistern', 'gatherCourtyard'] },
     },
   ],
+  // V4B-T1: as três variantes da Mina Abandonada têm os mesmos ids de nó e de opção.
+  abandonedMine: [0, 1, 2].map(() => ({
+    start: 'descent',
+    nodes: ['descent', 'shaft', 'galleries', 'lowerVein', 'sideDrift', 'home'],
+    options: { galleries: ['deepVein', 'sideGallery', 'climbOut'] },
+  })),
   swamp: [
     {
       start: 'stakeTrail',
@@ -368,6 +374,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       'wolfDen',
       'rescue',
       'ruins',
+      'abandonedMine',
       'swamp',
     ]);
     for (const model of expeditionModels) {
@@ -677,10 +684,16 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
   );
 
   it('nenhuma recompensa nem frase é de versão futura: nada de ferro, arma, relíquia, planta, unidade, presságio ou exército', () => {
-    const text = JSON.stringify(expeditionModels);
+    // O ferro entrou na v0.4 (V4B-T1), e só a Mina Abandonada o rende e fala dele: a expressão
+    // afrouxa o ferro só para ela.
+    const mine = expeditionModels.filter((entry) => entry.id === 'abandonedMine');
+    const others = expeditionModels.filter((entry) => entry.id !== 'abandonedMine');
     // "Armadilha" é do Apêndice C do GDD e não é arma: a palavra inteira é que fica de fora.
-    expect(text).not.toMatch(
+    expect(JSON.stringify(others)).not.toMatch(
       /\bferros?\b|\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
+    );
+    expect(JSON.stringify(mine)).not.toMatch(
+      /\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
     );
     for (const [, , variant] of everyVariant()) {
       for (const node of Object.values(variant.nodes)) {
@@ -773,11 +786,13 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       ['Covil de Lobos', 120, 3, '2-2', 1, '', 'Médio', 1, 'tile'],
       ['Resgate', 120, 3, '2-2', 1, '', 'Alto', 1, 'captive'],
       ["Ruínas de Vel'Thar", 180, 4, '2-3', 2, '', 'Médio', 1, 'discovered'],
+      // V4B-T1 (ADR 0019, decisão 3; GDD §9.3).
+      ['Mina Abandonada', 240, 4, '2-2', 1, 'warrior', 'Médio', 2, 'discovered'],
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
     ]);
   });
 
-  it('a descoberta: a Patrulha revela as Ruínas, as Ruínas revelam o Pântano, e nada revela outra coisa', () => {
+  it('a descoberta: a Patrulha revela as Ruínas, as Ruínas revelam o Pântano, a Floresta revela a Mina Abandonada, e nada revela outra coisa', () => {
     const reveals = new Map<string, Set<string>>();
     for (const [, model, variant] of everyVariant()) {
       for (const node of Object.values(variant.nodes)) {
@@ -788,10 +803,11 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     }
     expect([...reveals].map(([from, to]) => [from, [...to]])).toEqual([
       ['patrol', ['ruins']],
+      ['oldForest', ['abandonedMine']],
       ['ruins', ['swamp']],
     ]);
-    // Toda variante dos dois tem a revelação em todo caminho que chega ao fim da jornada.
-    for (const id of ['patrol', 'ruins'] as const) {
+    // Toda variante dos três tem a revelação em todo caminho que chega ao fim da jornada.
+    for (const id of ['patrol', 'oldForest', 'ruins'] as const) {
       for (const variant of expeditionModels.find((entry) => entry.id === id)?.variants ?? []) {
         expect(
           Object.values(variant.nodes).some(
@@ -1076,7 +1092,8 @@ describe('as frases das expedições', () => {
         expect(bold, name).toBeGreaterThan(worth.get(node.posture.cautious) ?? Infinity);
       }
     }
-    expect(crossroads).toBe(15);
+    // Com as três da Mina Abandonada (V4B-T1).
+    expect(crossroads).toBe(18);
     for (const id of ['balanced', 'bold'] as const) {
       expect(expeditionPostures[id].text).toMatch(/pede o que ela não tem, vale o seguro\.$/);
     }

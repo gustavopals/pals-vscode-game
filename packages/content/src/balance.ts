@@ -441,6 +441,8 @@ export type EquipmentDef = {
  * no volume diário do Mercado.
  */
 export type CaravanDef = {
+  /** Os recursos que uma caravana leva, na ordem do Mercado: o ferro não (ADR 0019, decisão 3). */
+  readonly resources: readonly MarketResourceId[];
   /** O nível do Mercado a partir do qual uma caravana parte. */
   readonly requiresLevel: number;
   /** O máximo de unidades que uma caravana leva. */
@@ -602,10 +604,12 @@ export const balance: Balance = {
     wood: { label: 'Madeira' },
     stone: { label: 'Pedra' },
     gold: { label: 'Ouro' },
+    // V4B-T1 (ADR 0019, decisão 3): o ferro não é produzido; vem da Mina Abandonada e do Mercado.
+    iron: { label: 'Ferro' },
   },
   initial: {
     villagers: 5,
-    resources: { food: 180, wood: 120, stone: 65, gold: 250 },
+    resources: { food: 180, wood: 120, stone: 65, gold: 250, iron: 0 },
   },
   production: {
     perWorkerPerHour: { farm: 10, lumberMill: 8, quarry: 5, goldMine: 4 },
@@ -641,7 +645,9 @@ export const balance: Balance = {
         unbuilt: { label: 'Despensa', article: 'a' },
       },
       warehouse: {
-        resources: ['wood', 'stone'],
+        // O ferro divide o Armazém com a madeira e a pedra, cada um com o seu limite (GDD §5.5:
+        // "cada"; ADR 0019, decisão 3).
+        resources: ['wood', 'stone', 'iron'],
         level1: 1000,
         perLevel: 600,
         unbuilt: { label: 'Pátio', article: 'o' },
@@ -696,7 +702,13 @@ export const balance: Balance = {
         article: 'a',
         days: 24,
         effects: {
-          production: { food: { num: 6, den: 5 }, wood: SAME, stone: SAME, gold: SAME },
+          production: {
+            food: { num: 6, den: 5 },
+            wood: SAME,
+            stone: SAME,
+            gold: SAME,
+            iron: SAME,
+          },
           recruitmentDuration: { num: 4, den: 5 },
           constructionDuration: SAME,
           expeditionDuration: SAME,
@@ -714,6 +726,7 @@ export const balance: Balance = {
             wood: { num: 23, den: 20 },
             stone: { num: 23, den: 20 },
             gold: SAME,
+            iron: SAME,
           },
           recruitmentDuration: SAME,
           constructionDuration: SAME,
@@ -732,6 +745,7 @@ export const balance: Balance = {
             wood: SAME,
             stone: SAME,
             gold: { num: 11, den: 10 },
+            iron: SAME,
           },
           recruitmentDuration: SAME,
           constructionDuration: SAME,
@@ -750,6 +764,7 @@ export const balance: Balance = {
             wood: { num: 4, den: 5 },
             stone: { num: 4, den: 5 },
             gold: SAME,
+            iron: SAME,
           },
           recruitmentDuration: SAME,
           constructionDuration: { num: 3, den: 2 },
@@ -961,8 +976,10 @@ export const balance: Balance = {
   // nível. A comida custa 30% a mais no outono e no inverno (GDD §4.1). O teste de conteúdo
   // confere que o piso, o teto e as marcas dão milésimos inteiros em cada preço-base.
   market: {
-    resources: ['food', 'wood', 'stone'],
-    basePrice: { food: 1000, wood: 1200, stone: 2000 },
+    resources: ['food', 'wood', 'stone', 'iron'],
+    // O ferro a 8,0 de ouro (V4B-T1; ADR 0019, decisão 3), sem fator de estação, com o mesmo
+    // volume e a mesma venda a 85% dos outros.
+    basePrice: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
     sellRatio: { num: 17, den: 20 },
     dailyVolumePerLevel: 200,
     walk: {
@@ -983,6 +1000,9 @@ export const balance: Balance = {
     // 0,9775 do preço de compra, e comprar para revender por caravana sempre perde. Era 7/5,
     // que dava 1,19 (revisão da Fase E, D1). O schema recusa o número que reabrir a manobra.
     caravan: {
+      // O que uma caravana leva: o ferro fica de fora (ADR 0019, decisão 3, "sem caravana de
+      // ferro"). Na ordem de `market.resources`.
+      resources: ['food', 'wood', 'stone'],
       requiresLevel: 2,
       maxUnits: 300,
       tripMs: 4 * HOUR_MS,

@@ -45,7 +45,13 @@ function feud(difficulty: DifficultyId = 'lord', timeScale = 1, atMs = 0): GameS
   state.settlement.workers.farm = 3;
   state.settlement.buildings.granary = 3;
   state.settlement.buildings.warehouse = 3;
-  state.settlement.resources = { food: 300_000, wood: 300_000, stone: 100_000, gold: 100_000 };
+  state.settlement.resources = {
+    food: 300_000,
+    wood: 300_000,
+    stone: 100_000,
+    gold: 100_000,
+    iron: 0,
+  };
   state.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
   quietCouncil(state);
   // E a Horda também: só a cadeia mexe no estoque e na moral deste feudo.
