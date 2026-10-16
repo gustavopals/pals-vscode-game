@@ -1,15 +1,17 @@
 /*
  * A página tem duas vozes. A do escritório (letra de largura fixa, cinza) diz o que se vê de
  * longe; a do feudo (gótica, ouro) diz o que aquilo é. O resto do texto é do cronista.
+ *
+ * Nada aqui se mexe sozinho: só o botão afunda e os blocos do códice se erguem sob o ponteiro,
+ * por transição, e base.css desliga as duas para quem pediu menos movimento.
  */
 
 /* ---------- Peças que se repetem ---------- */
 
 .masthead,
 .hero,
-.seasons-text,
-.panorama figcaption,
-.fief,
+.rhythm,
+.codex,
 .alibi,
 .vacancy,
 .colophon {
@@ -88,9 +90,33 @@ figcaption,
   transform: translate(0.375rem, 0.375rem);
 }
 
+/*
+ * Uma linha da Crônica, pendurada como em um anal: a data fica na margem, em ouro, e o resto
+ * recua. Vale para o fólio e para as citações curtas dos blocos do códice.
+ */
+.chronicle-lines {
+  display: grid;
+  gap: 0.6em;
+  text-wrap: pretty;
+}
+
+.chronicle-lines p {
+  padding-left: 1.6em;
+  text-indent: -1.6em;
+}
+
+.chronicle-lines .date {
+  color: var(--gold);
+}
+
 /* ---------- Topo ---------- */
 
 .masthead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
   padding-top: 1.25rem;
 }
 
@@ -103,6 +129,12 @@ figcaption,
   font-size: 1.625rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.masthead-note {
+  color: var(--margin);
+  font-family: var(--font-office);
+  font-size: 0.875rem;
 }
 
 /* ---------- Herói: o título em duas vozes e a tela lida de dois jeitos ---------- */
@@ -468,10 +500,56 @@ figcaption,
   }
 }
 
-/* ---------- As estações: a pintura vista por cima das ameias ---------- */
+/* ---------- O ritmo: abra, feche, volte; e a pintura vista por cima das ameias ---------- */
+
+.rhythm {
+  padding-top: clamp(3rem, 7vw, 5rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+}
+
+.steps {
+  display: grid;
+  gap: 2rem 3rem;
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+  counter-reset: step;
+}
+
+.steps li {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  max-width: var(--measure);
+  padding-top: 1rem;
+  border-top: 2px solid var(--gold);
+}
+
+.steps li::before {
+  color: var(--margin);
+  font-family: var(--font-office);
+  font-size: 0.875rem;
+  content: 'passo ' counter(step) ' de 3';
+  counter-increment: step;
+}
+
+.step-key {
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 0.9;
+}
+
+.steps p:not(.step-key) {
+  font-size: 1.1875rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
 
 .panorama {
   position: relative;
+  /* A pintura vai de ponta a ponta da tela, fora da coluna de leitura. */
+  margin-top: clamp(3rem, 7vw, 5rem);
+  margin-inline: calc(-1 * max(var(--gutter), calc((100% - var(--page)) / 2)));
 }
 
 .battlements {
@@ -505,20 +583,13 @@ figcaption,
 }
 
 .panorama figcaption {
-  max-width: calc(var(--measure) + 2 * var(--gutter));
-  box-sizing: content-box;
+  max-width: var(--measure);
   margin-top: 1.5rem;
+  margin-inline: max(var(--gutter), calc((100% - var(--page)) / 2));
 }
 
 .swipe-hint {
   display: none;
-}
-
-.seasons-text {
-  display: grid;
-  gap: 1.5rem 3rem;
-  padding-top: clamp(2.5rem, 6vw, 4.5rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
 }
 
 @media (max-width: 47.99rem) {
@@ -543,54 +614,307 @@ figcaption,
   }
 }
 
-@media (min-width: 60rem) {
-  .seasons-text {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    align-items: start;
+@media (min-width: 48rem) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-/* ---------- O feudo: o que se faz, e a Crônica ---------- */
+/* ---------- O códice: um bloco por coisa que se governa ---------- */
 
-.fief {
+.codex {
   padding-top: clamp(3.5rem, 8vw, 6rem);
   padding-bottom: clamp(3.5rem, 8vw, 6rem);
   background: var(--night);
 }
 
-.fief-body {
+.codex-kicker {
+  margin-bottom: 1rem;
+  color: var(--margin);
+  font-size: 0.9375rem;
+}
+
+.codex-lede {
+  max-width: var(--measure);
+  margin-top: 1.25rem;
+  color: var(--margin);
+  font-size: 1.1875rem;
+  line-height: 1.45;
+}
+
+.tiles {
   display: grid;
-  gap: 3.5rem 4rem;
+  gap: 2.5rem 2rem;
   margin-top: clamp(2.5rem, 6vw, 4rem);
 }
 
-.beats {
+/*
+ * Cada bloco é uma aba aberta no editor: a orelha cinza com o nome do arquivo é o que quem passa
+ * vê; o título em ouro, o que aquilo é. A sombra chapada é a mesma da captura do herói.
+ */
+.tile {
+  position: relative;
   display: grid;
-  gap: 2rem;
+  gap: 1.1rem;
   align-content: start;
+  padding: 2.6rem clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--ivory);
+  background: var(--ash);
+  box-shadow: 0.625rem 0.625rem 0 var(--blue);
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out;
 }
 
-.beats h3 {
-  margin-bottom: 0.5rem;
+.tile:hover {
+  box-shadow: 0.875rem 0.875rem 0 var(--blue);
+  transform: translate(-0.25rem, -0.25rem);
+}
+
+.tab {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  padding: 0.35em 0.9em 0.4em;
+  border: 1px solid var(--night);
+  background: var(--office);
+  color: var(--night);
+  font-family: var(--font-office);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+}
+
+.tile h3 {
   color: var(--gold);
   font-family: var(--font-fief);
-  font-size: 2.125rem;
+  font-size: clamp(2rem, 3.4vw, 2.625rem);
+  font-weight: 800;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.tile-wolves h3 {
+  color: var(--ember);
+}
+
+.tile-text {
+  max-width: var(--measure);
+  font-size: 1.125rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.tile-note,
+.list-title {
+  color: var(--margin);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* A citação curta da Crônica dentro de um bloco. */
+.said {
+  padding-left: 1rem;
+  border-left: 3px solid var(--gold);
+}
+
+.said .chronicle-lines {
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+.said figcaption {
+  margin-top: 0.6rem;
+  font-family: var(--font-office);
+  font-size: 0.8125rem;
+}
+
+/*
+ * A carta do Conselho: pergaminho com o texto em noite, as opções como o jogo as lista. Não é
+ * uma captura; as frases são do conteúdo.
+ */
+.card {
+  display: grid;
+  gap: 0.9rem;
+  padding: clamp(1.1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--night);
+  background: var(--parchment);
+  color: var(--night);
+}
+
+.card-title {
+  font-family: var(--font-fief);
+  font-size: 1.875rem;
   font-weight: 700;
   line-height: 1;
 }
 
-.beats p {
-  max-width: var(--measure);
+.card-text {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  text-wrap: pretty;
 }
 
-/*
- * O fólio: a Crônica composta como uma aba aberta, com a moldura e a sombra da captura do
- * herói. Não é uma captura; as frases são do jogo.
- */
+.card-options {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.card-options li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--night);
+}
+
+.option-label {
+  font-family: var(--font-fief);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.option-hint {
+  color: var(--office-ink);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.card figcaption {
+  color: var(--office-ink);
+  font-family: var(--font-office);
+  font-size: 0.8125rem;
+}
+
+/* A folha da encruzilhada é uma captura real da aba Guilda (jogo-encruzilhada.webp, 314 × 662). */
+.crossroads {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  max-width: 22rem;
+}
+
+.crossroads figcaption {
+  font-family: var(--font-office);
+  font-size: 0.8125rem;
+}
+
+/* As fichas de Edda e Rolf. */
+.sheets {
+  display: grid;
+  gap: 1rem;
+}
+
+.sheet {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid var(--margin);
+}
+
+.sheet-name {
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sheet-class {
+  color: var(--margin);
+  font-family: var(--font-office);
+  font-size: 0.875rem;
+}
+
+.trait-text {
+  margin-top: 0.3rem;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+/* A encruzilhada ao lado das Posturas, dos destinos e dos desfechos. */
+.expedition-body {
+  display: grid;
+  gap: 1.5rem 2rem;
+}
+
+.expedition-aside {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.postures {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.postures div {
+  padding-left: 1rem;
+  border-left: 3px solid var(--margin);
+}
+
+.postures dt {
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.postures dd {
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.destinations,
+.outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.destinations li,
+.outcomes li {
+  padding: 0.3em 0.7em;
+  border: 1px solid var(--margin);
+  font-family: var(--font-office);
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.outcomes li {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.outcome-setback,
+.outcome-disaster {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+
+/* Os quatro Mestres, pelo nome e pelo ofício de origem. */
+.masters {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.master-name {
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* O fólio da Crônica: composto como uma aba aberta, com a moldura da captura do herói. */
 .chronicle {
-  align-self: start;
-  max-width: 44rem;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--ivory);
   box-shadow: 0.625rem 0.625rem 0 var(--blue);
 }
@@ -603,31 +927,69 @@ figcaption,
   line-height: 1;
 }
 
-.chronicle blockquote {
-  display: grid;
-  gap: 0.6em;
-  font-size: clamp(1.25rem, 1.9vw, 1.4375rem);
+.chronicle .chronicle-lines {
+  font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
   line-height: 1.35;
-  text-wrap: pretty;
-}
-
-.chronicle p {
-  /* Linha pendurada, como em um anal: a data fica na margem e o resto recua. */
-  padding-left: 1.6em;
-  text-indent: -1.6em;
-}
-
-.chronicle .date {
-  color: var(--gold);
 }
 
 .chronicle figcaption {
   margin-top: 1.5rem;
 }
 
+@media (min-width: 48rem) {
+  .sheets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 60rem) {
-  .fief-body {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  .tiles {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .tile-fief,
+  .tile-wolves {
+    grid-column: span 5;
+  }
+
+  .tile-council,
+  .tile-guild {
+    grid-column: span 7;
+  }
+
+  .tile-expedition,
+  .tile-chronicle {
+    grid-column: span 12;
+  }
+
+  .tile-market,
+  .tile-masters {
+    grid-column: span 6;
+  }
+
+  .expedition-body {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+
+  .tile-chronicle {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    grid-template-rows: auto 1fr;
+    column-gap: 2.5rem;
+  }
+
+  .tile-chronicle h3 {
+    grid-column: 1;
+  }
+
+  .tile-chronicle .tile-text {
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .tile-chronicle .chronicle {
+    grid-row: 1 / span 2;
+    grid-column: 2;
   }
 }
 
