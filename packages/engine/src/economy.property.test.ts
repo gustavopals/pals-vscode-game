@@ -118,7 +118,9 @@ function expectCraftInvariants(state: GameState): void {
   }
 }
 
-describe('invariante de divisão de intervalo', () => {
+// Sozinhas, estas propriedades levam de 10 a 20 s; com a máquina ocupada por outra suíte,
+// passavam dos 30 s do limite global (`vitest.config.ts`). O que elas conferem não muda.
+describe('invariante de divisão de intervalo', { timeout: 120_000 }, () => {
   it('advanceTo(t3) é idêntico a advanceTo(t2) seguido de advanceTo(t3)', () => {
     fc.assert(
       fc.property(scenario, (plan) => {

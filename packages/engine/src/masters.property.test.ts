@@ -208,111 +208,117 @@ function expectInvariants(state: GameState, known: Map<string, string>): void {
   expect(next === null || next >= state.lastProcessedAt).toBe(true);
 }
 
-describe('a divisão de intervalo com Mestres chegando, esperando e trocando de edifício', () => {
-  it('avançar de uma vez ou em dois pedaços dá o mesmo estado, os mesmos eventos, o mesmo gerador e os mesmos contadores, com ordens entre os avanços, nos três ritmos', () => {
-    let found = 0;
-    let waited = 0;
-    let admitted = 0;
-    let assigned = 0;
-    let adapted = 0;
-    let lost = 0;
-    const paces = new Set<number>();
-    fc.assert(
-      fc.property(scenario, (plan) => {
-        let state = prepare(plan);
-        const known = new Map<string, string>();
-        expectInvariants(state, known);
-        for (const step of plan.visits) {
-          const target = state.lastProcessedAt + Math.round(step.afterRealMs * plan.timeScale);
-          const middle = state.lastProcessedAt + Math.floor((target - state.lastProcessedAt) / 3);
-          const direct = advanceTo(state, target);
-          const half = advanceTo(state, middle);
-          // O estado passa pelo banco no corte: é o que o servidor faz entre duas leituras.
-          const split = advanceTo(stored(half.state), target);
-          expect(split.state).toStrictEqual(direct.state);
-          expect(split.state.rng).toStrictEqual(direct.state.rng);
-          expect(split.state.ids).toStrictEqual(direct.state.ids);
-          expect([...half.events, ...split.events]).toStrictEqual(direct.events);
-          expectInvariants(half.state, new Map(known));
-          expectInvariants(direct.state, known);
-          // A visão e a linha do tempo não tocam o gerador nem os contadores.
-          const frozen = JSON.stringify(direct.state);
-          deriveViewState(direct.state, target, { timeScale: plan.timeScale });
-          nextEventAt(direct.state);
-          expect(JSON.stringify(direct.state)).toBe(frozen);
+// Sozinhas, estas propriedades levam de 10 a 20 s; com a máquina ocupada por outra suíte,
+// passavam dos 30 s do limite global (`vitest.config.ts`). O que elas conferem não muda.
+describe(
+  'a divisão de intervalo com Mestres chegando, esperando e trocando de edifício',
+  { timeout: 120_000 },
+  () => {
+    it('avançar de uma vez ou em dois pedaços dá o mesmo estado, os mesmos eventos, o mesmo gerador e os mesmos contadores, com ordens entre os avanços, nos três ritmos', () => {
+      let found = 0;
+      let waited = 0;
+      let admitted = 0;
+      let assigned = 0;
+      let adapted = 0;
+      let lost = 0;
+      const paces = new Set<number>();
+      fc.assert(
+        fc.property(scenario, (plan) => {
+          let state = prepare(plan);
+          const known = new Map<string, string>();
+          expectInvariants(state, known);
+          for (const step of plan.visits) {
+            const target = state.lastProcessedAt + Math.round(step.afterRealMs * plan.timeScale);
+            const middle = state.lastProcessedAt + Math.floor((target - state.lastProcessedAt) / 3);
+            const direct = advanceTo(state, target);
+            const half = advanceTo(state, middle);
+            // O estado passa pelo banco no corte: é o que o servidor faz entre duas leituras.
+            const split = advanceTo(stored(half.state), target);
+            expect(split.state).toStrictEqual(direct.state);
+            expect(split.state.rng).toStrictEqual(direct.state.rng);
+            expect(split.state.ids).toStrictEqual(direct.state.ids);
+            expect([...half.events, ...split.events]).toStrictEqual(direct.events);
+            expectInvariants(half.state, new Map(known));
+            expectInvariants(direct.state, known);
+            // A visão e a linha do tempo não tocam o gerador nem os contadores.
+            const frozen = JSON.stringify(direct.state);
+            deriveViewState(direct.state, target, { timeScale: plan.timeScale });
+            nextEventAt(direct.state);
+            expect(JSON.stringify(direct.state)).toBe(frozen);
 
-          const adaptingBefore = state.settlement.masters.filter(
-            (entry) => entry.adaptingUntilMs !== null,
-          ).length;
-          const adaptingAfter = direct.state.settlement.masters.filter(
-            (entry) => entry.adaptingUntilMs !== null,
-          ).length;
-          adapted += Math.max(0, adaptingBefore - adaptingAfter);
-          for (const event of direct.events) {
-            if (event.type === 'masterWaiting') {
-              waited += 1;
+            const adaptingBefore = state.settlement.masters.filter(
+              (entry) => entry.adaptingUntilMs !== null,
+            ).length;
+            const adaptingAfter = direct.state.settlement.masters.filter(
+              (entry) => entry.adaptingUntilMs !== null,
+            ).length;
+            adapted += Math.max(0, adaptingBefore - adaptingAfter);
+            for (const event of direct.events) {
+              if (event.type === 'masterWaiting') {
+                waited += 1;
+              }
+              if (event.type === 'masterArrived') {
+                admitted += 1;
+                found += event.data.masterDefId === 'odo' ? 1 : 0;
+              }
+              if (event.type === 'villagerLeft' || event.type === 'villagerDeserted') {
+                lost += 1;
+              }
             }
-            if (event.type === 'masterArrived') {
-              admitted += 1;
-              found += event.data.masterDefId === 'odo' ? 1 : 0;
-            }
-            if (event.type === 'villagerLeft' || event.type === 'villagerDeserted') {
-              lost += 1;
-            }
+
+            const ordered = visit(direct.state, step);
+            assigned += ordered.events.filter((event) => event.type === 'masterAssigned').length;
+            expectInvariants(ordered.state, known);
+            state = stored(ordered.state);
           }
+          paces.add(plan.timeScale);
+        }),
+        { numRuns: 120 },
+      );
+      // A propriedade passou mesmo pelo que diz provar: Mestres achados em expedição, Mestres que
+      // esperavam à porta e entraram (os que não são Odo), ordens aceitas, adaptações que
+      // terminaram no caminho e aldeões que partiram ou desertaram com Mestres no feudo.
+      expect(found).toBeGreaterThan(8);
+      expect(admitted - found).toBeGreaterThan(20);
+      expect(assigned).toBeGreaterThan(200);
+      expect(adapted).toBeGreaterThan(60);
+      expect(lost).toBeGreaterThan(10);
+      expect(waited).toBeGreaterThanOrEqual(0);
+      expect([...paces].sort()).toEqual([0.5, 1, 3]);
+    });
 
-          const ordered = visit(direct.state, step);
-          assigned += ordered.events.filter((event) => event.type === 'masterAssigned').length;
-          expectInvariants(ordered.state, known);
-          state = stored(ordered.state);
-        }
-        paces.add(plan.timeScale);
-      }),
-      { numRuns: 120 },
-    );
-    // A propriedade passou mesmo pelo que diz provar: Mestres achados em expedição, Mestres que
-    // esperavam à porta e entraram (os que não são Odo), ordens aceitas, adaptações que
-    // terminaram no caminho e aldeões que partiram ou desertaram com Mestres no feudo.
-    expect(found).toBeGreaterThan(8);
-    expect(admitted - found).toBeGreaterThan(20);
-    expect(assigned).toBeGreaterThan(200);
-    expect(adapted).toBeGreaterThan(60);
-    expect(lost).toBeGreaterThan(10);
-    expect(waited).toBeGreaterThanOrEqual(0);
-    expect([...paces].sort()).toEqual([0.5, 1, 3]);
-  });
-
-  it('30 dias sem acesso com um Mestre à porta e outro em adaptação dão o mesmo que 30 dias de visitas com a tela aberta', () => {
-    fc.assert(
-      fc.property(scenario, (plan) => {
-        const start = prepare(plan);
-        let ordered = start;
-        for (const step of plan.visits.slice(0, 3)) {
-          ordered = visit(ordered, step).state;
-        }
-        const end = ordered.lastProcessedAt + 30 * DAY_REAL * plan.timeScale;
-        const away = advanceTo(ordered, end);
-        let visiting = ordered;
-        const told: GameEvent[] = [];
-        for (let day = 1; day <= 30; day += 1) {
-          const at = ordered.lastProcessedAt + day * DAY_REAL * plan.timeScale;
-          const next = advanceTo(visiting, at);
-          deriveViewState(next.state, at, { timeScale: plan.timeScale });
-          told.push(...next.events);
-          visiting = stored(next.state);
-        }
-        expect(visiting).toStrictEqual(away.state);
-        expect(told).toStrictEqual(away.events);
-        // Trinta dias depois ninguém se adapta, e quem estava no feudo continua nele.
-        expect(away.state.settlement.masters.every((entry) => entry.adaptingUntilMs === null)).toBe(
-          true,
-        );
-        expect(away.state.settlement.masters.length).toBeGreaterThanOrEqual(
-          ordered.settlement.masters.length,
-        );
-        expectInvariants(away.state, new Map());
-      }),
-      { numRuns: 12 },
-    );
-  });
-});
+    it('30 dias sem acesso com um Mestre à porta e outro em adaptação dão o mesmo que 30 dias de visitas com a tela aberta', () => {
+      fc.assert(
+        fc.property(scenario, (plan) => {
+          const start = prepare(plan);
+          let ordered = start;
+          for (const step of plan.visits.slice(0, 3)) {
+            ordered = visit(ordered, step).state;
+          }
+          const end = ordered.lastProcessedAt + 30 * DAY_REAL * plan.timeScale;
+          const away = advanceTo(ordered, end);
+          let visiting = ordered;
+          const told: GameEvent[] = [];
+          for (let day = 1; day <= 30; day += 1) {
+            const at = ordered.lastProcessedAt + day * DAY_REAL * plan.timeScale;
+            const next = advanceTo(visiting, at);
+            deriveViewState(next.state, at, { timeScale: plan.timeScale });
+            told.push(...next.events);
+            visiting = stored(next.state);
+          }
+          expect(visiting).toStrictEqual(away.state);
+          expect(told).toStrictEqual(away.events);
+          // Trinta dias depois ninguém se adapta, e quem estava no feudo continua nele.
+          expect(
+            away.state.settlement.masters.every((entry) => entry.adaptingUntilMs === null),
+          ).toBe(true);
+          expect(away.state.settlement.masters.length).toBeGreaterThanOrEqual(
+            ordered.settlement.masters.length,
+          );
+          expectInvariants(away.state, new Map());
+        }),
+        { numRuns: 12 },
+      );
+    });
+  },
+);
