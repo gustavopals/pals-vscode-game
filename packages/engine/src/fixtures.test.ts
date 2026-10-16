@@ -7,6 +7,7 @@ import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
   caravanEscortScenario,
+  caravanOrder,
   caravanScenario,
   mastersScenario,
   masterWaitingScenario,
@@ -488,6 +489,40 @@ const scenarios: Record<string, () => GameState> = {
   // Um Mestre à porta, no ritmo 3: as casas cheias, Gil à espera de vaga, Odo no feudo sem
   // edifício, e a obra das Habitações que abre a vaga em curso.
   'master-waiting': () => masterWaitingScenario(),
+
+  // O Armazém no limite da madeira e da pedra (V4B-T1.1, antes do ferro dividir o Armazém):
+  // erguido no nível 1, com os lenhadores e os canteiros enchendo os dois estoques e o que não
+  // cabe já contado como desperdício, no meio de um trecho de produção.
+  'warehouse-full': () => {
+    const start = createInitialState('fixture-warehouse-full', settings);
+    start.settlement.buildings.townHall = 2;
+    start.settlement.buildings.warehouse = 1;
+    start.settlement.resources.wood = (storageCapacity(start, 'wood') ?? 0) - 4_000;
+    start.settlement.resources.stone = (storageCapacity(start, 'stone') ?? 0) - 2_500;
+    return play(start, [
+      command('setWorkers', { building: 'lumberMill', count: 3 }),
+      command('setWorkers', { building: 'quarry', count: 2 }),
+      { at: 3 * HOUR + 17 * MINUTE + 4_321 },
+    ]).state;
+  },
+
+  // Uma partida antiga (o retrato da versão 2 em Rei de Ferro, no ritmo Tranquilo) que a
+  // migração alcançou e que, depois, ergueu o Mercado e mandou uma caravana de pedra sem
+  // escolta (V4B-T1.1): o Mercado no nível 2, a carga na estrada e o preço fixado.
+  'migrated-iron-king-caravan': () => {
+    const migrated = migrateState(frozenState('state-v2-iron-king-half'), { timeScale: 0.5 });
+    const start = JSON.parse(JSON.stringify(migrated)) as GameState;
+    start.settlement.buildings.townHall = 3;
+    start.settlement.buildings.market = 2;
+    start.settlement.buildings.warehouse = 1;
+    start.settlement.resources.stone = 400_000;
+    start.settlement.resources.gold = 300_000;
+    return play(start, [
+      { at: migrated.lastProcessedAt + 2 * DAY + 11 * MINUTE },
+      caravanOrder('stone', 150),
+      { at: migrated.lastProcessedAt + 2 * DAY + 49 * MINUTE + 3_301 },
+    ]).state;
+  },
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -989,8 +1024,23 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     for (const state of [road, escorted]) {
       expect(Object.keys(state.rng).filter((key) => key.startsWith('caravan:'))).toEqual([]);
     }
+    // A partida migrada em Rei de Ferro (V4B-T1.1), com uma caravana de pedra na estrada.
+    const migratedRoad = of('migrated-iron-king-caravan');
+    expect(migratedRoad.settings).toMatchObject({ difficulty: 'ironKing', timeScale: 0.5 });
+    expect(migratedRoad.migratedAtMs).not.toBeNull();
+    expect(migratedRoad.market.caravans.map((entry) => [entry.resource, entry.amount])).toEqual([
+      ['stone', 150],
+    ]);
+    // O Armazém no limite da madeira e da pedra, com o desperdício já contado (V4B-T1.1).
+    const full = of('warehouse-full');
+    for (const resource of ['wood', 'stone'] as const) {
+      expect(full.settlement.resources[resource]).toBe(storageCapacity(full, resource));
+      expect(full.settlement.wasted[resource]).toBeGreaterThan(0);
+    }
     // Nos outros retratos não há caravana na estrada, nem herói em escolta.
-    for (const state of all0().filter((entry) => entry !== road && entry !== escorted)) {
+    for (const state of all0().filter(
+      (entry) => entry !== road && entry !== escorted && entry !== migratedRoad,
+    )) {
       expect(state.market.caravans).toEqual([]);
       expect(state.ids.caravan).toBeUndefined();
       expect(state.guild.heroes.some((hero) => hero.status === 'escort')).toBe(false);
@@ -1030,7 +1080,12 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     }
     // Nos outros retratos o Mercado não existe, e nada dele andou.
     for (const state of all0().filter(
-      (entry) => entry !== opening && entry !== fair && entry !== road && entry !== escorted,
+      (entry) =>
+        entry !== opening &&
+        entry !== fair &&
+        entry !== road &&
+        entry !== escorted &&
+        entry !== migratedRoad,
     )) {
       expect(state.settlement.buildings.market).toBe(0);
       expect(state.market).toEqual(of('fresh').market);
