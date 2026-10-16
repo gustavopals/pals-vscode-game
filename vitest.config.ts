@@ -19,8 +19,10 @@ export default defineConfig({
     // Goldens (`__golden__/`) só são regravados a pedido: UPDATE_GOLDEN=1 pnpm test
     update: process.env.UPDATE_GOLDEN === '1',
     // Os testes de propriedade do motor avançam anos de jogo com cortes aleatórios. Nas máquinas da
-    // CI, mais lentas e com todos os arquivos rodando juntos, o padrão de 5 s não basta.
-    testTimeout: 30_000,
+    // CI, mais lentas e com todos os arquivos rodando juntos, o padrão de 5 s não basta. Com a
+    // máquina dividida com outra suíte, 30 s também não bastaram (2026-10-15 e 2026-10-16: três
+    // propriedades e um teste da matriz, nunca uma divergência). O limite só pega teste travado.
+    testTimeout: 120_000,
     coverage: {
       provider: 'v8',
       include: [`packages/${unitScope}/src/**/*.{ts,tsx}`],
