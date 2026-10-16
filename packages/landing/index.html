@@ -15,7 +15,7 @@
     <title>Lords of the Guild: parece trabalho, é um feudo</title>
     <meta
       name="description"
-      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código. Nada para instalar, sem e-mail nem senha."
+      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código. Heróis, expedições, Mercado e um Conselho que não espera. Nada para instalar, sem e-mail nem senha."
     />
     <link rel="canonical" href="%SITE_URL%/" />
     <meta property="og:type" content="website" />
@@ -24,7 +24,7 @@
     <meta property="og:title" content="Parece trabalho. É um feudo." />
     <meta
       property="og:description"
-      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código."
+      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código. Heróis, expedições, Mercado e um Conselho que não espera."
     />
     <meta property="og:url" content="%SITE_URL%/" />
     <meta property="og:image" content="%SITE_URL%/og.png" />
@@ -61,9 +61,11 @@
         <img src="/favicon.svg" alt="" width="36" height="36" />
         Lords of the Guild
       </p>
+      <p class="masthead-note">Um jogo que cabe na pausa do café</p>
     </header>
 
     <main id="conteudo">
+      <!-- ---------- Herói: o título em duas vozes e a tela lida de dois jeitos ---------- -->
       <section class="hero" aria-labelledby="hero-title">
         <h1 id="hero-title">
           <span class="voice-office">Parece trabalho.</span>
@@ -72,9 +74,9 @@
 
         <div class="pitch">
           <p class="lede">
-            Lords of the Guild é um jogo medieval de gestão que roda no navegador. Tem cara de
-            editor de código, mas não tem código. Você governa Pedra Alta nas pausas do café; quem
-            passa atrás da sua cadeira vê abas e uma barra de status.
+            Um jogo medieval de gestão que roda no navegador, numa página com cara de editor de
+            código. Você governa Pedra Alta nas pausas do café: aldeões, heróis, caravanas e um
+            Conselho que não espera. Quem passa atrás da sua cadeira vê abas e uma barra de status.
           </p>
           <div class="action">
             <a class="cta" href="%GAME_URL%">Jogar agora</a>
@@ -144,7 +146,35 @@
         </div>
       </section>
 
-      <section class="seasons" aria-labelledby="seasons-title">
+      <!-- ---------- O ritmo: abra, feche, volte; e a pintura das estações ---------- -->
+      <section class="rhythm" aria-labelledby="rhythm-title">
+        <h2 id="rhythm-title">
+          <span class="line">Feche a aba.</span> <span class="line">O feudo continua.</span>
+        </h2>
+        <ol class="steps">
+          <li>
+            <p class="step-key">Abra.</p>
+            <p>
+              Leia o relatório. Ponha gente na Fazenda. Responda ao Conselho. Mande a equipe à
+              Floresta Antiga. Dois minutos; dez, se o dia estiver difícil.
+            </p>
+          </li>
+          <li>
+            <p class="step-key">Feche.</p>
+            <p>
+              As obras terminam, a estação vira, a expedição anda, a caravana chega. Tudo com a aba
+              fechada, enquanto você trabalha de verdade.
+            </p>
+          </li>
+          <li>
+            <p class="step-key">Volte.</p>
+            <p>
+              O Relatório de Retorno conta o que prosperou, o que exigiu um preço e o que ainda
+              espera a sua palavra. É um relatório, não um castigo.
+            </p>
+          </li>
+        </ol>
+
         <figure class="panorama">
           <div class="battlements" aria-hidden="true"></div>
           <div class="panorama-scroll" role="region" aria-label="Pedra Alta nas quatro estações">
@@ -185,82 +215,301 @@
           <figcaption>
             <span class="swipe-hint">Arraste para o lado: da Primavera ao Inverno. </span>O pintor
             exagerou. Isto é arte conceitual de Pedra Alta, gerada por IA; o jogo tem a cara da
-            captura lá em cima. As estações já passam no calendário, e cada uma muda o que o feudo
+            captura lá em cima. As estações passam no calendário, e cada uma muda o que o feudo
             colhe e queima.
           </figcaption>
         </figure>
+      </section>
 
-        <div class="seasons-text">
-          <h2 id="seasons-title">
-            <span class="line">Feche a aba.</span> <span class="line">O feudo continua.</span>
-          </h2>
-          <div class="prose">
-            <p>Uma visita dura de 2 a 10 minutos. Mais que isso é zelo.</p>
-            <p>
-              No resto do tempo, o feudo se vira: as obras terminam, as estações passam e o mundo
-              continua andando com a aba fechada.
+      <!-- ---------- O códice: um bloco por coisa que se governa, cada um com uma frase do jogo ---------- -->
+      <section class="codex" aria-labelledby="codex-title">
+        <p class="codex-kicker voice-office">Arquivos abertos: 8</p>
+        <h2 id="codex-title">Um feudo pequeno, com problemas de gente grande.</h2>
+        <p class="codex-lede">
+          Cada aba é um pedaço do reino. As frases em destaque são do jogo, palavra por palavra.
+        </p>
+
+        <div class="tiles">
+          <!-- O feudo: recursos e estações -->
+          <article class="tile tile-fief" aria-labelledby="tile-fief-title">
+            <p class="tab" aria-hidden="true">feudo.csv</p>
+            <h3 id="tile-fief-title">Quatro recursos. Quatro estações.</h3>
+            <p class="tile-text">
+              Comida, madeira, pedra e ouro. Aldeões na Fazenda, na Serraria, na Pedreira e na Mina
+              de Ouro; pedreiros em uma obra por vez, e obra leva tempo de verdade. Se o pão acaba,
+              vem a fome: é uma pressão, não um fim de jogo.
             </p>
-            <p>Quem volta encontra um relatório, não um castigo.</p>
-          </div>
+            <figure class="said">
+              <blockquote class="chronicle-lines">
+                <p>Chega o Inverno a Pedra Alta.</p>
+                <p>
+                  <span class="date">No 19º dia do Verão,</span> as despensas de Pedra Alta ficaram
+                  vazias. A fome começou.
+                </p>
+              </blockquote>
+              <figcaption>Crônica do jogo</figcaption>
+            </figure>
+          </article>
+
+          <!-- O Conselho: a carta roteirizada, como é no jogo -->
+          <article class="tile tile-council" aria-labelledby="tile-council-title">
+            <p class="tab" aria-hidden="true">conselho.md</p>
+            <h3 id="tile-council-title">O Conselho pede audiência.</h3>
+            <p class="tile-text">
+              Cartas com prazo e dilemas sem resposta certa. Se você demorar, o conselho decide
+              sozinho; nem sempre como você decidiria.
+            </p>
+            <figure class="card">
+              <p class="card-title">Estrangeira ferida</p>
+              <blockquote class="card-text">
+                <p>
+                  Os vigias acharam uma mulher caída à beira da estrada, de espada na mão e com um
+                  talho fundo no flanco. Diz chamar-se Edda e não pede esmola: pede um teto até a
+                  ferida fechar. A quem lhe der abrigo, oferece o braço e a palavra.
+                </p>
+              </blockquote>
+              <ul class="card-options">
+                <li>
+                  <span class="option-label">Acolher a estrangeira</span>
+                  <span class="option-hint"
+                    >Uma espada leal fica no feudo, e toda espada cobra soldo.</span
+                  >
+                </li>
+                <li>
+                  <span class="option-label">Cuidar e deixar partir</span>
+                  <span class="option-hint"
+                    >Ela paga o cuidado em moedas, e diz que o irmão virá agradecer.</span
+                  >
+                </li>
+              </ul>
+              <figcaption>A carta que chega a toda partida, como o jogo a mostra.</figcaption>
+            </figure>
+          </article>
+
+          <!-- Os lobos, a Torre e a Paliçada -->
+          <article class="tile tile-wolves" aria-labelledby="tile-wolves-title">
+            <p class="tab" aria-hidden="true">vigia.log</p>
+            <h3 id="tile-wolves-title">Os lobos descem a serra.</h3>
+            <p class="tile-text">
+              A Torre de Vigia dá o alarme; a Paliçada segura o bando. Sem as duas, a Crônica conta
+              o que o ataque custou. Com a Guilda, dá para subir a serra e limpar o Covil de Lobos.
+            </p>
+            <figure class="said">
+              <blockquote class="chronicle-lines">
+                <p>
+                  <span class="date">No 1º dia do Inverno,</span> ouviram-se uivos na mata ao redor
+                  de Pedra Alta. Os vigias dobraram a ronda.
+                </p>
+                <p>
+                  <span class="date">No 2º dia do Inverno,</span> os lobos que os vigias tinham
+                  avistado chegaram a Pedra Alta. Recuaram diante da paliçada: nada se perdeu e
+                  ninguém se feriu.
+                </p>
+              </blockquote>
+              <figcaption>Crônica do jogo</figcaption>
+            </figure>
+          </article>
+
+          <!-- Os heróis: a estrangeira, a Taverna, o soldo -->
+          <article class="tile tile-guild" aria-labelledby="tile-guild-title">
+            <p class="tab" aria-hidden="true">guilda.csv</p>
+            <h3 id="tile-guild-title">Uma espada bate ao portão.</h3>
+            <p class="tile-text">
+              O primeiro herói chega ferido, pela estrada. Os seguintes, quem traz é a Taverna. Todo
+              herói tem classe, traços e soldo; sobe de nível na estrada e leva o que o arsenal
+              tiver: Arma, Armadura, Acessório.
+            </p>
+            <ul class="sheets">
+              <li class="sheet">
+                <p class="sheet-name">Edda</p>
+                <p class="sheet-class">Guerreira · Leal</p>
+                <blockquote class="trait-text">
+                  <p>Nunca fica descontente nem parte por soldo em atraso.</p>
+                </blockquote>
+              </li>
+              <li class="sheet">
+                <p class="sheet-name">Rolf</p>
+                <p class="sheet-class">Arqueiro · Prudente</p>
+                <blockquote class="trait-text">
+                  <p>Rende mais quando a ordem é de cautela, e não cai em armadilha simples.</p>
+                </blockquote>
+              </li>
+            </ul>
+            <p class="tile-note">
+              As fichas dos dois irmãos, com o traço de cada um como o jogo o descreve.
+            </p>
+          </article>
+
+          <!-- As expedições: a encruzilhada e a Postura -->
+          <article class="tile tile-expedition" aria-labelledby="tile-expedition-title">
+            <p class="tab" aria-hidden="true">expedicao.log</p>
+            <h3 id="tile-expedition-title">A trilha se divide.</h3>
+            <p class="tile-text">
+              Seis destinos, da Patrulha dos Arredores ao Pântano Nebuloso. No meio do caminho, uma
+              encruzilhada: a equipe para e espera a sua palavra. Se ela não vem a tempo, a Postura
+              que você deixou decide. O relatório volta nó a nó. O ferido descansa; o cativo espera
+              o Resgate.
+            </p>
+            <div class="expedition-body">
+              <figure class="crossroads">
+                <img
+                  class="window"
+                  src="/src/assets/jogo-encruzilhada.webp"
+                  width="628"
+                  height="1324"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Captura real do jogo, na aba Guilda: a folha da encruzilhada da Floresta Antiga, com Edda e Rolf na Postura Equilibrada, a espera de 12 h, a situação e os três caminhos com a pista de cada um."
+                />
+                <figcaption>
+                  Captura real: a encruzilhada da Floresta Antiga, à espera da sua palavra.
+                </figcaption>
+              </figure>
+              <div class="expedition-aside">
+                <dl class="postures">
+                  <div>
+                    <dt>Cautelosa</dt>
+                    <dd>Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro.</dd>
+                  </div>
+                  <div>
+                    <dt>Equilibrada</dt>
+                    <dd>
+                      Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o
+                      caminho escolhido pede o que ela não tem, vale o seguro.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Ousada</dt>
+                    <dd>
+                      Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho.
+                      Se ele pede o que ela não tem, vale o seguro.
+                    </dd>
+                  </div>
+                </dl>
+                <p class="list-title">Os destinos</p>
+                <ul class="destinations">
+                  <li>Patrulha dos Arredores</li>
+                  <li>Floresta Antiga</li>
+                  <li>Covil de Lobos</li>
+                  <li>Resgate</li>
+                  <li>Ruínas de Vel'Thar</li>
+                  <li>Pântano Nebuloso</li>
+                </ul>
+                <p class="list-title">Os desfechos</p>
+                <ul class="outcomes">
+                  <li class="outcome-full">Sucesso pleno</li>
+                  <li class="outcome-success">Sucesso</li>
+                  <li class="outcome-setback">Revés</li>
+                  <li class="outcome-disaster">Desastre</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- O Mercado e as caravanas -->
+          <article class="tile tile-market" aria-labelledby="tile-market-title">
+            <p class="tab" aria-hidden="true">mercado.csv</p>
+            <h3 id="tile-market-title">O excedente vira ouro.</h3>
+            <p class="tile-text">
+              No balcão, o preço anda a cada dia, e o Mercado compra e vende por ele. Na estrada,
+              uma caravana a Porto do Rio paga melhor, mas a estrada tem emboscada: mande um herói
+              de escolta, ou confie na Torre de Vigia.
+            </p>
+            <figure class="said">
+              <blockquote class="chronicle-lines">
+                <p>
+                  <span class="date">No 9º dia do Outono,</span> uma caravana deixou Pedra Alta rumo
+                  a Porto do Rio, com 300 de madeira. Vai sem escolta.
+                </p>
+                <p>
+                  <span class="date">No 11º dia do Outono,</span> a caravana de Pedra Alta caiu em
+                  uma emboscada a caminho de Porto do Rio: levaram 150 de madeira. O que restou, 150
+                  de madeira, foi vendido por 69 de ouro.
+                </p>
+              </blockquote>
+              <figcaption>Crônica do jogo</figcaption>
+            </figure>
+          </article>
+
+          <!-- Os Mestres -->
+          <article class="tile tile-masters" aria-labelledby="tile-masters-title">
+            <p class="tab" aria-hidden="true">mestres.txt</p>
+            <h3 id="tile-masters-title">Quatro mãos que valem mais.</h3>
+            <p class="tile-text">
+              Raros, com nome, saem do fundo de uma ruína ou de um charco e ficam. Um por edifício,
+              e o edifício rende mais.
+            </p>
+            <ul class="masters">
+              <li><span class="master-name">Mestre Odo,</span> canteiro das pedreiras velhas</li>
+              <li><span class="master-name">Mestra Berta,</span> lavradora das terras alagadas</li>
+              <li><span class="master-name">Mestre Gil,</span> carpinteiro de ribeira</li>
+              <li><span class="master-name">Mestra Ximena,</span> mineira dos veios fundos</li>
+            </ul>
+            <figure class="said">
+              <blockquote class="chronicle-lines">
+                <p>
+                  <span class="date">No 14º dia do Outono,</span> Mestre Odo tomou a seu cargo a
+                  Pedreira de Pedra Alta.
+                </p>
+              </blockquote>
+              <figcaption>Crônica do jogo</figcaption>
+            </figure>
+          </article>
+
+          <!-- A Crônica e o Relatório de Retorno -->
+          <article class="tile tile-chronicle" aria-labelledby="tile-chronicle-title">
+            <p class="tab" aria-hidden="true">cronica.md</p>
+            <h3 id="tile-chronicle-title">Tudo fica escrito.</h3>
+            <p class="tile-text">
+              A Crônica guarda cada acontecimento em uma linha, no tom de quem já viu coisa pior. É
+              o que você lê quando volta, e o que vai contar depois.
+            </p>
+            <figure class="chronicle">
+              <p class="chronicle-title">Crônica de Pedra Alta</p>
+              <blockquote class="chronicle-lines">
+                <p>
+                  <span class="date">No 1º dia da Primavera,</span> os pedreiros começaram a erguer
+                  as Habitações ao 2º nível.
+                </p>
+                <p>
+                  <span class="date">No 13º dia da Primavera,</span> o conselho de Pedra Alta pediu
+                  audiência: Estrangeira ferida.
+                </p>
+                <p>
+                  <span class="date">No 14º dia da Primavera,</span> Edda, Guerreira, passou a
+                  servir a Pedra Alta.
+                </p>
+                <p>Chega o Verão a Pedra Alta.</p>
+                <p>
+                  <span class="date">No 3º dia do Verão,</span> partiu de Pedra Alta uma expedição:
+                  Floresta Antiga. A equipe: Edda e Rolf.
+                </p>
+                <p>
+                  <span class="date">No 3º dia do Verão,</span> a expedição "Floresta Antiga" parou
+                  em uma encruzilhada: A trilha se divide. A equipe espera a palavra do senhor de
+                  Pedra Alta.
+                </p>
+                <p>
+                  <span class="date">No 4º dia do Verão,</span> a expedição "Floresta Antiga" pôs na
+                  bagagem um achado: Lança de caça.
+                </p>
+                <p>
+                  <span class="date">No 5º dia do Verão,</span> Rolf aprendeu com a estrada: chegou
+                  ao nível 2.
+                </p>
+                <p>
+                  <span class="date">No 20º dia do Outono,</span> o senhor de Pedra Alta mandou
+                  abrir os barris da Taverna: houve festival, e o povo cantou até tarde.
+                </p>
+                <p>Começa o ano 2 da Casa de Pedra Alta.</p>
+              </blockquote>
+              <figcaption>Linhas reais da Crônica do jogo.</figcaption>
+            </figure>
+          </article>
         </div>
       </section>
 
-      <section class="fief" aria-labelledby="fief-title">
-        <h2 id="fief-title">Um feudo pequeno, com problemas de gente grande.</h2>
-
-        <div class="fief-body">
-          <ol class="beats">
-            <li>
-              <h3>Você manda.</h3>
-              <p>
-                Põe os aldeões na Fazenda, na Serraria, na Pedreira ou na Mina de Ouro e manda
-                melhorar um edifício. Os pedreiros cuidam de uma obra por vez, e obra leva tempo de
-                verdade.
-              </p>
-            </li>
-            <li>
-              <h3>Você fecha a aba.</h3>
-              <p>
-                A comida entra, a comida sai. Se ela acaba, vem a fome: a produção cai e ninguém se
-                junta a um feudo com fome. É uma pressão, não um fim de jogo.
-              </p>
-            </li>
-            <li>
-              <h3>Você volta.</h3>
-              <p>
-                Depois de algumas horas fora, o Relatório de Retorno conta o que mudou. E a Crônica
-                guarda tudo, uma linha por acontecimento, no tom de quem já viu coisa pior.
-              </p>
-            </li>
-          </ol>
-
-          <figure class="chronicle">
-            <p class="chronicle-title">Crônica de Pedra Alta</p>
-            <blockquote>
-              <p>
-                <span class="date">No 1º dia da Primavera,</span> os pedreiros começaram a erguer as
-                Habitações ao 2º nível.
-              </p>
-              <p>
-                <span class="date">No 1º dia da Primavera,</span> um novo aldeão se juntou ao feudo.
-                Agora são 6.
-              </p>
-              <p>Chega o Verão a Pedra Alta.</p>
-              <p>
-                <span class="date">No 19º dia do Verão,</span> as despensas de Pedra Alta ficaram
-                vazias. A fome começou.
-              </p>
-              <p>
-                <span class="date">No 19º dia do Outono,</span> voltou a haver pão em Pedra Alta. A
-                fome acabou.
-              </p>
-              <p>Começa o ano 2 da Casa de Pedra Alta.</p>
-            </blockquote>
-            <figcaption>Linhas reais da Crônica do jogo.</figcaption>
-          </figure>
-        </div>
-      </section>
-
+      <!-- ---------- O álibi: a única faixa clara, toda na voz do escritório ---------- -->
       <section class="alibi" aria-labelledby="alibi-title">
         <h2 id="alibi-title">Feito para não chamar atenção.</h2>
         <ul class="alibi-list">
@@ -285,6 +534,7 @@
         </figure>
       </section>
 
+      <!-- ---------- A vaga: o fecho, de novo em duas vozes ---------- -->
       <section class="vacancy" aria-labelledby="vacancy-title">
         <h2 id="vacancy-title">
           <span class="voice-office">Vaga aberta:</span>
@@ -308,8 +558,8 @@
         <p class="horizon">
           No horizonte, sem data: a guerra e o Cerco do Inverno; mapa e legado. Isso ainda não se
           joga. Hoje há um feudo, quatro recursos, estações que pesam, um Conselho que pede
-          decisões, heróis que se contratam e se mandam em expedição, um Mercado onde o excedente
-          vira ouro e uma Crônica. Já dá trabalho.
+          decisões, lobos na serra, uma Guilda com heróis e expedições, um Mercado com caravanas,
+          Mestres de ofício e uma Crônica. Já dá trabalho.
         </p>
       </section>
     </main>

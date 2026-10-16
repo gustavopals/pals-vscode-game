@@ -89,6 +89,15 @@ describe('cores', () => {
     ['white', 'status'],
     // O ouro sobre o azul fica só em títulos, na marca e nos nomes das estações.
     ['gold', 'blue'],
+    // Os blocos do códice, sobre o chão; a brasa dos lobos e dos desfechos ruins.
+    ['ivory', 'ash'],
+    ['margin', 'ash'],
+    ['gold', 'ash'],
+    ['ember', 'ash'],
+    ['ember', 'night'],
+    // A carta do Conselho e a folha da encruzilhada, em pergaminho.
+    ['night', 'parchment'],
+    ['office-ink', 'parchment'],
   ];
 
   it.each(TEXT)('%s sobre %s tem contraste de leitura (4,5:1)', (text, background) => {
@@ -103,6 +112,11 @@ describe('cores', () => {
     ['status', 'office'],
     ['night', 'gold'],
     ['gold', 'status'],
+    // A moldura e a orelha dos blocos do códice, a sombra deles e a borda das fichas.
+    ['ivory', 'ash'],
+    ['margin', 'ash'],
+    ['night', 'parchment'],
+    ['night', 'office'],
   ];
 
   it.each(MARKS)('%s sobre %s se distingue como contorno (3:1)', (mark, background) => {
