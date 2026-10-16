@@ -16,7 +16,7 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 |---|---|---|---|---|
 | 1 | Lote 2 do Conselho | Entra na **Fase H da v0.4** (V4H-T1), em trilha de conteúdo que pode começar depois da Fase B. "O Cobrador do Rei" e "O Lobo Branco" entram sem a adaptação da v0.3. Gil e Ximena esperam o lote. O branch `wip/v3f-t1-lote2` é ponto de partida, não verde | v0.3.1 antes da Fase B | V4H-T1 |
 | 2 | Ouro sem destino | **Medir primeiro**: o ferro, o treino, o reparo e a Muralha são os destinos novos. A medida de V4C-T4.3 volta ao autor com propostas de número antes da Fase D. Nenhuma regra de ouro nova antes disso | Soldo de soldado; ferro mais caro | V4B-T1, V4C-T4 |
-| 3 | O ferro | No Mercado a **8,0 de ouro**, volume `200 × nível`, **sem caravana de ferro**. Achado na **Mina Abandonada** (40 a 80), destino que pede a Guilda Nv2 e é revelado pela Floresta Antiga ou pela Patrulha. O Armazém o guarda com o mesmo cap. Ferro inicial 0 | Ferro só por expedição; caravana de ferro | V4B-T1 |
+| 3 | O ferro | No Mercado a **8,0 de ouro**, volume `200 × nível`, **sem caravana de ferro**. Achado na **Mina Abandonada** (40 a 80), destino que pede a Guilda Nv2 e é revelado pela Floresta Antiga (a Patrulha continua revelando só as Ruínas; resposta do autor de 2026-10-16 à B-8). O Armazém o guarda com o mesmo cap. Ferro inicial 0 | Ferro só por expedição; caravana de ferro | V4B-T1 |
 | 4 | Armas e a forja | Armas como recurso **sem cap**. Um lote por vez, até `batchMax` (10). Cada arma custa **2 ferro + 1 madeira** e leva **6 min de jogo**. "+10% por nível" vale como tempo × 10/(10 + nível − 1). O custo é cobrado ao começar, e cancelar devolve 80% | Várias filas; o nível dá armas a mais por lote | V4B-T2 |
 | 5 | Desgaste e reparo | **Entra, mínimo**. Um ponto de desgaste por expedição e por batalha comandada, com durabilidade pela raridade. Item em 0 fica sem bônus. O reparo é no Ferreiro, na mesma fila da forja, e custa ferro e tempo | Não entra (o Ferreiro só forja) | V4B-T3 |
 | 6 | Guilda Nv5 e Lendário | **Não entram**. A Guilda fica no Nv4, e o Lendário fica com as relíquias (v0.5) | O Senhor da Guerra deixa um Lendário | — |
@@ -48,7 +48,7 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 | O quê | Número | De onde vem |
 |---|---|---|
 | Ferro no Mercado | Base **8,0** de ouro; volume **`200 × nível`** por dia de jogo; venda a 85%, como os outros recursos; **sem caravana** | Decisão 3 e GDD §5.9 |
-| Ferro na Mina Abandonada | **40 a 80** no último nó com prova; Guilda Nv2; revelada pela Floresta Antiga ou pela Patrulha | Decisão 3 |
+| Ferro na Mina Abandonada | **40 a 80** no último nó com prova; Guilda Nv2; revelada pela Floresta Antiga (B-8) | Decisão 3 |
 | Ferro inicial e cap | **0**; divide o Armazém com a madeira e a pedra, com o mesmo cap por recurso | Decisão 3 |
 | Ferreiro | Pede o Salão Nv4; vai até o **Nv6**; Nv1 custa 200 madeira, 200 pedra e 150 ouro em 20 min de jogo; os níveis seguintes seguem a curva de custo e tempo dos outros edifícios | GDD §6.1 |
 | Forja | **2 ferro + 1 madeira** por arma, **6 min de jogo**; um lote por vez, até **10**; tempo × 10/(10 + nível − 1); cobra ao começar, devolve 80% ao cancelar | Decisão 4 e GDD §5.1 |

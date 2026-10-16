@@ -595,7 +595,7 @@ Planejada → Em viagem → [Nó] → … → Na Encruzilhada (aguarda jogador) 
 | Floresta Antiga | 1 h | 3 | 1–2 heróis | Baixo–médio | Madeira, peles (ouro), equipamento comum, ervas | Dia 2 |
 | Covil dos Lobos | 2 h | 3 | 2 heróis | Médio | Remove tile de ameaça; peles; desencadeia "O Lobo Branco" | Dia 3 |
 | Ruínas de Vel'Thar | 3 h | 4 | 2–3 heróis Nv≥2 | Médio | Pedra, ouro, item raro, planta da Capela | Dia 4 |
-| Mina Abandonada | 4 h | 4 | 2 heróis, 1 Guerreiro; Guilda Nv2 | Médio | 40–80 ferro; risco de desabamento | Dia 4, por descoberta: revelada pela Floresta Antiga ou pela Patrulha |
+| Mina Abandonada | 4 h | 4 | 2 heróis, 1 Guerreiro; Guilda Nv2 | Médio | 40–80 ferro; risco de desabamento | Dia 4, por descoberta: revelada pela Floresta Antiga |
 | Acampamento de Saqueadores (ataque) | 3 h | 3 | Exército + 1 herói (usa o sistema de batalha, §10) | Alto | Saque; remove tile; −30 Ameaça | Dia 4 |
 | Pântano Nebuloso | 5 h | 5 | 3 heróis, 1 Mago | Alto | Relíquia, item épico | Dia 5 |
 | Sabotagem da Fortaleza da Horda | 6 h | 4 | 3 heróis Nv≥4 | Muito alto | −15% em todas as ondas do cerco; presságio completo | Outono |

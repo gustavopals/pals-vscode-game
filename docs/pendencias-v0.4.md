@@ -4,7 +4,7 @@
 
 ## 1. O mais importante
 
-0. **O ferro (V4B-T1) está pela metade, fora do `main`**, no branch `v4b-t1-ferro` (e o `wip/v4b-t1-7-8`). As dúvidas dele (B-1 a B-10) estão no `docs/pendencias-v0.4.md` daquele branch e entram aqui na junção; **a B-8 pede resposta**: só a Floresta Antiga revela a Mina Abandonada (a Patrulha continua revelando só as Ruínas, porque um nó revela um destino). O ADR 0019 diz "pela Floresta Antiga ou pela Patrulha". Linha V4B-T1 do Registro do [roadmap](roadmap-v0.4.md).
+0. **O ferro (V4B-T1) está pela metade, fora do `main`**, no branch `v4b-t1-ferro` (e o `wip/v4b-t1-7-8`). As dúvidas dele (B-1 a B-10) estão no `docs/pendencias-v0.4.md` daquele branch e entram aqui na junção; **a B-8 foi respondida em 2026-10-16: só a Floresta Antiga revela a Mina Abandonada**, como está no branch; o ADR 0019 e o GDD foram corrigidos. Linha V4B-T1 do Registro do [roadmap](roadmap-v0.4.md).
 
 1. **Os números das Fases B e C foram aprovados em 2026-10-16** (V4A-T2.5; [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), "Números propostos"): durabilidade 8/10/14/20, reparo a 1 ou 2 ferro por ponto, e o resto da tabela em bloco. A Fase B pode começar.
 2. **A v0.4 começa sem ninguém ter jogado a v0.3** (V4A-T1.9). Nem você, nem outras pessoas, e o conteúdo dela (18 grafos, frases da Taverna, cartas, objetivos) continua rascunho que você não leu. A lição 8 da v0.3 diz que isso é o que mais custa no fim.
