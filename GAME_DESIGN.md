@@ -1,7 +1,7 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.8 (as regras da v0.3 passam a dizer o que os ADRs 0017 e 0018 fixaram: relógios, soldo e atraso, Taverna, limite de heróis, poder em inteiros, ferimento e captura, expedições desta versão, Mercado, caravanas, Mestres e objetivos 11 a 16; aprovadas pelo autor em 2026-10-05, a maior parte em bloco, e ainda não implementadas. As regras da v0.2 são as dos ADRs 0013 a 0016, confirmadas na mesma data)\
+> **Versão do documento:** 0.9 (as regras da v0.4 do lote 1 passam a dizer o que o ADR 0019 fixou, aprovado pelo autor em 2026-10-16 e ainda não implementado, e todo prazo escrito sem unidade passa a dizer "de jogo" ou "reais"; na 0.8, as regras da v0.3 passaram a dizer o que os ADRs 0017 e 0018 fixaram: relógios, soldo e atraso, Taverna, limite de heróis, poder em inteiros, ferimento e captura, expedições desta versão, Mercado, caravanas, Mestres e objetivos 11 a 16; aprovadas pelo autor em 2026-10-05, a maior parte em bloco, e ainda não implementadas. As regras da v0.2 são as dos ADRs 0013 a 0016, confirmadas na mesma data)\
 > **Idioma:** português (Brasil)  
 > **Plataforma inicial:** app web no navegador, com aparência de editor de código (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
@@ -34,6 +34,7 @@
 - Mudanças da 0.8 (as regras da v0.3, fechadas nos ADRs [0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)): §4.2 (os prazos em tempo real da v0.3), §5.4 (Mestres), §5.7 (Taverna e festival), §5.9 (Mercado e caravanas), §6.1 (Taverna, Mercado e Guilda), §7.1 (a carta roteirizada), §8.2 (o Covil limpo), §9.1 a §9.3 (soldo, atraso, ferimento, limite de heróis, Taverna, encruzilhada, poder em inteiros, o catálogo desta versão), §12.1 (ferimento, captura e morte), §12.2 (objetivos 11 a 16), §16.2 e as notas dos Apêndices B, C e D. O autor respondeu uma a uma às decisões do soldo em atraso, da carta nas partidas em andamento e de como a versão é publicada; **as outras foram aprovadas em bloco**, com a premissa recomendada de cada uma, sem leitura item a item, e voltam a ele se o simulador mostrar problema. Nada disto está implementado: cada regra entra no jogo com a tarefa dela.
 - Detalhes que a implementação da carta "Estrangeira ferida" (V3C-T3) fixou, ainda na 0.8: §7.1 (a roteirizada pede lugar na mesa e não o reserva), §9.1 (o herói de carta, a forma de tratamento do herói e a recompensa que espera com a lista cheia) e §14.11 (`guild.arriving`). No Apêndice B, Rolf continua sendo o irmão de Edda: é o que a Crônica diz quando ele chega.
 - Detalhes que a implementação dos Mestres (V3E-T3, 2026-10-07) fixou, ainda na 0.8, **decididos pelo agente e à espera do autor** ([pendências da v0.3](docs/pendencias-v0.3.md), E-29 a E-40): §5.3 (o fator do Mestre e os habitantes na fórmula) e §5.4 (o Mestre como habitante que não é aldeão e como um braço a mais, o piso que conta os habitantes, a adaptação em toda chegada a um edifício, a espera à porta, os quatro Mestres com nome e de onde vêm).
+- Mudanças da 0.9 (o lote 1 de decisões da v0.4, [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), aprovado pelo autor em 2026-10-16 e **ainda não implementado**; o lote 2, decisões 15 a 24, espera o ADR 0020 e o que depende dele está marcado "a decidir (ADR 0020)"): §4.2 e §4.3 (os relógios da guerra e a Hora da Vigília calculada pelo motor), §5.1, §5.2 e §5.9 (ferro, armas e o soldado), §6.1 a §6.3 (Quartel, Ferreiro, Guilda no nível 4 e as unidades dos tempos), §8.2 (a incursão sem exército), §9.1 a §9.3 (comandante, Lendário e Mina Abandonada), §10.2 a §10.5 e §10.8 (soldados, a batalha em inteiros, a prévia como ordem, as formações), §11.2 e §11.4, §13.5, §14.3, §14.9 e §14.11 (a Vigília no estado), §17.1 e §18.2; e, em todo o documento, "de jogo" ou "reais" onde havia uma duração sem unidade.
 - Correções da revisão independente da Fase D (V3D-T5, 2026-10-06), ainda na 0.8, **decididas pelo agente e à espera do autor** ([pendências da v0.3](docs/pendencias-v0.3.md), D-54 a D-72): §9.1 (os bônus dos itens de um herói somam entre si; quem volta do cativeiro não deve o atraso do soldo que correu com ele preso; dá para desistir de quem está em cativeiro) e §9.3 (o que cada rótulo de risco promete, nas três Posturas; a Patrulha que rende pouco; "Covil de Lobos"; um Resgate por cativo). O estado do jogo está na versão 20.
 
 ### Índice
@@ -112,25 +113,27 @@ Um **dia de jogo** dura 2 horas reais. Produção e consumo são contínuos; eve
 
 ### 2.2 Linha do tempo detalhada (ritmo Normal, jogador de duas sessões de 10 minutos por dia)
 
+No ritmo Normal um dia de jogo dura 2 h reais (§4.2). As horas desta tabela são **horas reais** desse ritmo, salvo onde diz "de jogo".
+
 | Dia real | Mundo (acontece sozinho) | Desbloqueios típicos do jogador | Decisões típicas da sessão |
 |---|---|---|---|
-| **1** Primavera | Chegada a Pedra Alta; objetivos iniciais; 1ª carta do Conselho às 8 h; uivos ao anoitecer (aviso) | Fazenda, Serraria, Pedreira, Mina, Habitações; Salão Nv2 abre Celeiro, Armazém e Torre de Vigia | Alocar aldeões, escolher a primeira obra, recrutar |
+| **1** Primavera | Chegada a Pedra Alta; objetivos iniciais; 1ª carta do Conselho às 8 h reais; uivos ao anoitecer (aviso) | Fazenda, Serraria, Pedreira, Mina, Habitações; Salão Nv2 abre Celeiro, Armazém e Torre de Vigia | Alocar aldeões, escolher a primeira obra, recrutar |
 | **2** Primavera | Carta roteirizada "Estrangeira ferida" entrega o 1º herói; 1ª incursão de lobos (leve); mercador itinerante | Salão Nv3 abre Taverna, Mercado, Guilda, Paliçada | Contratar herói, 1ª patrulha, vender excedente, iniciar paliçada |
 | **3** Verão | Acampamento de saqueadores aparece no mapa; 1ª incursão humana (fraca) | Salão Nv4 abre Quartel e Ferreiro; Lanceiros e Arqueiros | Treinar tropa, montar a 1ª formação, expedição à Floresta Antiga |
 | **4** Verão | Ruínas reveladas; início da cadeia "O Mercador Misterioso"; incursão média | Espadachins; mapa raio 4; Mina Abandonada (ferro) | Encruzilhada nas ruínas, decidir entre ferro e muralha |
 | **5** Outono | Colheita (+30% comida); **Fortaleza da Horda** surge ao norte; 1º Presságio; preços de comida sobem | Salão Nv5 abre Capela e Posto Avançado; Cavaleiros | Estocar ou investir; sabotar a Horda ou guardar os heróis |
 | **6** Outono | Presságios diários; **incursão forte** (ensaio do cerco); última janela de sabotagem | Torres; Muralha de pedra | Ler o relatório da incursão, corrigir a formação, reparar, salvar plano por onda |
-| **7** Inverno | Comida ×0,4; lenha consumida; **Cerco** na Hora da Vigília (3 ondas, 60 min entre elas); Rescaldo; **Crônica do Ano** às 168 h | Legado; escolha de Votos para o Ano 2 | Convocar milícia, reposicionar entre ondas, ler a Crônica, iniciar o Degelo |
+| **7** Inverno | Comida ×0,4; lenha consumida; **Cerco** na Hora da Vigília (3 ondas, **60 min reais** entre elas, §11.2); Rescaldo; **Crônica do Ano** ao fim das 168 h reais do ano | Legado; escolha de Votos para o Ano 2 | Convocar milícia, reposicionar entre ondas, ler a Crônica, iniciar o Degelo |
 
 Jogadores mais ativos chegam aos desbloqueios antes (gate por nível do Salão), mas **o mundo segue o calendário**: a Fortaleza, os presságios e o cerco têm data. Isso dá ao jogador ativo mais preparo, não um jogo diferente.
 
 ### 2.3 O que o jogador faz quando volta
 
-1. **Lê o Relatório de Retorno** (aparece após 4 h ou mais ausente): produção, eventos, incursões, expedições, cartas pendentes.
+1. **Lê o Relatório de Retorno** (aparece após 4 h reais ou mais ausente): produção, eventos, incursões, expedições, cartas pendentes.
 2. **Resolve decisões pendentes**: cartas do Conselho, encruzilhadas, formação após relatório de batalha.
 3. **Ajusta a economia**: realoca trabalhadores, inicia obra, recruta, negocia.
 4. **Lança processos para a próxima ausência**: expedição, treinamento, caravana, plano de batalha.
-5. **Sai.** Nada exige voltar antes de 8 h; algo sempre acontece em menos de 8 h.
+5. **Sai.** Nada exige voltar antes de 8 h reais; algo sempre acontece em menos de 8 h reais.
 
 ---
 
@@ -152,7 +155,7 @@ Jogadores mais ativos chegam aos desbloqueios antes (gate por nível do Salão),
 
 `Anos sucessivos com Votos → novos cenários e classes → desafios com semente compartilhada → multiplayer (futuro)`
 
-**Duração ideal de sessão:** 2 – 10 minutos. **Tempo entre ações significativas:** nunca acima de 8 h; tipicamente 1 – 4 h.
+**Duração ideal de sessão:** 2 – 10 minutos. **Tempo entre ações significativas:** nunca acima de 8 h reais; tipicamente 1 – 4 h reais.
 
 ---
 
@@ -169,7 +172,7 @@ Jogadores mais ativos chegam aos desbloqueios antes (gate por nível do Salão),
 
 Os multiplicadores de produção valem a partir do instante exato da virada de estação. Os efeitos sobre prazos são **fatores de duração fixados no início** ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 13):
 
-- Uma obra **iniciada** no inverno dura ×1,5. As que já estavam em curso na virada mantêm o prazo com que começaram, e uma obra iniciada no inverno não encurta quando a primavera chega. O fator entra na conta do prazo **antes** do teto de 8 h (§6.2): nem no inverno uma obra passa de uma noite.
+- Uma obra **iniciada** no inverno dura ×1,5. As que já estavam em curso na virada mantêm o prazo com que começaram, e uma obra iniciada no inverno não encurta quando a primavera chega. O fator entra na conta do prazo **antes** do teto de 8 h de jogo (§6.2): nem no inverno uma obra passa de uma noite.
 - Um recrutamento **ordenado** na primavera dura ×0,8. O prazo é o da estação em que a ordem foi dada e vale para todos os aldeões dela; o que foi ordenado em outra estação mantém o seu, mesmo esperando atrás de uma fila da primavera.
 - Nenhum prazo é recalculado na virada de estação: a linha do tempo fica simples e a divisão de intervalo continua exata (§14.3).
 - A tela mostra sempre o prazo de quem começasse **agora**, com uma frase que diz o porquê quando a estação mexe nele.
@@ -196,7 +199,7 @@ O ritmo de 2× das versões anteriores deste documento saiu da lista: ninguém j
 
 Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo real em tempo de jogo com um fator `timeScale` (3, 1 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
 
-**Como os tempos deste documento se leem fora do ritmo Normal** (ADR 0013, decisão 1). Os prazos de regra são, salvo as exceções abaixo, **tempo de jogo** e escalam com o ritmo: a adaptação de ofício (1 dia de jogo, §5.4), os efeitos de moral "por N dias" (dias de jogo, §5.7), a cadência do Conselho (4 dias de jogo, §7.1), a duração de obras e de recrutamento. O que este documento escreve como "2 h" de uma regra dessas são 2 h reais no ritmo Normal e 40 min no Rápido. São **tempo real**, iguais em qualquer ritmo, os prazos que dependem de uma pessoa voltar a tempo ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)): a expiração da carta do Conselho (24 h reais, §7.1); na fome, a carência e o passo da deserção (12 h e 2 h reais) e a janela em que a fome que reabre é a mesma (2 h reais, §5.6); e a antecedência do aviso da Torre de Vigia (1 h e 2 h reais, §8.2). `[v0.3]` Entram na lista a espera da encruzilhada de uma expedição (12 h reais, §9.2) e os prazos do soldo em atraso (12 h, 24 h e 2 h reais, §9.1); o resto da v0.3 é tempo de jogo: o soldo por hora, os ferimentos, a rotação da Taverna, o festival, a duração dos nós, a viagem da caravana e o dia do Mercado ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisões 1 e 3). No conteúdo, constantes em tempo de jogo terminam em `Ms` e as de tempo real, em `RealMs`; o motor só conhece tempo de jogo, e um prazo real é convertido com `settings.timeScale`. Por isso "as mesmas ordens nos mesmos instantes de jogo dão o mesmo feudo em qualquer ritmo" vale para tudo, menos para esses prazos.
+**Como os tempos deste documento se leem fora do ritmo Normal** (ADR 0013, decisão 1). Os prazos de regra são, salvo as exceções abaixo, **tempo de jogo** e escalam com o ritmo: a adaptação de ofício (1 dia de jogo, §5.4), os efeitos de moral "por N dias" (dias de jogo, §5.7), a cadência do Conselho (4 dias de jogo, §7.1), a duração de obras e de recrutamento. O que este documento escreve como "2 h" de uma regra dessas são 2 h reais no ritmo Normal e 40 min no Rápido. São **tempo real**, iguais em qualquer ritmo, os prazos que dependem de uma pessoa voltar a tempo ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)): a expiração da carta do Conselho (24 h reais, §7.1); na fome, a carência e o passo da deserção (12 h e 2 h reais) e a janela em que a fome que reabre é a mesma (2 h reais, §5.6); e a antecedência do aviso da Torre de Vigia (1 h e 2 h reais, §8.2). `[v0.3]` Entram na lista a espera da encruzilhada de uma expedição (12 h reais, §9.2) e os prazos do soldo em atraso (12 h, 24 h e 2 h reais, §9.1); o resto da v0.3 é tempo de jogo: o soldo por hora, os ferimentos, a rotação da Taverna, o festival, a duração dos nós, a viagem da caravana e o dia do Mercado ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisões 1 e 3). `[v0.4]` **Os relógios da guerra** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12): tudo é **tempo de jogo** (o treino, a forja, o reparo, a viagem do exército e da sabotagem, os presságios, a Fortaleza), com **duas exceções em tempo real**, as que dependem de uma pessoa estar presente: a **Hora da Vigília**, que é hora local (§4.3), e o **intervalo de 60 min reais entre as ondas do cerco**, a janela de trocar a formação (§11.2). A antecedência do aviso da Torre de Vigia nos níveis 3 a 5 e o prazo das demais decisões do cerco ficam **a decidir (ADR 0020)**. No conteúdo, constantes em tempo de jogo terminam em `Ms` e as de tempo real, em `RealMs`; o motor só conhece tempo de jogo, e um prazo real é convertido com `settings.timeScale`. Por isso "as mesmas ordens nos mesmos instantes de jogo dão o mesmo feudo em qualquer ritmo" vale para tudo, menos para esses prazos.
 
 **De onde vem o padrão** (ADR 0013, decisão 2a). O corpo de `POST /games` sem `timeScale` usa `GAME_TIME_SCALE`, a configuração do servidor (3 em produção, 1 nos testes); sem `difficulty`, usa `lord`. Com os campos, valem os valores enviados, que têm de estar entre os do conteúdo (`400 VALIDATION` se não estiverem). As opções das boas-vindas (rótulos, descrições e padrões) chegam ao app por `GET /v1/catalog` (§14.5): o app não escreve número de regra.
 
@@ -204,9 +207,9 @@ Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo re
 
 ### 4.3 Hora da Vigília `[v0.4]`
 
-Eventos que merecem presença (cerco, incursão forte do dia 6) acontecem na **Hora da Vigília**, horário local configurado pelo jogador (padrão 20:00). O cerco começa na primeira Hora da Vigília que caia pelo menos 6 h após o início do inverno; se não houver nenhuma, começa 12 h após o início do inverno. Estar presente **não é obrigatório**: tudo se resolve com o Plano de Batalha salvo (§10.8).
+Eventos que merecem presença (cerco, incursão forte do dia 6) acontecem na **Hora da Vigília**, horário local configurado pelo jogador (padrão 20:00). O cerco começa na primeira Hora da Vigília que caia pelo menos **6 h de jogo** após o início do inverno; se não houver nenhuma, começa 12 h de jogo após o início do inverno (o ensaio do dia 6 usa a mesma conta; as datas dos tiles da Horda, como a do Acampamento, são **a decidir, ADR 0020, decisão 16**). Estar presente **não é obrigatório**: tudo se resolve com o Plano de Batalha salvo (§10.8).
 
-O cliente envia o fuso horário IANA do jogador (ex.: `America/Sao_Paulo`) e a hora local escolhida; o servidor converte para o instante UTC ao agendar. Mudar de fuso durante o ano não move um cerco já agendado.
+O cliente envia o fuso horário IANA do jogador (ex.: `America/Sao_Paulo`) e a hora local escolhida. **Quem calcula a Vigília é o motor** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 13): o motor não lê o relógio nem a base de fusos, então o estado guarda `settings.realOriginMs` (o instante real da criação da partida, de `games.created_at`, posto na migração pelo contexto dela) e `settings.vigil.utcOffsetMinutes` (o deslocamento do fuso IANA, que o servidor calcula). A conta é `realMs = realOriginMs + tempoDeJogo / timeScale`, e a hora local é `(realMs + deslocamento)` módulo 24 h reais; o instante do cerco sai em inteiros, **sem horário de verão** (o limite fica escrito). Mudar a hora ou o fuso durante o ano só vale para o que ainda não foi marcado: não move um cerco, nem um ensaio, já agendado.
 
 ---
 
@@ -220,10 +223,10 @@ O cliente envia o fuso horário IANA do jogador (ex.: `America/Sao_Paulo`) e a h
 | Madeira | Serraria, expedições | Edifícios, lanças e arcos, lenha no inverno | v0.1 |
 | Pedra | Pedreira, ruínas | Edifícios avançados, muralhas, torres, reparos | v0.1 |
 | Ouro | Mina de Ouro, mercado, saque | Recrutamento, heróis, mercado, soldos de heróis | v0.1 |
-| Ferro | Mina Abandonada, Veio de Ferro (posto avançado), mercado | Armas, equipamentos | v0.4 |
-| Armas | Ferreiro (2 ferro + 1 madeira → 1 arma, 6 min) | Espadachins e Cavaleiros | v0.4 |
+| Ferro | Mina Abandonada (expedição, §9.3), Mercado a 8,0 de ouro (§5.9), Veio de Ferro (posto avançado) `[v0.5]` | Armas, reparo de equipamentos | v0.4 |
+| Armas | Ferreiro (2 ferro + 1 madeira → 1 arma, **6 min de jogo** cada; §6.1) | Espadachins e Cavaleiros | v0.4 |
 
-Comida, madeira, pedra e ferro têm **capacidade de armazenamento** (§5.5). Ouro e armas não têm limite.
+Comida, madeira, pedra e ferro têm **capacidade de armazenamento** (§5.5): o Armazém guarda o ferro com o mesmo cap da madeira e da pedra, e a partida começa com **0 de ferro** e 0 arma. Ouro e armas não têm limite ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisões 3 e 4).
 
 ### 5.2 Parâmetros iniciais
 
@@ -231,10 +234,10 @@ Comida, madeira, pedra e ferro têm **capacidade de armazenamento** (§5.5). Our
 |---|---:|
 | População inicial | 5 aldeões |
 | Capacidade habitacional inicial | 10 |
-| Comida / Madeira / Pedra / Ouro iniciais | 180 / 120 / 65 / 250 |
+| Comida / Madeira / Pedra / Ouro iniciais | 180 / 120 / 65 / 250 (ferro e armas: 0) |
 | Produção por trabalhador/h (nível 1) — Fazenda / Serraria / Pedreira / Mina | 10 / 8 / 5 / 4 |
-| Consumo de comida | 1 por habitante/h (aldeões) · 1,5 por soldado/h |
-| Recrutar aldeão | 50 comida + 10 ouro, 20 min, fila de até 5 |
+| Consumo de comida | 1 por habitante por hora de jogo (aldeões) · 1,5 por soldado por hora de jogo `[v0.4]` |
+| Recrutar aldeão | 50 comida + 10 ouro, 20 min de jogo, fila de até 5 |
 | Capacidade inicial de armazenamento (antes de Celeiro/Armazém) | 500 por recurso |
 
 ### 5.3 Fórmulas
@@ -351,10 +354,10 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 
 ### 5.9 Mercado `[v0.3]`
 
-- **Mercado Nv1:** compra e venda de comida, madeira, pedra e ferro por ouro (o ferro entra com a `[v0.4]`). Preços-base (em ouro por unidade): comida 1,0 · madeira 1,2 · pedra 2,0 · ferro 8,0. **Margem:** o jogador compra pelo preço do dia e vende a **85%** dele. **O dia do Mercado é o dia de jogo:** preço e volume mudam na virada. Volume diário máximo: **200 × nível do Mercado por recurso, somando compra e venda** (evita exploração; uma visita nunca negocia mais do que o volume de um dia, por mais tempo que tenha passado). Uma compra que não cabe no depósito (§5.5) é recusada inteira, e a ordem que chega depois de o dia virar é recusada com o preço novo à vista ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 16).
+- **Mercado Nv1:** compra e venda de comida, madeira, pedra e ferro por ouro (o ferro entra com a `[v0.4]`, com o mesmo volume diário dos outros e o mesmo passeio de preço, e sem fator de estação). Preços-base (em ouro por unidade): comida 1,0 · madeira 1,2 · pedra 2,0 · ferro 8,0. **Margem:** o jogador compra pelo preço do dia e vende a **85%** dele. **O dia do Mercado é o dia de jogo:** preço e volume mudam na virada. Volume diário máximo: **200 × nível do Mercado por recurso, somando compra e venda** (evita exploração; uma visita nunca negocia mais do que o volume de um dia, por mais tempo que tenha passado). Uma compra que não cabe no depósito (§5.5) é recusada inteira, e a ordem que chega depois de o dia virar é recusada com o preço novo à vista ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 16).
 - **Preços:** passeio aleatório de até ±5% por dia de jogo, com reversão à média de um décimo da distância até a base, limitado entre **60% e 160%** do preço-base; sobre ele, efeitos sazonais (comida +30% no outono e no inverno) e de cartas (boicote, caravana real), que multiplicam o preço exibido sem alterar o passeio. Os preços só andam depois que o Mercado existe. Comprar comida no fim do verão e vender no outono dá lucro, e é intencional; uma sequência de compra e venda no mesmo dia nunca dá.
 - **Como o motor aplica** (V3E-T1): os preços são inteiros, em milésimos de ouro por unidade. O preço **da unidade** é arredondado uma vez, contra o jogador (a compra para cima, a venda para baixo), e a ordem custa ou paga `unidades × preço da unidade`: dividir uma ordem em muitas pequenas dá o mesmo ouro. O Mercado que fica pronto no meio de um dia negocia pelos preços-base até a primeira virada. A mudança de todo dia não vai à Crônica: só a linha do preço que desce até **85%** da base ou sobe até **115%** dela, sem contar o fator da estação (revisão da Fase E, 2026-10-07: a 80% e 125% as marcas quase nunca eram cruzadas; decidido na revisão, à espera do autor). A tela diz o preço de hoje, de onde ele vem ("1,30 = 1,00 × 1,3 (Outono)"), se subiu ou caiu desde ontem e quanto ainda cabe negociar hoje; o preço de amanhã não sai do servidor.
-- **Mercado Nv2 — Caravanas:** envie até 300 unidades de um recurso a Porto do Rio (**4 h de jogo** de viagem; o preço é o de venda do dia +15%, **fixado no envio**: fica sempre abaixo do preço de compra, e comprar no balcão para revender por caravana perde ouro; resposta do autor de 2026-10-07, era +40%). Só venda; uma caravana por vez, duas a partir do Mercado Nv4; não conta no volume diário. Risco de emboscada, sorteado na chegada: **`máx(2, 10 − 5 × nível da Torre de Vigia)` por cento**, ou seja, 10% sem Torre, 5% no nível 1 e um **piso de 2%** daí em diante; zero com escolta de 1 herói, que fica ocupado até a chegada. A emboscada leva **metade** da carga, e a outra metade é vendida ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 17).
+- **Mercado Nv2 — Caravanas:** envie até 300 unidades de um recurso a Porto do Rio (**4 h de jogo** de viagem; o preço é o de venda do dia +15%, **fixado no envio**: fica sempre abaixo do preço de compra, e comprar no balcão para revender por caravana perde ouro; resposta do autor de 2026-10-07, era +40%). Só venda; uma caravana por vez, duas a partir do Mercado Nv4; não conta no volume diário. `[v0.4]` **O ferro não vai por caravana** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 3): a +15% sobre o balcão a 8,0, revender ferro por caravana daria o maior lucro da tabela. Risco de emboscada, sorteado na chegada: **`máx(2, 10 − 5 × nível da Torre de Vigia)` por cento**, ou seja, 10% sem Torre, 5% no nível 1 e um **piso de 2%** daí em diante; zero com escolta de 1 herói, que fica ocupado até a chegada. A emboscada leva **metade** da carga, e a outra metade é vendida ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 17).
 - **Como o motor aplica as caravanas** (V3E-T2): o preço da caravana é o **preço de venda de agora**, como a tela o mostra, × 23/20, arredondado para baixo em milésimos ("1,173 = 1,02 (venda de hoje) × 1,15"; 17/20 × 23/20 = 0,9775 do preço de compra, e o schema do conteúdo recusa o par de números que chegar a 1), e fica gravado na caravana; a viagem dura dois dias de jogo, e o preço do Mercado pode andar o quanto quiser nesse tempo. A carga sai do estoque no envio e o ouro só entra na chegada. A metade que a emboscada leva é **arredondada para baixo**; a carga de uma unidade não tem o que perder, e não sorteia. **Vale a Torre de Vigia que o feudo tiver na chegada**, e não a do envio: quem a ergue com a carga na estrada já a protege, e a tela diz isso. O herói da escolta fica fora do feudo: recebe soldo, não parte em expedição nem é dispensado e, com o soldo em atraso, não parte na estrada: **se o prazo já venceu, parte no instante em que volta**, depois de a carga ser vendida (revisão da Fase E; vale também para quem volta de expedição). A tela mostra, antes do envio, o preço que cada recurso fixaria, o prazo e o risco termo a termo ("10% na estrada, −5 pela Torre de Vigia Nv1; com escolta, nenhum"); **o desfecho só existe na chegada** (é sorteado nela, no fluxo da própria caravana), e nada o mostra antes.
 
 ---
@@ -373,13 +376,13 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Habitações | — | 10 | +5 de capacidade por nível | v0.1 |
 | Celeiro | Salão 2 | 8 | Capacidade de comida | v0.2 |
 | Armazém | Salão 2 | 8 | Capacidade de madeira, pedra e ferro | v0.2 |
-| Torre de Vigia | Salão 2 | 5 (2 na v0.2) | **Na v0.2:** Nv1 mostra a Ameaça com a explicação e avisa de uma incursão 1 h de jogo antes; Nv2 avisa 2 h de jogo antes e diz o tamanho (§8.2). **Depois:** revela mapa (raio 1 + nível/2) `[v0.5]`; presságios mais claros e, a partir do Nv3, dispara contra inimigos (§10.4) `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
+| Torre de Vigia | Salão 2 | 5 (2 na v0.2) | **Na v0.2:** Nv1 mostra a Ameaça com a explicação e avisa de uma incursão **1 h real** antes; Nv2 avisa **2 h reais** antes e diz o tamanho (a antecedência é tempo real, a mesma em todo ritmo, §8.2). **Depois:** revela mapa (raio 1 + nível/2) `[v0.5]`; presságios mais claros e, a partir do Nv3, dispara contra inimigos (§10.4) `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
 | Paliçada / Muralha | Salão 3 | 6 (2 na v0.2) | **Na v0.2:** Paliçada Nv1 segura as incursões leves (sem perda nem ferido) e corta pela metade a perda de uma média, com 1 ferido; Nv2 segura também as médias (§8.2). **Depois:** HP de muralha em batalha: Nv1–2 Paliçada (madeira), Nv3–4 Muralha de Pedra, Nv5–6 Baluarte `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
 | Taverna | Salão 3 | 5 | +5 moral por nível; 2 candidatos a herói nos níveis 1 e 2 e 3 a partir do nível 3, trocados a cada 12 dias de jogo; limite de heróis = 1 + nível (§9.1); festivais (§5.7) | v0.3 |
 | Mercado | Salão 3 | 5 | Comércio, com volume diário de 200 × nível por recurso; caravanas a partir do Nv2, duas por vez a partir do Nv4 (§5.9) | v0.3 |
-| Guilda dos Aventureiros | Salão 3 | 5 (4 na v0.3) | Expedições; expedições simultâneas = 1 + nível/2 (arredondado para baixo); gestão de equipamentos. Na v0.3 vai **até o nível 4**: o 5 não mudaria nada que o jogador vê ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 12) | v0.3 |
-| Quartel | Salão 4 | 8 | Treinar soldados; limite de exército = 10 × nível; treino 5% mais rápido por nível | v0.4 |
-| Ferreiro | Salão 4 | 6 | Armas (2 ferro + 1 madeira); reparo de equipamentos; +10% de produção de armas por nível | v0.4 |
+| Guilda dos Aventureiros | Salão 3 | 4 | Expedições; expedições simultâneas = 1 + nível/2 (arredondado para baixo); gestão de equipamentos. Vai **até o nível 4**, na v0.3 e na v0.4: o 5 daria as mesmas 3 expedições e não mudaria nada que o jogador vê ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 12; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 6) | v0.3 |
+| Quartel | Salão 4 | 8 | Treinar soldados (§10.2); limite de exército = 10 × nível; treino 5% mais rápido por nível; com o Nv5 ou mais, o posto de uma formação comporta 30 (§10.1) | v0.4 |
+| Ferreiro | Salão 4 | 6 | Forja de armas (2 ferro + 1 madeira cada, 6 min de jogo) e reparo de equipamentos (§9.1), **na mesma fila**: um lote por vez, de até 10; a produção é +10% por nível, lida como o tempo × 10/(10 + nível − 1); o custo é cobrado ao começar, e cancelar devolve 80% ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisões 4 e 5) | v0.4 |
 | Capela | Salão 5 | 3 | 1 slot de relíquia por nível; +5 moral; heróis curam 25% mais rápido | v0.5 |
 | Posto Avançado (no mapa) | Salão 5 | 3 | Reivindica um tile e produz o recurso dele | v0.5 |
 | Academia | Salão 6 | 5 | Pesquisas (árvore curta, §17.3) | v0.6 |
@@ -390,9 +393,11 @@ Regra de gate: um edifício nunca pode ultrapassar `nível do Salão + 1`. O pr�
 
 ### 6.2 Custos e tempos
 
+Todos os tempos desta seção são **tempo de jogo** (ADR 0013): escalam com o ritmo (§4.2) e coincidem com o tempo real só no ritmo Normal. Os tempos de treino (§10.2) e de forja (§6.1) são também de jogo.
+
 ```
 custo(nível)  = arredondar(custo_base × 1,6^(obras já feitas))        (Salão usa 1,8)
-tempo(nível)  = mín(8 h, tempo_base × 1,5^(obras já feitas) × fator da estação)      (fator: §4.1; ×1,5 no inverno)
+tempo(nível)  = mín(8 h de jogo, tempo_base × 1,5^(obras já feitas) × fator da estação)      (fator: §4.1; ×1,5 no inverno)
 obras já feitas = nível atual − nível com que o edifício nasce
 ```
 
@@ -418,7 +423,7 @@ Os seis edifícios da v0.1 nascem no nível 1: para eles o expoente é `nível �
 | Capela | 200 madeira, 300 pedra, 200 ouro | 30 min |
 | Posto Avançado | 250 madeira, 150 pedra, 100 ouro | 45 min |
 
-O limite de 8 h garante que **nenhuma obra exige mais que uma noite**.
+O limite de 8 h de jogo garante que **nenhuma obra exige mais que uma noite**.
 
 ### 6.3 Regras de construção
 
@@ -431,7 +436,7 @@ O limite de 8 h garante que **nenhuma obra exige mais que uma noite**.
   - **O que cada planejada espera.** A lista mostra o motivo e, quando há, o prazo: a obra anterior do mesmo edifício ("espera a obra da Serraria terminar"), o nível de outro edifício ("espera o Salão do Senhor chegar ao nível 3: melhore-o"), o depósito pequeno ("não cabe no Armazém: amplie-o"), o recurso ("espera 120 de madeira") ou a fila ("espera os pedreiros terminarem outra obra"). Quando há mais de um motivo, sai o que mais demora a se resolver sozinho, nessa ordem. Uma planejada do nível seguinte ao de uma obra em curso espera o fim dela; se essa obra for cancelada, a planejada fica na lista esperando alguém iniciá-la de novo (cancelar não reinicia a obra cancelada), e, iniciada a obra, volta a esperar o fim dela. Iniciar uma obra só tira da lista a planejada do nível que essa obra alcança.
 - Custos são descontados ao iniciar; o efeito vale só ao concluir. Cancelar devolve 80% dos recursos.
 - Não é possível melhorar o mesmo edifício em duas filas ao mesmo tempo, nem iniciar sem recursos ou pré-requisitos.
-- `[v0.4]` Obras de **reparo** (muralha e torres danificadas) custam 50% da pedra do nível atual e levam 15 min por 25% de HP; têm prioridade na fila.
+- `[v0.4]` Obras de **reparo** (muralha e torres danificadas) custam 50% da pedra do nível atual e levam **15 min de jogo** por 25% de HP; têm prioridade na fila.
 - Toda conclusão gera uma linha na Crônica e, se a política de notificações permitir, um aviso.
 
 
@@ -521,7 +526,7 @@ Os números da v0.2 estão fechados no [ADR 0014](docs/decisions/0014-conselho-e
 - `[v0.2]` **Como a Ameaça sobe.** Só na virada de cada dia de jogo, depois da moral e do Conselho, e limitada a 100. Cada tile ativo soma os seus 2; o outono soma 3 por **dia de outono que passa** (a virada que fecha cada um dos 24 dias da estação: a que abre o outono ainda não soma, a que abre o inverno soma). Um feudo novo está em 30 quando os lobos do roteiro chegam, no 16º dia de jogo, e eles a derrubam a zero; sem incursão nenhuma chegaria a 40 no 21º dia e ao máximo no primeiro dia de outono. **Ela oscila**: cada incursão a leva para baixo dos 40 (onde nenhuma outra é sorteada), e ela volta a subir; fora do outono a incursão sorteada é quase sempre leve, e as médias vêm com a subida do outono. Uma partida que veio de antes da Ameaça entra com ela em 0 e passa a somar na primeira virada depois da migração ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4). A virada do ano não zera nada.
 - `[v0.2]` **Névoa de informação.** A Ameaça existe para todo feudo, e **sem a Torre de Vigia nada dela sai do servidor**: o painel diz "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo", o que a Torre daria e o que protege o feudo ("Sem Paliçada, nada segura um ataque"; com ela, o que o nível segura, que o jogador conhece com ou sem Torre), e mais nada: nem o número, nem a tendência, nem de onde ela vem, nem os tiles, nem uma incursão marcada. Com a Torre, o painel mostra o número de 0 a 100, a tendência ("Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 45 para 50"; com uma incursão à vista, a tendência conta também a queda que ela traz na mesma virada: "…, e a incursão à vista a faz cair 35: na próxima virada, vai de 70 para 37"), as origens, termo a termo ("+2/dia: Covil de Lobos", "+3/dia: outono"), e os tiles conhecidos, em lista. A Torre em obras ainda não vê; pronta, vê no mesmo instante.
 - `[v0.2]` **A Crônica só fala da Ameaça a quem tem a Torre.** Quando a subida cruza os **40** ("os vigias contam mais uivos a cada noite") e os **70** ("os vigias já não dormem: há olhos acesos na orla da mata"), sai uma linha, com a Ameaça a que se chegou. Sem Torre não há linha nem evento: um evento com o número dentro contaria o que a névoa esconde. Quem ergue a Torre depois de a marca passar não recebe a linha atrasada; vê o número no painel. Se a Ameaça cair e cruzar a marca de novo, a linha sai de novo, com a frase da volta ("os vigias tornam a ouvir uivos: os lobos voltaram"; "tornam a ver olhos acesos na orla da mata"): só uma incursão a faz cair, e a Crônica não repete o anúncio da primeira vez.
-- **Incursões roteirizadas** (sempre acontecem; dias reais do ritmo Normal): lobos no dia 2 (leve) `[v0.2]`; saqueadores no dia 3 (fraca), dia 4 (média) e **ensaio do cerco** no dia 6 (forte, na Hora da Vigília) `[v0.4]`.
+- **Incursões roteirizadas** (sempre acontecem; os dias são dias reais do ritmo Normal, um dia real = 12 dias de jogo): lobos no dia 2 (leve) `[v0.2]`; saqueadores no dia 3 (fraca), dia 4 (média) e **ensaio do cerco** no dia 6 (forte, na Hora da Vigília, §4.3) `[v0.4]`.
 - `[v0.2]` **Os lobos do ano 1:** os **uivos** soam no início do **dia 10** de jogo do ano 1, como prenúncio, sem informação. A incursão roteirizada, leve, acontece no início do **dia 16** de jogo do ano 1 (30 h de jogo: o segundo dia real no ritmo Normal, 10 h reais no Rápido). Só acontece no ano 1, e só em partidas que ainda não passaram desse instante (uma partida migrada da v0.1 depois dele não a recebe).
 - **Incursões por Ameaça** `[v0.2]`: a cada virada de dia de jogo, chance de incursão = `máx(0, Ameaça − 40) %`. Tamanho: **leve** com a Ameaça abaixo de 70, **média** a partir de 70 (a marca dos 70 da Crônica). A incursão sorteada fica marcada para **6 h de jogo** depois, e há no máximo uma incursão marcada por vez. Elas continuam nos anos seguintes. `[v0.4]` O tamanho passa a ser proporcional à Ameaça e à estação.
 - A Torre de Vigia dá **aviso prévio**, em **tempo real: 1 h real por nível**, em qualquer ritmo ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), item 4). Nv1 avisa 1 h real antes; Nv2 avisa 2 h reais antes e diz o tamanho ("uma matilha pequena", "uma matilha grande"). Em tempo de jogo são 3 h e 6 h no ritmo Rápido, 1 h e 2 h no Normal e 30 min e 1 h no Tranquilo; no Rápido, as 2 h reais do nível 2 são as 6 h de jogo do prazo de uma incursão sorteada, e os vigias a avistam na própria virada em que ela é marcada. Nada mais na Ameaça muda com o ritmo. Sem Torre não há aviso. O aviso vale pelo nível que a Torre tem naquele instante: a Torre que fica pronta com a incursão já dentro da antecedência a mostra na hora. O aviso diz o que os vigias conseguem ver (quanto mais nível, mais detalhes de composição `[v0.4]`).
@@ -540,7 +545,7 @@ Os números da v0.2 estão fechados no [ADR 0014](docs/decisions/0014-conselho-e
   - **Partida migrada** (decisão 4 do ADR 0013): entra sem feridos; recebe os lobos do roteiro só se ainda não passou do instante deles; e as incursões por Ameaça contam da migração em diante.
   - **Reequilibrado depois da revisão das Fases D e E (aguarda a confirmação do autor).** Com +5 por dia, −10 por incursão e a média a partir de 60, a Ameaça passava o ano entre 90 e 100, toda incursão sorteada era média e um feudo sem Paliçada sofria de 13 a 17 incursões por ano de jogo (§15.1: a derrota tem de custar pouco e ensinar). Com **+2, −35 e a média a partir de 70** ela oscila: a média por estação fica entre 36 e 60 no primeiro ano (a primavera dele é calma: a do roteiro a zera) e entre 45 e 63 nos seguintes; a maioria das incursões sorteadas é leve (de 55% a 70%, conforme o ano e as sementes), e as médias vêm sobretudo do outono; são de 5 a 7 incursões por ano de jogo, de 2,1 a 2,6 por dia real no ritmo Rápido e de 0,7 a 0,9 no Normal, no primeiro ano; e quem joga duas vezes por dia tem a Paliçada antes da primeira incursão sorteada ([docs/balance-v0.2.md](docs/balance-v0.2.md), seção 16).
 - `[v0.2]` **Paliçada:** Nv1 segura as incursões leves (sem perda nem ferido); contra uma média, Nv1 corta a perda pela **metade** e fica 1 ferido; Nv2 segura também as médias. A Paliçada que fica pronta no instante exato da incursão já conta: as obras concluídas vêm antes dela. Nada a danifica nesta versão, e ela não mexe na Ameaça. O painel diz o que o nível de hoje segura e o que a próxima obra muda ("Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago"; "Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido") e, com uma incursão à vista, o que ela fará a essa incursão ("A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago"). Enquanto a Torre não distingue o tamanho, a frase vale para os dois ("segura este ataque se ele for dos leves; se for dos médios, ele passa…") e não o revela. Quem manda erguer a Paliçada depois do aviso lê na mesma frase se dá tempo ("A Paliçada Nv1, que fica pronta a tempo, segura este ataque"; "A obra em curso só termina depois dele").
-- `[v0.4]` Incursões usam a **Formação de Defesa ativa**; saqueadores entram no jogo, e ataques médios ou mais causam dano à paliçada.
+- `[v0.4]` Incursões usam a **Formação de Defesa ativa**; saqueadores entram no jogo, e ataques médios ou mais causam dano à paliçada. **Toda incursão vira batalha** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 14): sem Defesa ativa, só a muralha e as torres lutam. O que passa aplica a regra da v0.2 acima (10% ou 15% e feridos) **na proporção do que passou**, e a Paliçada Nv1 e Nv2 continuam segurando, por HP, o que seguravam: **quem joga hoje, sem exército, não piora**, e a incursão de lobos do 16º dia de jogo sai igual à de hoje. O tamanho "forte" e a composição por Ameaça e estação são do lote 2 (**a decidir, ADR 0020**).
 - `[v0.4]` Repelir incursões dá experiência aos heróis-comandantes e **informação**: o relatório mostra a composição inimiga completa, alimentando a leitura da Horda (§10.6).
 
 ### 8.3 Fortaleza da Horda `[v0.4]`
@@ -556,11 +561,11 @@ Surge no primeiro dia do outono. É a origem do Cerco. Expedições de **sabotag
 - **Classes:** Guerreiro(a) (linha de frente, aura de defesa), Arqueiro(a) (batedor, aura de alcance), Mago(a) (dano em área, indispensável contra mortos-vivos), Clériga/Clérigo (cura, aura de moral). Novas classes chegam via Legado.
 - **Atributos:** Vida, Ataque, Defesa, Velocidade, Perícia (exploração, armadilhas, saque), Vontade (moral, magia).
 - **Nível 1–10**, XP de expedições e batalhas: `xp_para_subir(n) = 100 × n^1,5`, arredondado para baixo e escrito no conteúdo número a número (100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700). Cada nível: +8% nos atributos da classe, **sem compor**: `atributo × (100 + 8 × (nível − 1)) / 100`. Os atributos-base são inteiros por classe ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 7 e "Números que o GDD não tinha").
-- **Equipamento:** Arma, Armadura, Acessório. Raridades: Comum, Incomum, Raro, Épico (Lendário só a partir do Ano 2). `[v0.3]` Itens vêm de expedições e de objetivos; não há desgaste, reparo nem venda de item nesta versão. O inventário guarda até 30; o item achado com ele cheio vira ouro ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 15). Cada item soma ao poder de quem o leva (+5%, +8%, +12% e +15%, da raridade Comum à Épica). **Os bônus dos itens de um herói somam entre si**, em um fator só (três raros valem +36%), e esse fator multiplica com o nível e o traço: era um fator por item, e nove raros faziam uma equipe de nível 2 vencer sempre o chefe do Pântano (revisão da Fase D, em [pendências da v0.3](docs/pendencias-v0.3.md), D-65: decisão do agente, à espera do autor). Nenhum item é relíquia (as relíquias são da Capela, na v0.5), e a escada das raridades segue os destinos: comum e incomum na Floresta, incomum e raro nas Ruínas, épico só no Pântano. O espaço é o do item, equipar por cima troca, e quem está em expedição ou em cativeiro não mexe no equipamento (V3D-T2; [pendências da v0.3](docs/pendencias-v0.3.md), D-22).
+- **Equipamento:** Arma, Armadura, Acessório. Raridades: Comum, Incomum, Raro, Épico (o Lendário fica com as relíquias, `[v0.5]`; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 6). `[v0.3]` Itens vêm de expedições e de objetivos; não há desgaste, reparo nem venda de item na v0.3. `[v0.4]` **Desgaste e reparo, no mínimo** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 5): um ponto de desgaste por expedição e por batalha comandada, com a durabilidade dada pela raridade; o item em 0 fica sem bônus; o reparo é no Ferreiro, na mesma fila da forja, e custa ferro e tempo de jogo. A venda de item continua fora. O inventário guarda até 30; o item achado com ele cheio vira ouro ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 15). Cada item soma ao poder de quem o leva (+5%, +8%, +12% e +15%, da raridade Comum à Épica). **Os bônus dos itens de um herói somam entre si**, em um fator só (três raros valem +36%), e esse fator multiplica com o nível e o traço: era um fator por item, e nove raros faziam uma equipe de nível 2 vencer sempre o chefe do Pântano (revisão da Fase D, em [pendências da v0.3](docs/pendencias-v0.3.md), D-65: decisão do agente, à espera do autor). Nenhum item é relíquia (as relíquias são da Capela, na v0.5), e a escada das raridades segue os destinos: comum e incomum na Floresta, incomum e raro nas Ruínas, épico só no Pântano. O espaço é o do item, equipar por cima troca, e quem está em expedição ou em cativeiro não mexe no equipamento (V3D-T2; [pendências da v0.3](docs/pendencias-v0.3.md), D-22).
 - **Traços:** 1–2 por herói (Apêndice D). Alteram opções de cartas, chances em encruzilhadas e auras.
 - **Soldo:** consumo contínuo de ouro, por **hora de jogo**, que **cresce com o nível do herói** (resposta do autor de 2026-10-07; era 2 por herói em qualquer nível): **2, 3, 4, 6, 8, 10, 12, 15, 18, 20** do nível 1 ao 10, escrito no conteúdo número a número (`balance.heroes.wagePerHourByLevel`). No ritmo Rápido, o herói de nível 1 custa 6 por hora real, e o de nível 10, 60. O soldo é o do nível de agora: **muda no instante em que o herói sobe de nível** (o fim de um nó de expedição), o candidato da Taverna já mostra o soldo do nível com que chega, e a ficha avisa o do próximo nível ("O soldo de Edda sobe para 9/h no próximo nível."). É o destino do ouro que a v0.3 devia dar (§8.3; ADR 0016, C-5). Recebe quem está no feudo, em expedição, em escolta ou ferido; o capturado não recebe. Quando o ouro acaba, abre o **atraso**, no instante exato, como a fome (§5.6); **não há dívida**: o que não foi pago não é cobrado depois. Os prazos do atraso são **tempo real**, iguais em qualquer ritmo, e as consequências são cobradas **na virada do dia de jogo**, como a deserção por fome: com **12 h reais** em atraso, todo herói sem o traço Leal fica "Descontente" (−20% nos atributos); a partir de **24 h reais**, parte **um herói a cada 2 h reais**, o que chegou por último entre os que estão no feudo. O Leal nunca fica Descontente nem parte; quem está fora só pode partir depois de voltar, **e é cobrado no instante da volta** (a chegada da caravana que escoltava, o retorno da expedição) se o prazo já tiver vencido e ele for o da vez: uma equipe mantida sempre na estrada não escapa do atraso (revisão da Fase E, 2026-10-07). O atraso fecha quando o saldo de ouro deixa de ser negativo, isto é, quando a Mina paga a equipe inteira (ou quando ouro chega de uma vez e cobre o soldo, ou quando já não há herói a pagar), e o que reabre em **menos de 2 h reais** é o mesmo atraso. Enquanto essa janela dura, a virada do dia ainda cobra as partidas que a duração do atraso fechado já devia e não tinha cobrado (fechar o atraso um instante antes de cada virada não segura ninguém). Enquanto ele dura, o cofre fica em zero: o que a Mina entrega vai inteiro para o soldo. Se só restam heróis Leais, ninguém parte, e o que o prazo cobraria fica perdoado. Dispensar um herói é sempre possível, sem devolução, e não há piso de heróis ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 3; implementado na V3C-T1).
 - **Ferimentos:** Leve (**2 h de jogo** de recuperação), Grave (**12 h de jogo**); os dois prazos escalam com o ritmo. No Desastre, **o nó diz** se o herói se fere gravemente ou é capturado. **Morte** só na dificuldade Rei de Ferro, onde o nó marca captura. Em Senhor vale o que o nó marca, e a **Captura** gera a expedição especial "Resgate"; em Camponês, toda captura vira ferimento grave (§12.1). O capturado não recebe soldo e fica até o Resgate, sem prazo nesta versão ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 8). `[v0.3]` O ferido **termina a expedição** e, de volta, fica em recuperação no feudo: recebe soldo, pode ser equipado e dispensado, e só não parte em outra jornada até sarar. O cativo **não conta no limite de heróis** (resposta do autor de 2026-10-06: dá para contratar no lugar dele e montar o Resgate; quando ele volta com a casa cheia entra assim mesmo, e o feudo fica acima do limite, sem poder contratar, até dispensar alguém ou subir a Taverna), não fica Descontente nem parte por soldo em atraso, e leva consigo o que tinha equipado; o Resgate devolve quem está em cativeiro há mais tempo. Quem volta do cativeiro com o soldo em atraso **não deve o atraso que correu com ele preso**: os dois prazos contam, para ele, da volta. **Dá para desistir de quem está em cativeiro** (é a dispensa dele): o lugar na lista fica livre e o que ele levava se perde; com um Resgate a caminho, a dispensa espera (revisão da Fase D: [pendências da v0.3](docs/pendencias-v0.3.md), D-60 e D-62). Quem morre, parte ou é dispensado no feudo devolve os itens ao arsenal (leituras da V3D-T2: [pendências da v0.3](docs/pendencias-v0.3.md), D-18, D-22 e D-26; a D-17 foi respondida pelo autor).
-- Um herói faz uma coisa por vez: expedição **ou** comandante de ala **ou** descanso. Essa exclusividade é deliberada (ver §8.3).
+- Um herói faz uma coisa por vez: expedição **ou** comandante de ala **ou** descanso. Essa exclusividade é deliberada (ver §8.3). `[v0.4]` **Quem é nomeado comandante na formação ativa não parte** (expedição, escolta de caravana ou sabotagem); nas outras formações salvas o herói pode estar nomeado e partir ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 8).
 - **Recrutamento:** a Taverna mostra **2 candidatos** nos níveis 1 e 2 e **3** a partir do nível 3, com classe, traços e preço. A lista troca a cada **12 dias de jogo** (um dia real no ritmo Normal, 8 h no Rápido), em cadência ancorada como a do Conselho (§7.1), a contar do instante em que a Taverna fica pronta, que é quando nasce a primeira lista; quem não foi contratado sai. Dentro de uma lista o sorteio é **sem reposição** (dois candidatos nunca são o mesmo modelo), e nenhum candidato tem o nome de um herói que já serve ao feudo, de um prometido por carta ou de outro candidato. O número de candidatos é o do nível da Taverna **no instante da troca**: subir de nível não mexe na lista que está na mesa. O preço é **fixo por modelo de candidato** (80–300 ouro), sem sorteio; um herói Carismático no feudo dá 20% de desconto, uma vez (dois não somam), e a tela diz o preço cheio e o desconto. O primeiro herói chega grátis pela carta roteirizada do dia 13 de jogo do ano 1, o dia real 2 no ritmo Normal (§7.1).
 - **Limite de heróis:** `1 + nível da Taverna` (1 sem Taverna, 6 no nível 5). O limite barra a contratação; uma recompensa de carta ou de expedição nunca é barrada por ele ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisões 4 e 5). **Quem está em cativeiro não ocupa lugar no limite** (resposta do autor de 2026-10-06): o herói resgatado volta mesmo com a casa cheia, e enquanto o feudo estiver no limite ou acima dele a Taverna não contrata. O cativo continua na lista de heróis e conta no teto técnico dela: com a lista no teto, ninguém é contratado. Para o estado ter tamanho limitado, a lista de heróis tem um **teto técnico de 12** (`balance.heroes.rosterCap`), acima de qualquer limite de contratação: é o único número que alcança também uma recompensa, e ela **não se perde**: o herói de uma carta que encontra a lista cheia espera à porta e entra no instante em que um lugar abrir (um herói que parte ou é dispensado). O teto é do agente e aguarda confirmação do autor ([pendências da v0.3](docs/pendencias-v0.3.md), C-2).
 - **Herói de carta:** o efeito `addHero` de uma opção sem custo entrega um **herói com nome** do conteúdo (Edda, Guerreira Leal; Rolf, Arqueiro Prudente), agora ou alguns dias de jogo depois da escolha; quem vem depois chega no instante exato, e a tela diz quem vem e quando. O soldo conta desde a chegada. Todo herói tem uma **forma de tratamento**, e a ficha diz a classe e os traços de acordo com ela ("Edda — Guerreira", "Rolf — Arqueiro").
@@ -575,7 +580,7 @@ Uma expedição é um **grafo de nós** (3–5 de profundidade; `[v0.3]` de **2 
 Planejada → Em viagem → [Nó] → … → Na Encruzilhada (aguarda jogador) → … → Retornando → Concluída (relatório)
 ```
 
-- Cada nó dura de 10 a 45 min (`[v0.3]` de **5 a 60**: a Patrulha, de 15 min e 2 nós, não cabe em nós de 10, e o Pântano Nebuloso, de 5 h e 5 nós, não cabe em nós de 45; a leitura é do agente, na V3D-T1 e na V3D-T3, e aguarda o autor, [pendências da v0.3](docs/pendencias-v0.3.md), D-5). A duração total aparece antes do envio, e é a que vale: o fator da estação (no verão, ×17/20, §4.1) é **fixado no envio** e não muda na virada seguinte, como o prazo de uma obra. A **variante** do grafo (§9.3) também é fixada no envio, por uma conta sobre a semente da partida e quantas vezes o destino já foi enviado, sem sorteio: as três saem antes de uma repetir.
+- Cada nó dura de 10 a 45 min de jogo (`[v0.3]` de **5 a 60 min de jogo**: a Patrulha, de 15 min e 2 nós, não cabe em nós de 10, e o Pântano Nebuloso, de 5 h e 5 nós, não cabe em nós de 45; a leitura é do agente, na V3D-T1 e na V3D-T3, e aguarda o autor, [pendências da v0.3](docs/pendencias-v0.3.md), D-5). A duração total aparece antes do envio, e é a que vale: o fator da estação (no verão, ×17/20, §4.1) é **fixado no envio** e não muda na virada seguinte, como o prazo de uma obra. A **variante** do grafo (§9.3) também é fixada no envio, por uma conta sobre a semente da partida e quantas vezes o destino já foi enviado, sem sorteio: as três saem antes de uma repetir.
 - **Encruzilhada:** a expedição para e notifica ("Sua equipe chegou a uma bifurcação"). O jogador escolhe no painel da Guilda. Se não responder em **12 h reais**, em qualquer ritmo, a **Postura** da expedição decide: **Cautelosa** (opção segura), **Equilibrada** (melhor valor esperado), **Ousada** (maior recompensa). A Postura é escolhida no envio. Os três adjetivos são a orientação de quem escreve: a opção de cada Postura é **marcada em cada encruzilhada**, no conteúdo, e o motor não a calcula (como a opção automática das cartas, §12.1). A opção da Cautelosa nunca tem requisito; se a opção marcada estiver bloqueada para a equipe, vale a da Cautelosa. A equipe parada continua recebendo soldo ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 11).
 - **Resolução de nó:** `poder_da_equipe = Σ (ataque + defesa + vida/10) × modificadores de classe/traço/equipamento`. Compara-se com a `dificuldade` do nó: razão ≥ 1,3 → Sucesso Pleno; ≥ 1,0 → Sucesso; ≥ 0,7 → Revés (ferimento leve, saque parcial); abaixo → Desastre (ferimento grave ou captura, conforme o nó marca; saque perdido). Um fator de sorte de ±15% vem do RNG com semente (§14.3). Traços deslocam a razão (Corajoso +10% em Ousada, etc.). **A conta é toda em inteiros** ([ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 7): o poder é somado em milésimos, os modificadores são frações e há um só arredondamento, para baixo, no fim; a sorte é um inteiro de **85 a 115**, sorteado uma vez por nó com dificuldade; e o desfecho sai por multiplicação cruzada, sem divisão (Sucesso Pleno se `poder × sorte × 10 ≥ dificuldade × 1300`; Sucesso se `poder × sorte ≥ dificuldade × 100`; Revés se `poder × sorte × 10 ≥ dificuldade × 700`). Um traço que desloca a razão entra como fator do poder naquele nó. `[v0.3]` **O peso de atributo de um nó** ("Perícia conta ×1,5", Apêndice C) entra na soma: o poder da equipe **contra o nó** é `Σ por herói Σ por atributo (atributo × peso)`, com os pesos padrão (ataque 1, defesa 1, vida 1/10) e os do nó por cima, de modo que "perícia ×1,5" soma uma vez e meia a perícia de cada herói; o poder mostrado na ficha continua o dos pesos padrão. **O saque de um nó** vem em **cinco quartos no Sucesso Pleno**, inteiro no Sucesso, pela metade no Revés e não vem no Desastre; o que a equipe já trazia de nós anteriores não se perde. **A experiência** de um nó com dificuldade vai inteira para cada herói que continua na equipe, nas mesmas partes, e o Desastre ainda dá um quarto: a derrota ensina (§12.3). **Quem sofre o desfecho** (o ferimento do Revés; o ferimento grave, a captura ou a morte do Desastre, §9.1) é sorteado entre os da equipe, com o Corajoso pesando 6 contra 5 dos outros; o Prudente não é sorteado para o ferimento leve em um nó de Perigo. Com um **Ganancioso** na equipe os recursos de cada nó vêm com um quarto a mais, e há 10% de o saque do nó se perder; com um **Rastreador**, a revelação de um destino vem também no Revés. **Os sorteios de um nó têm ordem fixa**: a sorte, quem sofre, a cobiça, as quantidades do saque e o item. **Se ninguém da equipe fica de pé** (todos capturados ou mortos), a expedição termina ali e o saque se perde. São leituras do agente, na V3D-T1 e na V3D-T2, e aguardam o autor ([pendências da v0.3](docs/pendencias-v0.3.md), D-20 e D-21).
 - **Antes de enviar**, o jogador vê a duração total, o risco em palavra (Baixo, Médio, Alto), o poder da equipe e a dificuldade do **primeiro trecho**, até a primeira encruzilhada; o que vem depois aparece como "?" até a equipe chegar, e cada opção de encruzilhada traz uma pista do risco e da recompensa. Enviar não custa provisões: custa o tempo e o soldo da equipe ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisões 13 e 15).
@@ -584,13 +589,13 @@ Planejada → Em viagem → [Nó] → … → Na Encruzilhada (aguarda jogador) 
 
 ### 9.3 Catálogo de expedições do primeiro ano
 
-| Expedição | Duração | Nós | Requisitos | Risco | Recompensas típicas | Disponível |
+| Expedição | Duração (de jogo) | Nós | Requisitos | Risco | Recompensas típicas | Disponível |
 |---|---:|---:|---|---|---|---|
 | Patrulha dos Arredores | 15 min | 2 | 1 herói | Baixo | Ouro, XP, revela 1 tile adjacente | Dia 2 |
 | Floresta Antiga | 1 h | 3 | 1–2 heróis | Baixo–médio | Madeira, peles (ouro), equipamento comum, ervas | Dia 2 |
 | Covil dos Lobos | 2 h | 3 | 2 heróis | Médio | Remove tile de ameaça; peles; desencadeia "O Lobo Branco" | Dia 3 |
 | Ruínas de Vel'Thar | 3 h | 4 | 2–3 heróis Nv≥2 | Médio | Pedra, ouro, item raro, planta da Capela | Dia 4 |
-| Mina Abandonada | 4 h | 4 | 2 heróis, 1 Guerreiro | Médio | 40–80 ferro; risco de desabamento | Dia 4 |
+| Mina Abandonada | 4 h | 4 | 2 heróis, 1 Guerreiro; Guilda Nv2 | Médio | 40–80 ferro; risco de desabamento | Dia 4, por descoberta: revelada pela Floresta Antiga ou pela Patrulha |
 | Acampamento de Saqueadores (ataque) | 3 h | 3 | Exército + 1 herói (usa o sistema de batalha, §10) | Alto | Saque; remove tile; −30 Ameaça | Dia 4 |
 | Pântano Nebuloso | 5 h | 5 | 3 heróis, 1 Mago | Alto | Relíquia, item épico | Dia 5 |
 | Sabotagem da Fortaleza da Horda | 6 h | 4 | 3 heróis Nv≥4 | Muito alto | −15% em todas as ondas do cerco; presságio completo | Outono |
@@ -601,7 +606,7 @@ Planejada → Em viagem → [Nó] → … → Na Encruzilhada (aguarda jogador) 
 
 Cada modelo tem **3 variantes** de grafo para não se repetir dentro do ano. Exemplo completo de grafo no Apêndice C.
 
-`[v0.3]` **As expedições desta versão** ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 12) são seis: Patrulha dos Arredores, Floresta Antiga, Covil dos Lobos, Resgate, Ruínas de Vel'Thar e Pântano Nebuloso, com três variantes cada. Ficam para as versões delas a Mina Abandonada (ferro), o Acampamento de Saqueadores (batalha), a Sabotagem e a Caçada ao Dragão. Uma recompensa de versão futura vira item da raridade equivalente: a planta da Capela das Ruínas é um item raro, e a relíquia do Pântano, um item épico. Vencido o guardião das Ruínas ou o chefe do Pântano, a equipe pode ainda encontrar um **Mestre** (§5.4), uma vez por partida cada um (V3E-T3). A coluna "Disponível" está no ritmo Normal e **não é data**: um destino aparece **por descoberta**. A Patrulha e a Floresta, com a Guilda Nv1; o Covil é conhecido desde a v0.2; as Ruínas são reveladas por uma Patrulha ou por carta; o Pântano, pelas Ruínas, e pede a Guilda Nv3; o Resgate, enquanto houver um herói capturado. As fichas dos dezoito grafos estão em [docs/content-v0.3.md](docs/content-v0.3.md), seção 6, e a distribuição dos desfechos por equipe, em [docs/balance-v0.3.md](docs/balance-v0.3.md), seção 8. **O que o risco em palavra quer dizer** (conferido por teste contra equipes de referência): *Baixo*, a equipe mínima passa em nove de cada dez em qualquer Postura e ninguém chega ao Desastre; *Baixo a médio*, passa em seis de cada dez ou mais pelo caminho do meio, sem Desastre, e na Ousada o Desastre existe e é raro; *Médio*, passa em pelo menos um quarto e em não mais de dois terços das vezes (o Revés é comum), e o Desastre é possível para quem vai fraco ou ousa; *Alto*, passa em menos de um quarto, e a captura acontece: na Ousada para a mínima, e também na Equilibrada para quem vai mais fraco do que ela. Os rótulos ordenam o risco (a régua é a da revisão da Fase D: [balance-v0.3.md](docs/balance-v0.3.md), seção 9.2, e [pendências](docs/pendencias-v0.3.md), D-66). **A Patrulha é a porta de entrada**: rende umas poucas moedas e pouca experiência, menos por hora de herói do que qualquer outro destino, e é a que revela as Ruínas. **O Covil tem um nome só no jogo, "Covil de Lobos"**, o do tile publicado na v0.2 (a tabela acima escreve "Covil dos Lobos"). Um Resgate por cativo, e uma equipe por vez no Covil: a segunda arriscaria por nada. Em todo modelo de três nós ou mais há uma encruzilhada, com um caminho para cada Postura: o da Cautelosa nunca pede classe nem traço, e nenhum é o melhor para toda equipe.
+`[v0.3]` **As expedições desta versão** ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 12) são seis: Patrulha dos Arredores, Floresta Antiga, Covil dos Lobos, Resgate, Ruínas de Vel'Thar e Pântano Nebuloso, com três variantes cada. Ficam para as versões delas a Mina Abandonada (ferro, `[v0.4]`, Fase B), o Acampamento de Saqueadores (batalha, `[v0.4]`), a Sabotagem (`[v0.4]`) e a Caçada ao Dragão (`[v0.5]`, com o Lendário). Uma recompensa de versão futura vira item da raridade equivalente: a planta da Capela das Ruínas é um item raro, e a relíquia do Pântano, um item épico. Vencido o guardião das Ruínas ou o chefe do Pântano, a equipe pode ainda encontrar um **Mestre** (§5.4), uma vez por partida cada um (V3E-T3). A coluna "Disponível" está no ritmo Normal e **não é data**: um destino aparece **por descoberta**. A Patrulha e a Floresta, com a Guilda Nv1; o Covil é conhecido desde a v0.2; as Ruínas são reveladas por uma Patrulha ou por carta; o Pântano, pelas Ruínas, e pede a Guilda Nv3; o Resgate, enquanto houver um herói capturado. As fichas dos dezoito grafos estão em [docs/content-v0.3.md](docs/content-v0.3.md), seção 6, e a distribuição dos desfechos por equipe, em [docs/balance-v0.3.md](docs/balance-v0.3.md), seção 8. **O que o risco em palavra quer dizer** (conferido por teste contra equipes de referência): *Baixo*, a equipe mínima passa em nove de cada dez em qualquer Postura e ninguém chega ao Desastre; *Baixo a médio*, passa em seis de cada dez ou mais pelo caminho do meio, sem Desastre, e na Ousada o Desastre existe e é raro; *Médio*, passa em pelo menos um quarto e em não mais de dois terços das vezes (o Revés é comum), e o Desastre é possível para quem vai fraco ou ousa; *Alto*, passa em menos de um quarto, e a captura acontece: na Ousada para a mínima, e também na Equilibrada para quem vai mais fraco do que ela. Os rótulos ordenam o risco (a régua é a da revisão da Fase D: [balance-v0.3.md](docs/balance-v0.3.md), seção 9.2, e [pendências](docs/pendencias-v0.3.md), D-66). **A Patrulha é a porta de entrada**: rende umas poucas moedas e pouca experiência, menos por hora de herói do que qualquer outro destino, e é a que revela as Ruínas. **O Covil tem um nome só no jogo, "Covil de Lobos"**, o do tile publicado na v0.2 (a tabela acima escreve "Covil dos Lobos"). Um Resgate por cativo, e uma equipe por vez no Covil: a segunda arriscaria por nada. Em todo modelo de três nós ou mais há uma encruzilhada, com um caminho para cada Postura: o da Cautelosa nunca pede classe nem traço, e nenhum é o melhor para toda equipe.
 
 ### 9.4 Relatório de expedição
 
@@ -611,7 +616,7 @@ Narrado em tom de crônica, nó a nó: o que aconteceu, quem se destacou, o que 
 
 ### 9.5 Sabotagem da Horda
 
-Expedição especial do outono. Cada nó bem-sucedido reduz uma onda; o chefe do grafo é um **Xamã** que, derrotado, revela a composição completa da onda 3. Desastre captura um herói e **alerta a Horda** (+10% na onda 1). Decisão central: até três sabotagens, cada uma ocupando 3 heróis por 6 h e com risco crescente (a Fortaleza reforça a guarda após cada tentativa).
+Expedição especial do outono. Cada nó bem-sucedido reduz uma onda; o chefe do grafo é um **Xamã** que, derrotado, revela a composição completa da onda 3. Desastre captura um herói e **alerta a Horda** (+10% na onda 1). Decisão central: até três sabotagens, cada uma ocupando 3 heróis por 6 h de jogo e com risco crescente (a Fortaleza reforça a guarda após cada tentativa).
 
 ---
 
@@ -631,7 +636,7 @@ Jogador          Frente           Frente        Frente
 Comandante       [herói]          [herói]       [herói]
 ```
 
-- **3 alas × 2 linhas = 6 postos.** Cada posto recebe **um esquadrão**: um tipo de unidade e uma quantidade (máximo 20 por posto; o Quartel Nv5+ eleva para 30).
+- **3 alas × 2 linhas = 6 postos.** Cada posto recebe **um esquadrão**: um tipo de unidade e uma quantidade (máximo 20 por posto; o Quartel Nv5+ eleva para 30). Uma formação pode pedir **mais tropas do que existem**; a prévia avisa (§10.8).
 - **Frente** recebe os golpes de corpo a corpo. **Retaguarda** ataca à distância por cima da própria Frente e só é atingida quando a Frente da ala cai (ou por arqueiros inimigos).
 - **Comandante:** 1 herói por ala, com aura (Guerreiro +15% defesa da ala; Arqueiro +15% dano à distância da ala; Mago dano em área a cada 3 rodadas e ×2 contra mortos-vivos; Clériga +20 moral e cura 10% da Frente a cada 2 rodadas).
 - **Muralha** (só em defesa): HP dividido igualmente entre as 3 alas. Corpo a corpo inimigo bate na muralha até rompê-la; arqueiros inimigos ignoram a muralha mas sofrem ×0,7; arqueiros do jogador atrás de muralha intacta ganham ×1,2.
@@ -639,7 +644,7 @@ Comandante       [herói]          [herói]       [herói]
 
 ### 10.2 Unidades do jogador
 
-| Unidade | Atq | Def | Vida | Iniciativa | Linha | Custo | Treino |
+| Unidade | Atq | Def | Vida | Iniciativa | Linha | Custo | Treino (de jogo) |
 |---|---:|---:|---:|---:|---|---|---:|
 | Lanceiro | 6 | 4 | 20 | 3 | Frente | 30 comida, 10 ouro, 5 madeira | 10 min |
 | Espadachim | 8 | 5 | 24 | 3 | Frente | 40 comida, 20 ouro, 1 arma | 12 min |
@@ -648,7 +653,7 @@ Comandante       [herói]          [herói]       [herói]
 | Escudeiro | 3 | 9 | 30 | 2 | Frente | 40 comida, 15 ouro, 10 madeira, 5 pedra | 12 min |
 | Miliciano | 3 | 2 | 12 | 2 | Frente | Aldeão convocado (§11.3) | Imediato |
 
-Soldados **saem da população** (precisam de vaga habitacional e comem 1,5/h). Treinamento é sequencial no Quartel, em lotes de até 10.
+Soldados **saem da população** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 7): ao fim do treino, o soldado sai de um aldeão sem ofício e, se não há, do edifício com mais gente. Ele **come 1,5 por hora de jogo**, não trabalha e **não deserta** por fome nem por moral; **não conta no piso** de 3 aldeões (§5.6). O limite é `10 × nível` do Quartel, e dispensar um soldado devolve um aldeão sem ofício, **sem devolver o custo**. Treinamento é sequencial no Quartel, em lotes de até 10.
 
 **Ciclo de contra-ataques (×1,5 de dano):** Espadachim → Lanceiro → Cavaleiro → Arqueiro → Espadachim. Escudeiros não têm vantagem nem fraqueza e **protegem**: absorvem 50% do dano dirigido à Retaguarda da própria ala. Milicianos sofrem ×1,25 de qualquer inimigo.
 
@@ -669,11 +674,11 @@ Soldados **saem da população** (precisam de vaga habitacional e comem 1,5/h). 
 
 ```
 para cada rodada:
-  ordenar todos os esquadrões vivos por iniciativa (desc), desempate pelo lado defensor
+  ordenar todos os esquadrões vivos por iniciativa (desc), desempate: o defensor primeiro, depois a ala (esquerda, centro, direita), depois a linha (Frente, Retaguarda)
   para cada esquadrão:
     alvo = Frente da ala oposta; se vazia, Retaguarda; se a ala oposta caiu → flanqueia o Centro (ou ala vizinha) com ×1,25
     se atacante é corpo a corpo e a muralha da ala está de pé: o dano vai para a muralha (Ogro: 50% muralha, 50% unidades)
-    dano_bruto    = atq × n_atacantes × contra × aura × flanco × cobertura × sorte(0,9–1,1)
+    dano_bruto    = atq × n_atacantes × contra × aura × flanco × cobertura × sorte(90–110)/100
     absorvido     = def_alvo × n_alvos × 0,5
     dano_efetivo  = máx(dano_bruto − absorvido, dano_bruto × 0,2)      // ao menos 20% sempre passa
     baixas        = piso((dano_efetivo + dano_residual_do_esquadrão) / vida_unidade); o resto fica como dano residual
@@ -685,17 +690,19 @@ fim:
   em defesa, 12 rodadas = "Resistiu" (vitória do defensor); em ataque, 12 rodadas = atacante recua
 ```
 
+**Em inteiros** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 11, no molde da §9.2): a sorte é um inteiro de **90 a 110 por esquadrão por rodada**, sorteado no fluxo `battle:<id>`; os fatores (×0,5, ×1,5, ×1,25, ×0,7, ×1,2, ×2) são frações; cada conta tem **um arredondamento, para baixo**. A batalha é **instantânea** na linha do tempo (não tem duração em tempo de jogo); a prévia (§10.5) não usa o fluxo do estado.
+
 Mortos-vivos e o Senhor da Guerra não têm moral. Heróis-comandantes recebem dano apenas quando a Frente da ala cai; podem ser **feridos**, nunca mortos fora de Rei de Ferro.
 
 ### 10.5 Conselho de Guerra (prévia)
 
-Antes de salvar a formação, o jogador pode **Simular**: o motor roda 200 batalhas com sementes fixas, preenchendo o que não se sabe do inimigo com amostras da composição provável (presságios e vigias reduzem a incerteza). Saída:
+Antes de salvar a formação, o jogador pode **Simular**, e **Simular é uma ordem** (`simulateBattle`; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 10): ela grava o resultado (uma por vez) e conta para o objetivo "Simule uma batalha". O motor roda 200 batalhas com sementes **derivadas por `hash` da semente da partida, da formação e do que se sabe do inimigo, nunca do `state.rng`** (a única exceção explícita à regra de que só `advanceTo` sorteia), preenchendo o que não se sabe do inimigo com amostras da composição provável (presságios e vigias reduzem a incerteza). Saída:
 
 - Vitória %, Vitória Gloriosa % (sem brecha na muralha), Derrota %.
 - **Risco principal**, em uma frase gerada a partir da atribuição de dano ("ala esquerda: lobos superam arqueiros desprotegidos").
 - Perdas esperadas por posto.
 
-A prévia **ensina** o sistema. Ela usa o mesmo código da batalha real (nunca uma heurística separada), por isso nunca mente dentro do que é conhecido.
+A prévia **ensina** o sistema, e o inimigo que ela mostra respeita a névoa. Ela usa o mesmo código da batalha real (nunca uma heurística separada), por isso nunca mente dentro do que é conhecido.
 
 ### 10.6 A Horda aprende
 
@@ -718,13 +725,13 @@ Resumo por rodada (colapsável) e, no topo, os **três fatores decisivos** calcu
 
 ### 10.8 Formações salvas e Plano de Batalha
 
-- O jogador salva formações com nome ("Muralha Firme", "Anticavalaria") e marca uma como **Defesa ativa**.
-- `[v0.4]` **Plano de Batalha** para o cerco: uma formação por onda, decidida antes. Se o jogador estiver presente, pode trocar entre ondas (60 min de intervalo); se não, o plano vale. Estar presente é uma vantagem, não uma exigência.
-- Postos vazios por falta de unidades são preenchidos com uma mensagem de alerta na prévia, nunca silenciosamente.
+- O jogador salva formações com nome ("Muralha Firme", "Anticavalaria"), **até 5**, de 6 postos cada (até 20 por posto, 30 com o Quartel Nv5+), e marca uma como **Defesa ativa**: só **uma** é ativa ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisões 8 e 9).
+- `[v0.4]` **Plano de Batalha** para o cerco: uma formação por onda, decidida antes. Se o jogador estiver presente, pode trocar entre ondas (**60 min reais** de intervalo, em qualquer ritmo, §4.2); se não, o plano vale. Estar presente é uma vantagem, não uma exigência.
+- Uma formação pode pedir mais tropas do que há: na batalha o posto luta com o que existe, e a prévia avisa dos postos que ficam vazios ou incompletos, nunca silenciosamente.
 
 ### 10.9 Batalhas ofensivas
 
-Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralha do lado do jogador e com a muralha (paliçada do acampamento) do lado inimigo. O exército viaja (tempo do tile) e fica indisponível para defesa até voltar: outra decisão com custo.
+Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralha do lado do jogador e com a muralha (paliçada do acampamento) do lado inimigo. O exército viaja (tempo do tile, em tempo de jogo) e fica indisponível para defesa até voltar: outra decisão com custo.
 
 ---
 
@@ -732,7 +739,7 @@ Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralh
 
 ### 11.1 Presságios `[v0.4]`
 
-A partir do primeiro dia do outono, a cada dia de jogo há 35% de chance (+10% por nível da Torre de Vigia acima de 1) de um **Presságio**: uma frase de crônica que revela algo das ondas do cerco. Clareza por nível da Torre: Nv1 "muitas feras"; Nv3 "cerca de 30 lobos na ala esquerda da segunda onda"; Nv5 composição exata de uma onda. Sabotagens e desertores (carta) também revelam. Presságios ficam listados no painel do Exército ao lado do editor de formação.
+A partir do primeiro dia do outono, a cada dia de jogo há 35% de chance (+10% por nível da Torre de Vigia acima de 1) de um **Presságio**: uma frase de crônica que revela algo das ondas do cerco. Clareza por nível da Torre: Nv1 "muitas feras"; Nv3 "cerca de 30 lobos na ala esquerda da segunda onda"; Nv5 composição exata de uma onda. Sabotagens e desertores (carta) também revelam. Presságios ficam listados no painel do Exército ao lado do editor de formação. A chance por dia (35% e o resto) é **a decidir (ADR 0020, decisão 18)**; o tempo é de jogo.
 
 ### 11.2 O Cerco `[v0.4]`
 
@@ -747,8 +754,8 @@ tamanho_da_onda = base × dificuldade × (1 − 0,15 × sabotagens_bem_sucedidas
 dificuldade: Camponês 0,7 · Senhor 1,0 · Rei de Ferro 1,3
 ```
 
-- Ondas a cada **60 min** a partir da Hora da Vigília (§4.3). Dano na muralha persiste entre ondas; reparos de emergência custam pedra e levam 15 min por 25% de HP (só se o jogador estiver presente, ou pré-agendados no Plano).
-- **Resultados:** **Vitória Gloriosa** (nenhuma ala rompida em nenhuma onda), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A Queda custa 30% dos recursos, 20% da população, destrói a muralha e dana 2 edifícios (−2 níveis cada). Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a Primavera da Reconstrução (custos ×0,8 por 2 dias).
+- Ondas a cada **60 min reais** a partir da Hora da Vigília (§4.3), em qualquer ritmo: é a janela de uma pessoa trocar a formação ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12). Dano na muralha persiste entre ondas; reparos de emergência custam pedra e levam **15 min de jogo** por 25% de HP (só se o jogador estiver presente; se o reparo também pode ser pré-agendado no Plano, ou feito na hora, é **a decidir, ADR 0020**).
+- **Resultados:** **Vitória Gloriosa** (nenhuma ala rompida em nenhuma onda), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A Queda custa 30% dos recursos, 20% da população, destrói a muralha e dana 2 edifícios (−2 níveis cada). Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a Primavera da Reconstrução (custos ×0,8 por 2 dias de jogo).
 - Derrotar o Senhor da Guerra encerra a onda 3 imediatamente e vale um Feito.
 
 ### 11.3 Milícia `[v0.4]`
@@ -757,12 +764,12 @@ Durante incursões fortes e o cerco, o jogador pode **convocar a milícia**: at�
 
 ### 11.4 Rescaldo e Crônica do Ano `[v0.4]`
 
-Após o cerco até o fim do inverno: reparos com desconto, luto (moral −10 por 1 dia se houve mortos) ou festa (moral +15 se Vitória Gloriosa). Às 168 h publica-se a **Crônica do Ano**: narrativa gerada a partir do log (Apêndice E), estatísticas (população máxima, batalhas, expedições, cartas), **pontuação** e Feitos. Pode ser exportada como Markdown no editor (§13.6). O jogador pode **"Avançar para o Degelo"** logo após o cerco para não esperar.
+Após o cerco até o fim do inverno: reparos com desconto, luto (moral −10 por 1 dia de jogo se houve mortos) ou festa (moral +15 se Vitória Gloriosa). Ao fim das 168 h reais do ano (no ritmo Normal) publica-se a **Crônica do Ano**: narrativa gerada a partir do log (Apêndice E), estatísticas (população máxima, batalhas, expedições, cartas), **pontuação** e Feitos. Pode ser exportada como Markdown no editor (§13.6). O jogador pode **"Avançar para o Degelo"** logo após o cerco para não esperar.
 
 ### 11.5 Legado e anos seguintes `[v0.5]`
 
 - **Legado:** pontos ganhos pela pontuação do ano e por Feitos. Gastos entre anos em desbloqueios **permanentes de conta** (não de bônus de poder): novos cenários (Vale das Brumas, Costa Salgada, Serra do Ferro), novas classes de herói, novos tipos de unidade, estilos de Crônica, e **Votos**.
-- **Votos:** modificadores escolhidos no início do ano que aumentam a dificuldade e o Legado: "Sem muralhas" (+40%), "Inverno longo (2 dias)" (+30%), "Horda astuta (astúcia 0,8)" (+25%), "Comida escassa (×0,8)" (+20%), "Heróis mortais" (+35%).
+- **Votos:** modificadores escolhidos no início do ano que aumentam a dificuldade e o Legado: "Sem muralhas" (+40%), "Inverno longo (2 dias de jogo)" (+30%), "Horda astuta (astúcia 0,8)" (+25%), "Comida escassa (×0,8)" (+20%), "Heróis mortais" (+35%).
 - **Anos seguintes:** o feudo continua (edifícios, heróis, exército), com ondas +10% por ano, novos inimigos a partir do Ano 2 (Trolls, Necromante) e expedições lendárias. A Horda **lembra** das formações do ano anterior com peso reduzido.
 - **Semente da partida:** toda partida tem uma semente visível. Duas partidas com a mesma semente e o mesmo ritmo têm o mesmo mapa, as mesmas cartas elegíveis e a mesma Horda base. Permite "desafios da semana" entre amigos sem servidor.
 
@@ -824,7 +831,7 @@ Os demais objetivos que este documento listava entre os primeiros 15 saem da seq
 - `[v0.3]` Seis objetivos, do 11 ao 16, com os de 1 a 10 intocados ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 20): 11. Acolha ou contrate o primeiro herói → item comum (`welcomeFirstHero`) · 12. Erga a Guilda dos Aventureiros ("quem recebe soldo precisa de trabalho") → +60 pedra (`buildGuild`) · 13. Envie uma Patrulha → +50 ouro (`sendPatrol`) · 14. Venda no Mercado o que iria para o chão → +40 madeira (`sellSurplus`) · 15. Escolha um caminho em uma encruzilhada → +10 moral por 1 dia de jogo (`chooseAtCrossroads`) · 16. Explore as Ruínas de Vel'Thar → item incomum (`exploreRuins`)
 - `[v0.4]` Alcance Salão Nv4 → desbloqueio: Quartel, Ferreiro · Treine 10 soldados → 1 arma · Salve uma Formação de Defesa → presságio gratuito · Simule uma batalha no Conselho de Guerra → +20 ouro · Repila uma incursão → +XP para o comandante
 
-Depois da sequência inicial, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez") e **anuais** (Feitos, Apêndice E).
+Depois da sequência inicial, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez"; se entram na v0.4 é **a decidir, ADR 0020, decisão 24**) e **anuais** (Feitos, Apêndice E).
 
 ### 12.3 Tutorial
 
@@ -833,6 +840,8 @@ Não há tutorial em telas. O tutorial são: os Objetivos, os tooltips em todos 
 ---
 
 ## 13. Interface e experiência no navegador
+
+Todo prazo que a interface mostra ("cheio em 6h", "expira em 14h", "Cerco em 2d 05h") é **tempo real**, já convertido pelo `ViewState` (§4.2); nenhum número de regra é escrito no app.
 
 O jogo é uma página única que imita a bancada de um editor de código. Usa as mesmas variáveis de tema de um editor (`--vscode-*`, definidas pelo próprio app para cada tema), ícones do conjunto codicons e fonte de interface do sistema, e funciona 100% com mouse **e** 100% com teclado. Nenhum terminal, nenhum arquivo para editar, nada para instalar. O app não usa o nome nem o logotipo do Visual Studio Code: tem a aparência de um editor, não a marca de um ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)).
 
@@ -930,10 +939,10 @@ Interação: clique no posto abre um seletor (tipo + quantidade com slider/tecla
 
 - Barra de status (um item, à esquerda): `$(shield) Cerco em 1d 03h · $(bell) 2` → clique leva à aba correspondente. Sem pendências: `$(home) Pedra Alta · Muralha 00:42`. O título da aba do navegador repete o essencial (`(2) Pedra Alta`), para ser visto com a aba em segundo plano.
 - **Modo discreto** (comando e configuração): o item vira apenas `$(circle-filled) 2h14`, o título da aba vira só esse contador e todas as notificações são suprimidas. Para quem joga no trabalho.
-- Política de notificações: **Silenciosa** (nada), **Essenciais** (padrão: cerco, incursão, encruzilhada, carta nova, herói capturado), **Todas** (inclui obras e treinos). Limite de 3 notificações por hora; o excedente vira badge. **Exceção:** um alarme essencial (soldo em atraso, herói que parte, emboscada, encruzilhada, captura) nunca é engolido pela cota: com a hora cheia, o lote que traz um alarme mostra ao menos um aviso ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), herança F-4).
+- Política de notificações: **Silenciosa** (nada), **Essenciais** (padrão: cerco, incursão, encruzilhada, carta nova, herói capturado), **Todas** (inclui obras e treinos). Limite de 3 notificações por hora real; o excedente vira badge. **Exceção:** um alarme essencial (soldo em atraso, herói que parte, emboscada, encruzilhada, captura) nunca é engolido pela cota: com a hora cheia, o lote que traz um alarme mostra ao menos um aviso ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), herança F-4).
 - As notificações aparecem dentro do app. Com a aba em segundo plano, o jogador pode **optar** por recebê-las também como notificações do navegador; a permissão só é pedida quando ele liga essa opção. Com a aba fechada nada é entregue na v0.1: quem volta lê o Relatório de Retorno.
 - Toda notificação tem botões: `[Ver]` `[Decidir]` `[Silenciar 2h]`. Seguir uma (`[Ver]`, `[Decidir]`) recolhe as notificações do jogo à vista, sem silenciar as seguintes: elas ficam no canto e cobririam o que o botão foi mostrar. O que diziam continua no jogo (Crônica, contador de decisões, "Antes de partir", barra de status).
-- **Relatório de Retorno:** ao abrir após 4 h ou mais ausente, o app abre na aba "Hoje" com o resumo.
+- **Relatório de Retorno:** ao abrir após 4 h reais ou mais ausente, o app abre na aba "Hoje" com o resumo.
 
 ### 13.6 Comandos (paleta de comandos)
 
@@ -1040,7 +1049,7 @@ lords-of-the-guild/
 2. **Aritmética inteira** para recursos: estoques em milésimos; a produção por segmento acumula `taxa × ms` em um acumulador por recurso e converte com divisão inteira, carregando o resto. O invariante acima fica **exato**, sem tolerância de ponto flutuante.
 3. **RNG com semente e fluxos nomeados** (`council`, `market`, `omens`, `expedition:<id>`, `battle:<id>`, `horde`), cada fluxo com estado próprio dentro do `GameState`. A ordem de processamento de um subsistema não altera o sorteio de outro. Algoritmo: **xoshiro128\*\***, com estado de quatro inteiros de 32 bits por fluxo; a semente de um fluxo é o FNV-1a de 32 bits de `seed + ':' + nome`, expandido por SplitMix32, e o fluxo nasce no primeiro sorteio. Só inteiros: um valor em `[0, n)` sai por rejeição, sem viés, e uma chance é a comparação de dois inteiros (`num/den`). `[v0.2]` Os fluxos em uso são `council`, `morale` e `horde`; `[v0.3]` entram `tavern`, `market` (o passo do preço de cada dia, só com o Mercado de pé) e um por expedição. Só `advanceTo` sorteia, em eventos com hora marcada na linha do tempo; visão, recusas e recibos nunca sorteiam, e o estado do gerador não sai no `ViewState`. Trocar o algoritmo é mudar uma regra: exige nova versão do estado.
 4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e recusado com um motivo legível, que chega à UI. O servidor chama `advanceTo(agora)` antes de aplicar um comando novo; reenvios retornam o recibo original sem chamar o motor (§14.8).
-5. **Prévia** (Conselho de Guerra) usa o mesmo `resolveBattle` com sementes derivadas de `hash(seed, 'preview', i)`; roda no servidor porque só ele conhece a composição inimiga real por trás da névoa.
+5. **Prévia** (Conselho de Guerra) é a ordem `simulateBattle` (§10.5) e usa o mesmo `resolveBattle`, com 200 sementes derivadas por `hash` da semente, da formação e do que se sabe do inimigo (`hash(seed, 'preview', formação, conhecido, i)`), **nunca de `state.rng`**; `purity.test.ts` ganha essa exceção, explícita. Roda no motor, a serviço do servidor, porque só ele conhece a composição inimiga real por trás da névoa.
 
 ### 14.4 Conteúdo como dados
 
@@ -1132,7 +1141,7 @@ chronicles   (game_id fk, year int, summary jsonb, score int, result text, creat
 
 ### 14.9 Tempo, relógio e job de avanço
 
-- Relógio do servidor em UTC, com NTP ativo no host. Tempo de jogo = `(agora − yearStart) × timeScale`. A Hora da Vigília é convertida para UTC a partir de `timezone` e `vigil_hour` no momento do agendamento.
+- Relógio do servidor em UTC, com NTP ativo no host. Tempo de jogo = `(agora − yearStart) × timeScale`. A Hora da Vigília **não** é convertida pelo servidor no agendamento: o servidor só calcula o deslocamento do fuso (`utcOffsetMinutes`) e o entrega ao estado, e quem marca o cerco é o motor (§4.3; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 13).
 - **Avanço preguiçoso** nas leituras de partida e comandos novos (§14.8), mais um **job horário** (`advance-stale-games`) que avança partidas sem estado persistido há mais de 1 h, em lotes de 100 com `FOR UPDATE SKIP LOCKED`. Garante que Crônicas, rankings e eventos existam para quem sumiu e espalha a carga do dia 7.
 - Nenhum temporizador por partida em memória. O processo pode reiniciar a qualquer momento sem efeito no jogo.
 
@@ -1157,7 +1166,8 @@ type GameState = {
   schemaVersion: number;
   seed: string;
   settings: { settlementName: string; timezone: string; vigilHourLocal: number;
-              difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 3 | 1 | 0.5 };  // não mudam durante o ano
+              difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 3 | 1 | 0.5 };  // não mudam durante o ano (a hora e o fuso da Vigília podem mudar, só para o que ainda não foi marcado)
+  // [v0.4, ainda não implementado, ADR 0019 decisão 13]: settings.realOriginMs (de games.created_at) e settings.vigil.utcOffsetMinutes
   migratedAtMs: number | null;                               // fronteira da atualização mais recente (§15.4); null em partida nova
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
@@ -1352,7 +1362,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 - **v0.2:** o estoque para no cap e o painel mostra "cheio em"; uma carta aparece a cada 4 dias de jogo (8 h reais no ritmo Normal) e expira em 24 h reais, em qualquer ritmo, com a opção automática da dificuldade; uma cadeia de 3 cartas funciona ponta a ponta; a incursão de lobos do dia 16 de jogo do ano 1 (o dia real 2 no ritmo Normal) acontece offline e aparece no Relatório; a troca de ofício reduz a produção por 1 dia de jogo (2 h reais no ritmo Normal); dificuldade e ritmo são escolhidos na criação. Os tempos se leem como na §4.2: tudo em tempo de jogo, escalando com o ritmo, menos a expiração da carta ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 1; [ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 1). "O estoque para no cap" vale para comida, madeira e pedra, não para o ouro nem para o estoque herdado de uma partida migrada (§5.5).
 - **v0.3:** o primeiro herói chega pela carta do dia 13 de jogo do ano 1 (o dia real 2 no ritmo Normal); uma expedição para na encruzilhada, notifica, e após 12 h reais sem resposta, em qualquer ritmo, segue a Postura; o relatório narra nó a nó; o Mercado respeita o volume diário; uma caravana pode ser emboscada.
-- **v0.4:** uma formação salva defende offline; a prévia e a batalha real usam o mesmo código (golden test); a Horda altera a composição em resposta à última formação (teste determinístico); o cerco ocorre na Hora da Vigília com 3 ondas e Plano de Batalha; a Crônica do Ano é gerada e exportável em Markdown; o perfil Regular do `sim-cli` fica em 65–80% de Vitória.
+- **v0.4:** uma formação salva defende offline; a prévia e a batalha real usam o mesmo código (golden test); a Horda altera a composição em resposta à última formação (teste determinístico); o cerco ocorre na Hora da Vigília com 3 ondas, 60 min reais entre elas, e Plano de Batalha; a Crônica do Ano é gerada e exportável em Markdown; o perfil Regular do `sim-cli` fica em 65–80% de Vitória.
 - **v0.5:** mapa hexagonal com névoa em 3 estados; posto avançado produz; Legado e Votos aplicados ao Ano 2; duas partidas com a mesma semente geram o mesmo mapa e as mesmas cartas elegíveis; uma Temporada abre toda segunda-feira, aceita entradas até terça e publica o ranking ao fim da semana.
 
 ---
@@ -1367,12 +1377,14 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | Combate por **formação em alas**, determinístico e com prévia | Combate por "poder total" (um número contra outro); tower defense em tempo real | Formação cria um quebra-cabeça com leitura e adaptação; "poder total" não tem decisão; tempo real não cabe em sessões de 2 min |
 | **Horda adaptativa** com astúcia por dificuldade | Ondas fixas; escala pura com o exército do jogador | Fixas se resolvem com uma receita; escala pura dá sensação de futilidade; adaptação cria o ciclo observar-antecipar-formar e permite a finta |
 | Expedições com **encruzilhadas que esperam** o jogador, com Postura padrão | Expedições totalmente automáticas; expedições que exigem presença | Esperar transforma a volta ao editor em um momento de decisão; a Postura impede punição por ausência |
-| Cartas do Conselho a cada 8 h, máximo 2 pendentes, expiram em 24 h | Cartas ilimitadas; cartas só com o editor aberto | Cadência previsível, sem acúmulo e sem obrigar presença |
-| Soldados **saem da população** e comem mais | Exército separado da população | Faz da militarização uma troca econômica real |
+| Cartas do Conselho a cada 4 dias de jogo (8 h reais no ritmo Normal), máximo 2 pendentes, expiram em 24 h reais | Cartas ilimitadas; cartas só com o editor aberto | Cadência previsível, sem acúmulo e sem obrigar presença |
+| Soldados **saem da população** ao fim do treino, comem 1,5 por hora de jogo e não desertam | Exército separado da população; soldados que desertam como aldeões | Faz da militarização uma troca econômica real ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 7) |
 | Ferro e Armas como recursos de guerra; Lanceiros e Arqueiros só com madeira | Exército só com ouro; cadeias produtivas longas | Dá propósito ao Ferreiro e ao mapa sem travar o exército básico |
 | Morte de heróis só em Rei de Ferro; **Captura** e **Resgate** nas demais | Morte sempre; nunca morte | Captura preserva o apego e gera conteúdo (missão de resgate) |
 | Sem game over; Queda tem custo pesado e Ano 2 de reconstrução | Game over no cerco perdido | Perder a semana inteira afasta; perder metade do feudo e continuar dói o suficiente |
-| Hora da Vigília configurável para o cerco | Cerco em horário fixo relativo à criação | O horário relativo poderia cair às 3 h da manhã |
+| Hora da Vigília configurável para o cerco, calculada pelo motor com a origem real e o deslocamento do fuso | Cerco em horário fixo relativo à criação; o servidor marca o cerco por uma ordem interna | O horário relativo poderia cair às 3 h da manhã; o motor não lê o relógio nem a base de fusos, e regra de jogo não vai para o servidor ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 13) |
+| Tempo de jogo na guerra, com duas exceções em tempo real: a Hora da Vigília e os 60 min reais entre as ondas | Tudo em tempo de jogo | É real o que depende de uma pessoa estar presente; no ritmo Rápido, 60 min de jogo seriam 20 min reais e ninguém trocaria a formação ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12) |
+| A prévia é uma **ordem** que grava o resultado, com sementes derivadas por `hash` | Prévia como leitura (`GET`) | Conta para o objetivo "Simule uma batalha" e não sorteia no fluxo do estado ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 10) |
 | Mapa hexagonal só na v0.5, com tiles abstratos desde a v0.2 | Mapa desde o início | O mapa gráfico é caro; os dados dele são baratos e destravam cartas, expedições e Ameaça antes |
 | Preact no app web | Vanilla; React/Vue | O editor de formação e a prévia justificam componentes; Preact pesa 3 KB |
 | **Online desde a v0.1**, servidor autoritativo em Node.js + PostgreSQL | Local primeiro e sincronizar depois; local para sempre | Duas camadas de persistência dobram o trabalho, e um migrador local→nuvem seria um vetor de trapaça; com o motor puro, o servidor é uma camada fina |
@@ -1475,6 +1487,8 @@ Lobo = Cavaleiro (sempre lateral; ×1,5 vs Arqueiro) · Ogro: recebe ×1,5 de La
 
 ## Apêndice B — Cartas do Conselho (amostra de 12 das 60)
 
+Nas cartas desta amostra, "dias" são **dias de jogo** e "h" são **horas de jogo** (§4.2). Quantas cartas o jogo terá e o texto final das novas são do lote 2 e do lote 3 (**a decidir, ADR 0020, decisão 23**).
+
 | # | Carta | Quando | Opções (efeitos) |
 |---|---|---|---|
 | 1 | **Estrangeira ferida** (roteirizada) | Dia 2 (dia 13 de jogo do ano 1) | Acolher: ganha Edda, Guerreira Leal · Cuidar e deixar partir: +40 ouro, +5 moral por 1 dia de jogo e, 1 dia de jogo depois, chega o irmão dela, Rolf, Arqueiro Prudente |
@@ -1499,6 +1513,8 @@ Padrão de escrita: 2–4 frases de situação, opções com verbo no infinitivo
 ---
 
 ## Apêndice C — Exemplo de grafo de expedição: Ruínas de Vel'Thar (variante A)
+
+Os tempos dos nós ("20 min") são **minutos de jogo**.
 
 ```
 N1 Deslocamento (20 min) "A trilha até as ruínas"

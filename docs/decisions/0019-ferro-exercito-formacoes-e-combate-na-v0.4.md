@@ -41,9 +41,29 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 | **E-51**: as marcas da Crônica do Mercado a 85% e 115% | **Aprovadas** | Nada |
 | **B-2** (da v0.2): guardar e reimportar as sessões na restauração de um backup | **Não; só documentar.** A restauração é rara e de emergência, e reimportar misturaria tokens de duas épocas | Nada; o custo já está em [deploy/README.md](../../deploy/README.md), "O que a restauração custa a quem joga" |
 
+## Números propostos para as Fases B e C (V4A-T2.5)
+
+**Propostos pelo agente e aprovados pelo autor em 2026-10-16**, em uma rodada de três perguntas: a durabilidade (8/10/14/20), o custo do reparo (1 ou 2 ferro por ponto e 2 min de jogo por ponto) e o resto da tabela, em bloco, todos com a recomendada. O que vem do GDD ou das decisões acima está marcado assim; o resto é proposta. Tudo vai para `packages/content`, em frações, com teste.
+
+| O quê | Número | De onde vem |
+|---|---|---|
+| Ferro no Mercado | Base **8,0** de ouro; volume **`200 × nível`** por dia de jogo; venda a 85%, como os outros recursos; **sem caravana** | Decisão 3 e GDD §5.9 |
+| Ferro na Mina Abandonada | **40 a 80** no último nó com prova; Guilda Nv2; revelada pela Floresta Antiga ou pela Patrulha | Decisão 3 |
+| Ferro inicial e cap | **0**; divide o Armazém com a madeira e a pedra, com o mesmo cap por recurso | Decisão 3 |
+| Ferreiro | Pede o Salão Nv4; vai até o **Nv6**; Nv1 custa 200 madeira, 200 pedra e 150 ouro em 20 min de jogo; os níveis seguintes seguem a curva de custo e tempo dos outros edifícios | GDD §6.1 |
+| Forja | **2 ferro + 1 madeira** por arma, **6 min de jogo**; um lote por vez, até **10**; tempo × 10/(10 + nível − 1); cobra ao começar, devolve 80% ao cancelar | Decisão 4 e GDD §5.1 |
+| Armas | Recurso **sem cap** no Armazém; não se vendem no Mercado | Decisão 4. Proposta: não vender (o Mercado não vira fonte de ouro por armas) |
+| Durabilidade do item | **Comum 8, Incomum 10, Raro 14, Épico 20** pontos | Proposta. O Explorador faz de 3 a 4 expedições por semana real no ritmo Normal: um Comum dura umas duas semanas, um Épico cerca de um mês e meio |
+| Desgaste | **1 ponto** por expedição concluída (a perdida não volta com o item) e por batalha que o herói comanda; item em 0 fica **sem bônus** e continua no arsenal | Decisão 5. Proposta: o desgaste conta no fim da expedição, não por nó |
+| Reparo | No Ferreiro, na **mesma fila da forja**; custa **1 ferro por ponto** (Comum e Incomum) e **2 ferro por ponto** (Raro e Épico), e **2 min de jogo por ponto**; volta à durabilidade cheia | Proposta |
+| Quartel | Pede o Salão Nv4; vai até o **Nv8**; Nv1 custa 250 madeira, 150 pedra e 100 ouro em 20 min de jogo; treino 5% mais rápido por nível | GDD §6.1 |
+| Soldados | Limite **`10 × nível` do Quartel** (até 80); treino sequencial em lotes de até **10**; comem **1,5/h** de jogo; custos e tempos das unidades do GDD §10.2 | Decisão 7 e GDD §10.2 |
+| Formações | Até **5** salvas, **6** postos, até **20 por posto** (30 com o Quartel Nv5+), **uma** Defesa ativa | Decisão 9 e GDD §10.1 |
+| Tetos do estado | Uma fila de forja ou reparo (um lote); uma fila de treino (um lote); 5 formações; o arsenal continua em 30 | Proposta: tetos fixos, conferidos pela guarda de forma da versão nova |
+
 ## Consequências e verificação
 
-- A Fase B pode começar: nenhuma das decisões 1 a 14, 25 e 26 está aberta.
+- As decisões 1 a 14, 25 e 26 e os números das Fases B e C estão fechados: **a Fase B pode começar**.
 - Cada número acima é premissa de tarefa e vai para `packages/content` com teste. Se o simulador mostrar problema em algum, ele volta ao autor como pergunta pontual, como na v0.3.
 - As decisões 15 a 24 (lote 2) esperam a sessão V4E-T0 e o ADR 0020.
 - Continuam do autor, fora deste ADR: a tag `v0.3.0`, conferir `schema_version = 24` em toda partida ativa, o ato 23 (backup fora do servidor, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão; antes da primeira publicação da v0.4) e jogar a v0.3.
