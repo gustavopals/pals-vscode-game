@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 24;
+const CURRENT = 25;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -72,8 +72,29 @@ const EMPTY_GUILD = {
  * anteriores compararem o resto, campo por campo, com o retrato antigo; o que o passo escreve é
  * conferido no bloco dele.
  */
+/**
+ * Um estado gravado sem o ferro que o passo 24 → 25 acrescenta (V4B-T1): a chave `iron` sai de
+ * todo registro de quantidades (o estoque, os acumuladores, o desperdício, os preços do Mercado e
+ * o saque de cada expedição). O que o passo escreve é conferido no motor (`migrations.test.ts`).
+ */
+function withoutIron(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withoutIron);
+  }
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  const record = value as Record<string, unknown>;
+  const amounts = 'food' in record && 'stone' in record;
+  return Object.fromEntries(
+    Object.entries(record)
+      .filter(([key]) => !(amounts && key === 'iron'))
+      .map(([key, entry]) => [key, withoutIron(entry)]),
+  );
+}
+
 function beforeMasters<T>(state: T): T {
-  const copy = JSON.parse(JSON.stringify(state)) as {
+  const copy = withoutIron(JSON.parse(JSON.stringify(state))) as {
     settlement?: { masters?: unknown; mastersWaiting?: unknown };
     guild?: {
       expeditions?: Array<{ log?: Array<Record<string, unknown>> }>;
@@ -103,8 +124,17 @@ function beforeOutcomes<T>(input: T): T {
     map?: { discovered?: unknown };
     guild?: { inventory?: unknown; heroes?: Array<Record<string, unknown>> };
     market?: unknown;
-    settlement?: { buildings?: Record<string, unknown> };
+    settlement?: {
+      buildings?: Record<string, unknown>;
+      resources?: Record<string, unknown>;
+      accumulators?: Record<string, unknown>;
+      wasted?: Record<string, unknown>;
+    };
   };
+  // E o ferro, da versão 25 (V4B-T1): nenhum no feudo, nada acumulado nem desperdiçado.
+  delete copy.settlement?.resources?.iron;
+  delete copy.settlement?.accumulators?.iron;
+  delete copy.settlement?.wasted?.iron;
   // E o Mercado, da versão 21 (V3E-T1): o edifício por construir e os preços na base.
   delete copy.market;
   delete copy.settlement?.buildings?.market;
@@ -174,8 +204,15 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     constructionQueues: unknown[];
     planned: Array<Record<string, unknown>>;
   };
+  const amounts = before.settlement as unknown as {
+    resources: Record<string, number>;
+    accumulators: Record<string, number>;
+  };
   return {
     ...before.settlement,
+    // O ferro (V4B-T1, versão 25): nenhum no feudo, nada acumulado.
+    resources: { ...amounts.resources, iron: 0 },
+    accumulators: { ...amounts.accumulators, iron: 0 },
     cold: null,
     buildings: {
       ...before.settlement.buildings,
@@ -879,6 +916,10 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       // E os Mestres, da versão 23: nenhum.
       masters: [],
       mastersWaiting: [],
+      // E o ferro, da versão 25: nenhum no feudo, nada acumulado nem desperdiçado.
+      resources: { ...site.resources, iron: 0 },
+      accumulators: { ...site.accumulators, iron: 0 },
+      wasted: { ...site.wasted, iron: 0 },
     });
   });
 
@@ -1531,7 +1572,8 @@ describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', ()
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
       // Ninguém mandou erguer o Mercado: nada dele acontece sozinho, por mais dias que passem.
       expect(row.state.settlement.buildings.market).toBe(0);
-      expect(row.state.market).toEqual(NO_MARKET);
+      // O ferro do Mercado (V4B-T1, versão 25) é conferido no motor; aqui, o resto.
+      expect(withoutIron(row.state.market)).toEqual(NO_MARKET);
       expect(row.state.rng.market).toBeUndefined();
       expect(
         await countRows(app.pool, 'game_events', `game_id = '${game.id}' and kind like 'market%'`),
