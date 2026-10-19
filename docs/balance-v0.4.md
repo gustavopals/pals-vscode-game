@@ -143,3 +143,10 @@ Mesma matriz, com o bot vendendo todo o ferro a cada visita com o Mercado de pé
 | `year/0.5/explorador` | `measured([83, 85], 8, 0, 0, 5200, 5200, 20490, 5.5)` | `measured([83, 85], 8, 0, 0, 5200, 5200, 21549, 5.5)` |
 
 **O ouro parado do Explorador subiu de 0,1% a 5%**: o ferro vendido vira ouro e não tem destino (é a §13 do roadmap, "o ouro sem destino"). Na semente `pedra-alta-001`, 7 dias reais no Rápido, o Explorador trouxe 31 de ferro da Mina e terminou com o estoque de ferro em zero.
+
+### Camponês e Rei de Ferro (2026-10-19)
+
+Rodadas no branch `v4b-t1-ferro`, com a T1.7 e a T1.8 juntas, no Node 22 (`pnpm -s sim -- --matrix --difficulty peasant` e `--difficulty ironKing`):
+
+- **Camponês:** as 1.200 partidas **dentro das faixas** de antes (código 0). Nenhuma célula precisou ser remedida.
+- **Rei de Ferro:** três partidas saíram da faixa por pouco: o Explorador da semana do Rápido, com 3.026 de madeira parada contra o limite de 2.919, e o Regular do Normal, com 23.340 de ouro parado contra 23.042, nas duas janelas. É o efeito da ordem nova do sorteio do Mercado (comida, madeira, pedra, ferro), como em Senhor: a regra mudou de propósito, e **14 das 24 células** de Rei de Ferro foram remedidas com a linha de base desta rodada. Fome e frio continuam em zero.
