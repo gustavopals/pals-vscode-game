@@ -77,6 +77,9 @@ const EMPTY_GUILD = {
  * todo registro de quantidades (o estoque, os acumuladores, o desperdício, os preços do Mercado e
  * o saque de cada expedição). O que o passo escreve é conferido no motor (`migrations.test.ts`).
  */
+/** Os registros de quantidades do feudo que o passo 24 → 25 ganha com o ferro. */
+type Amounts = { accumulators: Record<string, number>; wasted: Record<string, number> };
+
 function withoutIron(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(withoutIron);
@@ -918,8 +921,8 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       mastersWaiting: [],
       // E o ferro, da versão 25: nenhum no feudo, nada acumulado nem desperdiçado.
       resources: { ...site.resources, iron: 0 },
-      accumulators: { ...site.accumulators, iron: 0 },
-      wasted: { ...site.wasted, iron: 0 },
+      accumulators: { ...(site as unknown as Amounts).accumulators, iron: 0 },
+      wasted: { ...(site as unknown as Amounts).wasted, iron: 0 },
     });
   });
 
