@@ -25,6 +25,12 @@
   /* A barra de status, na cor da barra do jogo. */
   --status: #2a4a75;
   --white: #ffffff;
+  /* O chão dos blocos do códice, mais fundo que a noite, para cada bloco se destacar dela. */
+  --ash: #111823;
+  /* O pergaminho da carta do Conselho e da folha da encruzilhada. Texto em noite sobre ele. */
+  --parchment: #efe3c4;
+  /* A brasa: os lobos, o Revés e o Desastre. Só como texto sobre a noite e o chão. */
+  --ember: #f0a46a;
 
   /* A voz do feudo (títulos), a do cronista (texto) e as do escritório (editor e barra). */
   --font-fief: 'Grenze Gotisch', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;

@@ -1,4 +1,19 @@
-import { buildings, chronicleTemplates } from '@lotg/content';
+import {
+  buildings,
+  caravanTexts,
+  chronicleTemplates,
+  councilCards,
+  expeditionModels,
+  expeditionOutcomes,
+  expeditionPostures,
+  heroClasses,
+  heroTraits,
+  items,
+  masters,
+  masterTexts,
+  namedHeroes,
+  raidTemplates,
+} from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import health from '../../../.github/workflows/health.yml?raw';
@@ -24,6 +39,20 @@ const text = (html: string): string =>
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ');
+/** As opções de uma carta ou de uma encruzilhada, como pares [rótulo, pista]. */
+const optionsOf = (fragment: string): string[][] =>
+  [
+    ...fragment.matchAll(
+      /<span class="option-label">([\s\S]*?)<\/span>\s*<span class="option-hint"\s*>([\s\S]*?)<\/span\s*>/g,
+    ),
+  ].map((match) => [text(match[1] ?? '').trim(), text(match[2] ?? '').trim()]);
+/** O texto de cada `<li>` da lista com a classe dada. */
+const itemsOf = (html: string, className: string): string[] =>
+  (
+    new RegExp(`<ul class="${className}">([\\s\\S]*?)</ul>`)
+      .exec(html)?.[1]
+      ?.match(/<li\b[^>]*>[\s\S]*?<\/li>/g) ?? []
+  ).map((item) => text(item).trim());
 
 describe.each(Object.entries(pages))('%s', (_name, html) => {
   it('está em português do Brasil e tem um único título principal', () => {
@@ -138,8 +167,28 @@ describe('index.html', () => {
       expect(html).toContain(`<label for="${attribute(radio, 'id')}">`);
     }
     // Cada pedaço da tela tem as duas leituras, na mesma ordem.
-    expect(html.match(/<dt>/g)).toHaveLength(5);
-    expect(html.match(/<dd>/g)).toHaveLength(5);
+    const labels = /<dl class="labels">([\s\S]*?)<\/dl>/.exec(html)?.[1] ?? '';
+    expect(labels.match(/<dt>/g)).toHaveLength(5);
+    expect(labels.match(/<dd>/g)).toHaveLength(5);
+  });
+
+  it('o códice tem um bloco por coisa que se governa, cada um com a orelha de arquivo e o título', () => {
+    const tiles = html.match(/<article class="tile [\s\S]*?<\/article>/g) ?? [];
+    expect(tiles).toHaveLength(8);
+    const tabs = tiles.map((tile) =>
+      text(/<p class="tab"[^>]*>([^<]*)<\/p>/.exec(tile)?.[1] ?? '').trim(),
+    );
+    expect(tabs).toEqual([
+      'feudo.csv',
+      'conselho.md',
+      'vigia.log',
+      'guilda.csv',
+      'expedicao.log',
+      'mercado.csv',
+      'mestres.txt',
+      'cronica.md',
+    ]);
+    for (const tile of tiles) expect(tile).toMatch(/<h3 id="tile-[a-z]+-title">/);
   });
 
   it('a hierarquia dos títulos não pula nível', () => {
@@ -152,13 +201,28 @@ describe('index.html', () => {
   });
 
   describe('só diz do jogo o que o jogo diz de si', () => {
-    it('as linhas da Crônica citadas são frases do conteúdo do jogo', () => {
-      const quote = /<blockquote>([\s\S]*?)<\/blockquote>/.exec(html)?.[1] ?? '';
-      const lines = (quote.match(/<p>[\s\S]*?<\/p>/g) ?? []).map((line) => text(line).trim());
-      expect(lines.length).toBeGreaterThanOrEqual(5);
+    /** O texto de cada `<p>` de um trecho de HTML, sem marcação. */
+    const paragraphs = (fragment: string): string[] =>
+      (fragment.match(/<p\b[^>]*>[\s\S]*?<\/p>/g) ?? []).map((line) => text(line).trim());
 
-      // Cada modelo vira uma expressão em que os marcadores aceitam qualquer valor.
-      const patterns = Object.values(chronicleTemplates).map(
+    it('toda linha da Crônica citada, em qualquer bloco, é uma frase do conteúdo do jogo', () => {
+      const quotes =
+        html.match(/<blockquote class="chronicle-lines">[\s\S]*?<\/blockquote>/g) ?? [];
+      expect(quotes.length).toBeGreaterThanOrEqual(5);
+      const lines = quotes.flatMap(paragraphs);
+      expect(lines.length).toBeGreaterThanOrEqual(15);
+
+      // Cada modelo vira uma expressão em que os marcadores aceitam qualquer valor. Os lobos
+      // têm as frases deles (`raidTemplates`): o uivo, e a chegada seguida do desfecho.
+      const wolves = raidTemplates.wolves;
+      const templates = [
+        ...Object.values(chronicleTemplates),
+        ...Object.values(wolves.howl),
+        ...Object.values(wolves.arrival).flatMap((arrival) =>
+          Object.values(wolves.outcome).map((outcome) => `${arrival} ${outcome}`),
+        ),
+      ];
+      const patterns = templates.map(
         (template) =>
           new RegExp(
             `^${template
@@ -173,6 +237,90 @@ describe('index.html', () => {
           `"${line}" não é uma frase da Crônica`,
         ).toBe(true);
       }
+    });
+
+    it('a carta do Conselho mostrada é a "Estrangeira ferida", palavra por palavra', () => {
+      const card = /<figure class="card">([\s\S]*?)<\/figure>/.exec(html)?.[1] ?? '';
+      const def = councilCards.find((item) => item.id === 'woundedStranger');
+      expect(def).toBeDefined();
+      expect(text(/<p class="card-title">([^<]*)<\/p>/.exec(card)?.[1] ?? '').trim()).toBe(
+        def?.title,
+      );
+      expect(
+        paragraphs(/<blockquote class="card-text">([\s\S]*?)<\/blockquote>/.exec(card)?.[1] ?? ''),
+      ).toEqual([def?.text]);
+      expect(optionsOf(card)).toEqual(
+        def?.options.map((option) => [option.label, option.hint ?? '']),
+      );
+    });
+
+    it('a encruzilhada mostrada é uma captura real da aba Guilda, e diz o que mostra', () => {
+      const sheet = /<figure class="crossroads">([\s\S]*?)<\/figure>/.exec(html)?.[1] ?? '';
+      const image = tags(sheet, 'img')[0] ?? '';
+      expect(attribute(image, 'src')).toBe('/src/assets/jogo-encruzilhada.webp');
+      expect(attribute(image, 'alt')).toMatch(/^Captura real do jogo, na aba Guilda:/);
+      const forest = expeditionModels.find((model) => model.id === 'oldForest');
+      const fork = Object.values(forest?.variants[0]?.nodes ?? {}).find(
+        (node) => node.kind === 'crossroads',
+      );
+      expect(fork?.kind).toBe('crossroads');
+      // A captura é da encruzilhada da Floresta Antiga, e a legenda e o texto alternativo dizem isso.
+      expect(forest?.label).toBe('Floresta Antiga');
+      expect(text(sheet)).toContain('a encruzilhada da Floresta Antiga');
+    });
+
+    it('as Posturas, os destinos e os desfechos são os do jogo, com as frases dele', () => {
+      const postures = /<dl class="postures">([\s\S]*?)<\/dl>/.exec(html)?.[1] ?? '';
+      const shown = [...postures.matchAll(/<dt>([\s\S]*?)<\/dt>\s*<dd>([\s\S]*?)<\/dd>/g)].map(
+        (match) => [text(match[1] ?? '').trim(), text(match[2] ?? '').trim()],
+      );
+      expect(shown).toEqual(
+        Object.values(expeditionPostures).map((posture) => [posture.label, posture.text]),
+      );
+      expect(itemsOf(html, 'destinations')).toEqual(expeditionModels.map((model) => model.label));
+      expect(itemsOf(html, 'outcomes')).toEqual(
+        (['full', 'success', 'setback', 'disaster'] as const).map(
+          (outcome) => expeditionOutcomes[outcome].label,
+        ),
+      );
+    });
+
+    it('as fichas dos heróis dizem a classe e o traço do jogo, com a frase do traço', () => {
+      const sheets = html.match(/<li class="sheet">[\s\S]*?<\/li>/g) ?? [];
+      const shown = sheets.map((sheet) => ({
+        name: text(/<p class="sheet-name">([^<]*)<\/p>/.exec(sheet)?.[1] ?? '').trim(),
+        line: text(/<p class="sheet-class">([^<]*)<\/p>/.exec(sheet)?.[1] ?? '').trim(),
+        trait: paragraphs(sheet).at(-1),
+      }));
+      const expected = Object.values(namedHeroes).map((hero) => {
+        const heroClass = heroClasses[hero.classId];
+        const trait = heroTraits[hero.traits[0] ?? 'loyal'];
+        const feminine = hero.gender === 'f';
+        return {
+          name: hero.name,
+          line: `${feminine ? heroClass.labelFeminine : heroClass.label} · ${
+            feminine ? trait.labelFeminine : trait.label
+          }`,
+          trait: trait.text,
+        };
+      });
+      expect(shown).toEqual(expected);
+    });
+
+    it('os Mestres são os quatro do jogo, com o ofício de origem de cada um', () => {
+      expect(itemsOf(html, 'masters')).toEqual(
+        Object.values(masters).map(
+          (master) =>
+            `${master.gender === 'f' ? masterTexts.titleFeminine : masterTexts.titleMasculine} ${master.name}, ${master.originText}`,
+        ),
+      );
+    });
+
+    it('o destino das caravanas e o item citado são os do jogo', () => {
+      expect(prose).toContain(caravanTexts.destination);
+      const names = Object.values(items).map((item) => item.label);
+      expect(names).toContain('Lança de caça');
+      expect(prose).toContain('Lança de caça');
     });
 
     it('a Crônica citada não traz viradas de dia (ADR 0007)', () => {

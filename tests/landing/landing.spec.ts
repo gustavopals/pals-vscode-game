@@ -231,7 +231,7 @@ test.describe('a mesma tela, duas leituras', () => {
     expect(await shown(page, 'dt')).toEqual([passerby[1], passerby[2], passerby[4]]);
     expect(await shown(page, 'dd')).toEqual([ruler[1], ruler[2], ruler[4]]);
     await expect(page.locator('.reading-heads')).toHaveText(/Quem passa vê\s*Quem governa vê/);
-    const capture = page.getByRole('img', { name: /Captura real do jogo/ });
+    const capture = page.getByRole('img', { name: /Captura real do jogo, na aba Feudo/ });
     expect(await capture.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(
       'jogo-feudo-estreito',
     );
@@ -259,6 +259,39 @@ test.describe('a mesma tela, duas leituras', () => {
       await expect(page.locator('.label-table dt')).toBeHidden();
     }
     await context.close();
+  });
+});
+
+test.describe('o códice', () => {
+  test('tem um bloco por coisa que se governa, com a orelha de arquivo, e a captura da encruzilhada carrega', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await scrollThrough(page);
+    const tiles = page.locator('.codex .tile');
+    await expect(tiles).toHaveCount(8);
+    await expect(page.locator('.codex .tab')).toHaveText([
+      'feudo.csv',
+      'conselho.md',
+      'vigia.log',
+      'guilda.csv',
+      'expedicao.log',
+      'mercado.csv',
+      'mestres.txt',
+      'cronica.md',
+    ]);
+    // A carta do Conselho e a folha da encruzilhada, como o jogo as mostra.
+    await expect(page.locator('.card-title')).toHaveText('Estrangeira ferida');
+    const sheet = page.getByRole('img', { name: /Captura real do jogo, na aba Guilda/ });
+    await sheet.scrollIntoViewIfNeeded();
+    expect(await sheet.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(628);
+    // Os quatro Mestres, pelo nome.
+    await expect(page.locator('.masters li')).toHaveCount(4);
+    // No celular os blocos ficam em uma coluna; no computador, em várias.
+    const columns = await page
+      .locator('.tiles')
+      .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+    expect(columns).toBe(isPhone(page) ? 1 : 12);
   });
 });
 
