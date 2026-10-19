@@ -1677,6 +1677,10 @@ function surplusOf(view: ViewState, resource: ResourceId): number {
   if (row === undefined) {
     return 0;
   }
+  // O ferro (V4B-T1.8): até o Ferreiro (V4B-T2) não tem uso, e o bot vende todo o que achar.
+  if (resource === 'iron') {
+    return Math.floor(row.stock);
+  }
   const filling =
     row.full || (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600);
   if (!filling) {
