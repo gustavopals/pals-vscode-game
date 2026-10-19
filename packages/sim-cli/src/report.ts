@@ -462,6 +462,7 @@ const columns: Array<[string, (row: HourRow) => string | number]> = [
   ['season', (row) => row.season],
   ['day_of_season', (row) => row.dayOfSeason],
   ...RESOURCE_IDS.map((id): [string, (row: HourRow) => number] => [id, (row) => row.stock[id]]),
+  ['weapons', (row) => row.weapons],
   ...RESOURCE_IDS.map((id): [string, (row: HourRow) => number] => [
     `${id}_per_hour`,
     (row) => row.perHour[id],

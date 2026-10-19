@@ -19,6 +19,7 @@ export const BUILDING_IDS = [
   'tavern',
   'guild',
   'market',
+  'smithy',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 

@@ -14,6 +14,7 @@ export type {
   CaravanDef,
   MarketDef,
   MastersDef,
+  SmithyDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,

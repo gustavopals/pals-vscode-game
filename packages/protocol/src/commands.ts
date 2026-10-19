@@ -200,6 +200,18 @@ export const AssignMasterCommandSchema = command(
   }),
 );
 
+/**
+ * A ordem de forjar um lote de armas (V4B-T2; ADR 0019, decisão 4). O protocolo só confere a
+ * forma; o lote máximo, o Ferreiro e o material são com o motor.
+ */
+export const ForgeWeaponsCommandSchema = command(
+  'forgeWeapons',
+  z.strictObject({ amount: z.number().int().min(-1_000_000).max(1_000_000) }),
+);
+
+/** A ordem de cancelar o lote na forja: devolve 80% do custo. Sem corpo. */
+export const CancelForgeCommandSchema = command('cancelForge', z.strictObject({}));
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -221,6 +233,8 @@ export const CommandSchema = z.discriminatedUnion('type', [
   TradeCommandSchema,
   SendCaravanCommandSchema,
   AssignMasterCommandSchema,
+  ForgeWeaponsCommandSchema,
+  CancelForgeCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

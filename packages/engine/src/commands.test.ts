@@ -24,6 +24,7 @@ import {
   caravanPost,
   masterOrder,
   mastersScenario,
+  smithyStall,
   masterWaitingScenario,
   send,
   tavernScenario,
@@ -205,6 +206,8 @@ describe('catálogo de recusas', () => {
     atFork,
     command('chooseExpeditionPath', { expeditionId: inForest.expedition.id, optionId: 'stream' }),
   ).state;
+  const smithy = smithyStall(0);
+  const forging = accept(smithy, command('forgeWeapons', { amount: 2 })).state;
   const crafted = mastersScenario();
   const atDoor = masterWaitingScenario();
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
@@ -321,6 +324,9 @@ describe('catálogo de recusas', () => {
       crafted,
       command('assignMaster', { masterId: 'master-1', building: 'tavern' as 'farm' }),
     ],
+    SMITHY_REQUIRED: [rich, command('forgeWeapons', { amount: 1 })],
+    FORGE_BUSY: [forging, command('forgeWeapons', { amount: 1 })],
+    NOT_FORGING: [smithy, command('cancelForge', {})],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

@@ -501,7 +501,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 25;
+  schemaVersion: 26;
   seed: string;
   settings: GameSettings;
   /**
@@ -623,6 +623,16 @@ export type GameState = {
      * instante em que houver uma. Não moram, não comem e não trabalham enquanto esperam.
      */
     mastersWaiting: WaitingMaster[];
+    /**
+     * As armas forjadas, em unidades inteiras (V4B-T2; ADR 0019, decisão 4). Não são um dos
+     * `resources`: não têm depósito, não se vendem e não entram em milésimos.
+     */
+    weapons: number;
+    /**
+     * O lote em curso na forja do Ferreiro, ou `null`: um lote por vez. O custo foi pago ao
+     * começar e o fim (`endsAtMs`) foi fixado com o nível que o Ferreiro tinha então.
+     */
+    forge: { amount: number; startedAtMs: number; endsAtMs: number } | null;
   };
   /**
    * O Conselho do Feudo (GDD §7; ADR 0014). Os efeitos temporários de moral que as cartas
@@ -852,7 +862,14 @@ export type Command =
       commandId: string;
       type: 'assignMaster';
       payload: { masterId: string; building: ProductionBuildingId | null };
-    };
+    }
+  /**
+   * Põe um lote de `amount` armas na forja do Ferreiro (GDD §6.1; ADR 0019, decisão 4): cobra o
+   * ferro e a madeira agora, e as armas entram no fim do lote.
+   */
+  | { commandId: string; type: 'forgeWeapons'; payload: { amount: number } }
+  /** Cancela o lote em curso na forja e devolve 80% do custo. */
+  | { commandId: string; type: 'cancelForge'; payload: Record<string, never> };
 
 export type CommandType = Command['type'];
 
@@ -908,6 +925,9 @@ export const REJECTION_CODES = [
   'MASTER_WAITING',
   'BUILDING_HAS_MASTER',
   'NOT_A_PRODUCTION_BUILDING',
+  'SMITHY_REQUIRED',
+  'FORGE_BUSY',
+  'NOT_FORGING',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1940,6 +1960,40 @@ export type CaravanOfferView = {
  * erguê-lo e `prices` vem vazia. Só sai o preço **de hoje**: o de amanhã ainda não foi sorteado,
  * o de ontem só aparece como tendência, e o gerador nunca sai do servidor.
  */
+/**
+ * O Ferreiro na visão (V4B-T2; ADR 0019, decisão 4). `built` é falso até a obra terminar;
+ * `forge` é o lote em curso, com os segundos reais que faltam; `offer` diz o que uma ordem de
+ * forja pode pedir agora. A arma é uma contagem de unidades inteiras, sem teto.
+ */
+export type SmithyView = {
+  /** O edifício do Ferreiro: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: BuildingId;
+  built: boolean;
+  level: number;
+  /** O que o Ferreiro faz no nível de agora, ou como obtê-lo. */
+  text: string;
+  /** As armas forjadas, em unidades. */
+  weapons: number;
+  /** O nome delas no plural: "Armas". */
+  weaponsLabel: string;
+  /** O lote na forja, ou `null`. */
+  forge: { amount: number; endsInSeconds: number; totalSeconds: number } | null;
+  /** Segundos reais de uma arma no nível de agora; 0 sem o Ferreiro. */
+  perWeaponSeconds: number;
+  offer: {
+    /** O maior lote que o estoque paga agora; 0 com um lote na forja, sem Ferreiro ou sem material. */
+    maxAmount: number;
+    /** O maior lote de uma ordem. */
+    batchMax: number;
+    /** O custo de uma arma: "2 de ferro e 1 de madeira por arma". */
+    costText: string;
+    /** Segundos reais de um lote cheio, no nível de agora; 0 sem o Ferreiro. */
+    batchSeconds: number;
+    /** Por que não dá para pôr um lote agora, com o Ferreiro de pé e a forja livre; `null` quando dá. */
+    blockedReason: string | null;
+  };
+};
+
 export type MarketView = {
   /** O edifício do Mercado: é o que `startConstruction` recebe e o que a lista de obras mostra. */
   building: BuildingId;
@@ -2238,6 +2292,7 @@ export type ViewState = {
   tavern: TavernView;
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
   market: MarketView;
+  smithy: SmithyView;
   /** Os Mestres do feudo, na ordem em que entraram (GDD §5.4; ADR 0018, decisão 18). */
   masters: MasterView[];
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

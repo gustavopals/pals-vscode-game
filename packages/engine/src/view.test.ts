@@ -174,6 +174,7 @@ describe('deriveViewState', () => {
       'tavern',
       'guild',
       'market',
+      'smithy',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({

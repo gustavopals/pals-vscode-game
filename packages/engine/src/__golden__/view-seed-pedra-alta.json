@@ -631,6 +631,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 135
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -879,6 +912,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -1530,6 +1580,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 135
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -1794,6 +1877,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -2440,6 +2540,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 179
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 192
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -2746,6 +2879,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -3403,6 +3553,39 @@
           "blockedReason": "Faltam 90 madeira.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 140
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -3852,6 +4035,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -4486,6 +4686,39 @@
           "blockedReason": "Faltam 150 madeira.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 200
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -4957,6 +5190,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -5785,6 +6035,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 29
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 125
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -6234,6 +6517,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "Erga o Ferreiro: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -6901,6 +7201,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -7350,6 +7683,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -7979,6 +8329,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 200
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 200
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -8462,6 +8845,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -9108,6 +9508,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -9565,6 +9998,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -10211,6 +10661,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 115
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -10766,6 +11249,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -11412,6 +11912,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 115
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -11950,6 +12483,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -12607,6 +13157,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -13080,6 +13663,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -13704,6 +14304,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -14185,6 +14818,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -14842,6 +15492,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -15326,6 +16009,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -15950,6 +16650,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -16431,6 +17164,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -17077,6 +17827,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -17580,6 +18363,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -18226,6 +19026,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 135
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 19
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -18687,6 +19520,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -19333,6 +20183,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 92
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 135
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -19768,6 +20651,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -20409,6 +21309,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 100
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -20689,6 +21622,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -21335,6 +22285,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -21870,6 +22853,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -22516,6 +23516,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -23107,6 +24140,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -23753,6 +24803,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -24405,6 +25488,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -25049,6 +26149,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -25791,6 +26924,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -26435,6 +27585,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -27178,6 +28361,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -27822,6 +29022,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -28541,6 +29774,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -29196,6 +30446,39 @@
           "blockedReason": "Faltam 150 ouro.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -30032,6 +31315,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -30676,6 +31976,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -31409,6 +32742,23 @@
         "eligibleEscortIds": []
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -32074,6 +33424,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -32604,6 +33987,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -33261,6 +34661,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 400 de cada recurso por dia de jogo, entre compras e vendas, e mantém 1 caravana na estrada para Porto do Rio."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -33791,6 +35224,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -34437,6 +35887,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Negocia até 600 de cada recurso por dia de jogo, entre compras e vendas, e mantém 1 caravana na estrada para Porto do Rio."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -35038,6 +36521,23 @@
           }
         ],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [],
@@ -35695,6 +37195,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Negocia até 1.000 de cada recurso por dia de jogo, entre compras e vendas, e mantém 2 caravanas na estrada para Porto do Rio."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -36381,6 +37914,23 @@
         ]
       }
     },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
+      }
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -36981,6 +38531,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -37430,6 +39013,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [
@@ -38146,6 +39746,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
         }
       ]
     },
@@ -38595,6 +40228,23 @@
         "slotsInUse": 0,
         "resources": [],
         "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": false,
+      "level": 0,
+      "text": "O Ferreiro abre com o Salão Nv4: forja armas com ferro e madeira.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "perWeaponSeconds": 0,
+      "offer": {
+        "maxAmount": 0,
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 0,
+        "blockedReason": null
       }
     },
     "masters": [

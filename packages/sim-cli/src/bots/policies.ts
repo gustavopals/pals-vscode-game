@@ -154,7 +154,7 @@ function blockingDepots(view: ViewState): BuildingId[] {
  * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
  * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`),
  * a Paliçada (`erguer a Paliçada`), a Guilda dos Aventureiros (`erguer a Guilda`, que só o
- * explorador tem: a quem não envia expedições ela não serve de nada) e o Mercado (`erguer o
+ * explorador tem: a quem não envia expedições ela não serve de nada), o Ferreiro (`erguer o Ferreiro`, depois do Quartel) e o Mercado (`erguer o
  * Mercado`, que o preguiçoso não tem: a quem não negocia ele não serve de nada), como a visão os
  * aponta: o edifício que amplia cada recurso, o da Torre, o da defesa, o da Guilda e o do
  * Mercado.
@@ -166,6 +166,8 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
     view.threat.defense.building,
     view.guild.building,
     view.market.building,
+    // O Ferreiro (V4B-T2.6) só entra depois do Quartel: `erguer o Ferreiro`.
+    view.smithy.building,
   ]);
 }
 
@@ -179,7 +181,9 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
 function inTheRace(view: ViewState): Upgrade[] {
   return view.constructions.available.filter(
     (upgrade) =>
-      (upgrade.building !== view.guild.building && upgrade.building !== view.market.building) ||
+      (upgrade.building !== view.guild.building &&
+        upgrade.building !== view.market.building &&
+        upgrade.building !== view.smithy.building) ||
       upgrade.planned,
   );
 }
@@ -566,6 +570,57 @@ export const erguerGuilda: Policy = {
         })
       : view;
   },
+};
+
+/**
+ * O edifício que o bot ergue **depois do Quartel** (V4B-T2.6; roadmap da v0.4): o Ferreiro só
+ * serve a quem tem soldados a armar. O Quartel é da Fase C; enquanto a visão não oferece um
+ * edifício `barracks`, esta política não faz nada, e a partida é a de antes.
+ */
+const BARRACKS_ID = 'barracks';
+
+/**
+ * Ergue o Ferreiro (V4B-T2.6) quando o Quartel já existe. Hoje fica inerte: a lista de obras da
+ * visão não tem Quartel. Se a obra não pode começar agora, fica planejada como automática.
+ */
+export const erguerFerreiro: Policy = {
+  name: 'erguer o Ferreiro',
+  run: async (view, act) => {
+    const available: ReadonlyArray<{ building: string }> = view.constructions.available;
+    const upgrade = view.constructions.available.find((entry) => entry.building === 'smithy');
+    const barracks = available.some((entry) => entry.building === BARRACKS_ID);
+    if (upgrade === undefined || !barracks || !keepsFirewood(view, upgrade)) {
+      return view;
+    }
+    if (upgrade.blockedCode === null) {
+      return act('startConstruction', { building: upgrade.building });
+    }
+    const canWait =
+      !upgrade.planned &&
+      upgrade.blockedCode !== 'MAX_LEVEL' &&
+      upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
+      upgrade.blockedCode !== 'EXCEEDS_STORAGE';
+    return canWait
+      ? act('planConstruction', {
+          building: upgrade.building,
+          autoStart: true,
+          targetLevel: upgrade.targetLevel,
+        })
+      : view;
+  },
+};
+
+/**
+ * Forja com o ferro parado (V4B-T2.6): com o Ferreiro de pé e a forja livre, põe o maior lote
+ * que o estoque paga. Lê da visão (`smithy.offer.maxAmount`), como a tela. Sem Ferreiro não faz
+ * nada.
+ */
+export const forjarArmas: Policy = {
+  name: 'forjar armas',
+  run: async (view, act) =>
+    view.smithy.built && view.smithy.forge === null && view.smithy.offer.maxAmount > 0
+      ? act('forgeWeapons', { amount: view.smithy.offer.maxAmount })
+      : view,
 };
 
 /** A Postura com que o bot envia: a do meio. */
@@ -1677,9 +1732,10 @@ function surplusOf(view: ViewState, resource: ResourceId): number {
   if (row === undefined) {
     return 0;
   }
-  // O ferro (V4B-T1.8): até o Ferreiro (V4B-T2) não tem uso, e o bot vende todo o que achar.
+  // O ferro (V4B-T1.8): sem Ferreiro não tem uso, e o bot vende todo o que achar. Com o
+  // Ferreiro de pé (V4B-T2) ele é matéria-prima das armas e não se vende (`forjarArmas`).
   if (resource === 'iron') {
-    return Math.floor(row.stock);
+    return view.smithy.built ? 0 : Math.floor(row.stock);
   }
   const filling =
     row.full || (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600);

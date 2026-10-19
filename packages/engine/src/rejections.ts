@@ -170,7 +170,11 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
   // `note` é a frase inteira de quando o que está errado não é a quantidade (o recurso que o
   // Mercado não negocia, o sentido que não é compra nem venda).
-  INVALID_AMOUNT: ({ note }) => note ?? 'Negocie um número inteiro de unidades, a partir de 1.',
+  INVALID_AMOUNT: ({ note, count }) =>
+    note ??
+    (count === undefined
+      ? 'Negocie um número inteiro de unidades, a partir de 1.'
+      : `Forje um número inteiro de armas, de 1 a ${count}.`),
   // O dia de jogo virou entre a tela e a ordem: a visão que vem junto traz o preço de hoje.
   PRICE_CHANGED: () =>
     'O dia virou e o preço do Mercado mudou: confira o preço de hoje e peça de novo.',
@@ -209,6 +213,10 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `label` é o edifício, com artigo e maiúscula ("A Pedreira"); `remedy`, quem já trabalha nele.
   BUILDING_HAS_MASTER: ({ label = 'Esse edifício', remedy = 'um Mestre' }) =>
     `${label} já tem ${remedy}: cabe um Mestre por edifício, e o bônus não soma.`,
+  SMITHY_REQUIRED: () =>
+    `Erga ${buildings.smithy.article} ${buildings.smithy.label} primeiro: a forja pede ${buildings.townHall.article} ${buildings.townHall.label} no nível ${buildings.smithy.requires.townHall ?? 1}.`,
+  FORGE_BUSY: () => 'A forja já tem um lote: espere ele terminar, ou cancele para pôr outro.',
+  NOT_FORGING: () => 'Não há lote na forja para cancelar.',
   // Com `label`, é um edifício produtivo que ainda não foi erguido.
   NOT_A_PRODUCTION_BUILDING: ({ label }) =>
     label === undefined

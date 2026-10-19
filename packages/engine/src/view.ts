@@ -61,6 +61,7 @@ import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
 import { marketEffect, marketView } from './marketView';
+import { smithyEffect, smithyView } from './smithyView';
 import { inhabitants } from './masters';
 import { mastersView, mastersWaitingView, workerMasterView } from './mastersView';
 import { tavernEffect, tavernView } from './tavernView';
@@ -188,7 +189,8 @@ function upgradeEffect(state: GameState, building: BuildingId, targetLevel: numb
     palisadeEffect(building, targetLevel) ??
     tavernEffect(building, targetLevel) ??
     guildEffect(building, targetLevel) ??
-    marketEffect(building, targetLevel)
+    marketEffect(building, targetLevel) ??
+    smithyEffect(building, targetLevel)
   );
 }
 
@@ -475,6 +477,7 @@ export function deriveViewState(
     guild: guild.guild,
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
+    smithy: smithyView(state, timeScale),
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),
   };

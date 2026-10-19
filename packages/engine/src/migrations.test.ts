@@ -93,6 +93,7 @@ import {
   MARKET_RESOURCE_IDS_V25,
   RESOURCE_IDS_V25,
 } from './migrations/v25';
+import { BUILDING_IDS_V26, FORGE_BATCH_MAX_V26 } from './migrations/v26';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -168,10 +169,23 @@ const LOG_FIELDS_V18 = [
 ] as const;
 
 /**
+ * Tira de um estado, no lugar, o que o passo 25 → 26 acrescenta: o Ferreiro (nível 0), as armas e
+ * a forja.
+ */
+function stripSmithy(copy: Draft): void {
+  if (copy.settlement !== undefined) {
+    delete copy.settlement.buildings?.smithy;
+    delete copy.settlement.weapons;
+    delete copy.settlement.forge;
+  }
+}
+
+/**
  * Tira de um estado, no lugar, o que o passo 24 → 25 acrescenta: o ferro no estoque, no
  * acumulador, no desperdício, no Mercado e nas quantidades de cada expedição.
  */
 function stripIron(copy: Draft): void {
+  stripSmithy(copy);
   for (const field of ['resources', 'accumulators', 'wasted']) {
     if (copy.settlement?.[field] !== undefined) {
       delete copy.settlement[field].iron;
@@ -1121,6 +1135,52 @@ const FROZEN: Record<string, string> = {
   'state-v24-wage-arrears.json': 'd3dcc347',
   'state-v24-warehouse-full.json': '03cce210',
   'state-v24-week-scripted.json': '32a4aa97',
+  'state-v25-caravan-escort.json': '56a1f24c',
+  'state-v25-caravan.json': '04965e80',
+  'state-v25-cold.json': '86475620',
+  'state-v25-construction.json': '65a97993',
+  'state-v25-council-hidden.json': '3a309daa',
+  'state-v25-council.json': '00894734',
+  'state-v25-crafts.json': '270814d9',
+  'state-v25-den-cleared.json': '524dfde3',
+  'state-v25-expedition-crossroads.json': 'c712d428',
+  'state-v25-expedition-returning.json': '3633807f',
+  'state-v25-expedition.json': '66f3b384',
+  'state-v25-famine-3x.json': 'c18246df',
+  'state-v25-famine-ended.json': 'ab50ab57',
+  'state-v25-famine-half.json': '5354ee98',
+  'state-v25-famine-resumed.json': '41cf8155',
+  'state-v25-famine.json': '9ca19eb3',
+  'state-v25-fresh.json': '3511a3ca',
+  'state-v25-guild.json': '7ba3c321',
+  'state-v25-hero-captured.json': 'e23e7720',
+  'state-v25-hero-injured.json': '2930881f',
+  'state-v25-hero-promised.json': '0709e787',
+  'state-v25-iron-king-half.json': '53e49c70',
+  'state-v25-market-opening.json': '2e655119',
+  'state-v25-market.json': 'fd269e25',
+  'state-v25-master-waiting.json': '3a57b718',
+  'state-v25-masters.json': 'b83133bf',
+  'state-v25-migrated-3x.json': '09294647',
+  'state-v25-migrated-iron-king-caravan.json': 'dd71b9c4',
+  'state-v25-migrated-iron-king-half.json': '2ec1d349',
+  'state-v25-migrated-peasant-3x.json': 'de098db8',
+  'state-v25-morale.json': '6346c78b',
+  'state-v25-objectives.json': '131a1277',
+  'state-v25-palisade.json': '392f458d',
+  'state-v25-peasant-3x.json': '0b3aa6dd',
+  'state-v25-queues.json': 'abc3130f',
+  'state-v25-raid-announced.json': '6e4d9a4e',
+  'state-v25-raid.json': '996165fb',
+  'state-v25-storage.json': '5a2aac21',
+  'state-v25-tavern-busy.json': '7b6fc92d',
+  'state-v25-tavern.json': '9b0a077e',
+  'state-v25-threat.json': '6482bee0',
+  'state-v25-wage-arrears-ended.json': '9136847f',
+  'state-v25-wage-arrears-resumed.json': '132888b9',
+  'state-v25-wage-arrears.json': 'b9d1f21e',
+  'state-v25-warehouse-full.json': '1bc16ac7',
+  'state-v25-week-scripted.json': 'cbf977c0',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2605,13 +2665,15 @@ describe('versão 3 → 4', () => {
       'tavern',
       'guild',
       'market',
+      'smithy',
     ]);
     const storage = unbuilt.filter(
       (entry) =>
         entry.building !== 'palisade' &&
         entry.building !== 'tavern' &&
         entry.building !== 'guild' &&
-        entry.building !== 'market',
+        entry.building !== 'market' &&
+        entry.building !== 'smithy',
     );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
@@ -4097,7 +4159,7 @@ describe('versão 15 → 16', () => {
   const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V16, 'guild', 'market']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V16, 'guild', 'market', 'smithy']).toEqual([...BUILDING_IDS]);
     expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
     expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_FIXED_STREAMS_V13, 'tavern']);
   });
@@ -4230,7 +4292,7 @@ describe('versão 16 → 17', () => {
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
     const { expeditions } = balance;
-    expect([...BUILDING_IDS_V17, 'market']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V17, 'market', 'smithy']).toEqual([...BUILDING_IDS]);
     expect(HERO_STATUS_IDS_V17).toEqual(['idle', 'expedition']);
     expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
     expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
@@ -5129,7 +5191,7 @@ describe('versão 20 → 21', () => {
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
-    expect(BUILDING_IDS_V21).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V21, 'smithy']).toEqual([...BUILDING_IDS]);
     // O ferro entrou na versão 25: o conteúdo de hoje é o da 21 com ele no fim.
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...MARKET_RESOURCE_IDS]);
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...balance.market.resources]);
@@ -6070,5 +6132,138 @@ describe('versão 24 → 25 (V4B-T1: o ferro)', () => {
     expect(
       broken(away, (state) => delete state.guild.expeditions[0].log[0].gained.iron),
     ).not.toBeNull();
+  });
+});
+
+/** Um estado como a versão 25 o gravava, a partir de um da versão 26: sem o Ferreiro e a forja. */
+function asVersion25(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 25;
+  stripSmithy(old);
+  return old;
+}
+
+describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
+  const version25 = fixtures.filter((fixture) => fixture.version === 25);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(BUILDING_IDS_V26).toEqual([...BUILDING_IDS]);
+    expect(FORGE_BATCH_MAX_V26).toBe(balance.smithy.batchMax);
+  });
+
+  it('há retratos da versão 25 com o Salão no nível 4 ou mais, com obra em curso e com ferro', () => {
+    expect(version25.length).toBeGreaterThan(40);
+    const all = version25.map((fixture) => read(fixture) as Draft);
+    expect(all.some((state) => state.settlement.buildings.townHall >= 4)).toBe(true);
+    expect(all.some((state) => state.settlement.constructionQueues[0] !== null)).toBe(true);
+    expect(all.some((state) => state.settlement.planned.length > 0)).toBe(true);
+    expect(all.some((state) => state.settings.difficulty === 'ironKing')).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v25-fresh.json'));
+    expect(fresh.settlement.buildings.smithy).toBe(0);
+    expect(fresh.settlement.weapons).toBe(0);
+    expect(fresh.settlement.forge).toBeNull();
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version25)(
+    '$name: só acrescenta o Ferreiro no nível 0, nenhuma arma e a forja vazia; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.buildings.smithy).toBe(0);
+      expect(after.settlement.weapons).toBe(0);
+      expect(after.settlement.forge).toBeNull();
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.stats).toStrictEqual(before.stats);
+      expect(asVersion25(after)).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      // Nada acontece na fronteira: o passo não cria prazo nem evento.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(
+        atBoundary.events.filter((event) => /forge|weapons/.test(JSON.stringify(event))),
+      ).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion25(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a partida migrada com o Salão no nível 4 ergue o Ferreiro e forja na fronteira', () => {
+    const state = migrated(named('state-v25-migrated-iron-king-caravan.json'));
+    const rich = JSON.parse(JSON.stringify(state)) as GameState;
+    rich.settlement.buildings.townHall = 4;
+    rich.settlement.resources = {
+      food: 600_000,
+      wood: 600_000,
+      stone: 600_000,
+      gold: 600_000,
+      iron: 40_000,
+    };
+    const started = applyCommand(
+      rich,
+      command('startConstruction', { building: 'smithy' }),
+      rich.lastProcessedAt,
+    );
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+    const done = advanceTo(
+      started.state,
+      started.state.settlement.constructionQueues[0]?.finishesAtMs ?? 0,
+    );
+    expect(done.state.settlement.buildings.smithy).toBe(1);
+    const forged = applyCommand(
+      done.state,
+      command('forgeWeapons', { amount: 2 }),
+      done.state.lastProcessedAt,
+    );
+    expect(forged.ok).toBe(true);
+  });
+
+  it('a guarda recusa o Ferreiro ausente, armas negativas, lote sem Ferreiro, lote grande demais e lote que termina antes de começar', () => {
+    const broken = (from: GameState, edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(from)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const fresh = newGame('guarda-da-forja');
+    expect(broken(fresh, () => undefined)).toBeNull();
+    expect(broken(fresh, (state) => delete state.settlement.buildings.smithy)).not.toBeNull();
+    expect(broken(fresh, (state) => delete state.settlement.weapons)).not.toBeNull();
+    expect(broken(fresh, (state) => (state.settlement.weapons = -1))).not.toBeNull();
+    expect(broken(fresh, (state) => delete state.settlement.forge)).not.toBeNull();
+    const lot = { amount: 3, startedAtMs: 0, endsAtMs: 1000 };
+    expect(broken(fresh, (state) => (state.settlement.forge = lot))).toBe(
+      'settlement.forge: lote na forja sem Ferreiro',
+    );
+    const built = (edit: (state: Draft) => void) =>
+      broken(fresh, (state) => {
+        state.settlement.buildings.smithy = 1;
+        state.settlement.forge = { ...lot };
+        edit(state);
+      });
+    expect(built(() => undefined)).toBeNull();
+    expect(built((state) => (state.settlement.forge.amount = 11))).toBe(
+      'settlement.forge.amount: lote acima do máximo',
+    );
+    expect(built((state) => (state.settlement.forge.amount = 0))).not.toBeNull();
+    expect(built((state) => (state.settlement.forge.endsAtMs = -5))).not.toBeNull();
+    expect(built((state) => (state.settlement.forge.startedAtMs = 2000))).toBe(
+      'settlement.forge.endsAtMs: lote que termina antes de começar',
+    );
   });
 });

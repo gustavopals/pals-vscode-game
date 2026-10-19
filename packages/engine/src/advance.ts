@@ -11,6 +11,7 @@ import {
   yearOf,
 } from './clock';
 import { finishConstructions } from './construction';
+import { finishForge } from './smithy';
 import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council';
 import { drawCard } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
@@ -129,6 +130,8 @@ export function processEventsAt(
   catalog: Catalog = CATALOG,
 ): void {
   finishConstructions(draft, atMs, events);
+  // O lote da forja termina junto das obras: as armas já existem para tudo o que vem depois.
+  finishForge(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   recoverInjured(draft, atMs, events);
   // Os Mestres que esperavam à porta entram com os aldeões que chegam: a obra que ampliou as
@@ -237,6 +240,7 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
   draft.clock.gameTimeMs = turn;
   const unused: GameEvent[] = [];
   finishConstructions(draft, turn, unused);
+  finishForge(draft, turn, unused);
   finishRecruitments(draft, turn, unused);
   // O Mestre à porta que entra com a obra das casas pronta: as casas cheias são conta da moral.
   settleMasterArrivals(draft, turn, unused);

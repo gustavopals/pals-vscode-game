@@ -24,14 +24,15 @@ import { v21ToV22 } from './migrations/v21';
 import { v22ToV23 } from './migrations/v22';
 import { v23ToV24 } from './migrations/v23';
 import { v24ToV25 } from './migrations/v24';
-import { stateV25 } from './migrations/v25';
+import { v25ToV26 } from './migrations/v25';
+import { stateV26 } from './migrations/v26';
 import type { GameState } from './types';
 import { assertTimeScale } from './units';
 
 export type { MigrationContext } from './migrations/step';
 
 /** A versão do `GameState` que este motor escreve e sabe simular. */
-export const CURRENT_SCHEMA_VERSION = 25 satisfies GameState['schemaVersion'];
+export const CURRENT_SCHEMA_VERSION = 26 satisfies GameState['schemaVersion'];
 
 /**
  * Um passo por versão, em ordem: o de índice `n` parte da versão `n + 1`. Cada tarefa que muda
@@ -62,10 +63,11 @@ export const migrationSteps: readonly MigrationStep[] = [
   v22ToV23,
   v23ToV24,
   v24ToV25,
+  v25ToV26,
 ];
 
 /** A forma exata do estado na versão atual: é a entrada do próximo passo que alguém escrever. */
-export const currentShape: Shape = stateV25;
+export const currentShape: Shape = stateV26;
 
 /**
  * Uma cadeia de migração: os passos, em ordem, e a forma da versão a que o último leva (a de

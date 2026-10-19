@@ -417,6 +417,8 @@ describe('edifícios', () => {
       // 5 no GDD; 4 nesta versão (ADR 0018, decisão 12).
       ['guild', 4],
       ['market', 5],
+      // 6 no GDD, sem teto de versão (V4B-T2).
+      ['smithy', 6],
     ]);
   });
 
@@ -521,6 +523,7 @@ describe('edifícios', () => {
       'tavern',
       'guild',
       'market',
+      'smithy',
     ]);
   });
 });

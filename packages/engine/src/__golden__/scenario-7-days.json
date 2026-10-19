@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -642,7 +642,8 @@
       "palisade": 0,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -683,7 +684,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -799,7 +802,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -862,7 +865,8 @@
       "palisade": 0,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -897,7 +901,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -1035,7 +1041,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1107,7 +1113,8 @@
       "palisade": 0,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -1142,7 +1149,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -1312,7 +1321,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1384,7 +1393,8 @@
       "palisade": 1,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -1423,7 +1433,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -1602,7 +1614,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1674,7 +1686,8 @@
       "palisade": 2,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -1713,7 +1726,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -1890,7 +1905,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1968,7 +1983,8 @@
       "palisade": 2,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -2007,7 +2023,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [
@@ -2205,7 +2223,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 25,
+    "schemaVersion": 26,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2283,7 +2301,8 @@
       "palisade": 2,
       "tavern": 0,
       "guild": 0,
-      "market": 0
+      "market": 0,
+      "smithy": 0
      },
      "constructionQueues": [
       null,
@@ -2322,7 +2341,9 @@
      "moraleEffects": [],
      "injured": [],
      "masters": [],
-     "mastersWaiting": []
+     "mastersWaiting": [],
+     "weapons": 0,
+     "forge": null
     },
     "council": {
      "pending": [

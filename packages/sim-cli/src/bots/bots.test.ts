@@ -23,7 +23,9 @@ import {
   enviarExpedicoes,
   enviarExpedicoesOusado,
   equiparMelhor,
+  erguerFerreiro,
   erguerGuilda,
+  forjarArmas,
   escolherCaminho,
   escolherTodoCaminho,
   alocarPorDemandaFor,
@@ -213,8 +215,11 @@ describe('um bot é uma lista de políticas', () => {
     // políticas da Guilda: erguer a Guilda dos Aventureiros na frente de todas as obras e de
     // novo depois das cartas (revisão da Fase D, M-R1), e contratar, dar festival, escolher o
     // caminho, equipar o melhor item (V3D-T2) e enviar expedições antes da alocação.
+    // E, desde a V4B-T2, o Ferreiro: `erguer o Ferreiro` (inerte até o Quartel) e `forjar armas`.
     const guildBot = (choose: Policy, send: Policy) => [
       erguerGuilda,
+      erguerFerreiro,
+      forjarArmas,
       ...strategyPolicies.economico.flatMap((policy) =>
         policy === responderCartas
           ? [policy, erguerGuilda]

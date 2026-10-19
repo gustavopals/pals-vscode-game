@@ -7,6 +7,7 @@ import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy
 import { nextHeroArrivalAt, nextHeroRecoveryAt } from './heroes';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
+import { nextForgeEndAt } from './smithy';
 import { storageFillsIn } from './storage';
 import { nextTavernRotationAt } from './tavern';
 import type { GameState } from './types';
@@ -23,7 +24,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
 }
 
 /**
- * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
+ * Instante, em ms de jogo, do próximo evento discreto: fim de obra, fim de um lote da forja, chegada de aldeão,
  * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
  * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício (uma leva de aldeões ou um Mestre),
@@ -43,6 +44,11 @@ export function nextEventAt(state: GameState): number | null {
     if (slot !== null) {
       candidates.push(slot.finishesAtMs);
     }
+  }
+  // O lote da forja termina em instante próprio, resolvido junto das obras.
+  const forgeEnds = nextForgeEndAt(state);
+  if (forgeEnds !== null) {
+    candidates.push(forgeEnds);
   }
   // Durante a fome a fila de recrutamento fica congelada.
   const nextRecruit = recruitmentQueue[0];

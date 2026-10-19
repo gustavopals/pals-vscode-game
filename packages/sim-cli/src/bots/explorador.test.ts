@@ -35,6 +35,8 @@ describe('bot explorador', () => {
     // respondida, e a obra fica planejada nesta visita.
     expect(names(exploradorPolicies)).toEqual([
       'erguer a Guilda',
+      'erguer o Ferreiro',
+      'forjar armas',
       'erguer a Paliçada',
       'seguir os objetivos',
       'erguer a Torre',
@@ -59,6 +61,8 @@ describe('bot explorador', () => {
     ]);
     const own = [
       'erguer a Guilda',
+      'erguer o Ferreiro',
+      'forjar armas',
       'contratar',
       'dar festival',
       'escolher o caminho',

@@ -78,6 +78,8 @@ export type HourRow = {
   season: SeasonId;
   dayOfSeason: number;
   stock: Record<ResourceId, number>;
+  /** As armas forjadas até esta hora (V4B-T2): uma contagem, fora do estoque dos recursos. */
+  weapons: number;
   perHour: Record<ResourceId, number>;
   villagers: number;
   capacity: number;
@@ -536,6 +538,7 @@ function rowAt(
     season: view.calendar.season,
     dayOfSeason: view.calendar.dayOfSeason,
     stock: byResource((row) => row.stock),
+    weapons: view.smithy.weapons,
     perHour: byResource((row) => row.perHour),
     villagers: view.population.villagers,
     capacity: view.population.capacity,

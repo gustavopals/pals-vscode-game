@@ -178,4 +178,17 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 3 },
   },
+  // O Ferreiro (GDD §6.1 e §5.1; ADR 0019, decisão 4): forja armas com ferro e madeira, um lote
+  // por vez, e cada nível encurta o tempo de cada arma. Nasce no nível 0, como a Taverna. Os
+  // números da forja estão em `balance.smithy`.
+  smithy: {
+    label: 'Ferreiro',
+    article: 'o',
+    baseCost: { wood: 200, stone: 200, gold: 150 },
+    baseDurationMs: 20 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 6,
+    produces: null,
+    requires: { townHall: 4 },
+  },
 };

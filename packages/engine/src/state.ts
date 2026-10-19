@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 25,
+    schemaVersion: 26,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -66,6 +66,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       injured: [],
       masters: [],
       mastersWaiting: [],
+      weapons: 0,
+      forge: null,
     },
     council: {
       pending: [],

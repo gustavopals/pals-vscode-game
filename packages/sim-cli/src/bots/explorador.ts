@@ -5,7 +5,9 @@ import {
   darFestival,
   enviarExpedicoes,
   equiparMelhor,
+  erguerFerreiro,
   erguerGuilda,
+  forjarArmas,
   escolherCaminho,
   responderCartas,
 } from './policies';
@@ -65,6 +67,8 @@ export const exploradorPolicies: readonly Policy[] = guildPolicies(
 export function guildPolicies(choosePath: Policy, send: Policy): readonly Policy[] {
   return [
     erguerGuilda,
+    erguerFerreiro,
+    forjarArmas,
     ...economicoPolicies.flatMap((policy) =>
       policy === alocarPorDemanda
         ? [contratar, darFestival, choosePath, equiparMelhor, send, policy]

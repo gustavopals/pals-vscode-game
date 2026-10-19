@@ -143,3 +143,11 @@ Mesma matriz, com o bot vendendo todo o ferro a cada visita com o Mercado de pé
 | `year/0.5/explorador` | `measured([83, 85], 8, 0, 0, 5200, 5200, 20490, 5.5)` | `measured([83, 85], 8, 0, 0, 5200, 5200, 21549, 5.5)` |
 
 **O ouro parado do Explorador subiu de 0,1% a 5%**: o ferro vendido vira ouro e não tem destino (é a §13 do roadmap, "o ouro sem destino"). Na semente `pedra-alta-001`, 7 dias reais no Rápido, o Explorador trouxe 31 de ferro da Mina e terminou com o estoque de ferro em zero.
+
+## 3. O Ferreiro e as armas (V4B-T2)
+
+**O que mudou no conteúdo:** o edifício `smithy` (Salão Nv4; 200 de madeira, 200 de pedra e 150 de ouro, 20 min de jogo; até o nível 6) e `balance.smithy` (2 de ferro + 1 de madeira por arma; 6 min de jogo por arma, × 10 / (10 + nível − 1); lote de 1 a 10; cancelar devolve 80%). O custo de todo nível cabe no Armazém que o Salão daquele nível deixa erguer, nas três dificuldades (`packages/content/src/smithy.test.ts`).
+
+**O que o simulador mede:** nada mudou nas faixas. O Ferreiro foi tirado da corrida das obras de todos os bots (`sideBuildings`) e a política `erguer o Ferreiro` só age depois do Quartel, que é da Fase C e ainda não existe: nenhuma partida simulada ergue o Ferreiro, nenhuma forja, e o ferro continua sendo todo vendido (`surplusOf` só o guarda com o Ferreiro de pé). Por isso nenhuma faixa foi remedida de propósito, e a matriz do `pnpm test` (3 perfis × 3 ritmos × 50 sementes em Senhor, mais o Explorador) continua dentro das mesmas faixas da V4B-T1, sem mudar uma. O CSV ganhou as colunas `smithy` (o nível, junto dos outros edifícios) e `weapons` (as armas forjadas), as duas em zero. Um teste (`packages/sim-cli/src/bots/ferreiro.test.ts`) confere que a semana do Explorador termina com o Ferreiro em 0 e zero armas, e que `forjar armas` põe o maior lote que o estoque paga quando o Ferreiro está de pé.
+
+**O que ficou sem medir:** o ritmo da forja contra o ferro que a Mina rende (70 a 80 por viagem; um lote cheio de 10 armas pede 20 de ferro e 10 de madeira), que só tem sentido com o Quartel pedindo armas (Fase C). Registrado como pendência B-14.

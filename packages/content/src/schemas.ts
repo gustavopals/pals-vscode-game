@@ -672,6 +672,13 @@ const balanceFields = z.strictObject({
     adaptationMs: positiveInt,
     rosterCap: positiveInt,
   }),
+  smithy: z.strictObject({
+    weaponsLabel: z.string().min(1),
+    recipe: z.strictObject({ iron: positiveInt, wood: positiveInt }),
+    perWeaponMs: positiveInt,
+    speedPerLevel: ratio,
+    batchMax: positiveInt,
+  }),
 });
 
 /**
@@ -728,6 +735,7 @@ export const BuildingsSchema = z.strictObject({
   tavern: BuildingSchema,
   guild: BuildingSchema,
   market: BuildingSchema,
+  smithy: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [

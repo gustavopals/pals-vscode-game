@@ -71,6 +71,9 @@ export const EVENT_TYPES = [
   'masterArrived',
   'masterWaiting',
   'masterAssigned',
+  'forgeStarted',
+  'forgeCancelled',
+  'weaponsForged',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -315,6 +318,12 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   // que deixa o Mestre sem edifício têm frase própria em `masterTemplates`.
   masterArrived:
     'No {dia}º dia {daEstacao}, {mestre} chegou a {feudo} para ficar. Espera que o senhor lhe dê um edifício.',
+  // O Ferreiro (GDD §6.1; ADR 0019, decisão 4): a forja de um lote de armas.
+  forgeStarted:
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} acendeu a forja para {quantidade} armas.',
+  forgeCancelled:
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} apagou a forja: o lote de {quantidade} armas ficou por fazer.',
+  weaponsForged: 'No {dia}º dia {daEstacao}, a forja de {feudo} entregou {quantidade} armas novas.',
   masterWaiting:
     'No {dia}º dia {daEstacao}, {mestre} chegou aos portões de {feudo}, mas não há vaga nas casas. Espera à porta até haver uma.',
   masterAssigned: 'No {dia}º dia {daEstacao}, {mestre} tomou a seu cargo {edificio} de {feudo}.',

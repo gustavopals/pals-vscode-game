@@ -1,4 +1,5 @@
 import { exactObject, integer, literal, natural, positive, type Shape } from './shape';
+import type { MigrationStep } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildOf, guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -221,3 +222,32 @@ export const stateV25: Shape = (value, path) =>
   mastersWithinState(value, path) ??
   workedWithinState(value, path) ??
   marketLimitsWithinState(value, path);
+
+/**
+ * 25 → 26: o Ferreiro e as armas (V4B-T2; ADR 0019, decisão 4).
+ *
+ * - `settlement.buildings.smithy` entra em **0**: o Ferreiro nasce como a Taverna e a Guilda, e
+ *   quem tem o Salão no nível 4 pode erguê-lo a partir da fronteira.
+ * - `settlement.weapons` entra em 0 e `settlement.forge`, em `null`: ninguém tem arma nem lote.
+ *
+ * **O passo não cria prazo** (e por isso não usa a fronteira), não emite evento, não dá
+ * identificador a ninguém e não toca o gerador. As obras e as planejadas não mudam.
+ */
+export const v25ToV26: MigrationStep = {
+  from: 25,
+  summary: 'entram o Ferreiro (nível 0), as armas (0) e a forja vazia',
+  shape: stateV25,
+  migrate(state) {
+    const settlement = state.settlement as Record<string, unknown>;
+    return {
+      ...state,
+      schemaVersion: 26,
+      settlement: {
+        ...settlement,
+        buildings: { ...(settlement.buildings as Record<string, number>), smithy: 0 },
+        weapons: 0,
+        forge: null,
+      },
+    };
+  },
+};

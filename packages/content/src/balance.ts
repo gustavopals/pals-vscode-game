@@ -492,6 +492,27 @@ export type MastersDef = {
  * na virada, e tudo aqui escala com o ritmo. O custo e o prazo da obra estão em
  * `buildings.market`.
  */
+/**
+ * O Ferreiro (GDD §5.1 e §6.1; ADR 0019, decisão 4). A arma não é um dos recursos do estoque: é
+ * uma contagem de unidades inteiras, sem depósito (sem teto, como o ouro quando o Armazém não o
+ * limita) e que não se vende.
+ */
+export type SmithyDef = {
+  /** O nome da arma no plural, como a tela mostra o estoque dela. */
+  readonly weaponsLabel: string;
+  /** O que uma arma custa, em unidades, cobrado ao começar o lote. */
+  readonly recipe: { readonly iron: number; readonly wood: number };
+  /** O tempo de jogo de uma arma no nível 1. */
+  readonly perWeaponMs: number;
+  /**
+   * O ganho por nível: o tempo de cada arma é `perWeaponMs × den / (den + (nível − 1) × num)`.
+   * Com 1/10 é o "+10% de produção por nível" do GDD lido como produção, não como desconto.
+   */
+  readonly speedPerLevel: Ratio;
+  /** O maior lote de uma ordem. */
+  readonly batchMax: number;
+};
+
 export type MarketDef = {
   /** O que se negocia, na ordem do sorteio do preço de cada dia. */
   readonly resources: readonly MarketResourceId[];
@@ -589,6 +610,7 @@ export type Balance = {
   readonly equipment: EquipmentDef;
   readonly market: MarketDef;
   readonly masters: MastersDef;
+  readonly smithy: SmithyDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -1024,5 +1046,13 @@ export const balance: Balance = {
     maxPerBuilding: 1,
     adaptationMs: 2 * HOUR_MS,
     rosterCap: 4,
+  },
+  // ADR 0019, decisão 4: 2 de ferro e 1 de madeira por arma, 6 min de jogo cada, lotes de até 10.
+  smithy: {
+    weaponsLabel: 'Armas',
+    recipe: { iron: 2, wood: 1 },
+    perWeaponMs: 6 * MINUTE_MS,
+    speedPerLevel: { num: 1, den: 10 },
+    batchMax: 10,
   },
 };

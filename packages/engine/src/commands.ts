@@ -16,6 +16,7 @@ import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
 import { trade } from './marketOrders';
 import { assignMaster } from './masterOrders';
 import { settlePlanned } from './planned';
+import { cancelForge, forgeWeapons } from './smithyOrders';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
@@ -111,6 +112,10 @@ function dispatch(
       );
     case 'assignMaster':
       return assignMaster(draft, payload.masterId, payload.building, nowMs, events);
+    case 'forgeWeapons':
+      return forgeWeapons(draft, payload.amount, nowMs, events);
+    case 'cancelForge':
+      return cancelForge(draft, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

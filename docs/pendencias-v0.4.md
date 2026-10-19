@@ -99,6 +99,28 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - Enquanto isso: a arbitragem do especulador é comprar no balcão e revender por caravana; o ferro não vai por caravana (decisão 3), então a manobra não existe para ele. Comprar e vender ferro no mesmo dia continua dando prejuízo, provado por propriedade com o ferro (`market.property.test.ts`). O perfil `especulador` não foi rodado nesta tarefa.
 
+### Fase B: o Ferreiro e as armas (V4B-T2)
+
+**B-11. A arma é uma contagem fora do estoque, e não um recurso de `resources`.** _(Leitura do agente; o roadmap dizia `settlement.resources.weapons`.)_
+
+- Enquanto isso: `settlement.weapons` é um inteiro de unidades, e a visão a traz em `smithy.weapons`. Pôr `weapons` em `RESOURCE_IDS` a levaria a todo `Record<ResourceId, …>`: estoque em milésimos, acumulador, desperdício, saque de expedição, efeito de carta, relatório e a conta do depósito, e nada disso serve a uma coisa que não tem depósito nem se vende. O Quartel (Fase C) lê `settlement.weapons`. Se preferir a arma como recurso, é mudança de estado (versão 27) e de toda a economia; a decisão 4 do ADR 0019 diz "sem cap" e "não se vendem", que a contagem já cumpre.
+
+**B-12. O "+10% de produção por nível" é lido como tempo × 10 / (10 + nível − 1).** _(Leitura do agente; era a proposta do roadmap, aprovada em bloco com o ADR 0019.)_
+
+- Enquanto isso: nível 1, 6 min por arma; nível 2, 5,45 min; nível 6, 4 min. Lido como "−10% de tempo por nível", o nível 6 daria 3 min. A fração fica em `balance.smithy.speedPerLevel` (1/10). O tempo do lote é fixado quando ele começa.
+
+**B-13. Subir o Ferreiro não acelera o lote em curso, e cancelar devolve 80% do ferro e da madeira.** _(Leitura do agente.)_
+
+- Enquanto isso: o fim do lote é um instante gravado no estado, como o de uma obra. A devolução usa `balance.construction.cancelRefund` (a regra das obras); o que não cabe no Armazém vai ao desperdício.
+
+**B-14. O Explorador só ergue o Ferreiro depois do Quartel, que ainda não existe; a política fica inerte.** _(Leitura do agente.)_
+
+- Enquanto isso: o Ferreiro foi tirado da corrida das obras de todos os bots (`sideBuildings`), e `erguer o Ferreiro` só age quando a lista de obras da visão tiver um edifício `barracks`. `forjar armas` age com o Ferreiro de pé e deixa de vender o ferro. Nenhuma faixa do simulador mudou (ver `docs/balance-v0.4.md`, seção "V4B-T2"). A Fase C troca a condição pelo nível do Quartel.
+
+**B-15. A mensagem de `INVALID_AMOUNT` da forja é a mesma sigla da do Mercado, com outra frase.** _(Leitura do agente.)_
+
+- Enquanto isso: `INVALID_AMOUNT` serve às duas ordens, e a frase vem do parâmetro (`count` = o lote máximo). Criar `INVALID_BATCH` mudaria o protocolo de recusas sem ganho para o jogador.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

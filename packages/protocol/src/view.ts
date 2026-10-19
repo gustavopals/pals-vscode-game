@@ -69,6 +69,9 @@ export const REJECTION_CODES = [
   'MASTER_WAITING',
   'BUILDING_HAS_MASTER',
   'NOT_A_PRODUCTION_BUILDING',
+  'SMITHY_REQUIRED',
+  'FORGE_BUSY',
+  'NOT_FORGING',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -695,6 +698,29 @@ const TavernSchema = z.strictObject({
  * **milésimos de ouro por unidade** (inteiros): a ordem cobra `amount × buy` e paga
  * `amount × sell`, sem outro arredondamento. `quoteDay` é o que a ordem `trade` devolve.
  */
+const SmithySchema = z.strictObject({
+  /** O edifício do Ferreiro: é o que `startConstruction` recebe. */
+  building: buildingId,
+  built: z.boolean(),
+  level: z.number(),
+  text: z.string(),
+  /** As armas forjadas, em unidades inteiras. */
+  weapons: z.number(),
+  weaponsLabel: z.string(),
+  /** O lote na forja, com os segundos reais que faltam; `null` sem lote. */
+  forge: z
+    .strictObject({ amount: z.number(), endsInSeconds: z.number(), totalSeconds: z.number() })
+    .nullable(),
+  perWeaponSeconds: z.number(),
+  offer: z.strictObject({
+    maxAmount: z.number(),
+    batchMax: z.number(),
+    costText: z.string(),
+    batchSeconds: z.number(),
+    blockedReason: z.string().nullable(),
+  }),
+});
+
 const MarketSchema = z.strictObject({
   /** O edifício do Mercado: é o que `startConstruction` recebe. */
   building: buildingId,
@@ -1172,6 +1198,8 @@ export const ViewStateSchema = z.strictObject({
   tavern: TavernSchema,
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
   market: MarketSchema,
+  /** O Ferreiro: o lote na forja, as armas e o que uma ordem de forja pode pedir. */
+  smithy: SmithySchema,
   /** Os Mestres do feudo, na ordem em que entraram. */
   masters: z.array(MasterSchema),
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

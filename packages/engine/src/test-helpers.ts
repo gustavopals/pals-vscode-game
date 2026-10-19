@@ -339,6 +339,29 @@ export function marketStall(
 }
 
 /**
+ * O feudo com o Ferreiro de pé, posto à mão no nível `level`: o canteiro da Taverna com o Salão
+ * no nível 4 (o que o Ferreiro pede), o Ferreiro erguido, 100 de ferro no estoque e a forja
+ * vazia. É o Ferreiro no dia em que fica pronto.
+ */
+export function smithyStall(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string; level?: number } = {},
+): GameState {
+  const { level = 1, ...rest } = custom;
+  return tavernSite(
+    atMs,
+    (draft) => {
+      draft.settlement.buildings.townHall = 4;
+      draft.settlement.buildings.smithy = level;
+      draft.settlement.resources.iron = 100_000;
+      edit(draft);
+    },
+    rest,
+  );
+}
+
+/**
  * O Mercado recém-inaugurado, pelo caminho do jogo: a ordem da obra no canteiro (`tavernSite`)
  * e o avanço até o instante exato em que ela fica pronta. Devolve o estado, os eventos do
  * caminho e esse instante.
