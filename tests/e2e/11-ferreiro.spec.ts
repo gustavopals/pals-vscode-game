@@ -143,7 +143,9 @@ test.describe('o painel do Ferreiro (V4B-T4.3)', () => {
     const forging = await serverView(page, request);
     const ironWhile = forging.resources.find((row) => row.id === 'iron')?.stock ?? 0;
     const refundText = forging.smithy.forge?.refundText ?? '';
-    const refundedIron = Number(/(\d+) de ferro/.exec(refundText)?.[1]);
+    // A frase traz a fração que o motor devolve ("6,4 de ferro"); o estoque da visão é em
+    // unidades inteiras, e por isso o que se vê subir é a parte inteira.
+    const refundedIron = Number(/([\d,]+) de ferro/.exec(refundText)?.[1]?.replace(',', '.'));
 
     await running(page).getByTestId('smithy-cancel').focus();
     await page.keyboard.press('Enter');
@@ -154,8 +156,9 @@ test.describe('o painel do Ferreiro (V4B-T4.3)', () => {
     expect(after.smithy.forge).toBeNull();
     expect(after.smithy.weapons).toBe(0);
     // O ferro voltou na parte que a frase prometia.
+    expect(refundedIron).toBeGreaterThan(0);
     expect((after.resources.find((row) => row.id === 'iron')?.stock ?? 0) - ironWhile).toBe(
-      refundedIron,
+      Math.floor(refundedIron),
     );
   });
 
