@@ -1977,12 +1977,25 @@ export type SmithyView = {
   /** O nome delas no plural: "Armas". */
   weaponsLabel: string;
   /** O lote na forja, ou `null`. */
-  forge: { amount: number; endsInSeconds: number; totalSeconds: number } | null;
+  forge: {
+    amount: number;
+    endsInSeconds: number;
+    totalSeconds: number;
+    /** "Cancelar devolve 80%: 1 de ferro e 0 de madeira.": o que o cancelamento devolve. */
+    refundText: string;
+    /** O rótulo do botão: "Cancelar (devolve 80%)". */
+    cancelLabel: string;
+  } | null;
   /** Segundos reais de uma arma no nível de agora; 0 sem o Ferreiro. */
   perWeaponSeconds: number;
   offer: {
     /** O maior lote que o estoque paga agora; 0 com um lote na forja, sem Ferreiro ou sem material. */
     maxAmount: number;
+    /**
+     * Um lote de cada tamanho, de 1 até `batchMax`, com o custo por extenso, os segundos reais
+     * e se o estoque o paga agora: é o que a tela confere antes de "Confirmar", sem conta no app.
+     */
+    options: Array<{ amount: number; costText: string; seconds: number; affordable: boolean }>;
     /** O maior lote de uma ordem. */
     batchMax: number;
     /** O custo de uma arma: "2 de ferro e 1 de madeira por arma". */

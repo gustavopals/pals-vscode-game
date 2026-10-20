@@ -1,9 +1,15 @@
 import { balance, buildings } from '@lotg/content';
 
 import { missingResources } from './construction';
-import { forgeCost, forgeDurationMs, perWeaponDurationMs, smithyLevel } from './smithy';
+import {
+  forgeCost,
+  forgeDurationMs,
+  forgeRefundMilli,
+  perWeaponDurationMs,
+  smithyLevel,
+} from './smithy';
 import type { BuildingId, GameState, SmithyView } from './types';
-import { realSecondsCeil } from './units';
+import { MILLI, realSecondsCeil } from './units';
 
 /**
  * O Ferreiro na visão (GDD §6.1; ADR 0019, decisão 4). Só lê o estado: não sorteia, não dá
@@ -61,6 +67,24 @@ function maxAmount(state: GameState): number {
   return best;
 }
 
+/** "20 de ferro e 10 de madeira": o custo de um lote de `amount` armas. */
+function batchCostText(amount: number): string {
+  const cost = forgeCost(amount);
+  return `${cost.iron ?? 0} de ${iron} e ${cost.wood ?? 0} de ${wood}`;
+}
+
+/** A parte do custo que o cancelamento devolve, em por cento. */
+function refundPercent(): number {
+  const { num, den } = balance.construction.cancelRefund;
+  return Math.round((100 * num) / den);
+}
+
+/** "Cancelar devolve 80%: 1 de ferro e 0 de madeira.": o que o cancelamento devolve ao lote. */
+function refundText(amount: number): string {
+  const refund = forgeRefundMilli(amount);
+  return `Cancelar devolve ${refundPercent()}%: ${Math.floor(refund.iron / MILLI)} de ${iron} e ${Math.floor(refund.wood / MILLI)} de ${wood}.`;
+}
+
 export function smithyView(state: GameState, timeScale: number): SmithyView {
   const { settlement } = state;
   const level = smithyLevel(state);
@@ -79,10 +103,21 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
             amount: forge.amount,
             endsInSeconds: realSecondsCeil(forge.endsAtMs - state.lastProcessedAt, timeScale),
             totalSeconds: realSecondsCeil(forge.endsAtMs - forge.startedAtMs, timeScale),
+            refundText: refundText(forge.amount),
+            cancelLabel: `Cancelar (devolve ${refundPercent()}%)`,
           },
     perWeaponSeconds: level > 0 ? realSecondsCeil(perWeaponDurationMs(level), timeScale) : 0,
     offer: {
       maxAmount: maxAmount(state),
+      options: Array.from({ length: rules.batchMax }, (_, index) => {
+        const amount = index + 1;
+        return {
+          amount,
+          costText: batchCostText(amount),
+          seconds: level > 0 ? realSecondsCeil(forgeDurationMs(level, amount), timeScale) : 0,
+          affordable: missingResources(state, forgeCost(amount)) === null,
+        };
+      }),
       batchMax: rules.batchMax,
       costText: costPerWeaponText,
       batchSeconds:

@@ -709,11 +709,28 @@ const SmithySchema = z.strictObject({
   weaponsLabel: z.string(),
   /** O lote na forja, com os segundos reais que faltam; `null` sem lote. */
   forge: z
-    .strictObject({ amount: z.number(), endsInSeconds: z.number(), totalSeconds: z.number() })
+    .strictObject({
+      amount: z.number(),
+      endsInSeconds: z.number(),
+      totalSeconds: z.number(),
+      /** "Cancelar devolve 80%: 1 de ferro e 0 de madeira." */
+      refundText: z.string(),
+      /** O rótulo do botão: "Cancelar (devolve 80%)". */
+      cancelLabel: z.string(),
+    })
     .nullable(),
   perWeaponSeconds: z.number(),
   offer: z.strictObject({
     maxAmount: z.number(),
+    /** Um lote de cada tamanho, de 1 até `batchMax`: custo por extenso, segundos reais, se paga. */
+    options: z.array(
+      z.strictObject({
+        amount: z.number(),
+        costText: z.string(),
+        seconds: z.number(),
+        affordable: z.boolean(),
+      }),
+    ),
     batchMax: z.number(),
     costText: z.string(),
     batchSeconds: z.number(),

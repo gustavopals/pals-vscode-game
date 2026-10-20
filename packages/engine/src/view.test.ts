@@ -40,11 +40,16 @@ import {
   mastersScenario,
   masterWaitingScenario,
   caravanScenario,
+  smithyStall,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
 
 const view = (state: GameState) => deriveViewState(state, state.lastProcessedAt);
+const smithyForgingScenario = (): GameState => {
+  const forging = accept(smithyStall(0), command('forgeWeapons', { amount: 4 })).state;
+  return advanceTo(forging, 5 * MINUTE).state;
+};
 const farmers = accept(newGame(), command('setWorkers', { building: 'farm', count: 2 })).state;
 
 describe('deriveViewState', () => {
@@ -629,6 +634,11 @@ describe('golden do ViewState', () => {
       // Odo sem edifício.
       masters: view(mastersScenario()),
       masterWaiting: view(masterWaitingScenario()),
+      // O Ferreiro (V4B-T4), para o painel do feudo, a árvore e "Antes de partir": de pé e com a
+      // forja livre (o custo e o prazo de cada lote de 1 a 10); e com um lote de 4 armas na
+      // forja, 5 minutos depois (quando termina e o que o cancelamento devolve).
+      smithyIdle: view(smithyStall(0)),
+      smithyForging: view(smithyForgingScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',
