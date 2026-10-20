@@ -1640,6 +1640,21 @@ table.market-prices tbody th {
   margin-top: 8px;
 }
 
+.smithy-raise > div,
+.smithy-running > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.smithy-running p + p {
+  margin-top: 3px;
+}
+
+.smithy-now,
+.smithy-weapons {
+  margin-top: 4px;
+}
+
 .market-raise > div {
   flex: 1 1 220px;
   min-width: 0;

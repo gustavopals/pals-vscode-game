@@ -266,6 +266,12 @@ export const caravanEscortView = golden.caravanEscort as unknown as ViewState;
  */
 export const mastersView = golden.masters as unknown as ViewState;
 export const masterWaitingView = golden.masterWaiting as unknown as ViewState;
+/**
+ * O Ferreiro (V4B-T4): de pé e com a forja livre (o custo e o prazo de cada lote de 1 a 10), e com
+ * um lote de 4 armas na forja, 5 minutos depois de começar (quando termina e o que cancelar devolve).
+ */
+export const smithyIdleView = golden.smithyIdle as unknown as ViewState;
+export const smithyForgingView = golden.smithyForging as unknown as ViewState;
 
 /**
  * O Mercado Nv2 com a estrada livre e um herói que pode escoltar: é a oferta de caravana

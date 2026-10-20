@@ -722,6 +722,12 @@ const SmithySchema = z.strictObject({
       label: z.string(),
       endsInSeconds: z.number(),
       totalSeconds: z.number(),
+      /** Só o lote de armas se cancela; um reparo, não. */
+      cancelable: z.boolean(),
+      /** "Cancelar devolve 80%: 1 de ferro e 0 de madeira." */
+      refundText: z.string(),
+      /** O rótulo do botão: "Cancelar (devolve 80%)"; vazio no reparo. */
+      cancelLabel: z.string(),
     })
     .nullable(),
   /** Os itens que o Ferreiro pode refazer, e por que cada um pode ou não (V4B-T3). */
@@ -746,6 +752,15 @@ const SmithySchema = z.strictObject({
   perWeaponSeconds: z.number(),
   offer: z.strictObject({
     maxAmount: z.number(),
+    /** Um lote de cada tamanho, de 1 até `batchMax`: custo por extenso, segundos reais, se paga. */
+    options: z.array(
+      z.strictObject({
+        amount: z.number(),
+        costText: z.string(),
+        seconds: z.number(),
+        affordable: z.boolean(),
+      }),
+    ),
     batchMax: z.number(),
     costText: z.string(),
     batchSeconds: z.number(),

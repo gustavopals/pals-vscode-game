@@ -15,6 +15,7 @@ import { CROSSROADS_ICON, type Expedition, ITEM_ICON, REPORT_ICON } from '../ui/
 import { CARAVAN_ICON, MARKET_ICON, MASTER_ICON } from '../ui/market';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
+import { SMITHY_ICON } from '../ui/smithy';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
@@ -82,6 +83,8 @@ const MARKET: ReadonlyArray<GameEvent['type']> = [
   'marketTraded',
   'marketPriceSwing',
 ];
+/** O que é do Ferreiro: o aviso do lote pronto leva ao painel dele, na aba Feudo. */
+const SMITHY: ReadonlyArray<GameEvent['type']> = ['weaponsForged'];
 /** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
 const GUILD: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
@@ -166,6 +169,9 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   // edifício do Mestre são ordens do próprio jogador: a resposta está na tela, não avisam.
   'caravanArrived',
   'marketPriceSwing',
+  // O Ferreiro (GDD §6.1): o lote que ficou pronto. O envio e o cancelamento são ordens do
+  // próprio jogador: a resposta está na tela, não avisam.
+  'weaponsForged',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -221,6 +227,7 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   masterArrived: MASTER_ICON,
   masterWaiting: 'watch',
   masterAssigned: MASTER_ICON,
+  weaponsForged: SMITHY_ICON,
 };
 
 export type PolicyInput = {
@@ -374,6 +381,11 @@ export function isMasterArrival(event: GameEvent): boolean {
 /** O evento é do Mercado ou da estrada: o aviso dele leva à aba Mercado. */
 export function isMarketEvent(event: GameEvent): boolean {
   return MARKET.includes(event.type);
+}
+
+/** O evento é do Ferreiro: o aviso dele leva ao painel do Ferreiro. */
+export function isSmithyEvent(event: GameEvent): boolean {
+  return SMITHY.includes(event.type);
 }
 
 /** O evento é da equipe (soldo, herói que chega ou parte): o aviso dele leva à aba Guilda. */

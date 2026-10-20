@@ -928,6 +928,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -1896,6 +1958,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -2901,6 +3025,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -4060,6 +4246,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -5218,6 +5466,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -6548,6 +6858,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -7717,6 +8089,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -8882,6 +9316,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -10038,6 +10534,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -11292,6 +11850,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -12529,6 +13149,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -13712,6 +14394,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -14870,6 +15614,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -16064,6 +16870,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -17222,6 +18090,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -18424,6 +19354,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -19584,6 +20576,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -20718,6 +21772,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -21692,6 +22808,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -22926,6 +24104,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -24216,6 +25456,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -25565,6 +26867,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -27004,6 +28368,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -28444,6 +29870,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -29868,6 +31356,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -31435,6 +32985,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -32865,6 +34477,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -34115,6 +35789,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -35355,6 +37091,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -36655,6 +38453,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -38049,6 +39909,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -39153,6 +41075,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -40371,6 +42355,68 @@
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 0,
+            "affordable": false
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 0,
+            "affordable": false
+          }
+        ],
         "batchMax": 10,
         "costText": "2 de ferro e 1 de madeira por arma",
         "batchSeconds": 0,
@@ -40439,6 +42485,2437 @@
         "Mestre Gil"
       ],
       "note": "Mestre Gil espera uma vaga nas casas: entra assim que houver uma."
+    }
+  },
+  "smithyIdle": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 4,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 1,
+      "dayOfYear": 1,
+      "secondsToNextDay": 7200,
+      "secondsToNextSeason": 172800,
+      "seasonEffects": "Primavera: comida × 1,2; recrutamento com prazo × 0,8.",
+      "nextSeason": {
+        "id": "summer",
+        "label": "Verão",
+        "secondsUntil": 172800,
+        "changes": [
+          "A produção de comida passa de × 1,2 para × 1.",
+          "A produção de madeira e pedra passa de × 1 para × 1,15.",
+          "O recrutamento volta ao prazo de sempre."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": -5,
+          "stockAtTurn": 760,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de −5/h: o estoque de 760 que a virada encontra atravessa a estação."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 518400,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2800,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 25,
+      "free": 5,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 20,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "masters": 0,
+      "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1000,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": -5,
+        "depletesInSeconds": 720000,
+        "breakdown": "Fazenda: 0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2800,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": true,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 1000,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 2000,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 100,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30,
+      "masterBonusPercent": 15,
+      "masterAdaptationSeconds": 7200,
+      "masterText": "Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. A primeira alocação é imediata; daí em diante, ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus."
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 12,
+        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 8,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 5,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 4,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null,
+        null
+      ],
+      "queuesUnlocked": 2,
+      "queuesNote": null,
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 875,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 583,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 583,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2025,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3038,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 320,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 320,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 240,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Cada arma leva 91% do tempo do nível 1 para forjar."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 960,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 7200,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e de menor risco: quem volta traz notícia dos caminhos.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 604800000,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 604800000,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "clearedText": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o caminho escolhido pede o que ela não tem, vale o seguro."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [],
+      "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
+      "rescueTargetName": null,
+      "wage": {
+        "perHour": 0,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    },
+    "market": {
+      "building": "market",
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": [],
+      "caravans": [],
+      "caravanOffer": {
+        "available": false,
+        "blockedReason": "As caravanas pedem o Mercado no nível 2: o feudo ainda não o tem.",
+        "destination": "Porto do Rio",
+        "maxUnits": 300,
+        "priceRatioText": "O preço de venda do dia × 1,15, fixado no envio.",
+        "tripSeconds": 14400,
+        "riskPercent": 10,
+        "riskText": "10% de chance de emboscada sem escolta; com escolta, nenhuma. Conta a Torre de Vigia que o feudo tiver na chegada.",
+        "riskBreakdown": "10% na estrada, cada nível da Torre de Vigia tira 5; com escolta, nenhum.",
+        "lossText": "A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado.",
+        "slots": 0,
+        "slotsInUse": 0,
+        "resources": [],
+        "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": true,
+      "level": 1,
+      "text": "Ferreiro Nv1: 2 de ferro e 1 de madeira por arma, em lotes de até 10.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": null,
+      "repairOffer": {
+        "items": []
+      },
+      "perWeaponSeconds": 360,
+      "offer": {
+        "maxAmount": 10,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 360,
+            "affordable": true
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 720,
+            "affordable": true
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 1080,
+            "affordable": true
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 1440,
+            "affordable": true
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 1800,
+            "affordable": true
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 2160,
+            "affordable": true
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 2520,
+            "affordable": true
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 2880,
+            "affordable": true
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 3240,
+            "affordable": true
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 3600,
+            "affordable": true
+          }
+        ],
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 3600,
+        "blockedReason": null
+      }
+    },
+    "masters": [],
+    "mastersWaiting": {
+      "count": 0,
+      "names": [],
+      "note": null
+    }
+  },
+  "smithyForging": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 4,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 1,
+      "dayOfYear": 1,
+      "secondsToNextDay": 6900,
+      "secondsToNextSeason": 172500,
+      "seasonEffects": "Primavera: comida × 1,2; recrutamento com prazo × 0,8.",
+      "nextSeason": {
+        "id": "summer",
+        "label": "Verão",
+        "secondsUntil": 172500,
+        "changes": [
+          "A produção de comida passa de × 1,2 para × 1.",
+          "A produção de madeira e pedra passa de × 1 para × 1,15.",
+          "O recrutamento volta ao prazo de sempre."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": -5,
+          "stockAtTurn": 760,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de −5/h: o estoque de 760 que a virada encontra atravessa a estação."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 518100,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2796,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 25,
+      "free": 5,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 20,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "masters": 0,
+      "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 999,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": -5,
+        "depletesInSeconds": 719700,
+        "breakdown": "Fazenda: 0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2796,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 1000,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 2000,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "iron",
+        "label": "Ferro",
+        "stock": 92,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Nenhum ofício produz ferro: ele chega pelas expedições e pelo Mercado."
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30,
+      "masterBonusPercent": 15,
+      "masterAdaptationSeconds": 7200,
+      "masterText": "Um Mestre conta como um trabalhador do edifício e soma 15% à produção dele. Cabe um Mestre por edifício. A primeira alocação é imediata; daí em diante, ao chegar a um edifício ele se adapta por 2 h: rende metade e não dá o bônus."
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 12,
+        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 8,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 5,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 4,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0,
+        "master": null
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null,
+        null
+      ],
+      "queuesUnlocked": 2,
+      "queuesNote": null,
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 875,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 583,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 583,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2025,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3038,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira, de pedra e de ferro: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
+        },
+        {
+          "building": "smithy",
+          "label": "Ferreiro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 320,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 320,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 240,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Cada arma leva 91% do tempo do nível 1 para forjar."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 960,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 6900,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      },
+      {
+        "id": "welcomeFirstHero",
+        "title": "Acolha ou contrate o primeiro herói",
+        "hint": "Quem sai do feudo por ele volta com o que o feudo não produz.",
+        "reward": "um item (Lança de caça)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "tavern"
+        }
+      },
+      {
+        "id": "buildGuild",
+        "title": "Erga a Guilda dos Aventureiros",
+        "hint": "Quem recebe soldo precisa de trabalho: sem a Guilda, o herói só custa ouro.",
+        "reward": "+60 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "guild"
+        }
+      },
+      {
+        "id": "sendPatrol",
+        "title": "Envie uma Patrulha",
+        "hint": "A Patrulha é a saída mais curta e de menor risco: quem volta traz notícia dos caminhos.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "sellSurplus",
+        "title": "Venda no Mercado o que iria para o chão",
+        "hint": "O que passa do depósito se perde; o que se vende vira ouro.",
+        "reward": "+40 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "market"
+        }
+      },
+      {
+        "id": "chooseAtCrossroads",
+        "title": "Escolha um caminho em uma encruzilhada",
+        "hint": "A Postura decide por quem se cala; quem escolhe sabe o que arrisca.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      },
+      {
+        "id": "exploreRuins",
+        "title": "Explore as Ruínas de Vel'Thar",
+        "hint": "O que dorme nas ruínas não se acha em mais parte nenhuma.",
+        "reward": "um item (Arco de freixo)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "expeditions"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 604799700,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 604799700,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "clearedText": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o caminho escolhido pede o que ela não tem, vale o seguro."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [],
+      "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
+      "rescueTargetName": null,
+      "wage": {
+        "perHour": 0,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    },
+    "market": {
+      "building": "market",
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira, pedra e ferro por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": [],
+      "caravans": [],
+      "caravanOffer": {
+        "available": false,
+        "blockedReason": "As caravanas pedem o Mercado no nível 2: o feudo ainda não o tem.",
+        "destination": "Porto do Rio",
+        "maxUnits": 300,
+        "priceRatioText": "O preço de venda do dia × 1,15, fixado no envio.",
+        "tripSeconds": 14400,
+        "riskPercent": 10,
+        "riskText": "10% de chance de emboscada sem escolta; com escolta, nenhuma. Conta a Torre de Vigia que o feudo tiver na chegada.",
+        "riskBreakdown": "10% na estrada, cada nível da Torre de Vigia tira 5; com escolta, nenhum.",
+        "lossText": "A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado.",
+        "slots": 0,
+        "slotsInUse": 0,
+        "resources": [],
+        "eligibleEscortIds": []
+      }
+    },
+    "smithy": {
+      "building": "smithy",
+      "built": true,
+      "level": 1,
+      "text": "Ferreiro Nv1: 2 de ferro e 1 de madeira por arma, em lotes de até 10.",
+      "weapons": 0,
+      "weaponsLabel": "Armas",
+      "forge": {
+        "kind": "weapons",
+        "amount": 4,
+        "label": "Lote de 4 armas",
+        "endsInSeconds": 1140,
+        "totalSeconds": 1440,
+        "cancelable": true,
+        "refundText": "Cancelar devolve 80%: 6 de ferro e 3 de madeira.",
+        "cancelLabel": "Cancelar (devolve 80%)"
+      },
+      "repairOffer": {
+        "items": []
+      },
+      "perWeaponSeconds": 360,
+      "offer": {
+        "maxAmount": 0,
+        "options": [
+          {
+            "amount": 1,
+            "costText": "2 de ferro e 1 de madeira",
+            "seconds": 360,
+            "affordable": true
+          },
+          {
+            "amount": 2,
+            "costText": "4 de ferro e 2 de madeira",
+            "seconds": 720,
+            "affordable": true
+          },
+          {
+            "amount": 3,
+            "costText": "6 de ferro e 3 de madeira",
+            "seconds": 1080,
+            "affordable": true
+          },
+          {
+            "amount": 4,
+            "costText": "8 de ferro e 4 de madeira",
+            "seconds": 1440,
+            "affordable": true
+          },
+          {
+            "amount": 5,
+            "costText": "10 de ferro e 5 de madeira",
+            "seconds": 1800,
+            "affordable": true
+          },
+          {
+            "amount": 6,
+            "costText": "12 de ferro e 6 de madeira",
+            "seconds": 2160,
+            "affordable": true
+          },
+          {
+            "amount": 7,
+            "costText": "14 de ferro e 7 de madeira",
+            "seconds": 2520,
+            "affordable": true
+          },
+          {
+            "amount": 8,
+            "costText": "16 de ferro e 8 de madeira",
+            "seconds": 2880,
+            "affordable": true
+          },
+          {
+            "amount": 9,
+            "costText": "18 de ferro e 9 de madeira",
+            "seconds": 3240,
+            "affordable": true
+          },
+          {
+            "amount": 10,
+            "costText": "20 de ferro e 10 de madeira",
+            "seconds": 3600,
+            "affordable": true
+          }
+        ],
+        "batchMax": 10,
+        "costText": "2 de ferro e 1 de madeira por arma",
+        "batchSeconds": 3600,
+        "blockedReason": null
+      }
+    },
+    "masters": [],
+    "mastersWaiting": {
+      "count": 0,
+      "names": [],
+      "note": null
     }
   }
 }

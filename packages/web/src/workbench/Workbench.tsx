@@ -165,6 +165,7 @@ function TabContent(props: {
           online={online}
           retryInSeconds={retryInSeconds}
           chronicle={controller.chronicle}
+          busy={controller.guildOrders}
           actions={actions}
         />
       );

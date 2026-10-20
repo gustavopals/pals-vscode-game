@@ -2037,6 +2037,12 @@ export type SmithyView = {
     label: string;
     endsInSeconds: number;
     totalSeconds: number;
+    /** Só o lote de armas se cancela; um reparo, não (B-18). */
+    cancelable: boolean;
+    /** "Cancelar devolve 80%: 1 de ferro e 0 de madeira."; no reparo, por que não se cancela. */
+    refundText: string;
+    /** O rótulo do botão: "Cancelar (devolve 80%)"; vazio no reparo. */
+    cancelLabel: string;
   } | null;
   /** Os itens que o Ferreiro pode refazer agora, e por que cada um pode ou não. */
   repairOffer: { items: RepairItemView[] };
@@ -2045,6 +2051,11 @@ export type SmithyView = {
   offer: {
     /** O maior lote que o estoque paga agora; 0 com um lote na forja, sem Ferreiro ou sem material. */
     maxAmount: number;
+    /**
+     * Um lote de cada tamanho, de 1 até `batchMax`, com o custo por extenso, os segundos reais
+     * e se o estoque o paga agora: é o que a tela confere antes de "Confirmar", sem conta no app.
+     */
+    options: Array<{ amount: number; costText: string; seconds: number; affordable: boolean }>;
     /** O maior lote de uma ordem. */
     batchMax: number;
     /** O custo de uma arma: "2 de ferro e 1 de madeira por arma". */

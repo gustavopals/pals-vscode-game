@@ -6,6 +6,7 @@ import { durabilityOf, itemDefOf } from './heroes';
 import {
   forgeCost,
   forgeDurationMs,
+  forgeRefundMilli,
   perWeaponDurationMs,
   repairDurationMs,
   repairIronCost,
@@ -127,6 +128,24 @@ function repairOffer(state: GameState, timeScale: number): SmithyView['repairOff
   return { items };
 }
 
+/** "20 de ferro e 10 de madeira": o custo de um lote de `amount` armas. */
+function batchCostText(amount: number): string {
+  const cost = forgeCost(amount);
+  return `${cost.iron ?? 0} de ${iron} e ${cost.wood ?? 0} de ${wood}`;
+}
+
+/** A parte do custo que o cancelamento devolve, em por cento. */
+function refundPercent(): number {
+  const { num, den } = balance.construction.cancelRefund;
+  return Math.round((100 * num) / den);
+}
+
+/** "Cancelar devolve 80%: 1 de ferro e 0 de madeira.": o que o cancelamento devolve ao lote. */
+function refundText(amount: number): string {
+  const refund = forgeRefundMilli(amount);
+  return `Cancelar devolve ${refundPercent()}%: ${Math.floor(refund.iron / MILLI)} de ${iron} e ${Math.floor(refund.wood / MILLI)} de ${wood}.`;
+}
+
 export function smithyView(state: GameState, timeScale: number): SmithyView {
   const { settlement } = state;
   const level = smithyLevel(state);
@@ -153,11 +172,26 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
                   }),
             endsInSeconds: realSecondsCeil(forge.endsAtMs - state.lastProcessedAt, timeScale),
             totalSeconds: realSecondsCeil(forge.endsAtMs - forge.startedAtMs, timeScale),
+            cancelable: forge.kind === 'weapons',
+            refundText:
+              forge.kind === 'weapons'
+                ? refundText(forge.amount)
+                : 'Um reparo não se cancela: espere o item voltar.',
+            cancelLabel: forge.kind === 'weapons' ? `Cancelar (devolve ${refundPercent()}%)` : '',
           },
     repairOffer: repairOffer(state, timeScale),
     perWeaponSeconds: level > 0 ? realSecondsCeil(perWeaponDurationMs(level), timeScale) : 0,
     offer: {
       maxAmount: maxAmount(state),
+      options: Array.from({ length: rules.batchMax }, (_, index) => {
+        const amount = index + 1;
+        return {
+          amount,
+          costText: batchCostText(amount),
+          seconds: level > 0 ? realSecondsCeil(forgeDurationMs(level, amount), timeScale) : 0,
+          affordable: missingResources(state, forgeCost(amount)) === null,
+        };
+      }),
       batchMax: rules.batchMax,
       costText: costPerWeaponText,
       batchSeconds:

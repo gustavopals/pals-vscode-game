@@ -141,9 +141,31 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 **B-20. O item cuja chave o conteúdo já não tem entra na migração com 8 de condição (a do Comum) e não é reparável.** _(Leitura do agente.)_
 
-**B-21. Os bots do simulador não reparam nem erguem o Ferreiro (a política dele espera o Quartel, B-14); os itens se gastam e ficam sem bônus.** _(Leitura do agente.)_
+**B-26. Os bots do simulador não reparam nem erguem o Ferreiro (a política dele espera o Quartel, B-14); os itens se gastam e ficam sem bônus.** _(Leitura do agente.)_
 
 - Enquanto isso: as faixas da matriz não saíram do lugar com isso (ver `docs/balance-v0.4.md`, seção 4). Quando o Ferreiro entrar na corrida, o Explorador deve desequipar o item gasto, repará-lo e equipá-lo de novo.
+
+### Fase B: o Ferreiro na interface (V4B-T4)
+
+**B-21. A visão ganhou o custo e o prazo de cada lote, e o que o cancelamento devolve, já escritos.** _(Leitura do agente; adição à visão, sem subir `VIEW_FORMAT`.)_
+
+- Enquanto isso: `smithy.offer.options[]` traz, de 1 até o lote máximo, `amount`, `costText` ("20 de ferro e 10 de madeira"), `seconds` e `affordable`; `smithy.forge.refundText` ("Cancelar devolve 80%: 3 de ferro e 1 de madeira.") e `smithy.forge.cancelLabel` ("Cancelar (devolve 80%)"). O roadmap pedia o botão "Cancelar (devolve 80%)" e a conferência com custo e prazo, mas o 80% é número de regra (`balance.construction.cancelRefund`) e o custo de N armas é uma conta: pelas regras do app, ficam no motor. O app só os mostra.
+
+**B-22. A forja em duas etapas não tem "dia da cotação": a conferência vale enquanto a visão disser que o lote cabe.** _(Leitura do agente.)_
+
+- Enquanto isso: ao contrário da negociação, o custo do lote não muda com o dia; "Revisar a forja" abre a conferência com o custo e o prazo da visão, e "Confirmar" manda `forgeWeapons { amount }`. Se um lote entrar na forja por outro lado, a conferência fecha; se o estoque deixar de pagar, o servidor recusa (`INSUFFICIENT_RESOURCES`) com a frase dele. Nada é reenviado sozinho.
+
+**B-23. O painel do Ferreiro fica na coluna das obras da aba Feudo, entre as Construções e os Objetivos; o aviso de `weaponsForged` só entra em "Todas".** _(Leitura do agente.)_
+
+- Enquanto isso: o lote que fica pronto não pede ação (a barra de status não o conta, como o roadmap diz) e `forgeStarted` e `forgeCancelled` são ordens do jogador, que não avisam. O Retorno põe `weaponsForged` em "O feudo prosperou" (tópico `smithy`). Se o autor quiser o aviso também em "Essenciais", é mover o evento de lista em `notifications/policy.ts`.
+
+**B-24. "Ferro parado" em "Antes de partir" é: há excedente de ferro vendável e o Ferreiro não está de pé (ou o depósito já perde o ferro).** _(Leitura do agente.)_
+
+- Enquanto isso: com o Ferreiro de pé o ferro tem o que o gaste, e o item que vale é o da forja parada ("O Ferreiro está parado, e o estoque paga até N armas", botão "Forjar…"). O botão "Vender…" leva ao balcão do Mercado, onde a venda é conferida com o total. Ambos são só informação (`info`) e cedem a vez aos alertas.
+
+**B-25. O ferro na caravana não foi tocado.** _(Leitura do agente.)_
+
+- Enquanto isso: a tela só mostra o que a oferta de caravana da visão traz; o ferro não vem nela (decisão 3 do ADR 0019). A tabela, o formulário e o atalho "Vender até N" do depósito tratam o ferro como os outros recursos, pelos campos de `market.prices` e de `resources`.
 
 ## 6. O que não foi verificado
 

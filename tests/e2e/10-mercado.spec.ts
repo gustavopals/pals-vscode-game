@@ -776,3 +776,62 @@ test.describe('só com o teclado, nos três temas e em 720 px (V3E-T4.6; QA-15)'
     await context.setOffline(false);
   });
 });
+
+// V4B-T4.2 (GDD §13.2; ADR 0019): o ferro negociado. Ele tem linha na tabela, no formulário e no
+// atalho do depósito como os outros recursos, mas a caravana não o leva (o ferro não vai por
+// estrada). O total que a tela diz é `quantidade × preço de hoje`, e é o ouro que o servidor move.
+test.describe('o ferro no Mercado (V4B-T4.2)', () => {
+  test('comprar ferro: a linha, o total exato antes de confirmar e o ouro e o ferro que o servidor move; a caravana não o oferece', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openMarket(world, page, { level: 2 });
+    await silenceMine(page, request);
+    const view = await serverView(page, request);
+    const iron = view.market.prices.find((entry) => entry.resource === 'iron');
+    if (iron === undefined) {
+      throw new Error('O Mercado devia ter a linha do ferro.');
+    }
+    await expect(row(page, 'iron')).toContainText('Ferro');
+    await expect(row(page, 'iron')).toContainText(iron.buyText);
+    const goldBefore = await gold(page, request);
+    const ironBefore = view.resources.find((entry) => entry.id === 'iron')?.stock ?? 0;
+    const posts = commandPosts(page);
+
+    await row(page, 'iron')
+      .getByRole('button', { name: /^Comprar/ })
+      .click();
+    await expect(amount(page)).toBeFocused();
+    await amount(page).fill('20');
+    // O total é a quantidade vezes o preço de compra de hoje, exato.
+    const cost = Math.floor((20 * iron.buy) / 1000);
+    await expect(form(page).getByTestId('trade-total')).toContainText('Comprar 20 de ferro por');
+    await form(page).getByTestId('trade-review').click();
+    await expect(form(page).getByTestId('trade-confirm')).toContainText('Comprar 20 de ferro por');
+    expect(posts).toEqual([]);
+    await form(page).getByTestId('trade-confirm-button').click();
+    await expect.poll(() => posts.length).toBe(1);
+    expect(posts[0]).toMatchObject({
+      type: 'trade',
+      payload: { resource: 'iron', direction: 'buy', amount: 20, quoteDay: view.market.quoteDay },
+    });
+    await expect
+      .poll(
+        async () =>
+          (await serverView(page, request)).resources.find((entry) => entry.id === 'iron')?.stock,
+      )
+      .toBe(ironBefore + 20);
+    // O ouro cobrado é a quantidade vezes o preço (a visão mostra o cofre em unidades, para baixo).
+    const spent = goldBefore - (await gold(page, request));
+    expect(spent).toBeGreaterThanOrEqual(cost);
+    expect(spent).toBeLessThanOrEqual(cost + 1);
+
+    // O ferro não vai por caravana: a oferta não tem a carga.
+    const after = await serverView(page, request);
+    expect(after.market.caravanOffer.resources.map((entry) => entry.resource)).not.toContain(
+      'iron',
+    );
+  });
+});

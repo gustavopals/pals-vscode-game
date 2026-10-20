@@ -7,8 +7,11 @@ import { Header } from '../components/Header';
 import { ObjectivesPanel } from '../components/ObjectivesPanel';
 import { ChroniclePanel, MoralePanel, RecruitPanel } from '../components/Panels';
 import { ResourcesTable } from '../components/ResourcesTable';
+import { SmithyPanel } from '../components/SmithyPanel';
 import { ThreatPanel } from '../components/ThreatPanel';
 import { WorkersPanel } from '../components/WorkersPanel';
+
+const NO_ORDERS: ReadonlySet<string> = new Set();
 
 /**
  * A aba Feudo (GDD §13.3). Recebe o `ViewState` pronto e só o exibe: toda regra e toda conta
@@ -20,6 +23,8 @@ export function FiefTab(props: {
   online: boolean;
   retryInSeconds: number | null;
   chronicle: GameEvent[];
+  /** As ordens a caminho do servidor (`controller.guildOrders`). */
+  busy?: ReadonlySet<string>;
   actions: Actions;
 }) {
   const { view, elapsed, actions } = props;
@@ -62,6 +67,13 @@ export function FiefTab(props: {
             constructions={view.constructions}
             elapsed={elapsed}
             disabled={disabled}
+            actions={actions}
+          />
+          <SmithyPanel
+            view={view}
+            elapsed={elapsed}
+            disabled={disabled}
+            busy={props.busy ?? NO_ORDERS}
             actions={actions}
           />
           {/*

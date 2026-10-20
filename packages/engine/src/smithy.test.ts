@@ -132,6 +132,14 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
     expect(idle.smithy.offer.maxAmount).toBe(10);
     expect(idle.smithy.offer.costText).toBe('2 de ferro e 1 de madeira por arma');
     expect(idle.smithy.perWeaponSeconds).toBe(360);
+    // Cada lote de 1 a 10 vem com o custo por extenso e o prazo: o app não faz conta.
+    expect(idle.smithy.offer.options).toHaveLength(10);
+    expect(idle.smithy.offer.options[2]).toEqual({
+      amount: 3,
+      costText: '6 de ferro e 3 de madeira',
+      seconds: 1080,
+      affordable: true,
+    });
     const forging = accept(start, command('forgeWeapons', { amount: 2 })).state;
     const view = deriveViewState(advanceTo(forging, 5 * MINUTE).state, 5 * MINUTE, {
       timeScale: 1,
@@ -142,6 +150,9 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
       label: 'Lote de 2 armas',
       endsInSeconds: 420,
       totalSeconds: 720,
+      cancelable: true,
+      refundText: 'Cancelar devolve 80%: 3 de ferro e 1 de madeira.',
+      cancelLabel: 'Cancelar (devolve 80%)',
     });
     expect(view.smithy.offer.maxAmount).toBe(0);
   });
