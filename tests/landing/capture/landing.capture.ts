@@ -38,9 +38,9 @@ const TALL = { width: WIDE.width, height: 1100 };
  * falha, porque o rótulo da barra de status ocupa a faixa livre abaixo da árvore.
  */
 const REGIONS = {
-  tree: { x: 4.6, y: 4.5, w: 28.8, h: 85.5 },
-  table: { x: 35, y: 24.3, w: 30.2, h: 16.9 },
-  steppers: { x: 35, y: 57.2, w: 30.2, h: 39.5 },
+  tree: { x: 4.6, y: 4.5, w: 28.8, h: 91.5 },
+  table: { x: 35, y: 24.3, w: 30.2, h: 20.4 },
+  steppers: { x: 35, y: 60.7, w: 30.2, h: 36.1 },
   work: { x: 68.3, y: 24.3, w: 30.2, h: 10.9 },
   status: { x: 0, y: 96.7, w: 100, h: 3.3 },
 } as const;

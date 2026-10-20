@@ -131,7 +131,7 @@ control.post('/__test/crossroads', async (request) => {
       nodeId: 'fork',
       nodeEndsAtMs: null,
       crossroads: { decidesAtMs: nowMs + Math.round(expiresInMs * scale) },
-      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 }, items: [] },
+      loot: { resources: { food: 0, wood: 0, stone: 0, iron: 0, gold: 0 }, items: [] },
       log: [],
     });
     await pool.query('update games set state = $2::jsonb where id = $1', [
