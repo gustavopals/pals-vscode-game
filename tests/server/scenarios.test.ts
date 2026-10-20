@@ -101,6 +101,8 @@ describe('primeira hora de um jogador novo', () => {
       ['wood', 12],
       ['stone', 7.5],
       ['gold', 0],
+      // O ferro (V4B-T1): nenhum ofício o produz.
+      ['iron', 0],
     ]);
     expect(
       view.workers.map((row) => [row.building, row.adapting, row.adaptationEndsInSeconds]),

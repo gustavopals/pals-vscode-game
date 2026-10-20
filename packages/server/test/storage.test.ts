@@ -139,6 +139,8 @@ describe('o limite na visão, em tempo real', () => {
       ['wood', 500, 'Pátio', false],
       ['stone', 500, 'Pátio', false],
       ['gold', null, null, false],
+      // O ferro (V4B-T1) é do Pátio, com o mesmo limite da madeira e da pedra.
+      ['iron', 500, 'Pátio', false],
     ]);
     expect(upgradeOf(view, 'granary')).toMatchObject({
       fromLevel: 0,
@@ -148,7 +150,7 @@ describe('o limite na visão, em tempo real', () => {
       effect: 'Capacidade de comida: 500 → 1.000.',
     });
     expect(upgradeOf(view, 'warehouse').effect).toBe(
-      'Capacidade de madeira e de pedra: 500 → 1.000 cada.',
+      'Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada.',
     );
   });
 
@@ -407,7 +409,7 @@ describe('obra que não cabe no depósito, e o Armazém que a destrava', () => {
     expect(upgradeOf(built, 'townHall').blockedCode).toBe('INSUFFICIENT_RESOURCES');
     expect(upgradeOf(built, 'warehouse')).toMatchObject({
       fromLevel: 1,
-      effect: 'Capacidade de madeira e de pedra: 800 → 1.280 cada.',
+      effect: 'Capacidade de madeira, de pedra e de ferro: 800 → 1.280 cada.',
     });
     const founded = (await eventsOf(normal, who)).filter(
       (event) => event.type === 'buildingFounded',

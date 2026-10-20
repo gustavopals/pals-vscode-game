@@ -138,6 +138,7 @@ describe('negociar no Mercado e reenviar a ordem', () => {
       ['food', 1000, 850],
       ['wood', 1200, 1020],
       ['stone', 2000, 1700],
+      ['iron', 8000, 6800],
     ]);
     // Falta 1 h 44 min para o dia virar.
     expect(before.market.nextChangeInSeconds).toBe(104 * 60);

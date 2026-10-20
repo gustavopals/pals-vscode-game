@@ -261,7 +261,7 @@ export async function councilRecess(target: TestApp, gameId: string): Promise<vo
  * reescrito direto no banco: chame logo depois de criar a partida, antes de qualquer leitura.
  */
 export async function tavernSite(target: TestApp, gameId: string, gold = 900): Promise<void> {
-  const stock = { food: 400_000, wood: 400_000, stone: 400_000, gold: gold * 1000 };
+  const stock = { food: 400_000, wood: 400_000, stone: 400_000, gold: gold * 1000, iron: 0 };
   const { rowCount } = await target.pool.query(
     `update games
         set state = jsonb_set(
