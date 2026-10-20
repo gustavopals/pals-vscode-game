@@ -89,9 +89,11 @@ function withoutIron(value: unknown): unknown {
   }
   const record = value as Record<string, unknown>;
   const amounts = 'food' in record && 'stone' in record;
+  // E a condição de cada item, da versão 27 (V4B-T3): nasce cheia, pela raridade.
+  const item = 'defId' in record && 'id' in record;
   return Object.fromEntries(
     Object.entries(record)
-      .filter(([key]) => !(amounts && key === 'iron'))
+      .filter(([key]) => !(amounts && key === 'iron') && !(item && key === 'condition'))
       .map(([key, entry]) => [key, withoutIron(entry)]),
   );
 }
