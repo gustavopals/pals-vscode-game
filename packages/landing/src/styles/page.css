@@ -458,13 +458,14 @@ figcaption,
   }
 
   /*
-   * Contadores dos trabalhadores: 35% a 65,2%, de 57,2% até a barra de status; os botões ficam
+   * Contadores dos trabalhadores: 35% a 65,2%, de 60,7% até a barra de status (desceu 3,5 com a
+   * linha do ferro na tabela, V4B-T4); os botões ficam
    * de 49,8% a 57,1% na horizontal. O rótulo fica ao lado do título da seção, e o fio desce até
    * os botões do primeiro ofício por 51,6%, onde passa entre as palavras das linhas de
    * explicação sem riscar nenhuma.
    */
   .label-steppers {
-    top: 42.4%;
+    top: 45.9%;
     left: 50.6%;
   }
 
