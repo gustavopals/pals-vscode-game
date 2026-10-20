@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 25;
+const CURRENT = 26;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -98,7 +98,13 @@ function withoutIron(value: unknown): unknown {
 
 function beforeMasters<T>(state: T): T {
   const copy = withoutIron(JSON.parse(JSON.stringify(state))) as {
-    settlement?: { masters?: unknown; mastersWaiting?: unknown };
+    settlement?: {
+      masters?: unknown;
+      mastersWaiting?: unknown;
+      weapons?: unknown;
+      forge?: unknown;
+      buildings?: Record<string, unknown>;
+    };
     guild?: {
       expeditions?: Array<{ log?: Array<Record<string, unknown>> }>;
       reports?: Array<{ log?: Array<Record<string, unknown>> }>;
@@ -106,6 +112,10 @@ function beforeMasters<T>(state: T): T {
   };
   delete copy.settlement?.masters;
   delete copy.settlement?.mastersWaiting;
+  // E o Ferreiro, da versão 26 (V4B-T2): o edifício por construir, nenhuma arma, nenhum lote.
+  delete copy.settlement?.weapons;
+  delete copy.settlement?.forge;
+  delete copy.settlement?.buildings?.smithy;
   for (const journey of [...(copy.guild?.expeditions ?? []), ...(copy.guild?.reports ?? [])]) {
     for (const entry of journey.log ?? []) {
       delete entry.master;
@@ -226,7 +236,11 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       tavern: 0,
       guild: 0,
       market: 0,
+      // O Ferreiro (V4B-T2, versão 26): por construir.
+      smithy: 0,
     },
+    weapons: 0,
+    forge: null,
     wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
     // Os Mestres (V3E-T3): ninguém no feudo, ninguém à porta.
     masters: [],
@@ -913,8 +927,10 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
     const site = withTavernSite(calm.settlement);
     expect(after.state.settlement).toEqual({
       ...site,
-      // E o Mercado, da versão 21, também por construir.
-      buildings: { ...site.buildings, market: 0 },
+      // E o Mercado, da versão 21, e o Ferreiro, da 26, também por construir.
+      buildings: { ...site.buildings, market: 0, smithy: 0 },
+      weapons: 0,
+      forge: null,
       lastFamine: null,
       // E os Mestres, da versão 23: nenhum.
       masters: [],
