@@ -1,3 +1,4 @@
+import { type ItemId, itemRarities, items } from '../../packages/content/src/index';
 import type { FastifyInstance } from 'fastify';
 
 import { buildApp } from '../../packages/server/src/app';
@@ -319,7 +320,13 @@ control.post('/__test/item', async (request) => {
     const { state } = game;
     const number = (state.ids.item ?? 0) + 1;
     state.ids.item = number;
-    state.guild.inventory.push({ id: `item-${number}`, defId });
+    // O item nasce inteiro, como o motor o cria: a condição é a durabilidade da raridade (V4B-T3).
+    const def = items[defId as ItemId];
+    state.guild.inventory.push({
+      id: `item-${number}`,
+      defId,
+      condition: itemRarities[def.rarity].durability,
+    });
     await pool.query('update games set state = $2::jsonb where id = $1', [
       game.id,
       JSON.stringify(state),
