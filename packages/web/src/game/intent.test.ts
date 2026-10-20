@@ -123,4 +123,14 @@ describe('o Mercado, as caravanas e os Mestres', () => {
       intentsOf('sendCaravan', { resource: 'stone', amount: 9, escortHeroId: null, quoteDay: 3 }),
     ).toEqual(['sendCaravan:stone']);
   });
+
+  it('forjar e cancelar a forja disputam a mesma fila: a ordem nova aposenta a retentativa da velha', () => {
+    // Revisão da Fase B da v0.4, achado 1: o "Tentar de novo" de um cancelamento que falhou não
+    // pode sobreviver a um lote novo e cancelá-lo depois.
+    expect(intentOf('forgeWeapons', { amount: 3 })).toBe(intentOf('cancelForge', {}));
+    expect(intentsOf('forgeWeapons', { amount: 3 })).toEqual(intentsOf('cancelForge', {}));
+    expect(intentOf('forgeWeapons', { amount: 3 })).not.toBe(
+      intentOf('trade', { resource: 'iron', direction: 'buy', amount: 3, quoteDay: 0 }),
+    );
+  });
 });

@@ -10,6 +10,13 @@ const CONSTRUCTION_ORDERS: ReadonlySet<CommandType> = new Set([
 ]);
 
 /**
+ * As ordens que decidem o lote da forja do Ferreiro (a fila é uma só): a nova aposenta a
+ * retentativa da velha. Sem isso, um "Cancelar" que falhou na rede, reenviado depois de um lote
+ * novo, cancelaria o lote novo (revisão da Fase B da v0.4, achado 1).
+ */
+const FORGE_ORDERS: ReadonlySet<CommandType> = new Set(['forgeWeapons', 'cancelForge']);
+
+/**
  * A intenção de uma ordem: o que o jogador quis mexer, sem o valor que escolheu. Duas ordens com
  * a mesma intenção disputam a mesma coisa (os trabalhadores de um edifício, a obra de um
  * edifício, a resposta a uma carta, um candidato da Taverna, o caminho de uma expedição, o envio
@@ -28,7 +35,9 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
     ? 'construction'
     : type === 'equipItem' || type === 'unequipItem'
       ? 'equipment'
-      : type;
+      : FORGE_ORDERS.has(type)
+        ? 'forge'
+        : type;
   const target =
     fields.masterId ??
     fields.building ??
