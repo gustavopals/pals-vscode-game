@@ -11,6 +11,7 @@ import {
 
 import { Emitter, type KeyValueStore } from '../services/store';
 import { expeditionDeadlines } from '../ui/expeditions';
+import { forgeDeadline } from '../ui/smithy';
 import { marketDeadlines } from '../ui/market';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
@@ -238,6 +239,8 @@ export function guildDeadlines(view: ViewState): number[] {
     // encruzilhada), o prazo de cada encruzilhada (é quando a Postura decide) e a recuperação
     // de cada herói ferido (é quando ele volta a poder partir).
     ...expeditionDeadlines(guild),
+    // O fim do lote na forja do Ferreiro: é quando as armas entram e a forja fica livre.
+    forgeDeadline(view.smithy),
   ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
 }
 

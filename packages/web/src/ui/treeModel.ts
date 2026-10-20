@@ -89,6 +89,7 @@ import {
   objectivesSummary,
   objectiveTreeLine,
 } from './objectives';
+import { SMITHY_ICON, SMITHY_NODE, SMITHY_SECTION, smithyTreeLine } from './smithy';
 import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
 import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
 
@@ -620,6 +621,33 @@ function marketNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * O Ferreiro (GDD §6.1): o nível e as armas forjadas, ou o lote em curso com quando termina. O
+ * clique só navega ao painel; as ordens saem dos botões da linha: "Forjar" sem lote e, com lote,
+ * "Cancelar" (com o que devolve na dica). Sem o edifício, a linha diz que ele não foi erguido, e a
+ * explicação é a frase do servidor.
+ */
+function smithyNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { smithy } = view;
+  return {
+    id: SMITHY_NODE,
+    label: 'Ferreiro',
+    description: smithyTreeLine(smithy, elapsedSeconds),
+    tooltip: [smithy.text, smithy.forge?.refundText].filter((line) => line != null).join('\n'),
+    icon: SMITHY_ICON,
+    command: { id: 'lords.openPanel', args: [SMITHY_SECTION] },
+    ...(smithy.built
+      ? {
+          contextValue: smithy.forge === null ? 'lords.smithy' : 'lords.smithyForging',
+          actionHints:
+            smithy.forge === null
+              ? { 'lords.forgeWeapons': smithy.offer.costText }
+              : { 'lords.cancelForge': smithy.forge.refundText },
+        }
+      : {}),
+  };
+}
+
+/**
  * Os Mestres (GDD §5.4): quem trabalha onde e com que bônus (na frase do servidor), quem ainda se
  * adapta e quem espera uma vaga nas casas. O botão "Mover" de cada linha abre a lista dos
  * edifícios com o que cada um renderia. Sem Mestre nenhum, a árvore nem fala deles.
@@ -885,6 +913,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         councilNode(view, input.elapsedSeconds),
         guildNode(view, input.elapsedSeconds),
         marketNode(view, input.elapsedSeconds),
+        smithyNode(view, input.elapsedSeconds),
         ...mastersNode(view),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),

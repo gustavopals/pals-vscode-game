@@ -334,6 +334,10 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'prospered', topic: 'caravan' };
     case 'caravanAmbushed':
       return { block: 'cost', topic: 'caravan' };
+    // O lote do Ferreiro que ficou pronto: a arma é o feudo trabalhando sem o senhor. O envio e o
+    // cancelamento são ordens do jogador e ficam na Crônica.
+    case 'weaponsForged':
+      return { block: 'prospered', topic: 'smithy' };
     // Quem chegou pela porta com vaga trabalha; o que espera uma vaga está em "Antes de partir".
     case 'masterArrived':
       return { block: 'prospered', topic: 'master' };

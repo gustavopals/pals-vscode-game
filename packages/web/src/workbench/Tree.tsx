@@ -124,6 +124,11 @@ export function rowActions(node: TreeNode): RowAction[] {
         { label: 'Comprar ou vender no Mercado', text: 'Negociar', command: 'lords.trade' },
         { label: 'Mandar uma caravana', text: 'Caravana', command: 'lords.sendCaravan' },
       ];
+    case 'lords.smithy':
+      // "Forjar" pergunta o tamanho do lote e confirma com o custo e o prazo.
+      return [{ label: 'Forjar armas', text: 'Forjar', command: 'lords.forgeWeapons' }];
+    case 'lords.smithyForging':
+      return [{ label: 'Cancelar a forja', text: 'Cancelar', command: 'lords.cancelForge' }];
     case 'lords.master':
       // "Mover" lista os edifícios com o que cada um renderia; nada muda no primeiro clique.
       return [{ label: `Mover ${node.label}`, text: 'Mover', command: 'lords.assignMaster' }];

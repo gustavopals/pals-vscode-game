@@ -733,6 +733,42 @@ function caravanItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * A forja parada com o que forjar: o Ferreiro de pé, sem lote, e o estoque paga ao menos uma
+ * arma (`offer.maxAmount` da visão). Só informação: o botão abre a forja, que pergunta o lote.
+ */
+function forgeItem(view: ViewState): LeavingItem | null {
+  const { smithy } = view;
+  if (!smithy.built || smithy.forge !== null || smithy.offer.maxAmount <= 0) {
+    return null;
+  }
+  return {
+    id: 'forge',
+    severity: 'info',
+    text: `O Ferreiro está parado, e o estoque paga até ${formatNumber(smithy.offer.maxAmount)} ${smithy.offer.maxAmount === 1 ? 'arma' : smithy.weaponsLabel.toLowerCase()}.`,
+    command: { id: 'lords.forgeWeapons', label: 'Forjar…' },
+  };
+}
+
+/**
+ * O ferro parado: há ferro no estoque e nada o gasta (sem Ferreiro de pé), ou o depósito já o
+ * perde. O excedente vendável é o da visão (`surplusSellable`); o botão leva ao balcão do
+ * Mercado, onde a venda é conferida com o total.
+ */
+function ironItem(view: ViewState): LeavingItem | null {
+  const iron = view.resources.find((row) => row.id === 'iron');
+  const sale = sellShortcut(view, 'iron');
+  if (iron === undefined || sale === null || (view.smithy.built && !isWasting(iron))) {
+    return null;
+  }
+  return {
+    id: 'iron',
+    severity: 'info',
+    text: `${formatNumber(sale.amount)} de ${iron.label.toLowerCase()} parado no feudo: dá para vender ${formatNumber(sale.amount)} hoje, a ${sale.row.sellText} de ouro cada.`,
+    command: SELL_COMMAND('Vender…'),
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -767,6 +803,8 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
+    ironItem(view),
+    forgeItem(view),
     mastersItem(view),
     mastersWaitingItem(view),
     caravanItem(view),

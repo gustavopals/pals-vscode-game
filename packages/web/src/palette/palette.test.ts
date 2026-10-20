@@ -531,6 +531,8 @@ describe('toda ação da interface tem um comando', () => {
       'lords.crossroads',
       'lords.guild',
       'lords.market',
+      'lords.smithy',
+      'lords.smithyForging',
       'lords.marketCaravan',
       'lords.master',
       'lords.threatBuild',
