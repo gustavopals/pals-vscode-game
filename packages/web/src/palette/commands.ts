@@ -1318,8 +1318,23 @@ export function createCommands(
       sessionEnded('o cancelamento');
       return;
     }
-    if (controller.view?.smithy.forge == null) {
+    const now = controller.view?.smithy.forge;
+    if (now == null) {
       none();
+      return;
+    }
+    // A ordem não leva o lote: se ele terminou e outro entrou com a pergunta aberta, cancelar
+    // agora seria cancelar o que o jogador não viu (revisão da Fase B da v0.4, achado 5).
+    if (
+      now.kind !== forge.kind ||
+      now.label !== forge.label ||
+      now.totalSeconds !== forge.totalSeconds
+    ) {
+      controller.toast({
+        kind: 'info',
+        text: 'O lote da forja mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
+        actions: [seeSmithy],
+      });
       return;
     }
     await controller.cancelForge();

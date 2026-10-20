@@ -842,7 +842,12 @@ export function scriptedDialogs() {
   const dialogs: Dialogs = {
     confirm: async (options) => {
       shown.push({ kind: 'confirm', ...options });
-      return next() === true;
+      let answer = next();
+      // Como na lista: uma função é o que acontece com a pergunta aberta, e devolve a resposta.
+      if (typeof answer === 'function') {
+        answer = await (answer as () => unknown)();
+      }
+      return answer === true;
     },
     input: async (options) => {
       shown.push({ kind: 'input', ...options });

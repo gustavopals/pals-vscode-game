@@ -159,6 +159,37 @@ describe('cancelar a forja', () => {
     expect(kept.orders()).toEqual([]);
   });
 
+  it('o lote que muda com a pergunta aberta não é cancelado: o aviso pede para conferir de novo (revisão da Fase B, achado 5)', async () => {
+    const made = await setup(smithyForgingView);
+    const forge = smithyForgingView.smithy.forge;
+    if (forge === null) {
+      throw new Error('o cenário pede um lote na forja');
+    }
+    made.answers.push(async () => {
+      // Com a pergunta aberta, o lote termina e outra aba põe um maior.
+      made.api.state.view = {
+        ...smithyForgingView,
+        smithy: {
+          ...smithyForgingView.smithy,
+          forge: {
+            ...forge,
+            amount: 10,
+            label: 'Lote de 10 armas',
+            totalSeconds: forge.totalSeconds * 2,
+          },
+        },
+      };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      return true;
+    });
+    await made.run('lords.cancelForge');
+    expect(made.orders()).toEqual([]);
+    expect(made.toasts()).toContain(
+      'O lote da forja mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
+    );
+  });
+
   it('sem lote na forja o aviso diz que não há o que cancelar', async () => {
     const made = await setup(smithyIdleView);
     await made.run('lords.cancelForge');
