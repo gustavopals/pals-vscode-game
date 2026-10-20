@@ -268,3 +268,48 @@ test.describe('o painel do Ferreiro (V4B-T4.3)', () => {
     await context.setOffline(false);
   });
 });
+
+test.describe('no ritmo da produção', () => {
+  // Roda no servidor de ritmo 1 e também com `GAME_TIME_SCALE=3 pnpm test:e2e 11-ferreiro -g
+  // "ritmo"`, que sobe o servidor como o da produção; o feudo nasce no Rápido nos dois casos.
+  test('ritmo Rápido: o prazo do lote na tela é o da API, em tempo de relógio, e as armas chegam na hora anunciada', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await page
+      .getByRole('tabpanel', { name: 'Boas-vindas' })
+      .getByRole('radiogroup', { name: 'Ritmo' })
+      .getByRole('radio', { name: /^Rápido/ })
+      .check();
+    await openSmithy(world, page);
+    const before = await serverView(page, request);
+    expect(before.settlement.paceLabel).toBe('Rápido: um ano em 56 horas');
+    // Uma arma leva 6 min de jogo no Ferreiro Nv1: no Rápido, 2 min de relógio. A visão já vem
+    // em tempo real, e a tela não converte de novo.
+    expect(before.smithy.perWeaponSeconds).toBe(120);
+
+    await amount(page).fill('1');
+    await form(page).getByTestId('forge-review').click();
+    await form(page).getByTestId('forge-confirm-button').click();
+    await expect(running(page)).toContainText('Forjando 1');
+    const started = (await serverView(page, request)).smithy.forge;
+    expect(started?.endsInSeconds).toBeGreaterThan(100);
+    expect(started?.endsInSeconds).toBeLessThanOrEqual(120);
+
+    // Um minuto de relógio depois, o lote continua. Convertido duas vezes, já teria acabado.
+    await world.passTime(MINUTE, page);
+    const later = (await serverView(page, request)).smithy.forge;
+    expect(later?.endsInSeconds).toBeGreaterThan(40);
+    expect(later?.endsInSeconds).toBeLessThanOrEqual(60);
+    await expect(running(page)).toContainText('Forjando 1');
+
+    // Passados os 2 min anunciados, a arma chegou. Sem conversão nenhuma, levaria 6 min.
+    await world.passTime(MINUTE + 1_000, page);
+    const done = await serverView(page, request);
+    expect(done.smithy.forge).toBeNull();
+    expect(done.smithy.weapons).toBe(1);
+    await expect(smithy(page).getByTestId('smithy-weapons')).toContainText('1');
+  });
+});
