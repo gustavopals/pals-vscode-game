@@ -174,10 +174,32 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
       endsInSeconds: 420,
       totalSeconds: 720,
       cancelable: true,
-      refundText: 'Cancelar devolve 80%: 3 de ferro e 1 de madeira.',
+      // A fração que o motor devolve em milésimos (revisão da Fase B, achado 3).
+      refundText: 'Cancelar devolve 80%: 3,2 de ferro e 1,6 de madeira.',
       cancelLabel: 'Cancelar (devolve 80%)',
     });
     expect(view.smithy.offer.maxAmount).toBe(0);
+  });
+
+  it('com o depósito cheio, a frase do cancelamento diz o que iria ao chão (revisão da Fase B, achado 3)', () => {
+    const start = smithyStall(0);
+    const forging = accept(start, command('forgeWeapons', { amount: 5 })).state;
+    // O ferro posto no teto do Armazém depois de o lote começar: os 8 de ferro do cancelamento
+    // não cabem, e a madeira, sim.
+    const full = cloneState(forging);
+    const cap = deriveViewState(full, full.lastProcessedAt, { timeScale: 1 }).resources.find(
+      (row) => row.id === 'iron',
+    )?.cap;
+    full.settlement.resources.iron = (cap ?? 0) * MILLI;
+    const text = deriveViewState(full, full.lastProcessedAt, { timeScale: 1 }).smithy.forge
+      ?.refundText;
+    expect(text).toBe(
+      'Cancelar devolve 80%: 8 de ferro e 4 de madeira. O depósito não guarda tudo: 8 de ferro iria ao chão.',
+    );
+    // Com lugar, a frase não fala do chão.
+    expect(
+      deriveViewState(forging, forging.lastProcessedAt, { timeScale: 1 }).smithy.forge?.refundText,
+    ).not.toMatch(/chão/);
   });
 });
 

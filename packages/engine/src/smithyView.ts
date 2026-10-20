@@ -1,8 +1,9 @@
 import { balance, buildings, equipmentTexts, itemRarities } from '@lotg/content';
 
 import { missingResources } from './construction';
-import { fillText, plural } from './format';
+import { decimal, fillText, plural } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
+import { storageCapacity } from './storage';
 import {
   forgeCost,
   forgeDurationMs,
@@ -141,10 +142,31 @@ function refundPercent(): number {
   return Math.round((100 * num) / den);
 }
 
-/** "Cancelar devolve 80%: 1 de ferro e 0 de madeira.": o que o cancelamento devolve ao lote. */
-function refundText(amount: number): string {
+/**
+ * "Cancelar devolve 80%: 1,6 de ferro e 0,8 de madeira.": o que o cancelamento devolve ao lote,
+ * com a fração que o motor devolve em milésimos e, se o depósito não guarda tudo, o que iria ao
+ * chão (revisão da Fase B da v0.4, achado 3; como `constructions.active.refund[].lost`).
+ */
+function refundText(state: GameState, amount: number): string {
   const refund = forgeRefundMilli(amount);
-  return `Cancelar devolve ${refundPercent()}%: ${Math.floor(refund.iron / MILLI)} de ${iron} e ${Math.floor(refund.wood / MILLI)} de ${wood}.`;
+  const lost = (resource: 'iron' | 'wood'): number => {
+    const cap = storageCapacity(state, resource);
+    if (cap === null) {
+      return 0;
+    }
+    const room = Math.max(0, cap - state.settlement.resources[resource]);
+    return Math.max(0, refund[resource] - room);
+  };
+  const lostIron = lost('iron');
+  const lostWood = lost('wood');
+  const back = `Cancelar devolve ${refundPercent()}%: ${decimal(refund.iron / MILLI)} de ${iron} e ${decimal(refund.wood / MILLI)} de ${wood}.`;
+  const floor = [
+    ...(lostIron > 0 ? [`${decimal(lostIron / MILLI)} de ${iron}`] : []),
+    ...(lostWood > 0 ? [`${decimal(lostWood / MILLI)} de ${wood}`] : []),
+  ];
+  return floor.length === 0
+    ? back
+    : `${back} O depósito não guarda tudo: ${floor.join(' e ')} iria ao chão.`;
 }
 
 export function smithyView(state: GameState, timeScale: number): SmithyView {
@@ -176,7 +198,7 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
             cancelable: forge.kind === 'weapons',
             refundText:
               forge.kind === 'weapons'
-                ? refundText(forge.amount)
+                ? refundText(state, forge.amount)
                 : 'Um reparo não se cancela: espere o item voltar.',
             cancelLabel: forge.kind === 'weapons' ? `Cancelar (devolve ${refundPercent()}%)` : '',
           },

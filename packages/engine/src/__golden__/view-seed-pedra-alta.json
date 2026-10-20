@@ -44834,7 +44834,7 @@
         "endsInSeconds": 1140,
         "totalSeconds": 1440,
         "cancelable": true,
-        "refundText": "Cancelar devolve 80%: 6 de ferro e 3 de madeira.",
+        "refundText": "Cancelar devolve 80%: 6,4 de ferro e 3,2 de madeira.",
         "cancelLabel": "Cancelar (devolve 80%)"
       },
       "repairOffer": {
