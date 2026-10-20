@@ -1,10 +1,12 @@
-import { balance, type ResourceAmounts } from '@lotg/content';
+import { balance, buildings, type ResourceAmounts } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { amountsData } from './construction';
+import { amountsData, buildingWithArticle } from './construction';
 import { stowItem } from './equipment';
+import { plural } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
-import type { GameEvent, GameState, Item } from './types';
+import { reject } from './rejections';
+import type { GameEvent, GameState, Item, Rejection } from './types';
 import { MILLI } from './units';
 
 /**
@@ -12,6 +14,26 @@ import { MILLI } from './units';
  * custo cobrado ao começar. A arma é uma contagem de unidades inteiras (`settlement.weapons`),
  * fora do estoque em milésimos: não tem depósito nem se vende. Nenhuma conta daqui sorteia.
  */
+
+/** "1 arma", "3 armas": a quantidade de um lote, nas frases da Crônica e da visão. */
+export function weaponsText(amount: number): string {
+  return plural(amount, 'arma', 'armas');
+}
+
+/**
+ * A recusa de quem pede a forja ou o reparo sem o Ferreiro de pé. Só lembra o Salão quando ele
+ * ainda não chegou ao nível que o Ferreiro pede (revisão da Fase B da v0.4, achado 4), como a
+ * recusa do Mercado.
+ */
+export function smithyRequired(state: GameState): Rejection {
+  const level = buildings.smithy.requires.townHall;
+  return reject(
+    'SMITHY_REQUIRED',
+    level === undefined || state.settlement.buildings.townHall >= level
+      ? {}
+      : { remedy: `a forja pede ${buildingWithArticle('townHall')} no nível ${level}` },
+  );
+}
 
 /** O nível do Ferreiro; 0 sem ele. */
 export function smithyLevel(state: GameState): number {
@@ -89,7 +111,7 @@ export function finishForge(draft: GameState, atMs: number, events: GameEvent[])
     atMs,
     'weaponsForged',
     { amount: forge.amount, weapons: settlement.weapons },
-    { quantidade: forge.amount },
+    { armas: weaponsText(forge.amount) },
   );
 }
 

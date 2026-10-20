@@ -1306,7 +1306,7 @@ export function createCommands(
     }
     const gameId = controller.session.gameId;
     const confirmed = await dialogs.confirm({
-      title: `Cancelar o lote de ${forge.amount} armas?`,
+      title: `Cancelar o ${forge.label.charAt(0).toLowerCase()}${forge.label.slice(1)}?`,
       detail: [forge.refundText],
       confirmLabel: forge.cancelLabel,
       cancelLabel: 'Manter o lote',

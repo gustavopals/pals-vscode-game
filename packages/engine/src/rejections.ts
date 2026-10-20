@@ -214,8 +214,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `label` é o edifício, com artigo e maiúscula ("A Pedreira"); `remedy`, quem já trabalha nele.
   BUILDING_HAS_MASTER: ({ label = 'Esse edifício', remedy = 'um Mestre' }) =>
     `${label} já tem ${remedy}: cabe um Mestre por edifício, e o bônus não soma.`,
-  SMITHY_REQUIRED: () =>
-    `Erga ${buildings.smithy.article} ${buildings.smithy.label} primeiro: a forja pede ${buildings.townHall.article} ${buildings.townHall.label} no nível ${buildings.smithy.requires.townHall ?? 1}.`,
+  // `remedy` só vem quando o Salão ainda não chegou ao nível que o Ferreiro pede.
+  SMITHY_REQUIRED: ({ remedy }) =>
+    `Erga ${buildings.smithy.article} ${buildings.smithy.label} primeiro${remedy === undefined ? '.' : `: ${remedy}.`}`,
   FORGE_BUSY: () =>
     'A forja já está ocupada: espere o trabalho terminar (um lote de armas também pode ser cancelado).',
   NOT_FORGING: ({ note }) => note ?? 'Não há lote na forja para cancelar.',

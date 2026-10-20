@@ -9,6 +9,8 @@ import {
   forgeRefundMilli,
   forgeSpentData,
   smithyLevel,
+  smithyRequired,
+  weaponsText,
 } from './smithy';
 import { storeResource } from './storage';
 import type { GameEvent, GameState, Rejection } from './types';
@@ -38,7 +40,7 @@ export function forgeWeapons(
 ): Rejection | null {
   const level = smithyLevel(draft);
   if (level === 0) {
-    return reject('SMITHY_REQUIRED');
+    return smithyRequired(draft);
   }
   const { batchMax } = balance.smithy;
   if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 1 || amount > batchMax) {
@@ -65,7 +67,7 @@ export function forgeWeapons(
     nowMs,
     'forgeStarted',
     { amount, ...forgeSpentData(amount) },
-    { quantidade: amount },
+    { armas: weaponsText(amount) },
   );
   return null;
 }
@@ -108,7 +110,7 @@ export function cancelForge(
     nowMs,
     'forgeCancelled',
     { amount: forge.amount, ...amountsData('gained', gained), ...amountsData('lost', lost) },
-    { quantidade: forge.amount },
+    { armas: weaponsText(forge.amount) },
   );
   return null;
 }

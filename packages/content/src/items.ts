@@ -163,8 +163,8 @@ export const equipmentTexts = {
   /** A condição de um item que chegou a zero. */
   conditionWorn: 'Gasto: não dá bônus até o Ferreiro repará-lo.',
   /** O que a forja está fazendo, para a tela: um lote de armas ou um reparo. */
-  forgeWeapons: 'Lote de {quantidade} armas',
-  forgeRepair: 'Reparo de {item}: {quantidade} pontos',
+  forgeWeapons: 'Lote de {armas}',
+  forgeRepair: 'Reparo de {item}: {pontos}',
   /** Por que um item não pode ser reparado agora. */
   repairCarried: '{item} está com {heroi}: devolva-o ao arsenal antes de mandar reparar.',
   repairIntact: '{item} está inteiro.',

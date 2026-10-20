@@ -1,8 +1,15 @@
 import { emit } from './chronicle';
+import { plural } from './format';
 import { missingResources, payResources } from './construction';
 import { itemDefOf } from './heroes';
 import { reject } from './rejections';
-import { repairDurationMs, repairIronCost, repairPoints, smithyLevel } from './smithy';
+import {
+  repairDurationMs,
+  repairIronCost,
+  repairPoints,
+  smithyLevel,
+  smithyRequired,
+} from './smithy';
 import type { GameEvent, GameState, Rejection } from './types';
 
 /**
@@ -29,7 +36,7 @@ export function repairItem(
   events: GameEvent[],
 ): Rejection | null {
   if (smithyLevel(draft) === 0) {
-    return reject('SMITHY_REQUIRED');
+    return smithyRequired(draft);
   }
   if (draft.settlement.forge !== null) {
     return reject('FORGE_BUSY');
@@ -72,7 +79,7 @@ export function repairItem(
     nowMs,
     'repairStarted',
     { itemId: item.id, defId: item.defId, points, spent_iron: cost.iron },
-    { item: def.label, quantidade: points },
+    { item: def.label, pontos: plural(points, 'ponto', 'pontos') },
   );
   return null;
 }

@@ -1,7 +1,7 @@
 import { balance, buildings, equipmentTexts, itemRarities } from '@lotg/content';
 
 import { missingResources } from './construction';
-import { fillText } from './format';
+import { fillText, plural } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
 import {
   forgeCost,
@@ -12,6 +12,7 @@ import {
   repairIronCost,
   repairPoints,
   smithyLevel,
+  weaponsText,
 } from './smithy';
 import type { BuildingId, GameState, Item, RepairItemView, SmithyView } from './types';
 import { MILLI, realSecondsCeil } from './units';
@@ -165,10 +166,10 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
             amount: forge.kind === 'weapons' ? forge.amount : forge.points,
             label:
               forge.kind === 'weapons'
-                ? fillText(equipmentTexts.forgeWeapons, { quantidade: forge.amount })
+                ? fillText(equipmentTexts.forgeWeapons, { armas: weaponsText(forge.amount) })
                 : fillText(equipmentTexts.forgeRepair, {
                     item: itemDefOf(forge.item)?.label ?? 'um item',
-                    quantidade: forge.points,
+                    pontos: plural(forge.points, 'ponto', 'pontos'),
                   }),
             endsInSeconds: realSecondsCeil(forge.endsAtMs - state.lastProcessedAt, timeScale),
             totalSeconds: realSecondsCeil(forge.endsAtMs - forge.startedAtMs, timeScale),

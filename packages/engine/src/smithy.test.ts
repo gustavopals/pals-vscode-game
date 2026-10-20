@@ -83,6 +83,29 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
     expect(state.settlement.weapons).toBe(5_001);
   });
 
+  it('um lote de uma arma diz "1 arma" na Crônica e na visão, e o de três, "3 armas" (revisão da Fase B, achado 2)', () => {
+    const one = accept(smithyStall(0), command('forgeWeapons', { amount: 1 }));
+    expect(one.events[0]?.text).toContain('acendeu a forja para 1 arma.');
+    expect(one.events[0]?.text).not.toContain('1 armas');
+    const three = accept(smithyStall(0), command('forgeWeapons', { amount: 3 }));
+    expect(three.events[0]?.text).toContain('acendeu a forja para 3 armas.');
+  });
+
+  it('sem o Ferreiro, a recusa só lembra o Salão quando ele ainda não chegou ao nível (revisão da Fase B, achado 4)', () => {
+    const ready = smithyStall(0, (draft) => {
+      draft.settlement.buildings.smithy = 0;
+    });
+    expect(ready.settlement.buildings.townHall).toBeGreaterThanOrEqual(4);
+    expect(refused(ready, 'forgeWeapons', { amount: 1 }).message).not.toMatch(/Salão/);
+    const early = smithyStall(0, (draft) => {
+      draft.settlement.buildings.smithy = 0;
+      draft.settlement.buildings.townHall = 2;
+    });
+    expect(refused(early, 'forgeWeapons', { amount: 1 }).message).toMatch(
+      /Salão do Senhor no nível 4/,
+    );
+  });
+
   it('recusa sem Ferreiro, lote fora de 1 a 10, lote em curso e material que falta', () => {
     const none = smithyStall(0, (draft) => {
       draft.settlement.buildings.smithy = 0;

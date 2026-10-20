@@ -155,6 +155,9 @@ export const CHRONICLE_PLACEHOLDERS = [
   'destino',
   'lugar',
   'mestre',
+  // A quantidade de um lote da forja e os pontos de um reparo, já no plural certo ("1 arma").
+  'armas',
+  'pontos',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -322,17 +325,16 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   masterArrived:
     'No {dia}º dia {daEstacao}, {mestre} chegou a {feudo} para ficar. Espera que o senhor lhe dê um edifício.',
   // O Ferreiro (GDD §6.1; ADR 0019, decisão 4): a forja de um lote de armas.
-  forgeStarted:
-    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} acendeu a forja para {quantidade} armas.',
+  forgeStarted: 'No {dia}º dia {daEstacao}, o ferreiro de {feudo} acendeu a forja para {armas}.',
   forgeCancelled:
-    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} apagou a forja: o lote de {quantidade} armas ficou por fazer.',
-  weaponsForged: 'No {dia}º dia {daEstacao}, a forja de {feudo} entregou {quantidade} armas novas.',
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} apagou a forja: o lote de {armas} ficou por fazer.',
+  weaponsForged: 'No {dia}º dia {daEstacao}, a forja de {feudo} entregou {armas}.',
   // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
   // zero tem linha: cada ponto perdido no caminho não é notícia.
   itemWorn:
     'No {dia}º dia {daEstacao}, {item}, de {heroi}, gastou-se de vez na estrada e já não serve de nada até o ferreiro de {feudo} o refazer.',
   repairStarted:
-    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} pôs {item} na bancada: {quantidade} pontos a refazer.',
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} pôs {item} na bancada: {pontos} a refazer.',
   itemRepaired:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} devolveu {item} ao arsenal, inteiro outra vez.',
   masterWaiting:

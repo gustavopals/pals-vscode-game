@@ -81,7 +81,10 @@ describe('Ferreiro (GDD §5.1, §6.1 e §6.2; ADR 0019, decisão 4)', () => {
     expect(smithy.batchMax * smithy.recipe.iron).toBeLessThanOrEqual(warehouse?.level1 ?? 0);
     for (const type of ['forgeStarted', 'forgeCancelled', 'weaponsForged'] as const) {
       expect(EVENT_TYPES).toContain(type);
-      expect(chronicleTemplates[type]).toContain('{quantidade}');
+      // A quantidade chega pronta e no plural certo ("1 arma", "3 armas"): revisão da Fase B,
+      // achado 2.
+      expect(chronicleTemplates[type]).toContain('{armas}');
+      expect(chronicleTemplates[type]).not.toMatch(/\{quantidade\} armas/);
     }
   });
 });
@@ -118,6 +121,7 @@ describe('desgaste e reparo do equipamento (GDD §9.1; ADR 0019, decisão 5)', (
       expect(EVENT_TYPES).toContain(type);
       expect(chronicleTemplates[type]).toContain('{item}');
     }
-    expect(chronicleTemplates.repairStarted).toContain('{quantidade}');
+    expect(chronicleTemplates.repairStarted).toContain('{pontos}');
+    expect(chronicleTemplates.repairStarted).not.toMatch(/\{quantidade\} pontos/);
   });
 });
