@@ -117,6 +117,14 @@ import {
   OBJECTIVES_SECTION,
 } from '../ui/objectives';
 import { stripChronicleLinks } from '../tabs/markdown';
+import {
+  batchOption,
+  forgeEndsLine,
+  forgeLine,
+  SMITHY_ANCHOR,
+  SMITHY_ICON,
+  SMITHY_SECTION,
+} from '../ui/smithy';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -166,6 +174,7 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [EXPEDITIONS_SECTION]: { route: 'guild', anchor: EXPEDITIONS_ANCHOR },
   [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
   [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
+  [SMITHY_SECTION]: { route: 'fief', anchor: SMITHY_ANCHOR },
   [MARKET_SECTION]: { route: 'market', anchor: MARKET_ANCHOR },
   [CARAVANS_SECTION]: { route: 'market', anchor: CARAVANS_ANCHOR },
 };
@@ -1178,6 +1187,142 @@ export function createCommands(
       return;
     }
     await controller.holdFestival();
+  });
+
+  // --- Ferreiro ---------------------------------------------------------------------
+
+  const seeSmithy = {
+    label: 'Ver o Ferreiro',
+    run: () => controller.runCommand('lords.openPanel', SMITHY_SECTION),
+  };
+
+  /**
+   * "Forjar armas": o painel já mostrou o custo e o prazo do lote e manda a ordem conferida
+   * (`confirmed`); a árvore e a paleta perguntam o tamanho do lote e confirmam com o custo e o
+   * prazo que a visão traz. **Depois de cada diálogo a visão é lida de novo**: o Ferreiro, a
+   * forja livre e o estoque que paga o lote. O que mudou não vira ordem.
+   */
+  const forgeWeapons = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+    const asked = typeof record.amount === 'number' ? record.amount : undefined;
+    if (record.confirmed === true && asked !== undefined) {
+      await controller.forgeWeapons(asked);
+      return;
+    }
+    const blocked = (smithy: ViewState['smithy']): boolean => {
+      if (!smithy.built || smithy.forge !== null || smithy.offer.blockedReason !== null) {
+        controller.toast({
+          kind: 'info',
+          text: !smithy.built
+            ? smithy.text
+            : smithy.forge !== null
+              ? `Já há um lote na forja: ${forgeEndsLine(smithy.forge, 0)}. É um lote por vez.`
+              : (smithy.offer.blockedReason ?? smithy.text),
+          actions: [seeSmithy],
+        });
+        return true;
+      }
+      return false;
+    };
+    if (blocked(view.smithy)) {
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const amount =
+      asked ??
+      (await dialogs.pick<number>({
+        title: 'Forjar armas',
+        placeholder: `Quantas armas? ${view.smithy.offer.costText}.`,
+        items: view.smithy.offer.options.map((entry) => ({
+          icon: entry.affordable ? SMITHY_ICON : 'lock',
+          label: `${entry.amount}`,
+          description: `${entry.costText} · ${formatDuration(entry.seconds)}`,
+          detail: entry.affordable ? '' : 'O estoque não paga este lote.',
+          value: entry.amount,
+        })),
+      }));
+    if (amount === undefined) {
+      return;
+    }
+    const option = batchOption(view.smithy, amount);
+    if (option === undefined) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `${forgeLine(view.smithy, option)}?`,
+      detail: ['O custo é cobrado agora; é um lote por vez.'],
+      confirmLabel: 'Forjar',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a forja');
+      return;
+    }
+    const now = controller.view?.smithy;
+    const nowOption = now === undefined ? undefined : batchOption(now, amount);
+    if (now === undefined || blocked(now) || nowOption === undefined || !nowOption.affordable) {
+      if (now !== undefined && nowOption !== undefined && !nowOption.affordable) {
+        controller.toast({
+          kind: 'warning',
+          text: 'O estoque já não paga este lote. Nada foi enviado.',
+          actions: [seeSmithy],
+        });
+      }
+      return;
+    }
+    await controller.forgeWeapons(amount);
+  });
+
+  /**
+   * "Cancelar a forja": o painel mostra o que o cancelamento devolve ao lado do botão e manda a
+   * ordem já confirmada; a árvore e a paleta confirmam com a mesma frase.
+   */
+  const cancelForge = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    if ((arg as { confirmed?: unknown } | undefined)?.confirmed === true) {
+      await controller.cancelForge();
+      return;
+    }
+    const none = () =>
+      controller.toast({
+        kind: 'info',
+        text: 'Não há lote na forja para cancelar.',
+        actions: [seeSmithy],
+      });
+    const forge = view.smithy.forge;
+    if (forge === null) {
+      none();
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const confirmed = await dialogs.confirm({
+      title: `Cancelar o lote de ${forge.amount} armas?`,
+      detail: [forge.refundText],
+      confirmLabel: forge.cancelLabel,
+      cancelLabel: 'Manter o lote',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('o cancelamento');
+      return;
+    }
+    if (controller.view?.smithy.forge == null) {
+      none();
+      return;
+    }
+    await controller.cancelForge();
   });
 
   // --- Mercado, caravanas e Mestres ----------------------------------------------
@@ -2846,6 +2991,20 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: go('market'),
+    },
+    {
+      id: 'lords.forgeWeapons',
+      title: 'Forjar armas…',
+      palette: true,
+      when: hasGame,
+      run: forgeWeapons,
+    },
+    {
+      id: 'lords.cancelForge',
+      title: 'Cancelar a forja…',
+      palette: true,
+      when: hasGame,
+      run: cancelForge,
     },
     {
       id: 'lords.trade',

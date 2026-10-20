@@ -54,6 +54,7 @@ import {
   isWatchReport,
   isGuildEvent,
   isMarketEvent,
+  isSmithyEvent,
   MUTE_DURATION_MS,
   raidAftermath,
   raidAhead,
@@ -74,6 +75,7 @@ import {
 import { waitingExpeditions } from '../ui/expeditions';
 import { cardDecisions, documentTitle, formatAway, type StatusBarInput } from '../ui/format';
 import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
+import { SMITHY_SECTION } from '../ui/smithy';
 import { THREAT_SECTION } from '../ui/threat';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
@@ -963,6 +965,7 @@ export class Controller {
             label: 'Ver',
             route: isGuildEvent(event) ? 'guild' : isMarketEvent(event) ? 'market' : 'fief',
             ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
+            ...(isSmithyEvent(event) ? { section: SMITHY_SECTION } : {}),
           },
     });
     if (isWatchReport(event)) {
@@ -1759,6 +1762,16 @@ export class Controller {
       { masterId, building },
       'aos trabalhadores',
     );
+  }
+
+  /** Manda forjar um lote de armas (GDD §6.1). A trava é a da forja: um lote por vez. */
+  forgeWeapons(amount: number): Promise<boolean> {
+    return this.guildOrder('forge', 'forgeWeapons', { amount }, 'ao Ferreiro');
+  }
+
+  /** Cancela o lote em curso na forja: o servidor devolve a parte do custo que a visão diz. */
+  cancelForge(): Promise<boolean> {
+    return this.guildOrder('forge', 'cancelForge', {}, 'ao Ferreiro');
   }
 
   /**
