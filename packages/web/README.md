@@ -263,6 +263,18 @@ Os preços de hoje (compra, venda, base, tendência, a conta de cada um), o que 
 - **Estados:** sem o Mercado; Mercado Nv1 (sem caravana, com a frase do servidor); volume do dia esgotado (a tabela diz, o lado fica fechado com o motivo); sem ouro e sem lugar no depósito (a recusa do servidor); sem herói para escoltar (a lista não oferece escolta e o texto diz); estrada cheia; ordem a caminho (`aria-busy`); sem ligação (modo leitura, com tudo desabilitado e a razão dita por extenso).
 - **Para os testes em navegador acharem a tela sem frase do conteúdo:** `data-resource` (linha da tabela, carga e recurso), `data-direction`, `data-testid` (`trade-amount`, `trade-max`, `trade-total`, `trade-review`, `trade-confirm`, `trade-confirm-button`, `trade-reconfirm`, `caravan-amount`, `caravan-review`, `caravan-confirm-button`, `caravan-blocked`), `data-escort`, `data-caravan`, `data-master`, `data-sell`. As rotas de teste novas são `/__test/master` (um Mestre sem edifício) e a semente da fundação (`world.seed`, a emboscada de `qa-10-32`).
 
+## O Ferreiro (GDD §6.1 e §13.1 a §13.6; roadmap da v0.4, V4B-T4)
+
+O ferro é um recurso como os outros na tabela do estoque e no Mercado (a linha, o formulário, o atalho "Vender até N" do depósito); o total da negociação continua sendo `quantidade × preço de hoje` (`ui/market.ts`). O painel do Ferreiro (`components/SmithyPanel.tsx`, `ui/smithy.ts`) fica na coluna das obras da aba Feudo:
+
+- **Sem o edifício**, a frase do servidor e a obra (custo, prazo e o que a impede, a da lista de construções).
+- **De pé e livre**, a forja em duas etapas como a negociação: a quantidade (ou "O máximo que o estoque paga", que vem da visão), "Revisar a forja" (custo e prazo do lote, de `smithy.offer.options[]`) e "Confirmar", que manda `lords.forgeWeapons { amount, confirmed: true }`. A tela não faz conta: o custo, o prazo e o que o cancelamento devolve vêm escritos.
+- **Com lote na forja**, "termina em…" (descontando o relógio da página) e o botão "Cancelar (devolve N%)", com o que volta ao estoque ao lado (`forge.cancelLabel`, `forge.refundText`); `lords.cancelForge { confirmed: true }`.
+- **Um caminho só.** `lords.forgeWeapons` e `lords.cancelForge` (`palette/commands.ts`) terminam em `controller.forgeWeapons` e `cancelForge`, por `guildOrder` com a trava `forge` (um lote por vez; o duplo clique vale uma ordem). Pela paleta e pela árvore o fluxo pergunta o tamanho do lote, confirma com o custo e o prazo, e **lê a visão de novo depois do diálogo**.
+- A árvore tem a linha "Ferreiro" sob o Feudo, depois do Mercado ("Nv1 · 3 armas", ou "forjando 4 · termina em 21 min"), com "Forjar" ou "Cancelar". `weaponsForged` é aviso só em "Todas" e leva ao painel (`SMITHY_SECTION`); o Retorno o põe em "O feudo prosperou"; "Antes de partir" lembra a forja parada com ferro ("Forjar…") e o ferro parado sem Ferreiro ("Vender…"). `nextPollMs` espera o fim do lote (`forgeDeadline`, dentro de `guildDeadlines`). A forja **não** entra na barra de status: não é decisão.
+
+Em navegador: `tests/e2e/11-ferreiro.spec.ts` (forjar e cancelar pelo teclado, a paleta, os três temas) e o ferro em `10-mercado.spec.ts`.
+
 ## Ameaça e Torre de Vigia (GDD §8.2)
 
 A Torre de Vigia compra informação. Sem ela, o servidor **não manda** o número da Ameaça, a tendência, as origens, os tiles nem a incursão marcada: `ViewState.threat` é uma união de duas formas fechadas, e o app confere `threat.known` antes de procurar qualquer número. O app não conhece quanto a Ameaça sobe por dia, as marcas da Crônica, a chance de uma incursão nem a antecedência do aviso. As frases de ligação e as escolhas de apresentação ficam em `ui/threat.ts`.

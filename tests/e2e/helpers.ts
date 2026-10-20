@@ -61,7 +61,7 @@ export type World = {
    * no primeiro avanço, como na inauguração).
    */
   raise(
-    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild' | 'market',
+    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild' | 'market' | 'smithy',
     level: number,
   ): Promise<void>;
   /**
@@ -98,7 +98,7 @@ export type World = {
    * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
    * leva para juntá-los. Daí em diante a produção, o consumo e o soldo são os do motor.
    */
-  stock(resource: 'food' | 'wood' | 'stone' | 'gold', amount: number): Promise<void>;
+  stock(resource: 'food' | 'wood' | 'stone' | 'iron' | 'gold', amount: number): Promise<void>;
   /**
    * Põe a Ameaça de todos os feudos em um valor (`/__test/threat`), para um cenário que precisa
    * de uma marca da Crônica cedo. Daí em diante a subida e as marcas são as do motor.

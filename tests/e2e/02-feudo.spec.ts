@@ -419,6 +419,8 @@ test.describe('governar o feudo', () => {
         'Moral',
         'Recrutar',
         'Construções',
+        // O Ferreiro (V4B-T4) fica na coluna das obras, logo depois das Construções.
+        'Ferreiro',
         'Objetivos',
         'Ameaça',
         'Crônica',
