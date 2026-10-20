@@ -72,6 +72,7 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'ITEM_INTACT',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -408,6 +409,12 @@ const ItemSchema = z.strictObject({
   rarityLabel: z.string(),
   bonusText: z.string(),
   bonusPercent: z.number(),
+  /** Os usos que restam e a durabilidade da raridade (V4B-T3). */
+  condition: z.number(),
+  durability: z.number(),
+  /** Gasto: em 0, o item não dá bônus até o Ferreiro repará-lo. */
+  worn: z.boolean(),
+  conditionText: z.string(),
 });
 
 /** Um herói, como a ficha o mostra: o poder explicado e o soldo em ouro por hora real. */
@@ -709,8 +716,33 @@ const SmithySchema = z.strictObject({
   weaponsLabel: z.string(),
   /** O lote na forja, com os segundos reais que faltam; `null` sem lote. */
   forge: z
-    .strictObject({ amount: z.number(), endsInSeconds: z.number(), totalSeconds: z.number() })
+    .strictObject({
+      kind: z.enum(['weapons', 'repair']),
+      amount: z.number(),
+      label: z.string(),
+      endsInSeconds: z.number(),
+      totalSeconds: z.number(),
+    })
     .nullable(),
+  /** Os itens que o Ferreiro pode refazer, e por que cada um pode ou não (V4B-T3). */
+  repairOffer: z.strictObject({
+    items: z.array(
+      z.strictObject({
+        itemId: z.string(),
+        label: z.string(),
+        rarityLabel: z.string(),
+        condition: z.number(),
+        durability: z.number(),
+        points: z.number(),
+        ironCost: z.number(),
+        costText: z.string(),
+        seconds: z.number(),
+        heroName: z.string().nullable(),
+        canRepair: z.boolean(),
+        blockedReason: z.string().nullable(),
+      }),
+    ),
+  }),
   perWeaponSeconds: z.number(),
   offer: z.strictObject({
     maxAmount: z.number(),

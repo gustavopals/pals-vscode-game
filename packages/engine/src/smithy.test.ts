@@ -26,7 +26,12 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
     expect(state.settlement.resources.iron).toBe(start.settlement.resources.iron - 6 * MILLI);
     expect(state.settlement.resources.wood).toBe(start.settlement.resources.wood - 3 * MILLI);
     // 3 armas × 6 min, no nível 1.
-    expect(state.settlement.forge).toEqual({ amount: 3, startedAtMs: 0, endsAtMs: 18 * MINUTE });
+    expect(state.settlement.forge).toEqual({
+      kind: 'weapons',
+      amount: 3,
+      startedAtMs: 0,
+      endsAtMs: 18 * MINUTE,
+    });
     expect(events.map((event) => event.type)).toEqual(['forgeStarted']);
     expect(events[0]?.data).toMatchObject({ amount: 3, spent_iron: 6, spent_wood: 3 });
     expect(nextEventAt(state)).toBe(18 * MINUTE);
@@ -131,7 +136,13 @@ describe('Ferreiro e forja (V4B-T2; ADR 0019, decisão 4)', () => {
     const view = deriveViewState(advanceTo(forging, 5 * MINUTE).state, 5 * MINUTE, {
       timeScale: 1,
     });
-    expect(view.smithy.forge).toEqual({ amount: 2, endsInSeconds: 420, totalSeconds: 720 });
+    expect(view.smithy.forge).toEqual({
+      kind: 'weapons',
+      amount: 2,
+      label: 'Lote de 2 armas',
+      endsInSeconds: 420,
+      totalSeconds: 720,
+    });
     expect(view.smithy.offer.maxAmount).toBe(0);
   });
 });

@@ -35,6 +35,8 @@ import {
   isAtHome,
   isBeyondArrears,
   isCaptive,
+  durabilityOf,
+  isWorn,
   itemDefOf,
   namedHeroOf,
   paidHeroes,
@@ -102,6 +104,16 @@ function powerBreakdown(hero: Hero): string {
   return `(${base})${factors} = ${decimal(heroPower(hero) / MILLI, 3)}`;
 }
 
+function conditionText(item: Item): string {
+  const total = durabilityOf(item);
+  if (isWorn(item)) {
+    return equipmentTexts.conditionWorn;
+  }
+  return item.condition >= total
+    ? equipmentTexts.conditionFull
+    : fillText(equipmentTexts.condition, { atual: item.condition, total });
+}
+
 /**
  * Um item como a tela o mostra; `null` para o que o conteúdo já não tem. `bonusText` é o ganho
  * de poder em pontos percentuais, o mesmo fator que entra na conta do poder de quem o leva.
@@ -121,6 +133,10 @@ function itemView(item: Item): ItemView | null {
     rarityLabel: itemRarities[def.rarity].label,
     bonusText: fillText(equipmentTexts.bonus, { percentual: decimal(((num - den) * 100) / den) }),
     bonusPercent: ((num - den) * 100) / den,
+    condition: item.condition,
+    durability: durabilityOf(item),
+    worn: isWorn(item),
+    conditionText: conditionText(item),
   };
 }
 

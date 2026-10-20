@@ -2089,17 +2089,21 @@ describe('ViewStateSchema', () => {
       rarityLabel: 'Incomum',
       bonusText: '+8% de poder',
       bonusPercent: 8,
+      condition: 10,
+      durability: 10,
+      worn: false,
+      conditionText: 'Em perfeito estado.',
     };
     const parse = (guild: unknown) => ViewStateSchema.safeParse({ ...view, guild }).success;
     expect(parse({ ...view.guild, heroes: [hero] })).toBe(true);
     // A Guilda dos Aventureiros, as expedições (V3D-T1) e os desfechos (V3D-T2: o arsenal, o
-    // ferimento, o cativeiro) já são da visão; o que é de outra fase (a caravana, o desgaste) e
+    // ferimento, o cativeiro) já são da visão; o que é de outra fase (a caravana) e
     // o que a névoa esconde (a variante, a chave de nó, a chave do item no conteúdo, o prazo em
     // tempo de jogo, a sorte) continuam recusados.
     expect(parse({ ...view.guild, built: true, level: 1, slots: 2, expeditions: [] })).toBe(true);
     expect(parse({ ...view.guild, inventory: [item] })).toBe(true);
     expect(parse({ ...view.guild, inventory: [{ ...item, defId: 'ashBow' }] })).toBe(false);
-    expect(parse({ ...view.guild, inventory: [{ ...item, durability: 9 }] })).toBe(false);
+    expect(parse({ ...view.guild, inventory: [{ ...item, wearPerUse: 9 }] })).toBe(false);
     expect(parse({ ...view.guild, inventory: [{ ...item, slot: 'ring' }] })).toBe(false);
     expect(parse({ ...view.guild, caravans: [] })).toBe(false);
     expect(

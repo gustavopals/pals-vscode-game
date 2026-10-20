@@ -121,6 +121,30 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - Enquanto isso: `INVALID_AMOUNT` serve às duas ordens, e a frase vem do parâmetro (`count` = o lote máximo). Criar `INVALID_BATCH` mudaria o protocolo de recusas sem ganho para o jogador.
 
+### Fase B: desgaste e reparo (V4B-T3)
+
+**B-16. O item em reparo sai do arsenal para a forja e guarda o lugar dele; só se repara item do arsenal.** _(Leitura do agente.)_
+
+- Enquanto isso: um item que um herói leva é devolvido ao arsenal (`unequipItem`) antes de ir ao Ferreiro; a recusa `ITEM_NOT_FOUND` diz isso. A alternativa (reparar com o herói em casa, sem desequipar) pede travar o item contra `equipItem` durante o reparo. O lugar guardado evita que o item, ao voltar, encontre o arsenal cheio e seja vendido.
+
+**B-17. Só o item que chega a 0 tem linha na Crônica (`itemWorn`); o desgaste de cada ponto é silencioso.** _(Leitura do agente.)_
+
+- Enquanto isso: um ponto por item por volta seria ruído. O app mostra a condição em `ItemView.condition`, `durability` e `conditionText`.
+
+**B-18. O reparo não tem cancelamento e não depende do nível do Ferreiro.** _(Leitura do agente.)_
+
+- Enquanto isso: 2 min de jogo por ponto em qualquer nível, no máximo 40 min (item Épico a zero). O ADR 0019 não fala de cancelar nem de velocidade por nível no reparo. Cancelar devolveria ferro e o item à condição de antes; fácil de acrescentar se o autor quiser.
+
+**B-19. `wearPerBattle` não entrou.** _(Leitura do agente; o roadmap listava o campo.)_
+
+- Enquanto isso: a batalha comandada é da Fase D; um campo sem uso seria antecipar mecânica (CLAUDE.md, regra 6). Entra com a batalha.
+
+**B-20. O item cuja chave o conteúdo já não tem entra na migração com 8 de condição (a do Comum) e não é reparável.** _(Leitura do agente.)_
+
+**B-21. Os bots do simulador não reparam nem erguem o Ferreiro (a política dele espera o Quartel, B-14); os itens se gastam e ficam sem bônus.** _(Leitura do agente.)_
+
+- Enquanto isso: as faixas da matriz não saíram do lugar com isso (ver `docs/balance-v0.4.md`, seção 4). Quando o Ferreiro entrar na corrida, o Explorador deve desequipar o item gasto, repará-lo e equipá-lo de novo.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

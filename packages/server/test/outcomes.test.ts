@@ -106,7 +106,7 @@ async function campaign(name: string, difficulty: Difficulty): Promise<Player> {
       hero('hero-2', 'Rolf', 'm'),
       hero('hero-3', 'Brann', 'm'),
     ];
-    state.guild.inventory = [{ id: 'item-1', defId: 'ashBow' }];
+    state.guild.inventory = [{ id: 'item-1', defId: 'ashBow', condition: 10 }];
     state.ids = { ...state.ids, hero: 3, item: 1 };
     state.map.discovered = ['ruins'];
     state.map.threat = 60;
@@ -223,7 +223,7 @@ describe('equipar um herói e reenviar a ordem', () => {
       'select schema_version from games where id = $1',
       [gameId],
     );
-    expect(row.rows[0]?.schema_version).toBe(26);
+    expect(row.rows[0]?.schema_version).toBe(27);
   });
 
   it('nada do que é segredo sai pela API: nem a chave do item no conteúdo, nem o cativeiro, nem o prazo cru', async () => {

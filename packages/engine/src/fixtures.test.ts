@@ -24,6 +24,7 @@ import {
   heroCapturedScenario,
   heroInjuredScenario,
   heroesStart,
+  smithyStall,
   marketDayScenario,
   marketOpeningScenario,
   HOUR,
@@ -503,6 +504,20 @@ const scenarios: Record<string, () => GameState> = {
   // edifício, e a obra das Habitações que abre a vaga em curso.
   'master-waiting': () => masterWaitingScenario(),
 
+  // A forja em curso (V4B-T2), no ritmo 3: o Ferreiro no nível 2, duas armas já entregues no
+  // estoque e um lote de quatro a meio caminho, com o ferro e a madeira dele já cobrados. É o
+  // retrato que a migração da forja (V4B-T3: o lote ganha o tipo) precisa encontrar.
+  'smithy-forging': () =>
+    play(
+      smithyStall(0, () => {}, { level: 2, seed: 'fixture-smithy-forging', timeScale: 3 }),
+      [
+        command('forgeWeapons', { amount: 2 }),
+        { at: 20 * MINUTE },
+        command('forgeWeapons', { amount: 4 }),
+        { at: 31 * MINUTE + 987 },
+      ],
+    ).state,
+
   // O Armazém no limite da madeira e da pedra (V4B-T1.1, antes do ferro dividir o Armazém):
   // erguido no nível 1, com os lenhadores e os canteiros enchendo os dois estoques e o que não
   // cabe já contado como desperdício, no meio de um trecho de produção.
@@ -936,8 +951,12 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(injured.guild.heroes[0]?.injury?.severity).toBe('light');
     expect(injured.guild.heroes[0]?.injury?.untilMs).toBeGreaterThan(injured.lastProcessedAt);
     expect(injured.guild.heroes[0]?.xp).toBeGreaterThan(0);
-    expect(injured.guild.heroes[1]?.equipment.weapon).toEqual({ id: 'item-1', defId: 'ashBow' });
-    expect(injured.guild.inventory).toEqual([{ id: 'item-2', defId: 'luckyCharm' }]);
+    expect(injured.guild.heroes[1]?.equipment.weapon).toEqual({
+      id: 'item-1',
+      defId: 'ashBow',
+      condition: 10,
+    });
+    expect(injured.guild.inventory).toEqual([{ id: 'item-2', defId: 'luckyCharm', condition: 8 }]);
     expect(injured.guild.reports[0]?.log.at(-1)?.harm).toEqual({ heroName: 'Edda', kind: 'light' });
     expect(injured.ids).toMatchObject({ hero: 2, item: 2, expedition: 1 });
 

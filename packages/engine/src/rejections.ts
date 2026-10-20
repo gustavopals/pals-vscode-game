@@ -158,7 +158,8 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   CROSSROADS_DECIDED: () =>
     'Essa encruzilhada já foi decidida, e a equipe seguiu caminho. A Crônica conta por onde.',
   // O equipamento (GDD §9.1; ADR 0018, decisão 15).
-  ITEM_NOT_FOUND: () => 'Esse item já não está no arsenal do feudo.',
+  ITEM_NOT_FOUND: ({ note }) =>
+    `Esse item já não está no arsenal do feudo.${note === undefined ? '' : ` ${note}`}`,
   // `label` é o nome do herói.
   WRONG_SLOT: ({ label = 'Esse herói' }) => `${label} não leva nada nesse espaço.`,
   // `count` é o teto do arsenal.
@@ -215,8 +216,12 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `${label} já tem ${remedy}: cabe um Mestre por edifício, e o bônus não soma.`,
   SMITHY_REQUIRED: () =>
     `Erga ${buildings.smithy.article} ${buildings.smithy.label} primeiro: a forja pede ${buildings.townHall.article} ${buildings.townHall.label} no nível ${buildings.smithy.requires.townHall ?? 1}.`,
-  FORGE_BUSY: () => 'A forja já tem um lote: espere ele terminar, ou cancele para pôr outro.',
-  NOT_FORGING: () => 'Não há lote na forja para cancelar.',
+  FORGE_BUSY: () =>
+    'A forja já está ocupada: espere o trabalho terminar (um lote de armas também pode ser cancelado).',
+  NOT_FORGING: ({ note }) => note ?? 'Não há lote na forja para cancelar.',
+  // O item já está inteiro: não há o que reparar.
+  ITEM_INTACT: ({ label = 'Esse item' }) =>
+    `${label} está inteiro: o ferreiro não tem o que reparar.`,
   // Com `label`, é um edifício produtivo que ainda não foi erguido.
   NOT_A_PRODUCTION_BUILDING: ({ label }) =>
     label === undefined

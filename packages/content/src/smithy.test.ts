@@ -7,8 +7,10 @@ import {
   chronicleTemplates,
   DIFFICULTY_IDS,
   EVENT_TYPES,
+  ITEM_RARITY_IDS,
+  itemRarities,
 } from './index';
-import { BalanceSchema, BuildingsSchema } from './schemas';
+import { BalanceSchema, BuildingsSchema, ItemRaritiesSchema } from './schemas';
 
 describe('Ferreiro (GDD §5.1, §6.1 e §6.2; ADR 0019, decisão 4)', () => {
   const { smithy, storage, difficulties, construction } = balance;
@@ -81,5 +83,41 @@ describe('Ferreiro (GDD §5.1, §6.1 e §6.2; ADR 0019, decisão 4)', () => {
       expect(EVENT_TYPES).toContain(type);
       expect(chronicleTemplates[type]).toContain('{quantidade}');
     }
+  });
+});
+
+describe('desgaste e reparo do equipamento (GDD §9.1; ADR 0019, decisão 5)', () => {
+  const { equipment } = balance;
+
+  it('a durabilidade por raridade é 8, 10, 14 e 20 usos', () => {
+    expect(ItemRaritiesSchema.safeParse(itemRarities).error).toBeUndefined();
+    expect(
+      Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, itemRarities[id].durability])),
+    ).toEqual({ common: 8, uncommon: 10, rare: 14, epic: 20 });
+  });
+
+  it('o desgaste é 1 ponto por expedição; o reparo, 1 ou 2 de ferro por ponto e 2 min de jogo por ponto', () => {
+    expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
+    expect(equipment.wearPerExpedition).toBe(1);
+    expect(equipment.repair).toEqual({
+      ironPerPoint: { common: 1, uncommon: 1, rare: 2, epic: 2 },
+      msPerPoint: 2 * 60_000,
+    });
+  });
+
+  it('o ferro de um reparo inteiro, de qualquer raridade, cabe no depósito', () => {
+    const warehouse = balance.storage.buildings.warehouse;
+    for (const id of ITEM_RARITY_IDS) {
+      const cost = itemRarities[id].durability * equipment.repair.ironPerPoint[id];
+      expect(cost, id).toBeLessThanOrEqual(warehouse?.level1 ?? 0);
+    }
+  });
+
+  it('as frases da Crônica do desgaste e do reparo existem e dizem o item', () => {
+    for (const type of ['itemWorn', 'repairStarted', 'itemRepaired'] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type]).toContain('{item}');
+    }
+    expect(chronicleTemplates.repairStarted).toContain('{quantidade}');
   });
 });

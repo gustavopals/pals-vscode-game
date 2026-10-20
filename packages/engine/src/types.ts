@@ -234,11 +234,26 @@ export type ArrivingHero = {
  * arsenal (`guild.inventory`), em um espaço de um herói (`hero.equipment`) ou no saque de uma
  * expedição em curso.
  */
+/**
+ * O que a forja faz (V4B-T2 e V4B-T3). Um lote de armas, ou o reparo de um item: o item sai do
+ * arsenal para a forja, **continua ocupando o lugar dele** (`inventoryHasRoom`) e volta ao arsenal
+ * com a condição cheia no instante `endsAtMs`.
+ */
+export type ForgeJob =
+  | { kind: 'weapons'; amount: number; startedAtMs: number; endsAtMs: number }
+  | { kind: 'repair'; item: Item; points: number; startedAtMs: number; endsAtMs: number };
+
 export type Item = {
   /** `item-<n>`, de `nextId(draft, 'item')`: nunca reutilizado. É o que `equipItem` recebe. */
   id: string;
   /** O item do conteúdo (`items`). */
   defId: string;
+  /**
+   * Os usos que restam ao item (V4B-T3; ADR 0019, decisão 5): de 0 à durabilidade da raridade
+   * (`itemRarities[].durability`). Em 0 o item está gasto e não dá bônus, mas continua no arsenal
+   * ou com o herói; o Ferreiro o devolve cheio.
+   */
+  condition: number;
 };
 
 /** O ferimento de um herói (ADR 0017, decisão 8): não parte em outra expedição até `untilMs`. */
@@ -501,7 +516,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 26;
+  schemaVersion: 27;
   seed: string;
   settings: GameSettings;
   /**
@@ -629,10 +644,10 @@ export type GameState = {
      */
     weapons: number;
     /**
-     * O lote em curso na forja do Ferreiro, ou `null`: um lote por vez. O custo foi pago ao
-     * começar e o fim (`endsAtMs`) foi fixado com o nível que o Ferreiro tinha então.
+     * O trabalho em curso na forja do Ferreiro, ou `null`: um por vez, de armas ou de reparo.
+     * O custo foi pago ao começar e o fim (`endsAtMs`) foi fixado então.
      */
-    forge: { amount: number; startedAtMs: number; endsAtMs: number } | null;
+    forge: ForgeJob | null;
   };
   /**
    * O Conselho do Feudo (GDD §7; ADR 0014). Os efeitos temporários de moral que as cartas
@@ -869,7 +884,12 @@ export type Command =
    */
   | { commandId: string; type: 'forgeWeapons'; payload: { amount: number } }
   /** Cancela o lote em curso na forja e devolve 80% do custo. */
-  | { commandId: string; type: 'cancelForge'; payload: Record<string, never> };
+  | { commandId: string; type: 'cancelForge'; payload: Record<string, never> }
+  /**
+   * Põe um item do arsenal na forja para o Ferreiro repará-lo (V4B-T3; ADR 0019, decisão 5):
+   * cobra o ferro agora, e o item volta cheio no fim.
+   */
+  | { commandId: string; type: 'repairItem'; payload: { itemId: string } };
 
 export type CommandType = Command['type'];
 
@@ -928,6 +948,7 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'ITEM_INTACT',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1438,6 +1459,13 @@ export type ItemView = {
   bonusText: string;
   /** O mesmo ganho, em pontos percentuais: 12. É o que deixa comparar dois itens do mesmo espaço. */
   bonusPercent: number;
+  /** Os usos que restam ao item, e a durabilidade da raridade dele (V4B-T3). */
+  condition: number;
+  durability: number;
+  /** Gasto: em 0, o item não dá bônus (o `bonusText` diz o que daria depois do reparo). */
+  worn: boolean;
+  /** "Em perfeito estado.", "Condição: 3 de 8 usos." ou "Gasto: não dá bônus até o Ferreiro repará-lo.". */
+  conditionText: string;
 };
 
 /** Um herói na visão (GDD §9.1): a ficha, com o poder explicado e o soldo no relógio de quem joga. */
@@ -1965,6 +1993,29 @@ export type CaravanOfferView = {
  * `forge` é o lote em curso, com os segundos reais que faltam; `offer` diz o que uma ordem de
  * forja pode pedir agora. A arma é uma contagem de unidades inteiras, sem teto.
  */
+export type RepairItemView = {
+  /** O identificador que `repairItem` recebe. */
+  itemId: string;
+  label: string;
+  rarityLabel: string;
+  /** Os usos que restam, e a durabilidade da raridade. */
+  condition: number;
+  durability: number;
+  /** Os pontos que o reparo devolve: `durability − condition`. */
+  points: number;
+  /** O ferro que o reparo custa, em unidades. */
+  ironCost: number;
+  /** "6 de ferro". */
+  costText: string;
+  /** Segundos reais do reparo, a contar do momento em que a ordem for aceita. */
+  seconds: number;
+  /** Com quem o item está, ou `null` no arsenal: um item com um herói não vai à forja. */
+  heroName: string | null;
+  canRepair: boolean;
+  /** Por que `repairItem` seria recusada agora; `null` quando pode. */
+  blockedReason: string | null;
+};
+
 export type SmithyView = {
   /** O edifício do Ferreiro: é o que `startConstruction` recebe e o que a lista de obras mostra. */
   building: BuildingId;
@@ -1977,7 +2028,18 @@ export type SmithyView = {
   /** O nome delas no plural: "Armas". */
   weaponsLabel: string;
   /** O lote na forja, ou `null`. */
-  forge: { amount: number; endsInSeconds: number; totalSeconds: number } | null;
+  forge: {
+    /** O que a forja faz: lote de armas ou reparo. */
+    kind: 'weapons' | 'repair';
+    /** As armas do lote, ou os pontos do reparo. */
+    amount: number;
+    /** "Lote de 3 armas", "Reparo de Lança de caça: 4 pontos". */
+    label: string;
+    endsInSeconds: number;
+    totalSeconds: number;
+  } | null;
+  /** Os itens que o Ferreiro pode refazer agora, e por que cada um pode ou não. */
+  repairOffer: { items: RepairItemView[] };
   /** Segundos reais de uma arma no nível de agora; 0 sem o Ferreiro. */
   perWeaponSeconds: number;
   offer: {

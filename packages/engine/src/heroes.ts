@@ -1,5 +1,6 @@
 import {
   balance,
+  equipmentTexts,
   HERO_ATTRIBUTE_IDS,
   type HeroAttributeId,
   heroClasses,
@@ -7,6 +8,7 @@ import {
   heroTraits,
   ITEM_SLOT_IDS,
   type ItemDef,
+  itemRarities,
   items,
   type NamedHeroDef,
   namedHeroes,
@@ -14,6 +16,7 @@ import {
   type Ratio,
 } from '@lotg/content';
 
+import { fillText } from './format';
 import type { GameState, Hero, Item } from './types';
 import { MILLI } from './units';
 
@@ -84,6 +87,17 @@ export function captives(state: GameState): Hero[] {
 /** O item do conteúdo; `null` para um identificador que o conteúdo não tem (ou já não tem). */
 export function itemDefOf(item: Pick<Item, 'defId'>): ItemDef | null {
   return Object.hasOwn(items, item.defId) ? items[item.defId as keyof typeof items] : null;
+}
+
+/** Os usos que um item novo tem: a durabilidade da raridade dele (0 para o que o conteúdo já não tem). */
+export function durabilityOf(item: Pick<Item, 'defId'>): number {
+  const def = itemDefOf(item);
+  return def === null ? 0 : itemRarities[def.rarity].durability;
+}
+
+/** O item chegou a zero: continua com o dono, mas não dá bônus (V4B-T3; ADR 0019, decisão 5). */
+export function isWorn(item: Pick<Item, 'condition'>): boolean {
+  return item.condition <= 0;
 }
 
 /** O que um herói leva, na ordem dos espaços do conteúdo. */
@@ -227,7 +241,7 @@ export function traitMorale(hero: Hero): number {
  * explicação do número ("× 1,08 (Nv2)").
  */
 export type HeroFactor = {
-  id: 'level' | 'discontent' | 'trait' | 'item';
+  id: 'level' | 'discontent' | 'trait' | 'item' | 'itemWorn';
   ratio: Ratio;
   label: string;
 };
@@ -271,9 +285,12 @@ export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroF
   // multiplicar é o que impede três itens raros de valerem mais do que a soma deles.
   let bonus: Ratio = { num: 0, den: 1 };
   const labels: string[] = [];
+  const worn: string[] = [];
   for (const item of equippedItems(hero)) {
     const def = itemDefOf(item);
-    if (def !== null) {
+    if (def !== null && isWorn(item)) {
+      worn.push(def.label.toLowerCase());
+    } else if (def !== null) {
       const { num, den } = def.power;
       bonus = reduced(bonus.num * den + (num - den) * bonus.den, bonus.den * den);
       labels.push(def.label.toLowerCase());
@@ -284,6 +301,14 @@ export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroF
       id: 'item',
       ratio: { num: bonus.den + bonus.num, den: bonus.den },
       label: labels.join(' + '),
+    });
+  }
+  // O item gasto não soma, e a explicação diz isso: um termo neutro com o nome dele.
+  if (worn.length > 0) {
+    factors.push({
+      id: 'itemWorn',
+      ratio: { num: 1, den: 1 },
+      label: fillText(equipmentTexts.breakdownWorn, { item: worn.join(' e ') }),
     });
   }
   return factors;

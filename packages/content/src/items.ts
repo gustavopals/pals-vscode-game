@@ -3,8 +3,10 @@ import type { ItemId, ItemRarityId, ItemSlotId, Ratio } from './ids';
 /**
  * O equipamento dos heróis (GDD §9.1; ADR 0018, decisão 15): três espaços, quatro raridades e um
  * catálogo enxuto. Um item vem do saque de uma expedição; equipado, multiplica o poder de quem o
- * leva, como os outros fatores do herói. **Sem desgaste, sem reparo e sem venda**: o único jeito
- * de um item virar ouro é não caber no arsenal (`balance.equipment.inventoryCap`).
+ * leva, como os outros fatores do herói. **Desgasta e se repara** (V4B-T3; ADR 0019, decisão 5):
+ * cada raridade tem uma durabilidade (`itemRarities[].durability`, em usos), e o Ferreiro refaz
+ * o que se gastou. **Sem venda**: o único jeito de um item virar ouro é não caber no arsenal
+ * (`balance.equipment.inventoryCap`), e vale o que o conteúdo diz, não a condição.
  * **Nenhum item é relíquia** (as relíquias são da Capela, na v0.5): nem o nome, nem a chave, nem
  * a frase de um item repete uma delas (revisão da Fase D, B23). Rascunho que o autor não leu.
  */
@@ -29,11 +31,15 @@ export const itemSlots: Record<ItemSlotId, { readonly label: string }> = {
 };
 
 /** Como a ficha chama cada raridade. */
-export const itemRarities: Record<ItemRarityId, { readonly label: string }> = {
-  common: { label: 'Comum' },
-  uncommon: { label: 'Incomum' },
-  rare: { label: 'Raro' },
-  epic: { label: 'Épico' },
+export const itemRarities: Record<
+  ItemRarityId,
+  { readonly label: string; readonly durability: number }
+> = {
+  // A durabilidade é o número de expedições concluídas que o item aguenta (ADR 0019, decisão 5).
+  common: { label: 'Comum', durability: 8 },
+  uncommon: { label: 'Incomum', durability: 10 },
+  rare: { label: 'Raro', durability: 14 },
+  epic: { label: 'Épico', durability: 20 },
 };
 
 /** **Na ordem de `ITEM_IDS`.** */
@@ -150,4 +156,21 @@ export const equipmentTexts = {
   inventoryFull: 'O arsenal está cheio: o próximo item que chegar é vendido pelo que vale.',
   /** Um espaço sem item. */
   emptySlot: 'vazio',
+  /** A condição de um item inteiro. */
+  conditionFull: 'Em perfeito estado.',
+  /** A condição de um item usado: `{atual}` e `{total}` são usos. */
+  condition: 'Condição: {atual} de {total} usos.',
+  /** A condição de um item que chegou a zero. */
+  conditionWorn: 'Gasto: não dá bônus até o Ferreiro repará-lo.',
+  /** O que a forja está fazendo, para a tela: um lote de armas ou um reparo. */
+  forgeWeapons: 'Lote de {quantidade} armas',
+  forgeRepair: 'Reparo de {item}: {quantidade} pontos',
+  /** Por que um item não pode ser reparado agora. */
+  repairCarried: '{item} está com {heroi}: devolva-o ao arsenal antes de mandar reparar.',
+  repairIntact: '{item} está inteiro.',
+  repairBusy: 'A forja está ocupada: espere o trabalho dela terminar.',
+  repairNoSmithy: 'Sem o Ferreiro não há reparo.',
+  repairNoIron: 'Faltam {faltam} de ferro para o reparo de {item}.',
+  /** O termo do poder de quem leva um item gasto: `{item}` é o nome dele. */
+  breakdownWorn: '{item} gasto, sem bônus',
 } as const;

@@ -345,7 +345,7 @@ describe('cenário golden de 7 dias', () => {
       lastWageArrears: null,
       ...NO_TAVERN,
       // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
-      inventory: [{ id: 'item-1', defId: 'huntingSpear' }],
+      inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
     expect(state.ids).toEqual({ hero: 1, item: 1 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);

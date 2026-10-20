@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 26;
+const CURRENT = 27;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -116,6 +116,20 @@ function beforeMasters<T>(state: T): T {
   delete copy.settlement?.weapons;
   delete copy.settlement?.forge;
   delete copy.settlement?.buildings?.smithy;
+  // E a condição dos itens, da versão 27 (V4B-T3): todo item entra cheio, e o lote da forja ganha o
+  // tipo. Quem compara com um retrato antigo tira os dois.
+  const stripCondition = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(stripCondition);
+    } else if (typeof node === 'object' && node !== null) {
+      const entry = node as Record<string, unknown>;
+      if (typeof entry.defId === 'string') {
+        delete entry.condition;
+      }
+      Object.values(entry).forEach(stripCondition);
+    }
+  };
+  stripCondition(copy);
   for (const journey of [...(copy.guild?.expeditions ?? []), ...(copy.guild?.reports ?? [])]) {
     for (const entry of journey.log ?? []) {
       delete entry.master;

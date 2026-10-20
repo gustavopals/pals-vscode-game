@@ -54,6 +54,7 @@ export function forgeWeapons(
   }
   payResources(draft, cost);
   draft.settlement.forge = {
+    kind: 'weapons',
     amount,
     startedAtMs: nowMs,
     endsAtMs: nowMs + forgeDurationMs(level, amount),
@@ -82,6 +83,11 @@ export function cancelForge(
   const forge = draft.settlement.forge;
   if (forge === null) {
     return reject('NOT_FORGING');
+  }
+  if (forge.kind === 'repair') {
+    return reject('NOT_FORGING', {
+      note: 'A forja está refazendo um item, e um reparo não se cancela: espere ele terminar.',
+    });
   }
   const refund = forgeRefundMilli(forge.amount);
   const gained: Record<string, number> = {};

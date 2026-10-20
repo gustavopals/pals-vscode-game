@@ -100,7 +100,7 @@ function prepare(plan: Scenario): GameState {
   if (plan.captive) {
     state.ids.hero = 4;
     state.ids.item = 1;
-    state.guild.inventory = [{ id: 'item-1', defId: 'ashBow' }];
+    state.guild.inventory = [{ id: 'item-1', defId: 'ashBow', condition: 10 }];
     state.map.discovered = ['ruins'];
     const [edda] = state.guild.heroes;
     if (edda !== undefined) {

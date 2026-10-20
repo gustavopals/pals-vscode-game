@@ -1,9 +1,19 @@
-import { balance, buildings } from '@lotg/content';
+import { balance, buildings, equipmentTexts, itemRarities } from '@lotg/content';
 
 import { missingResources } from './construction';
-import { forgeCost, forgeDurationMs, perWeaponDurationMs, smithyLevel } from './smithy';
-import type { BuildingId, GameState, SmithyView } from './types';
-import { realSecondsCeil } from './units';
+import { fillText } from './format';
+import { durabilityOf, itemDefOf } from './heroes';
+import {
+  forgeCost,
+  forgeDurationMs,
+  perWeaponDurationMs,
+  repairDurationMs,
+  repairIronCost,
+  repairPoints,
+  smithyLevel,
+} from './smithy';
+import type { BuildingId, GameState, Item, RepairItemView, SmithyView } from './types';
+import { MILLI, realSecondsCeil } from './units';
 
 /**
  * O Ferreiro na visão (GDD §6.1; ADR 0019, decisão 4). Só lê o estado: não sorteia, não dá
@@ -61,6 +71,62 @@ function maxAmount(state: GameState): number {
   return best;
 }
 
+/**
+ * Os itens que o Ferreiro pode refazer: todo item gasto ou usado, no arsenal ou com um herói,
+ * na ordem do arsenal e depois a dos heróis. `canRepair` diz se a ordem seria aceita agora; o
+ * motivo da recusa, na frase da tela, vem em `blockedReason`.
+ */
+function repairOffer(state: GameState, timeScale: number): SmithyView['repairOffer'] {
+  const level = smithyLevel(state);
+  const busy = state.settlement.forge !== null;
+  const entries: Array<{ item: Item; heroName: string | null }> = [
+    ...state.guild.inventory.map((item) => ({ item, heroName: null })),
+    ...state.guild.heroes.flatMap((hero) =>
+      Object.values(hero.equipment).flatMap((item) =>
+        item === null ? [] : [{ item, heroName: hero.name }],
+      ),
+    ),
+  ];
+  const items: RepairItemView[] = [];
+  for (const { item, heroName } of entries) {
+    const def = itemDefOf(item);
+    const points = repairPoints(item);
+    if (def === null || points === 0) {
+      continue;
+    }
+    const ironCost = repairIronCost(item, points);
+    const missing = ironCost - Math.floor(state.settlement.resources.iron / MILLI);
+    let blockedReason: string | null = null;
+    if (level === 0) {
+      blockedReason = equipmentTexts.repairNoSmithy;
+    } else if (busy) {
+      blockedReason = equipmentTexts.repairBusy;
+    } else if (heroName !== null) {
+      blockedReason = fillText(equipmentTexts.repairCarried, { item: def.label, heroi: heroName });
+    } else if (missing > 0) {
+      blockedReason = fillText(equipmentTexts.repairNoIron, {
+        faltam: missing,
+        item: def.label,
+      });
+    }
+    items.push({
+      itemId: item.id,
+      label: def.label,
+      rarityLabel: itemRarities[def.rarity].label,
+      condition: item.condition,
+      durability: durabilityOf(item),
+      points,
+      ironCost,
+      costText: `${ironCost} de ${iron}`,
+      seconds: realSecondsCeil(repairDurationMs(points), timeScale),
+      heroName,
+      canRepair: blockedReason === null,
+      blockedReason,
+    });
+  }
+  return { items };
+}
+
 export function smithyView(state: GameState, timeScale: number): SmithyView {
   const { settlement } = state;
   const level = smithyLevel(state);
@@ -76,10 +142,19 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
       forge === null
         ? null
         : {
-            amount: forge.amount,
+            kind: forge.kind,
+            amount: forge.kind === 'weapons' ? forge.amount : forge.points,
+            label:
+              forge.kind === 'weapons'
+                ? fillText(equipmentTexts.forgeWeapons, { quantidade: forge.amount })
+                : fillText(equipmentTexts.forgeRepair, {
+                    item: itemDefOf(forge.item)?.label ?? 'um item',
+                    quantidade: forge.points,
+                  }),
             endsInSeconds: realSecondsCeil(forge.endsAtMs - state.lastProcessedAt, timeScale),
             totalSeconds: realSecondsCeil(forge.endsAtMs - forge.startedAtMs, timeScale),
           },
+    repairOffer: repairOffer(state, timeScale),
     perWeaponSeconds: level > 0 ? realSecondsCeil(perWeaponDurationMs(level), timeScale) : 0,
     offer: {
       maxAmount: maxAmount(state),

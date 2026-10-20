@@ -2,7 +2,9 @@ import { balance, type ResourceAmounts } from '@lotg/content';
 
 import { emit } from './chronicle';
 import { amountsData } from './construction';
-import type { GameEvent, GameState } from './types';
+import { stowItem } from './equipment';
+import { durabilityOf, itemDefOf } from './heroes';
+import type { GameEvent, GameState, Item } from './types';
 import { MILLI } from './units';
 
 /**
@@ -55,7 +57,8 @@ export function nextForgeEndAt(state: GameState): number | null {
 }
 
 /**
- * Conclui o lote que vence até `atMs`: as armas entram sem teto. É resolvido junto das obras
+ * Conclui o trabalho que vence até `atMs`: as armas entram sem teto, e o item reparado volta ao
+ * arsenal com a condição cheia. É resolvido junto das obras
  * concluídas, na ordem fixa de `processEventsAt`.
  */
 export function finishForge(draft: GameState, atMs: number, events: GameEvent[]): void {
@@ -64,8 +67,22 @@ export function finishForge(draft: GameState, atMs: number, events: GameEvent[])
   if (forge === null || forge.endsAtMs > atMs) {
     return;
   }
-  settlement.weapons += forge.amount;
   settlement.forge = null;
+  if (forge.kind === 'repair') {
+    // O item volta ao arsenal inteiro; o lugar dele estava guardado, mas `stowItem` cobre o resto.
+    const item = { ...forge.item, condition: durabilityOf(forge.item) };
+    stowItem(draft, item, atMs, events);
+    emit(
+      events,
+      draft,
+      atMs,
+      'itemRepaired',
+      { itemId: item.id, defId: item.defId, points: forge.points },
+      { item: itemDefOf(item)?.label ?? 'um item' },
+    );
+    return;
+  }
+  settlement.weapons += forge.amount;
   emit(
     events,
     draft,
@@ -79,4 +96,20 @@ export function finishForge(draft: GameState, atMs: number, events: GameEvent[])
 /** O custo do lote nos dados de um evento: `spent_iron`, `spent_wood`. */
 export function forgeSpentData(amount: number): Record<string, number> {
   return amountsData('spent', forgeCost(amount));
+}
+
+/** Quantos pontos faltam a um item para ficar inteiro; 0 para o que o conteúdo já não tem. */
+export function repairPoints(item: Item): number {
+  return Math.max(0, durabilityOf(item) - item.condition);
+}
+
+/** O ferro que `points` pontos de reparo custam a um item: o preço por ponto é o da raridade dele. */
+export function repairIronCost(item: Item, points = repairPoints(item)): number {
+  const def = itemDefOf(item);
+  return def === null ? 0 : points * balance.equipment.repair.ironPerPoint[def.rarity];
+}
+
+/** O tempo de jogo de um reparo de `points` pontos: fixo por ponto, sem efeito do nível do Ferreiro. */
+export function repairDurationMs(points: number): number {
+  return points * balance.equipment.repair.msPerPoint;
 }

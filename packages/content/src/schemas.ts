@@ -663,7 +663,16 @@ const balanceFields = z.strictObject({
       ({ durationMs }) => (durationMs.light ?? 0) < (durationMs.severe ?? 0),
       'ferimento leve que dura mais que o grave',
     ),
-  equipment: z.strictObject({ inventoryCap: positiveInt }),
+  equipment: z.strictObject({
+    inventoryCap: positiveInt,
+    wearPerExpedition: positiveInt,
+    repair: z.strictObject({
+      ironPerPoint: z.strictObject(
+        Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, positiveInt])),
+      ),
+      msPerPoint: positiveInt,
+    }),
+  }),
   market,
   // Os Mestres (ADR 0018, decisão 18): o bônus é uma fração positiva, e o teto guarda ao menos um.
   masters: z.strictObject({
@@ -1792,7 +1801,12 @@ export const ItemSlotsSchema = z.strictObject(
 );
 
 export const ItemRaritiesSchema = z.strictObject(
-  Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, z.strictObject({ label: expeditionTitle })])),
+  Object.fromEntries(
+    ITEM_RARITY_IDS.map((id) => [
+      id,
+      z.strictObject({ label: expeditionTitle, durability: positiveInt }),
+    ]),
+  ),
 );
 
 export const EquipmentTextsSchema = z.strictObject(

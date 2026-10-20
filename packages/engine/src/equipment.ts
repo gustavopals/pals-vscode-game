@@ -1,7 +1,7 @@
 import { balance, ITEM_SLOT_IDS, type ItemSlotId } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { isAtHome, isCaptive, itemDefOf } from './heroes';
+import { equippedItems, isAtHome, isCaptive, itemDefOf } from './heroes';
 import { reject } from './rejections';
 import { storeResource } from './storage';
 import type { GameEvent, GameState, Hero, Item, Rejection } from './types';
@@ -9,8 +9,9 @@ import { MILLI } from './units';
 
 /**
  * O equipamento (GDD §9.1; ADR 0018, decisão 15): o arsenal do feudo, os três espaços de cada
- * herói e as duas ordens. **Sem desgaste, sem reparo e sem venda**: um item só vira ouro quando
- * não cabe no arsenal. Nada aqui sorteia, e nada aqui dá identificador: o item nasce quando uma
+ * herói e as duas ordens. **Desgasta** (um ponto por expedição concluída de quem o leva, em
+ * `wearTeam`) e o Ferreiro o repara (`repairOrders.ts`). **Sem venda**: um item só vira ouro quando
+ * não cabe no arsenal, e vale o que o conteúdo diz, não a condição. Nada aqui sorteia, e nada aqui dá identificador: o item nasce quando uma
  * expedição o acha (`outcomes.ts`), em um instante da linha do tempo.
  */
 
@@ -22,7 +23,42 @@ export function isItemSlot(value: unknown): value is ItemSlotId {
 
 /** Cabe mais um item no arsenal. */
 export function inventoryHasRoom(state: GameState): boolean {
-  return state.guild.inventory.length < rules.inventoryCap;
+  // O item no reparo guarda o lugar dele: ao sair da forja ele volta ao arsenal, e não pode
+  // encontrá-lo cheio (e acabar vendido).
+  const reserved = state.settlement.forge?.kind === 'repair' ? 1 : 0;
+  return state.guild.inventory.length + reserved < rules.inventoryCap;
+}
+
+/**
+ * Cobra o desgaste de uma expedição concluída (V4B-T3; ADR 0019, decisão 5): cada item que a
+ * equipe que **voltou** leva perde `wearPerExpedition` pontos, sem passar de zero. Só o item que
+ * chega a zero tem linha na Crônica. Não sorteia nem dá identificador; a ordem é a dos heróis
+ * da equipe e, em cada um, a dos espaços do conteúdo.
+ */
+export function wearTeam(
+  draft: GameState,
+  team: readonly Hero[],
+  atMs: number,
+  events: GameEvent[],
+): void {
+  for (const hero of team) {
+    for (const item of equippedItems(hero)) {
+      if (item.condition <= 0) {
+        continue;
+      }
+      item.condition = Math.max(0, item.condition - rules.wearPerExpedition);
+      if (item.condition === 0) {
+        emit(
+          events,
+          draft,
+          atMs,
+          'itemWorn',
+          { heroId: hero.id, itemId: item.id, defId: item.defId },
+          { heroi: hero.name, item: itemDefOf(item)?.label ?? 'um item' },
+        );
+      }
+    }
+  }
 }
 
 /**

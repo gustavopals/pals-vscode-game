@@ -434,7 +434,7 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
   it('a equipe inteira capturada: a expedição termina ali, e o saque se perde', () => {
     const { state, endsAt } = atCrypt('lord', ['hero-1']);
     only(state).loot.resources.stone = 40;
-    only(state).loot.items = [{ id: 'item-3', defId: 'ashBow' }];
+    only(state).loot.items = [{ id: 'item-3', defId: 'ashBow', condition: 10 }];
     state.ids.item = 3;
     state.rng[entityStream('expedition', 'expedition-1')] = [1, 2, 3, 4];
     const stoneBefore = state.settlement.resources.stone;
@@ -739,7 +739,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     const equipped = accept(start, command('equipItem', { heroId: 'hero-1', itemId: 'item-1' }));
     const edda = heroOf(equipped.state, 'hero-1');
     expect(edda.equipment).toEqual({
-      weapon: { id: 'item-1', defId: 'huntingSpear' },
+      weapon: { id: 'item-1', defId: 'huntingSpear', condition: 8 },
       armor: null,
       accessory: null,
     });
@@ -771,6 +771,10 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
           rarityLabel: 'Comum',
           bonusText: '+5% de poder',
           bonusPercent: 5,
+          condition: 8,
+          durability: 8,
+          worn: false,
+          conditionText: 'Em perfeito estado.',
         },
       },
       { slot: 'armor', slotLabel: 'Armadura', item: null },
@@ -795,6 +799,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     expect(heroOf(swapped, 'hero-1').equipment.weapon).toEqual({
       id: 'item-2',
       defId: 'veltharBlade',
+      condition: 14,
     });
     expect(swapped.guild.inventory.map((item) => item.id)).toEqual(['item-1', 'item-3']);
     // Dois itens, um fator: os bônus somam (+12% e +5%), 42 × 1,17 = 49,14 (revisão, B15).
@@ -913,7 +918,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     });
     expect(equipment.inventoryCap).toBe(30);
     const sent = send(start, 'patrol', ['hero-1'], 'bold', 0).state;
-    only(sent).loot.items = [{ id: 'item-31', defId: 'veltharBlade' }];
+    only(sent).loot.items = [{ id: 'item-31', defId: 'veltharBlade', condition: 14 }];
     sent.ids.item = 31;
     const placed = placeAt(sent, 'home');
     only(placed.state).status = 'returning';
@@ -1459,12 +1464,22 @@ describe('o estado gravado dos desfechos (a guarda da versão 18)', () => {
     ).toContain('ferimento vencido');
     expect(
       broken(
-        (draft) => (heroOf(draft, 'hero-3').equipment.weapon = { id: 'item-3', defId: 'ashBow' }),
+        (draft) =>
+          (heroOf(draft, 'hero-3').equipment.weapon = {
+            id: 'item-3',
+            defId: 'ashBow',
+            condition: 10,
+          }),
       ),
     ).toContain('item em dois lugares');
     expect(
       broken(
-        (draft) => (heroOf(draft, 'hero-3').equipment.weapon = { id: 'item-9', defId: 'ashBow' }),
+        (draft) =>
+          (heroOf(draft, 'hero-3').equipment.weapon = {
+            id: 'item-9',
+            defId: 'ashBow',
+            condition: 10,
+          }),
       ),
     ).toContain('ids.item');
     expect(broken((draft) => (draft.map.discovered = ['ruins', 'ruins']))).toContain('repetido');
@@ -1474,6 +1489,7 @@ describe('o estado gravado dos desfechos (a guarda da versão 18)', () => {
         draft.guild.inventory = Array.from({ length: 31 }, (_, index) => ({
           id: `item-${index + 4}`,
           defId: 'ashBow',
+          condition: 10,
         }));
       }),
     ).toContain('lista de até 30 itens');
@@ -1612,7 +1628,13 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
       expect(lines.some((line) => line.includes('ganhou a liberdade'))).toBe(difficulty === 'lord');
       expect(state.guild.heroes.some((hero) => hero.status === 'captured')).toBe(false);
       // O item equipado continua com Brann, e entra no poder dele.
-      expect(heroOf(state, 'hero-3').equipment.weapon).toEqual({ id: 'item-1', defId: 'ashBow' });
+      expect(heroOf(state, 'hero-3').equipment.weapon).toEqual({
+        id: 'item-1',
+        defId: 'ashBow',
+        // Um ponto de desgaste se Brann voltou do Covil (V4B-T3); em Camponês, a equipe do Covil
+        // é outra (os dois primeiros heróis livres), e o arco não saiu da casa.
+        condition: difficulty === 'peasant' ? 10 : 9,
+      });
       // Limpar o Covil muda a Ameaça.
       expect(state.map.tiles.wolfDen?.threatActive).toBe(false);
       expect(state.map.threat).toBeLessThanOrEqual(threatBefore - 30 + 2);

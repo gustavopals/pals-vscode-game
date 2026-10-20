@@ -53,7 +53,7 @@ const ITEM_ID = /^item-([1-9][0-9]*)$/;
 
 const where = (path: string) => (path === '' ? 'estado' : path);
 
-const itemId: Shape = (value, path) =>
+export const itemId: Shape = (value, path) =>
   typeof value === 'string' && ITEM_ID.test(value) && Number.isSafeInteger(Number(value.slice(5)))
     ? null
     : `${where(path)}: esperado um identificador de item (item-<n>)`;

@@ -369,9 +369,13 @@ describe('o pacote do app', () => {
     // O teto do arsenal: `inventoryCap` é também um campo da visão; o que não pode chegar é o
     // número do conteúdo, escrito como a tabela o escreve.
     const { equipment } = content.balance;
-    const cap = `inventoryCap:${equipment.inventoryCap}}`;
+    const cap = `inventoryCap:${equipment.inventoryCap},wearPerExpedition:`;
+    const repair = `msPerPoint:${equipment.repair.msPerPoint}}`;
     expect(asJavaScript({ equipment })).toContain(cap);
     expect(code.includes(cap)).toBe(false);
+    // O desgaste e o reparo (V4B-T3): o tempo por ponto e a durabilidade são do conteúdo.
+    expect(asJavaScript({ equipment })).toContain(repair);
+    expect(code.includes(repair)).toBe(false);
     // Cada item: o fator do poder, o valor em ouro e a chave dele (a visão só fala em `item-<n>`
     // e mostra o bônus em frase).
     const defs = Object.entries(content.items);

@@ -13,6 +13,7 @@ import { emit } from './chronicle';
 import { DAY_MS } from './clock';
 import { amountsData } from './construction';
 import { stowItem } from './equipment';
+import { durabilityOf } from './heroes';
 import { decimal, durationText, joinList, plural } from './format';
 import { nextId } from './ids';
 import { addMoraleEffect } from './morale';
@@ -192,7 +193,16 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
       // O item vai ao arsenal; com ele cheio, vira ouro pelo valor do conteúdo, com a linha
       // própria da Crônica (`stowItem`). O identificador nasce aqui, num instante da linha do tempo.
       if (objective.item !== undefined) {
-        stowItem(draft, { id: nextId(draft, 'item'), defId: objective.item }, atMs, events);
+        stowItem(
+          draft,
+          {
+            id: nextId(draft, 'item'),
+            defId: objective.item,
+            condition: durabilityOf({ defId: objective.item }),
+          },
+          atMs,
+          events,
+        );
       }
       changed = true;
     }

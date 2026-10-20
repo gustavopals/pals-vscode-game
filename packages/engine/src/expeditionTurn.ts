@@ -13,7 +13,7 @@ import {
 
 import { emit } from './chronicle';
 import { lowerFirst } from './council';
-import { stowItem } from './equipment';
+import { stowItem, wearTeam } from './equipment';
 import {
   enterNode,
   expeditionLabel,
@@ -28,7 +28,7 @@ import {
 } from './expeditions';
 import { lessonOf, standoutOf, trialTemplate } from './expeditionReport';
 import { joinList } from './format';
-import { itemDefOf } from './heroes';
+import { durabilityOf, itemDefOf } from './heroes';
 import { nextId } from './ids';
 import { deliverMaster, masterCanArrive } from './masterTurn';
 import {
@@ -233,7 +233,11 @@ function resolveStage(
           : drop.from[0];
       if (defId !== undefined) {
         // Um instante da linha do tempo cria a entidade: o item nasce com o identificador dele.
-        const item: Item = { id: nextId(draft, 'item'), defId };
+        const item: Item = {
+          id: nextId(draft, 'item'),
+          defId,
+          condition: durabilityOf({ defId }),
+        };
         found.push(item);
         expedition.loot.items.push(item);
         entry.found.push(defId);
@@ -489,6 +493,11 @@ function returnHome(
           ? expeditionTemplates.recalled
           : undefined,
   );
+  // O desgaste é de quem concluiu o caminho (a recolhida antes e a perdida não contam), cobrado
+  // no instante da volta, depois da linha dela e antes de o saque ir ao arsenal.
+  if (completed) {
+    wearTeam(draft, team, atMs, events);
+  }
   // Depois da linha da volta: o item que não cabe no arsenal vira ouro, com a linha dele.
   const sold = carried.filter((item) => !stowItem(draft, item, atMs, events));
   close(draft, expedition, {

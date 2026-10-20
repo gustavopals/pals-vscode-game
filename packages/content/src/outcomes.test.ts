@@ -127,6 +127,11 @@ describe('ferimento, captura e morte (ADR 0017, decisão 8)', () => {
       parse((draft) => (((draft.difficulties as Loose).lord as Loose).heroCapture = 'exile')),
     ).toBe(false);
     expect(parse((draft) => ((draft.equipment as Loose).inventoryCap = 0))).toBe(false);
+    expect(parse((draft) => ((draft.equipment as Loose).wearPerExpedition = 0))).toBe(false);
+    expect(parse((draft) => delete (draft.equipment as Loose).repair)).toBe(false);
+    expect(parse((draft) => (((draft.equipment as Loose).repair as Loose).msPerPoint = 0))).toBe(
+      false,
+    );
   });
 });
 

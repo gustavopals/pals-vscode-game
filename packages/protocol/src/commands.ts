@@ -212,6 +212,15 @@ export const ForgeWeaponsCommandSchema = command(
 /** A ordem de cancelar o lote na forja: devolve 80% do custo. Sem corpo. */
 export const CancelForgeCommandSchema = command('cancelForge', z.strictObject({}));
 
+/**
+ * A ordem de mandar reparar um item do arsenal (V4B-T3; ADR 0019, decisão 5). O protocolo só
+ * confere a forma; o Ferreiro, a forja livre e o ferro são com o motor.
+ */
+export const RepairItemCommandSchema = command(
+  'repairItem',
+  z.strictObject({ itemId: z.string().min(1).max(64) }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -235,6 +244,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   AssignMasterCommandSchema,
   ForgeWeaponsCommandSchema,
   CancelForgeCommandSchema,
+  RepairItemCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

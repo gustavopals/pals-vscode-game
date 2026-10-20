@@ -74,6 +74,9 @@ export const EVENT_TYPES = [
   'forgeStarted',
   'forgeCancelled',
   'weaponsForged',
+  'itemWorn',
+  'repairStarted',
+  'itemRepaired',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -324,6 +327,14 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   forgeCancelled:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} apagou a forja: o lote de {quantidade} armas ficou por fazer.',
   weaponsForged: 'No {dia}º dia {daEstacao}, a forja de {feudo} entregou {quantidade} armas novas.',
+  // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
+  // zero tem linha: cada ponto perdido no caminho não é notícia.
+  itemWorn:
+    'No {dia}º dia {daEstacao}, {item}, de {heroi}, gastou-se de vez na estrada e já não serve de nada até o ferreiro de {feudo} o refazer.',
+  repairStarted:
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} pôs {item} na bancada: {quantidade} pontos a refazer.',
+  itemRepaired:
+    'No {dia}º dia {daEstacao}, o ferreiro de {feudo} devolveu {item} ao arsenal, inteiro outra vez.',
   masterWaiting:
     'No {dia}º dia {daEstacao}, {mestre} chegou aos portões de {feudo}, mas não há vaga nas casas. Espera à porta até haver uma.',
   masterAssigned: 'No {dia}º dia {daEstacao}, {mestre} tomou a seu cargo {edificio} de {feudo}.',

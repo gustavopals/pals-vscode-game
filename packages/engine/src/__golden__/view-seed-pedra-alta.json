@@ -922,6 +922,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -1887,6 +1890,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -2889,6 +2895,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -4045,6 +4054,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -5200,6 +5212,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -6527,6 +6542,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -7693,6 +7711,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -8855,6 +8876,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -10008,6 +10032,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -11259,6 +11286,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -12493,6 +12523,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -13673,6 +13706,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -14828,6 +14864,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -16019,6 +16058,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -17174,6 +17216,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -18373,6 +18418,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -19530,6 +19578,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -20661,6 +20712,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -21632,6 +21686,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -22863,6 +22920,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -24150,6 +24210,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -25496,6 +25559,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -26932,6 +26998,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -28369,6 +28438,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -29661,7 +29733,11 @@
                 "slotLabel": "Arma",
                 "rarityLabel": "Incomum",
                 "bonusText": "+8% de poder",
-                "bonusPercent": 8
+                "bonusPercent": 8,
+                "condition": 10,
+                "durability": 10,
+                "worn": false,
+                "conditionText": "Em perfeito estado."
               }
             },
             {
@@ -29693,7 +29769,11 @@
           "slotLabel": "Acessório",
           "rarityLabel": "Comum",
           "bonusText": "+5% de poder",
-          "bonusPercent": 5
+          "bonusPercent": 5,
+          "condition": 8,
+          "durability": 8,
+          "worn": false,
+          "conditionText": "Em perfeito estado."
         }
       ],
       "inventoryCap": 30,
@@ -29782,6 +29862,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -31109,7 +31192,11 @@
                 "slotLabel": "Arma",
                 "rarityLabel": "Comum",
                 "bonusText": "+5% de poder",
-                "bonusPercent": 5
+                "bonusPercent": 5,
+                "condition": 8,
+                "durability": 8,
+                "worn": false,
+                "conditionText": "Em perfeito estado."
               }
             },
             {
@@ -31168,7 +31255,11 @@
                 "slotLabel": "Armadura",
                 "rarityLabel": "Comum",
                 "bonusText": "+5% de poder",
-                "bonusPercent": 5
+                "bonusPercent": 5,
+                "condition": 7,
+                "durability": 8,
+                "worn": false,
+                "conditionText": "Condição: 7 de 8 usos."
               }
             },
             {
@@ -31323,6 +31414,24 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": [
+          {
+            "itemId": "item-2",
+            "label": "Gibão acolchoado",
+            "rarityLabel": "Comum",
+            "condition": 7,
+            "durability": 8,
+            "points": 1,
+            "ironCost": 1,
+            "costText": "1 de ferro",
+            "seconds": 120,
+            "heroName": "Rolf",
+            "canRepair": false,
+            "blockedReason": "Sem o Ferreiro não há reparo."
+          }
+        ]
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -32750,6 +32859,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -33997,6 +34109,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -35234,6 +35349,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -36531,6 +36649,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -37922,6 +38043,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -39023,6 +39147,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,
@@ -40238,6 +40365,9 @@
       "weapons": 0,
       "weaponsLabel": "Armas",
       "forge": null,
+      "repairOffer": {
+        "items": []
+      },
       "perWeaponSeconds": 0,
       "offer": {
         "maxAmount": 0,

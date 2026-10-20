@@ -59,7 +59,7 @@ describe('o Ferreiro do Explorador (V4B-T2.6)', () => {
     };
     const view = deriveViewState(state, 0);
     const after = await forjarArmas.run(view, act);
-    expect(state.settlement.forge?.amount).toBe(10);
+    expect(state.settlement.forge).toMatchObject({ kind: 'weapons', amount: 10 });
     // Com a forja ocupada, não repete.
     const again = await forjarArmas.run(after, act);
     expect(again.smithy.forge?.amount).toBe(10);

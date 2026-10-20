@@ -101,7 +101,8 @@
     "items": [
      {
       "id": "item-1",
-      "defId": "paddedJerkin"
+      "defId": "paddedJerkin",
+      "condition": 8
      }
     ]
    },

@@ -6,6 +6,7 @@ import {
   type HeroClassId,
   type HeroTraitId,
   type ItemId,
+  itemRarities,
   items,
   type MasterId,
   objectives,
@@ -153,7 +154,11 @@ export function addHero(
  * estado (`nextId`). Para os cenários do equipamento, que não querem depender de um sorteio.
  */
 export function giveItem(draft: GameState, defId: ItemId): Item {
-  const item: Item = { id: nextId(draft, 'item'), defId };
+  const item: Item = {
+    id: nextId(draft, 'item'),
+    defId,
+    condition: itemRarities[items[defId].rarity].durability,
+  };
   draft.guild.inventory.push(item);
   return item;
 }

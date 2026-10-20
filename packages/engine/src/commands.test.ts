@@ -207,6 +207,9 @@ describe('catálogo de recusas', () => {
     command('chooseExpeditionPath', { expeditionId: inForest.expedition.id, optionId: 'stream' }),
   ).state;
   const smithy = smithyStall(0);
+  const intact = smithyStall(0, (draft) => {
+    giveItem(draft, 'ashBow');
+  });
   const forging = accept(smithy, command('forgeWeapons', { amount: 2 })).state;
   const crafted = mastersScenario();
   const atDoor = masterWaitingScenario();
@@ -327,6 +330,7 @@ describe('catálogo de recusas', () => {
     SMITHY_REQUIRED: [rich, command('forgeWeapons', { amount: 1 })],
     FORGE_BUSY: [forging, command('forgeWeapons', { amount: 1 })],
     NOT_FORGING: [smithy, command('cancelForge', {})],
+    ITEM_INTACT: [intact, command('repairItem', { itemId: 'item-1' })],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

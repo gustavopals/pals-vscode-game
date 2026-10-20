@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -802,7 +802,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1041,7 +1041,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1232,7 +1232,8 @@
      "inventory": [
       {
        "id": "item-1",
-       "defId": "huntingSpear"
+       "defId": "huntingSpear",
+       "condition": 8
       }
      ],
      "wageArrears": null,
@@ -1321,7 +1322,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1521,7 +1522,8 @@
      "inventory": [
       {
        "id": "item-1",
-       "defId": "huntingSpear"
+       "defId": "huntingSpear",
+       "condition": 8
       }
      ],
      "wageArrears": null,
@@ -1614,7 +1616,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1808,7 +1810,8 @@
      "inventory": [
       {
        "id": "item-1",
-       "defId": "huntingSpear"
+       "defId": "huntingSpear",
+       "condition": 8
       }
      ],
      "wageArrears": null,
@@ -1905,7 +1908,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2122,7 +2125,8 @@
      "inventory": [
       {
        "id": "item-1",
-       "defId": "huntingSpear"
+       "defId": "huntingSpear",
+       "condition": 8
       }
      ],
      "wageArrears": null,
@@ -2223,7 +2227,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 26,
+    "schemaVersion": 27,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2418,7 +2422,8 @@
      "inventory": [
       {
        "id": "item-1",
-       "defId": "huntingSpear"
+       "defId": "huntingSpear",
+       "condition": 8
       }
      ],
      "wageArrears": null,

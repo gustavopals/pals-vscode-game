@@ -10,6 +10,8 @@ import {
   positive,
   type Shape,
 } from './shape';
+import type { MigrationStep } from './step';
+import { durabilityOfV27 } from './v27items';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -124,3 +126,59 @@ export const stateV26: Shape = (value, path) =>
   workedWithinState(value, path) ??
   marketLimitsWithinState(value, path) ??
   forgeWithinState(value, path);
+
+type Piece = { id: string; defId: string };
+
+/** O item com a condição cheia da raridade dele (a do Comum, para a chave que o conteúdo já não tem). */
+const whole = (piece: Piece): Piece & { condition: number } => ({
+  ...piece,
+  condition: durabilityOfV27(piece.defId),
+});
+
+/**
+ * 26 → 27: o desgaste e o reparo do equipamento (V4B-T3; ADR 0019, decisão 5).
+ *
+ * - Todo item que já existe (no arsenal, com um herói, no saque de uma expedição em curso ou de um
+ *   relatório) entra com a **condição cheia** da raridade dele: ninguém perde nada por ter jogado
+ *   antes do desgaste, e nenhum reparo é devido.
+ * - O lote que estava na forja ganha o tipo `weapons`; a forja vazia continua vazia.
+ *
+ * **O passo não cria prazo** (e por isso não usa a fronteira), não emite evento, não dá
+ * identificador a ninguém e não toca o gerador.
+ */
+export const v26ToV27: MigrationStep = {
+  from: 26,
+  summary: 'todo item entra com a condição cheia e o lote da forja ganha o tipo',
+  shape: stateV26,
+  migrate(state) {
+    const settlement = state.settlement as Record<string, unknown>;
+    const guild = state.guild as Record<string, unknown>;
+    const forge = settlement.forge as Record<string, unknown> | null;
+    const heroes = (guild.heroes as Array<Record<string, unknown>>).map((hero) => ({
+      ...hero,
+      equipment: Object.fromEntries(
+        Object.entries(hero.equipment as Record<string, Piece | null>).map(([slot, piece]) => [
+          slot,
+          piece === null ? null : whole(piece),
+        ]),
+      ),
+    }));
+    const withLoot = (entries: unknown): unknown =>
+      (entries as Array<{ loot: { items: Piece[] } }>).map((entry) => ({
+        ...entry,
+        loot: { ...entry.loot, items: entry.loot.items.map(whole) },
+      }));
+    return {
+      ...state,
+      schemaVersion: 27,
+      settlement: { ...settlement, forge: forge === null ? null : { kind: 'weapons', ...forge } },
+      guild: {
+        ...guild,
+        heroes,
+        inventory: (guild.inventory as Piece[]).map(whole),
+        expeditions: withLoot(guild.expeditions),
+        reports: withLoot(guild.reports),
+      },
+    };
+  },
+};

@@ -6,6 +6,7 @@ import type {
   HeroAttributeId,
   HeroCaptureRuleId,
   InjurySeverityId,
+  ItemRarityId,
   MarketResourceId,
   MoraleBandId,
   ProductionBuildingId,
@@ -433,6 +434,19 @@ export type InjuriesDef = {
 export type EquipmentDef = {
   /** Quantos itens o arsenal guarda sem dono. O que passa disso vira ouro pelo valor do item. */
   readonly inventoryCap: number;
+  /**
+   * Quantos pontos de condição cada item equipado perde quando a equipe volta de uma expedição
+   * concluída (V4B-T3; ADR 0019, decisão 5). A expedição perdida não volta com o item; a batalha
+   * comandada é da Fase D e acrescenta o desgaste dela quando existir.
+   */
+  readonly wearPerExpedition: number;
+  /** O reparo no Ferreiro, na mesma fila da forja. */
+  readonly repair: {
+    /** O ferro de cada ponto devolvido, por raridade (cobrado ao começar). */
+    readonly ironPerPoint: Record<ItemRarityId, number>;
+    /** O tempo de jogo de cada ponto, fixado ao começar. */
+    readonly msPerPoint: number;
+  };
 };
 
 /**
@@ -991,7 +1005,16 @@ export const balance: Balance = {
     harmWeight: 5,
   },
   // GDD §9.1 (ADR 0018, decisão 15): o arsenal guarda 30 itens.
-  equipment: { inventoryCap: 30 },
+  equipment: {
+    inventoryCap: 30,
+    // ADR 0019, decisão 5: 1 ponto por expedição concluída; reparo a 1 ferro por ponto nos itens
+    // Comuns e Incomuns e a 2 nos Raros e Épicos, 2 min de jogo por ponto.
+    wearPerExpedition: 1,
+    repair: {
+      ironPerPoint: { common: 1, uncommon: 1, rare: 2, epic: 2 },
+      msPerPoint: 2 * MINUTE_MS,
+    },
+  },
   // GDD §5.9 (ADR 0018, decisão 16). Os preços em milésimos de ouro por unidade: 1,0, 1,2 e 2,0.
   // O passo de até ±5% por dia de jogo, a volta de um décimo da distância até a base, o piso em
   // 60% e o teto em 160% dela; a venda a 85% da compra; 200 unidades por recurso por dia e por

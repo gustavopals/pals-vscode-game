@@ -8,6 +8,9 @@ import {
   HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
+  ITEM_RARITY_IDS,
+  itemRarities,
+  items,
   namedHeroes,
   POSTURE_IDS,
   MARKET_RESOURCE_IDS,
@@ -94,6 +97,12 @@ import {
   RESOURCE_IDS_V25,
 } from './migrations/v25';
 import { BUILDING_IDS_V26, FORGE_BATCH_MAX_V26 } from './migrations/v26';
+import {
+  DURABILITY_V27,
+  FORGE_BATCH_MAX_V27,
+  INVENTORY_CAP_V27,
+  ITEM_RARITY_V27,
+} from './migrations/v27items';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -109,6 +118,9 @@ import {
   eventsOfType,
   famineSince,
   gameAt,
+  giveItem,
+  heroInjuredScenario,
+  smithyStall,
   HOUR,
   MINUTE,
   newGame,
@@ -169,10 +181,33 @@ const LOG_FIELDS_V18 = [
 ] as const;
 
 /**
+ * Tira de um estado, no lugar, o que o passo 26 → 27 acrescenta: a condição de cada item (em
+ * qualquer lugar do estado) e o tipo do lote da forja.
+ */
+function stripRepair(copy: Draft): void {
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+    } else if (typeof node === 'object' && node !== null) {
+      const entry = node as Record<string, unknown>;
+      if (typeof entry.defId === 'string') {
+        delete entry.condition;
+      }
+      Object.values(entry).forEach(walk);
+    }
+  };
+  walk(copy);
+  if (copy.settlement?.forge) {
+    delete copy.settlement.forge.kind;
+  }
+}
+
+/**
  * Tira de um estado, no lugar, o que o passo 25 → 26 acrescenta: o Ferreiro (nível 0), as armas e
  * a forja.
  */
 function stripSmithy(copy: Draft): void {
+  stripRepair(copy);
   if (copy.settlement !== undefined) {
     delete copy.settlement.buildings?.smithy;
     delete copy.settlement.weapons;
@@ -1181,6 +1216,53 @@ const FROZEN: Record<string, string> = {
   'state-v25-wage-arrears.json': 'b9d1f21e',
   'state-v25-warehouse-full.json': '1bc16ac7',
   'state-v25-week-scripted.json': 'cbf977c0',
+  'state-v26-caravan-escort.json': 'f80f35bc',
+  'state-v26-caravan.json': '603a7abe',
+  'state-v26-cold.json': '5c77abe8',
+  'state-v26-construction.json': '1d6dd671',
+  'state-v26-council-hidden.json': '28fb30a0',
+  'state-v26-council.json': '495db8fe',
+  'state-v26-crafts.json': 'dc8781fd',
+  'state-v26-den-cleared.json': 'd29e8bc3',
+  'state-v26-expedition-crossroads.json': '1770b58e',
+  'state-v26-expedition-returning.json': '27dbb075',
+  'state-v26-expedition.json': '7882ccb8',
+  'state-v26-famine-3x.json': '30998025',
+  'state-v26-famine-ended.json': '95a98a9f',
+  'state-v26-famine-half.json': '39712e80',
+  'state-v26-famine-resumed.json': '99a9d7fd',
+  'state-v26-famine.json': '784f6f11',
+  'state-v26-fresh.json': 'e8761912',
+  'state-v26-guild.json': '962ab645',
+  'state-v26-hero-captured.json': 'dbf580ce',
+  'state-v26-hero-injured.json': '9b7525db',
+  'state-v26-hero-promised.json': '1476b7fb',
+  'state-v26-iron-king-half.json': '13ea81cc',
+  'state-v26-market-opening.json': 'ea5f3fd3',
+  'state-v26-market.json': '69166607',
+  'state-v26-master-waiting.json': '89ead5f0',
+  'state-v26-masters.json': '9f0c2183',
+  'state-v26-migrated-3x.json': 'd3b2fa81',
+  'state-v26-migrated-iron-king-caravan.json': '428551fc',
+  'state-v26-migrated-iron-king-half.json': '9a350dcf',
+  'state-v26-migrated-peasant-3x.json': '6c82d384',
+  'state-v26-morale.json': 'b7746333',
+  'state-v26-objectives.json': '17904571',
+  'state-v26-palisade.json': '0732abc9',
+  'state-v26-peasant-3x.json': '326b3843',
+  'state-v26-queues.json': 'f06fa209',
+  'state-v26-raid-announced.json': '16d3d52e',
+  'state-v26-raid.json': 'bb3ae53f',
+  'state-v26-smithy-forging.json': 'a98515a7',
+  'state-v26-storage.json': '0a63cd85',
+  'state-v26-tavern-busy.json': 'ee2ec8b3',
+  'state-v26-tavern.json': '783e8210',
+  'state-v26-threat.json': 'c90f7392',
+  'state-v26-wage-arrears-ended.json': '33390077',
+  'state-v26-wage-arrears-resumed.json': '34f9286f',
+  'state-v26-wage-arrears.json': '5aefc2fc',
+  'state-v26-warehouse-full.json': 'c690b315',
+  'state-v26-week-scripted.json': '1b92b570',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -6246,9 +6328,9 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
     expect(broken(fresh, (state) => delete state.settlement.weapons)).not.toBeNull();
     expect(broken(fresh, (state) => (state.settlement.weapons = -1))).not.toBeNull();
     expect(broken(fresh, (state) => delete state.settlement.forge)).not.toBeNull();
-    const lot = { amount: 3, startedAtMs: 0, endsAtMs: 1000 };
+    const lot = { kind: 'weapons', amount: 3, startedAtMs: 0, endsAtMs: 1000 };
     expect(broken(fresh, (state) => (state.settlement.forge = lot))).toBe(
-      'settlement.forge: lote na forja sem Ferreiro',
+      'settlement.forge: trabalho na forja sem Ferreiro',
     );
     const built = (edit: (state: Draft) => void) =>
       broken(fresh, (state) => {
@@ -6263,7 +6345,153 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
     expect(built((state) => (state.settlement.forge.amount = 0))).not.toBeNull();
     expect(built((state) => (state.settlement.forge.endsAtMs = -5))).not.toBeNull();
     expect(built((state) => (state.settlement.forge.startedAtMs = 2000))).toBe(
-      'settlement.forge.endsAtMs: lote que termina antes de começar',
+      'settlement.forge.endsAtMs: trabalho que termina antes de começar',
     );
+  });
+});
+
+/** Um estado como a versão 26 o gravava, a partir de um da versão 27: sem condição nos itens e com o lote sem tipo. */
+function asVersion26(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 26;
+  stripRepair(old);
+  return old;
+}
+
+describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
+  const version26 = fixtures.filter((fixture) => fixture.version === 26);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(DURABILITY_V27).toEqual(
+      Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, itemRarities[id].durability])),
+    );
+    expect(ITEM_RARITY_V27).toEqual(
+      Object.fromEntries(Object.entries(items).map(([id, def]) => [id, def.rarity])),
+    );
+    expect(FORGE_BATCH_MAX_V27).toBe(balance.smithy.batchMax);
+    expect(INVENTORY_CAP_V27).toBe(balance.equipment.inventoryCap);
+  });
+
+  it('há retratos da versão 26 com item no arsenal, item equipado e lote na forja', () => {
+    const all = version26.map((fixture) => read(fixture) as Draft);
+    expect(all.some((state) => state.guild.inventory.length > 0)).toBe(true);
+    expect(
+      all.some((state) =>
+        state.guild.heroes.some((hero: Draft) =>
+          Object.values(hero.equipment).some((piece) => piece !== null),
+        ),
+      ),
+    ).toBe(true);
+    expect(all.some((state) => state.settlement.forge !== null)).toBe(true);
+  });
+
+  it.each(version26)(
+    '$name: só acrescenta a condição cheia a cada item e o tipo ao lote da forja; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.stats).toStrictEqual(before.stats);
+      expect(asVersion26(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      if (before.settlement.forge !== null) {
+        expect(after.settlement.forge?.kind).toBe('weapons');
+      }
+      const everyItem: Array<{ defId: string; condition: number }> = [];
+      const collect = (node: unknown): void => {
+        if (Array.isArray(node)) {
+          node.forEach(collect);
+        } else if (typeof node === 'object' && node !== null) {
+          const entry = node as Record<string, unknown>;
+          if (typeof entry.defId === 'string') {
+            everyItem.push(entry as { defId: string; condition: number });
+          }
+          Object.values(entry).forEach(collect);
+        }
+      };
+      collect(after.guild);
+      for (const item of everyItem) {
+        expect(item.condition, item.defId).toBe(
+          itemRarities[items[item.defId as keyof typeof items].rarity].durability,
+        );
+      }
+      // Nada acontece na fronteira: o passo não cria prazo nem evento.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(
+        atBoundary.events.filter((event) => /itemWorn|repair|itemRepaired/.test(event.type)),
+      ).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion26(heroInjuredScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda confere a condição dos itens, o tipo da forja e o reparo', () => {
+    const broken = (from: GameState, edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(from)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const injured = heroInjuredScenario();
+    expect(broken(injured, () => undefined)).toBeNull();
+    // O arsenal, o que um herói leva e o saque.
+    expect(broken(injured, (state) => delete state.guild.inventory[0].condition)).not.toBeNull();
+    expect(broken(injured, (state) => (state.guild.inventory[0].condition = -1))).not.toBeNull();
+    expect(broken(injured, (state) => (state.guild.inventory[0].condition = 1.5))).not.toBeNull();
+    expect(broken(injured, (state) => (state.guild.inventory[0].condition = 21))).toContain(
+      'condição acima da durabilidade',
+    );
+    expect(
+      broken(injured, (state) => {
+        state.guild.inventory[0].defId = 'huntingSpear';
+        state.guild.inventory[0].condition = 9;
+      }),
+    ).toContain('condição acima da durabilidade');
+    const wearer = (state: Draft): Draft =>
+      state.guild.heroes.find((hero: Draft) => hero.equipment.weapon !== null);
+    expect(
+      broken(injured, (state) => delete wearer(state).equipment.weapon.condition),
+    ).not.toBeNull();
+    // A forja: o tipo, o item e a conta dos pontos.
+    const stall = smithyStall(0, (draft) => {
+      giveItem(draft, 'ashBow');
+    });
+    const job = { kind: 'repair', points: 4, startedAtMs: 500, endsAtMs: 480_000 };
+    const repairing = (edit: (state: Draft) => void) =>
+      broken(stall, (state) => {
+        const item = state.guild.inventory.pop();
+        item.condition = 6;
+        state.settlement.forge = { ...job, item };
+        edit(state);
+      });
+    expect(repairing(() => undefined)).toBeNull();
+    expect(repairing((state) => (state.settlement.forge.kind = 'melt'))).toContain('kind');
+    expect(repairing((state) => (state.settlement.forge.points = 3))).toBe(
+      'settlement.forge.points: o reparo não devolve exatamente o que falta ao item',
+    );
+    expect(repairing((state) => delete state.settlement.forge.item.condition)).not.toBeNull();
+    expect(repairing((state) => (state.settlement.buildings.smithy = 0))).toBe(
+      'settlement.forge: trabalho na forja sem Ferreiro',
+    );
+    expect(repairing((state) => (state.settlement.forge.endsAtMs = 100))).toBe(
+      'settlement.forge.endsAtMs: trabalho que termina antes de começar',
+    );
+    expect(
+      repairing((state) => {
+        state.guild.inventory = Array.from({ length: 30 }, (_, index) => ({
+          id: `item-${index + 5}`,
+          defId: 'ashBow',
+          condition: 10,
+        }));
+        state.ids.item = 40;
+      }),
+    ).toContain('arsenal e item em reparo acima do teto');
   });
 });
