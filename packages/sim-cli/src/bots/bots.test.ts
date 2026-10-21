@@ -23,9 +23,9 @@ import {
   enviarExpedicoes,
   enviarExpedicoesOusado,
   equiparMelhor,
-  erguerFerreiro,
   erguerGuilda,
-  forjarArmas,
+  erguerQuartel,
+  treinarMinimo,
   escolherCaminho,
   escolherTodoCaminho,
   alocarPorDemandaFor,
@@ -180,11 +180,14 @@ describe('um bot é uma lista de políticas', () => {
     expect(strategyPolicies.economico).toEqual([
       erguerPalicada,
       seguirObjetivos,
+      // O Quartel (V4C-T1.8): a política mínima de guerra, antes das obras, como a Torre.
+      erguerQuartel,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
+      treinarMinimo,
       responderCartas,
       // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
@@ -201,11 +204,13 @@ describe('um bot é uma lista de políticas', () => {
     expect(strategyPolicies.preguicoso).toEqual([
       erguerPalicada,
       seguirObjetivos,
+      erguerQuartel,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
+      treinarMinimo,
       responderCartasSemGastar,
       comidaPrimeiro,
       ocuparLivres,
@@ -215,11 +220,9 @@ describe('um bot é uma lista de políticas', () => {
     // políticas da Guilda: erguer a Guilda dos Aventureiros na frente de todas as obras e de
     // novo depois das cartas (revisão da Fase D, M-R1), e contratar, dar festival, escolher o
     // caminho, equipar o melhor item (V3D-T2) e enviar expedições antes da alocação.
-    // E, desde a V4B-T2, o Ferreiro: `erguer o Ferreiro` (inerte até o Quartel) e `forjar armas`.
+    // O Ferreiro e a forja são do `militar` (V4C-T1.8), não do explorador.
     const guildBot = (choose: Policy, send: Policy) => [
       erguerGuilda,
-      erguerFerreiro,
-      forjarArmas,
       ...strategyPolicies.economico.flatMap((policy) =>
         policy === responderCartas
           ? [policy, erguerGuilda]
@@ -239,6 +242,7 @@ describe('um bot é uma lista de políticas', () => {
       'explorador',
       'ousado',
       'especulador',
+      'militar',
     ]);
     // O especulador (revisão da Fase E, R6) é o econômico que, em vez de mandar o excedente e
     // de vendê-lo, compra no balcão para revender por caravana.

@@ -66,7 +66,7 @@ const twoSessions = await simulate({
 });
 
 const HEADER =
-  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,' +
+  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,soldiers,soldiers_by_unit,training_batches,army_food,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,iron_per_hour,' +
   'villagers,capacity,free,in_training,' +
   'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,barracks,' +

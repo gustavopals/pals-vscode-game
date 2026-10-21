@@ -1,4 +1,4 @@
-import { balance } from '@lotg/content';
+import { balance, UNIT_IDS, type UnitId } from '@lotg/content';
 import {
   advanceTo,
   applyCommand,
@@ -80,6 +80,12 @@ export type HourRow = {
   stock: Record<ResourceId, number>;
   /** As armas forjadas até esta hora (V4B-T2): uma contagem, fora do estoque dos recursos. */
   weapons: number;
+  /** Os soldados treinados (V4C-T1.8), somados e por unidade, e os lotes já começados. */
+  soldiers: number;
+  soldiersByUnit: Partial<Record<UnitId, number>>;
+  trainingBatches: number;
+  /** A comida que os soldados comem por hora real, em unidades. */
+  armyFood: number;
   perHour: Record<ResourceId, number>;
   villagers: number;
   capacity: number;
@@ -527,6 +533,7 @@ function rowAt(
   guild: GuildCounts,
   expeditions: ExpeditionCounts,
   market: MarketCounts,
+  trainingBatches: number,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -539,6 +546,14 @@ function rowAt(
     dayOfSeason: view.calendar.dayOfSeason,
     stock: byResource((row) => row.stock),
     weapons: view.smithy.weapons,
+    soldiers: view.army.total,
+    soldiersByUnit: Object.fromEntries(
+      UNIT_IDS.filter((id) => state.army.units[id] > 0).map((id) => [id, state.army.units[id]]),
+    ),
+    trainingBatches,
+    armyFood:
+      (view.army.total * balance.army.foodPerSoldierPerHour.num * timeScale) /
+      balance.army.foodPerSoldierPerHour.den,
     perHour: byResource((row) => row.perHour),
     villagers: view.population.villagers,
     capacity: view.population.capacity,
@@ -748,6 +763,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
         guild,
         expeditions,
         market,
+        events.filter((event) => event.type === 'trainingStarted').length,
       ),
     );
   }

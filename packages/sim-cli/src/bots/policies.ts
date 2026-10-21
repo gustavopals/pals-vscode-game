@@ -168,7 +168,7 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
     view.market.building,
     // O Ferreiro (V4B-T2.6) só entra depois do Quartel: `erguer o Ferreiro`.
     view.smithy.building,
-    // O Quartel (V4C-T1) fica fora da corrida até o bot `militar` (V4C-T1.8): nenhum bot o ergue.
+    // O Quartel (V4C-T1) tem política própria (`erguer o Quartel`, V4C-T1.8): fora da corrida.
     view.army.building,
   ]);
 }
@@ -576,14 +576,13 @@ export const erguerGuilda: Policy = {
 };
 
 /**
- * Ergue o Ferreiro (V4B-T2.6) quando o Quartel já está de pé (`army.built`). Hoje fica inerte:
- * nenhum bot ergue o Quartel até o `militar` (V4C-T1.8). Se a obra não pode começar agora, fica planejada como automática.
+ * Ergue o Ferreiro (V4B-T2.6) quando o Quartel já está de pé (`army.built`). Só o `militar`
+ * (V4C-T1.8) a tem na lista. Se a obra não pode começar agora, fica planejada como automática.
  */
 export const erguerFerreiro: Policy = {
   name: 'erguer o Ferreiro',
   run: async (view, act) => {
     const upgrade = view.constructions.available.find((entry) => entry.building === 'smithy');
-    // O Quartel de pé (V4C-T1): nenhum bot o ergue ainda, e por isso a política segue inerte.
     if (upgrade === undefined || !view.army.built || !keepsFirewood(view, upgrade)) {
       return view;
     }
@@ -2088,3 +2087,97 @@ export const guardarLenha: Policy = {
     });
   },
 };
+
+type UnitId = ViewState['army']['units'][number]['id'];
+
+/** A folga que o bot exige para erguer o Quartel: o custo inteiro de cada recurso em estoque. */
+const BARRACKS_SPEND_SHARE = 1;
+/** O Quartel só vale a obra com gente: abaixo disso cada braço rende mais que um soldado. */
+const BARRACKS_MIN_VILLAGERS = 12;
+/** O exército de uma partida do bot nunca passa de um quarto dos aldeões. */
+const ARMY_SHARE_OF_VILLAGERS = 4;
+/** Comida guardada por soldado a mais, em horas reais do consumo dele, além da reserva. */
+const ARMY_FOOD_HOURS = 6;
+
+/**
+ * Ergue o Quartel (V4C-T1.8; decisão 25 do ADR 0019) uma vez: sem fome, com gente bastante e o
+ * estoque pagando o dobro do custo. Nível 1 só; o bot não o melhora. Vem antes das obras, como a
+ * Torre: com a folga como trava, a fila fica com a obra que rende enquanto o estoque é curto.
+ */
+export const erguerQuartel: Policy = {
+  name: 'erguer o Quartel',
+  run: async (view, act) => {
+    const upgrade = view.constructions.available.find((entry) => entry.building === 'barracks');
+    if (
+      upgrade === undefined ||
+      view.army.built ||
+      upgrade.blockedCode !== null ||
+      view.famine !== null ||
+      view.population.villagers < BARRACKS_MIN_VILLAGERS ||
+      !keepsFirewood(view, upgrade)
+    ) {
+      return view;
+    }
+    const slack = upgrade.cost.every(
+      (cost) => stockOf(view, cost.resource) >= BARRACKS_SPEND_SHARE * cost.amount,
+    );
+    return slack ? act('startConstruction', { building: 'barracks' }) : view;
+  },
+};
+
+/**
+ * Política mínima de guerra (V4C-T1.8; decisão 25): com o Quartel de pé e sem lote em treino,
+ * treina o que sobra. Escolhe, entre `units`, a de que o exército tem menos (desempate pela
+ * ordem da lista) e põe um lote que o estoque paga, nunca mais que um terço do que ele aguenta,
+ * e que respeita três coisas: sem fome, o exército abaixo de um quarto dos aldeões e a comida
+ * dos soldados novos coberta pelo saldo positivo da comida (uma folga de
+ * `ARMY_FOOD_HOURS` horas reais de consumo em estoque, além da reserva do recrutamento). Lê só a
+ * visão: a comida que um soldado come por hora vem de `army.units[].foodPerHour`.
+ * Formação ativa e Plano ainda não existem (V4C-T2): o bot só treina.
+ */
+export function treinarSoldados(units: readonly UnitId[]): Policy {
+  return {
+    name: 'treinar soldados',
+    run: async (view, act) => {
+      const { army } = view;
+      if (
+        !army.built ||
+        army.training !== null ||
+        view.famine !== null ||
+        army.total * ARMY_SHARE_OF_VILLAGERS >= view.population.villagers
+      ) {
+        return view;
+      }
+      const eats = Number.parseFloat(army.units[0]?.foodPerHour.replace(',', '.') ?? '0');
+      const food = view.resources.find((row) => row.id === 'food');
+      if (food === undefined || !(eats > 0)) {
+        return view;
+      }
+      const candidates = units
+        .map((id) => ({
+          id,
+          count: army.units.find((entry) => entry.id === id)?.count ?? 0,
+          max: army.offer.find((entry) => entry.unit === id)?.maxAmount ?? 0,
+        }))
+        .filter((entry) => entry.max > 0);
+      const [pick] = candidates.sort((a, b) => a.count - b.count);
+      if (pick === undefined) {
+        return view;
+      }
+      const room = Math.floor(view.population.villagers / ARMY_SHARE_OF_VILLAGERS) - army.total;
+      const byBalance = Math.floor(Math.max(0, food.perHour) / eats);
+      const byStock = Math.floor((food.stock - 2 * FOOD_RESERVE) / (eats * ARMY_FOOD_HOURS));
+      const amount = Math.min(
+        Math.max(1, Math.floor(pick.max / 3)),
+        army.offer[0]?.batchMax ?? pick.max,
+        room,
+        byBalance,
+        byStock,
+      );
+      return amount >= 1 ? act('trainSoldiers', { unit: pick.id, amount }) : view;
+    },
+  };
+}
+
+/** A política mínima de guerra dos bots da rodada padrão: Lanceiros e Arqueiros. */
+export const treinarMinimo: Policy = treinarSoldados(['spearman', 'archer']);

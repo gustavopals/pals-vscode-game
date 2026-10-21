@@ -1,6 +1,7 @@
 import { economico, economicoFor, economicoPolicies } from './economico';
 import { especulador, especuladorFor, especuladorPolicies } from './especulador';
 import { explorador, exploradorFor, exploradorPolicies } from './explorador';
+import { militar, militarFor, militarPolicies } from './militar';
 import { ousado, ousadoFor, ousadoPolicies } from './ousado';
 import { preguicoso, preguicosoPolicies } from './preguicoso';
 import type { Bot, Policy } from './types';
@@ -12,6 +13,7 @@ export const strategies = {
   explorador,
   ousado,
   especulador,
+  militar,
 } satisfies Record<string, Bot>;
 export type StrategyName = keyof typeof strategies;
 
@@ -22,6 +24,7 @@ export const strategyPolicies: Record<StrategyName, readonly Policy[]> = {
   explorador: exploradorPolicies,
   ousado: ousadoPolicies,
   especulador: especuladorPolicies,
+  militar: militarPolicies,
 };
 
 const HOURS_PER_DAY = 24;
@@ -32,6 +35,7 @@ const awayAware: Partial<Record<StrategyName, (awayHours: number) => Bot>> = {
   explorador: exploradorFor,
   ousado: ousadoFor,
   especulador: especuladorFor,
+  militar: militarFor,
 };
 
 /**
