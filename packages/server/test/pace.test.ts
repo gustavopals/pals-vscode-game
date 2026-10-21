@@ -469,6 +469,13 @@ function withoutRateTexts(view: ViewState): ViewState {
         entry.building === 'watchtower' ? { ...entry, effect: '' } : entry,
       ),
     },
+    // A comida de cada soldado sai por hora real (1,5 por hora de jogo): o número é conferido
+    // em `army.test.ts`, no motor.
+    army: {
+      ...view.army,
+      foodText: '',
+      units: view.army.units.map((unit) => ({ ...unit, foodPerHour: '' })),
+    },
     // A frase do festival diz em tempo real quanto dura a moral dele (um dia de jogo): os
     // números são conferidos; a frase, por extenso em `tavern.test.ts`, no motor.
     tavern: { ...view.tavern, festival: { ...view.tavern.festival, effectText: '' } },

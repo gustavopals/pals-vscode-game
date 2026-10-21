@@ -507,6 +507,7 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
       guild: 0,
       market: 0,
       smithy: 0,
+      barracks: 0,
     });
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
     // Nada do Conselho mudou na fronteira: a promessa só existe para quem a fizer.
