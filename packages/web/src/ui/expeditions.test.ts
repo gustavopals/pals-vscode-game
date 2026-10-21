@@ -312,7 +312,7 @@ describe('o equipamento e o arsenal', () => {
   it('um espaço em uma linha: o item com o que ele soma, na frase do servidor, ou vazio', () => {
     const rolf = guildOf(heroInjuredView).heroes.find((hero) => hero.name === 'Rolf');
     expect(rolf?.equipment.map(slotLine)).toEqual([
-      expect.stringMatching(/^Arma: Arco de freixo \(.+\)$/),
+      expect.stringMatching(/^Arma: Arco de freixo \(.+\) · .+$/),
       'Armadura: vazio',
       'Acessório: vazio',
     ]);

@@ -61,24 +61,31 @@ function Running(props: {
     <div class="banner smithy-running" data-testid="smithy-running" aria-busy={props.busy}>
       <div id="smithy-running-terms">
         <p>
-          <Icon name="flame" /> <strong>Forjando {formatNumber(forge.amount)}</strong> ·{' '}
+          <Icon name="flame" />{' '}
+          <strong>
+            {forge.kind === 'repair' ? forge.label : `Forjando ${formatNumber(forge.amount)}`}
+          </strong>{' '}
+          ·{' '}
           <span class="num" data-testid="smithy-ends">
             {forgeEndsLine(forge, props.elapsed)}
           </span>
         </p>
-        <p class="muted">
-          O lote leva {formatDuration(forge.totalSeconds)} ao todo. {forge.refundText}
+        <p class="muted" data-testid="smithy-refund">
+          {forge.kind === 'repair' ? 'O reparo' : 'O lote'} leva{' '}
+          {formatDuration(forge.totalSeconds)} ao todo. {forge.refundText}
         </p>
       </div>
-      <button
-        type="button"
-        data-testid="smithy-cancel"
-        disabled={props.disabled || props.busy}
-        aria-describedby="smithy-running-terms"
-        onClick={() => props.actions.run('lords.cancelForge', { confirmed: true })}
-      >
-        {forge.cancelLabel}
-      </button>
+      {forge.cancelable ? (
+        <button
+          type="button"
+          data-testid="smithy-cancel"
+          disabled={props.disabled || props.busy}
+          aria-describedby="smithy-running-terms"
+          onClick={() => props.actions.run('lords.cancelForge', { confirmed: true })}
+        >
+          {forge.cancelLabel}
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -1775,6 +1775,14 @@ export class Controller {
   }
 
   /**
+   * Manda o Ferreiro refazer um item do arsenal. A trava é a da forja, a mesma do lote de armas:
+   * a fila é uma só, e o reparo não se cancela.
+   */
+  repairItem(itemId: string): Promise<boolean> {
+    return this.guildOrder('forge', 'repairItem', { itemId }, 'ao Ferreiro');
+  }
+
+  /**
    * O relatório de expedição que o jogador pediu para ver (a linha da Crônica, o aviso da volta):
    * a aba Guilda o mostra aberto. Não é estado do jogo: só diz à aba qual folha abrir.
    */

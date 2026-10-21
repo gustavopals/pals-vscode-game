@@ -133,4 +133,15 @@ describe('o Mercado, as caravanas e os Mestres', () => {
       intentOf('trade', { resource: 'iron', direction: 'buy', amount: 3, quoteDay: 0 }),
     );
   });
+
+  it('o reparo entra na família da forja: a fila é uma só, e as retentativas se aposentam', () => {
+    expect(intentOf('repairItem', { itemId: 'item-1' })).toBe(
+      intentOf('forgeWeapons', { amount: 3 }),
+    );
+    expect(intentOf('repairItem', { itemId: 'item-1' })).toBe(intentOf('cancelForge', {}));
+    // Dois itens diferentes disputam a mesma fila: o item não é alvo próprio.
+    expect(intentsOf('repairItem', { itemId: 'item-1' })).toEqual(
+      intentsOf('repairItem', { itemId: 'item-2' }),
+    );
+  });
 });

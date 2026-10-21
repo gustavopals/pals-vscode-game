@@ -751,6 +751,33 @@ function forgeItem(view: ViewState): LeavingItem | null {
 }
 
 /**
+ * Um item equipado que chegou a 0 (sem bônus), com o Ferreiro livre: o botão abre a lista do
+ * reparo (o item na mão do herói é travado pela visão e a frase diz para devolvê-lo ao arsenal).
+ */
+function wornItem(view: ViewState): LeavingItem | null {
+  const { smithy } = view;
+  if (!smithy.built || smithy.forge !== null) {
+    return null;
+  }
+  const worn = smithy.repairOffer.items.filter(
+    (entry) => entry.heroName !== null && entry.condition === 0,
+  );
+  const first = worn[0];
+  if (first === undefined) {
+    return null;
+  }
+  return {
+    id: 'worn',
+    severity: 'info',
+    text:
+      worn.length === 1
+        ? `${first.label}, de ${first.heroName}, está sem bônus até o Ferreiro refazê-lo.`
+        : `${worn.length} itens equipados estão sem bônus até o Ferreiro os refazer.`,
+    command: { id: 'lords.repairItem', label: 'Reparar…' },
+  };
+}
+
+/**
  * O ferro parado: há ferro no estoque e nada o gasta (sem Ferreiro de pé), ou o depósito já o
  * perde. O excedente vendável é o da visão (`surplusSellable`); o botão leva ao balcão do
  * Mercado, onde a venda é conferida com o total.
@@ -805,6 +832,7 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     idleItem(view),
     ironItem(view),
     forgeItem(view),
+    wornItem(view),
     mastersItem(view),
     mastersWaitingItem(view),
     caravanItem(view),

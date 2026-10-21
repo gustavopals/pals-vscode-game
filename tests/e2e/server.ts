@@ -313,7 +313,7 @@ control.post('/__test/hero', async (request) => {
  * os do motor.
  */
 control.post('/__test/item', async (request) => {
-  const { defId } = request.body as { defId: string };
+  const { defId, condition } = request.body as { defId: string; condition?: number };
   type Stored = { ids: Record<string, number>; guild: { inventory: unknown[] } };
   const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
   for (const game of games.rows) {
@@ -325,7 +325,8 @@ control.post('/__test/item', async (request) => {
     state.guild.inventory.push({
       id: `item-${number}`,
       defId,
-      condition: itemRarities[def.rarity].durability,
+      // `condition` põe um item já gasto no arsenal (0 = sem bônus), para os cenários do reparo.
+      condition: condition ?? itemRarities[def.rarity].durability,
     });
     await pool.query('update games set state = $2::jsonb where id = $1', [
       game.id,

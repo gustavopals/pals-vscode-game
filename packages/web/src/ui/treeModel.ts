@@ -637,11 +637,21 @@ function smithyNode(view: ViewState, elapsedSeconds: number): TreeNode {
     command: { id: 'lords.openPanel', args: [SMITHY_SECTION] },
     ...(smithy.built
       ? {
-          contextValue: smithy.forge === null ? 'lords.smithy' : 'lords.smithyForging',
+          // Com um reparo na fila a linha não tem botão: ele não se cancela (a dica diz por quê).
+          contextValue:
+            smithy.forge === null
+              ? smithy.repairOffer.items.length === 0
+                ? 'lords.smithy'
+                : 'lords.smithyWorn'
+              : smithy.forge.cancelable
+                ? 'lords.smithyForging'
+                : 'lords.smithyRepairing',
           actionHints:
             smithy.forge === null
               ? { 'lords.forgeWeapons': smithy.offer.costText }
-              : { 'lords.cancelForge': smithy.forge.refundText },
+              : smithy.forge.cancelable
+                ? { 'lords.cancelForge': smithy.forge.refundText }
+                : {},
         }
       : {}),
   };

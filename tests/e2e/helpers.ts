@@ -92,7 +92,7 @@ export type World = {
    */
   captive(name: string): Promise<void>;
   /** Põe um item do conteúdo no arsenal do feudo (`/__test/item`), pelo nome interno dele. */
-  item(defId: string): Promise<void>;
+  item(defId: string, condition?: number): Promise<void>;
   /**
    * Põe o estoque de um recurso de todos os feudos em um valor, em unidades (`/__test/stock`):
    * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
@@ -212,8 +212,8 @@ export const test = base.extend<{ world: World }>({
           const result = (await control('captive', { name })) as { placed: number };
           expect(result.placed, `${name} em cativeiro`).toBeGreaterThan(0);
         },
-        item: async (defId) => {
-          await control('item', { defId });
+        item: async (defId, condition) => {
+          await control('item', { defId, condition });
         },
         master: async (masterId = 'odo') => {
           await control('master', { masterId });
