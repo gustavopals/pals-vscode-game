@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
+import { housingCapacity } from './population';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
@@ -518,6 +519,37 @@ const scenarios: Record<string, () => GameState> = {
       ],
     ).state,
 
+  // As casas cheias (V4C-T1.1; os soldados mudam as contas de quem mora e de quem come): o Salão
+  // no nível 4, o povo igual à capacidade habitacional, a Fazenda e o Ferreiro de pé e o ferro
+  // no estoque, no meio de um trecho de produção. É o feudo que o Quartel vai encontrar.
+  'housing-full': () => {
+    const start = createInitialState('fixture-housing-full', settings);
+    start.settlement.buildings.townHall = 4;
+    start.settlement.buildings.smithy = 1;
+    start.settlement.buildings.farm = 2;
+    start.settlement.resources.iron = 30_000;
+    start.settlement.population.villagers = housingCapacity(start);
+    return play(start, [
+      command('setWorkers', { building: 'farm', count: 6 }),
+      command('setWorkers', { building: 'lumberMill', count: 2 }),
+      { at: 5 * HOUR + 12 * MINUTE + 777 },
+    ]).state;
+  },
+
+  // A fome aberta com o Salão no nível 4 e o Ferreiro (V4C-T1.1): o feudo que treinaria soldados
+  // sem ter com o que os alimentar. Gente acima do piso, a despensa vazia, as casas cheias.
+  'famine-smithy': () => {
+    const start = createInitialState('fixture-famine-smithy', { ...settings, timeScale: 3 });
+    start.settlement.buildings.townHall = 4;
+    start.settlement.buildings.smithy = 1;
+    start.settlement.population.villagers = housingCapacity(start);
+    start.settlement.resources.food = 15_000;
+    return play(start, [
+      command('setWorkers', { building: 'lumberMill', count: 3 }),
+      { at: 9 * HOUR + 20 * MINUTE + 321 },
+    ]).state;
+  },
+
   // O Armazém no limite da madeira e da pedra (V4B-T1.1, antes do ferro dividir o Armazém):
   // erguido no nível 1, com os lenhadores e os canteiros enchendo os dois estoques e o que não
   // cabe já contado como desperdício, no meio de um trecho de produção.
@@ -579,6 +611,13 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       Object.values(of('construction').settlement.accumulators).some((rest) => rest !== 0),
     ).toBe(true);
     expect(of('famine').settlement.famine).not.toBeNull();
+    // V4C-T1.1: as casas cheias e a fome aberta com o Ferreiro de pé.
+    expect(of('housing-full').settlement.population.villagers).toBeGreaterThanOrEqual(
+      housingCapacity(of('housing-full')) - 1,
+    );
+    expect(of('housing-full').settlement.buildings.townHall).toBe(4);
+    expect(of('famine-smithy').settlement.famine).not.toBeNull();
+    expect(of('famine-smithy').settlement.population.villagers).toBeGreaterThan(3);
     expect(of('famine').settlement.recruitmentQueue.length).toBeGreaterThan(0);
     // A fome longa nos outros dois ritmos, com gente acima do piso; a fome retomada, com a
     // duração e os desertores que trazia; e a fome que acabou há pouco, com o registro dela.
