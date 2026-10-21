@@ -1,11 +1,80 @@
 import type { ViewState } from '@lotg/protocol';
+import { useState } from 'preact/hooks';
 
 import { armableHeroes, ARSENAL_ANCHOR, type Item, ITEM_ICON, itemLine } from '../ui/expeditions';
+import { repairLine, type RepairOffer } from '../ui/smithy';
 import type { Actions } from './actions';
-import { Icon } from './shared';
+import { focusOnMount, Icon } from './shared';
 
 /** O `id` da linha que diz por que ninguém pode ser equipado agora. */
 const NOBODY = 'arsenal-nobody';
+
+/**
+ * "Reparar…" em duas etapas, como a forja: "Revisar o reparo" mostra o custo e o prazo da visão,
+ * e a ordem só nasce em "Confirmar". O reparo ocupa a forja (uma fila só) e não se cancela. Travado
+ * (a forja ocupada, sem ferro, sem Ferreiro), o botão fica desabilitado e a frase da visão diz por quê.
+ */
+function RepairControl(props: {
+  item: Item;
+  repair: RepairOffer;
+  disabled: boolean;
+  actions: Actions;
+}) {
+  const { item, repair } = props;
+  const [reviewing, setReviewing] = useState(false);
+  const why = `repair-${item.id.replace(/[^A-Za-z0-9_-]/g, '-')}-why`;
+  const open = reviewing && repair.canRepair;
+  return (
+    <>
+      {open ? (
+        <div
+          class="banner trade-review"
+          role="group"
+          aria-label={`Confirme o reparo de ${item.label}`}
+          data-testid="repair-confirm"
+        >
+          <p id={`${why}-text`}>
+            <strong>{repairLine(repair)}.</strong>{' '}
+            <span class="muted">O ferro é cobrado agora; um reparo não se cancela.</span>
+          </p>
+          <div class="trade-review-actions">
+            <button
+              type="button"
+              data-testid="repair-confirm-button"
+              ref={focusOnMount}
+              aria-describedby={`${why}-text`}
+              disabled={props.disabled}
+              onClick={() => {
+                props.actions.run('lords.repairItem', { itemId: item.id, confirmed: true });
+                setReviewing(false);
+              }}
+            >
+              Confirmar
+            </button>
+            <button type="button" onClick={() => setReviewing(false)}>
+              Voltar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          data-testid="repair-review"
+          disabled={props.disabled || !repair.canRepair}
+          aria-describedby={repair.canRepair ? undefined : why}
+          onClick={() => setReviewing(true)}
+        >
+          Reparar…<span class="sr-only"> {item.label}</span>
+        </button>
+      )}
+      {repair.canRepair ? null : (
+        <p id={why} class="blocked">
+          <Icon name="lock" /> {repair.blockedReason}
+        </p>
+      )}
+    </>
+  );
+}
 
 /**
  * Um item sem dono (GDD §9.1): o nome, o espaço e a raridade em uma linha; embaixo, o que ele
@@ -17,6 +86,8 @@ function ArsenalItem(props: {
   disabled: boolean;
   /** O `id` do motivo que trava o botão, quando há um à vista no painel. */
   why: string | null;
+  nobody: boolean;
+  repair: RepairOffer | undefined;
   actions: Actions;
 }) {
   const { item } = props;
@@ -29,15 +100,26 @@ function ArsenalItem(props: {
       <p id={about} class="hero-sheet muted">
         {item.bonusText}. {item.text}
       </p>
+      <p class="hero-sheet muted" data-testid="item-condition">
+        <Icon name={item.worn ? 'warning' : 'tools'} /> {item.conditionText}
+      </p>
       <div class="hero-actions">
         <button
           type="button"
-          disabled={props.disabled}
+          disabled={props.disabled || props.nobody}
           aria-describedby={props.why === null ? about : `${about} ${props.why}`}
           onClick={() => props.actions.run('lords.equipItem', { itemId: item.id })}
         >
           Equipar<span class="sr-only"> {item.label}</span>
         </button>
+        {props.repair === undefined ? null : (
+          <RepairControl
+            item={item}
+            repair={props.repair}
+            disabled={props.disabled}
+            actions={props.actions}
+          />
+        )}
       </div>
     </li>
   );
@@ -76,8 +158,10 @@ export function ArsenalPanel(props: { view: ViewState; disabled: boolean; action
             <ArsenalItem
               key={item.id}
               item={item}
-              disabled={props.disabled || nobody}
+              disabled={props.disabled}
+              nobody={nobody}
               why={nobody ? NOBODY : null}
+              repair={props.view.smithy.repairOffer.items.find((entry) => entry.itemId === item.id)}
               actions={props.actions}
             />
           ))}

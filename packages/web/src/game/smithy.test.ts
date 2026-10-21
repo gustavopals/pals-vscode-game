@@ -110,22 +110,22 @@ describe('o Ferreiro na árvore (V4B-T4.4)', () => {
   });
 });
 
-describe('os avisos do Ferreiro (V4B-T4.4)', () => {
-  const now = Date.parse('2026-10-01T12:00:00.000Z');
-  const input = (overrides: Partial<PolicyInput>): PolicyInput => ({
-    events: [],
-    level: 'essential',
-    discreetMode: false,
-    mutedUntil: null,
-    now,
-    history: [],
-    ...overrides,
-  });
-  const shown = (level: PolicyInput['level'], types: GameEvent['type'][]) =>
-    decideNotifications(
-      input({ level, events: types.map((type) => event(type, `${type}.`)) }),
-    ).show.map((entry) => entry.type);
+const now = Date.parse('2026-10-01T12:00:00.000Z');
+const input = (overrides: Partial<PolicyInput>): PolicyInput => ({
+  events: [],
+  level: 'essential',
+  discreetMode: false,
+  mutedUntil: null,
+  now,
+  history: [],
+  ...overrides,
+});
+const shown = (level: PolicyInput['level'], types: GameEvent['type'][]) =>
+  decideNotifications(
+    input({ level, events: types.map((type) => event(type, `${type}.`)) }),
+  ).show.map((entry) => entry.type);
 
+describe('os avisos do Ferreiro (V4B-T4.4)', () => {
   it('`weaponsForged` só entra em "Todas"; o envio e o cancelamento são ordens do jogador e nunca avisam', () => {
     expect(shown('essential', ['weaponsForged'])).toEqual([]);
     expect(shown('all', ['weaponsForged'])).toEqual(['weaponsForged']);
@@ -215,5 +215,97 @@ describe('o ciclo de leitura e o fim da forja (V4B-T4.3)', () => {
     expect(guildDeadlines(smithyForgingView)).toContain(forge?.endsInSeconds);
     expect(forgeDeadline(smithyIdleView.smithy)).toBeNull();
     expect(guildDeadlines(smithyIdleView)).not.toContain(null);
+  });
+});
+
+describe('o reparo no Ferreiro (V4B-T4.3 e T4.4)', () => {
+  const repairItem = (over: Partial<ViewState['smithy']['repairOffer']['items'][number]> = {}) => ({
+    itemId: 'item-1',
+    label: 'Lança de caça',
+    rarityLabel: 'Comum',
+    condition: 0,
+    durability: 8,
+    points: 8,
+    ironCost: 8,
+    costText: '8 de ferro',
+    seconds: 960,
+    heroName: null,
+    canRepair: true,
+    blockedReason: null,
+    ...over,
+  });
+  const withRepairs = (
+    items: ReturnType<typeof repairItem>[],
+    forge: ViewState['smithy']['forge'] = null,
+  ): ViewState => ({
+    ...smithyIdleView,
+    smithy: { ...smithyIdleView.smithy, forge, repairOffer: { items } },
+  });
+  const repairing: NonNullable<ViewState['smithy']['forge']> = {
+    kind: 'repair',
+    amount: 8,
+    label: 'Reparo de Lança de caça: 8 pontos',
+    endsInSeconds: 600,
+    totalSeconds: 960,
+    cancelable: false,
+    refundText: 'Um reparo não se cancela: espere o item voltar.',
+    cancelLabel: '',
+  };
+
+  it('a linha da árvore diz quando há item a reparar e, no reparo, não tem botão de cancelar', () => {
+    const idle = find(tree(withRepairs([repairItem()])), 'smithy');
+    expect(idle?.description).toContain('1 item a reparar');
+    expect(rowActions(idle as TreeNode).map((action) => action.command)).toEqual([
+      'lords.forgeWeapons',
+      'lords.repairItem',
+    ]);
+    const busy = find(tree(withRepairs([], repairing)), 'smithy');
+    expect(busy?.description).toContain('reparo de Lança de caça');
+    expect(busy?.description).toContain('termina em');
+    expect(rowActions(busy as TreeNode)).toEqual([]);
+  });
+
+  it('o fim do reparo entra no ciclo de leitura', () => {
+    expect(forgeDeadline(withRepairs([], repairing).smithy)).toBe(600);
+  });
+
+  it('itemRepaired vai em "o feudo prosperou" e itemWorn em "custou", com "Reparar…"', () => {
+    const view = withRepairs([repairItem({ heroName: 'Rolf' })]);
+    const built = buildReturnReport(
+      view,
+      view,
+      [
+        event('itemRepaired', 'O ferreiro devolveu a lança.', { itemId: 'item-2', points: 4 }),
+        event('itemWorn', 'A lança se gastou.', { itemId: 'item-1', heroId: 'hero-1' }),
+      ],
+      6 * 3_600_000,
+    );
+    expect(built.blocks?.prospered.map((entry) => entry.text)).toContain(
+      'O ferreiro devolveu a lança.',
+    );
+    const cost = built.blocks?.cost.find((entry) => entry.text === 'A lança se gastou.');
+    expect(cost?.action).toMatchObject({ command: 'lords.repairItem', label: 'Reparar…' });
+  });
+
+  it('os dois eventos são avisos do Ferreiro e só aparecem em "Todas"', () => {
+    expect(isSmithyEvent(event('itemRepaired', 'x'))).toBe(true);
+    expect(isSmithyEvent(event('itemWorn', 'x'))).toBe(true);
+    expect(shown('essential', ['itemRepaired', 'itemWorn'])).toEqual([]);
+    expect(shown('all', ['itemRepaired', 'itemWorn'])).toEqual(['itemRepaired', 'itemWorn']);
+  });
+
+  it('"Antes de partir" oferece "Reparar…" ao item equipado em 0, com o Ferreiro livre', () => {
+    const worn = withRepairs([
+      repairItem({ heroName: 'Rolf', canRepair: false, blockedReason: 'Devolva-o.' }),
+    ]);
+    expect(leavingItems(worn).find((entry) => entry.id === 'worn')?.command).toEqual({
+      id: 'lords.repairItem',
+      label: 'Reparar…',
+    });
+    const busy = withRepairs([repairItem({ heroName: 'Rolf' })], repairing);
+    expect(leavingItems(busy).some((entry) => entry.id === 'worn')).toBe(false);
+    expect(leavingItems(withRepairs([repairItem()])).some((entry) => entry.id === 'worn')).toBe(
+      false,
+    );
   });
 });

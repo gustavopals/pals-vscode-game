@@ -167,6 +167,15 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - Enquanto isso: a tela só mostra o que a oferta de caravana da visão traz; o ferro não vem nela (decisão 3 do ADR 0019). A tabela, o formulário e o atalho "Vender até N" do depósito tratam o ferro como os outros recursos, pelos campos de `market.prices` e de `resources`.
 
+**B-26. "Reparar…" só existe no Arsenal; o item equipado aparece na lista da paleta, travado.** _(Decisão do agente.)_
+
+- A visão só deixa reparar o item no arsenal (o item na mão de um herói vem com `canRepair: false` e o `blockedReason` da visão). Por isso o botão "Reparar…" está na ficha do item do Arsenal, em duas etapas (Revisar, Confirmar), e a ficha do herói só mostra a condição (`conditionText`). A lista de `lords.repairItem` (paleta, árvore, Retorno, "Antes de partir") mostra todos os itens de `repairOffer`, os travados com cadeado e o motivo da visão; escolher um travado não envia nada e mostra o motivo.
+- "Antes de partir" lembra o item equipado em 0 com o Ferreiro livre (tópico `worn`); a ação leva à lista, onde a frase da visão diz para devolvê-lo ao arsenal. Se o autor preferir "Desequipar e reparar" em um clique, é ordem nova.
+
+**B-27. O aviso de `itemRepaired` e `itemWorn` é só em "Todas"; o reparo em curso não tem botão de cancelar.** _(Decisão do agente.)_
+
+- `itemWorn` poderia ser "Essenciais" (o herói perdeu o bônus). Ficou em "Todas", como `weaponsForged`, e o Retorno o põe em "O que exigiu um preço", com "Reparar…". A linha do Ferreiro na árvore fica sem botão enquanto repara (a dica diz que o reparo não se cancela). A frase "não dá bônus" é a da visão; a tela não diz "sem bônus" com palavras próprias.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

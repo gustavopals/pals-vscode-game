@@ -140,6 +140,9 @@ export function costAction(
     // O ferido se recupera sozinho, e a equipe perdida não volta: a Guilda diz quem pode partir.
     return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
   }
+  if (topic === 'worn') {
+    return { command: 'lords.repairItem', label: 'Reparar…' };
+  }
   if (topic === 'caravan') {
     // A estrada: quem foi emboscado sem escolta aprende com a próxima; quem chegou inteiro vê as
     // caravanas para mandar outra.
@@ -337,7 +340,12 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // O lote do Ferreiro que ficou pronto: a arma é o feudo trabalhando sem o senhor. O envio e o
     // cancelamento são ordens do jogador e ficam na Crônica.
     case 'weaponsForged':
+    case 'itemRepaired':
       return { block: 'prospered', topic: 'smithy' };
+    // O item que se gastou de vez na estrada não dá bônus até o Ferreiro refazê-lo: é preço, e a
+    // próxima ação é "Reparar…".
+    case 'itemWorn':
+      return { block: 'cost', topic: 'worn' };
     // Quem chegou pela porta com vaga trabalha; o que espera uma vaga está em "Antes de partir".
     case 'masterArrived':
       return { block: 'prospered', topic: 'master' };

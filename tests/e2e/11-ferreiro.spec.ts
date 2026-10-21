@@ -272,6 +272,92 @@ test.describe('o painel do Ferreiro (V4B-T4.3)', () => {
   });
 });
 
+test.describe('o reparo (V4B-T4.3 e T4.5)', () => {
+  const guildPanel = (page: Page) => page.getByRole('tabpanel', { name: 'Guilda' });
+  const arsenal = (page: Page) => guildPanel(page).getByRole('region', { name: 'Arsenal' });
+
+  /** O Ferreiro de pé com ferro, e uma lança no arsenal já gasta (condição 0). */
+  async function wornSpear(world: World, page: Page) {
+    await openSmithy(world, page);
+    await world.item('huntingSpear', 0);
+    await world.passTime(MINUTE, page);
+    await page.getByRole('tab', { name: 'Guilda' }).click();
+    await expect(arsenal(page)).toBeVisible();
+  }
+
+  test('o item em 0 mostra que não dá bônus, na frase da visão', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await wornSpear(world, page);
+    const view = await serverView(page, request);
+    const [item] = view.guild.inventory;
+    expect(item?.worn).toBe(true);
+    expect(item?.conditionText).toMatch(/não dá bônus/i);
+    await expect(arsenal(page).getByTestId('item-condition')).toContainText(
+      item?.conditionText ?? '?',
+    );
+  });
+
+  test('reparar pelo teclado: Revisar, Confirmar; o ferro é cobrado, e o item volta inteiro no fim do prazo', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await wornSpear(world, page);
+    const posts = commandPosts(page);
+    const before = await serverView(page, request);
+    const repair = before.smithy.repairOffer.items[0];
+    expect(repair?.canRepair).toBe(true);
+    const ironBefore = await stockOf(page, request, 'iron');
+
+    await arsenal(page).getByTestId('repair-review').focus();
+    await page.keyboard.press('Enter');
+    // A conferência diz o custo e o prazo da visão; nada foi enviado, e o foco está em "Confirmar".
+    const confirm = arsenal(page).getByTestId('repair-confirm');
+    await expect(confirm).toContainText(repair?.costText ?? '?');
+    expect(posts).toEqual([]);
+    await expect(arsenal(page).getByTestId('repair-confirm-button')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect.poll(() => posts.length).toBe(1);
+    expect(posts[0]).toMatchObject({ type: 'repairItem', payload: { itemId: repair?.itemId } });
+
+    const busy = await serverView(page, request);
+    expect(busy.smithy.forge?.kind).toBe('repair');
+    expect(await stockOf(page, request, 'iron')).toBe(ironBefore - (repair?.ironCost ?? 0));
+
+    // No Feudo o reparo ocupa a fila: "termina em…", sem botão de cancelar, e a forja não abre.
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    await expect(running(page)).toBeVisible();
+    await expect(running(page)).toContainText(busy.smithy.forge?.label ?? '?');
+    await expect(running(page).getByTestId('smithy-ends')).toContainText('termina em');
+    await expect(running(page).getByTestId('smithy-cancel')).toHaveCount(0);
+    await expect(running(page)).toContainText(busy.smithy.forge?.refundText ?? '?');
+    await expect(form(page)).toHaveCount(0);
+    await expect(tree(page).getByRole('treeitem', { name: /^Ferreiro/ })).toContainText(
+      'termina em',
+    );
+
+    // A forja recusa na paleta enquanto o reparo ocupa a fila.
+    await palette(page, 'Forjar armas');
+    await expect(page.getByText(/Já há um lote na forja/)).toBeVisible();
+    expect(posts.filter((post) => post.type === 'forgeWeapons')).toEqual([]);
+
+    // No fim do prazo o item volta inteiro, e a forja fica livre.
+    await world.passTime(4 * HOUR, page);
+    const done = await serverView(page, request);
+    expect(done.smithy.forge).toBeNull();
+    const [item] = done.guild.inventory;
+    expect(item?.worn).toBe(false);
+    expect(item?.condition).toBe(item?.durability);
+    await expect(running(page)).toHaveCount(0);
+    await expect(form(page)).toBeVisible();
+  });
+});
+
 test.describe('no ritmo da produção', () => {
   // Roda no servidor de ritmo 1 e também com `GAME_TIME_SCALE=3 pnpm test:e2e 11-ferreiro -g
   // "ritmo"`, que sobe o servidor como o da produção; o feudo nasce no Rápido nos dois casos.

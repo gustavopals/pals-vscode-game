@@ -361,7 +361,7 @@ export function reportSummary(report: Report): string {
 export function slotLine(slot: EquipmentSlot): string {
   return slot.item === null
     ? `${slot.slotLabel}: vazio`
-    : `${slot.slotLabel}: ${slot.item.label} (${slot.item.bonusText})`;
+    : `${slot.slotLabel}: ${slot.item.label} (${slot.item.bonusText}) · ${slot.item.conditionText}`;
 }
 
 /** "Lança de caça · Arma · Comum": um item em uma linha, sem o que soma. */

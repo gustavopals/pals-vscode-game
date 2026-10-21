@@ -121,6 +121,8 @@ import {
   batchOption,
   forgeEndsLine,
   forgeLine,
+  repairFor,
+  repairLine,
   SMITHY_ANCHOR,
   SMITHY_ICON,
   SMITHY_SECTION,
@@ -1304,6 +1306,11 @@ export function createCommands(
       none();
       return;
     }
+    if (!forge.cancelable) {
+      // Um reparo não se cancela: a frase da visão diz por quê.
+      controller.toast({ kind: 'info', text: forge.refundText, actions: [seeSmithy] });
+      return;
+    }
     const gameId = controller.session.gameId;
     const confirmed = await dialogs.confirm({
       title: `Cancelar o ${forge.label.charAt(0).toLowerCase()}${forge.label.slice(1)}?`,
@@ -1338,6 +1345,81 @@ export function createCommands(
       return;
     }
     await controller.cancelForge();
+  });
+
+  /**
+   * "Reparar…": o painel do Arsenal já mostrou o custo e o prazo e manda a ordem conferida
+   * (`confirmed`); a árvore, o Retorno e a paleta perguntam qual item (os travados aparecem com o
+   * motivo da visão) e confirmam com a mesma frase. **A visão é lida de novo depois de cada
+   * diálogo**: a fila, o ferro e o lugar do item podem ter mudado, e o que mudou não vira ordem.
+   */
+  const repairItem = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+    const asked = typeof record.itemId === 'string' ? record.itemId : undefined;
+    if (record.confirmed === true && asked !== undefined) {
+      await controller.repairItem(asked);
+      return;
+    }
+    const refuse = (text: string) => controller.toast({ kind: 'info', text, actions: [seeSmithy] });
+    if (!view.smithy.built) {
+      refuse(view.smithy.text);
+      return;
+    }
+    if (view.smithy.repairOffer.items.length === 0) {
+      refuse('Nenhum item precisa de reparo.');
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const itemId =
+      asked ??
+      (await dialogs.pick<string>({
+        title: 'Reparar um item',
+        placeholder: 'Qual item o Ferreiro refaz?',
+        items: view.smithy.repairOffer.items.map((entry) => ({
+          icon: entry.canRepair ? SMITHY_ICON : 'lock',
+          label: entry.label,
+          description: `${entry.condition} de ${entry.durability} · ${entry.costText} · ${formatDuration(entry.seconds)}`,
+          detail: entry.blockedReason ?? '',
+          value: entry.itemId,
+        })),
+      }));
+    if (itemId === undefined) {
+      return;
+    }
+    const repair = repairFor(view.smithy, itemId);
+    if (repair === undefined) {
+      return;
+    }
+    if (!repair.canRepair) {
+      refuse(repair.blockedReason ?? view.smithy.text);
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `${repairLine(repair)}?`,
+      detail: [
+        'O ferro é cobrado agora; um reparo não se cancela, e a forja fica ocupada até ele acabar.',
+      ],
+      confirmLabel: 'Reparar',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('o reparo');
+      return;
+    }
+    const now = controller.view?.smithy;
+    const nowRepair = now === undefined ? undefined : repairFor(now, itemId);
+    if (nowRepair === undefined || !nowRepair.canRepair) {
+      refuse(nowRepair?.blockedReason ?? 'O reparo já não está disponível. Nada foi enviado.');
+      return;
+    }
+    await controller.repairItem(itemId);
   });
 
   // --- Mercado, caravanas e Mestres ----------------------------------------------
@@ -3020,6 +3102,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: cancelForge,
+    },
+    {
+      id: 'lords.repairItem',
+      title: 'Reparar um item…',
+      palette: true,
+      when: hasGame,
+      run: repairItem,
     },
     {
       id: 'lords.trade',

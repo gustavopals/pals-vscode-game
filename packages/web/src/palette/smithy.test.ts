@@ -197,3 +197,83 @@ describe('cancelar a forja', () => {
     expect(made.orders()).toEqual([]);
   });
 });
+
+describe('reparar um item (V4B-T4.3)', () => {
+  const entry = (over: Record<string, unknown> = {}) => ({
+    itemId: 'item-1',
+    label: 'Lança de caça',
+    rarityLabel: 'Comum',
+    condition: 0,
+    durability: 8,
+    points: 8,
+    ironCost: 8,
+    costText: '8 de ferro',
+    seconds: 960,
+    heroName: null,
+    canRepair: true,
+    blockedReason: null,
+    ...over,
+  });
+  const viewWith = (items: unknown[]): ViewState =>
+    ({
+      ...smithyIdleView,
+      smithy: { ...smithyIdleView.smithy, repairOffer: { items } },
+    }) as ViewState;
+  const REPAIR = { type: 'repairItem', payload: { itemId: 'item-1' } };
+
+  it('a paleta tem "Reparar um item…"', async () => {
+    const { commands } = await setup(smithyIdleView);
+    expect(paletteItems(commands).map((item) => item.label)).toContain('Lords: Reparar um item…');
+  });
+
+  it('pela paleta: a lista, a confirmação com o custo e o prazo da visão, e a ordem', async () => {
+    const { run, answers, shown, orders } = await setup(viewWith([entry()]));
+    answers.push(0, true);
+    await run('lords.repairItem');
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['pick', 'confirm']);
+    const confirm = shown[1];
+    if (confirm?.kind !== 'confirm') {
+      throw new Error('esperava a confirmação');
+    }
+    expect(confirm.title).toContain('Reparar Lança de caça: 8 de ferro');
+    expect(orders()).toEqual([REPAIR]);
+  });
+
+  it('o painel manda a ordem já conferida: nenhum diálogo', async () => {
+    const { run, shown, orders } = await setup(viewWith([entry()]));
+    await run('lords.repairItem', { itemId: 'item-1', confirmed: true });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([REPAIR]);
+  });
+
+  it('o item travado não vira ordem: o aviso traz o motivo da visão', async () => {
+    const { run, answers, orders, toasts } = await setup(
+      viewWith([entry({ canRepair: false, blockedReason: 'Devolva-o ao arsenal.' })]),
+    );
+    answers.push(0);
+    await run('lords.repairItem');
+    expect(orders()).toEqual([]);
+    expect(toasts()).toContain('Devolva-o ao arsenal.');
+  });
+
+  it('cancelar a forja com um reparo em curso não envia nada e diz por quê', async () => {
+    const forge = {
+      kind: 'repair',
+      amount: 8,
+      label: 'Reparo de Lança de caça: 8 pontos',
+      endsInSeconds: 600,
+      totalSeconds: 960,
+      cancelable: false,
+      refundText: 'Um reparo não se cancela: espere o item voltar.',
+      cancelLabel: '',
+    };
+    const view = {
+      ...smithyIdleView,
+      smithy: { ...smithyIdleView.smithy, forge },
+    } as ViewState;
+    const { run, orders, toasts } = await setup(view);
+    await run('lords.cancelForge');
+    expect(orders()).toEqual([]);
+    expect(toasts()).toContain(forge.refundText);
+  });
+});

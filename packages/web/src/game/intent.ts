@@ -10,11 +10,15 @@ const CONSTRUCTION_ORDERS: ReadonlySet<CommandType> = new Set([
 ]);
 
 /**
- * As ordens que decidem o lote da forja do Ferreiro (a fila é uma só): a nova aposenta a
+ * As ordens que decidem o trabalho da forja do Ferreiro, lote de armas ou reparo (a fila é uma só): a nova aposenta a
  * retentativa da velha. Sem isso, um "Cancelar" que falhou na rede, reenviado depois de um lote
  * novo, cancelaria o lote novo (revisão da Fase B da v0.4, achado 1).
  */
-const FORGE_ORDERS: ReadonlySet<CommandType> = new Set(['forgeWeapons', 'cancelForge']);
+const FORGE_ORDERS: ReadonlySet<CommandType> = new Set([
+  'forgeWeapons',
+  'cancelForge',
+  'repairItem',
+]);
 
 /**
  * A intenção de uma ordem: o que o jogador quis mexer, sem o valor que escolheu. Duas ordens com

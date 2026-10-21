@@ -127,6 +127,12 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.smithy':
       // "Forjar" pergunta o tamanho do lote e confirma com o custo e o prazo.
       return [{ label: 'Forjar armas', text: 'Forjar', command: 'lords.forgeWeapons' }];
+    case 'lords.smithyWorn':
+      // Forjar e, com item gasto ou riscado, Reparar (a lista diz qual item e por que não).
+      return [
+        { label: 'Forjar armas', text: 'Forjar', command: 'lords.forgeWeapons' },
+        { label: 'Reparar um item', text: 'Reparar', command: 'lords.repairItem' },
+      ];
     case 'lords.smithyForging':
       return [{ label: 'Cancelar a forja', text: 'Cancelar', command: 'lords.cancelForge' }];
     case 'lords.master':
