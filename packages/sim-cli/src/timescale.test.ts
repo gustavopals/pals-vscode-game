@@ -167,6 +167,7 @@ describe('simulação no ritmo 3', () => {
         hour: 0,
         realDay: 0,
         perHour: null,
+        armyFood: null,
         gross: null,
         raids: { ...entry.raids, announced: 0 },
         // A equipe parada é uma amostra por hora real: no ritmo 3 há um terço das amostras.
