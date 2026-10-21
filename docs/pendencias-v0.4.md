@@ -170,3 +170,15 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*
+
+## 7. Roteiro de 15 minutos para o autor jogar a Fase B (V4B-T5.5)
+
+Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pnpm dev:web`, e abrir `http://localhost:5173`. "Jogar agora" no ritmo Rápido. Para chegar logo ao Salão Nv4 e à Guilda Nv2, o caminho mais curto é seguir os objetivos; quem quiser pular, pode usar uma partida de teste pelas rotas `/__test` do servidor em navegador (`tests/e2e/server.ts`).
+
+1. **O ferro no Mercado** (2 min): com o Mercado de pé, abra a aba Mercado. A linha do Ferro está lá, a 8,00 de ouro? Compre 20 e confira na tela o total antes de confirmar. A caravana **não** oferece ferro.
+2. **A Mina Abandonada** (3 min): com a Guilda Nv2, mande uma expedição à Floresta Antiga. Na volta, a Mina aparece entre os destinos? Mande uma equipe com um Guerreiro. O ferro que ela traz chega ao Armazém, e a Crônica diz de onde veio?
+3. **O Ferreiro e a forja** (4 min): com o Salão Nv4, erga o Ferreiro pelo painel da aba Feudo. Forje um lote de 3 em duas etapas ("Revisar a forja", "Confirmar"). O prazo e o custo são os que a tela disse? Cancele um segundo lote e veja se a frase do que volta bate com o estoque.
+4. **O desgaste e o reparo** (4 min): depois de algumas expedições, a ficha de um item no Arsenal diz a condição dele ("Condição: N de M usos")? Mande reparar um item gasto e confira que a forja fica ocupada pelo reparo e que um lote novo é recusado.
+5. **A sensação** (2 min): o ferro parece um recurso que se **acha** ou se **compra**, e não um que se produz? A forja parada te dá vontade de ter um Quartel? Anote em uma frase o que confundiu.
+
+Se não der para jogar, fica registrado na linha V4B-T5 do Registro do roadmap que a Fase B fechou sem o autor jogar, como nas fases da v0.3.
