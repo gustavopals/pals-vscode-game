@@ -6365,9 +6365,11 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
     expect(DURABILITY_V27).toEqual(
       Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, itemRarities[id].durability])),
     );
-    expect(ITEM_RARITY_V27).toEqual(
-      Object.fromEntries(Object.entries(items).map(([id, def]) => [id, def.rarity])),
-    );
+    // A tabela congelada coincide com o conteúdo nos itens que ela conhece; um item acrescentado
+    // depois não precisa entrar nela (a guarda confere o teto: revisão do reparo, achado 1).
+    for (const [id, rarity] of Object.entries(ITEM_RARITY_V27)) {
+      expect(items[id as keyof typeof items]?.rarity, id).toBe(rarity);
+    }
     expect(FORGE_BATCH_MAX_V27).toBe(balance.smithy.batchMax);
     expect(INVENTORY_CAP_V27).toBe(balance.equipment.inventoryCap);
   });
@@ -6477,6 +6479,21 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
       'settlement.forge.points: o reparo não devolve exatamente o que falta ao item',
     );
     expect(repairing((state) => delete state.settlement.forge.item.condition)).not.toBeNull();
+    // Um item que o conteúdo acrescentou depois da versão 27: o reparo vale até o teto de 20.
+    expect(
+      repairing((state) => {
+        state.settlement.forge.item.defId = 'aNewEpicBlade';
+        state.settlement.forge.item.condition = 3;
+        state.settlement.forge.points = 17;
+      }),
+    ).toBeNull();
+    expect(
+      repairing((state) => {
+        state.settlement.forge.item.defId = 'aNewEpicBlade';
+        state.settlement.forge.item.condition = 3;
+        state.settlement.forge.points = 18;
+      }),
+    ).toBe('settlement.forge.points: o reparo passa da maior durabilidade');
     expect(repairing((state) => (state.settlement.buildings.smithy = 0))).toBe(
       'settlement.forge: trabalho na forja sem Ferreiro',
     );

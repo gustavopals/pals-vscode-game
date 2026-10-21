@@ -227,8 +227,16 @@ export const forgeWithinStateV27: Shape = (value, path) => {
       : null;
   }
   const item = forge.item as { defId: string; condition: number };
-  if (item.condition + (forge.points as number) !== durabilityOfV27(item.defId)) {
-    return `${at}.points: o reparo não devolve exatamente o que falta ao item`;
+  const points = forge.points as number;
+  // Para um item que esta forma conhece, o reparo devolve exatamente o que falta. Um item que o
+  // conteúdo acrescentou depois da versão 27 não está na tabela congelada: confere-se só o teto
+  // de toda durabilidade (revisão do reparo, achado 1). Acrescentar um item continua livre.
+  if (Object.hasOwn(ITEM_RARITY_V27, item.defId)) {
+    if (item.condition + points !== durabilityOfV27(item.defId)) {
+      return `${at}.points: o reparo não devolve exatamente o que falta ao item`;
+    }
+  } else if (points < 1 || item.condition + points > DURABILITY_CEILING_V27) {
+    return `${at}.points: o reparo passa da maior durabilidade`;
   }
   if (guild.inventory.length + 1 > INVENTORY_CAP_V27) {
     return `${at}.item: arsenal e item em reparo acima do teto`;
