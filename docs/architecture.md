@@ -138,7 +138,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 ### 4.2 `migrateState`
 
-Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. Ela é pura, sequencial (1 → 2 → … → 24), idempotente e **confere a forma exata** de cada versão antes de mexer, também quando o estado já diz ser da versão atual: o número não é salvo-conduto. O que ela não conhece é recusado com `StateMigrationError` (`future` para uma versão mais nova que a do motor; `invalid` para uma forma inesperada), com o caminho do campo e o tipo, nunca o valor. Cada passo mora em `packages/engine/src/migrations/`, com a forma exata da versão de que parte, os identificadores escritos no arquivo (nada importado de `@lotg/content`) e um retrato congelado em `__fixtures__/`.
+Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. Ela é pura, sequencial (1 → 2 → … → 27), idempotente e **confere a forma exata** de cada versão antes de mexer, também quando o estado já diz ser da versão atual: o número não é salvo-conduto. O que ela não conhece é recusado com `StateMigrationError` (`future` para uma versão mais nova que a do motor; `invalid` para uma forma inesperada), com o caminho do campo e o tipo, nunca o valor. Cada passo mora em `packages/engine/src/migrations/`, com a forma exata da versão de que parte, os identificadores escritos no arquivo (nada importado de `@lotg/content`) e um retrato congelado em `__fixtures__/`.
 
 | Versão | Tarefa | O que entrou |
 |---|---|---|
@@ -165,6 +165,9 @@ Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. 
 | 22 | V3E-T2 | As caravanas (`market.caravans`) e o herói em escolta |
 | 23 | V3E-T3 | Os Mestres: `settlement.masters`, `settlement.mastersWaiting` |
 | 24 | V3E-T5 | `worked` em cada Mestre (a primeira alocação é imediata) e a guarda dos limites do Mercado e das caravanas (`marketLimitsWithinState`) |
+| 25 | V4B-T1 | O ferro: `iron` no estoque, nos acumuladores, no desperdício, nos preços do Mercado e nos registros de quantidade das expedições; nenhum no feudo, o preço na base |
+| 26 | V4B-T2 | O Ferreiro: `buildings.smithy` em 0, `settlement.weapons` em 0 e `settlement.forge` em `null` |
+| 27 | V4B-T3 | O desgaste: `condition` em cada item (cheia, pela raridade) e `kind` no lote da forja, que passa a guardar também um reparo |
 
 Os objetivos 5 a 10 (V2E-T4) e os 11 a 16 (V3F-T2) **não mudaram a forma**: uma partida gravada antes deles fica fora do repouso e é acomodada na fronteira, antes de o tempo andar (seção 6). O contador novo dos objetivos (`expeditionsReturned:<modelo>`) não é preenchido por passo nenhum (pendência F-5; seção 21).
 
@@ -210,7 +213,7 @@ A invariante, testada por propriedade e sem tolerância, vale no estado, nos eve
 
 **Ordem fixa dentro do mesmo instante** (`processEventsAt`, em [`packages/engine/src/advance.ts`](../packages/engine/src/advance.ts); provada em `advance.test.ts`, "no mesmo instante a ordem é fixa", e, para cada mecânica, em `tavern.test.ts`, `expeditions.test.ts`, `market.caravans.test.ts` e `masters.test.ts`):
 
-1. Obras concluídas.
+1. Obras concluídas e, logo depois, o lote da forja que termina (`finishForge`: as armas de um lote, ou o item reparado que volta ao arsenal; v0.4, Fase B).
 2. Aldeões que chegam: os recrutas e, depois, os aldeões feridos que saram e voltam ao ofício.
 3. **Mestres que esperavam à porta** (`settleMasterArrivals`): a obra que ampliou as casas já terminou, e o recruta, que tinha a casa reservada, já entrou.
 4. Heróis feridos que saram (`recoverHeroes`): quem sara em um instante já pode partir na ordem dada nele.
@@ -456,6 +459,15 @@ O [README do app](../packages/web/README.md) descreve a estrutura. O que a v0.3 
 - **Ciclo de leitura**: a leitura seguinte vem antes quando um prazo da Guilda vence (`guildDeadlines`, `expeditionDeadlines`).
 - **Fronteira de importação**: o bundle não leva frase nem número de regra da Guilda, do Mercado, das caravanas e dos Mestres (`bundle.test.ts`).
 - **Alarmes**: todo lote com um aviso essencial (atraso do soldo, herói que parte, emboscada) mostra ao menos um aviso, mesmo com a cota de três por hora cheia (pendência F-4).
+
+## 19b. O ferro, o Ferreiro e o reparo (v0.4, Fase B)
+
+Entram na v0.4 sem publicação (ADR 0019, decisões 3 a 5; estados 25 a 27):
+
+- **O ferro** é o quinto recurso (`RESOURCE_IDS`), guardado no Armazém com o mesmo cap da madeira e da pedra. Nenhum ofício o produz: ele chega pela **Mina Abandonada** (`abandonedMine`, Guilda Nv2, revelada pela Floresta Antiga; 40 a 80 no último nó com prova) e pelo **Mercado**, a 8,0 de ouro, com o mesmo volume e o mesmo passeio dos outros, sem fator de estação. O sorteio do passeio anda na ordem comida, madeira, pedra, ferro. **Não vai por caravana.**
+- **O Ferreiro** (`buildings.smithy`, Salão Nv4, até o Nv6) tem **uma fila** (`settlement.forge`). Um lote de armas custa 2 ferro + 1 madeira por arma, cobrado ao começar, e leva 6 min de jogo por arma, × 10/(10 + nível − 1); cancelar devolve 80%, e o que não cabe no depósito vai ao chão. As armas são uma contagem fora do estoque (`settlement.weapons`), sem cap e sem venda. O fim do lote é instante da linha do tempo, logo depois das obras.
+- **O desgaste e o reparo**: cada item tem `condition`, de 8, 10, 14 ou 20 pela raridade. Uma expedição concluída gasta um ponto de cada item da equipe; a perdida não volta com eles. O item em 0 fica sem bônus e no arsenal. O reparo usa a mesma fila da forja, custa 1 ferro por ponto (Comum e Incomum) ou 2 (Raro e Épico) e leva 2 min de jogo por ponto; não se cancela.
+- **Na tela** (V4B-T4): o ferro no estoque e no Mercado; o painel do Ferreiro na aba Feudo, com a forja em duas etapas e o lote em curso; a linha "Ferreiro" na árvore; `weaponsForged` no Retorno e nos avisos de "Todas"; e "Antes de partir" com o ferro parado e a forja parada. A tela do reparo é a parte que falta da V4B-T4.
 
 ## 20. Divergências aceitas em relação ao GDD
 

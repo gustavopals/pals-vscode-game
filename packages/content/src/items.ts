@@ -167,6 +167,8 @@ export const equipmentTexts = {
   forgeRepair: 'Reparo de {item}: {pontos}',
   /** Por que um item não pode ser reparado agora. */
   repairCarried: '{item} está com {heroi}: devolva-o ao arsenal antes de mandar reparar.',
+  /** O herói que leva o item está fora do feudo (expedição, escolta ou cativeiro). */
+  repairAway: '{item} está com {heroi}, longe do feudo: o reparo só quando o item voltar.',
   repairIntact: '{item} está inteiro.',
   repairBusy: 'A forja está ocupada: espere o trabalho dela terminar.',
   repairNoSmithy: 'Sem o Ferreiro não há reparo.',
