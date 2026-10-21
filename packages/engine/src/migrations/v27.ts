@@ -1,4 +1,5 @@
 import { exactObject, literal, natural, nullable, positive, type Shape } from './shape';
+import type { MigrationStep } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -262,3 +263,33 @@ export const stateV27: Shape = (value, path) =>
   workedWithinState(value, path) ??
   marketLimitsWithinState(value, path) ??
   forgeWithinStateV27(value, path);
+
+/**
+ * 27 → 28: o Quartel e o exército (V4C-T1; ADR 0019, decisão 7).
+ *
+ * - `settlement.buildings` ganha `barracks` no nível 0 (e as obras e as planejadas passam a
+ *   aceitá-lo, o que é só da guarda).
+ * - `army` nasce vazio: nenhum soldado de nenhuma unidade e nenhum lote em treino.
+ * - Ninguém come a mais e ninguém sai da população: a comida de ninguém muda na fronteira.
+ *
+ * **O passo não cria prazo** (e por isso não usa a fronteira), não emite evento, não dá
+ * identificador a ninguém e não toca o gerador.
+ */
+export const v27ToV28: MigrationStep = {
+  from: 27,
+  summary: 'o Quartel entra no nível 0 e o exército começa vazio',
+  shape: stateV27,
+  migrate(state) {
+    const settlement = state.settlement as Record<string, unknown>;
+    const buildings = settlement.buildings as Record<string, number>;
+    return {
+      ...state,
+      schemaVersion: 28,
+      settlement: { ...settlement, buildings: { ...buildings, barracks: 0 } },
+      army: {
+        units: { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 },
+        training: null,
+      },
+    };
+  },
+};

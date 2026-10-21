@@ -18,6 +18,7 @@ import { assignMaster } from './masterOrders';
 import { settlePlanned } from './planned';
 import { repairItem } from './repairOrders';
 import { cancelForge, forgeWeapons } from './smithyOrders';
+import { cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
@@ -117,6 +118,12 @@ function dispatch(
       return forgeWeapons(draft, payload.amount, nowMs, events);
     case 'cancelForge':
       return cancelForge(draft, nowMs, events);
+    case 'trainSoldiers':
+      return trainSoldiers(draft, payload.unit, payload.amount, nowMs, events);
+    case 'cancelTraining':
+      return cancelTraining(draft, nowMs, events);
+    case 'disbandSoldiers':
+      return disbandSoldiers(draft, payload.unit, payload.amount, nowMs, events);
     case 'repairItem':
       return repairItem(draft, payload.itemId, nowMs, events);
     default:

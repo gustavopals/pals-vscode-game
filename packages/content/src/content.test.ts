@@ -419,6 +419,8 @@ describe('edifícios', () => {
       ['market', 5],
       // 6 no GDD, sem teto de versão (V4B-T2).
       ['smithy', 6],
+      // 8 no GDD, sem teto de versão (V4C-T1).
+      ['barracks', 8],
     ]);
   });
 
@@ -524,6 +526,7 @@ describe('edifícios', () => {
       'guild',
       'market',
       'smithy',
+      'barracks',
     ]);
   });
 });
@@ -1493,7 +1496,7 @@ describe('objetivos', () => {
     expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'granary'], level: 1 })).toBe(
       false,
     );
-    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'barracks'], level: 1 })).toBe(
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'stable'], level: 1 })).toBe(
       false,
     );
     expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'warehouse'], level: 0 })).toBe(

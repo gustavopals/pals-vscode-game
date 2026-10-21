@@ -7,6 +7,7 @@ import {
   type Ratio,
 } from '@lotg/content';
 
+import { soldierCount } from './army';
 import type { GameState, Master, ProductionBuildingId } from './types';
 
 /**
@@ -34,12 +35,12 @@ export function isMasterId(value: unknown): value is MasterId {
 }
 
 /**
- * Os habitantes do feudo: os aldeões e os Mestres. É quem ocupa casa, come e queima lenha, e é
+ * Os habitantes do feudo: os aldeões, os Mestres e os soldados. É quem ocupa casa, come e queima lenha, e é
  * o número que o piso de população protege.
  */
 export function inhabitants(state: GameState): number {
   const { population, masters } = state.settlement;
-  return population.villagers + masters.length;
+  return population.villagers + masters.length + soldierCount(state);
 }
 
 /** O Mestre que trabalha em `building`; `null` sem nenhum. Cabe um por edifício. */

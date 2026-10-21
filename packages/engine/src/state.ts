@@ -5,10 +5,11 @@ import {
   DIFFICULTY_IDS,
   objectives,
   startingTiles,
+  UNIT_IDS,
 } from '@lotg/content';
 
 import { scriptedRaidsAfter } from './raids';
-import type { BuildingId, GameSettings, GameState } from './types';
+import type { BuildingId, GameSettings, GameState, UnitId } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
 
 /** Cópia profunda: o estado é JSON puro, sem datas, mapas ou funções. */
@@ -29,7 +30,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 27,
+    schemaVersion: 28,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -115,6 +116,11 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       quoteDay: 0,
       tradedToday: { food: 0, wood: 0, stone: 0, iron: 0 },
       caravans: [],
+    },
+    // Nenhum soldado, nenhum lote no Quartel (que nasce no nível 0).
+    army: {
+      units: Object.fromEntries(UNIT_IDS.map((id) => [id, 0])) as Record<UnitId, number>,
+      training: null,
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

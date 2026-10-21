@@ -54,10 +54,12 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   INVALID_BUILDING: () => 'Esse edifício não existe no feudo.',
   INVALID_WORKERS: () =>
     'Só edifícios produtivos recebem trabalhadores, em número inteiro e não negativo.',
-  NOT_ENOUGH_VILLAGERS: ({ count = 0 }) =>
-    count === 1
-      ? 'Só há 1 aldeão livre para esse ofício.'
-      : `Só há ${count} aldeões livres para esse ofício.`,
+  NOT_ENOUGH_VILLAGERS: ({ count = 0, note }) =>
+    note !== undefined
+      ? `${note} ${count === 1 ? 'Só 1 aldeão pode ir' : `Só ${count} aldeões podem ir`}.`
+      : count === 1
+        ? 'Só há 1 aldeão livre para esse ofício.'
+        : `Só há ${count} aldeões livres para esse ofício.`,
   ALREADY_UPGRADING: ({ label, plural }) => `${label} já ${is(plural)} em obras.`,
   // Todas as filas abertas têm obra, e não há mais fila para abrir.
   QUEUE_BUSY: () => 'Os pedreiros já estão ocupados: não há fila de obras livre.',
@@ -220,6 +222,21 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   FORGE_BUSY: () =>
     'A forja já está ocupada: espere o trabalho terminar (um lote de armas também pode ser cancelado).',
   NOT_FORGING: ({ note }) => note ?? 'Não há lote na forja para cancelar.',
+  // `note` é o resto da frase: o Salão que o Quartel ainda espera, quando é o caso.
+  BARRACKS_REQUIRED: ({ note = '' }) =>
+    `Erga ${buildings.barracks.article} ${buildings.barracks.label} primeiro: é nele que se treinam soldados.${note}`,
+  TRAINING_BUSY: () =>
+    'O pátio já tem um lote em treino: espere ele terminar, ou cancele para pôr outro.',
+  ARMY_LIMIT: ({ count = 0, level = 0 }) =>
+    count === 0
+      ? `O Quartel Nv${level} já está cheio: o limite é ${balance.army.capPerLevel} soldados por nível.`
+      : `O Quartel Nv${level} só comporta mais ${count}: o limite é ${balance.army.capPerLevel} soldados por nível.`,
+  NOT_ENOUGH_WEAPONS: ({ count = 0 }) =>
+    `Faltam ${count === 1 ? '1 arma' : `${count} armas`}: o Ferreiro as forja.`,
+  NOT_TRAINING: () => 'Não há lote em treino para cancelar.',
+  INVALID_UNIT: () => 'Essa unidade não existe no Quartel.',
+  NOT_ENOUGH_SOLDIERS: ({ count = 0 }) =>
+    count === 0 ? 'Não há soldados dessa unidade.' : `Só há ${count} soldados dessa unidade.`,
   // O item já está inteiro: não há o que reparar.
   ITEM_INTACT: ({ label = 'Esse item' }) =>
     `${label} está inteiro: o ferreiro não tem o que reparar.`,

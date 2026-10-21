@@ -11,6 +11,7 @@ import {
 import { seasonAt } from './clock';
 import { type Hands, handsOf, masteryRatio } from './craft';
 import { wageRate } from './heroes';
+import { soldierCount, soldierFoodRate } from './army';
 import { inhabitants, masterArmAt, masterLabel, masterOf, masterRatio } from './masters';
 import { storeResource } from './storage';
 import type { GameState, ProductionBuildingId, ResourceId } from './types';
@@ -160,10 +161,16 @@ export function productionRate(
   return Math.floor(num / den);
 }
 
-/** Comida consumida pelos habitantes (os aldeões e os Mestres), em milésimos por hora. */
+/**
+ * Comida consumida pelos habitantes, em milésimos por hora: os aldeões e os Mestres comem
+ * `foodPerVillagerPerHour`, e os soldados, `foodPerSoldierPerHour` (GDD §5.2; ADR 0019, decisão 7).
+ */
 export function consumptionRate(state: GameState): number {
   const { foodPerVillagerPerHour } = balance.consumption;
-  return inhabitants(state) * foodPerVillagerPerHour * MILLI;
+  return (
+    (inhabitants(state) - soldierCount(state)) * foodPerVillagerPerHour * MILLI +
+    soldierFoodRate(state)
+  );
 }
 
 /**

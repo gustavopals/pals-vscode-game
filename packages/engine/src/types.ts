@@ -24,9 +24,11 @@ import type {
   SeasonId,
   TileTypeId,
   TradeDirectionId,
+  UnitId,
 } from '@lotg/content';
 
 export type {
+  UnitId,
   BuildingId,
   DifficultyId,
   EnemyId,
@@ -516,7 +518,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 27;
+  schemaVersion: 28;
   seed: string;
   settings: GameSettings;
   /**
@@ -761,8 +763,27 @@ export type GameState = {
   };
   /** O Mercado além do edifício (que está em `settlement.buildings.market`). */
   market: MarketState;
+  /**
+   * O exército (V4C-T1; ADR 0019, decisão 7): os soldados treinados, por unidade, e o lote em
+   * treino, ou `null` (um por vez). O soldado já saiu de `settlement.population.villagers`, mas
+   * mora nas casas e come (`inhabitants`).
+   */
+  army: ArmyState;
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
+};
+
+/** O lote em treino no Quartel: o custo foi pago ao começar e o fim foi fixado com o nível de então. */
+export type TrainingBatch = {
+  unit: UnitId;
+  amount: number;
+  startedAtMs: number;
+  endsAtMs: number;
+};
+
+export type ArmyState = {
+  units: Record<UnitId, number>;
+  training: TrainingBatch | null;
 };
 
 export type GameEvent = {
@@ -886,6 +907,15 @@ export type Command =
   /** Cancela o lote em curso na forja e devolve 80% do custo. */
   | { commandId: string; type: 'cancelForge'; payload: Record<string, never> }
   /**
+   * Põe um lote de `amount` soldados de `unit` no treino do Quartel (GDD §10.2; ADR 0019,
+   * decisão 7): cobra o custo agora, e o soldado sai da população no fim do treino.
+   */
+  | { commandId: string; type: 'trainSoldiers'; payload: { unit: UnitId; amount: number } }
+  /** Cancela o lote em treino e devolve 80% do custo (as armas voltam inteiras, arredondando para baixo). */
+  | { commandId: string; type: 'cancelTraining'; payload: Record<string, never> }
+  /** Dispensa `amount` soldados de `unit`: viram aldeões sem ofício, sem devolver o custo. */
+  | { commandId: string; type: 'disbandSoldiers'; payload: { unit: UnitId; amount: number } }
+  /**
    * Põe um item do arsenal na forja para o Ferreiro repará-lo (V4B-T3; ADR 0019, decisão 5):
    * cobra o ferro agora, e o item volta cheio no fim.
    */
@@ -948,6 +978,13 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'BARRACKS_REQUIRED',
+  'TRAINING_BUSY',
+  'ARMY_LIMIT',
+  'NOT_ENOUGH_WEAPONS',
+  'NOT_TRAINING',
+  'INVALID_UNIT',
+  'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
@@ -2067,6 +2104,59 @@ export type SmithyView = {
   };
 };
 
+/**
+ * O Quartel e o exército na visão (V4C-T1; ADR 0019, decisão 7). Os atributos vêm do conteúdo,
+ * prontos: o app não calcula nada. `foodPerHour` é o consumo de cada soldado por hora real.
+ */
+export type ArmyView = {
+  /** O edifício do Quartel: é o que `startConstruction` recebe. */
+  building: BuildingId;
+  built: boolean;
+  level: number;
+  /** O que o Quartel faz no nível de agora, ou como obtê-lo. */
+  text: string;
+  /** Quantos soldados há e o limite do nível de agora. */
+  total: number;
+  cap: number;
+  /** A comida de todos os soldados por hora real, com sinal de consumo: "15/h (10 soldados)". */
+  foodText: string;
+  units: Array<{
+    id: UnitId;
+    label: string;
+    count: number;
+    line: 'front' | 'back';
+    attack: number;
+    defense: number;
+    health: number;
+    initiative: number;
+    /** "Vence o Cavaleiro." ou a frase do Escudeiro. */
+    counters: string;
+    costText: string;
+    /** Segundos reais de um soldado desta unidade no nível de agora; 0 sem o Quartel. */
+    secondsEach: number;
+    foodPerHour: string;
+  }>;
+  /** O lote em treino, com os segundos reais que faltam; `null` sem lote. */
+  training: {
+    unit: UnitId;
+    unitLabel: string;
+    amount: number;
+    label: string;
+    endsInSeconds: number;
+    totalSeconds: number;
+    cancelRefundText: string;
+  } | null;
+  /** O que uma ordem de treino de cada unidade pode pedir agora. */
+  offer: Array<{
+    unit: UnitId;
+    /** O maior lote que o estoque, as armas, o limite e a população permitem; 0 se nenhum. */
+    maxAmount: number;
+    batchMax: number;
+    /** Por que não dá para pôr um lote agora; `null` quando dá. */
+    blockedReason: string | null;
+  }>;
+};
+
 export type MarketView = {
   /** O edifício do Mercado: é o que `startConstruction` recebe e o que a lista de obras mostra. */
   building: BuildingId;
@@ -2163,6 +2253,8 @@ export type ViewState = {
      * em `villagers` nem em `free`. Quem espera à porta não entra aqui.
      */
     masters: number;
+    /** Os soldados: moram nas casas e comem 1,5 por hora de jogo, e não estão em `villagers`. */
+    soldiers: number;
     breakdown: string;
   };
   resources: Array<{
@@ -2366,6 +2458,8 @@ export type ViewState = {
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
   market: MarketView;
   smithy: SmithyView;
+  /** O Quartel e o exército: os soldados, o lote em treino e o que uma ordem de treino pode pedir. */
+  army: ArmyView;
   /** Os Mestres do feudo, na ordem em que entraram (GDD §5.4; ADR 0018, decisão 18). */
   masters: MasterView[];
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

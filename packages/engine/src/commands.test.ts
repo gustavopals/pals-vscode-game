@@ -25,6 +25,7 @@ import {
   masterOrder,
   mastersScenario,
   smithyStall,
+  barracksYard,
   masterWaitingScenario,
   send,
   tavernScenario,
@@ -211,6 +212,11 @@ describe('catálogo de recusas', () => {
     giveItem(draft, 'ashBow');
   });
   const forging = accept(smithy, command('forgeWeapons', { amount: 2 })).state;
+  const yard = barracksYard(0);
+  const training = accept(yard, command('trainSoldiers', { unit: 'spearman', amount: 2 })).state;
+  const full = barracksYard(0, (draft) => {
+    draft.army.units.spearman = 10;
+  });
   const crafted = mastersScenario();
   const atDoor = masterWaitingScenario();
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
@@ -330,6 +336,18 @@ describe('catálogo de recusas', () => {
     SMITHY_REQUIRED: [rich, command('forgeWeapons', { amount: 1 })],
     FORGE_BUSY: [forging, command('forgeWeapons', { amount: 1 })],
     NOT_FORGING: [smithy, command('cancelForge', {})],
+    BARRACKS_REQUIRED: [rich, command('trainSoldiers', { unit: 'spearman', amount: 1 })],
+    TRAINING_BUSY: [training, command('trainSoldiers', { unit: 'spearman', amount: 1 })],
+    ARMY_LIMIT: [full, command('trainSoldiers', { unit: 'spearman', amount: 1 })],
+    NOT_ENOUGH_WEAPONS: [
+      barracksYard(0, (draft) => {
+        draft.settlement.weapons = 0;
+      }),
+      command('trainSoldiers', { unit: 'swordsman', amount: 1 }),
+    ],
+    NOT_TRAINING: [yard, command('cancelTraining', {})],
+    INVALID_UNIT: [yard, command('trainSoldiers', { unit: 'dragon' as 'spearman', amount: 1 })],
+    NOT_ENOUGH_SOLDIERS: [yard, command('disbandSoldiers', { unit: 'spearman', amount: 1 })],
     ITEM_INTACT: [intact, command('repairItem', { itemId: 'item-1' })],
   };
 

@@ -527,6 +527,25 @@ export type SmithyDef = {
   readonly batchMax: number;
 };
 
+/**
+ * O exército (GDD §5.2, §6.1 e §10.2; ADR 0019, decisão 7). O soldado sai da população ao fim do
+ * treino, come mais que um aldeão, não trabalha e não deserta. Os atributos de cada unidade
+ * estão em `units.ts`.
+ */
+export type ArmyDef = {
+  /** O limite de soldados por nível do Quartel (`10 × nível`). */
+  readonly capPerLevel: number;
+  /**
+   * O ganho de velocidade por nível: o treino de cada soldado leva
+   * `base × den / (den + (nível − 1) × num)`, a mesma conta do Ferreiro.
+   */
+  readonly trainingSpeedPerLevel: Ratio;
+  /** O maior lote de uma ordem de treino. */
+  readonly batchMax: number;
+  /** A comida de um soldado por hora de jogo, em fração (3/2 = 1,5), contra 1 do aldeão. */
+  readonly foodPerSoldierPerHour: Ratio;
+};
+
 export type MarketDef = {
   /** O que se negocia, na ordem do sorteio do preço de cada dia. */
   readonly resources: readonly MarketResourceId[];
@@ -625,6 +644,7 @@ export type Balance = {
   readonly market: MarketDef;
   readonly masters: MastersDef;
   readonly smithy: SmithyDef;
+  readonly army: ArmyDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -1077,5 +1097,13 @@ export const balance: Balance = {
     perWeaponMs: 6 * MINUTE_MS,
     speedPerLevel: { num: 1, den: 10 },
     batchMax: 10,
+  },
+  // ADR 0019, decisão 7: limite de 10 por nível do Quartel, treino 5% mais rápido por nível,
+  // lotes de até 10 e 1,5 de comida por soldado por hora de jogo.
+  army: {
+    capPerLevel: 10,
+    trainingSpeedPerLevel: { num: 1, den: 20 },
+    batchMax: 10,
+    foodPerSoldierPerHour: { num: 3, den: 2 },
   },
 };

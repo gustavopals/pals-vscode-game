@@ -367,6 +367,31 @@ export function smithyStall(
 }
 
 /**
+ * O pátio do Quartel de pé, posto à mão no nível `level` (V4C-T1): o canteiro com o Salão no
+ * nível 4, o Quartel erguido, 20 aldeões, 6 armas forjadas, nenhum soldado e nenhum lote. É o
+ * Quartel no dia em que fica pronto. `edit` ajusta o que o teste precisa.
+ */
+export function barracksYard(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string; level?: number } = {},
+): GameState {
+  const { level = 1, ...rest } = custom;
+  return tavernSite(
+    atMs,
+    (draft) => {
+      draft.settlement.buildings.townHall = 4;
+      draft.settlement.buildings.barracks = level;
+      draft.settlement.buildings.housing = 6;
+      draft.settlement.population.villagers = 20;
+      draft.settlement.weapons = 6;
+      edit(draft);
+    },
+    rest,
+  );
+}
+
+/**
  * O Mercado recém-inaugurado, pelo caminho do jogo: a ordem da obra no canteiro (`tavernSite`)
  * e o avanço até o instante exato em que ela fica pronta. Devolve o estado, os eventos do
  * caminho e esse instante.

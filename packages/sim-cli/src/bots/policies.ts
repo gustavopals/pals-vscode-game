@@ -168,6 +168,8 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
     view.market.building,
     // O Ferreiro (V4B-T2.6) só entra depois do Quartel: `erguer o Ferreiro`.
     view.smithy.building,
+    // O Quartel (V4C-T1) fica fora da corrida até o bot `militar` (V4C-T1.8): nenhum bot o ergue.
+    view.army.building,
   ]);
 }
 
@@ -183,7 +185,8 @@ function inTheRace(view: ViewState): Upgrade[] {
     (upgrade) =>
       (upgrade.building !== view.guild.building &&
         upgrade.building !== view.market.building &&
-        upgrade.building !== view.smithy.building) ||
+        upgrade.building !== view.smithy.building &&
+        upgrade.building !== view.army.building) ||
       upgrade.planned,
   );
 }
@@ -573,23 +576,15 @@ export const erguerGuilda: Policy = {
 };
 
 /**
- * O edifício que o bot ergue **depois do Quartel** (V4B-T2.6; roadmap da v0.4): o Ferreiro só
- * serve a quem tem soldados a armar. O Quartel é da Fase C; enquanto a visão não oferece um
- * edifício `barracks`, esta política não faz nada, e a partida é a de antes.
- */
-const BARRACKS_ID = 'barracks';
-
-/**
- * Ergue o Ferreiro (V4B-T2.6) quando o Quartel já existe. Hoje fica inerte: a lista de obras da
- * visão não tem Quartel. Se a obra não pode começar agora, fica planejada como automática.
+ * Ergue o Ferreiro (V4B-T2.6) quando o Quartel já está de pé (`army.built`). Hoje fica inerte:
+ * nenhum bot ergue o Quartel até o `militar` (V4C-T1.8). Se a obra não pode começar agora, fica planejada como automática.
  */
 export const erguerFerreiro: Policy = {
   name: 'erguer o Ferreiro',
   run: async (view, act) => {
-    const available: ReadonlyArray<{ building: string }> = view.constructions.available;
     const upgrade = view.constructions.available.find((entry) => entry.building === 'smithy');
-    const barracks = available.some((entry) => entry.building === BARRACKS_ID);
-    if (upgrade === undefined || !barracks || !keepsFirewood(view, upgrade)) {
+    // O Quartel de pé (V4C-T1): nenhum bot o ergue ainda, e por isso a política segue inerte.
+    if (upgrade === undefined || !view.army.built || !keepsFirewood(view, upgrade)) {
       return view;
     }
     if (upgrade.blockedCode === null) {

@@ -11,6 +11,7 @@ import {
 import { DAY_MS, nextSeasonBoundary, seasonAt } from './clock';
 import { buildingWithArticle } from './construction';
 import { firewoodRate } from './economy';
+import { soldierFoodExtra } from './army';
 import { inhabitants } from './masters';
 import { planCost } from './planned';
 import { reject } from './rejections';
@@ -260,9 +261,7 @@ export function marketReserve(
   if (resource === 'food') {
     const mouths = inhabitants(state) + settlement.recruitmentQueue.length;
     const kept =
-      mouths *
-      balance.consumption.foodPerVillagerPerHour *
-      MILLI *
+      (mouths * balance.consumption.foodPerVillagerPerHour * MILLI + soldierFoodExtra(state)) *
       balance.morale.foodReserve.coverMs;
     if (kept > 0) {
       scaled += kept;

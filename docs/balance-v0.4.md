@@ -181,3 +181,12 @@ pnpm -s sim -- --matrix --profile especulador
 - **O especulador** continua sem lucro na arbitragem (saldo de −8,6 de ouro por partida no Normal).
 
 **O ouro sem destino (a §13 do roadmap e a decisão 2):** a Fase B **não deu destino ao ouro**. A coluna de compras do Mercado continua zero em toda célula: nenhum bot compra ferro, porque sem o Quartel as armas não servem para nada. O Regular da semana do Rápido termina com 185.949 de ouro parado (eram 185.969 na linha de base, seção 1.3). A única mudança é o Explorador, que vende o ferro da Mina e recebe um pouco mais no balcão. **O sumidouro de verdade é o treino de soldados, da Fase C**, e é depois dele que a decisão 2 manda medir de novo (V4C-T4.3).
+
+## 5. O Quartel e os soldados (V4C-T1)
+
+**O Quartel entra no conteúdo e no estado 28 sem mudar nenhuma faixa.** Nenhum bot o ergue: ele fica fora da corrida das obras (`sideBuildings` e `inTheRace`, em `sim-cli/src/bots/policies.ts`), como o Ferreiro ficou na V4B-T2, e a política `erguer o Ferreiro` segue inerte (agora lê `army.built`, e não a presença do Quartel na lista de obras, que passou a existir em toda partida). Com isso a rodada padrão joga as mesmas partidas de antes: o conteúdo novo (Quartel, unidades, `balance.army`) e o estado novo (`army` vazio) não entram em nenhuma conta contínua enquanto não há soldado.
+
+- **Faixas:** nenhuma foi remedida. O bot `militar` e a política mínima de guerra dos três perfis da rodada padrão (V4C-T1.8) ficaram para a próxima sessão; é com eles que a comida dos soldados (1,5 por hora de jogo) e o ouro e a madeira do treino passam a pesar na matriz, e é então que as faixas são remedidas de propósito.
+- **O que a conta de comida muda hoje:** nada na matriz (nenhum soldado). Para quem treinar: 10 soldados comem 15 por hora de jogo, e `army.foodText` e o termo "consumo" da explicação da comida mostram isso na visão.
+- **Alcançabilidade (pendência C-1):** o Quartel Nv7 e Nv8 custam 4.194 e 6.710 de madeira; o Armazém no nível 8 guarda 5.200 em Camponês e Senhor e 3.680 em Rei de Ferro. O teto alcançável é 7 (Camponês e Senhor) e 6 (Rei de Ferro).
+

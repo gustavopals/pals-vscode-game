@@ -56,6 +56,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -664,6 +665,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 130
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 85
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -996,6 +1030,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -1065,6 +1213,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -1678,6 +1827,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 130
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 85
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -2026,6 +2208,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -2095,6 +2391,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -2703,6 +3000,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 229
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 142
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -3093,6 +3423,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -3173,6 +3617,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv3 × 5 = 30 vagas"
     },
     "resources": [
@@ -3781,6 +4226,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 190
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -4314,6 +4792,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -4371,6 +4963,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv3 × 5 = 30 vagas"
     },
     "resources": [
@@ -4979,6 +5572,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 250
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -5534,6 +6160,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -5603,6 +6343,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
     },
     "resources": [
@@ -6393,6 +7134,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 49
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 75
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -6926,6 +7700,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "Erga o Quartel: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -7006,6 +7894,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -7624,6 +8513,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -8157,6 +9079,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -8209,6 +9245,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -8817,6 +9854,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 250
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 150
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 100
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -9384,6 +10454,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -9453,6 +10637,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv3 × 5 = 25 vagas"
     },
     "resources": [
@@ -10061,6 +11246,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -10602,6 +11820,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -10671,6 +12003,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv1 × 5 = 15 vagas"
     },
     "resources": [
@@ -11279,6 +12612,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 65
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -11918,6 +13284,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -11987,6 +13467,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv1 × 5 = 15 vagas"
     },
     "resources": [
@@ -12595,6 +14076,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 65
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -13217,6 +14731,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -13297,6 +14925,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -13905,6 +15534,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -14462,6 +16124,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -14542,6 +16318,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -15117,6 +16894,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -15682,6 +17492,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -15762,6 +17686,7 @@
       "secondsToNextRecovery": 1200,
       "injuredNote": "2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.",
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -16370,6 +18295,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -16938,6 +18896,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -17018,6 +19090,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -17593,6 +19666,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -18158,6 +20264,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -18227,6 +20447,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -18835,6 +21056,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -19422,6 +21676,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -19491,6 +21859,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -20099,6 +22468,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 130
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 85
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -20644,6 +23046,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -20713,6 +23229,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -21321,6 +23838,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 142
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 85
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 100
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -21840,6 +24390,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -21904,6 +24568,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -22512,6 +25177,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 130
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 50
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -22876,6 +25574,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -22945,6 +25757,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -23553,6 +26366,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -24172,6 +27018,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -24241,6 +27201,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -24849,6 +27810,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -25524,6 +28518,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -25593,6 +28701,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -26201,6 +29310,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -26935,6 +30077,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -27004,6 +30260,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -27612,6 +30869,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -28436,6 +31726,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -28505,6 +31909,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -29113,6 +32518,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -29938,6 +33376,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -30007,6 +33559,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -30615,6 +34168,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -31424,6 +35010,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -31504,6 +35204,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -32112,6 +35813,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 100
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -33053,6 +36787,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -33122,6 +36970,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -33730,6 +37579,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -34545,6 +38427,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "0,75/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -34614,6 +38610,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -35243,6 +39240,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -35857,6 +39887,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -35937,6 +40081,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -36545,6 +40690,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -37159,6 +41337,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -37228,6 +41520,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -37836,6 +42129,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -38521,6 +42847,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -38601,6 +43041,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
     },
     "resources": [
@@ -39209,6 +43650,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -39977,6 +44451,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -40046,6 +44634,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 2,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv2 × 5 = 15 vagas"
     },
     "resources": [
@@ -40610,6 +45199,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -41143,6 +45765,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [
       {
         "id": "master-1",
@@ -41321,6 +46057,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 1,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -41890,6 +46627,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Forja armas: 2 de ferro e 1 de madeira por arma, em lotes de até 10, um lote por vez."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -42423,6 +47193,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "4,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+        }
+      ]
+    },
     "masters": [
       {
         "id": "master-1",
@@ -42549,6 +47433,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
     },
     "resources": [
@@ -43158,6 +48043,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Cada arma leva 91% do tempo do nível 1 para forjar."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -43691,6 +48609,120 @@
         "blockedReason": null
       }
     },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "Erga o Quartel: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -43760,6 +48792,7 @@
       "secondsToNextRecovery": null,
       "injuredNote": null,
       "masters": 0,
+      "soldiers": 0,
       "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
     },
     "resources": [
@@ -44369,6 +49402,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Cada arma leva 91% do tempo do nível 1 para forjar."
+        },
+        {
+          "building": "barracks",
+          "label": "Quartel",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 250,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -44910,6 +49976,120 @@
         "batchSeconds": 3600,
         "blockedReason": null
       }
+    },
+    "army": {
+      "building": "barracks",
+      "built": false,
+      "level": 0,
+      "text": "Erga o Quartel: treina soldados, que saem da população.",
+      "total": 0,
+      "cap": 0,
+      "foodText": "0/h (0 soldados)",
+      "units": [
+        {
+          "id": "spearman",
+          "label": "Lanceiro",
+          "count": 0,
+          "line": "front",
+          "attack": 6,
+          "defense": 4,
+          "health": 20,
+          "initiative": 3,
+          "counters": "Vence o Cavaleiro.",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "swordsman",
+          "label": "Espadachim",
+          "count": 0,
+          "line": "front",
+          "attack": 8,
+          "defense": 5,
+          "health": 24,
+          "initiative": 3,
+          "counters": "Vence o Lanceiro.",
+          "costText": "40 de comida, 20 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "archer",
+          "label": "Arqueiro",
+          "count": 0,
+          "line": "back",
+          "attack": 7,
+          "defense": 2,
+          "health": 16,
+          "initiative": 4,
+          "counters": "Vence o Espadachim.",
+          "costText": "30 de comida, 15 de ouro, 8 de madeira",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "knight",
+          "label": "Cavaleiro",
+          "count": 0,
+          "line": "front",
+          "attack": 10,
+          "defense": 6,
+          "health": 30,
+          "initiative": 5,
+          "counters": "Vence o Arqueiro.",
+          "costText": "60 de comida, 60 de ouro, 1 arma",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        },
+        {
+          "id": "shieldbearer",
+          "label": "Escudeiro",
+          "count": 0,
+          "line": "front",
+          "attack": 3,
+          "defense": 9,
+          "health": 30,
+          "initiative": 2,
+          "counters": "Sem vantagem nem fraqueza; protege a retaguarda.",
+          "costText": "40 de comida, 15 de ouro, 10 de madeira, 5 de pedra",
+          "secondsEach": 0,
+          "foodPerHour": "1,5/h"
+        }
+      ],
+      "training": null,
+      "offer": [
+        {
+          "unit": "spearman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "swordsman",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "archer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "knight",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        },
+        {
+          "unit": "shieldbearer",
+          "maxAmount": 0,
+          "batchMax": 10,
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {

@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 27;
+const CURRENT = 28;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -118,6 +118,9 @@ function beforeMasters<T>(state: T): T {
   delete copy.settlement?.weapons;
   delete copy.settlement?.forge;
   delete copy.settlement?.buildings?.smithy;
+  // E o Quartel e o exército, da versão 28 (V4C-T1): o edifício por construir e ninguém treinado.
+  delete copy.settlement?.buildings?.barracks;
+  delete (copy as { army?: unknown }).army;
   // E a condição dos itens, da versão 27 (V4B-T3): todo item entra cheio, e o lote da forja ganha o
   // tipo. Quem compara com um retrato antigo tira os dois.
   const stripCondition = (node: unknown): void => {
@@ -254,6 +257,8 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       market: 0,
       // O Ferreiro (V4B-T2, versão 26): por construir.
       smithy: 0,
+      // O Quartel (V4C-T1, versão 28): por construir.
+      barracks: 0,
     },
     weapons: 0,
     forge: null,
@@ -944,7 +949,7 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
     expect(after.state.settlement).toEqual({
       ...site,
       // E o Mercado, da versão 21, e o Ferreiro, da 26, também por construir.
-      buildings: { ...site.buildings, market: 0, smithy: 0 },
+      buildings: { ...site.buildings, market: 0, smithy: 0, barracks: 0 },
       weapons: 0,
       forge: null,
       lastFamine: null,

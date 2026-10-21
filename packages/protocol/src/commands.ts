@@ -3,6 +3,7 @@ import {
   MARKET_RESOURCE_IDS,
   PRODUCTION_BUILDING_IDS,
   TRADE_DIRECTION_IDS,
+  UNIT_IDS,
 } from '@lotg/content';
 import { z } from 'zod';
 
@@ -221,6 +222,26 @@ export const RepairItemCommandSchema = command(
   z.strictObject({ itemId: z.string().min(1).max(64) }),
 );
 
+/**
+ * As ordens do Quartel (V4C-T1; ADR 0019, decisão 7). O protocolo só confere a forma; a unidade,
+ * o lote máximo, o limite do exército e o material são com o motor.
+ */
+export const TrainSoldiersCommandSchema = command(
+  'trainSoldiers',
+  z.strictObject({
+    unit: z.enum(UNIT_IDS),
+    amount: z.number().int().min(-1_000_000).max(1_000_000),
+  }),
+);
+export const CancelTrainingCommandSchema = command('cancelTraining', z.strictObject({}));
+export const DisbandSoldiersCommandSchema = command(
+  'disbandSoldiers',
+  z.strictObject({
+    unit: z.enum(UNIT_IDS),
+    amount: z.number().int().min(-1_000_000).max(1_000_000),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -245,6 +266,9 @@ export const CommandSchema = z.discriminatedUnion('type', [
   ForgeWeaponsCommandSchema,
   CancelForgeCommandSchema,
   RepairItemCommandSchema,
+  TrainSoldiersCommandSchema,
+  CancelTrainingCommandSchema,
+  DisbandSoldiersCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

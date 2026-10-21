@@ -10,6 +10,7 @@ import {
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
+  UNIT_IDS,
 } from '@lotg/content';
 import { z } from 'zod';
 
@@ -72,6 +73,13 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'BARRACKS_REQUIRED',
+  'TRAINING_BUSY',
+  'ARMY_LIMIT',
+  'NOT_ENOUGH_WEAPONS',
+  'NOT_TRAINING',
+  'INVALID_UNIT',
+  'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
@@ -768,6 +776,55 @@ const SmithySchema = z.strictObject({
   }),
 });
 
+const unitId = z.enum(UNIT_IDS);
+
+const ArmySchema = z.strictObject({
+  /** O edifício do Quartel: é o que `startConstruction` recebe. */
+  building: buildingId,
+  built: z.boolean(),
+  level: z.number(),
+  text: z.string(),
+  total: z.number(),
+  cap: z.number(),
+  foodText: z.string(),
+  units: z.array(
+    z.strictObject({
+      id: unitId,
+      label: z.string(),
+      count: z.number(),
+      line: z.enum(['front', 'back']),
+      attack: z.number(),
+      defense: z.number(),
+      health: z.number(),
+      initiative: z.number(),
+      counters: z.string(),
+      costText: z.string(),
+      secondsEach: z.number(),
+      foodPerHour: z.string(),
+    }),
+  ),
+  /** O lote em treino, com os segundos reais que faltam; `null` sem lote. */
+  training: z
+    .strictObject({
+      unit: unitId,
+      unitLabel: z.string(),
+      amount: z.number(),
+      label: z.string(),
+      endsInSeconds: z.number(),
+      totalSeconds: z.number(),
+      cancelRefundText: z.string(),
+    })
+    .nullable(),
+  offer: z.array(
+    z.strictObject({
+      unit: unitId,
+      maxAmount: z.number(),
+      batchMax: z.number(),
+      blockedReason: z.string().nullable(),
+    }),
+  ),
+});
+
 const MarketSchema = z.strictObject({
   /** O edifício do Mercado: é o que `startConstruction` recebe. */
   building: buildingId,
@@ -1078,6 +1135,8 @@ export const ViewStateSchema = z.strictObject({
      * `villagers` nem em `free`. Quem espera à porta não entra aqui.
      */
     masters: z.number(),
+    /** Os soldados: moram nas casas e comem, e não estão em `villagers`. */
+    soldiers: z.number(),
     breakdown: z.string(),
   }),
   resources: z.array(
@@ -1247,6 +1306,8 @@ export const ViewStateSchema = z.strictObject({
   market: MarketSchema,
   /** O Ferreiro: o lote na forja, as armas e o que uma ordem de forja pode pedir. */
   smithy: SmithySchema,
+  /** O Quartel e o exército: os soldados, o lote em treino e o que uma ordem de treino pode pedir. */
+  army: ArmySchema,
   /** Os Mestres do feudo, na ordem em que entraram. */
   masters: z.array(MasterSchema),
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

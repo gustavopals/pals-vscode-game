@@ -8,6 +8,7 @@ import { nextHeroArrivalAt, nextHeroRecoveryAt } from './heroes';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { nextForgeEndAt } from './smithy';
+import { nextTrainingEndAt } from './army';
 import { storageFillsIn } from './storage';
 import { nextTavernRotationAt } from './tavern';
 import type { GameState } from './types';
@@ -49,6 +50,11 @@ export function nextEventAt(state: GameState): number | null {
   const forgeEnds = nextForgeEndAt(state);
   if (forgeEnds !== null) {
     candidates.push(forgeEnds);
+  }
+  // O lote em treino no Quartel termina em instante próprio, resolvido junto dos recrutas.
+  const trainingEnds = nextTrainingEndAt(state);
+  if (trainingEnds !== null) {
+    candidates.push(trainingEnds);
   }
   // Durante a fome a fila de recrutamento fica congelada.
   const nextRecruit = recruitmentQueue[0];

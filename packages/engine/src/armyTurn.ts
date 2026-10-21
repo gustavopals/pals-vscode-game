@@ -1,0 +1,48 @@
+import { balance } from '@lotg/content';
+
+import { troopText } from './army';
+import { emit } from './chronicle';
+import { releaseExcessWorkers } from './population';
+import type { GameEvent, GameState } from './types';
+
+/**
+ * O fim do treino (V4C-T1; ADR 0019, decisão 7). Resolvido junto das obras e dos recrutas que
+ * chegam, antes dos Mestres à porta (`processEventsAt`): o soldado sai de um aldeão sem ofício
+ * e, se todos trabalham, do edifício com mais gente (`releaseExcessWorkers`, a regra da
+ * deserção). **Nada aqui sorteia.** O soldado continua morando nas casas, e por isso a vaga
+ * habitacional não muda.
+ *
+ * O piso de `populationFloor` aldeões protege o feudo: se a população caiu depois da ordem
+ * (deserção, partida) e já não sobram aldeões para todos, o lote termina com os que couberem, e
+ * os outros ficam por treinar (o custo não volta).
+ */
+export function finishTraining(draft: GameState, atMs: number, events: GameEvent[]): void {
+  const batch = draft.army.training;
+  if (batch === null || batch.endsAtMs > atMs) {
+    return;
+  }
+  draft.army.training = null;
+  const { settlement } = draft;
+  const spare = Math.max(0, settlement.population.villagers - balance.morale.populationFloor);
+  const trained = Math.min(batch.amount, spare);
+  if (trained === 0) {
+    return;
+  }
+  settlement.population.villagers -= trained;
+  draft.army.units[batch.unit] += trained;
+  releaseExcessWorkers(draft);
+  emit(
+    events,
+    draft,
+    atMs,
+    'soldiersTrained',
+    {
+      unit: batch.unit,
+      amount: trained,
+      lost: batch.amount - trained,
+      soldiers: draft.army.units[batch.unit],
+      villagers: settlement.population.villagers,
+    },
+    { tropa: troopText(batch.unit, trained) },
+  );
+}

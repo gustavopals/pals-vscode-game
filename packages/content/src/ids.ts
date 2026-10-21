@@ -20,8 +20,17 @@ export const BUILDING_IDS = [
   'guild',
   'market',
   'smithy',
+  'barracks',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
+
+/**
+ * As unidades que o Quartel treina (GDD §10.2; ADR 0019, decisão 7), na ordem da tabela. O
+ * Miliciano (§11.3) é da Fase G e não está aqui. A lista fica gravada no estado
+ * (`army.units`): mudar um identificador pede passo de migração.
+ */
+export const UNIT_IDS = ['spearman', 'swordsman', 'archer', 'knight', 'shieldbearer'] as const;
+export type UnitId = (typeof UNIT_IDS)[number];
 
 /**
  * O que o Mercado negocia por ouro (GDD §5.9; ADR 0018, decisão 16), **na ordem do sorteio** do

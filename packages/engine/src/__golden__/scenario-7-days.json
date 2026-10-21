@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -643,7 +643,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -774,6 +775,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "buildWatchtower",
@@ -802,7 +813,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -866,7 +877,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -996,6 +1008,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -1041,7 +1063,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1114,7 +1136,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -1269,6 +1292,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -1322,7 +1355,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1395,7 +1428,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -1559,6 +1593,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold",
@@ -1616,7 +1660,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1689,7 +1733,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -1847,6 +1892,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold",
@@ -1908,7 +1963,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1987,7 +2042,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -2162,6 +2218,16 @@
      },
      "caravans": []
     },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold",
@@ -2227,7 +2293,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 27,
+    "schemaVersion": 28,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2306,7 +2372,8 @@
       "tavern": 0,
       "guild": 0,
       "market": 0,
-      "smithy": 0
+      "smithy": 0,
+      "barracks": 0
      },
      "constructionQueues": [
       null,
@@ -2458,6 +2525,16 @@
       "iron": 0
      },
      "caravans": []
+    },
+    "army": {
+     "units": {
+      "spearman": 0,
+      "swordsman": 0,
+      "archer": 0,
+      "knight": 0,
+      "shieldbearer": 0
+     },
+     "training": null
     },
     "objectives": {
      "active": [

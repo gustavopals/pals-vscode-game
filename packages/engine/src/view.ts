@@ -62,6 +62,8 @@ import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
 import { marketEffect, marketView } from './marketView';
 import { smithyEffect, smithyView } from './smithyView';
+import { armyEffect, armyView } from './armyView';
+import { soldierCount } from './army';
 import { inhabitants } from './masters';
 import { mastersView, mastersWaitingView, workerMasterView } from './mastersView';
 import { tavernEffect, tavernView } from './tavernView';
@@ -134,7 +136,12 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   if (resource === 'food') {
     const perVillager = decimal(balance.consumption.foodPerVillagerPerHour * timeScale);
     const consumed = decimal((consumptionRate(state) * timeScale) / MILLI);
-    parts.push(`consumo ${villagers} × ${perVillager} = ${consumed}/h`);
+    const soldiers = soldierCount(state);
+    parts.push(
+      soldiers === 0
+        ? `consumo ${villagers} × ${perVillager} = ${consumed}/h`
+        : `consumo ${villagers - soldiers} × ${perVillager} + ${soldiers} × ${decimal((balance.army.foodPerSoldierPerHour.num / balance.army.foodPerSoldierPerHour.den) * timeScale)} (${plural(soldiers, 'soldado', 'soldados')}) = ${consumed}/h`,
+    );
   }
   const firewood = firewoodRate(state);
   if (resource === 'wood' && firewood > 0) {
@@ -190,7 +197,8 @@ function upgradeEffect(state: GameState, building: BuildingId, targetLevel: numb
     tavernEffect(building, targetLevel) ??
     guildEffect(building, targetLevel) ??
     marketEffect(building, targetLevel) ??
-    smithyEffect(building, targetLevel)
+    smithyEffect(building, targetLevel) ??
+    armyEffect(building, targetLevel)
   );
 }
 
@@ -408,6 +416,7 @@ export function deriveViewState(
         nextRecruit === undefined || settlement.famine ? null : until(nextRecruit.finishesAtMs),
       ...injuredView(state, timeScale),
       masters: settlement.masters.length,
+      soldiers: soldierCount(state),
       breakdown: BUILDING_IDS.flatMap((id) => {
         const perLevel = balance.housing.capacityPerLevel[id];
         return perLevel === undefined
@@ -478,6 +487,7 @@ export function deriveViewState(
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
     smithy: smithyView(state, timeScale),
+    army: armyView(state, timeScale),
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),
   };

@@ -191,4 +191,16 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 4 },
   },
+  // O Quartel (GDD §6.1 e §10.2; ADR 0019, decisão 7): treina soldados, um lote por vez, até
+  // `10 × nível`. Nasce no nível 0. Os números do exército estão em `balance.army`.
+  barracks: {
+    label: 'Quartel',
+    article: 'o',
+    baseCost: { wood: 250, stone: 150, gold: 100 },
+    baseDurationMs: 20 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 8,
+    produces: null,
+    requires: { townHall: 4 },
+  },
 };

@@ -74,6 +74,10 @@ export const EVENT_TYPES = [
   'forgeStarted',
   'forgeCancelled',
   'weaponsForged',
+  'trainingStarted',
+  'trainingCancelled',
+  'soldiersTrained',
+  'soldiersDisbanded',
   'itemWorn',
   'repairStarted',
   'itemRepaired',
@@ -157,6 +161,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'mestre',
   // A quantidade de um lote da forja e os pontos de um reparo, já no plural certo ("1 arma").
   'armas',
+  // O lote de uma ordem do Quartel, já no plural certo ("3 lanceiros").
+  'tropa',
   'pontos',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
@@ -329,6 +335,15 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   forgeCancelled:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} apagou a forja: o lote de {armas} ficou por fazer.',
   weaponsForged: 'No {dia}º dia {daEstacao}, a forja de {feudo} entregou {armas}.',
+  // O Quartel (GDD §6.1 e §10.2; ADR 0019, decisão 7): o treino de um lote de soldados.
+  trainingStarted:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} chamou ao pátio do Quartel: {tropa}.',
+  trainingCancelled:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} mandou o pátio dispersar: o treino de {tropa} ficou por fazer.',
+  soldiersTrained:
+    'No {dia}º dia {daEstacao}, terminou o treino no Quartel de {feudo}: {tropa} para o exército.',
+  soldiersDisbanded:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} dispensou o serviço de {tropa}: a lavoura os recebe de volta como aldeões.',
   // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
   // zero tem linha: cada ponto perdido no caminho não é notícia.
   itemWorn:

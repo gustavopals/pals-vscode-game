@@ -176,6 +176,37 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - `itemWorn` poderia ser "Essenciais" (o herói perdeu o bônus). Ficou em "Todas", como `weaponsForged`, e o Retorno o põe em "O que exigiu um preço", com "Reparar…". A linha do Ferreiro na árvore fica sem botão enquanto repara (a dica diz que o reparo não se cancela). A frase "não dá bônus" é a da visão; a tela não diz "sem bônus" com palavras próprias.
 
+### Fase C: o Quartel e os soldados (V4C-T1)
+
+**C-1. O Quartel no nível 8 não cabe no Armazém em Camponês e em Senhor, e o 7 e o 8 não cabem em Rei de Ferro.** _(Dúvida para o autor; os números são os do ADR 0019 e o agente os manteve.)_
+
+- Com 250 de madeira no nível 1 e o fator de custo das obras, o nível 7 pede 4.194 e o 8 pede 6.710 de madeira. O Armazém no nível 8 guarda 5.200 em Camponês e em Senhor (o nível 8 do Quartel não se constrói) e 3.680 em Rei de Ferro (o 7 e o 8 não se constroem). O teto alcançável do Quartel é então 7 em Camponês e Senhor e 6 em Rei de Ferro, ou seja, 70 e 60 soldados. O roteiro pedia um teste de que "cada nível cabe no depósito nas três dificuldades"; ele está em `packages/content/src/barracks.test.ts` com a **lista exata** dos níveis que não cabem, e `storage.test.ts` repete a lista de alcançabilidade.
+- Saídas: baixar o custo-base de madeira (150 daria o nível 8 em 4.026), baixar o teto do Quartel para 7, ou aceitar. **Recomendação do agente:** baixar o custo-base de madeira para 150, que resolve os dois primeiros casos e deixa Rei de Ferro como as outras obras caras (`townHall 8` já não é alcançável nele).
+
+**C-2. `army` está na raiz do `GameState`, e não dentro de `settlement`.** _(Decisão do agente.)_
+
+- O roteiro escreve `army: { units; training }` ao lado do Quartel em `settlement.buildings`. O estado guarda `state.army`, irmão de `guild` e `market`, porque o exército é um assunto próprio (as formações, a Fase D e os relatórios de batalha entram nele) e a migração mexe em um lugar só. Trocar de lugar pede passo de migração.
+
+**C-3. O lote que o piso de aldeões encolhe termina com o que cabe e não devolve o custo; sem nenhum aldeão disponível, o lote some sem linha na Crônica.** _(Decisão do agente.)_
+
+- A ordem confere o piso na hora (`NOT_ENOUGH_VILLAGERS`), mas a população pode cair (deserção, partida) entre a ordem e o fim do treino. `finishTraining` forma `min(lote, aldeões − 3)` soldados; o resto fica por treinar e o custo não volta. Se não sobra nenhum, nenhum evento é emitido (a Crônica não diz "0 soldados"). Alternativas: devolver o custo do que sobrou, ou adiar o fim do lote até haver aldeão. O caso é raro (exige perder aldeões durante um treino de poucos minutos).
+
+**C-4. O treino não congela na fome.** _(Decisão do agente.)_
+
+- A fila de recrutamento de aldeões fica congelada na fome (GDD §5.6). O treino de soldados não: o custo já foi pago e o soldado não depende de a despensa encher. Se o autor quiser o congelamento, é regra nova (`nextEventAt` e `finishTraining` olhariam `settlement.famine`).
+
+**C-5. O soldado queima lenha e conta nas casas cheias e na reserva de comida da moral como habitante.** _(Leitura do agente de "inhabitants soma soldados".)_
+
+- `inhabitants` agora soma soldados, então a lenha (`firewoodRate`), as casas cheias (moral), a vaga habitacional e a reserva de comida contam o soldado. A comida é a única conta em que ele pesa mais que o aldeão (1,5). Se o autor quiser que o soldado não queime lenha, é um fator novo em `firewoodRate`.
+
+**C-6. `cancelTraining` devolve 80% das armas, para baixo; a arma não cabe em fração.** _(Decisão do agente.)_
+
+- Um lote de 3 espadachins (3 armas) devolve 2 armas ao cancelar. O roteiro dizia "devolve 80%" sem tratar a arma. A visão diz o que volta ("Cancelar devolve 80% dos recursos e N armas").
+
+**C-7. Os custos dos soldados e as frases do Quartel são rascunho.** _(Rascunho que o autor não leu.)_
+
+- Os custos e tempos são os da tabela do GDD §10.2 (o Espadachim e o Cavaleiro levam uma arma inteira, o ferro entra pela arma). As quatro linhas da Crônica (`trainingStarted`, `trainingCancelled`, `soldiersTrained`, `soldiersDisbanded`), a frase do Escudeiro ("Sem vantagem nem fraqueza; protege a retaguarda.") e o texto do Quartel na visão são rascunho.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

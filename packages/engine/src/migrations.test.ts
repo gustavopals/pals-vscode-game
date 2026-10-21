@@ -19,6 +19,7 @@ import {
   RAID_SIZE_IDS,
   RESOURCE_IDS,
   TILE_TYPE_IDS,
+  UNIT_IDS,
 } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
@@ -97,6 +98,12 @@ import {
   RESOURCE_IDS_V25,
 } from './migrations/v25';
 import { BUILDING_IDS_V26, FORGE_BATCH_MAX_V26 } from './migrations/v26';
+import {
+  ARMY_CAP_PER_LEVEL_V28,
+  BUILDING_IDS_V28,
+  TRAINING_BATCH_MAX_V28,
+  UNIT_IDS_V28,
+} from './migrations/v28';
 import {
   DURABILITY_V27,
   FORGE_BATCH_MAX_V27,
@@ -180,11 +187,20 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
+/** Tira de um estado, no lugar, o que o passo 27 → 28 acrescenta: o Quartel (nível 0) e o exército. */
+function stripArmy(copy: Draft): void {
+  delete copy.army;
+  if (copy.settlement !== undefined) {
+    delete copy.settlement.buildings?.barracks;
+  }
+}
+
 /**
  * Tira de um estado, no lugar, o que o passo 26 → 27 acrescenta: a condição de cada item (em
  * qualquer lugar do estado) e o tipo do lote da forja.
  */
 function stripRepair(copy: Draft): void {
+  stripArmy(copy);
   const walk = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(walk);
@@ -1263,6 +1279,55 @@ const FROZEN: Record<string, string> = {
   'state-v26-wage-arrears.json': '5aefc2fc',
   'state-v26-warehouse-full.json': 'c690b315',
   'state-v26-week-scripted.json': '1b92b570',
+  'state-v27-caravan-escort.json': 'dd56179f',
+  'state-v27-caravan.json': 'b91dcc15',
+  'state-v27-cold.json': 'c789b5bd',
+  'state-v27-construction.json': 'b88d1774',
+  'state-v27-council-hidden.json': '50b34f31',
+  'state-v27-council.json': '89201daf',
+  'state-v27-crafts.json': '504573d6',
+  'state-v27-den-cleared.json': '321a0cb6',
+  'state-v27-expedition-crossroads.json': 'd5ac0f95',
+  'state-v27-expedition-returning.json': 'e5442ad8',
+  'state-v27-expedition.json': '3cdd3987',
+  'state-v27-famine-3x.json': 'bc13e2e8',
+  'state-v27-famine-ended.json': 'fc71c402',
+  'state-v27-famine-half.json': 'd68d1213',
+  'state-v27-famine-resumed.json': 'dd7b47ec',
+  'state-v27-famine-smithy.json': 'dae65e99',
+  'state-v27-famine.json': 'ebbf0458',
+  'state-v27-fresh.json': 'eacdc015',
+  'state-v27-guild.json': 'f608daa0',
+  'state-v27-hero-captured.json': '696c9f48',
+  'state-v27-hero-injured.json': 'f028ac21',
+  'state-v27-hero-promised.json': '1f680a5a',
+  'state-v27-housing-full.json': 'e7933918',
+  'state-v27-iron-king-half.json': '77325c31',
+  'state-v27-market-opening.json': '49180e20',
+  'state-v27-market.json': 'e9ec86a4',
+  'state-v27-master-waiting.json': 'e99a5635',
+  'state-v27-masters.json': '42537188',
+  'state-v27-migrated-3x.json': '48b36480',
+  'state-v27-migrated-iron-king-caravan.json': 'a3264f95',
+  'state-v27-migrated-iron-king-half.json': '60a04532',
+  'state-v27-migrated-peasant-3x.json': '8e9b795b',
+  'state-v27-morale.json': '0751a5b4',
+  'state-v27-objectives.json': 'b619b616',
+  'state-v27-palisade.json': '7d36437a',
+  'state-v27-peasant-3x.json': '95db96f4',
+  'state-v27-queues.json': '5f0509c2',
+  'state-v27-raid-announced.json': '15168123',
+  'state-v27-raid.json': 'ace6f826',
+  'state-v27-smithy-forging.json': '51286d55',
+  'state-v27-storage.json': 'e6497d66',
+  'state-v27-tavern-busy.json': 'fdda1c2e',
+  'state-v27-tavern.json': 'd60225fd',
+  'state-v27-threat.json': 'ec8d7ff3',
+  'state-v27-wage-arrears-ended.json': 'ee80ce20',
+  'state-v27-wage-arrears-resumed.json': '03d6fff2',
+  'state-v27-wage-arrears.json': 'dd922c2d',
+  'state-v27-warehouse-full.json': '3dd04b22',
+  'state-v27-week-scripted.json': '4d8ade86',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2748,6 +2813,7 @@ describe('versão 3 → 4', () => {
       'guild',
       'market',
       'smithy',
+      'barracks',
     ]);
     const storage = unbuilt.filter(
       (entry) =>
@@ -2755,7 +2821,8 @@ describe('versão 3 → 4', () => {
         entry.building !== 'tavern' &&
         entry.building !== 'guild' &&
         entry.building !== 'market' &&
-        entry.building !== 'smithy',
+        entry.building !== 'smithy' &&
+        entry.building !== 'barracks',
     );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
@@ -4241,7 +4308,9 @@ describe('versão 15 → 16', () => {
   const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V16, 'guild', 'market', 'smithy']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V16, 'guild', 'market', 'smithy', 'barracks']).toEqual([
+      ...BUILDING_IDS,
+    ]);
     expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
     expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_FIXED_STREAMS_V13, 'tavern']);
   });
@@ -4374,7 +4443,7 @@ describe('versão 16 → 17', () => {
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
     const { expeditions } = balance;
-    expect([...BUILDING_IDS_V17, 'market', 'smithy']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V17, 'market', 'smithy', 'barracks']).toEqual([...BUILDING_IDS]);
     expect(HERO_STATUS_IDS_V17).toEqual(['idle', 'expedition']);
     expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
     expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
@@ -5273,7 +5342,7 @@ describe('versão 20 → 21', () => {
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V21, 'smithy']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V21, 'smithy', 'barracks']).toEqual([...BUILDING_IDS]);
     // O ferro entrou na versão 25: o conteúdo de hoje é o da 21 com ele no fim.
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...MARKET_RESOURCE_IDS]);
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...balance.market.resources]);
@@ -6229,7 +6298,7 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
   const version25 = fixtures.filter((fixture) => fixture.version === 25);
 
   it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
-    expect(BUILDING_IDS_V26).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V26, 'barracks']).toEqual([...BUILDING_IDS]);
     expect(FORGE_BATCH_MAX_V26).toBe(balance.smithy.batchMax);
   });
 
@@ -6510,5 +6579,149 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
         state.ids.item = 40;
       }),
     ).toContain('arsenal e item em reparo acima do teto');
+  });
+});
+
+/** Um estado como a versão 27 o gravava, a partir de um da versão 28: sem o Quartel e o exército. */
+function asVersion27(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 27;
+  stripArmy(old);
+  return old;
+}
+
+describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
+  const version27 = fixtures.filter((fixture) => fixture.version === 27);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(BUILDING_IDS_V28).toEqual([...BUILDING_IDS]);
+    expect(UNIT_IDS_V28).toEqual([...UNIT_IDS]);
+    expect(ARMY_CAP_PER_LEVEL_V28).toBe(balance.army.capPerLevel);
+    expect(TRAINING_BATCH_MAX_V28).toBe(balance.army.batchMax);
+  });
+
+  it('há retratos da versão 27 com as casas cheias, a fome aberta e o Salão no nível 4', () => {
+    expect(version27.length).toBeGreaterThan(40);
+    const all = version27.map((fixture) => read(fixture) as Draft);
+    expect(all.some((state) => state.settlement.buildings.townHall >= 4)).toBe(true);
+    expect(all.some((state) => state.settlement.famine !== null)).toBe(true);
+    expect(version27.some((fixture) => fixture.name === 'state-v27-housing-full.json')).toBe(true);
+    expect(version27.some((fixture) => fixture.name === 'state-v27-famine-smithy.json')).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v27-fresh.json'));
+    expect(fresh.settlement.buildings.barracks).toBe(0);
+    expect(fresh.army).toEqual({
+      units: { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 },
+      training: null,
+    });
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version27)(
+    '$name: só acrescenta o Quartel no nível 0 e o exército vazio; o resto, o gerador e os contadores ficam como estavam, e a comida de ninguém muda',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.buildings.barracks).toBe(0);
+      expect(after.army.training).toBeNull();
+      expect(Object.values(after.army.units).every((count) => count === 0)).toBe(true);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.stats).toStrictEqual(before.stats);
+      expect(asVersion27(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      // Nada acontece na fronteira: o passo não cria prazo nem evento.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => /training|soldiers/.test(event.type))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion27(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a partida migrada com o Salão no nível 4 ergue o Quartel e treina na fronteira', () => {
+    const state = migrated(named('state-v27-housing-full.json'));
+    const rich = JSON.parse(JSON.stringify(state)) as GameState;
+    rich.settlement.resources = {
+      food: 600_000,
+      wood: 600_000,
+      stone: 600_000,
+      gold: 600_000,
+      iron: 0,
+    };
+    const started = applyCommand(
+      rich,
+      command('startConstruction', { building: 'barracks' }),
+      rich.lastProcessedAt,
+    );
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+    const done = advanceTo(
+      started.state,
+      started.state.settlement.constructionQueues[0]?.finishesAtMs ?? 0,
+    );
+    expect(done.state.settlement.buildings.barracks).toBe(1);
+    const trained = applyCommand(
+      done.state,
+      command('trainSoldiers', { unit: 'spearman', amount: 2 }),
+      done.state.lastProcessedAt,
+    );
+    expect(trained.ok).toBe(true);
+  });
+
+  it('a guarda recusa o exército ausente, a unidade que falta, soldados sem Quartel, acima do limite e o lote impossível', () => {
+    const broken = (from: GameState, edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(from)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    const fresh = newGame('guarda-do-quartel');
+    expect(broken(fresh, () => undefined)).toBeNull();
+    expect(broken(fresh, (state) => delete state.army)).not.toBeNull();
+    expect(broken(fresh, (state) => delete state.settlement.buildings.barracks)).not.toBeNull();
+    expect(broken(fresh, (state) => delete state.army.units.archer)).not.toBeNull();
+    expect(broken(fresh, (state) => (state.army.units.archer = -1))).not.toBeNull();
+    expect(broken(fresh, (state) => (state.army.units.archer = 1))).toBe(
+      'army: soldados ou treino sem Quartel',
+    );
+    const batch = { unit: 'knight', amount: 3, startedAtMs: 0, endsAtMs: 1000 };
+    expect(broken(fresh, (state) => (state.army.training = { ...batch }))).toBe(
+      'army: soldados ou treino sem Quartel',
+    );
+    const built = (edit: (state: Draft) => void) =>
+      broken(fresh, (state) => {
+        state.settlement.buildings.barracks = 1;
+        edit(state);
+      });
+    expect(built((state) => (state.army.units.archer = 10))).toBeNull();
+    expect(built((state) => (state.army.units.archer = 11))).toBe(
+      'army.units: soldados acima do limite do Quartel',
+    );
+    expect(built((state) => (state.army.training = { ...batch }))).toBeNull();
+    expect(built((state) => (state.army.training = { ...batch, unit: 'dragon' }))).not.toBeNull();
+    expect(built((state) => (state.army.training = { ...batch, amount: 0 }))).not.toBeNull();
+    expect(built((state) => (state.army.training = { ...batch, amount: 11 }))).toBe(
+      'army.training.amount: lote acima do máximo',
+    );
+    expect(built((state) => (state.army.training = { ...batch, endsAtMs: -5 }))).not.toBeNull();
+    expect(built((state) => (state.army.training = { ...batch, startedAtMs: 2000 }))).toBe(
+      'army.training.endsAtMs: lote que termina antes de começar',
+    );
+    expect(
+      built((state) => {
+        state.army.units.archer = 8;
+        state.army.training = { ...batch };
+      }),
+    ).toBe('army.training.amount: soldados e lote acima do limite do Quartel');
   });
 });

@@ -197,7 +197,7 @@ describe('iniciar', () => {
   });
 
   it('recusa um edifício que não existe', () => {
-    const bogus = command('startConstruction', { building: 'barracks' as BuildingId });
+    const bogus = command('startConstruction', { building: 'stable' as BuildingId });
     expect(refuse(newGame(), bogus).code).toBe('INVALID_BUILDING');
   });
 });

@@ -47,6 +47,7 @@ import {
   SEASON_IDS,
   TAVERN_CANDIDATE_IDS,
   TILE_TYPE_IDS,
+  UNIT_IDS,
 } from './ids';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
@@ -688,6 +689,12 @@ const balanceFields = z.strictObject({
     speedPerLevel: ratio,
     batchMax: positiveInt,
   }),
+  army: z.strictObject({
+    capPerLevel: positiveInt,
+    trainingSpeedPerLevel: ratio,
+    batchMax: positiveInt,
+    foodPerSoldierPerHour: ratio,
+  }),
 });
 
 /**
@@ -745,6 +752,7 @@ export const BuildingsSchema = z.strictObject({
   guild: BuildingSchema,
   market: BuildingSchema,
   smithy: BuildingSchema,
+  barracks: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -1817,3 +1825,25 @@ export const EquipmentTextsSchema = z.strictObject(
 export const HeroHarmTemplatesSchema = z.strictObject(
   Object.fromEntries(Object.keys(heroHarmTemplates).map((key) => [key, expeditionSentence])),
 );
+
+const unitDef = z.strictObject({
+  label: z.string().min(1),
+  pluralLabel: z.string().min(1),
+  attack: positiveInt,
+  defense: positiveInt,
+  health: positiveInt,
+  initiative: positiveInt,
+  line: z.enum(['front', 'back']),
+  cost: z.strictObject({
+    food: positiveInt.optional(),
+    wood: positiveInt.optional(),
+    stone: positiveInt.optional(),
+    gold: positiveInt.optional(),
+  }),
+  weapons: z.number().int().min(0),
+  trainMs: positiveInt,
+  counters: z.enum(UNIT_IDS).nullable(),
+});
+
+/** As unidades do Quartel (`units.ts`): nenhuma custa ferro direto, e o ciclo fecha. */
+export const UnitsSchema = z.strictObject(Object.fromEntries(UNIT_IDS.map((id) => [id, unitDef])));

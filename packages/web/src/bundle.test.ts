@@ -29,6 +29,8 @@ const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'RESOURCE_IDS',
   'SEASON_IDS',
   'TRADE_DIRECTION_IDS',
+  // As unidades do Quartel (V4C-T1): o schema da ordem de treino e o da visão as usam.
+  'UNIT_IDS',
 ];
 
 type BundledModule = { id: string; exports: readonly string[] };

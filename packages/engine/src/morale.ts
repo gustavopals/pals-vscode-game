@@ -4,6 +4,7 @@ import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { consumptionRate, stockBalance } from './economy';
 import { famineDurationAt, famineLedgerAt } from './famine';
 import { isAtHome, traitMorale } from './heroes';
+import { soldierFoodExtra } from './army';
 import { inhabitants } from './masters';
 import { housingCapacity } from './population';
 import type { GameState, MoraleEffect } from './types';
@@ -66,8 +67,10 @@ export function recruitsKeepingFoodReserve(state: GameState, maxQuantity: number
   const perRecruit = (balance.recruitment.cost.food ?? 0) * MILLI * HOUR_MS;
   const stock = stockBalance(state, 'food');
   const mouths = inhabitants(state) + recruitmentQueue.length;
+  // Os soldados comem mais que um aldeão: a diferença também entra na reserva.
+  const soldiersExtra = soldierFoodExtra(state) * rules.foodReserve.coverMs;
   const keeps = (quantity: number) =>
-    stock - perRecruit * quantity >= perMouth * (mouths + quantity);
+    stock - perRecruit * quantity >= perMouth * (mouths + quantity) + soldiersExtra;
   if (!keeps(0)) {
     return null;
   }

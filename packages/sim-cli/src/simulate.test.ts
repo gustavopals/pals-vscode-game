@@ -69,7 +69,7 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,iron_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,barracks,' +
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
