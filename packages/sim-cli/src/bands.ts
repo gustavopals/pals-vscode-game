@@ -165,7 +165,7 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
     'week/3/preguicoso': measured([41, 60], 7, 0, 0, 3200, 3200, 5757, 114),
     'week/3/regular': measured([75, 75], 7, 0, 0, 2780, 3657, 228117, 39),
     'week/3/dedicado': measured([75, 75], 7, 0, 0, 3352, 3675, 329801, 15),
-    'week/3/explorador': measured([75, 75], 7, 0, 0, 3026, 3680, 278895, 48),
+    'week/3/explorador': measured([75, 75], 7, 0, 0, 3122, 3680, 278895, 48),
     'week/1/preguicoso': measured([28, 32], 4, 0, 0, 859, 1936, 1135, 26),
     'week/1/regular': measured([64, 74], 6, 0, 0, 3272, 3442, 23340, 9),
     'week/1/dedicado': measured([74, 75], 7, 0, 0, 3679, 3678, 42401, 4),
@@ -185,7 +185,7 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
     'year/0.5/preguicoso': measured([57, 61], 6, 0, 0, 3200, 1864, 7160, 8.5),
     'year/0.5/regular': measured([74, 75], 7, 0, 0, 3680, 3680, 42990, 2),
     'year/0.5/dedicado': measured([75, 75], 7, 0, 0, 3680, 3680, 55402, 1),
-    'year/0.5/explorador': measured([74, 75], 7, 0, 0, 3680, 3680, 45776, 5.5),
+    'year/0.5/explorador': measured([74, 75], 7, 0, 0, 3680, 3680, 48183, 5.5),
   },
 };
 

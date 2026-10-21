@@ -164,3 +164,20 @@ Rodadas no branch `v4b-t1-ferro`, com a T1.7 e a T1.8 juntas, no Node 22 (`pnpm 
 **O que mudou no conteúdo:** `itemRarities[].durability` (Comum 8, Incomum 10, Raro 14, Épico 20), `balance.equipment.wearPerExpedition` (1) e `balance.equipment.repair` (ferro por ponto 1, 1, 2, 2; 2 min de jogo por ponto).
 
 **O que o simulador mede:** a matriz padrão (3 perfis × 3 ritmos × 50 sementes em Senhor, mais o Explorador) rodou dentro das mesmas faixas da V4B-T2, **sem remedir nenhuma**. O Explorador equipa itens e eles agora se gastam (um ponto por volta); como nenhum bot ergue o Ferreiro (B-14), os itens que chegam a 0 ficam sem bônus e sem reparo. Nas janelas medidas isso não tirou nenhuma partida da faixa. A rodada de Camponês e de Rei de Ferro não foi repetida nesta tarefa. Pendência B-26.
+
+## 4. A medição da Fase B (V4B-T5.3, 2026-10-21)
+
+**Commit:** o `main` com o ferro, o Ferreiro e o reparo (estado 27; `7cb91ec` e as correções da segunda passada da revisão, que só mexem em textos e na guarda do reparo). **Node:** 22.22.3.
+
+```bash
+pnpm -s sim -- --matrix --difficulty lord
+pnpm -s sim -- --matrix --difficulty peasant
+pnpm -s sim -- --matrix --difficulty ironKing
+pnpm -s sim -- --matrix --profile especulador
+```
+
+- **Senhor e Camponês:** as 2.400 partidas dentro das faixas (código 0). Nenhuma célula mudou.
+- **Rei de Ferro:** uma semente do Explorador no ano do Tranquilo passou 0,2% do limite do ouro parado (48.183 contra 48.065). É o desgaste: os itens gastos mudam o desfecho das expedições do Explorador, e a regra mudou de propósito. **Duas células do Explorador remedidas** (a semana do Rápido e o ano do Tranquilo); fome e frio continuam em zero.
+- **O especulador** continua sem lucro na arbitragem (saldo de −8,6 de ouro por partida no Normal).
+
+**O ouro sem destino (a §13 do roadmap e a decisão 2):** a Fase B **não deu destino ao ouro**. A coluna de compras do Mercado continua zero em toda célula: nenhum bot compra ferro, porque sem o Quartel as armas não servem para nada. O Regular da semana do Rápido termina com 185.949 de ouro parado (eram 185.969 na linha de base, seção 1.3). A única mudança é o Explorador, que vende o ferro da Mina e recebe um pouco mais no balcão. **O sumidouro de verdade é o treino de soldados, da Fase C**, e é depois dele que a decisão 2 manda medir de novo (V4C-T4.3).
