@@ -1,7 +1,7 @@
 import { emit } from './chronicle';
 import { plural } from './format';
 import { missingResources, payResources } from './construction';
-import { itemDefOf } from './heroes';
+import { isAtHome, itemDefOf } from './heroes';
 import { reject } from './rejections';
 import {
   repairDurationMs,
@@ -46,13 +46,17 @@ export function repairItem(
   const item = inventory[index];
   const def = item === undefined ? null : itemDefOf(item);
   if (item === undefined || def === null) {
-    const carried = draft.guild.heroes.some((hero) =>
+    const bearer = draft.guild.heroes.find((hero) =>
       Object.values(hero.equipment).some((piece) => piece?.id === itemId),
     );
+    // Quem está fora do feudo só devolve o item quando voltar (revisão do reparo, achado 2).
     return reject('ITEM_NOT_FOUND', {
-      note: carried
-        ? 'Se um herói o leva, devolva-o ao arsenal antes de mandar reparar.'
-        : undefined,
+      note:
+        bearer === undefined
+          ? undefined
+          : isAtHome(bearer)
+            ? 'Se um herói o leva, devolva-o ao arsenal antes de mandar reparar.'
+            : `${bearer.name} leva este item longe do feudo: o reparo só quando ele voltar.`,
     });
   }
   const points = repairPoints(item);

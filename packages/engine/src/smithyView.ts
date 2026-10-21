@@ -2,7 +2,7 @@ import { balance, buildings, equipmentTexts, itemRarities } from '@lotg/content'
 
 import { missingResources } from './construction';
 import { decimal, fillText, plural } from './format';
-import { durabilityOf, itemDefOf } from './heroes';
+import { durabilityOf, isAtHome, itemDefOf } from './heroes';
 import { storageCapacity } from './storage';
 import {
   forgeCost,
@@ -82,16 +82,16 @@ function maxAmount(state: GameState): number {
 function repairOffer(state: GameState, timeScale: number): SmithyView['repairOffer'] {
   const level = smithyLevel(state);
   const busy = state.settlement.forge !== null;
-  const entries: Array<{ item: Item; heroName: string | null }> = [
-    ...state.guild.inventory.map((item) => ({ item, heroName: null })),
+  const entries: Array<{ item: Item; heroName: string | null; away: boolean }> = [
+    ...state.guild.inventory.map((item) => ({ item, heroName: null, away: false })),
     ...state.guild.heroes.flatMap((hero) =>
       Object.values(hero.equipment).flatMap((item) =>
-        item === null ? [] : [{ item, heroName: hero.name }],
+        item === null ? [] : [{ item, heroName: hero.name, away: !isAtHome(hero) }],
       ),
     ),
   ];
   const items: RepairItemView[] = [];
-  for (const { item, heroName } of entries) {
+  for (const { item, heroName, away } of entries) {
     const def = itemDefOf(item);
     const points = repairPoints(item);
     if (def === null || points === 0) {
@@ -105,7 +105,12 @@ function repairOffer(state: GameState, timeScale: number): SmithyView['repairOff
     } else if (busy) {
       blockedReason = equipmentTexts.repairBusy;
     } else if (heroName !== null) {
-      blockedReason = fillText(equipmentTexts.repairCarried, { item: def.label, heroi: heroName });
+      // Quem está fora do feudo não devolve o item ao arsenal até voltar: `unequipItem` recusa com
+      // `HERO_BUSY` (revisão do reparo, achado 2).
+      blockedReason = fillText(away ? equipmentTexts.repairAway : equipmentTexts.repairCarried, {
+        item: def.label,
+        heroi: heroName,
+      });
     } else if (missing > 0) {
       blockedReason = fillText(equipmentTexts.repairNoIron, {
         faltam: missing,

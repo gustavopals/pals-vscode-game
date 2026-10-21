@@ -140,6 +140,19 @@ describe('reparo no Ferreiro (V4B-T3; ADR 0019, decisão 5)', () => {
     const carriedRefusal = refused(carried, 'repairItem', { itemId: 'item-1' });
     expect(carriedRefusal.code).toBe('ITEM_NOT_FOUND');
     expect(carriedRefusal.message).toContain('devolva-o ao arsenal');
+    // Com o herói longe do feudo, ele não tem como devolver o item: a frase diz quando dá
+    // (revisão do reparo, achado 2), na recusa e na visão.
+    const away = cloneState(carried);
+    const [traveler] = away.guild.heroes;
+    if (traveler !== undefined) {
+      traveler.status = 'expedition';
+    }
+    const awayRefusal = refused(away, 'repairItem', { itemId: 'item-1' });
+    expect(awayRefusal.message).toContain('longe do feudo');
+    expect(awayRefusal.message).not.toContain('devolva-o');
+    const offered = deriveViewState(away, away.lastProcessedAt, { timeScale: 1 }).smithy.repairOffer
+      .items[0];
+    expect(offered?.blockedReason).toContain('longe do feudo');
 
     const intact = refused(bench(10), 'repairItem', { itemId: 'item-1' });
     expect(intact.code).toBe('ITEM_INTACT');
