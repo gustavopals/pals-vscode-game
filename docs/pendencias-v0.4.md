@@ -178,7 +178,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 ### Fase C: o Quartel e os soldados (V4C-T1)
 
-**C-1. O Quartel no nível 8 não cabe no Armazém em Camponês e em Senhor, e o 7 e o 8 não cabem em Rei de Ferro.** _(Dúvida para o autor; os números são os do ADR 0019 e o agente os manteve.)_
+**C-1. O Quartel no nível 8 não cabe no Armazém em Camponês e em Senhor, e o 7 e o 8 não cabem em Rei de Ferro.** _(Respondida pelo autor em 2026-10-21: **madeira-base 150**. O nível 8 pede 4.026 de madeira e cabe em Camponês e Senhor; em Rei de Ferro o Quartel para no 7, como as outras obras que pedem o Salão no nível 8. Os testes de `barracks.test.ts` e `storage.test.ts` têm os números novos.)_
 
 - Com 250 de madeira no nível 1 e o fator de custo das obras, o nível 7 pede 4.194 e o 8 pede 6.710 de madeira. O Armazém no nível 8 guarda 5.200 em Camponês e em Senhor (o nível 8 do Quartel não se constrói) e 3.680 em Rei de Ferro (o 7 e o 8 não se constroem). O teto alcançável do Quartel é então 7 em Camponês e Senhor e 6 em Rei de Ferro, ou seja, 70 e 60 soldados. O roteiro pedia um teste de que "cada nível cabe no depósito nas três dificuldades"; ele está em `packages/content/src/barracks.test.ts` com a **lista exata** dos níveis que não cabem, e `storage.test.ts` repete a lista de alcançabilidade.
 - Saídas: baixar o custo-base de madeira (150 daria o nível 8 em 4.026), baixar o teto do Quartel para 7, ou aceitar. **Recomendação do agente:** baixar o custo-base de madeira para 150, que resolve os dois primeiros casos e deixa Rei de Ferro como as outras obras caras (`townHall 8` já não é alcançável nele).

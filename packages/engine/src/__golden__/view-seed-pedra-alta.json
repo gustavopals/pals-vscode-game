@@ -675,8 +675,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 130
+              "amount": 150,
+              "missing": 30
             },
             {
               "resource": "stone",
@@ -1837,8 +1837,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 130
+              "amount": 150,
+              "missing": 30
             },
             {
               "resource": "stone",
@@ -3010,8 +3010,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 229
+              "amount": 150,
+              "missing": 129
             },
             {
               "resource": "stone",
@@ -4236,8 +4236,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 190
+              "amount": 150,
+              "missing": 90
             },
             {
               "resource": "stone",
@@ -5582,8 +5582,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 250
+              "amount": 150,
+              "missing": 150
             },
             {
               "resource": "stone",
@@ -7144,8 +7144,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 49
+              "amount": 150,
+              "missing": 0
             },
             {
               "resource": "stone",
@@ -8523,7 +8523,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -9864,8 +9864,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 250
+              "amount": 150,
+              "missing": 150
             },
             {
               "resource": "stone",
@@ -11256,7 +11256,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -12622,7 +12622,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -14086,7 +14086,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -15544,7 +15544,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -16904,7 +16904,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -18305,7 +18305,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -19676,7 +19676,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -21066,7 +21066,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -22478,8 +22478,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 130
+              "amount": 150,
+              "missing": 30
             },
             {
               "resource": "stone",
@@ -23848,8 +23848,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 142
+              "amount": 150,
+              "missing": 42
             },
             {
               "resource": "stone",
@@ -25187,8 +25187,8 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
-              "missing": 130
+              "amount": 150,
+              "missing": 30
             },
             {
               "resource": "stone",
@@ -26376,7 +26376,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -27820,7 +27820,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -29320,7 +29320,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -30879,7 +30879,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -32528,7 +32528,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -34178,7 +34178,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -35823,7 +35823,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -37589,7 +37589,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -39250,7 +39250,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -40700,7 +40700,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -42139,7 +42139,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -43660,7 +43660,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -45209,7 +45209,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -46637,7 +46637,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -48053,7 +48053,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {
@@ -49412,7 +49412,7 @@
             {
               "resource": "wood",
               "label": "Madeira",
-              "amount": 250,
+              "amount": 150,
               "missing": 0
             },
             {

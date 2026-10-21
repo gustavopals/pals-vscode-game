@@ -196,7 +196,7 @@ export const buildings: Record<BuildingId, BuildingDef> = {
   barracks: {
     label: 'Quartel',
     article: 'o',
-    baseCost: { wood: 250, stone: 150, gold: 100 },
+    baseCost: { wood: 150, stone: 150, gold: 100 },
     baseDurationMs: 20 * MINUTE_MS,
     initialLevel: 0,
     maxLevel: 8,

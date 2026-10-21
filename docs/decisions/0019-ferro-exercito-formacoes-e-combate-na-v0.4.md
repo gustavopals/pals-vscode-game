@@ -56,7 +56,7 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 | Durabilidade do item | **Comum 8, Incomum 10, Raro 14, Épico 20** pontos | Proposta. O Explorador faz de 3 a 4 expedições por semana real no ritmo Normal: um Comum dura umas duas semanas, um Épico cerca de um mês e meio |
 | Desgaste | **1 ponto** por expedição concluída (a perdida não volta com o item) e por batalha que o herói comanda; item em 0 fica **sem bônus** e continua no arsenal | Decisão 5. Proposta: o desgaste conta no fim da expedição, não por nó |
 | Reparo | No Ferreiro, na **mesma fila da forja**; custa **1 ferro por ponto** (Comum e Incomum) e **2 ferro por ponto** (Raro e Épico), e **2 min de jogo por ponto**; volta à durabilidade cheia | Proposta |
-| Quartel | Pede o Salão Nv4; vai até o **Nv8**; Nv1 custa 250 madeira, 150 pedra e 100 ouro em 20 min de jogo; treino 5% mais rápido por nível | GDD §6.1 |
+| Quartel | Pede o Salão Nv4; vai até o **Nv8**; Nv1 custa **150** madeira (era 250; resposta do autor à pendência C-1, 2026-10-21), 150 pedra e 100 ouro em 20 min de jogo; treino 5% mais rápido por nível | GDD §6.1 |
 | Soldados | Limite **`10 × nível` do Quartel** (até 80); treino sequencial em lotes de até **10**; comem **1,5/h** de jogo; custos e tempos das unidades do GDD §10.2 | Decisão 7 e GDD §10.2 |
 | Formações | Até **5** salvas, **6** postos, até **20 por posto** (30 com o Quartel Nv5+), **uma** Defesa ativa | Decisão 9 e GDD §10.1 |
 | Tetos do estado | Uma fila de forja ou reparo (um lote); uma fila de treino (um lote); 5 formações; o arsenal continua em 30 | Proposta: tetos fixos, conferidos pela guarda de forma da versão nova |

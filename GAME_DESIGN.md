@@ -419,7 +419,7 @@ Os seis edifícios da v0.1 nascem no nível 1: para eles o expoente é `nível �
 | Taverna | 180 madeira, 60 pedra, 120 ouro | 15 min |
 | Mercado | 150 madeira, 100 pedra, 150 ouro | 15 min |
 | Guilda dos Aventureiros | 300 madeira, 100 pedra, 200 ouro | 20 min |
-| Quartel | 250 madeira, 150 pedra, 100 ouro | 20 min |
+| Quartel | 150 madeira, 150 pedra, 100 ouro | 20 min |
 | Ferreiro | 200 madeira, 200 pedra, 150 ouro | 20 min |
 | Capela | 200 madeira, 300 pedra, 200 ouro | 30 min |
 | Posto Avançado | 250 madeira, 150 pedra, 100 ouro | 45 min |

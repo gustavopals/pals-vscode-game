@@ -188,5 +188,5 @@ pnpm -s sim -- --matrix --profile especulador
 
 - **Faixas:** nenhuma foi remedida. O bot `militar` e a política mínima de guerra dos três perfis da rodada padrão (V4C-T1.8) ficaram para a próxima sessão; é com eles que a comida dos soldados (1,5 por hora de jogo) e o ouro e a madeira do treino passam a pesar na matriz, e é então que as faixas são remedidas de propósito.
 - **O que a conta de comida muda hoje:** nada na matriz (nenhum soldado). Para quem treinar: 10 soldados comem 15 por hora de jogo, e `army.foodText` e o termo "consumo" da explicação da comida mostram isso na visão.
-- **Alcançabilidade (pendência C-1):** o Quartel Nv7 e Nv8 custam 4.194 e 6.710 de madeira; o Armazém no nível 8 guarda 5.200 em Camponês e Senhor e 3.680 em Rei de Ferro. O teto alcançável é 7 (Camponês e Senhor) e 6 (Rei de Ferro).
+- **Alcançabilidade (pendência C-1, respondida em 2026-10-21):** com 250 de madeira no nível 1, o Quartel Nv7 e Nv8 custavam 4.194 e 6.710, e o teto alcançável era 7 em Camponês e Senhor e 6 em Rei de Ferro. Com a madeira-base em 150 (resposta do autor), o Nv8 custa 4.026 e cabe no Armazém no nível 8 (5.200) em Camponês e Senhor; em Rei de Ferro o teto é 7, porque o Armazém para no 7 (3.680).
 

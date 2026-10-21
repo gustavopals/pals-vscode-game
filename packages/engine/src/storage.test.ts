@@ -1899,9 +1899,9 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
           .map((fromLevel) => `${building} ${fromLevel}→${fromLevel + 1}`);
       });
     expect(warehouseReach('peasant')).toBe(8);
-    expect(deadEnds('peasant')).toEqual(['barracks 7→8']);
+    expect(deadEnds('peasant')).toEqual([]);
     expect(warehouseReach('lord')).toBe(8);
-    expect(deadEnds('lord')).toEqual(['barracks 7→8']);
+    expect(deadEnds('lord')).toEqual([]);
     // O Armazém de Rei de Ferro para no nível 7: o nível 8 custa 4.295 e ele guarda 3.680.
     expect(warehouseReach('ironKing')).toBe(7);
     expect(deadEnds('ironKing')).toEqual([
@@ -1911,7 +1911,6 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       'goldMine 9→10',
       'granary 7→8',
       'warehouse 7→8',
-      'barracks 6→7',
       'barracks 7→8',
     ]);
   });
@@ -1990,8 +1989,9 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       guild: 4,
       market: 5,
       smithy: 6,
-      // O Quartel 8 pede 6.710 de madeira e o Armazém no nível 8 guarda 5.200 (pendência C-1).
-      barracks: 7,
+      // Com a madeira-base do Quartel em 150 (resposta do autor à pendência C-1, 2026-10-21),
+      // o nível 8 cabe no Armazém no nível 8.
+      barracks: 8,
     };
     const beyondEight = [
       'farm 10',
@@ -1999,7 +1999,6 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       'quarry 10',
       'goldMine 10',
       'housing 10',
-      'barracks 8',
     ];
     expect(ceilings('peasant')).toEqual(hallAtEight);
     expect(unreachable('peasant')).toEqual(beyondEight);
@@ -2022,7 +2021,8 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       guild: 4,
       market: 5,
       smithy: 6,
-      barracks: 6,
+      // O Quartel 8 pede o Salão no nível 7 e o Armazém no 8, que Rei de Ferro não ergue.
+      barracks: 7,
     });
     expect(unreachable('ironKing')).toEqual([
       'townHall 8',
@@ -2033,7 +2033,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       'housing 9–10',
       'granary 8',
       'warehouse 8',
-      'barracks 7–8',
+      'barracks 8',
     ]);
   });
 });

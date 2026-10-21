@@ -16,14 +16,14 @@ import { BalanceSchema, BuildingsSchema, UnitsSchema } from './schemas';
 describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
   const { army, storage, difficulties, construction } = balance;
 
-  it('o edifício: nasce no nível 0, pede o Salão no nível 4, custa 250, 150 e 100, leva 20 min e vai ao nível 8', () => {
+  it('o edifício: nasce no nível 0, pede o Salão no nível 4, custa 150, 150 e 100, leva 20 min e vai ao nível 8', () => {
     expect(BUILDING_IDS).toContain('barracks');
     expect(BuildingsSchema.safeParse(buildings).error).toBeUndefined();
     const def = buildings.barracks;
     expect(def.initialLevel).toBe(0);
     expect(def.maxLevel).toBe(8);
     expect(def.requires).toEqual({ townHall: 4 });
-    expect(def.baseCost).toEqual({ wood: 250, stone: 150, gold: 100 });
+    expect(def.baseCost).toEqual({ wood: 150, stone: 150, gold: 100 });
     expect(def.baseDurationMs).toBe(20 * 60_000);
     expect(def.produces).toBeNull();
   });
@@ -38,7 +38,7 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
     });
   });
 
-  it('cada nível do Quartel cabe no depósito nas três dificuldades, menos os que a pendência C-1 lista, com o Armazém que o Salão daquele nível deixa erguer', () => {
+  it('cada nível do Quartel cabe no depósito nas três dificuldades, com o Armazém que o Salão daquele nível deixa erguer', () => {
     const def = buildings.barracks;
     const { num, den } = construction.costFactor;
     const warehouse = storage.buildings.warehouse;
@@ -75,11 +75,10 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
         }
       }
     }
-    // Os números do ADR 0019 (250 de madeira no nível 1, com o fator de custo das obras) fazem o
-    // nível 8 custar mais madeira do que o Armazém guarda em Camponês e em Senhor, e o 7 e o 8
-    // mais do que guarda em Rei de Ferro. Os números são do autor: fica a lista exata, e a
-    // pendência C-1 da v0.4 pergunta o que fazer (o teste de alcançabilidade do motor a repete).
-    expect(tooBig).toEqual(['ironKing 7', 'peasant 8', 'lord 8', 'ironKing 8']);
+    // Com 250 de madeira no nível 1 (o número do ADR 0019) o nível 8 não cabia em Camponês nem
+    // em Senhor, e o 7 e o 8 não cabiam em Rei de Ferro. O autor respondeu à pendência C-1 em
+    // 2026-10-21: a madeira-base passa a 150, e todo nível cabe.
+    expect(tooBig).toEqual([]);
   });
 });
 

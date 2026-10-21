@@ -493,7 +493,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 ### V4C-T1 · Quartel e soldados `L`
 
 **Objetivo:** o Quartel como edifício, as cinco unidades treináveis como conteúdo, o treino sequencial em lotes e os soldados como habitantes que não trabalham.
-**GDD:** §5.2 (1,5 de comida por soldado por hora), §6.1 (Quartel: Salão 4, nível 8, limite 10 × nível, treino 5% mais rápido por nível), §6.2 (250 madeira, 150 pedra, 100 ouro, 20 min), §10.2 (as unidades), §17.1 ("soldados saem da população").
+**GDD:** §5.2 (1,5 de comida por soldado por hora), §6.1 (Quartel: Salão 4, nível 8, limite 10 × nível, treino 5% mais rápido por nível), §6.2 (150 madeira, desde a resposta do autor à C-1; 150 pedra, 100 ouro, 20 min), §10.2 (as unidades), §17.1 ("soldados saem da população").
 **Depende de:** V4B-T2 (armas). **Da v0.3 usa:** `population.villagers`, `inhabitants` e o piso (`masters.ts`), a fila de recrutamento (molde do treino), a conta única da produção em frações, `heroCapture` por dificuldade (molde de regra por dificuldade).
 **Decisões:** 7.
 **Trilha:** motor.
