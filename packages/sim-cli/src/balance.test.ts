@@ -188,7 +188,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
     // Desde a Mina Abandonada (V4B-T1), que captura no veio fundo, em uma semente o resgatado
     // volta com a casa cheia e o feudo termina com sete (o resgatado não respeita o limite).
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
+    // Com a política mínima de guerra (V4C-T1.8) o caminho de obras muda, e nenhuma das 50
+    // sementes termina com o resgatado acima do limite: seis em todas.
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 6 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -490,9 +492,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // dias em 80 trazem colonos. Com os dois números do ADR 0016 (seção 18), entre 64 e 73.
     // Com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4), entre 64 e 75: a moral que ela
     // soma mantém o feudo acima dos 80, e os colonos vêm. Com os objetivos 11 a 16 (V3F-T2;
-    // docs/balance-v0.3.md, seção 15), entre 65 e 75.
+    // docs/balance-v0.3.md, seção 15), entre 65 e 75. Com a política mínima de guerra (V4C-T1.8;
+    // docs/balance-v0.4.md, seção 5.1) o soldado sai da população (ADR 0019, decisão 7) e o bot
+    // treina até um quarto dos aldeões: entre 56 e 69 aldeões, mais os soldados.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 58, max: 83 });
+    expect(band?.villagers).toEqual({ min: 50, max: 76 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
