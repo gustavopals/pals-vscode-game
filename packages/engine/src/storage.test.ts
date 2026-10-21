@@ -1993,13 +1993,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       // o nível 8 cabe no Armazém no nível 8.
       barracks: 8,
     };
-    const beyondEight = [
-      'farm 10',
-      'lumberMill 10',
-      'quarry 10',
-      'goldMine 10',
-      'housing 10',
-    ];
+    const beyondEight = ['farm 10', 'lumberMill 10', 'quarry 10', 'goldMine 10', 'housing 10'];
     expect(ceilings('peasant')).toEqual(hallAtEight);
     expect(unreachable('peasant')).toEqual(beyondEight);
     expect(ceilings('lord')).toEqual(hallAtEight);
