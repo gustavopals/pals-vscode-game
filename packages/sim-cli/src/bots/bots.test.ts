@@ -2747,6 +2747,7 @@ describe('bot honesto', () => {
       'especulador.ts',
       'explorador.ts',
       'index.ts',
+      'militar.ts',
       'ousado.ts',
       'policies.ts',
       'preguicoso.ts',
