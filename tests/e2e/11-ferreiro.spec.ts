@@ -285,7 +285,11 @@ test.describe('o reparo (V4B-T4.3 e T4.5)', () => {
     await expect(arsenal(page)).toBeVisible();
   }
 
-  test('o item em 0 mostra que não dá bônus, na frase da visão', async ({ context, request, world }) => {
+  test('o item em 0 mostra que não dá bônus, na frase da visão', async ({
+    context,
+    request,
+    world,
+  }) => {
     const page = await world.open(context);
     await wornSpear(world, page);
     const view = await serverView(page, request);
