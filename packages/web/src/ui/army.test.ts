@@ -30,9 +30,7 @@ describe('as linhas do Quartel', () => {
     if (five === undefined) {
       throw new Error('A visão de exemplo deixou de ter o lote de 5 Lanceiros.');
     }
-    expect(trainLine(army, spearman, 5)).toBe(
-      `Treinar ${five.label}: ${five.costText}, em 10 min`,
-    );
+    expect(trainLine(army, spearman, 5)).toBe(`Treinar ${five.label}: ${five.costText}, em 10 min`);
     // Fora da faixa da visão, só a unidade e a quantidade.
     expect(trainLine(army, spearman, 99)).toBe('Treinar Lanceiro × 99');
   });
