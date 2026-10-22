@@ -71,6 +71,9 @@ export function formationEditorView(state: GameState): FormationEditorView {
     postMax: postMax(state),
     formationsCap: balance.army.formationsCap,
     canSaveNew: state.army.formations.length < balance.army.formationsCap,
+    // Os nomes das alas e das linhas, do conteúdo: o editor vazio também precisa deles.
+    wingLabels: { ...wingLabels },
+    lineLabels: { ...lineLabels },
     units: UNIT_IDS.map((id) => ({
       id,
       label: units[id].label,

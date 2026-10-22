@@ -1153,6 +1153,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -2375,6 +2384,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -3634,6 +3652,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -5047,6 +5074,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -6459,6 +6495,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -8043,6 +8088,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -9466,6 +9520,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -10885,6 +10948,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -12295,6 +12367,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -13803,6 +13884,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -15294,6 +15384,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -16731,6 +16830,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -18143,6 +18251,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -19591,6 +19708,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -21003,6 +21129,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -22459,6 +22594,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -23876,6 +24020,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -25285,6 +25438,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -26526,6 +26688,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -28015,6 +28186,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -29568,6 +29748,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -31186,6 +31375,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -32894,6 +33092,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -34604,6 +34811,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -36303,6 +36519,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -38140,6 +38365,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -39845,6 +40079,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -41362,6 +41605,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -42856,6 +43108,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -44410,6 +44671,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -46060,6 +46330,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -47431,6 +47710,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -48903,6 +49191,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -50363,6 +50660,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",
@@ -51775,6 +52081,15 @@
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
+        "wingLabels": {
+          "left": "Ala esquerda",
+          "center": "Centro",
+          "right": "Ala direita"
+        },
+        "lineLabels": {
+          "front": "Frente",
+          "back": "Retaguarda"
+        },
         "units": [
           {
             "id": "spearman",

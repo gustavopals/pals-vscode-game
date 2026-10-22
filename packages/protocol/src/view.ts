@@ -888,6 +888,9 @@ const ArmySchema = z.strictObject({
     postMax: z.number(),
     formationsCap: z.number(),
     canSaveNew: z.boolean(),
+    /** Os nomes das alas e das linhas, para a grade do editor. */
+    wingLabels: z.strictObject({ left: z.string(), center: z.string(), right: z.string() }),
+    lineLabels: z.strictObject({ front: z.string(), back: z.string() }),
     units: z.array(
       z.strictObject({
         id: unitId,

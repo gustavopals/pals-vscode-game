@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 import {
   type Draft,
-  LINE_LABEL,
   LINES,
   type Line,
   moveCell,
@@ -11,7 +10,6 @@ import {
   savePayload,
   slotText,
   unitsOfLine,
-  WING_LABEL,
   WINGS,
   type Wing,
   withCommander,
@@ -89,7 +87,7 @@ function PostDialog(props: {
         }}
       >
         <h3 id="post-dialog-title">
-          {WING_LABEL[props.wing]} · {LINE_LABEL[line]}
+          {army.editor.wingLabels[props.wing]} · {army.editor.lineLabels[line]}
         </h3>
         <div class="trade-amount">
           <label for="post-unit">Qual soldado</label>
@@ -211,14 +209,14 @@ export function FormationEditor(props: {
           <span role="presentation" class="formation-corner" />
           {WINGS.map((wing) => (
             <span key={wing} role="columnheader" class="formation-head">
-              {WING_LABEL[wing]}
+              {army.editor.wingLabels[wing]}
             </span>
           ))}
         </div>
         {LINES.map((line, lineIndex) => (
           <div role="row" class="formation-row" key={line}>
             <span role="rowheader" class="formation-head">
-              {LINE_LABEL[line]}
+              {army.editor.lineLabels[line]}
             </span>
             {WINGS.map((wing, wingIndex) => {
               const slot = draft.posts[wing][line];
@@ -233,7 +231,7 @@ export function FormationEditor(props: {
                   data-testid={`post-${wing}-${line}`}
                   tabIndex={current ? 0 : -1}
                   disabled={props.disabled}
-                  aria-label={`${WING_LABEL[wing]}, ${LINE_LABEL[line]}: ${slotText(army, slot)}. Enter para editar.`}
+                  aria-label={`${army.editor.wingLabels[wing]}, ${army.editor.lineLabels[line]}: ${slotText(army, slot)}. Enter para editar.`}
                   ref={(element) => {
                     if (element === null) {
                       cells.current.delete(key);
@@ -268,7 +266,7 @@ export function FormationEditor(props: {
         <legend>Comandante de cada ala</legend>
         {WINGS.map((wing) => (
           <div class="trade-amount" key={wing}>
-            <label for={`commander-${wing}`}>{WING_LABEL[wing]}</label>
+            <label for={`commander-${wing}`}>{army.editor.wingLabels[wing]}</label>
             <select
               id={`commander-${wing}`}
               data-testid={`commander-${wing}`}
