@@ -26,7 +26,9 @@ import {
   mastersScenario,
   smithyStall,
   barracksYard,
+  formationYard,
   masterWaitingScenario,
+  saveFormationOrder,
   send,
   tavernScenario,
   tradeOrder,
@@ -349,6 +351,10 @@ describe('catálogo de recusas', () => {
     INVALID_UNIT: [yard, command('trainSoldiers', { unit: 'dragon' as 'spearman', amount: 1 })],
     NOT_ENOUGH_SOLDIERS: [yard, command('disbandSoldiers', { unit: 'spearman', amount: 1 })],
     ITEM_INTACT: [intact, command('repairItem', { itemId: 'item-1' })],
+    FORMATION_NOT_FOUND: [yard, command('deleteFormation', { id: 'formation-9' })],
+    FORMATIONS_CAP: [formationYard(balance.army.formationsCap), saveFormationOrder('Mais uma')],
+    INVALID_FORMATION: [yard, saveFormationOrder('   ')],
+    FORMATION_ACTIVE: [formationYard(1, 0), command('deleteFormation', { id: 'formation-1' })],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

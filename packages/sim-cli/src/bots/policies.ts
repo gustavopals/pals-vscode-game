@@ -2179,5 +2179,59 @@ export function treinarSoldados(units: readonly UnitId[]): Policy {
   };
 }
 
+/** O nome com que o bot reconhece a formação dele entre as salvas. */
+const FORMATION_NAME = 'Defesa do bot';
+
+/**
+ * Monta a formação do bot e a ativa como Defesa ativa (V4C-T2; GDD §10.8). Com soldados, põe
+ * **o que o exército tem** nos postos de cada unidade (a fileira da frente: Escudeiros no
+ * centro se houver, senão Lanceiros; Espadachins à esquerda; Cavaleiros à direita; Arqueiros no
+ * centro, atrás), com no máximo `editor.postMax` por posto, sem comandante nenhum (o herói
+ * comandante da Defesa ativa não parte, e o bot não quer mudar quem vai às expedições). Salva
+ * uma vez e só regrava quando o exército cresce além do que a formação pede; ativa a que salvou.
+ * Formação não tem efeito no motor nesta versão (a batalha é da Fase D): é só dado.
+ */
+export const montarFormacao: Policy = {
+  name: 'montar a formação',
+  run: async (view, act) => {
+    const { army } = view;
+    if (!army.built || army.total === 0) {
+      return view;
+    }
+    const have = (id: UnitId): number => army.units.find((entry) => entry.id === id)?.count ?? 0;
+    const cap = (id: UnitId): number => Math.min(have(id), army.editor.postMax);
+    const front = have('shieldbearer') > 0 ? 'shieldbearer' : 'spearman';
+    const post = (id: UnitId) => (cap(id) > 0 ? { unit: id, count: cap(id) } : null);
+    const posts = {
+      left: { front: post('swordsman'), back: null },
+      center: { front: post(front), back: post('archer') },
+      right: { front: post('knight'), back: null },
+    };
+    const planned = [posts.left.front, posts.center.front, posts.center.back, posts.right.front]
+      .map((entry) => entry?.count ?? 0)
+      .reduce((sum, count) => sum + count, 0);
+    if (planned === 0) {
+      return view;
+    }
+    const saved = army.formations.find((entry) => entry.name === FORMATION_NAME);
+    let current = view;
+    if (saved === undefined || saved.total < planned) {
+      if (saved === undefined && !army.editor.canSaveNew) {
+        return view;
+      }
+      current = await act('saveFormation', {
+        id: saved?.id ?? null,
+        name: FORMATION_NAME,
+        posts,
+        commanders: { left: null, center: null, right: null },
+      });
+    }
+    const target = current.army.formations.find((entry) => entry.name === FORMATION_NAME);
+    return target !== undefined && !target.isActive
+      ? act('setActiveFormation', { id: target.id })
+      : current;
+  },
+};
+
 /** A política mínima de guerra dos bots da rodada padrão: Lanceiros e Arqueiros. */
 export const treinarMinimo: Policy = treinarSoldados(['spearman', 'archer']);

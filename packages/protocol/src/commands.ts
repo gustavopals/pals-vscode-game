@@ -1,9 +1,11 @@
 import {
   BUILDING_IDS,
+  LINE_IDS,
   MARKET_RESOURCE_IDS,
   PRODUCTION_BUILDING_IDS,
   TRADE_DIRECTION_IDS,
   UNIT_IDS,
+  WING_IDS,
 } from '@lotg/content';
 import { z } from 'zod';
 
@@ -242,6 +244,47 @@ export const DisbandSoldiersCommandSchema = command(
   }),
 );
 
+/**
+ * As ordens das formações salvas (V4C-T2; ADR 0019, decisões 8 e 9). O protocolo confere a
+ * forma (as três alas, as duas linhas, um posto `null` ou `{ unit, count }`); a linha da
+ * unidade, o teto do posto, o comandante e o nome são com o motor.
+ */
+const formationPost = z
+  .strictObject({ unit: z.enum(UNIT_IDS), count: z.number().int().min(-1_000_000).max(1_000_000) })
+  .nullable();
+const formationWing = z.strictObject(
+  Object.fromEntries(LINE_IDS.map((line) => [line, formationPost])) as Record<
+    (typeof LINE_IDS)[number],
+    typeof formationPost
+  >,
+);
+export const SaveFormationCommandSchema = command(
+  'saveFormation',
+  z.strictObject({
+    id: z.string().min(1).max(64).nullable(),
+    name: z.string().max(200),
+    posts: z.strictObject(
+      Object.fromEntries(WING_IDS.map((wing) => [wing, formationWing])) as Record<
+        (typeof WING_IDS)[number],
+        typeof formationWing
+      >,
+    ),
+    commanders: z.strictObject(
+      Object.fromEntries(
+        WING_IDS.map((wing) => [wing, z.string().min(1).max(64).nullable()]),
+      ) as Record<(typeof WING_IDS)[number], z.ZodNullable<z.ZodString>>,
+    ),
+  }),
+);
+export const DeleteFormationCommandSchema = command(
+  'deleteFormation',
+  z.strictObject({ id: z.string().min(1).max(64) }),
+);
+export const SetActiveFormationCommandSchema = command(
+  'setActiveFormation',
+  z.strictObject({ id: z.string().min(1).max(64).nullable() }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -269,6 +312,9 @@ export const CommandSchema = z.discriminatedUnion('type', [
   TrainSoldiersCommandSchema,
   CancelTrainingCommandSchema,
   DisbandSoldiersCommandSchema,
+  SaveFormationCommandSchema,
+  DeleteFormationCommandSchema,
+  SetActiveFormationCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

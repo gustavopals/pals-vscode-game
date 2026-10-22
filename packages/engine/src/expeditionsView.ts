@@ -36,7 +36,8 @@ import {
 } from './expeditions';
 import { lessonText, trialTemplate } from './expeditionReport';
 import { durationText, fillText, joinList, sentenceCase } from './format';
-import { canDepart, heroPowerRatio, powerWeights } from './heroes';
+import { canDepartNow } from './formations';
+import { heroPowerRatio, powerWeights } from './heroes';
 import { isMasterId, masterLabel } from './masters';
 import { tileWithArticle } from './outcomes';
 import { describeLoss } from './storage';
@@ -230,7 +231,7 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       // com os pesos dela; sem prova à vista, o poder da ficha. A Postura fica de fora: o traço
       // que rende mais em uma delas só entra depois do envio.
       heroFit: state.guild.heroes
-        .filter(canDepart)
+        .filter((hero) => canDepartNow(state, hero))
         .map((hero) => ({ heroId: hero.id, power: against(hero) / MILLI })),
       locked: blocked !== null,
       lockedReason: blocked?.message ?? null,
@@ -600,7 +601,7 @@ export function guildReadyText(state: GameState): string {
   if (state.guild.expeditions.length >= expeditionSlots(state)) {
     return fillText(expeditionTexts.full, { expedicoes: slots });
   }
-  if (!state.guild.heroes.some(canDepart)) {
+  if (!state.guild.heroes.some((hero) => canDepartNow(state, hero))) {
     return expeditionTexts.noneHome;
   }
   return fillText(expeditionTexts.ready, { expedicoes: slots });

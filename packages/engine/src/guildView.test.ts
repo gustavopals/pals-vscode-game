@@ -106,6 +106,7 @@ describe('a guilda na visão', () => {
         injury: null,
         captive: false,
         nextRescued: false,
+        commanding: null,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [
@@ -137,6 +138,7 @@ describe('a guilda na visão', () => {
         injury: null,
         captive: false,
         nextRescued: false,
+        commanding: null,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [
@@ -167,6 +169,7 @@ describe('a guilda na visão', () => {
         injury: null,
         captive: false,
         nextRescued: false,
+        commanding: null,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [

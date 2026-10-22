@@ -1142,7 +1142,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -2320,7 +2359,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -3535,7 +3613,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -4904,7 +5021,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -6272,7 +6428,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -7812,7 +8007,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -9191,7 +9425,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -10566,7 +10839,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -11932,7 +12244,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -13396,7 +13747,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -14843,7 +15233,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -16236,7 +16665,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -17604,7 +18072,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -19008,7 +19515,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -20376,7 +20922,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -21788,7 +22373,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -22760,6 +23384,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -22805,6 +23430,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -22854,6 +23480,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -23158,7 +23785,65 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": null
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          },
+          {
+            "heroId": "hero-3",
+            "name": "Isolda",
+            "classLabel": "Maga",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -24148,6 +24833,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -24193,6 +24879,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -24502,7 +25189,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": null
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -25686,7 +26425,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -26791,6 +27569,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -27130,7 +27909,53 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -28246,6 +29071,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -28291,6 +29117,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -28630,7 +29457,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Mécia",
+            "classLabel": "Clériga",
+            "reason": null
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Nuno",
+            "classLabel": "Clérigo",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -29840,6 +30719,7 @@
           "statusText": "Em expedição",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -29885,6 +30765,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -30189,7 +31070,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": "está fora do feudo"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -31489,6 +32422,7 @@
           "statusText": "Em expedição",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -31534,6 +32468,7 @@
           "statusText": "Em expedição",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -31838,7 +32773,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": "está fora do feudo"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": "está fora do feudo"
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -33091,6 +34078,7 @@
           "statusText": "Em expedição, com ferimentos",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": {
             "severityLabel": "Ferimento leve",
             "recoversInSeconds": 14040
@@ -33139,6 +34127,7 @@
           "statusText": "Em expedição",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -33184,6 +34173,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -33488,7 +34478,65 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": "está fora do feudo"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": "está fora do feudo"
+          },
+          {
+            "heroId": "hero-3",
+            "name": "Brann",
+            "classLabel": "Guerreiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -34742,6 +35790,7 @@
           "statusText": "Em recuperação: volta a poder partir em 30 min",
           "atHome": true,
           "canDepart": false,
+          "commanding": null,
           "injury": {
             "severityLabel": "Ferimento leve",
             "recoversInSeconds": 1800
@@ -34790,6 +35839,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -35122,7 +36172,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": "ainda se recupera de um ferimento"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -36459,6 +37561,7 @@
           "statusText": "Em cativeiro desde \"Ruínas de Vel'Thar\"",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": true,
           "nextRescued": true,
@@ -36517,6 +37620,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -36575,6 +37679,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -36899,7 +38004,65 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Clériga",
+            "reason": "está em cativeiro"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Clérigo",
+            "reason": null
+          },
+          {
+            "heroId": "hero-3",
+            "name": "Brann",
+            "classLabel": "Guerreiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -38190,6 +39353,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -38235,6 +39399,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -38539,7 +39704,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": null
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -39999,7 +41216,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -41449,7 +42705,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -42959,7 +44254,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -44070,6 +45404,7 @@
           "statusText": "Escolta a caravana: volta em 57 min",
           "atHome": false,
           "canDepart": false,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -44115,6 +45450,7 @@
           "statusText": "No feudo",
           "atHome": true,
           "canDepart": true,
+          "commanding": null,
           "injury": null,
           "captive": false,
           "nextRescued": false,
@@ -44563,7 +45899,59 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": [
+          {
+            "heroId": "hero-1",
+            "name": "Edda",
+            "classLabel": "Guerreira",
+            "reason": "escolta uma caravana"
+          },
+          {
+            "heroId": "hero-2",
+            "name": "Rolf",
+            "classLabel": "Arqueiro",
+            "reason": null
+          }
+        ]
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -45877,7 +47265,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [
       {
@@ -47305,7 +48732,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [
       {
@@ -48721,7 +50187,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -50089,7 +51594,46 @@
           "batchMax": 10,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
         }
-      ]
+      ],
+      "formations": [],
+      "editor": {
+        "postMax": 20,
+        "formationsCap": 5,
+        "canSaveNew": true,
+        "units": [
+          {
+            "id": "spearman",
+            "label": "Lanceiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "swordsman",
+            "label": "Espadachim",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "archer",
+            "label": "Arqueiro",
+            "line": "back",
+            "available": 0
+          },
+          {
+            "id": "knight",
+            "label": "Cavaleiro",
+            "line": "front",
+            "available": 0
+          },
+          {
+            "id": "shieldbearer",
+            "label": "Escudeiro",
+            "line": "front",
+            "available": 0
+          }
+        ],
+        "heroes": []
+      }
     },
     "masters": [],
     "mastersWaiting": {

@@ -11,6 +11,7 @@ import {
 } from './army';
 import { trainingBlock } from './armyOrders';
 import { decimal, fillText, plural } from './format';
+import { formationEditorView, formationViews } from './formationsView';
 import type { ArmyView, BuildingId, GameState } from './types';
 import { MILLI, realSecondsCeil } from './units';
 
@@ -139,6 +140,8 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
       batchMax: rules.batchMax,
       blockedReason: trainingBlock(state, id, 1)?.message ?? null,
     })),
+    formations: formationViews(state),
+    editor: formationEditorView(state),
   };
 }
 

@@ -11,6 +11,7 @@ import type {
   HeroTraitId,
   InjurySeverityId,
   ItemSlotId,
+  LineId,
   MarketResourceId,
   MasterId,
   MoraleBandId,
@@ -25,10 +26,13 @@ import type {
   TileTypeId,
   TradeDirectionId,
   UnitId,
+  WingId,
 } from '@lotg/content';
 
 export type {
   UnitId,
+  WingId,
+  LineId,
   BuildingId,
   DifficultyId,
   EnemyId,
@@ -518,7 +522,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 28;
+  schemaVersion: 29;
   seed: string;
   settings: GameSettings;
   /**
@@ -781,9 +785,30 @@ export type TrainingBatch = {
   endsAtMs: number;
 };
 
+/** Um posto da formação: `count` soldados de `unit` naquela ala e linha. */
+export type FormationPost = { unit: UnitId; count: number };
+
+/**
+ * Uma formação salva (GDD §10.1 e §10.8; ADR 0019, decisões 8 e 9): seis postos (3 alas × 2
+ * linhas) e um comandante por ala. **É um plano, não uma reserva**: pode pedir mais soldados do
+ * que o feudo tem, e a prévia e a batalha preenchem o que há. `commanders` guarda o `id` de um
+ * herói ou `null`.
+ */
+export type Formation = {
+  /** `formation-<n>`, de `nextId(draft, 'formation')`: nunca reutilizado. */
+  id: string;
+  name: string;
+  posts: Record<WingId, Record<LineId, FormationPost | null>>;
+  commanders: Record<WingId, string | null>;
+};
+
 export type ArmyState = {
   units: Record<UnitId, number>;
   training: TrainingBatch | null;
+  /** As formações salvas, na ordem em que foram criadas; até `balance.army.formationsCap`. */
+  formations: Formation[];
+  /** A Defesa ativa: o `id` de uma de `formations`, ou `null`. Uma só. */
+  activeFormationId: string | null;
 };
 
 export type GameEvent = {
@@ -919,7 +944,25 @@ export type Command =
    * Põe um item do arsenal na forja para o Ferreiro repará-lo (V4B-T3; ADR 0019, decisão 5):
    * cobra o ferro agora, e o item volta cheio no fim.
    */
-  | { commandId: string; type: 'repairItem'; payload: { itemId: string } };
+  | { commandId: string; type: 'repairItem'; payload: { itemId: string } }
+  /**
+   * Salva uma formação (GDD §10.8): `id: null` cria (até o teto), um `id` existente a substitui.
+   * É dado, não reserva de tropa (ADR 0019, decisão 9).
+   */
+  | {
+      commandId: string;
+      type: 'saveFormation';
+      payload: {
+        id: string | null;
+        name: string;
+        posts: Formation['posts'];
+        commanders: Formation['commanders'];
+      };
+    }
+  /** Apaga uma formação salva; a Defesa ativa não se apaga (desative ou troque antes). */
+  | { commandId: string; type: 'deleteFormation'; payload: { id: string } }
+  /** Marca a Defesa ativa; `id: null` a desmarca. */
+  | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } };
 
 export type CommandType = Command['type'];
 
@@ -978,6 +1021,10 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'FORMATION_NOT_FOUND',
+  'FORMATIONS_CAP',
+  'INVALID_FORMATION',
+  'FORMATION_ACTIVE',
   'BARRACKS_REQUIRED',
   'TRAINING_BUSY',
   'ARMY_LIMIT',
@@ -1529,6 +1576,11 @@ export type HeroView = {
   injury: { severityLabel: string; recoversInSeconds: number } | null;
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
   captive: boolean;
+  /**
+   * A ala que ele comanda em uma formação salva; a Defesa ativa tem a preferência. Se for a
+   * Defesa ativa, ele fica no feudo (`canDepart` é falso). `null` sem comando.
+   */
+  commanding: HeroCommandingView | null;
   /**
    * É quem o próximo Resgate solta: entre os cativos, o que está lá há mais tempo. Com dois
    * cativos, só um tem a marca; a tela põe "Enviar o Resgate" na ficha dele.
@@ -2155,6 +2207,73 @@ export type ArmyView = {
     /** Por que não dá para pôr um lote agora; `null` quando dá. */
     blockedReason: string | null;
   }>;
+  /** As formações salvas, na ordem em que foram criadas (V4C-T2; ADR 0019, decisões 8 e 9). */
+  formations: FormationView[];
+  /** O que o editor de formação precisa: o teto, os soldados que há e quem pode comandar. */
+  editor: FormationEditorView;
+};
+
+/** Um posto de uma formação, já rotulado: o plano e o que o feudo preenche hoje. */
+export type FormationPostView = {
+  wing: WingId;
+  wingLabel: string;
+  line: LineId;
+  lineLabel: string;
+  /** A unidade do posto; `null` no posto vazio. */
+  unit: UnitId | null;
+  unitLabel: string | null;
+  /** Quantos soldados o posto pede; 0 no posto vazio. */
+  count: number;
+  /** "5 lanceiros" ou "Vazio". */
+  text: string;
+};
+
+/** Uma formação salva na visão. `shortfall` é o que falta de cada unidade, em soldados. */
+export type FormationView = {
+  id: string;
+  name: string;
+  /** É a Defesa ativa. */
+  isActive: boolean;
+  /** Os seis postos, na ordem fixa: alas da esquerda para a direita, frente antes da retaguarda. */
+  posts: FormationPostView[];
+  /** Um por ala, com o herói que comanda; `heroId` e `heroName` são `null` sem comandante. */
+  commanders: Array<{
+    wing: WingId;
+    wingLabel: string;
+    heroId: string | null;
+    heroName: string | null;
+    classLabel: string | null;
+  }>;
+  /** Quantos soldados a formação pede, de toda unidade. */
+  total: number;
+  shortfall: Array<{ unit: UnitId; unitLabel: string; missing: number }>;
+  /** "Faltam 3 lanceiros para preencher todos os postos." ou o aviso de que não falta nada. */
+  shortfallText: string;
+  /** A ordem `deleteFormation` seria recusada: é a Defesa ativa. */
+  canDelete: boolean;
+};
+
+/** O que o editor de formação oferece (GDD §13.4). */
+export type FormationEditorView = {
+  /** O máximo de soldados por posto no Quartel de agora. */
+  postMax: number;
+  /** Quantas formações cabem, e se ainda cabe uma nova. */
+  formationsCap: number;
+  canSaveNew: boolean;
+  /** Cada unidade, a linha em que ela combate e quantos soldados dela o feudo tem. */
+  units: Array<{ id: UnitId; label: string; line: LineId; available: number }>;
+  /** Todo herói do feudo, com o motivo de não poder ser nomeado agora; `null` quando pode. */
+  heroes: Array<{ heroId: string; name: string; classLabel: string; reason: string | null }>;
+};
+
+/** A formação em que o herói é nomeado comandante de ala. */
+export type HeroCommandingView = {
+  formationId: string;
+  formationName: string;
+  wing: WingId;
+  wingLabel: string;
+  /** A formação é a Defesa ativa: o herói fica no feudo. */
+  isActive: boolean;
 };
 
 export type MarketView = {

@@ -224,11 +224,13 @@ describe('pureza do motor', () => {
     // instante da linha do tempo) nasce com o dele. A ordem `assignMaster` não cria nada.
     // Desde V3F-T2, `objectives.ts`: o item de um objetivo concluído nasce com o dele, na
     // avaliação que roda depois de uma ordem ou de um instante da linha do tempo.
+    // Desde V4C-T2, `formationOrders.ts`: salvar uma formação nova dá o identificador dela.
     expect(creators).toEqual([
       './arrivals.ts',
       './caravanOrders.ts',
       './expeditionOrders.ts',
       './expeditionTurn.ts',
+      './formationOrders.ts',
       './masterTurn.ts',
       './objectives.ts',
       './tavernTurn.ts',
