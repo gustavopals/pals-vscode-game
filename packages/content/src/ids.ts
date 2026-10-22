@@ -33,6 +33,17 @@ export const UNIT_IDS = ['spearman', 'swordsman', 'archer', 'knight', 'shieldbea
 export type UnitId = (typeof UNIT_IDS)[number];
 
 /**
+ * As três alas do campo de batalha (GDD §10.1), da esquerda para a direita, e as duas linhas de
+ * cada ala (a mesma `UnitLine` das unidades: `front` e `back`). Uma formação salva (V4C-T2; ADR
+ * 0019, decisões 8 e 9) tem um posto em cada ala e linha; as listas ficam gravadas no estado
+ * (`army.formations`): mudar um identificador pede passo de migração.
+ */
+export const WING_IDS = ['left', 'center', 'right'] as const;
+export type WingId = (typeof WING_IDS)[number];
+export const LINE_IDS = ['front', 'back'] as const;
+export type LineId = (typeof LINE_IDS)[number];
+
+/**
  * O que o Mercado negocia por ouro (GDD §5.9; ADR 0018, decisão 16), **na ordem do sorteio** do
  * preço de cada dia. O ferro entrou na v0.4 (V4B-T1; ADR 0019, decisão 3), por último: o sorteio
  * de cada virada passa a ser comida, madeira, pedra e ferro. A lista fica gravada no estado

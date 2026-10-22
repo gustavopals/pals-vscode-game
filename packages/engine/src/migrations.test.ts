@@ -20,6 +20,9 @@ import {
   RESOURCE_IDS,
   TILE_TYPE_IDS,
   UNIT_IDS,
+  LINE_IDS,
+  units,
+  WING_IDS,
 } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
@@ -99,6 +102,14 @@ import {
 } from './migrations/v25';
 import { BUILDING_IDS_V26, FORGE_BATCH_MAX_V26 } from './migrations/v26';
 import {
+  FORMATION_NAME_MAX_V29,
+  FORMATIONS_CAP_V29,
+  LINE_IDS_V29,
+  POST_MAX_V29,
+  UNIT_LINE_V29,
+  WING_IDS_V29,
+} from './migrations/v29';
+import {
   ARMY_CAP_PER_LEVEL_V28,
   BUILDING_IDS_V28,
   TRAINING_BATCH_MAX_V28,
@@ -114,7 +125,10 @@ import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './rando
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
+  accept,
   addHero,
+  barracksYard,
+  saveFormationOrder,
   caravanEscortScenario,
   caravanScenario,
   marketDayScenario,
@@ -1328,6 +1342,55 @@ const FROZEN: Record<string, string> = {
   'state-v27-wage-arrears.json': 'dd922c2d',
   'state-v27-warehouse-full.json': '3dd04b22',
   'state-v27-week-scripted.json': '4d8ade86',
+  'state-v28-caravan-escort.json': 'a23c0983',
+  'state-v28-caravan.json': '1439c6b9',
+  'state-v28-cold.json': '2bdf0017',
+  'state-v28-construction.json': '0cf60e6a',
+  'state-v28-council-hidden.json': 'b0926427',
+  'state-v28-council.json': '6cabec85',
+  'state-v28-crafts.json': 'e76a018c',
+  'state-v28-den-cleared.json': 'b8c2dcd6',
+  'state-v28-expedition-crossroads.json': '98528399',
+  'state-v28-expedition-returning.json': '718ea50c',
+  'state-v28-expedition.json': 'e9ec1d03',
+  'state-v28-famine-3x.json': '65225c22',
+  'state-v28-famine-ended.json': '08a45abe',
+  'state-v28-famine-half.json': '41429e57',
+  'state-v28-famine-resumed.json': 'd3b8b5b0',
+  'state-v28-famine-smithy.json': '9db798c1',
+  'state-v28-famine.json': '34daceb4',
+  'state-v28-fresh.json': '4ee1746d',
+  'state-v28-guild.json': 'bacbcd68',
+  'state-v28-hero-captured.json': '2d7cc07e',
+  'state-v28-hero-injured.json': '0995c02f',
+  'state-v28-hero-promised.json': 'fa448bc2',
+  'state-v28-housing-full.json': 'fc0641fa',
+  'state-v28-iron-king-half.json': '9ccda171',
+  'state-v28-market-opening.json': '60369e8a',
+  'state-v28-market.json': '66490236',
+  'state-v28-master-waiting.json': 'dab8248b',
+  'state-v28-masters.json': '7306dbc4',
+  'state-v28-migrated-3x.json': '3b70c4aa',
+  'state-v28-migrated-iron-king-caravan.json': '0dde8a65',
+  'state-v28-migrated-iron-king-half.json': '9b5e1b52',
+  'state-v28-migrated-peasant-3x.json': 'bece0899',
+  'state-v28-morale.json': 'f64211ba',
+  'state-v28-objectives.json': '59841820',
+  'state-v28-palisade.json': '5bb8bf1e',
+  'state-v28-peasant-3x.json': '35835a6e',
+  'state-v28-queues.json': 'b5f81404',
+  'state-v28-raid-announced.json': '0f836deb',
+  'state-v28-raid.json': '43c66b84',
+  'state-v28-smithy-forging.json': 'd8429d41',
+  'state-v28-storage.json': 'd04dc21c',
+  'state-v28-tavern-busy.json': '93659f7e',
+  'state-v28-tavern.json': 'c15630b1',
+  'state-v28-threat.json': 'a718fd63',
+  'state-v28-wage-arrears-ended.json': '8c060fa6',
+  'state-v28-wage-arrears-resumed.json': '4d3e1ea6',
+  'state-v28-wage-arrears.json': 'ff6f57ad',
+  'state-v28-warehouse-full.json': 'e361c98a',
+  'state-v28-week-scripted.json': 'd89564dc',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -6615,6 +6678,8 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
     expect(fresh.army).toEqual({
       units: { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 },
       training: null,
+      formations: [],
+      activeFormationId: null,
     });
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
@@ -6725,3 +6790,140 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
     ).toBe('army.training.amount: soldados e lote acima do limite do Quartel');
   });
 });
+
+/** Um estado como a versão 28 o gravava, a partir de um da versão 29: sem formações nem Defesa ativa. */
+function asVersion28(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 28;
+  delete old.army.formations;
+  delete old.army.activeFormationId;
+  return old;
+}
+
+describe('versão 28 → 29 (V4C-T2: as formações salvas e a Defesa ativa)', () => {
+  const version28 = fixtures.filter((fixture) => fixture.version === 28);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(WING_IDS_V29).toEqual([...WING_IDS]);
+    expect(LINE_IDS_V29).toEqual([...LINE_IDS]);
+    expect(FORMATIONS_CAP_V29).toBe(balance.army.formationsCap);
+    expect(POST_MAX_V29).toBe(balance.army.postMaxFromLevel.max);
+    expect(FORMATION_NAME_MAX_V29).toBe(balance.army.formationNameMaxLength);
+    for (const id of UNIT_IDS) {
+      expect(UNIT_LINE_V29[id]).toBe(units[id].line);
+    }
+  });
+
+  it('há retratos da versão 28 com o Quartel e o exército', () => {
+    expect(version28.length).toBeGreaterThan(40);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v28-fresh.json'));
+    expect(fresh.army.formations).toEqual([]);
+    expect(fresh.army.activeFormationId).toBeNull();
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version28)(
+    '$name: só acrescenta a lista vazia e a Defesa ativa nula; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.army.formations).toStrictEqual([]);
+      expect(after.army.activeFormationId).toBeNull();
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(asVersion28(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      // Nada acontece na fronteira: o passo não cria prazo nem evento.
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => /formation/.test(event.type))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion28(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda recusa a lista ausente, o teto, o id fora do contador, o posto na linha errada e o comandante que não serve', () => {
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(withFormation())) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.army.formations)).not.toBeNull();
+    expect(broken((state) => delete state.army.activeFormationId)).not.toBeNull();
+    expect(
+      broken((state) => {
+        for (let index = 0; index < 5; index += 1) {
+          state.army.formations.push({ ...state.army.formations[0], id: `formation-${index + 2}` });
+        }
+        state.ids.formation = 9;
+      }),
+    ).toBe('army.formations: mais formações que o teto');
+    expect(broken((state) => (state.ids.formation = 0))).toBe(
+      'army.formations.0.id: identificador fora do contador de ids.formation ou repetido',
+    );
+    expect(broken((state) => (state.army.formations[0].name = ''))).not.toBeNull();
+    expect(broken((state) => (state.army.formations[0].name = ' x '))).toBe(
+      'army.formations.0.name: nome vazio ou não aparado',
+    );
+    expect(broken((state) => (state.army.formations[0].name = 'x'.repeat(31)))).toBe(
+      'army.formations.0.name: nome acima do máximo',
+    );
+    expect(broken((state) => (state.army.formations[0].posts.center.front.count = 31))).toBe(
+      'army.formations.0.posts.center.front.count: posto acima do máximo',
+    );
+    expect(
+      broken((state) => (state.army.formations[0].posts.center.front.count = 0)),
+    ).not.toBeNull();
+    expect(broken((state) => (state.army.formations[0].posts.center.front.unit = 'archer'))).toBe(
+      'army.formations.0.posts.center.front.unit: unidade na linha errada',
+    );
+    expect(
+      broken((state) => {
+        for (const wing of WING_IDS) {
+          state.army.formations[0].posts[wing] = { front: null, back: null };
+        }
+      }),
+    ).toBe('army.formations.0.posts: formação sem nenhum posto');
+    expect(broken((state) => (state.army.formations[0].commanders.left = 'hero-9'))).toBe(
+      'army.formations.0.commanders.left: comandante que não é herói do feudo',
+    );
+    expect(
+      broken((state) => {
+        state.army.formations[0].commanders.center = 'hero-1';
+      }),
+    ).toBe('army.formations.0.commanders.center: o mesmo herói comanda duas alas');
+    expect(
+      broken((state) => {
+        state.guild.heroes[0].status = 'captured';
+        state.guild.heroes[0].captivity = { sinceMs: 0, modelId: 'ruins' };
+      }),
+    ).toBe('army.formations.0.commanders.left: comandante em cativeiro');
+    expect(broken((state) => (state.army.activeFormationId = 'formation-7'))).toBe(
+      'army.activeFormationId: Defesa ativa que não é uma formação salva',
+    );
+    expect(broken((state) => (state.army.activeFormationId = 'formation-1'))).toBeNull();
+  });
+});
+
+/** Uma partida com uma formação salva (Edda comanda a ala esquerda) e nenhuma ativa. */
+function withFormation(): GameState {
+  const start = barracksYard(0, (draft) => {
+    addHero(draft, { name: 'Edda', gender: 'f' });
+  });
+  return accept(
+    start,
+    saveFormationOrder('Muralha', {
+      commanders: { left: 'hero-1', center: null, right: null },
+    }),
+  ).state;
+}

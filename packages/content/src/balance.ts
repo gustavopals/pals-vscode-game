@@ -544,6 +544,14 @@ export type ArmyDef = {
   readonly batchMax: number;
   /** A comida de um soldado por hora de jogo, em fração (3/2 = 1,5), contra 1 do aldeão. */
   readonly foodPerSoldierPerHour: Ratio;
+  /** Quantas formações o jogador guarda (ADR 0019, decisão 9). */
+  readonly formationsCap: number;
+  /** O máximo de soldados por posto; com o Quartel no nível dado ou acima, o máximo sobe. */
+  readonly postMax: number;
+  readonly postMaxFromLevel: { readonly level: number; readonly max: number };
+  /** O tamanho do nome de uma formação, aparado. */
+  readonly formationNameMinLength: number;
+  readonly formationNameMaxLength: number;
 };
 
 export type MarketDef = {
@@ -1105,5 +1113,12 @@ export const balance: Balance = {
     trainingSpeedPerLevel: { num: 1, den: 20 },
     batchMax: 10,
     foodPerSoldierPerHour: { num: 3, den: 2 },
+    // ADR 0019, decisão 9: até 5 formações salvas, até 20 soldados por posto (30 com o Quartel
+    // no nível 5 ou acima).
+    formationsCap: 5,
+    postMax: 20,
+    postMaxFromLevel: { level: 5, max: 30 },
+    formationNameMinLength: 1,
+    formationNameMaxLength: 30,
   },
 };

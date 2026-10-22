@@ -22,6 +22,7 @@ import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { buildingWithArticle } from './construction';
 import { fillText, joinList, plural } from './format';
+import { commandingBlock, canDepartNow } from './formations';
 import { canDepart, captives, teamPower } from './heroes';
 import { hashText } from './hash';
 import { reject } from './rejections';
@@ -369,9 +370,10 @@ export function teamSizeText({ teamMin, teamMax }: ExpeditionModelDef['requires'
  * escolta uma caravana). Vale para a expedição e para a escolta: um herói faz uma coisa por vez
  * (GDD §9.1).
  */
-export function departBlock(hero: Hero): Rejection | null {
+export function departBlock(state: GameState, hero: Hero): Rejection | null {
   if (canDepart(hero)) {
-    return null;
+    // O comandante da Defesa ativa fica no feudo (ADR 0019, decisão 8).
+    return commandingBlock(state, hero);
   }
   return reject('HERO_UNAVAILABLE', {
     label: hero.name,
@@ -407,7 +409,7 @@ export function teamBlock(
     if (hero === undefined) {
       return reject('HERO_NOT_FOUND');
     }
-    const away = departBlock(hero);
+    const away = departBlock(state, hero);
     if (away !== null) {
       return away;
     }
@@ -476,7 +478,7 @@ export function teamOutlook(
 ): TeamOutlook {
   const { requires } = model;
   const eligible = state.guild.heroes.filter(
-    (hero) => canDepart(hero) && hero.level >= requires.minHeroLevel,
+    (hero) => canDepartNow(state, hero) && hero.level >= requires.minHeroLevel,
   );
   // Do mais forte ao mais fraco; a ordenação é estável, e o empate fica na ordem de chegada.
   const ranked = [...eligible].sort((a, b) => power(b) - power(a));

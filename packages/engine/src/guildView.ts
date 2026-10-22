@@ -24,8 +24,9 @@ import type { CraftOutlook } from './craftProjection';
 import { netRates, producerOf, productionRate, stockBalance } from './economy';
 import { storageCapacity } from './storage';
 import { decimal, durationText, fillText, plural } from './format';
+import { canDepartNow } from './formations';
+import { commandingView } from './formationsView';
 import {
-  canDepart,
   captives,
   classLabel,
   heroFactors,
@@ -178,7 +179,8 @@ function heroView(state: GameState, hero: Hero, timeScale: number, target: Hero 
     })),
     statusText: statusText(state, hero, timeScale),
     atHome: isAtHome(hero),
-    canDepart: canDepart(hero),
+    canDepart: canDepartNow(state, hero),
+    commanding: commandingView(state, hero),
     injury:
       hero.injury === null
         ? null

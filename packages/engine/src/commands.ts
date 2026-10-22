@@ -19,6 +19,7 @@ import { settlePlanned } from './planned';
 import { repairItem } from './repairOrders';
 import { cancelForge, forgeWeapons } from './smithyOrders';
 import { cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
+import { deleteFormation, saveFormation, setActiveFormation } from './formationOrders';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
@@ -124,6 +125,20 @@ function dispatch(
       return cancelTraining(draft, nowMs, events);
     case 'disbandSoldiers':
       return disbandSoldiers(draft, payload.unit, payload.amount, nowMs, events);
+    case 'saveFormation':
+      return saveFormation(
+        draft,
+        payload.id,
+        payload.name,
+        payload.posts,
+        payload.commanders,
+        nowMs,
+        events,
+      );
+    case 'deleteFormation':
+      return deleteFormation(draft, payload.id, nowMs, events);
+    case 'setActiveFormation':
+      return setActiveFormation(draft, payload.id, nowMs, events);
     case 'repairItem':
       return repairItem(draft, payload.itemId, nowMs, events);
     default:

@@ -35,6 +35,12 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
       trainingSpeedPerLevel: { num: 1, den: 20 },
       batchMax: 10,
       foodPerSoldierPerHour: { num: 3, den: 2 },
+      // As formações salvas (V4C-T2; ADR 0019, decisão 9).
+      formationsCap: 5,
+      postMax: 20,
+      postMaxFromLevel: { level: 5, max: 30 },
+      formationNameMinLength: 1,
+      formationNameMaxLength: 30,
     });
   });
 

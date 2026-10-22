@@ -13,7 +13,7 @@ import { seasonAt, seasonWithArticle } from './clock';
 import { constructionOf, ofBuilding, upgradeQuote } from './construction';
 import { destinationBlock, teamOutlook } from './expeditions';
 import { fillText, sentenceCase } from './format';
-import { canDepart } from './heroes';
+import { canDepartNow } from './formations';
 import { marketRequired, surplusSellable } from './market';
 import { describeReward, objectiveProgress } from './objectives';
 import { freeVillagers, recruitmentBlock } from './population';
@@ -77,7 +77,7 @@ function expeditionMissing(state: GameState, modelId: string): string | null {
   if (model === undefined) {
     throw new Error(`Expedição fora do conteúdo: ${modelId}`);
   }
-  if (!state.guild.heroes.some(canDepart)) {
+  if (!state.guild.heroes.some((hero) => canDepartNow(state, hero))) {
     return 'Nenhum herói está em condições de partir.';
   }
   // A falta de gente, de nível ou de classe não depende do poder: a ordenação não importa aqui.

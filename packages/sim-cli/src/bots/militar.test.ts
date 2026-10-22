@@ -43,10 +43,11 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     }
   });
 
-  it('o militar é o econômico com o Ferreiro e a forja', async () => {
+  it('o militar é o econômico com o Ferreiro, a forja e a formação', async () => {
     const names = militarPolicies.map((policy) => policy.name);
     expect(names.slice(0, 2)).toEqual(['erguer o Ferreiro', 'forjar armas']);
-    expect(names).toHaveLength(economicoPolicies.length + 2);
+    expect(names.at(-1)).toBe('montar a formação');
+    expect(names).toHaveLength(economicoPolicies.length + 3);
     const result = await simulate({
       seed: 'pedra-alta-001',
       days: 7,
@@ -56,5 +57,21 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     });
     expect(result.finalState.settlement.buildings.smithy).toBeGreaterThan(0);
     expect(result.rows.at(-1)?.soldiers).toBeGreaterThan(0);
+    // A formação do bot: monta com o que tem e a ativa, sem comandante (V4C-T2).
+    const { formations, activeFormationId } = result.finalState.army;
+    expect(formations).toHaveLength(1);
+    expect(activeFormationId).toBe(formations[0]?.id);
+    expect(Object.values(formations[0]?.commanders ?? {}).every((id) => id === null)).toBe(true);
+  });
+
+  it('o econômico não monta formação: ela é do militar', async () => {
+    const result = await simulate({
+      seed: 'pedra-alta-001',
+      days: 7,
+      timeScale: 3,
+      strategy: 'economico',
+      sessionsPerDay: 2,
+    });
+    expect(result.finalState.army.formations).toEqual([]);
   });
 });

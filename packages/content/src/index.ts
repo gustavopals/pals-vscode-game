@@ -36,6 +36,7 @@ export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
 export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
 export { caravanTexts, marketTexts } from './caravans';
 export { masters, masterTexts } from './masters';
+export { formationTexts, lineLabels, wingLabels } from './formations';
 export { COUNTER_CYCLE, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';
 export type { MasterDef } from './masters';
