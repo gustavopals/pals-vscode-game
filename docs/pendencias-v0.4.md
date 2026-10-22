@@ -207,6 +207,16 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - Os custos e tempos são os da tabela do GDD §10.2 (o Espadachim e o Cavaleiro levam uma arma inteira, o ferro entra pela arma). As quatro linhas da Crônica (`trainingStarted`, `trainingCancelled`, `soldiersTrained`, `soldiersDisbanded`), a frase do Escudeiro ("Sem vantagem nem fraqueza; protege a retaguarda.") e o texto do Quartel na visão são rascunho.
 
+**C-8. Formações salvas (V4C-T2): o que o agente decidiu sem o autor.** _(Decisões do agente; o ADR 0019, decisões 8 e 9, fixa o resto.)_
+
+- A linha do roteiro era `rear`; o conteúdo já chamava a retaguarda de `back` (`UnitLine`), e `LINE_IDS` é `front` e `back`, para uma só nomenclatura.
+- Salvar uma formação **não exige o Quartel de pé** (o editor da V4C-T3 só aparece com ele). Se o autor quiser a trava, é uma recusa a mais em `checkFormation`.
+- A formação precisa de **ao menos um posto com soldados**; o nome vai de 1 a 30 letras, aparado; nomes repetidos são aceitos.
+- Quem **já comanda** uma ala continua nomeado se ficar ferido; só quem passa a ser nomeado precisa estar pronto (`HERO_UNAVAILABLE`, com a frase "não pode comandar agora"). Ativar uma formação cujo comandante está fora do feudo é aceito: ele só não parte de novo quando voltar.
+- O comandante que sai do feudo (dispensado, desertor, capturado, morto) é tirado de **todas** as formações em silêncio, sem linha de Crônica própria (a do herói já conta); a ala fica sem comandante. Desmarcar a Defesa ativa (`setActiveFormation { id: null }`) também não gera linha.
+- As frases novas da Crônica (`formationSaved`, `formationActivated`, `formationDeleted`) e os nomes das alas ("Ala esquerda", "Centro", "Ala direita") são rascunho que o autor não leu (`packages/content/src/chronicle.ts` e `formations.ts`).
+- O bot `militar` (único) monta uma formação "Defesa do bot" com o que tem, sem comandante, e a ativa; o Regular não (decisão 25 deixava a escolha ao agente: o Regular não precisa dela até a batalha).
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*
