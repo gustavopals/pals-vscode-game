@@ -385,7 +385,8 @@ export async function playNow(page: Page, name = 'Gustavo', settlement = 'Pedra 
 /** Abre a paleta com F1, digita e escolhe o primeiro resultado com Enter. */
 export async function palette(page: Page, text: string) {
   await page.keyboard.press('F1');
-  const box = page.getByRole('combobox');
+  // Pelo nome: uma aba pode ter outras caixas de combinação (os `<select>` do Exército).
+  const box = page.getByRole('combobox', { name: 'Paleta de comandos' });
   await expect(box).toBeFocused();
   await box.fill(text);
   await page.keyboard.press('Enter');

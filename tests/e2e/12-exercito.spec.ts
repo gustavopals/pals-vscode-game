@@ -74,13 +74,15 @@ test.describe('a aba Exército (V4C-T3.2)', () => {
     await openBarracks(world, page);
     const posts = commandPosts(page);
     const view = await serverView(page, request);
-    const spearman = view.army.units.find((unit) => unit.id === 'spearman');
+    // O total do lote vem pronto da visão (`army.offer[].options`): o app não soma nada.
+    const two = view.army.offer
+      .find((entry) => entry.unit === 'spearman')
+      ?.options.find((entry) => entry.amount === 2);
 
     await barracks(page).getByTestId('train-amount').focus();
     await page.keyboard.type('2');
-    await expect(trainForm(page).getByTestId('train-total')).toContainText('Treinar Lanceiro × 2');
     await expect(trainForm(page).getByTestId('train-total')).toContainText(
-      spearman?.costText ?? '?',
+      `Treinar ${two?.label ?? '?'}: ${two?.costText ?? '?'}`,
     );
     await page.keyboard.press('Enter');
     await expect(trainForm(page).getByTestId('train-confirm')).toBeVisible();
@@ -119,7 +121,7 @@ test.describe('a aba Exército (V4C-T3.2)', () => {
     const page = await world.open(context);
     await openBarracks(world, page);
     const posts = commandPosts(page);
-    await barracks(page).getByTestId('train-amount').fill('3');
+    await barracks(page).getByTestId('train-amount').fill('2');
     await trainForm(page).getByTestId('train-review').click();
     await trainForm(page).getByTestId('train-confirm-button').click();
     await expect(running(page)).toBeVisible();
@@ -183,7 +185,7 @@ test.describe('a aba Exército (V4C-T3.2)', () => {
     await expect(page.getByRole('dialog')).toContainText('Treinar Lanceiro');
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('dialog')).toContainText('Treinar Lanceiro × 2');
+    await expect(page.getByRole('dialog')).toContainText('Treinar 2 lanceiros');
     // A confirmação começa no botão que desiste: Tab leva ao que treina.
     await page.keyboard.press('Tab');
     await page.keyboard.press('Enter');
