@@ -31,6 +31,9 @@ const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'TRADE_DIRECTION_IDS',
   // As unidades do Quartel (V4C-T1): o schema da ordem de treino e o da visão as usam.
   'UNIT_IDS',
+  // As alas e as linhas das formações (V4C-T2): os schemas da ordem e da visão as usam.
+  'WING_IDS',
+  'LINE_IDS',
 ];
 
 type BundledModule = { id: string; exports: readonly string[] };
