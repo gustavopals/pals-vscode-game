@@ -216,8 +216,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
-    // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1).
-    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 7 });
+    // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1); com a política
+    // mínima de guerra (V4C-T1.8), seis em todas.
+    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
     const tavernAt = (key: string) =>
