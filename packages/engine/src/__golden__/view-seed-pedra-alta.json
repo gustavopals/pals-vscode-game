@@ -1116,31 +1116,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -2333,31 +2338,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -3587,31 +3597,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -4995,31 +5010,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -6402,31 +6422,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -7981,31 +8006,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         }
       ],
       "formations": [],
@@ -9399,31 +9429,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -10813,31 +10848,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -12218,31 +12258,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -13721,31 +13766,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -15207,31 +15257,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -16639,31 +16694,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -18046,31 +18106,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -19489,31 +19554,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -20896,31 +20966,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -22347,31 +22422,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -23759,31 +23839,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -25163,31 +25248,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -26399,31 +26489,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -27883,31 +27978,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -29431,31 +29531,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -31044,31 +31149,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -32747,31 +32857,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -34452,31 +34567,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -36146,31 +36266,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -37978,31 +38103,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -39678,31 +39808,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -41190,31 +41325,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -42679,31 +42819,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -44228,31 +44373,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -45873,31 +46023,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -47239,31 +47394,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -48706,31 +48866,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
+          "options": []
         }
       ],
       "formations": [],
@@ -50161,31 +50326,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         }
       ],
       "formations": [],
@@ -51568,31 +51738,36 @@
           "unit": "spearman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
           "batchMax": 10,
-          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados."
+          "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados.",
+          "options": []
         }
       ],
       "formations": [],

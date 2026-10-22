@@ -231,7 +231,7 @@ function TrainForm(props: { army: Army; disabled: boolean; busy: boolean; action
               'Não dá para treinar este soldado agora.'
             )
           ) : (
-            <strong>{trainLine(unit, parsed)}.</strong>
+            <strong>{trainLine(props.army, unit, parsed)}.</strong>
           )}
         </p>
         {offer.blockedReason === null ? null : (
@@ -257,7 +257,7 @@ function TrainForm(props: { army: Army; disabled: boolean; busy: boolean; action
           >
             <div id="train-review-text">
               <p>
-                <strong>{trainLine(open, openAmount)}.</strong>{' '}
+                <strong>{trainLine(props.army, open, openAmount)}.</strong>{' '}
                 <span class="muted">O custo é cobrado agora; é um lote por vez.</span>
               </p>
             </div>

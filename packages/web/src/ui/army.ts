@@ -52,13 +52,17 @@ export function batchAmount(army: Army, unit: UnitId, amount: number | null): nu
 }
 
 /**
- * "Treinar Lanceiro × 5: 5 × (30 de comida, 10 de ouro), cada um em 2 min": a linha que o
- * jogador confirma. O custo é o de um soldado, repetido; o total do lote é cobrado pelo servidor.
+ * "Treinar 5 lanceiros: 150 de comida, 50 de ouro, 25 de madeira, em 10 min": a linha que o
+ * jogador confirma. A tropa, o custo do lote inteiro e o prazo vêm prontos da visão
+ * (`army.offer[].options`); o app não soma nada. Sem a opção na visão (o lote fora da faixa),
+ * a frase diz só a unidade e a quantidade.
  */
-export function trainLine(unit: ArmyUnit, amount: number): string {
-  const each = amount === 1 ? unit.costText : `${formatNumber(amount)} × (${unit.costText})`;
-  // O plural vem do conteúdo e não da visão: a frase leva o rótulo e a quantidade, sem flexionar.
-  return `Treinar ${unit.label} × ${formatNumber(amount)}: ${each}, cada um em ${formatDuration(unit.secondsEach)}`;
+export function trainLine(army: Army, unit: ArmyUnit, amount: number): string {
+  const option = offerOf(army, unit.id)?.options.find((entry) => entry.amount === amount);
+  if (option === undefined) {
+    return `Treinar ${unit.label} × ${formatNumber(amount)}`;
+  }
+  return `Treinar ${option.label}: ${option.costText}, em ${formatDuration(option.seconds)}`;
 }
 
 /** "Dispensar Lanceiro × 3": a linha que o jogador confirma. */

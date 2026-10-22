@@ -837,6 +837,15 @@ const ArmySchema = z.strictObject({
       maxAmount: z.number(),
       batchMax: z.number(),
       blockedReason: z.string().nullable(),
+      /** Os lotes que a ordem aceitaria agora (1 até `maxAmount`): tropa, custo, segundos reais. */
+      options: z.array(
+        z.strictObject({
+          amount: z.number(),
+          label: z.string(),
+          costText: z.string(),
+          seconds: z.number(),
+        }),
+      ),
     }),
   ),
   /** As formações salvas, na ordem em que foram criadas. */

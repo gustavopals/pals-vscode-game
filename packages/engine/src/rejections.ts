@@ -234,7 +234,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       ? `O Quartel Nv${level} já está cheio: o limite é ${balance.army.capPerLevel} soldados por nível.`
       : `O Quartel Nv${level} só comporta mais ${count}: o limite é ${balance.army.capPerLevel} soldados por nível.`,
   NOT_ENOUGH_WEAPONS: ({ count = 0 }) =>
-    `Faltam ${count === 1 ? '1 arma' : `${count} armas`}: o Ferreiro as forja.`,
+    count === 1
+      ? 'Falta 1 arma: o Ferreiro a forja.'
+      : `Faltam ${count} armas: o Ferreiro as forja.`,
   NOT_TRAINING: () => 'Não há lote em treino para cancelar.',
   INVALID_UNIT: () => 'Essa unidade não existe no Quartel.',
   NOT_ENOUGH_SOLDIERS: ({ count = 0 }) =>

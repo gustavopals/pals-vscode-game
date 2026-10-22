@@ -24,13 +24,17 @@ if (spearman === undefined) {
 }
 
 describe('as linhas do Quartel', () => {
-  it('"Treinar": o custo de um soldado repetido, sem soma, e o prazo de cada um', () => {
-    expect(trainLine(spearman, 1)).toBe(
-      `Treinar Lanceiro × 1: ${spearman.costText}, cada um em 2 min`,
+  it('"Treinar": a tropa, o custo do lote e o prazo vêm da visão, sem conta no app', () => {
+    const offer = army.offer.find((entry) => entry.unit === 'spearman');
+    const five = offer?.options.find((entry) => entry.amount === 5);
+    if (five === undefined) {
+      throw new Error('A visão de exemplo deixou de ter o lote de 5 Lanceiros.');
+    }
+    expect(trainLine(army, spearman, 5)).toBe(
+      `Treinar ${five.label}: ${five.costText}, em 10 min`,
     );
-    expect(trainLine(spearman, 5)).toBe(
-      `Treinar Lanceiro × 5: 5 × (${spearman.costText}), cada um em 2 min`,
-    );
+    // Fora da faixa da visão, só a unidade e a quantidade.
+    expect(trainLine(army, spearman, 99)).toBe('Treinar Lanceiro × 99');
   });
 
   it('"Dispensar" diz a unidade e a quantidade', () => {

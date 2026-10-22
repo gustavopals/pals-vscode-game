@@ -933,6 +933,17 @@ export const armyIdleView: ViewState = {
       maxAmount: 6,
       batchMax: 10,
       blockedReason: null,
+      // A visão de exemplo é a do golden, sem Quartel: os lotes de Lanceiro de 1 a 6, como o
+      // motor os daria; as outras unidades ficam sem opções.
+      options:
+        entry.unit !== 'spearman'
+          ? []
+          : Array.from({ length: 6 }, (_, index) => ({
+              amount: index + 1,
+              label: index === 0 ? '1 lanceiro' : `${index + 1} lanceiros`,
+              costText: `${30 * (index + 1)} de comida, ${10 * (index + 1)} de ouro, ${5 * (index + 1)} de madeira`,
+              seconds: 120 * (index + 1),
+            })),
     })),
   },
 };

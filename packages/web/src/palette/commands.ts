@@ -1451,7 +1451,7 @@ export function createCommands(
         items: Array.from({ length: offer.maxAmount }, (_, index) => ({
           icon: ARMY_ICON,
           label: `${index + 1}`,
-          description: trainLine(unit, index + 1),
+          description: trainLine(view.army, unit, index + 1),
           value: index + 1,
         })),
       }));
@@ -1463,7 +1463,7 @@ export function createCommands(
       return;
     }
     const confirmed = await dialogs.confirm({
-      title: `${trainLine(unit, checked)}?`,
+      title: `${trainLine(view.army, unit, checked)}?`,
       detail: ['O custo é cobrado agora; é um lote por vez.'],
       confirmLabel: 'Treinar',
       cancelLabel: 'Agora não',
