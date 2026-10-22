@@ -5,9 +5,7 @@ import {
   darFestival,
   enviarExpedicoes,
   equiparMelhor,
-  erguerFerreiro,
   erguerGuilda,
-  forjarArmas,
   escolherCaminho,
   responderCartas,
 } from './policies';
@@ -38,7 +36,8 @@ import { botOf, type Bot, type Policy } from './types';
  * excedente e comprar lenha. E, das caravanas (V3E-T2), `mandar caravana`, na mesma posição:
  * depois do envio das expedições, de modo que escolta quem não partiu.
  *
- * A Guilda entra **na frente de todas as obras** (revisão da Fase D, M-R1): com uma fila só, é a
+ * O Ferreiro e a forja **não** entram aqui (V4C-T1.8): quem os tem é o `militar`; o explorador
+ * continua vendendo o ferro da Mina. A Guilda entra **na frente de todas as obras** (revisão da Fase D, M-R1): com uma fila só, é a
  * obra que dá trabalho a quem já recebe soldo, e antes ela esperava a Paliçada, os objetivos e
  * a Torre. As outras entram depois das obras, do recrutamento e das cartas, e antes da alocação: o bot
  * gasta com a Guilda o que sobrou da visita, e reparte os aldeões já sabendo o soldo que passou
@@ -67,8 +66,6 @@ export const exploradorPolicies: readonly Policy[] = guildPolicies(
 export function guildPolicies(choosePath: Policy, send: Policy): readonly Policy[] {
   return [
     erguerGuilda,
-    erguerFerreiro,
-    forjarArmas,
     ...economicoPolicies.flatMap((policy) =>
       policy === alocarPorDemanda
         ? [contratar, darFestival, choosePath, equiparMelhor, send, policy]

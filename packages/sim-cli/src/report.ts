@@ -463,6 +463,16 @@ const columns: Array<[string, (row: HourRow) => string | number]> = [
   ['day_of_season', (row) => row.dayOfSeason],
   ...RESOURCE_IDS.map((id): [string, (row: HourRow) => number] => [id, (row) => row.stock[id]]),
   ['weapons', (row) => row.weapons],
+  ['soldiers', (row) => row.soldiers],
+  [
+    'soldiers_by_unit',
+    (row) =>
+      Object.entries(row.soldiersByUnit)
+        .map(([unit, count]) => `${unit}:${count}`)
+        .join(';'),
+  ],
+  ['training_batches', (row) => row.trainingBatches],
+  ['army_food', (row) => row.armyFood],
   ...RESOURCE_IDS.map((id): [string, (row: HourRow) => number] => [
     `${id}_per_hour`,
     (row) => row.perHour[id],

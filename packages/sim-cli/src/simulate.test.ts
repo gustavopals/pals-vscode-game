@@ -66,7 +66,7 @@ const twoSessions = await simulate({
 });
 
 const HEADER =
-  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,' +
+  'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,soldiers,soldiers_by_unit,training_batches,army_food,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,iron_per_hour,' +
   'villagers,capacity,free,in_training,' +
   'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,barracks,' +
@@ -654,7 +654,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 

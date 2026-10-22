@@ -188,7 +188,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
     // Desde a Mina Abandonada (V4B-T1), que captura no veio fundo, em uma semente o resgatado
     // volta com a casa cheia e o feudo termina com sete (o resgatado não respeita o limite).
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
+    // Com a política mínima de guerra (V4C-T1.8) o caminho de obras muda, e nenhuma das 50
+    // sementes termina com o resgatado acima do limite: seis em todas.
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 6 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -204,15 +206,19 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // a encher os seis lugares nas 50 sementes: o ouro das vendas paga o contrato que faltava.
     // Na revisão da Fase E (docs/balance-v0.3.md, seção 14) a caravana passou a pagar 15% sobre
     // o balcão, e não 40%, e o soldo passou a crescer com o nível: em alguma das 50 sementes o
-    // ouro já não paga o sexto contrato na semana, e ele termina com cinco.
-    expect(heroes('week/1/explorador')).toEqual({ min: 5, max: 6 });
+    // ouro já não paga o sexto contrato na semana, e ele termina com cinco. Com a política
+    // mínima de guerra (V4C-T1.8; o Explorador também perdeu o Ferreiro e a forja) ele volta a
+    // encher os seis lugares nas 50 sementes (a causa exata não foi investigada).
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
     // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
     // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
     expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
-    expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
-    // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1).
-    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 7 });
+    // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
+    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
+    // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1); com a política
+    // mínima de guerra (V4C-T1.8), seis em todas.
+    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
     const tavernAt = (key: string) =>
@@ -490,9 +496,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // dias em 80 trazem colonos. Com os dois números do ADR 0016 (seção 18), entre 64 e 73.
     // Com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4), entre 64 e 75: a moral que ela
     // soma mantém o feudo acima dos 80, e os colonos vêm. Com os objetivos 11 a 16 (V3F-T2;
-    // docs/balance-v0.3.md, seção 15), entre 65 e 75.
+    // docs/balance-v0.3.md, seção 15), entre 65 e 75. Com a política mínima de guerra (V4C-T1.8;
+    // docs/balance-v0.4.md, seção 5.1) o soldado sai da população (ADR 0019, decisão 7) e o bot
+    // treina até um quarto dos aldeões: entre 56 e 69 aldeões, mais os soldados.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 58, max: 83 });
+    expect(band?.villagers).toEqual({ min: 50, max: 76 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
@@ -559,10 +567,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com os objetivos 11 a 16 (V3F-T2; docs/balance-v0.3.md, seção 15) o objetivo 14 manda
     // vender o que iria ao chão, e as recompensas mudam o caminho de obras: a semana do Rápido
     // cai para 30 h, e o ano do Rápido volta a caber na meta (pior caso de 6 h).
+    // REGRESSÃO MEDIDA com a política mínima de guerra (V4C-T1.8; docs/balance-v0.4.md, seção
+    // 5.1): a semana e o ano do Normal passam de 10 para 11 h. O autor aceitou em 2026-10-22,
+    // para rever quando as formações (V4C-T2) mudarem o que o bot faz.
     expect(over).toEqual({
       'week/3/regular': 30,
-      'week/1/regular': 10,
-      'year/1/regular': 10,
+      'week/1/regular': 11,
+      'year/1/regular': 11,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
       'week/0.5/regular',
@@ -581,10 +592,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // do Mercado entra na fila logo depois do Salão Nv3 e atrasa o Armazém em algumas sementes;
     // o pior caso da célula continua em 10 h. Nenhum número além dos do Mercado foi mexido: fica
     // à espera do autor. Com os objetivos 11 a 16 (V3F-T2) são três, outras, com 9 ou 10 h.
+    // Com a política mínima de guerra (V4C-T1.8) continuam três, outras, com até 11 h (aceito
+    // pelo autor em 2026-10-22).
     expect(beyond.map((run) => run.seed)).toEqual([
-      'pedra-alta-023',
-      'pedra-alta-025',
-      'pedra-alta-035',
+      'pedra-alta-018',
+      'pedra-alta-029',
+      'pedra-alta-041',
     ]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).

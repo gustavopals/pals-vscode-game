@@ -42,7 +42,8 @@ export const MATRIX_SEEDS: readonly string[] = Array.from(
 );
 
 export type Profile = {
-  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador' | 'ousado' | 'especulador';
+  readonly id:
+    'preguicoso' | 'regular' | 'dedicado' | 'explorador' | 'ousado' | 'especulador' | 'militar';
   readonly label: string;
   /** Visitas por dia real, a intervalos iguais, a primeira na criação da partida. */
   readonly sessionsPerDay: number;
@@ -97,6 +98,18 @@ export const SPECULATOR_PROFILE: Profile = {
   strategy: 'especulador',
 };
 
+/**
+ * O perfil de guerra (V4C-T1.8): 2 sessões por dia com o bot `militar`, que além da política
+ * mínima de guerra do econômico ergue o Ferreiro e treina Espadachins. **Fora da rodada padrão e
+ * sem faixa**: roda a pedido (`--profile militar`).
+ */
+export const MILITARY_PROFILE: Profile = {
+  id: 'militar',
+  label: 'Militar',
+  sessionsPerDay: 2,
+  strategy: 'militar',
+};
+
 /** A partida de uma semente joga com a visita extra da encruzilhada: metade delas, as ímpares. */
 export function playsCrossroadsVisit(profile: Profile, seedIndex: number): boolean {
   return profile.crossroadsVisits === 'half' && seedIndex % 2 === 0;
@@ -116,7 +129,12 @@ export const PROFILES: readonly Profile[] = [
 export type ProfileId = Profile['id'];
 
 /** Todo perfil que a matriz sabe jogar: os da rodada padrão e os que só rodam a pedido. */
-export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, BOLD_PROFILE, SPECULATOR_PROFILE];
+export const KNOWN_PROFILES: readonly Profile[] = [
+  ...PROFILES,
+  BOLD_PROFILE,
+  SPECULATOR_PROFILE,
+  MILITARY_PROFILE,
+];
 
 /**
  * As duas janelas de medida. Não se comparam entre si: em 7 dias reais o ritmo 3 atravessa três

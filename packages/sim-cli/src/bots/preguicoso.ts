@@ -2,6 +2,7 @@ import {
   ampliarEstoque,
   comidaPrimeiro,
   erguerPalicada,
+  erguerQuartel,
   erguerTorre,
   guardarLenha,
   obraMaisBarata,
@@ -10,6 +11,7 @@ import {
   recrutar,
   responderCartasSemGastar,
   seguirObjetivos,
+  treinarMinimo,
 } from './policies';
 import { botOf, type Policy } from './types';
 
@@ -24,6 +26,9 @@ import { botOf, type Policy } from './types';
  * ofício, todo mundo junto, para um lugar só. Só reequilibra quem já trabalha por necessidade:
  * a comida que falta e, com o inverno à vista, a lenha que falta.
  *
+ * Da guerra (V4C-T1.8) tem só a política mínima do econômico: ergue o Quartel e treina Lanceiros
+ * e Arqueiros com o que sobra.
+ *
  * **Nunca contrata na Taverna e nunca dá festival** (roadmap da v0.3, V3C-T2.7): o herói dele é
  * o que a carta da estrangeira entrega. A Taverna ele ergue, sem querer, quando ela é a obra
  * mais barata da lista: é o que a matriz mede de quem tem a Taverna e não a usa.
@@ -31,11 +36,13 @@ import { botOf, type Policy } from './types';
 export const preguicosoPolicies: readonly Policy[] = [
   erguerPalicada,
   seguirObjetivos,
+  erguerQuartel,
   erguerTorre,
   obraMaisBarata,
   ampliarEstoque,
   planejarAutomaticas,
   recrutar,
+  treinarMinimo,
   responderCartasSemGastar,
   comidaPrimeiro,
   ocuparLivres,

@@ -27,8 +27,9 @@ Há faixas para as três dificuldades; o comando sai com erro se alguma partida 
 Com --profile, a matriz joga só aquele perfil: preguicoso, regular, dedicado ou explorador (2
 sessões por dia com o bot explorador, que além de cuidar do feudo contrata na Taverna e dá
 festival), ousado (o explorador que arrisca; sem faixa) ou especulador (o que compra no balcão
-para revender por caravana; sem faixa). As estratégias de --strategy são
-economico, preguicoso, explorador, ousado e especulador.
+para revender por caravana; sem faixa) ou militar (o econômico com o Ferreiro e os Espadachins;
+sem faixa). As estratégias de --strategy são
+economico, preguicoso, explorador, ousado, especulador e militar.
 Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
 advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
 Com --expeditions, joga o estudo das expedições: 7 dias reais em cada ritmo, com 1, 2, 4 e 6

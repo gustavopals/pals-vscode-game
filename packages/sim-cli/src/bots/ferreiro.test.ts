@@ -17,7 +17,7 @@ import type { Act } from './types';
  * por isso fica inerte; a de forjar age com o Ferreiro de pé. O CSV traz a coluna `weapons`.
  */
 describe('o Ferreiro do Explorador (V4B-T2.6)', () => {
-  it('sem Quartel, a partida do Explorador não ergue o Ferreiro nem forja, e o CSV traz weapons', async () => {
+  it('a partida do Explorador não ergue o Ferreiro nem forja (ele é do militar), e o CSV traz weapons', async () => {
     const result = await simulate({
       seed: 'pedra-alta-001',
       days: 7,

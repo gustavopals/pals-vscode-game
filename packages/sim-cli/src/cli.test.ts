@@ -66,7 +66,7 @@ describe('linha de comando: modo em processo', () => {
 
   it('recusa estratégia e opção desconhecidas, e argumento solto', () => {
     expect(() => parseCli(['--seed', 's', '--strategy', 'guerreiro'])).toThrow(
-      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador, ousado, especulador.',
+      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador, ousado, especulador, militar.',
     );
     expect(() => parseCli(['--seed', 's', '--strategy', 'toString'])).toThrow(
       /Estratégia desconhecida/,
@@ -160,7 +160,7 @@ describe('linha de comando: matriz', () => {
     });
     // O nome é o do perfil, não o do bot: `economico` joga dois perfis.
     expect(() => parseCli(['--matrix', '--profile', 'economico'])).toThrow(
-      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador, ousado, especulador.',
+      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador, ousado, especulador, militar.',
     );
     expect(() => parseCli(['--seed', 's', '--profile', 'explorador'])).toThrow(
       '--profile não vale com o modo em processo.',
@@ -277,7 +277,7 @@ describe('texto de uso', () => {
     expect(USAGE).toContain('pnpm -s sim -- --perf\n');
     expect(USAGE).toContain('Há faixas para as três dificuldades');
     expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord] [--profile explorador]');
-    expect(USAGE).toContain('economico, preguicoso, explorador, ousado e especulador');
+    expect(USAGE).toContain('economico, preguicoso, explorador, ousado, especulador e militar');
     expect(USAGE).toContain('--expeditions [--seeds 10] [--difficulty lord]');
     expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');

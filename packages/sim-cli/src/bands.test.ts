@@ -203,17 +203,17 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3, em Senhor, com os objetivos 11 a 16 (V3F-T2): de 75 a 85
+    // Regular, 7 dias reais, ritmo 3, em Senhor, com a política mínima de guerra (V4C-T1.8): de 66 a 76 (antes dela, de 75 a 85
     // aldeões conforme a semente, Salão Nv8 em toda semente, até 5.200 de madeira e 5.138 de
     // pedra no Armazém, até 200.203 de ouro parado (com as obras esgotadas o bot manda todo
     // mundo para a Mina, e desde o Mercado, V3E-T1, vende o que iria ao chão) e até 30 h de jogo
     // seguidas com um recurso indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 67, max: 94 },
+      villagers: { min: 59, max: 84 },
       townHallMin: 8,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_395, gold: 210_214 },
+      surplusMax: { wood: 5_460, stone: 5_454, gold: 183_639 },
       wasteStreakMax: 32,
     });
   });
@@ -221,9 +221,9 @@ describe('faixas a partir da linha de base medida', () => {
   it('há faixa nas três dificuldades, cada uma com a sua medida, e só nos ritmos medidos', () => {
     const cell = cellKey('week', 3, 'regular');
     expect(bandFor(cell, 'lord')).toEqual(bandFor(cell));
-    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 8; em Rei de Ferro guarda
+    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 7 (era 8 antes da guerra); em Rei de Ferro guarda
     // 20% a menos, e o teto de madeira parada cai junto.
-    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(8);
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(7);
     expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(7);
     expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
       bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,

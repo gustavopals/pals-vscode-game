@@ -13,6 +13,7 @@ import {
   playsCrossroadsVisit,
   MATRIX_SEEDS,
   matrixCsv,
+  MILITARY_PROFILE,
   PROFILES,
   runMatrix,
   shareText,
@@ -55,9 +56,16 @@ describe('matriz de balanceamento: o que é jogado', () => {
     // cadência de visitas do Regular, com outro bot.
     expect(PROFILES).toContain(EXPLORER_PROFILE);
     // O Ousado (revisão da Fase D, M-R2) é conhecido, mas só roda a pedido e não tem faixa.
-    expect(KNOWN_PROFILES).toEqual([...PROFILES, BOLD_PROFILE, SPECULATOR_PROFILE]);
+    expect(KNOWN_PROFILES).toEqual([
+      ...PROFILES,
+      BOLD_PROFILE,
+      SPECULATOR_PROFILE,
+      MILITARY_PROFILE,
+    ]);
     // O Especulador (revisão da Fase E, R6) também: mede a arbitragem e a especulação sazonal.
+    // E o Militar (V4C-T1.8), o jogador que ergue o Ferreiro e treina Espadachins.
     expect(PROFILES).not.toContain(SPECULATOR_PROFILE);
+    expect(PROFILES).not.toContain(MILITARY_PROFILE);
     expect(PROFILES).not.toContain(BOLD_PROFILE);
     expect(EXPLORER_PROFILE).toEqual({
       id: 'explorador',
@@ -222,7 +230,9 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 67 a 94 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.395 | ≤ 210.214 | ≤ 32 | 0 |',
+      // Com a política mínima de guerra (V4C-T1.8) o soldado sai da população: a faixa da
+      // população desce e o ouro parado também (o treino gasta ouro).
+      '| Rápido 3× | Regular | 59 a 84 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.454 | ≤ 183.639 | ≤ 32 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -247,12 +257,15 @@ describe('relatório da matriz', () => {
       // Com os objetivos 11 a 16 (V3F-T2; seção 15) a Guilda entra na fila: na semana do Rápido
       // a madeira fica em 27 h nas três sementes e a pedra chega a 24; no Normal a madeira cai
       // para até 3 h; e no ano do Rápido a pedra passa a ir ao chão por 3 a 6 h.
-      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 27 | 3 a 24 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 1 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
+      // Com a política mínima de guerra (V4C-T1.8; docs/balance-v0.4.md, seção 5.1) o treino
+      // gasta comida, e a comida vai menos ao chão na semana do Rápido (9 a 21 h); no Normal a
+      // madeira passa a ir ao chão por 2 a 4 h.
+      '| 7 dias reais | Rápido 3× | Regular | 9 a 21 | 27 | 3 a 6 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 a 3 | 2 a 4 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 3 a 6 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 1 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 1 a 2,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 2 a 4 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 2 | 1 a 1,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -263,7 +276,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([85, 85], 8, 0, 0, 3414, 4972, 184601, 27),",
+      "  'week/3/regular': measured([75, 76], 8, 0, 0, 4152, 5129, 156136, 27),",
     );
   });
 
@@ -289,10 +302,10 @@ describe('relatório da matriz', () => {
     // estavam, as três sementes esgotam as obras na hora 154 da semana, e a lista de dezesseis
     // não fecha: o Regular conclui treze na semana e doze no ano, e o Preguiçoso, onze.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 | 61 | 7 | 13 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | 154 a 155 | 63 a 64 | 7 | 13 | — |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 34 | 7 | 12 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 35 | 7 | 12 | — |',
     );
     expect(year).toContain(
       '| Rápido 3× | Preguiçoso | 29 | 53 a 55 | — | 31 | 33 | 50 a 51 | 54 a 55 | — | 16 | 7 | 11 | — |',
@@ -304,7 +317,9 @@ describe('relatório da matriz', () => {
       watchtower: { min: 20, max: 20 },
       palisade: { min: 25, max: 25 },
     });
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 154, max: 154 });
+    // Com a política mínima de guerra (V4C-T1.8) uma das três sementes esgota as obras uma
+    // hora depois.
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 154, max: 155 });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
     expect(cell?.measure.objectivesDone).toEqual({ min: 13, max: 13 });
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
@@ -358,14 +373,17 @@ describe('relatório da matriz', () => {
     // soma traz mais gente, e o Regular do ritmo 3 passou a perder de 7% a 15% da comida e até
     // 28% da madeira (eram até 6% e até 9%), com sequências de até 33 h de jogo.
     expect(week).toContain(
-      '| Rápido 3× | Preguiçoso | 51% a 54% | 57% a 60% | 38% a 49% | 63 a 75 | 63 | 36 a 57 |',
+      '| Rápido 3× | Preguiçoso | 50% a 53% | 51% a 55% | 37% a 48% | 63 | 63 | 36 a 57 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
     // as caravanas (V3E-T2; seção 12), de 13% a 17% e sequências de até 27 h. Com os objetivos
     // 11 a 16 (V3F-T2; seção 15), de 13% a 16%, e a pedra passa a ir ao chão em toda semente.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 13% a 16% | 10% a 11% | 1% a 9% | 21 a 24 | 27 | 3 a 24 |',
+      // Com a política mínima de guerra (V4C-T1.8) o treino gasta comida e o caminho de obras
+      // muda: a comida vai de 2% a 15% ao chão, a madeira de 15% a 16%, e a pedra deixa de ir
+      // nestas três sementes.
+      '| Rápido 3× | Regular | 2% a 15% | 15% a 16% | 0% | 9 a 21 | 27 | 3 a 6 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
   });
@@ -405,10 +423,10 @@ describe('problemas de uma célula', () => {
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
       'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5460 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 67 a 94 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: população 3, fora da faixa de 59 a 84 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 67 a 94 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 59 a 84 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });

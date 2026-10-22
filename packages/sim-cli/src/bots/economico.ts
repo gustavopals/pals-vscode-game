@@ -5,6 +5,7 @@ import {
   comprarLenha,
   erguerMercado,
   erguerPalicada,
+  erguerQuartel,
   erguerTorre,
   guardarLenha,
   alocarMestre,
@@ -14,6 +15,7 @@ import {
   recrutar,
   responderCartas,
   seguirObjetivos,
+  treinarMinimo,
   venderExcedente,
 } from './policies';
 import { type Bot, botOf, type Policy } from './types';
@@ -68,11 +70,13 @@ import { type Bot, botOf, type Policy } from './types';
 export const economicoPolicies: readonly Policy[] = [
   erguerPalicada,
   seguirObjetivos,
+  erguerQuartel,
   erguerTorre,
   obraMaisBarata,
   ampliarEstoque,
   planejarAutomaticas,
   recrutar,
+  treinarMinimo,
   responderCartas,
   alocarPorDemanda,
   alocarMestre,
