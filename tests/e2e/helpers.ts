@@ -61,7 +61,15 @@ export type World = {
    * no primeiro avanço, como na inauguração).
    */
   raise(
-    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild' | 'market' | 'smithy',
+    building:
+      | 'watchtower'
+      | 'palisade'
+      | 'townHall'
+      | 'tavern'
+      | 'guild'
+      | 'market'
+      | 'smithy'
+      | 'barracks',
     level: number,
   ): Promise<void>;
   /**
