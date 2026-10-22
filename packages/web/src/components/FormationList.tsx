@@ -32,6 +32,20 @@ export function FormationList(props: {
           Nova formação
         </button>
       </div>
+      {army.formations.some((entry) => entry.isActive) ? (
+        <div class="trade-review-actions">
+          <button
+            type="button"
+            data-testid="formation-unset-active"
+            disabled={props.disabled || props.busy.has('formation:active')}
+            onClick={() =>
+              props.actions.run('lords.setActiveFormation', { id: null, confirmed: true })
+            }
+          >
+            Tirar a Defesa ativa
+          </button>
+        </div>
+      ) : null}
       {army.formations.length === 0 ? (
         <p class="muted">Nenhuma formação salva. Monte uma no editor e salve.</p>
       ) : (

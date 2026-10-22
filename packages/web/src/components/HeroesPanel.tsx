@@ -89,6 +89,14 @@ function HeroSheet(props: {
           </span>
         ) : null}
       </p>
+      {/* O comandante de uma ala da Defesa ativa fica no feudo (a visão: `commanding`, `canDepart`). */}
+      {hero.commanding === null ? null : (
+        <p class="hero-commanding muted" data-testid="hero-commanding">
+          <Icon name={hero.commanding.isActive ? 'shield' : 'organization'} /> Comanda:{' '}
+          {hero.commanding.wingLabel} de {hero.commanding.formationName}
+          {hero.commanding.isActive ? ' (Defesa ativa). Não parte em expedição.' : '.'}
+        </p>
+      )}
       {/* Quem pode ser dispensado agora é o que a visão diz: o cativo sim, quem viaja não. */}
       {hero.canDismiss ? (
         <div class="hero-actions">

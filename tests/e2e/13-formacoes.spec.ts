@@ -1,6 +1,19 @@
 import type { Page } from '@playwright/test';
 
-import { expect, MINUTE, playNow, serverView, test, type World } from './helpers';
+import {
+  applyTheme,
+  expect,
+  lowContrast,
+  MINUTE,
+  overflow,
+  playNow,
+  serverView,
+  statusBar,
+  test,
+  THEMES,
+  tree,
+  type World,
+} from './helpers';
 
 // V4C-T3.3 (GDD §13.4; ADR 0019, decisões 8 e 9): o editor de formação da aba Exército. A grade de
 // três alas por duas linhas, o seletor de cada posto (Enter), o comandante de cada ala e "Salvar".
@@ -141,6 +154,24 @@ test.describe('o editor de formação (V4C-T3.3)', () => {
       expect(destination.eligibleHeroIds).not.toContain(aldo?.id);
     }
 
+    // A árvore e a ficha do herói dizem o mesmo que a visão: a Defesa ativa e o comandante.
+    await expect(tree(page).getByRole('treeitem', { name: /Exército/ })).toContainText(
+      'Defesa: Defesa de Aldo',
+    );
+    await page.getByRole('tab', { name: 'Guilda' }).click();
+    await expect(page.getByTestId('hero-commanding')).toContainText('Não parte em expedição');
+    await armyTab(page).click();
+
+    // Tirar a Defesa ativa manda `setActiveFormation` com `id: null`; depois, o aviso na barra.
+    const unset = commandPosts(page);
+    await page.getByTestId('formation-unset-active').click();
+    await expect.poll(() => unset.map((entry) => entry.type)).toEqual(['setActiveFormation']);
+    expect(unset[0]?.payload).toMatchObject({ id: null });
+    await expect(page.getByTestId('formation-active')).toHaveCount(0);
+    await expect(statusBar(page)).toContainText('Sem Defesa ativa');
+    await page.getByTestId('formation-activate').click();
+    await expect(page.getByTestId('formation-active')).toBeVisible();
+
     // A Defesa ativa não se apaga; uma reserva sim.
     await expect(page.getByTestId('formation-delete').first()).toBeDisabled();
     await page.getByTestId('formation-new').click();
@@ -158,5 +189,33 @@ test.describe('o editor de formação (V4C-T3.3)', () => {
     await expect.poll(() => posts.map((entry) => entry.type)).toEqual(['deleteFormation']);
     await expect(page.getByTestId('formation-delete')).toHaveCount(1);
     await expect(page.getByTestId('formation-list')).not.toContainText('Reserva');
+  });
+});
+
+test.describe('a aba Exército nos temas e em janela estreita (V4C-T3.5)', () => {
+  test('três temas: contraste, e 720 px sem rolagem horizontal', async ({ browser, world }) => {
+    const context = await browser.newContext({
+      viewport: { width: 720, height: 900 },
+      locale: 'pt-BR',
+    });
+    try {
+      const page = await world.open(context);
+      await openEditor(world, page);
+      await page.getByTestId('formation-name').fill('Muralha');
+      await fillPost(page, 'center', 'front', 'spearman', '4');
+      await saveButton(page).click();
+      await expect(page.getByTestId('formation-list')).toContainText('Muralha');
+      for (const theme of THEMES) {
+        await applyTheme(page, theme);
+        await expect(page.getByTestId('formation-list')).toBeVisible();
+        expect(await lowContrast(page), `contraste no Exército, tema ${theme}`).toEqual([]);
+        expect(await overflow(page), `rolagem a 720 px, tema ${theme}`).toEqual({
+          page: 0,
+          content: 0,
+        });
+      }
+    } finally {
+      await context.close();
+    }
   });
 });

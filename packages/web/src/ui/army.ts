@@ -1,6 +1,12 @@
 import type { ViewState } from '@lotg/protocol';
 
-import { formatDuration, formatNumber, remainingNow } from './format';
+import {
+  activeFormation,
+  formatDuration,
+  formatNumber,
+  lacksDefense,
+  remainingNow,
+} from './format';
 import { parseAmount } from './market';
 
 /**
@@ -83,17 +89,22 @@ export function trainingEndsLine(
 export const lineLabel = (unit: ArmyUnit): string =>
   unit.line === 'front' ? 'linha de frente' : 'retaguarda';
 
-/** A linha da árvore: o nível, os soldados e o lote em curso. */
+export { activeFormation, lacksDefense };
+
+/** A linha da árvore: o nível, os soldados, a Defesa ativa e o lote em curso. */
 export function armyTreeLine(army: Army, elapsedSeconds: number): string {
   if (!army.built) {
     return 'não erguido';
   }
   const soldiers = `${formatNumber(army.total)}/${formatNumber(army.cap)} ${army.total === 1 ? 'soldado' : 'soldados'}`;
+  const active = activeFormation(army);
+  const defense =
+    active !== null ? ` · Defesa: ${active.name}` : army.total > 0 ? ' · sem Defesa ativa' : '';
   if (army.training === null) {
-    return `Nv${army.level} · ${soldiers}`;
+    return `Nv${army.level} · ${soldiers}${defense}`;
   }
   const doing = army.training.label.charAt(0).toLowerCase() + army.training.label.slice(1);
-  return `Nv${army.level} · ${soldiers} · treinando ${doing} · ${trainingEndsLine(army.training, elapsedSeconds)}`;
+  return `Nv${army.level} · ${soldiers}${defense} · treinando ${doing} · ${trainingEndsLine(army.training, elapsedSeconds)}`;
 }
 
 /** Os segundos até o treino acabar (para o ciclo de leitura); `null` sem lote. */

@@ -275,6 +275,17 @@ O ferro é um recurso como os outros na tabela do estoque e no Mercado (a linha,
 
 Em navegador: `tests/e2e/11-ferreiro.spec.ts` (forjar e cancelar pelo teclado, a paleta, os três temas) e o ferro em `10-mercado.spec.ts`.
 
+## O Exército (GDD §10.2 e §13.4; roadmap da v0.4, V4C-T2 e V4C-T3)
+
+A aba Exército (fixa depois do Mercado) tem o Quartel (`components/BarracksPanel.tsx`, `ui/army.ts`), o editor de formação (`components/FormationEditor.tsx`, `ui/formation.ts`) e a lista das salvas (`components/FormationList.tsx`). A tela não faz conta de regra: custo, prazo, lote máximo, o que falta a uma formação e quem pode comandar vêm da visão (`army`, `guild.heroes[].commanding`).
+
+- **Treinar e dispensar** seguem a conferência de duas etapas; `lords.trainSoldiers`, `cancelTraining` e `disbandSoldiers` terminam no `controller`, por `guildOrder`.
+- **Editor.** A grade é de botões (`gridcell`; setas andam, Enter abre o seletor com foco por `useLayoutEffect`, Esc volta ao posto). O que está montado é estado da tela; a ordem `saveFormation` nasce em "Salvar". "Ativar como Defesa" e "Tirar a Defesa ativa" mandam `setActiveFormation` (`id: null` tira), com a trava `formation:active`.
+- **Defesa ativa.** A árvore diz "Nv · N soldados · Defesa: nome" (ou "sem Defesa ativa", havendo soldados). Soldados sem Defesa ativa são **aviso, não decisão**: a barra de status mostra "Sem Defesa ativa" (abaixo das decisões e acima dos depósitos, sem alarme, e leva à aba), "Antes de partir" e o Retorno trazem "Ativar uma formação", e nada disso entra em `pendingDecisions` nem no contador. `lacksDefense` e `activeFormation` (`ui/format.ts`) só leem a visão.
+- **Comandante.** Na ficha do herói (aba Guilda), `commanding` diz a ala e a formação; sendo a Defesa ativa, "Não parte em expedição" (a recusa é do motor: `canDepart`, `eligibleHeroIds`).
+
+Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px).
+
 ## Ameaça e Torre de Vigia (GDD §8.2)
 
 A Torre de Vigia compra informação. Sem ela, o servidor **não manda** o número da Ameaça, a tendência, as origens, os tiles nem a incursão marcada: `ViewState.threat` é uma união de duas formas fechadas, e o app confere `threat.known` antes de procurar qualquer número. O app não conhece quanto a Ameaça sobe por dia, as marcas da Crônica, a chance de uma incursão nem a antecedência do aviso. As frases de ligação e as escolhas de apresentação ficam em `ui/threat.ts`.

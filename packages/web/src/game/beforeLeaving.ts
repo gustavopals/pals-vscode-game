@@ -17,6 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
+import { ARMY_SECTION, lacksDefense } from '../ui/army';
 import { CROSSROADS_NEAR_SECONDS, sendable, waitingExpeditions } from '../ui/expeditions';
 import {
   arrearsDeadlines,
@@ -449,6 +450,23 @@ export function defenseCommand(view: ViewState): LeavingItem['command'] {
 }
 
 /**
+ * Soldados sem Defesa ativa: o exército não guarda o feudo (GDD §10.2). É um aviso, sem prazo.
+ * O botão leva à aba Exército, onde se monta ou ativa a formação.
+ */
+function armyDefenseItem(view: ViewState): LeavingItem | null {
+  if (!lacksDefense(view.army)) {
+    return null;
+  }
+  const { total } = view.army;
+  return {
+    id: 'army-defense',
+    severity: 'warning',
+    text: `${formatNumber(total)} ${total === 1 ? 'soldado sem' : 'soldados sem'} Defesa ativa: nenhuma formação guarda o feudo.`,
+    command: { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ativar uma formação' },
+  };
+}
+
+/**
  * A incursão que os vigias avistaram: chega antes de qualquer ausência, e por isso abre a lista.
  * A frase é a do servidor (o aviso e o que a Paliçada faz a este ataque), com o prazo; o botão é
  * o da defesa. Só existe para quem tem a Torre de Vigia: sem ela a visão não traz incursão
@@ -826,6 +844,7 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     foodItem(view),
     firewoodItem(view),
     wageItem(view),
+    armyDefenseItem(view),
     crossroadsItem(view),
     ...storageItems(view),
     queueItem(view),

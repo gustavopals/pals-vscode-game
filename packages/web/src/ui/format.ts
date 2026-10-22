@@ -389,6 +389,19 @@ export function firewoodRunsOutIn(view: ViewState): number | null {
   return view.winter === null || wood === undefined ? null : runsOutIn(view, wood);
 }
 
+/** A formação que o feudo usa de Defesa, da visão; `null` sem nenhuma ativa. */
+export const activeFormation = (
+  army: ViewState['army'],
+): ViewState['army']['formations'][number] | null =>
+  army.formations.find((entry) => entry.isActive) ?? null;
+
+/**
+ * Há soldados e nenhuma Defesa ativa: o exército não guarda o feudo. É um aviso (nunca uma
+ * decisão pendente, nem entra em `pendingDecisions`): nada vence por isso.
+ */
+export const lacksDefense = (army: ViewState['army']): boolean =>
+  army.built && army.total > 0 && activeFormation(army) === null;
+
 export type StatusBarInput = {
   view: ViewState | null;
   connection: Connection;
@@ -407,7 +420,7 @@ export type StatusBarOutput = {
    * A aba a que o clique leva (um argumento de `lords.openPanel`); sem ela, vale a aba em que o
    * app abriria. `threat` é o painel da Ameaça, na aba Feudo: a página e o foco vão até ele.
    */
-  target?: 'today' | 'fief' | 'council' | 'guild' | 'threat';
+  target?: 'today' | 'fief' | 'council' | 'guild' | 'threat' | 'army';
   /** Fome, frio ou soldo em atraso: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
@@ -642,6 +655,17 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
         text: `$(${soonest.kind === 'card' ? 'law' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
         tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
         target: soonest.kind === 'card' ? 'council' : 'guild',
+      },
+      title: null,
+    };
+  }
+  // Soldados sem Defesa ativa: um aviso, abaixo das decisões e acima do depósito. Nada vence.
+  if (lacksDefense(view.army)) {
+    return {
+      bar: {
+        text: '$(organization) Sem Defesa ativa',
+        tooltip: `${name}: ${formatNumber(view.army.total)} ${view.army.total === 1 ? 'soldado' : 'soldados'} sem formação de Defesa. Ative uma na aba Exército.`,
+        target: 'army',
       },
       title: null,
     };

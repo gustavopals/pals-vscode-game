@@ -5,6 +5,7 @@ import {
   armyTreeLine,
   batchAmount,
   disbandLine,
+  lacksDefense,
   offerOf,
   parseSoldiers,
   trainLine,
@@ -48,11 +49,21 @@ describe('as linhas do Quartel', () => {
   });
 
   it('a linha da árvore: sem Quartel, com soldados e com lote', () => {
-    expect(armyTreeLine(armyIdleView.army, 0)).toBe('Nv2 · 3/40 soldados');
+    expect(armyTreeLine(armyIdleView.army, 0)).toBe('Nv2 · 3/40 soldados · sem Defesa ativa');
     expect(armyTreeLine({ ...army, built: false }, 0)).toBe('não erguido');
     const line = armyTreeLine(armyTrainingView.army, 0);
     expect(line).toContain('treinando 4 arqueiros');
     expect(line).toContain('termina em 10 min');
+  });
+
+  it('a linha da árvore diz a Defesa ativa pelo nome da visão; sem soldados não avisa', () => {
+    const formation = { ...army.formations[0], id: 'f1', name: 'Muro', isActive: true };
+    const withDefense = { ...army, formations: [formation as never] };
+    expect(armyTreeLine(withDefense, 0)).toBe('Nv2 · 3/40 soldados · Defesa: Muro');
+    expect(lacksDefense(withDefense)).toBe(false);
+    expect(lacksDefense(army)).toBe(true);
+    expect(lacksDefense({ ...army, total: 0 })).toBe(false);
+    expect(armyTreeLine({ ...army, total: 0 }, 0)).toBe('Nv2 · 0/40 soldados');
   });
 
   it('o fim do lote desconta o tempo desde a visão, e o prazo sai para o ciclo de leitura', () => {
