@@ -180,8 +180,14 @@ export function FormationEditor(props: {
   const saved = army.formations.find((entry) => entry.id === draft.id);
 
   return (
-    <section class="formation-editor" aria-labelledby="formation-editor-title" data-testid="formation-editor">
-      <h3 id="formation-editor-title">{isNew ? 'Nova formação' : `Editando: ${saved?.name ?? draft.name}`}</h3>
+    <section
+      class="formation-editor"
+      aria-labelledby="formation-editor-title"
+      data-testid="formation-editor"
+    >
+      <h3 id="formation-editor-title">
+        {isNew ? 'Nova formação' : `Editando: ${saved?.name ?? draft.name}`}
+      </h3>
       <div class="trade-amount">
         <label for="formation-name">Nome da formação</label>
         <input
@@ -269,7 +275,11 @@ export function FormationEditor(props: {
               value={draft.commanders[wing] ?? ''}
               onChange={(event) =>
                 props.onChange(
-                  withCommander(draft, wing, event.currentTarget.value === '' ? null : event.currentTarget.value),
+                  withCommander(
+                    draft,
+                    wing,
+                    event.currentTarget.value === '' ? null : event.currentTarget.value,
+                  ),
                 )
               }
             >
@@ -280,8 +290,7 @@ export function FormationEditor(props: {
                   value={hero.heroId}
                   disabled={hero.reason !== null && draft.commanders[wing] !== hero.heroId}
                 >
-                  {hero.name} ({hero.classLabel})
-                  {hero.reason === null ? '' : ` — ${hero.reason}`}
+                  {hero.name} ({hero.classLabel}){hero.reason === null ? '' : ` — ${hero.reason}`}
                 </option>
               ))}
             </select>

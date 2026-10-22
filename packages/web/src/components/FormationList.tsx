@@ -21,7 +21,11 @@ export function FormationList(props: {
 }) {
   const { army } = props;
   return (
-    <section class="formation-list" aria-labelledby="formation-list-title" data-testid="formation-list">
+    <section
+      class="formation-list"
+      aria-labelledby="formation-list-title"
+      data-testid="formation-list"
+    >
       <h3 id="formation-list-title">Formações salvas</h3>
       <div class="trade-review-actions">
         <button type="button" data-testid="formation-new" onClick={() => props.onEdit(null)}>
@@ -59,9 +63,7 @@ export function FormationList(props: {
                 <button
                   type="button"
                   data-testid="formation-set-active"
-                  disabled={
-                    props.disabled || entry.isActive || props.busy.has('formation:active')
-                  }
+                  disabled={props.disabled || entry.isActive || props.busy.has('formation:active')}
                   onClick={() =>
                     props.actions.run('lords.setActiveFormation', { id: entry.id, confirmed: true })
                   }

@@ -1815,7 +1815,12 @@ export class Controller {
 
   /** Salva uma formação (nova, com `id: null`, ou a existente): a ordem nasce em "Salvar". */
   saveFormation(payload: Extract<Command, { type: 'saveFormation' }>['payload']): Promise<boolean> {
-    return this.guildOrder(`formation:${payload.id ?? 'new'}`, 'saveFormation', payload, 'ao Exército');
+    return this.guildOrder(
+      `formation:${payload.id ?? 'new'}`,
+      'saveFormation',
+      payload,
+      'ao Exército',
+    );
   }
 
   /** Apaga uma formação salva. */

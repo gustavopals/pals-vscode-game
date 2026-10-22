@@ -564,7 +564,7 @@ pnpm --filter @lotg/sim-cli test
 
 - [ ] V4C-T3.1 **Mostrar ao autor** o editor com uma formação de três postos antes de completar a tela.
 - [x] V4C-T3.2 Painel do Quartel: a obra; as unidades com custo, comida, contra quem é forte e fraca (do `ViewState`); o treino em duas etapas; o lote em curso; dispensar com confirmação.
-- [ ] V4C-T3.3 Editor: a grade do §13.4 sem a linha inimiga (Fase D a traz com `?`); o posto como botão (papel `gridcell`), o seletor como diálogo com foco por `useLayoutEffect`; o comandante por ala com o motivo de quem não pode; o estado da montagem é da tela e a ordem nasce em "Salvar"; "Ativar como Defesa"; a lista das salvas.
+- [x] V4C-T3.3 Editor: a grade do §13.4 sem a linha inimiga (Fase D a traz com `?`); o posto como botão (papel `gridcell`), o seletor como diálogo com foco por `useLayoutEffect`; o comandante por ala com o motivo de quem não pode; o estado da montagem é da tela e a ordem nasce em "Salvar"; "Ativar como Defesa"; a lista das salvas.
 - [ ] V4C-T3.4 Árvore, paleta, barra de status (sem Defesa ativa com exército é aviso, não decisão), Retorno, "Antes de partir".
 - [ ] V4C-T3.5 Navegador: treinar, cancelar, montar e salvar por teclado, ativar, o comandante que não parte, a ordem das setas da árvore, os três temas, 720 px.
 
