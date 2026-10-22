@@ -342,6 +342,10 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     case 'weaponsForged':
     case 'itemRepaired':
       return { block: 'prospered', topic: 'smithy' };
+    // O lote que saiu do pátio do Quartel: soldados são o feudo trabalhando sem o senhor. O
+    // início, o cancelamento e a dispensa são ordens do jogador e ficam na Crônica.
+    case 'soldiersTrained':
+      return { block: 'prospered', topic: 'army' };
     // O item que se gastou de vez na estrada não dá bônus até o Ferreiro refazê-lo: é preço, e a
     // próxima ação é "Reparar…".
     case 'itemWorn':

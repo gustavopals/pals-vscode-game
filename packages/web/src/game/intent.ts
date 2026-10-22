@@ -21,6 +21,13 @@ const FORGE_ORDERS: ReadonlySet<CommandType> = new Set([
 ]);
 
 /**
+ * As ordens do treino do Quartel (um lote por vez): a nova aposenta a retentativa da velha, como a
+ * forja. Sem isso, um "Cancelar o treino" que falhou na rede, reenviado depois de um lote novo,
+ * cancelaria o lote novo. Dispensar é por unidade (`disbandSoldiers:<unidade>`), fora da família.
+ */
+const TRAINING_ORDERS: ReadonlySet<CommandType> = new Set(['trainSoldiers', 'cancelTraining']);
+
+/**
  * A intenção de uma ordem: o que o jogador quis mexer, sem o valor que escolheu. Duas ordens com
  * a mesma intenção disputam a mesma coisa (os trabalhadores de um edifício, a obra de um
  * edifício, a resposta a uma carta, um candidato da Taverna, o caminho de uma expedição, o envio
@@ -33,6 +40,12 @@ const FORGE_ORDERS: ReadonlySet<CommandType> = new Set([
  */
 export function intentOf(type: CommandType, payload: Command['payload']): string {
   const fields = payload as Record<string, unknown>;
+  if (TRAINING_ORDERS.has(type)) {
+    return 'training';
+  }
+  if (type === 'disbandSoldiers') {
+    return `disbandSoldiers:${String(fields.unit)}`;
+  }
   // Equipar e desequipar mexem no equipamento de um herói: a ordem nova sobre ele aposenta a
   // retentativa da anterior, seja qual for o item ou o espaço.
   const family = CONSTRUCTION_ORDERS.has(type)

@@ -2206,6 +2206,16 @@ export type ArmyView = {
     batchMax: number;
     /** Por que não dá para pôr um lote agora; `null` quando dá. */
     blockedReason: string | null;
+    /**
+     * Os lotes que a ordem aceitaria agora, de 1 até `maxAmount`: a tropa ("3 lanceiros"), o
+     * custo do lote inteiro por extenso e os segundos reais. Vazia quando nada pode ser pedido.
+     */
+    options: Array<{
+      amount: number;
+      label: string;
+      costText: string;
+      seconds: number;
+    }>;
   }>;
   /** As formações salvas, na ordem em que foram criadas (V4C-T2; ADR 0019, decisões 8 e 9). */
   formations: FormationView[];

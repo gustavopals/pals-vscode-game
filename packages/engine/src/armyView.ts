@@ -12,7 +12,7 @@ import {
 import { trainingBlock } from './armyOrders';
 import { decimal, fillText, plural } from './format';
 import { formationEditorView, formationViews } from './formationsView';
-import type { ArmyView, BuildingId, GameState } from './types';
+import type { ArmyView, BuildingId, GameState, UnitId } from './types';
 import { MILLI, realSecondsCeil } from './units';
 
 /**
@@ -68,14 +68,14 @@ function armyText(state: GameState): string {
 }
 
 /** "O custo: 30 de comida, 10 de ouro e 5 de madeira" sem o prefixo, e as armas ao fim. */
-function costText(unit: keyof typeof units): string {
+function costText(unit: keyof typeof units, amount = 1): string {
   const def = units[unit];
   const parts = Object.entries(def.cost).map(
-    ([resource, amount]) =>
-      `${amount} de ${balance.resources[resource as 'food'].label.toLowerCase()}`,
+    ([resource, each]) =>
+      `${each * amount} de ${balance.resources[resource as 'food'].label.toLowerCase()}`,
   );
   if (def.weapons > 0) {
-    parts.push(plural(def.weapons, 'arma', 'armas'));
+    parts.push(plural(def.weapons * amount, 'arma', 'armas'));
   }
   return parts.join(', ');
 }
@@ -134,12 +134,7 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
             totalSeconds: realSecondsCeil(training.endsAtMs - training.startedAtMs, timeScale),
             cancelRefundText: refundText(training.unit, training.amount),
           },
-    offer: UNIT_IDS.map((id) => ({
-      unit: id,
-      maxAmount: maxAmount(state, id),
-      batchMax: rules.batchMax,
-      blockedReason: trainingBlock(state, id, 1)?.message ?? null,
-    })),
+    offer: UNIT_IDS.map((id) => offerOf(state, id, level, timeScale)),
     formations: formationViews(state),
     editor: formationEditorView(state),
   };
@@ -153,4 +148,28 @@ function refundText(unit: keyof typeof units, amount: number): string {
   return back.weapons > 0
     ? `Cancelar devolve ${percent}% dos recursos e ${plural(back.weapons, 'arma', 'armas')}.`
     : `Cancelar devolve ${percent}% dos recursos.`;
+}
+
+/**
+ * O que uma ordem de treino da unidade pode pedir agora. As opções são só os lotes que a ordem
+ * aceitaria (de 1 até `maxAmount`), como o Ferreiro faz com cada lote: o app mostra o total na
+ * conferência sem somar nada, e a visão não cresce com lotes que nenhuma ordem aceitaria.
+ */
+function offerOf(state: GameState, id: UnitId, level: number, timeScale: number) {
+  const max = maxAmount(state, id);
+  return {
+    unit: id,
+    maxAmount: max,
+    batchMax: rules.batchMax,
+    blockedReason: trainingBlock(state, id, 1)?.message ?? null,
+    options: Array.from({ length: max }, (_, index) => {
+      const amount = index + 1;
+      return {
+        amount,
+        label: troopText(id, amount),
+        costText: costText(id, amount),
+        seconds: realSecondsCeil(trainingDurationMs(level, id, amount), timeScale),
+      };
+    }),
+  };
 }

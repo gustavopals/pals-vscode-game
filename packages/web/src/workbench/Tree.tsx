@@ -135,6 +135,23 @@ export function rowActions(node: TreeNode): RowAction[] {
       ];
     case 'lords.smithyForging':
       return [{ label: 'Cancelar a forja', text: 'Cancelar', command: 'lords.cancelForge' }];
+    case 'lords.army':
+    case 'lords.armySoldiers':
+      // "Treinar" pergunta a unidade e o lote e confirma com o custo e o prazo.
+      return [
+        { label: 'Treinar soldados', text: 'Treinar', command: 'lords.trainSoldiers' },
+        ...(node.contextValue === 'lords.armySoldiers'
+          ? [{ label: 'Dispensar soldados', text: 'Dispensar', command: 'lords.disbandSoldiers' }]
+          : []),
+      ];
+    case 'lords.armyTraining':
+    case 'lords.armyTrainingSoldiers':
+      return [
+        { label: 'Cancelar o treino', text: 'Cancelar', command: 'lords.cancelTraining' },
+        ...(node.contextValue === 'lords.armyTrainingSoldiers'
+          ? [{ label: 'Dispensar soldados', text: 'Dispensar', command: 'lords.disbandSoldiers' }]
+          : []),
+      ];
     case 'lords.master':
       // "Mover" lista os edifícios com o que cada um renderia; nada muda no primeiro clique.
       return [{ label: `Mover ${node.label}`, text: 'Mover', command: 'lords.assignMaster' }];

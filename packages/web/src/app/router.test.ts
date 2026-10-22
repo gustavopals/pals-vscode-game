@@ -94,7 +94,7 @@ describe('visibleTabs', () => {
   });
 
   it('com feudo, Hoje, Feudo, Conselho, Guilda e Mercado estão sempre lá, nessa ordem', () => {
-    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council', 'guild', 'market']);
+    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
   });
 
   it('as abas abertas vêm depois das fixas, em ordem estável', () => {
@@ -104,6 +104,7 @@ describe('visibleTabs', () => {
       'council',
       'guild',
       'market',
+      'army',
       'chronicle',
       'settings',
       'about',
@@ -114,6 +115,7 @@ describe('visibleTabs', () => {
       'council',
       'guild',
       'market',
+      'army',
       'settings',
     ]);
   });
@@ -127,12 +129,13 @@ describe('visibleTabs', () => {
   });
 
   it('uma aba fixa na lista de abertas não aparece duas vezes', () => {
-    expect(visibleTabs(true, ['fief', 'today', 'council', 'guild', 'market'])).toEqual([
+    expect(visibleTabs(true, ['fief', 'today', 'council', 'guild', 'market', 'army'])).toEqual([
       'today',
       'fief',
       'council',
       'guild',
       'market',
+      'army',
     ]);
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
@@ -140,6 +143,7 @@ describe('visibleTabs', () => {
   it('só Crônica, Preferências e Sobre podem ser fechadas', () => {
     expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'settings']);
     expect([...GAME_ROUTES].sort()).toEqual([
+      'army',
       'chronicle',
       'council',
       'fief',

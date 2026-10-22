@@ -1655,6 +1655,45 @@ table.market-prices tbody th {
   margin-top: 4px;
 }
 
+.army-raise > div,
+.army-running > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.army-running p + p {
+  margin-top: 3px;
+}
+
+.army-now,
+.army-total {
+  margin-top: 4px;
+}
+
+table.army-units {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+
+table.army-units th,
+table.army-units td {
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+table.army-units th.num,
+table.army-units td.num {
+  text-align: right;
+}
+
+.train-form,
+.disband-form {
+  margin-top: 12px;
+}
+
 .market-raise > div {
   flex: 1 1 220px;
   min-width: 0;

@@ -127,6 +127,18 @@ import {
   SMITHY_ICON,
   SMITHY_SECTION,
 } from '../ui/smithy';
+import {
+  ARMY_ANCHOR,
+  ARMY_ICON,
+  ARMY_SECTION,
+  batchAmount,
+  disbandLine,
+  offerOf,
+  trainLine,
+  trainingEndsLine,
+  type UnitId,
+  unitOf,
+} from '../ui/army';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -177,6 +189,7 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
   [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
   [SMITHY_SECTION]: { route: 'fief', anchor: SMITHY_ANCHOR },
+  [ARMY_SECTION]: { route: 'army', anchor: ARMY_ANCHOR },
   [MARKET_SECTION]: { route: 'market', anchor: MARKET_ANCHOR },
   [CARAVANS_SECTION]: { route: 'market', anchor: CARAVANS_ANCHOR },
 };
@@ -1345,6 +1358,280 @@ export function createCommands(
       return;
     }
     await controller.cancelForge();
+  });
+
+  // --- Quartel ----------------------------------------------------------------------
+
+  const seeArmy = {
+    label: 'Ver o Exército',
+    run: () => controller.runCommand('lords.openPanel', ARMY_SECTION),
+  };
+
+  /** A unidade e a quantidade que o painel manda já conferidas (`confirmed`). */
+  const armyArg = (arg: unknown): { unit?: UnitId; amount?: number; confirmed: boolean } => {
+    const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+    return {
+      ...(typeof record.unit === 'string' ? { unit: record.unit as UnitId } : {}),
+      ...(typeof record.amount === 'number' ? { amount: record.amount } : {}),
+      confirmed: record.confirmed === true,
+    };
+  };
+
+  /**
+   * "Treinar soldados": o painel já mostrou o custo e o prazo e manda a ordem conferida
+   * (`confirmed`); a árvore e a paleta perguntam a unidade e o lote e confirmam com a mesma
+   * frase. **Depois de cada diálogo a visão é lida de novo**: o Quartel, o pátio livre e o que o
+   * estoque paga. O que mudou não vira ordem.
+   */
+  const trainSoldiers = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const asked = armyArg(arg);
+    if (asked.confirmed && asked.unit !== undefined && asked.amount !== undefined) {
+      await controller.trainSoldiers(asked.unit, asked.amount);
+      return;
+    }
+    const blocked = (army: ViewState['army']): boolean => {
+      if (!army.built || army.training !== null) {
+        controller.toast({
+          kind: 'info',
+          text:
+            army.training !== null
+              ? `Já há um lote no pátio: ${trainingEndsLine(army.training, 0)}. É um lote por vez.`
+              : army.text,
+          actions: [seeArmy],
+        });
+        return true;
+      }
+      return false;
+    };
+    if (blocked(view.army)) {
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const unitId =
+      asked.unit ??
+      (await dialogs.pick<UnitId>({
+        title: 'Treinar soldados',
+        placeholder: 'Qual soldado?',
+        items: view.army.units.map((entry) => {
+          const offer = offerOf(view.army, entry.id);
+          return {
+            icon: offer !== undefined && offer.maxAmount > 0 ? ARMY_ICON : 'lock',
+            label: entry.label,
+            description: `${entry.costText} · ${formatDuration(entry.secondsEach)} cada`,
+            detail: offer?.blockedReason ?? entry.counters,
+            value: entry.id,
+          };
+        }),
+      }));
+    if (unitId === undefined) {
+      return;
+    }
+    const unit = unitOf(view.army, unitId);
+    const offer = offerOf(view.army, unitId);
+    if (unit === undefined || offer === undefined) {
+      return;
+    }
+    if (offer.maxAmount <= 0) {
+      controller.toast({
+        kind: 'info',
+        text: offer.blockedReason ?? 'O estoque não paga este soldado agora.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    const amount =
+      asked.amount ??
+      (await dialogs.pick<number>({
+        title: `Treinar ${unit.label}`,
+        placeholder: `Quantos? ${unit.costText}, cada um.`,
+        items: Array.from({ length: offer.maxAmount }, (_, index) => ({
+          icon: ARMY_ICON,
+          label: `${index + 1}`,
+          description: trainLine(view.army, unit, index + 1),
+          value: index + 1,
+        })),
+      }));
+    if (amount === undefined) {
+      return;
+    }
+    const checked = batchAmount(view.army, unitId, amount);
+    if (checked === null) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `${trainLine(view.army, unit, checked)}?`,
+      detail: ['O custo é cobrado agora; é um lote por vez.'],
+      confirmLabel: 'Treinar',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('o treino');
+      return;
+    }
+    const now = controller.view?.army;
+    if (now === undefined || blocked(now)) {
+      return;
+    }
+    if (batchAmount(now, unitId, checked) === null) {
+      controller.toast({
+        kind: 'warning',
+        text: 'O estoque já não paga este lote. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    await controller.trainSoldiers(unitId, checked);
+  });
+
+  /**
+   * "Cancelar o treino": o painel mostra o que o cancelamento devolve ao lado do botão e manda a
+   * ordem já confirmada; a árvore e a paleta confirmam com a mesma frase.
+   */
+  const cancelTraining = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    if (armyArg(arg).confirmed) {
+      await controller.cancelTraining();
+      return;
+    }
+    const none = () =>
+      controller.toast({
+        kind: 'info',
+        text: 'Não há lote em treino para cancelar.',
+        actions: [seeArmy],
+      });
+    const training = view.army.training;
+    if (training === null) {
+      none();
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const confirmed = await dialogs.confirm({
+      title: `Cancelar o treino de ${training.label}?`,
+      detail: [training.cancelRefundText],
+      confirmLabel: 'Cancelar o treino',
+      cancelLabel: 'Manter o lote',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('o cancelamento');
+      return;
+    }
+    const now = controller.view?.army.training;
+    if (now == null) {
+      none();
+      return;
+    }
+    // A ordem não leva o lote: se ele terminou e outro entrou com a pergunta aberta, cancelar
+    // agora seria cancelar o que o jogador não viu (como na forja).
+    if (
+      now.unit !== training.unit ||
+      now.amount !== training.amount ||
+      now.totalSeconds !== training.totalSeconds
+    ) {
+      controller.toast({
+        kind: 'info',
+        text: 'O lote do pátio mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    await controller.cancelTraining();
+  });
+
+  /**
+   * "Dispensar soldados": sempre confirma (os soldados voltam à lavoura e o que custaram não
+   * volta). O painel confirma na própria tela e manda a ordem conferida; a árvore e a paleta
+   * perguntam a unidade (com quantos há) e a quantidade.
+   */
+  const disbandSoldiers = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const asked = armyArg(arg);
+    if (asked.confirmed && asked.unit !== undefined && asked.amount !== undefined) {
+      await controller.disbandSoldiers(asked.unit, asked.amount);
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const withSoldiers = view.army.units.filter((entry) => entry.count > 0);
+    if (withSoldiers.length === 0) {
+      controller.toast({
+        kind: 'info',
+        text: 'Não há soldados para dispensar.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    const unitId =
+      asked.unit ??
+      (await dialogs.pick<UnitId>({
+        title: 'Dispensar soldados',
+        placeholder: 'Qual soldado?',
+        items: withSoldiers.map((entry) => ({
+          icon: ARMY_ICON,
+          label: entry.label,
+          description: `${entry.count} no exército`,
+          value: entry.id,
+        })),
+      }));
+    if (unitId === undefined) {
+      return;
+    }
+    const unit = unitOf(view.army, unitId);
+    if (unit === undefined || unit.count <= 0) {
+      return;
+    }
+    const amount =
+      asked.amount ??
+      (await dialogs.pick<number>({
+        title: `Dispensar ${unit.label}`,
+        placeholder: `Quantos? Há ${unit.count}.`,
+        items: Array.from({ length: unit.count }, (_, index) => ({
+          icon: ARMY_ICON,
+          label: `${index + 1}`,
+          description: disbandLine(unit, index + 1),
+          value: index + 1,
+        })),
+      }));
+    if (amount === undefined || amount < 1 || amount > unit.count) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `${disbandLine(unit, amount)}?`,
+      detail: ['Eles voltam à lavoura como aldeões; o que custaram não volta.'],
+      confirmLabel: 'Dispensar',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a dispensa');
+      return;
+    }
+    const now = controller.view?.army.units.find((entry) => entry.id === unitId);
+    if (now === undefined || now.count < amount) {
+      controller.toast({
+        kind: 'warning',
+        text: `Já não há ${amount} de ${unit.label}. Nada foi enviado.`,
+        actions: [seeArmy],
+      });
+      return;
+    }
+    await controller.disbandSoldiers(unitId, amount);
   });
 
   /**
@@ -3090,6 +3377,34 @@ export function createCommands(
       run: go('market'),
     },
     {
+      id: 'lords.openArmy',
+      title: 'Ir para o Exército',
+      palette: true,
+      when: hasGame,
+      run: go('army'),
+    },
+    {
+      id: 'lords.trainSoldiers',
+      title: 'Treinar soldados…',
+      palette: true,
+      when: hasGame,
+      run: trainSoldiers,
+    },
+    {
+      id: 'lords.cancelTraining',
+      title: 'Cancelar o treino…',
+      palette: true,
+      when: hasGame,
+      run: cancelTraining,
+    },
+    {
+      id: 'lords.disbandSoldiers',
+      title: 'Dispensar soldados…',
+      palette: true,
+      when: hasGame,
+      run: disbandSoldiers,
+    },
+    {
       id: 'lords.forgeWeapons',
       title: 'Forjar armas…',
       palette: true,
@@ -3298,7 +3613,8 @@ export function createCommands(
           arg === 'fief' ||
           arg === 'council' ||
           arg === 'guild' ||
-          arg === 'market'
+          arg === 'market' ||
+          arg === 'army'
           ? arg
           : controller.defaultRoute(),
       );

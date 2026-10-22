@@ -6,6 +6,7 @@ export const ROUTES = [
   'council',
   'guild',
   'market',
+  'army',
   'chronicle',
   'settings',
   'about',
@@ -19,6 +20,7 @@ export const GAME_ROUTES: readonly Route[] = [
   'council',
   'guild',
   'market',
+  'army',
   'chronicle',
 ];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
@@ -31,6 +33,7 @@ const PATHS: Record<Route, string> = {
   council: 'conselho',
   guild: 'guilda',
   market: 'mercado',
+  army: 'exercito',
   chronicle: 'cronica',
   settings: 'preferencias',
   about: 'sobre',
@@ -43,6 +46,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   council: 'Conselho',
   guild: 'Guilda',
   market: 'Mercado',
+  army: 'Exército',
   chronicle: 'Crônica',
   settings: 'Preferências',
   about: 'Sobre',
@@ -55,6 +59,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   council: 'law',
   guild: 'compass',
   market: 'tag',
+  army: 'organization',
   chronicle: 'book',
   settings: 'gear',
   about: 'info',
@@ -87,10 +92,12 @@ export function resolveRoute(requested: Route, hasGame: boolean, fallback: Route
 /**
  * As abas à vista, na ordem: as fixas e depois as que o jogador abriu. O Conselho é fixo como o
  * feudo: é onde as cartas esperam, e o jogador não precisa lembrar de abri-lo. A Guilda também:
- * é onde a equipe e o soldo dela estão à vista. O Mercado também: sem ele, a aba diz como erguê-lo.
+ * é onde a equipe e o soldo dela estão à vista. O Mercado também: sem ele, a aba diz como erguê-lo. O Exército também, pelo mesmo motivo (o Quartel).
  */
 export function visibleTabs(hasGame: boolean, opened: readonly Route[]): Route[] {
-  const fixed: Route[] = hasGame ? ['today', 'fief', 'council', 'guild', 'market'] : ['welcome'];
+  const fixed: Route[] = hasGame
+    ? ['today', 'fief', 'council', 'guild', 'market', 'army']
+    : ['welcome'];
   const extra = CLOSABLE_ROUTES.filter(
     (route) => opened.includes(route) && (hasGame || !GAME_ROUTES.includes(route)),
   );

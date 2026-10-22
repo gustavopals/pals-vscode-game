@@ -234,6 +234,16 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     const idle = deriveViewState(yard, 1);
     expect(idle.army.offer.find((entry) => entry.unit === 'spearman')?.maxAmount).toBe(10);
     expect(idle.army.offer.find((entry) => entry.unit === 'swordsman')?.maxAmount).toBe(6);
+    // Os lotes que a ordem aceitaria, de 1 até o máximo, com o custo do lote inteiro e o prazo:
+    // o app mostra o total na conferência sem somar nada.
+    const swordsmen = idle.army.offer.find((entry) => entry.unit === 'swordsman')?.options ?? [];
+    expect(swordsmen.map((entry) => entry.amount)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(swordsmen[2]).toMatchObject({
+      label: '3 espadachins',
+      costText: '120 de comida, 60 de ouro, 3 armas',
+    });
+    expect(swordsmen[0]?.costText).toBe('40 de comida, 20 de ouro, 1 arma');
+    expect(view.army.offer.every((entry) => entry.options.length === 0)).toBe(true);
     const none = deriveViewState(
       barracksYard(0, (draft) => {
         draft.settlement.weapons = 0;
@@ -242,7 +252,7 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     );
     expect(none.army.offer.find((entry) => entry.unit === 'knight')).toMatchObject({
       maxAmount: 0,
-      blockedReason: 'Faltam 1 arma: o Ferreiro as forja.',
+      blockedReason: 'Falta 1 arma: o Ferreiro a forja.',
     });
   });
 
