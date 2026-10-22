@@ -15,7 +15,9 @@ import {
 import { armyIdleView, armyTrainingView, initialView } from '../test-helpers';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { rowActions } from '../workbench/Tree';
+import { beforeLeaving } from './beforeLeaving';
 import { guildDeadlines } from './gameSession';
+import { statusBar } from '../ui/format';
 import { buildReturnReport } from './returnReport';
 
 /**
@@ -88,7 +90,7 @@ describe('o Exército na árvore (V4C-T3.2)', () => {
 
   it('de pé, com soldados e pátio livre: "Treinar" e "Dispensar"', () => {
     const node = find(tree(armyIdleView), 'army');
-    expect(node?.description).toBe('Nv2 · 3/40 soldados');
+    expect(node?.description).toBe('Nv2 · 3/40 soldados · sem Defesa ativa');
     expect(commandsOf(node)).toEqual(['lords.trainSoldiers', 'lords.disbandSoldiers']);
   });
 
@@ -104,7 +106,7 @@ describe('o Exército na árvore (V4C-T3.2)', () => {
     const { training } = armyTrainingView.army;
     const node = find(tree(armyTrainingView), 'army');
     expect(node?.description).toMatch(
-      /^Nv2 · 3\/40 soldados · treinando 4 arqueiros · termina em /,
+      /^Nv2 · 3\/40 soldados · sem Defesa ativa · treinando 4 arqueiros · termina em /,
     );
     expect(commandsOf(node)).toEqual(['lords.cancelTraining', 'lords.disbandSoldiers']);
     expect(node?.tooltip).toContain(training?.cancelRefundText);
@@ -163,5 +165,34 @@ describe('o ciclo de leitura e o fim do treino (V4C-T3.2)', () => {
     const { training } = armyTrainingView.army;
     expect(guildDeadlines(armyTrainingView)).toContain(training?.endsInSeconds);
     expect(guildDeadlines(armyIdleView)).not.toContain(null);
+  });
+});
+
+describe('o exército sem Defesa ativa (V4C-T3.4)', () => {
+  it('"Antes de partir": um aviso que leva ao Exército; sem soldados, nada', () => {
+    const item = beforeLeaving(armyIdleView).find((entry) => entry.id === 'army-defense');
+    expect(item?.severity).toBe('warning');
+    expect(item?.command).toEqual({
+      id: 'lords.openPanel',
+      arg: 'army',
+      label: 'Ativar uma formação',
+    });
+    const none = { ...armyIdleView, army: { ...armyIdleView.army, total: 0 } };
+    expect(beforeLeaving(none).some((entry) => entry.id === 'army-defense')).toBe(false);
+  });
+
+  it('a barra de status: aviso sem alarme, e não é decisão pendente', () => {
+    const bar = statusBar({
+      view: armyIdleView,
+      connection: { kind: 'online' } as never,
+      discreetMode: false,
+      signedIn: true,
+      elapsedSeconds: 0,
+      pending: 0,
+    });
+    expect(bar.text).toContain('Sem Defesa ativa');
+    expect(bar.target).toBe('army');
+    expect(bar.alarm).toBeUndefined();
+    expect(armyIdleView.pendingDecisions).toEqual([]);
   });
 });
