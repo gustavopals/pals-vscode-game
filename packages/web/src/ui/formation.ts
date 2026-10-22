@@ -28,14 +28,6 @@ export type Draft = {
   commanders: Record<Wing, string | null>;
 };
 
-/** Só a posição na grade (a visão traz os nomes das alas em cada formação salva; ver o relatório da T3.3). */
-export const WING_LABEL: Record<Wing, string> = {
-  left: 'Esquerda',
-  center: 'Centro',
-  right: 'Direita',
-};
-export const LINE_LABEL: Record<Line, string> = { front: 'Frente', back: 'Retaguarda' };
-
 export function emptyDraft(): Draft {
   return {
     id: null,

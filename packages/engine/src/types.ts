@@ -2270,6 +2270,9 @@ export type FormationEditorView = {
   /** Quantas formações cabem, e se ainda cabe uma nova. */
   formationsCap: number;
   canSaveNew: boolean;
+  /** Os nomes das alas ("Ala esquerda") e das linhas ("Frente"), para a grade do editor. */
+  wingLabels: Record<WingId, string>;
+  lineLabels: Record<LineId, string>;
   /** Cada unidade, a linha em que ela combate e quantos soldados dela o feudo tem. */
   units: Array<{ id: UnitId; label: string; line: LineId; available: number }>;
   /** Todo herói do feudo, com o motivo de não poder ser nomeado agora; `null` quando pode. */
