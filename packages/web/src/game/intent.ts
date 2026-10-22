@@ -43,6 +43,12 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
   if (TRAINING_ORDERS.has(type)) {
     return 'training';
   }
+  if (type === 'saveFormation' || type === 'deleteFormation') {
+    return `formation:${String(fields.id)}`;
+  }
+  if (type === 'setActiveFormation') {
+    return 'formation:active';
+  }
   if (type === 'disbandSoldiers') {
     return `disbandSoldiers:${String(fields.unit)}`;
   }

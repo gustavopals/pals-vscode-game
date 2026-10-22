@@ -1813,6 +1813,26 @@ export class Controller {
     return this.guildOrder(`disband:${unit}`, 'disbandSoldiers', { unit, amount }, 'ao Quartel');
   }
 
+  /** Salva uma formação (nova, com `id: null`, ou a existente): a ordem nasce em "Salvar". */
+  saveFormation(payload: Extract<Command, { type: 'saveFormation' }>['payload']): Promise<boolean> {
+    return this.guildOrder(
+      `formation:${payload.id ?? 'new'}`,
+      'saveFormation',
+      payload,
+      'ao Exército',
+    );
+  }
+
+  /** Apaga uma formação salva. */
+  deleteFormation(id: string): Promise<boolean> {
+    return this.guildOrder(`formation:${id}`, 'deleteFormation', { id }, 'ao Exército');
+  }
+
+  /** Põe uma formação como a Defesa ativa (`null` tira a Defesa). */
+  setActiveFormation(id: string | null): Promise<boolean> {
+    return this.guildOrder('formation:active', 'setActiveFormation', { id }, 'ao Exército');
+  }
+
   /**
    * O relatório de expedição que o jogador pediu para ver (a linha da Crônica, o aviso da volta):
    * a aba Guilda o mostra aberto. Não é estado do jogo: só diz à aba qual folha abrir.
