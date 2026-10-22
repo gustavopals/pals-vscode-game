@@ -16,6 +16,7 @@ import { CARAVAN_ICON, MARKET_ICON, MASTER_ICON } from '../ui/market';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { SMITHY_ICON } from '../ui/smithy';
+import { ARMY_ICON } from '../ui/army';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
@@ -85,6 +86,8 @@ const MARKET: ReadonlyArray<GameEvent['type']> = [
 ];
 /** O que é do Ferreiro: o aviso do lote pronto leva ao painel dele, na aba Feudo. */
 const SMITHY: ReadonlyArray<GameEvent['type']> = ['weaponsForged', 'itemRepaired', 'itemWorn'];
+/** O que é do Quartel: o aviso do lote pronto leva à aba Exército. */
+const ARMY: ReadonlyArray<GameEvent['type']> = ['soldiersTrained'];
 /** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
 const GUILD: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
@@ -172,6 +175,9 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   // O Ferreiro (GDD §6.1): o lote que ficou pronto. O envio e o cancelamento são ordens do
   // próprio jogador: a resposta está na tela, não avisam.
   'weaponsForged',
+  // O Quartel (GDD §10.2): o lote que saiu do pátio. O início, o cancelamento e a dispensa são
+  // ordens do próprio jogador e não avisam.
+  'soldiersTrained',
   // O item que voltou inteiro da bancada e o que se gastou de vez na estrada (o reparo é a
   // próxima ação): só em "Todas". O início do reparo é ordem do jogador e não avisa.
   'itemRepaired',
@@ -232,6 +238,7 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   masterWaiting: 'watch',
   masterAssigned: MASTER_ICON,
   weaponsForged: SMITHY_ICON,
+  soldiersTrained: ARMY_ICON,
   itemRepaired: SMITHY_ICON,
   itemWorn: 'warning',
 };
@@ -387,6 +394,11 @@ export function isMasterArrival(event: GameEvent): boolean {
 /** O evento é do Mercado ou da estrada: o aviso dele leva à aba Mercado. */
 export function isMarketEvent(event: GameEvent): boolean {
   return MARKET.includes(event.type);
+}
+
+/** O evento é do Quartel: o aviso dele leva à aba Exército. */
+export function isArmyEvent(event: GameEvent): boolean {
+  return ARMY.includes(event.type);
 }
 
 /** O evento é do Ferreiro: o aviso dele leva ao painel do Ferreiro. */

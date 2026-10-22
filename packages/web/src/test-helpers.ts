@@ -906,3 +906,49 @@ export async function settle(controller?: Controller): Promise<void> {
     await controller?.settled();
   }
 }
+
+/**
+ * O Quartel de pé, com soldados e sem lote, e o mesmo com um lote no pátio: a visão do golden
+ * (`initial`) com `army` posto à mão, porque o golden do motor ainda não tem Quartel erguido. Os
+ * números são de mentira; o app só os exibe.
+ */
+export const armyIdleView: ViewState = {
+  ...initialView,
+  army: {
+    ...initialView.army,
+    built: true,
+    level: 2,
+    text: 'Quartel Nv2: até 40 soldados; cada um leva 91% do tempo do nível 1 para treinar.',
+    total: 3,
+    cap: 40,
+    foodText: '4,5/h (3 soldados)',
+    units: initialView.army.units.map((unit) => ({
+      ...unit,
+      count: unit.id === 'spearman' ? 3 : 0,
+      secondsEach: 120,
+    })),
+    training: null,
+    offer: initialView.army.offer.map((entry) => ({
+      ...entry,
+      maxAmount: 6,
+      batchMax: 10,
+      blockedReason: null,
+    })),
+  },
+};
+
+export const armyTrainingView: ViewState = {
+  ...armyIdleView,
+  army: {
+    ...armyIdleView.army,
+    training: {
+      unit: 'archer',
+      unitLabel: 'Arqueiro',
+      amount: 4,
+      label: '4 arqueiros',
+      endsInSeconds: 600,
+      totalSeconds: 900,
+      cancelRefundText: 'Cancelar devolve 80% dos recursos: 96 de comida.',
+    },
+  },
+};

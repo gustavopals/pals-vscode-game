@@ -89,6 +89,7 @@ import {
   objectivesSummary,
   objectiveTreeLine,
 } from './objectives';
+import { ARMY_ICON, ARMY_NODE, ARMY_SECTION, armyTreeLine } from './army';
 import { SMITHY_ICON, SMITHY_NODE, SMITHY_SECTION, smithyTreeLine } from './smithy';
 import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
 import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
@@ -658,6 +659,35 @@ function smithyNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * O Quartel e o exército (GDD §10.2): o nível, os soldados e o lote em treino com quando termina.
+ * O clique só navega à aba Exército; as ordens saem dos botões da linha: "Treinar" sem lote, com
+ * lote "Cancelar" (com o que devolve na dica) e, havendo soldados, "Dispensar". Sem o Quartel, a
+ * linha diz que ele não foi erguido, e a explicação é a frase do servidor.
+ */
+function armyNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { army } = view;
+  const training = army.training !== null;
+  const soldiers = army.total > 0;
+  return {
+    id: ARMY_NODE,
+    label: 'Exército',
+    description: armyTreeLine(army, elapsedSeconds),
+    tooltip: [army.text, army.training?.cancelRefundText].filter((line) => line != null).join('\n'),
+    icon: ARMY_ICON,
+    command: { id: 'lords.openPanel', args: [ARMY_SECTION] },
+    ...(army.built
+      ? {
+          contextValue: `lords.army${training ? 'Training' : ''}${soldiers ? 'Soldiers' : ''}`,
+          actionHints:
+            army.training === null
+              ? {}
+              : { 'lords.cancelTraining': army.training.cancelRefundText },
+        }
+      : {}),
+  };
+}
+
+/**
  * Os Mestres (GDD §5.4): quem trabalha onde e com que bônus (na frase do servidor), quem ainda se
  * adapta e quem espera uma vaga nas casas. O botão "Mover" de cada linha abre a lista dos
  * edifícios com o que cada um renderia. Sem Mestre nenhum, a árvore nem fala deles.
@@ -924,6 +954,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         guildNode(view, input.elapsedSeconds),
         marketNode(view, input.elapsedSeconds),
         smithyNode(view, input.elapsedSeconds),
+        armyNode(view, input.elapsedSeconds),
         ...mastersNode(view),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),

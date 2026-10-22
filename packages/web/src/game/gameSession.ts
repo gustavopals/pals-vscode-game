@@ -11,6 +11,7 @@ import {
 
 import { Emitter, type KeyValueStore } from '../services/store';
 import { expeditionDeadlines } from '../ui/expeditions';
+import { trainingDeadline } from '../ui/army';
 import { forgeDeadline } from '../ui/smithy';
 import { marketDeadlines } from '../ui/market';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
@@ -241,6 +242,8 @@ export function guildDeadlines(view: ViewState): number[] {
     ...expeditionDeadlines(guild),
     // O fim do lote na forja do Ferreiro: é quando as armas entram e a forja fica livre.
     forgeDeadline(view.smithy),
+    // O fim do lote no pátio do Quartel: é quando os soldados entram e o pátio fica livre.
+    trainingDeadline(view.army),
   ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
 }
 

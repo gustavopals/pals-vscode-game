@@ -125,6 +125,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'guild',
       'market',
       'smithy',
+      'army',
       'morale',
       'threat',
       // Os objetivos em aberto ficam à vista: são o tutorial vivo.
@@ -160,7 +161,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 10 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 11 });
     expect(byId.get('objective:recruitVillagers')).toMatchObject({ position: 2, setSize: 3 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 5 });
     expect(byId.get('resource:iron')).toMatchObject({ position: 5, setSize: 5 });
@@ -1169,6 +1170,7 @@ describe('Workbench', () => {
       'tab-council',
       'tab-guild',
       'tab-market',
+      'tab-army',
     ]);
     // Sem carta à espera, a aba do Conselho não leva número.
     expect(markup).not.toContain('tab-count');

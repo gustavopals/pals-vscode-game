@@ -9,6 +9,7 @@ import { Welcome } from '../components/Welcome';
 import { difficultyDescription } from '../game/newGame';
 import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
+import { ArmyTab } from '../tabs/Army';
 import { ChronicleTab } from '../tabs/Chronicle';
 import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
@@ -99,6 +100,7 @@ function TabContent(props: {
     case 'council':
     case 'guild':
     case 'market':
+    case 'army':
       if (view === null) {
         return (
           <main class="loading">
@@ -120,6 +122,18 @@ function TabContent(props: {
             retryInSeconds={retryInSeconds}
             answering={controller.answering}
             record={controller.councilLog}
+            actions={actions}
+          />
+        );
+      }
+      if (route === 'army') {
+        return (
+          <ArmyTab
+            view={view}
+            elapsed={elapsed}
+            online={online}
+            retryInSeconds={retryInSeconds}
+            busy={controller.guildOrders}
             actions={actions}
           />
         );

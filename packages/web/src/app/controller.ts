@@ -54,6 +54,7 @@ import {
   isWatchReport,
   isGuildEvent,
   isMarketEvent,
+  isArmyEvent,
   isSmithyEvent,
   MUTE_DURATION_MS,
   raidAftermath,
@@ -963,7 +964,13 @@ export class Controller {
           }
         : {
             label: 'Ver',
-            route: isGuildEvent(event) ? 'guild' : isMarketEvent(event) ? 'market' : 'fief',
+            route: isGuildEvent(event)
+              ? 'guild'
+              : isMarketEvent(event)
+                ? 'market'
+                : isArmyEvent(event)
+                  ? 'army'
+                  : 'fief',
             ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
             ...(isSmithyEvent(event) ? { section: SMITHY_SECTION } : {}),
           },
@@ -1127,7 +1134,7 @@ export class Controller {
      */
     action: {
       label: string;
-      route: 'today' | 'fief' | 'council' | 'guild' | 'market';
+      route: 'today' | 'fief' | 'council' | 'guild' | 'market' | 'army';
       section?: string;
       /**
        * Em vez de só navegar, o botão executa este comando do app (que leva à aba e abre o que
@@ -1780,6 +1787,30 @@ export class Controller {
    */
   repairItem(itemId: string): Promise<boolean> {
     return this.guildOrder('forge', 'repairItem', { itemId }, 'ao Ferreiro');
+  }
+
+  /**
+   * Manda treinar um lote de soldados no Quartel (GDD §10.2). A trava é a do treino, e o treino e
+   * o cancelamento dividem a intenção (`intentOf`): é um lote por vez.
+   */
+  trainSoldiers(
+    unit: Extract<Command, { type: 'trainSoldiers' }>['payload']['unit'],
+    amount: number,
+  ): Promise<boolean> {
+    return this.guildOrder('train', 'trainSoldiers', { unit, amount }, 'ao Quartel');
+  }
+
+  /** Cancela o lote em treino: o servidor devolve a parte do custo que a visão diz. */
+  cancelTraining(): Promise<boolean> {
+    return this.guildOrder('train', 'cancelTraining', {}, 'ao Quartel');
+  }
+
+  /** Dispensa soldados de uma unidade: voltam a ser aldeões. A trava é por unidade. */
+  disbandSoldiers(
+    unit: Extract<Command, { type: 'disbandSoldiers' }>['payload']['unit'],
+    amount: number,
+  ): Promise<boolean> {
+    return this.guildOrder(`disband:${unit}`, 'disbandSoldiers', { unit, amount }, 'ao Quartel');
   }
 
   /**
