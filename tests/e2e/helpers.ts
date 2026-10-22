@@ -101,6 +101,10 @@ export type World = {
   captive(name: string): Promise<void>;
   /** Põe um item do conteúdo no arsenal do feudo (`/__test/item`), pelo nome interno dele. */
   item(defId: string, condition?: number): Promise<void>;
+  /** Põe soldados no exército de todos os feudos (`/__test/soldiers`), sem passar pelo treino. */
+  soldiers(
+    units: Partial<Record<'spearman' | 'swordsman' | 'archer' | 'knight' | 'shieldbearer', number>>,
+  ): Promise<void>;
   /**
    * Põe o estoque de um recurso de todos os feudos em um valor, em unidades (`/__test/stock`):
    * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
@@ -200,6 +204,9 @@ export const test = base.extend<{ world: World }>({
         },
         raise: async (building, level) => {
           await control('raise', { building, level });
+        },
+        soldiers: async (units) => {
+          await control('soldiers', { units });
         },
         stock: async (resource, amount) => {
           await control('stock', { resource, amount });

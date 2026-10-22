@@ -1719,3 +1719,86 @@ table.army-units td.num {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+.formation-editor,
+.formation-list {
+  margin-top: 12px;
+}
+
+.formation-grid {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.formation-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 0.6fr) repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  align-items: stretch;
+}
+
+.formation-head {
+  font-weight: 600;
+  align-self: center;
+}
+
+.formation-post {
+  min-height: 44px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.formation-post.empty {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.formation-commanders {
+  margin-top: 8px;
+}
+
+.formation-saved {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.formation-saved li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.formation-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--vscode-editorWidget-background);
+  z-index: 50;
+}
+
+.formation-dialog {
+  max-width: 420px;
+  width: 100%;
+  padding: 16px;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-focusBorder);
+}
+
+.army-formations {
+  margin-top: 16px;
+}
+
+.formations-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+#formation-name {
+  width: min(100%, 28ch);
+}

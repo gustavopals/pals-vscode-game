@@ -167,6 +167,23 @@ control.post('/__test/raise', async (request) => {
 });
 
 /**
+ * Põe soldados no exército de todos os feudos (`{ units: { spearman: 6, ... } }`), sem passar
+ * pelo treino: é como um cenário do editor de formação tem tropa sem esperar os lotes. Só a
+ * contagem de `army.units` muda; daí em diante a fome, o limite e as formações são as do motor.
+ */
+control.post('/__test/soldiers', async (request) => {
+  const { units } = request.body as { units: Record<string, number> };
+  for (const [unit, count] of Object.entries(units)) {
+    await pool.query(
+      `update games
+          set state = jsonb_set(state, array['army', 'units', $1::text], to_jsonb($2::int))`,
+      [unit, count],
+    );
+  }
+  return { ok: true };
+});
+
+/**
  * Põe o estoque de um recurso de todos os feudos em um valor, em unidades: é como um teste da
  * Taverna tem o ouro de uma contratação ou a comida de um festival sem jogar as horas que a
  * produção leva para juntá-los. O resto do acumulador do recurso é zerado, para o número ser

@@ -1635,6 +1635,131 @@ export function createCommands(
   });
 
   /**
+   * As formações (V4C-T3.3). Salvar e ativar chegam do painel já montados (`confirmed`: o painel
+   * conferiu na tela); apagar sempre confirma, aqui. Pela paleta, "Ativar formação…" pergunta qual.
+   */
+  const formationArg = (arg: unknown): Record<string, unknown> =>
+    typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
+
+  const saveFormation = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const record = formationArg(arg);
+    if (record.confirmed !== true || typeof record.name !== 'string') {
+      // A montagem é da tela: pela paleta só se leva ao editor.
+      controller.runCommand('lords.openPanel', ARMY_SECTION);
+      return;
+    }
+    await controller.saveFormation({
+      id: typeof record.id === 'string' ? record.id : null,
+      name: record.name,
+      posts: record.posts as never,
+      commanders: record.commanders as never,
+    });
+  }, (arg) => `save:${String(formationArg(arg).id ?? 'new')}`);
+
+  const setActiveFormation = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const record = formationArg(arg);
+    if (record.confirmed === true && (typeof record.id === 'string' || record.id === null)) {
+      await controller.setActiveFormation(record.id);
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const saved = view.army.formations;
+    if (saved.length === 0) {
+      controller.toast({
+        kind: 'info',
+        text: 'Não há formação salva. Monte uma no editor do Exército.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    const id = await dialogs.pick<string>({
+      title: 'Ativar como Defesa',
+      placeholder: 'Qual formação?',
+      items: saved.map((entry) => ({
+        icon: ARMY_ICON,
+        label: entry.name,
+        description: entry.isActive ? 'Defesa ativa' : entry.shortfallText,
+        value: entry.id,
+      })),
+    });
+    if (id === undefined) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a escolha da Defesa');
+      return;
+    }
+    if (!(controller.view?.army.formations ?? []).some((entry) => entry.id === id)) {
+      controller.toast({
+        kind: 'info',
+        text: 'A formação já não existe. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    await controller.setActiveFormation(id);
+  });
+
+  const deleteFormation = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const record = formationArg(arg);
+    const id =
+      typeof record.id === 'string'
+        ? record.id
+        : await dialogs.pick<string>({
+            title: 'Apagar formação',
+            placeholder: 'Qual formação?',
+            items: view.army.formations.map((entry) => ({
+              icon: ARMY_ICON,
+              label: entry.name,
+              description: entry.canDelete ? entry.shortfallText : 'não pode ser apagada agora',
+              value: entry.id,
+            })),
+          });
+    if (id === undefined) {
+      return;
+    }
+    const target = view.army.formations.find((entry) => entry.id === id);
+    if (target === undefined) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `Apagar a formação "${target.name}"?`,
+      detail: ['A formação some da lista; os soldados continuam no exército.'],
+      confirmLabel: 'Apagar',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a exclusão da formação');
+      return;
+    }
+    if (!(controller.view?.army.formations ?? []).some((entry) => entry.id === id)) {
+      controller.toast({
+        kind: 'info',
+        text: 'A formação já não existe. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return;
+    }
+    await controller.deleteFormation(id);
+  }, (arg) => `delete:${String(formationArg(arg).id ?? '')}`);
+
+  /**
    * "Reparar…": o painel do Arsenal já mostrou o custo e o prazo e manda a ordem conferida
    * (`confirmed`); a árvore, o Retorno e a paleta perguntam qual item (os travados aparecem com o
    * motivo da visão) e confirmam com a mesma frase. **A visão é lida de novo depois de cada
@@ -3403,6 +3528,27 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: disbandSoldiers,
+    },
+    {
+      id: 'lords.saveFormation',
+      title: 'Salvar formação',
+      palette: false,
+      when: hasGame,
+      run: saveFormation,
+    },
+    {
+      id: 'lords.setActiveFormation',
+      title: 'Ativar formação como Defesa…',
+      palette: true,
+      when: hasGame,
+      run: setActiveFormation,
+    },
+    {
+      id: 'lords.deleteFormation',
+      title: 'Apagar formação…',
+      palette: true,
+      when: hasGame,
+      run: deleteFormation,
     },
     {
       id: 'lords.forgeWeapons',
