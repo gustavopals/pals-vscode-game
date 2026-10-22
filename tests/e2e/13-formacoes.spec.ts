@@ -169,7 +169,8 @@ test.describe('o editor de formação (V4C-T3.3)', () => {
     expect(unset[0]?.payload).toMatchObject({ id: null });
     await expect(page.getByTestId('formation-active')).toHaveCount(0);
     await expect(statusBar(page)).toContainText('Sem Defesa ativa');
-    await page.getByTestId('formation-activate').click();
+    // Reativar pela lista das salvas (o editor voltou vazio depois da troca de aba).
+    await page.getByTestId('formation-set-active').first().click();
     await expect(page.getByTestId('formation-active')).toBeVisible();
 
     // A Defesa ativa não se apaga; uma reserva sim.
