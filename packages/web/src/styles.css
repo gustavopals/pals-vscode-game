@@ -1751,7 +1751,9 @@ table.army-units td.num {
 
 .formation-post.empty {
   font-style: italic;
-  opacity: 0.8;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  border: 1px dashed var(--vscode-descriptionForeground);
 }
 
 .formation-commanders {
