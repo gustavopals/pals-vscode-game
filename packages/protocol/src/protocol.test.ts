@@ -2066,6 +2066,7 @@ describe('ViewStateSchema', () => {
       injury: null,
       captive: false,
       nextRescued: false,
+      commanding: null,
       canDismiss: true,
       dismissText: 'Dispensar não devolve nada.',
       equipment: [
@@ -2820,5 +2821,42 @@ describe('a marca que liga a Crônica ao relatório de uma expedição', () => {
     expect(ChronicleMarkdownQuerySchema.safeParse({ links: '1' }).success).toBe(true);
     expect(ChronicleMarkdownQuerySchema.safeParse({ links: 'sim' }).success).toBe(false);
     expect(ChronicleMarkdownQuerySchema.safeParse({ link: '1' }).success).toBe(false);
+  });
+});
+
+describe('as ordens das formações salvas (V4C-T2)', () => {
+  const posts = {
+    left: { front: null, back: null },
+    center: { front: { unit: 'spearman', count: 5 }, back: { unit: 'archer', count: 3 } },
+    right: { front: null, back: null },
+  };
+  const commanders = { left: null, center: 'hero-1', right: null };
+  const save = (payload: unknown) => ({ commandId: uuid, type: 'saveFormation', payload });
+
+  it('aceita salvar uma formação nova, editar uma salva, apagar e marcar a ativa', () => {
+    for (const order of [
+      save({ id: null, name: 'Portão', posts, commanders }),
+      save({ id: 'formation-2', name: 'Portão', posts, commanders }),
+      { commandId: uuid, type: 'deleteFormation', payload: { id: 'formation-2' } },
+      { commandId: uuid, type: 'setActiveFormation', payload: { id: 'formation-2' } },
+      { commandId: uuid, type: 'setActiveFormation', payload: { id: null } },
+    ]) {
+      expect(CommandSchema.safeParse(order).success).toBe(true);
+    }
+  });
+
+  it('recusa a forma errada: ala que falta, chave a mais, unidade fora do Quartel', () => {
+    const twoWings = { left: posts.left, center: posts.center };
+    const base = { id: null, name: 'Portão', posts, commanders };
+    for (const bad of [
+      { ...base, posts: twoWings },
+      { ...base, posts: { ...posts, right: { front: null } } },
+      { ...base, posts: { ...posts, extra: posts.left } },
+      { ...base, posts: { ...posts, left: { front: { unit: 'dragon', count: 2 }, back: null } } },
+      { ...base, commanders: { left: null, center: 'hero-1' } },
+      { name: 'Portão', posts, commanders },
+    ]) {
+      expect(CommandSchema.safeParse(save(bad)).success).toBe(false);
+    }
   });
 });

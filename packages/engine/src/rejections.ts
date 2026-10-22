@@ -134,8 +134,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `Um festival por estação: ${label ?? 'nesta'} o feudo já festejou.`,
   // As expedições (GDD §9.2). `label` é o nome do herói que está fora do feudo.
   // `remedy` é o que espera por ele: a dispensa, por padrão; o arsenal, em uma ordem de equipar.
-  HERO_BUSY: ({ label = 'Esse herói', remedy = 'a dispensa espera a volta' }) =>
-    `${label} está fora do feudo: ${remedy}.`,
+  // `note` é a frase inteira, para o herói que está no feudo mas comanda a Defesa ativa.
+  HERO_BUSY: ({ label = 'Esse herói', remedy = 'a dispensa espera a volta', note }) =>
+    note !== undefined ? note : `${label} está fora do feudo: ${remedy}.`,
   // `label` é o edifício com artigo; `remedy`, o que o abre.
   GUILD_REQUIRED: ({ label = 'a Guilda dos Aventureiros', remedy }) =>
     `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
@@ -149,8 +150,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `Esse destino ainda não está ao alcance do feudo: ${remedy}.`,
   // `label` é o nome do herói; `remedy`, o motivo: "já está em expedição", "já escolta uma
   // caravana". Vale para a expedição e para a escolta de uma caravana.
-  HERO_UNAVAILABLE: ({ label = 'Esse herói', remedy = 'está fora do feudo' }) =>
-    `${label} não pode partir agora: ${remedy}.`,
+  // `note`, quando há, troca "partir" por outro verbo: "comandar", na nomeação para uma formação.
+  HERO_UNAVAILABLE: ({ label = 'Esse herói', remedy = 'está fora do feudo', note }) =>
+    `${label} não pode ${note ?? 'partir'} agora: ${remedy}.`,
   // `label` é o destino; `remedy`, o que falta: "vai 1 herói", "falta um Mago".
   TEAM_INVALID: ({ label, remedy = 'escolha quem vai' }) =>
     `Essa equipe não serve${label === undefined ? '' : ` para ${label}`}: ${remedy}.`,
@@ -237,6 +239,14 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   INVALID_UNIT: () => 'Essa unidade não existe no Quartel.',
   NOT_ENOUGH_SOLDIERS: ({ count = 0 }) =>
     count === 0 ? 'Não há soldados dessa unidade.' : `Só há ${count} soldados dessa unidade.`,
+  // As formações salvas (GDD §10.8; ADR 0019, decisões 8 e 9).
+  FORMATION_NOT_FOUND: () => 'Essa formação não está entre as salvas.',
+  FORMATIONS_CAP: ({ count = 0 }) =>
+    `O feudo já guarda ${count} formações: apague uma antes de salvar outra.`,
+  // `note` é o que está errado, em uma frase.
+  INVALID_FORMATION: ({ note = 'A formação não serve.' }) => note,
+  FORMATION_ACTIVE: () =>
+    'Essa é a Defesa ativa: marque outra formação, ou nenhuma, antes de apagá-la.',
   // O item já está inteiro: não há o que reparar.
   ITEM_INTACT: ({ label = 'Esse item' }) =>
     `${label} está inteiro: o ferreiro não tem o que reparar.`,

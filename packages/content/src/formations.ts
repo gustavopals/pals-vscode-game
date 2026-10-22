@@ -1,0 +1,41 @@
+import type { LineId, WingId } from './ids';
+
+/**
+ * Os nomes e as frases das formações salvas (GDD §10.1 e §10.8; ADR 0019, decisões 8 e 9). Os
+ * números (o teto de formações, os soldados por posto) estão em `balance.army`.
+ */
+
+/** Os nomes das alas. */
+export const wingLabels: Record<WingId, string> = {
+  left: 'Ala esquerda',
+  center: 'Centro',
+  right: 'Ala direita',
+};
+
+/** Os nomes das linhas de cada ala. */
+export const lineLabels: Record<LineId, string> = {
+  front: 'Frente',
+  back: 'Retaguarda',
+};
+
+export const formationTexts = {
+  nameLength: 'O nome da formação tem de ter de {min} a {max} letras.',
+  shape:
+    'A formação tem de trazer os seis postos (três alas, frente e retaguarda) e um comandante por ala.',
+  empty: 'A formação precisa de ao menos um posto com soldados.',
+  count: 'Cada posto leva de 1 a {max} soldados.',
+  unit: 'Esse posto pede uma unidade que o Quartel não treina.',
+  line: '{unidade} só combate na linha {linha}: o posto "{posto}" não a recebe.',
+  commanderTwice: '{heroi} não comanda duas alas da mesma formação.',
+  commanderUnknown: 'Esse comandante não é um herói do feudo.',
+  /** Por que o herói da Defesa ativa não parte. */
+  commanderBusy:
+    '{heroi} comanda a Defesa ativa ({formacao}) e fica no feudo: troque ou desmarque a formação para ele partir.',
+  /** O motivo que o editor mostra de quem não pode ser nomeado. */
+  heroAway: 'está fora do feudo',
+  heroInjured: 'ainda se recupera de um ferimento',
+  heroCaptive: 'está em cativeiro',
+  heroEscort: 'escolta uma caravana',
+  shortfall: 'Faltam {tropa} para preencher todos os postos.',
+  noShortfall: 'O feudo tem soldados para todos os postos.',
+} as const;

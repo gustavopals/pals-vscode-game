@@ -694,6 +694,11 @@ const balanceFields = z.strictObject({
     trainingSpeedPerLevel: ratio,
     batchMax: positiveInt,
     foodPerSoldierPerHour: ratio,
+    formationsCap: positiveInt,
+    postMax: positiveInt,
+    postMaxFromLevel: z.strictObject({ level: positiveInt, max: positiveInt }),
+    formationNameMinLength: positiveInt,
+    formationNameMaxLength: positiveInt,
   }),
 });
 

@@ -1,3 +1,4 @@
+import { dropCommander } from './formations';
 import {
   balance,
   guildTexts,
@@ -371,6 +372,7 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
 function depart(draft: GameState, leaver: Hero, atMs: number, events: GameEvent[]): void {
   const { guild } = draft;
   guild.heroes = guild.heroes.filter((hero) => hero.id !== leaver.id);
+  dropCommander(draft, leaver.id);
   // O que ele levava é do feudo: volta ao arsenal.
   releaseEquipment(draft, leaver, atMs, events);
   emit(
@@ -558,6 +560,7 @@ export function dismissHero(
     return blocked;
   }
   guild.heroes = guild.heroes.filter((entry) => entry.id !== hero.id);
+  dropCommander(draft, hero.id);
   if (isCaptive(hero)) {
     const itemsLost = equippedItems(hero).length;
     draft.stats.heroesAbandoned = (draft.stats.heroesAbandoned ?? 0) + 1;

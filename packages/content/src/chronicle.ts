@@ -78,6 +78,9 @@ export const EVENT_TYPES = [
   'trainingCancelled',
   'soldiersTrained',
   'soldiersDisbanded',
+  'formationSaved',
+  'formationActivated',
+  'formationDeleted',
   'itemWorn',
   'repairStarted',
   'itemRepaired',
@@ -163,6 +166,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'armas',
   // O lote de uma ordem do Quartel, já no plural certo ("3 lanceiros").
   'tropa',
+  // O nome de uma formação salva.
+  'formacao',
   'pontos',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
@@ -344,6 +349,14 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, terminou o treino no Quartel de {feudo}: {tropa} para o exército.',
   soldiersDisbanded:
     'No {dia}º dia {daEstacao}, o capitão de {feudo} dispensou o serviço de {tropa}: a lavoura os recebe de volta como aldeões.',
+  // As formações salvas (GDD §10.8; ADR 0019, decisões 8 e 9). `{formacao}` é o nome que o
+  // jogador deu, já aparado.
+  formationSaved:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} riscou no chão a formação "{formacao}".',
+  formationActivated:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} mandou que a formação "{formacao}" guardasse o feudo.',
+  formationDeleted:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} apagou do chão a formação "{formacao}".',
   // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
   // zero tem linha: cada ponto perdido no caminho não é notícia.
   itemWorn:

@@ -3,7 +3,7 @@ import { balance, buildings, caravanTexts, type MarketResourceId } from '@lotg/c
 import { buildingWithArticle } from './construction';
 import { departBlock } from './expeditions';
 import { plural } from './format';
-import { canDepart } from './heroes';
+import { canDepartNow } from './formations';
 import { isMarketResource, marketLevel, quote } from './market';
 import { reject } from './rejections';
 import { watchtowerLevel } from './threat';
@@ -184,12 +184,12 @@ export function maxSendable(state: GameState, resource: MarketResourceId): numbe
  */
 export function escortBlock(state: GameState, heroId: unknown): Rejection | null {
   const hero = state.guild.heroes.find((entry) => entry.id === heroId);
-  return hero === undefined ? reject('HERO_NOT_FOUND') : departBlock(hero);
+  return hero === undefined ? reject('HERO_NOT_FOUND') : departBlock(state, hero);
 }
 
 /** Quem pode escoltar uma caravana agora, na ordem da lista do feudo. */
 export function eligibleEscorts(state: GameState): Hero[] {
-  return state.guild.heroes.filter(canDepart);
+  return state.guild.heroes.filter((hero) => canDepartNow(state, hero));
 }
 
 /** A caravana que um herói escolta; `null` para quem não está em escolta. */

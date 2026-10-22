@@ -4,6 +4,7 @@ import {
   ENEMY_IDS,
   EVENT_TYPES,
   ITEM_SLOT_IDS,
+  LINE_IDS,
   MARKET_RESOURCE_IDS,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
@@ -11,6 +12,7 @@ import {
   RESOURCE_IDS,
   SEASON_IDS,
   UNIT_IDS,
+  WING_IDS,
 } from '@lotg/content';
 import { z } from 'zod';
 
@@ -73,6 +75,10 @@ export const REJECTION_CODES = [
   'SMITHY_REQUIRED',
   'FORGE_BUSY',
   'NOT_FORGING',
+  'FORMATION_NOT_FOUND',
+  'FORMATIONS_CAP',
+  'INVALID_FORMATION',
+  'FORMATION_ACTIVE',
   'BARRACKS_REQUIRED',
   'TRAINING_BUSY',
   'ARMY_LIMIT',
@@ -447,6 +453,16 @@ const HeroSchema = z.strictObject({
   injury: z.strictObject({ severityLabel: z.string(), recoversInSeconds: z.number() }).nullable(),
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
   captive: z.boolean(),
+  /** A ala que ele comanda em uma formação salva (a Defesa ativa antes das outras); `null` sem comando. */
+  commanding: z
+    .strictObject({
+      formationId: z.string(),
+      formationName: z.string(),
+      wing: z.enum(WING_IDS),
+      wingLabel: z.string(),
+      isActive: z.boolean(),
+    })
+    .nullable(),
   /** É quem o próximo Resgate solta: entre os cativos, o que está lá há mais tempo. */
   nextRescued: z.boolean(),
   /** Os três espaços, com o que ele leva em cada um; `item` é `null` no espaço vazio. */
@@ -823,6 +839,63 @@ const ArmySchema = z.strictObject({
       blockedReason: z.string().nullable(),
     }),
   ),
+  /** As formações salvas, na ordem em que foram criadas. */
+  formations: z.array(
+    z.strictObject({
+      id: z.string(),
+      name: z.string(),
+      isActive: z.boolean(),
+      /** Os seis postos: alas da esquerda para a direita, frente antes da retaguarda. */
+      posts: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          wingLabel: z.string(),
+          line: z.enum(LINE_IDS),
+          lineLabel: z.string(),
+          unit: unitId.nullable(),
+          unitLabel: z.string().nullable(),
+          count: z.number(),
+          text: z.string(),
+        }),
+      ),
+      commanders: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          wingLabel: z.string(),
+          heroId: z.string().nullable(),
+          heroName: z.string().nullable(),
+          classLabel: z.string().nullable(),
+        }),
+      ),
+      total: z.number(),
+      shortfall: z.array(
+        z.strictObject({ unit: unitId, unitLabel: z.string(), missing: z.number() }),
+      ),
+      shortfallText: z.string(),
+      canDelete: z.boolean(),
+    }),
+  ),
+  editor: z.strictObject({
+    postMax: z.number(),
+    formationsCap: z.number(),
+    canSaveNew: z.boolean(),
+    units: z.array(
+      z.strictObject({
+        id: unitId,
+        label: z.string(),
+        line: z.enum(LINE_IDS),
+        available: z.number(),
+      }),
+    ),
+    heroes: z.array(
+      z.strictObject({
+        heroId: z.string(),
+        name: z.string(),
+        classLabel: z.string(),
+        reason: z.string().nullable(),
+      }),
+    ),
+  }),
 });
 
 const MarketSchema = z.strictObject({

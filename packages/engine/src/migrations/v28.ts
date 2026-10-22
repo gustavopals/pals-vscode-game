@@ -10,6 +10,7 @@ import {
   boolean,
   type Shape,
 } from './shape';
+import type { MigrationStep } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -160,3 +161,26 @@ export const stateV28: Shape = (value, path) =>
   marketLimitsWithinState(value, path) ??
   forgeWithinStateV27(value, path) ??
   armyWithinState(value, path);
+
+/**
+ * 28 → 29: as formações salvas e a Defesa ativa (V4C-T2; ADR 0019, decisões 8 e 9).
+ *
+ * - `army.formations` nasce vazia e `army.activeFormationId`, `null`: ninguém muda de estado.
+ * - `ids` não muda: o contador `formation` só nasce na primeira formação salva.
+ *
+ * **O passo não cria prazo**, não emite evento, não dá identificador a ninguém e não toca o
+ * gerador.
+ */
+export const v28ToV29: MigrationStep = {
+  from: 28,
+  summary: 'o exército ganha a lista de formações salvas, vazia, e nenhuma Defesa ativa',
+  shape: stateV28,
+  migrate(state) {
+    const army = state.army as Record<string, unknown>;
+    return {
+      ...state,
+      schemaVersion: 29,
+      army: { ...army, formations: [], activeFormationId: null },
+    };
+  },
+};

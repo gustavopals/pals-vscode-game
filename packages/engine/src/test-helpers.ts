@@ -24,6 +24,7 @@ import {
   DRAW_INTERVAL_MS,
 } from './council';
 import { isPosture, modelOf, nextVariant } from './expeditions';
+import { emptyPosts } from './formations';
 import { deliverMaster } from './masterTurn';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
@@ -42,6 +43,7 @@ import type {
   Command,
   CommandResult,
   Expedition,
+  Formation,
   GameEvent,
   GameSettings,
   GameState,
@@ -389,6 +391,56 @@ export function barracksYard(
     },
     rest,
   );
+}
+
+/**
+ * Os postos de uma formação de teste: cinco lanceiros no centro, na frente, três arqueiros atrás
+ * do centro e quatro espadachins na ala esquerda, na frente. `edit` ajusta o que o teste quer.
+ */
+export function formationPosts(
+  edit: (posts: Formation['posts']) => void = () => {},
+): Formation['posts'] {
+  const posts = emptyPosts();
+  posts.center.front = { unit: 'spearman', count: 5 };
+  posts.center.back = { unit: 'archer', count: 3 };
+  posts.left.front = { unit: 'swordsman', count: 4 };
+  edit(posts);
+  return posts;
+}
+
+/** O que `saveFormation` recebe: uma formação nova (`id: null`) com os postos de `formationPosts`. */
+export function saveFormationOrder(
+  name = 'Defesa do portão',
+  over: Partial<Extract<Command, { type: 'saveFormation' }>['payload']> = {},
+): Command {
+  return command('saveFormation', {
+    id: null,
+    name,
+    posts: formationPosts(),
+    commanders: { left: null, center: null, right: null },
+    ...over,
+  });
+}
+
+/**
+ * O Quartel com `count` formações salvas pelo caminho do jogo ("Formação 1", "Formação 2" …),
+ * cada uma com os postos de `formationPosts`, e, se `active` for dado, a de posição `active`
+ * (de 0) marcada como Defesa ativa. `edit` ajusta o rascunho antes (heróis, soldados).
+ */
+export function formationYard(
+  count = 1,
+  active: number | null = null,
+  edit: (draft: GameState) => void = () => {},
+): GameState {
+  let state = barracksYard(0, edit);
+  for (let index = 0; index < count; index += 1) {
+    state = accept(state, saveFormationOrder(`Formação ${index + 1}`)).state;
+  }
+  if (active !== null) {
+    const id = state.army.formations[active]?.id ?? null;
+    state = accept(state, command('setActiveFormation', { id })).state;
+  }
+  return state;
 }
 
 /**

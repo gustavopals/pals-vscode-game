@@ -13,6 +13,7 @@ import {
 
 import { emit } from './chronicle';
 import { releaseEquipment } from './equipment';
+import { dropCommander } from './formations';
 import { captives } from './heroes';
 import type { Expedition, GameEvent, GameState, Hero } from './types';
 
@@ -131,11 +132,13 @@ export function applyHarm(
     hero.captivity = { sinceMs: atMs, modelId: expedition.modelId };
     hero.injury = null;
     hero.discontent = false;
+    dropCommander(draft, hero.id);
     draft.stats.heroesCaptured = (draft.stats.heroesCaptured ?? 0) + 1;
     emit(events, draft, atMs, 'heroCaptured', data, words);
     return;
   }
   draft.guild.heroes = draft.guild.heroes.filter((entry) => entry.id !== hero.id);
+  dropCommander(draft, hero.id);
   draft.stats.heroesDied = (draft.stats.heroesDied ?? 0) + 1;
   emit(events, draft, atMs, 'heroDied', data, words);
   releaseEquipment(draft, hero, atMs, events);
