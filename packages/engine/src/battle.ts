@@ -525,7 +525,10 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     const back = at(foe, aim.wing, 'back');
     // O arqueiro da Horda mira a Retaguarda por cima da Frente (D-3); os outros, a Frente.
     const overFront =
-      squad.owner === 'horde' && squad.stats.archetype === 'archer' && back !== null;
+      squad.owner === 'horde' &&
+      squad.stats.archetype === 'archer' &&
+      back !== null &&
+      front !== null;
     const target = overFront ? back : (front ?? back);
     if (target === null) {
       return null;

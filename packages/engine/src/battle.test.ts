@@ -236,6 +236,16 @@ describe('as regras fora dos sete cenários', () => {
     expect(shot.hits[1]?.overFront).toBe(true);
   });
 
+  it('o arqueiro da Horda sem Frente a vencer fere a Retaguarda exposta, e não "por cima" (V4D-T5)', () => {
+    const resolution = resolveBattle(
+      battle({ center: { back: ['archer', 2] } }, { center: { back: ['banditArcher', 4] } }),
+      EVEN_LUCK,
+    );
+    const shot = attacks(resolution, 1).find((action) => action.actor.side === 'A') as Attack;
+    expect(shot.hits.length).toBeGreaterThan(0);
+    expect(shot.hits.every((hit) => !hit.overFront && hit.exposedRear)).toBe(true);
+  });
+
   it('os arqueiros da Horda passam por cima da muralha a ×7/10; os do jogador, atrás dela, ×6/5', () => {
     const resolution = resolveBattle(
       battle(
