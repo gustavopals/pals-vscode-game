@@ -160,6 +160,10 @@ test.describe('o editor de formação (V4C-T3.3)', () => {
     );
     await page.getByRole('tab', { name: 'Guilda' }).click();
     await expect(page.getByTestId('hero-commanding')).toContainText('Não parte em expedição');
+    // A ficha também diz o que o herói faz como comandante, na frase da visão (V4D-T4.3).
+    await expect(page.getByTestId('hero-commander-text')).toHaveText(
+      new RegExp(aldo?.commanderText.replace(/[+%]/g, '\\$&') ?? ''),
+    );
     await armyTab(page).click();
 
     // Tirar a Defesa ativa manda `setActiveFormation` com `id: null`; depois, o aviso na barra.

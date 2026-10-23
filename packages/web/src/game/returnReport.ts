@@ -9,6 +9,7 @@ import {
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
+import { ARMY_SECTION } from '../ui/army';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
@@ -139,6 +140,10 @@ export function costAction(
   if (topic === 'hero:injured' || topic === 'expedition:lost') {
     // O ferido se recupera sozinho, e a equipe perdida não volta: a Guilda diz quem pode partir.
     return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
+  }
+  if (topic === 'battle') {
+    // A batalha já foi travada: o que se faz é ajustar a formação para a próxima.
+    return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ajustar formação' };
   }
   if (topic === 'worn') {
     return { command: 'lords.repairItem', label: 'Reparar…' };
@@ -366,6 +371,10 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'cost', topic: 'hero:died' };
     case 'expeditionLost':
       return { block: 'cost', topic: 'expedition:lost' };
+    // A batalha travada na ausência (V4D-T3.3): a frase diz o desfecho e o que pesou. Toda
+    // batalha é preço, mesmo a vencida: o exército pagou com baixas, e a próxima ação é a formação.
+    case 'battleFought':
+      return { block: 'cost', topic: 'battle' };
     default:
       // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.
