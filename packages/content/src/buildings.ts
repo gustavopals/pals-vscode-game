@@ -24,6 +24,20 @@ export type BuildingDef = {
    * versão do jogo e não o do GDD: uma frase inteira, sem prometer data.
    */
   readonly maxLevelNote?: string;
+  /**
+   * Os níveis **depois** de `maxLevel` que a v0.4 vai ligar (Fase E, V4E-T1), com o rótulo, o
+   * custo e a duração de cada obra, na ordem (o primeiro é o nível `maxLevel + 1`). O motor
+   * ainda não lê este campo: o jogador não vê esses níveis, e `maxLevel` continua o teto. A
+   * tarefa que ligar a Muralha ao estado passa `maxLevel` ao último e apaga o campo.
+   */
+  readonly futureLevels?: readonly FutureBuildingLevel[];
+};
+
+/** Um nível ainda não ligado ao jogo (ver `BuildingDef.futureLevels`). */
+export type FutureBuildingLevel = {
+  readonly label: string;
+  readonly cost: ResourceAmounts;
+  readonly durationMs: number;
 };
 
 const MINUTE_MS = 60_000;
@@ -125,6 +139,25 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 2 },
     maxLevelNote: 'Os níveis seguintes chegam em versões futuras do jogo.',
+    // Nv3 a Nv5 (GDD §6.1; ADR 0020, decisão 16): a regra geral (custo × 1,6 e tempo × 1,5 por
+    // nível) a partir do Nv2 (192, 192 e 80 em 18 min). Dispara a partir do Nv3.
+    futureLevels: [
+      {
+        label: 'Torre de Vigia',
+        cost: { wood: 307, stone: 307, gold: 128 },
+        durationMs: 27 * MINUTE_MS,
+      },
+      {
+        label: 'Torre de Vigia',
+        cost: { wood: 492, stone: 492, gold: 205 },
+        durationMs: 40.5 * MINUTE_MS,
+      },
+      {
+        label: 'Torre de Vigia',
+        cost: { wood: 786, stone: 786, gold: 328 },
+        durationMs: 60.75 * MINUTE_MS,
+      },
+    ],
   },
   // Também até o nível 2 nesta versão (ADR 0014, decisão 11). Do nível 3 em diante o GDD a
   // chama de Muralha de Pedra, com alas, dano e reparo: entra com a versão que traz os cercos.
@@ -138,6 +171,31 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 3 },
     maxLevelNote: 'A Muralha de Pedra chega em uma versão futura.',
+    // Nv3 a Nv6 (GDD §6.1 e §6.2; ADR 0020, "Números da Fase E"): madeira e pedra pela regra do
+    // GDD (Nv3 com 300 e 450, × 1,6 por nível), ouro × 3 por nível (2.000, 6.000, 18.000 e
+    // 54.000), tempo de 1 h no Nv3 e × 1,5 por nível. Nv3-4 Muralha de Pedra, Nv5-6 Baluarte.
+    futureLevels: [
+      {
+        label: 'Muralha de Pedra',
+        cost: { wood: 300, stone: 450, gold: 2_000 },
+        durationMs: 60 * MINUTE_MS,
+      },
+      {
+        label: 'Muralha de Pedra',
+        cost: { wood: 480, stone: 720, gold: 6_000 },
+        durationMs: 90 * MINUTE_MS,
+      },
+      {
+        label: 'Baluarte',
+        cost: { wood: 768, stone: 1_152, gold: 18_000 },
+        durationMs: 135 * MINUTE_MS,
+      },
+      {
+        label: 'Baluarte',
+        cost: { wood: 1_229, stone: 1_843, gold: 54_000 },
+        durationMs: 202.5 * MINUTE_MS,
+      },
+    ],
   },
   // A Taverna (GDD §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10): candidatos a herói, um lugar a
   // mais na equipe por nível, moral e o festival. Os números estão em `balance.tavern`.

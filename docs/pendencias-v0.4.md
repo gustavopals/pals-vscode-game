@@ -263,6 +263,16 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **O risco principal** soma os fatores do relatório que favorecem a Horda, por fator e ala, nas derrotas se houve alguma; é aproximado, porque o relatório só guarda os três fatores decisivos.
 - **As perdas esperadas** são a média por posto, arredondada ao inteiro mais próximo.
 
+### Fase E: a Muralha de Pedra, o Baluarte e a Torre Nv3+ (V4E-T1)
+
+**D-7. Os números da muralha e da Torre dos níveis novos (V4E-T1.1 e T1.3).** _(Propostas do agente, por aprovar; o GDD §6.1 e o ADR 0020 não fecham a vida da muralha nem a composição que a Torre revela.)_
+
+- **A vida por ala** (`balance.wall.hpByLevel`), do Nv1 ao Nv6: **60, 100, 200, 320, 500 e 800**. Os dois primeiros são as premissas dos cenários de `docs/content-v0.4.md`, seção 2 (60 e 100); dali em diante, cerca de × 1,6 por nível. O GDD §13.4 mostra "600 HP por ala" no Nv2 só como desenho de tela; o agente não o seguiu.
+- **O reparo** (`balance.wall.repair`): reparar toda a muralha (as três alas a zero) custa metade da pedra da obra do nível e **ouro igual à pedra**; o custo é proporcional ao que falta, arredondado para cima. O prazo é de 15 min de jogo por 25% da vida de **uma ala**, também proporcional, com as alas em sequência (o texto "15 min por 25%" não diz se é por ala ou no total).
+- **A Torre Nv3 a Nv5:** aviso com 3, 4 e 5 h reais (decisão 16), dano de 12, 24 e 36 por ala, e a composição revelada em três graus: Nv3 só os arquétipos ("muitas feras"), Nv4 a ordem de grandeza por ala, Nv5 a composição exata. Custo e tempo pela regra geral (× 1,6 e × 1,5) a partir do Nv2.
+- **A Paliçada Nv3 a Nv6:** madeira e pedra × 1,6 a partir de 300 e 450 (Nv6: 1.229 e 1.843, arredondado), ouro de 2.000, 6.000, 18.000 e 54.000 (ADR 0020), tempo de 1 h no Nv3 e × 1,5 por nível (202,5 min no Nv6, abaixo do teto de 8 h).
+- **Como ficou fora do jogo (regra 6):** os níveis novos estão em `buildings[...].futureLevels` e `balance.threat.futureWatchtowerLevels`, campos que o motor não lê; `maxLevel` continua 2 nos dois edifícios. A tarefa que ligar a muralha ao estado (V4E-T1.2 a T1.4) passa `maxLevel` ao último nível e apaga esses campos.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

@@ -194,6 +194,19 @@ const threat = z
           }),
         'nível da Paliçada que não segura mais que o anterior',
       ),
+    // Os níveis 3 a 5 da Torre, ainda não ligados ao jogo (V4E-T1): cada um avisa mais cedo e
+    // revela mais da composição que o anterior; o dano por ala é o de `battle.towers`.
+    futureWatchtowerLevels: z
+      .array(
+        z.strictObject({
+          warningRealMs: positiveInt,
+          revealsRaidSize: z.literal(true),
+          composition: z.enum(['archetypes', 'approximate', 'exact']),
+          towerDamage: positiveInt,
+        }),
+      )
+      .min(1)
+      .optional(),
     // O que passa por uma Paliçada pequena demais é uma parte do estrago, nunca ele inteiro.
     palisadeBreach: ratio.refine(({ num, den }) => num < den, 'a Paliçada não segura nada'),
   })
@@ -703,6 +716,21 @@ const balanceFields = z.strictObject({
     formationNameMaxLength: positiveInt,
     reportsKept: positiveInt,
   }),
+  // A muralha (GDD §6.1 a §6.3; ADR 0020): a vida por ala em cada nível da Paliçada e o reparo.
+  wall: z
+    .strictObject({
+      hpByLevel: z.array(positiveInt).min(1),
+      repair: z.strictObject({
+        stoneRatio: ratio,
+        goldRatio: ratio,
+        quarterMs: positiveInt,
+      }),
+    })
+    .refine(
+      ({ hpByLevel }) =>
+        hpByLevel.every((hp, index) => index === 0 || hp > (hpByLevel[index - 1] ?? 0)),
+      'a vida da muralha tem de crescer a cada nível',
+    ),
   // A batalha (ADR 0019, decisão 11): a sorte é um intervalo de inteiros em torno de 100.
   battle: z
     .strictObject({
@@ -781,6 +809,10 @@ export const BuildingSchema = z
     requires: z.partialRecord(buildingId, positiveInt),
     // Entra depois de "já está no nível máximo.": uma frase inteira.
     maxLevelNote: label.regex(/^\p{Lu}.*\.$/u).optional(),
+    futureLevels: z
+      .array(z.strictObject({ label, cost: resourceAmounts, durationMs: positiveInt }))
+      .min(1)
+      .optional(),
   })
   .refine((def) => def.maxLevel > def.initialLevel, 'nível máximo abaixo do inicial');
 
