@@ -231,3 +231,71 @@ pnpm -s sim -- --matrix --profile especulador
 - **O ferro também não mudou o quadro:** nenhum bot da rodada padrão compra ferro (balcão de 0 a 2.737 de ouro por partida, quase tudo comida e lenha).
 
 **Resposta do autor (2026-10-23, pendência C-9):** nenhuma regra nova antes da Fase D; o ouro parado do Rápido vai para custos de ouro de fim de jogo na Muralha e na Fortaleza (Fase E), dimensionados por esta medida e medidos de novo. Nenhum número foi mudado.
+
+## 7. Tamanho e custo (V4A-T1.8, 2026-10-23)
+
+**Pergunta:** com o estado na versão 29 (Quartel, soldados, formações), quanto pesam o estado e a visão no pior caso de hoje, e o que mudou no custo do motor e da API contra a v0.3 (balance-v0.3.md, seção 10.6)? Medido em Node v22.22.3, linux x64, no branch `v4a-t1-8-custo` (a partir do `fe50f71`).
+
+### 7.1 Estado e visão no pior caso
+
+Roteiro descartável fora do repositório (helpers de `packages/engine/src/test-helpers.ts`; `guildHall` na Guilda Nv4, Mercado Nv4, Quartel Nv8, Ferreiro Nv3, Salão Nv6; 60 aldeões; ritmo 3; JSON em bytes UTF-8). Acrescentado um item por linha, na ordem:
+
+| Situação | Estado | Visão | `state.army` | `view.army` | `state.guild` | `view.guild` |
+|---|---:|---:|---:|---:|---:|---:|
+| 6 heróis, 4 Mestres, Quartel Nv8, sem soldados | 4.385 | 42.421 | 134 | 6.150 | 1.742 | 8.991 |
+| + 3 relatórios guardados | 6.466 | 46.447 | 134 | 6.150 | 3.590 | 12.279 |
+| + exército cheio (80 soldados) | 6.471 | 43.687 | 139 | 3.177 | 3.590 | 12.281 |
+| + 5 formações salvas | 7.904 | 50.247 | 1.558 | 9.737 | 3.590 | 12.281 |
+| + Defesa ativa | 7.937 | 50.248 | 1.567 | 9.737 | 3.590 | 12.281 |
+| + 3 expedições viajando | 8.952 | 50.760 | 1.567 | 9.788 | 4.579 | 12.835 |
+| **+ 2 caravanas na estrada** | **9.201** | **51.341** | 1.567 | 9.788 | 4.579 | 12.835 |
+| + 1 equipe parada na encruzilhada (as caravanas já tinham chegado) | 8.931 | 51.975 | 1.567 | 9.754 | 4.246 | 13.374 |
+
+- **O pior caso de hoje é de 9,2 kB de estado e 52,0 kB de visão**, contra 6,1 a 6,7 kB e 26,6 a 28,8 kB da referência da v0.3: **+2,5 kB de estado (+37%) e +23 kB de visão (+80%)**. Longe do dimensionamento do GDD §14 (visão de 100 kB), mas já metade dele.
+- **Nem todo o salto é da v0.4.** O roteiro de hoje também tem Mestres (4), Mercado Nv4 com caravanas, Quartel Nv8 e Ferreiro, que o da v0.3 não tinha: sem nenhum soldado nem formação, o feudo de seis heróis já pesa 42,4 kB de visão (a referência da v0.3 era 22,8 kB só com seis heróis; o Mercado, `view.market`, soma 3,5 kB, e os Mestres, 4,1 kB). **Não separei a parte da v0.3 que o roteiro antigo não tinha da parte da v0.4**; a parte da v0.4 que se mede é a do Exército.
+- **O Exército custa até 9,8 kB de visão e 1,6 kB de estado** (cinco formações salvas): 134 bytes de estado e 6,2 kB de visão com o Quartel erguido e vazio (`army.offer`, com as opções de treino de cada unidade), 3,2 kB com 80 soldados e nenhum lote e 9,7 kB com as cinco formações (1,4 kB de estado e 6,6 kB de visão pelas cinco, isto é, cerca de 285 bytes de estado e 1,3 kB de visão por formação).
+- **O soldado não pesa:** 80 soldados = 5 bytes de estado (contadores por unidade).
+- **O teto de `perf.test.ts` (estado abaixo de 5.500 bytes) não cobre este caso** (o bot não monta formações): 9,2 kB passa dele. Como na v0.3, o teto vale para o que o simulador mede.
+- **Cada recibo de comando guarda uma visão inteira:** a tabela `commands` cresce na mesma proporção (52 kB por ordem no pior caso, contra 28,8 kB na v0.3). **O volume real em produção continua sem medida**; é o ponto a vigiar se a visão crescer mais nas Fases D e E.
+
+### 7.2 `pnpm -s sim -- --perf` (1, 7 e 30 dias reais fora, ritmo 3, 9 repetições)
+
+Motor 0.3.0 · estado v29 · conteúdo `df9daeb3a6f6b0f0`:
+
+| Feudo | Ausência (dias reais) | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Estado (bytes) | Visão (bytes) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Feudo novo, sem nenhuma ordem | 1 | 2,4 | 6,1 | 0,9 | 2.697 | 26.050 |
+| Feudo novo, sem nenhuma ordem | 7 | 9,2 | 12,5 | 1,0 | 3.494 | 27.630 |
+| Feudo novo, sem nenhuma ordem | 30 | 20,1 | 22,5 | 0,8 | 3.554 | 27.671 |
+| Feudo de 2 dias reais (bot econômico) | 1 | 2,5 | 3,4 | 1,7 | 4.623 | 33.028 |
+| Feudo de 2 dias reais (bot econômico) | 7 | 8,9 | 12,2 | 1,1 | 4.690 | 33.821 |
+| Feudo de 2 dias reais (bot econômico) | 30 | 33,4 | 38,4 | 1,0 | 4.935 | 33.537 |
+| Feudo de 7 dias reais (bot econômico) | 1 | 1,8 | 2,2 | 1,1 | 5.517 | 37.721 |
+| Feudo de 7 dias reais (bot econômico) | 7 | 8,6 | 10,8 | 1,3 | 5.397 | 37.027 |
+| Feudo de 7 dias reais (bot econômico) | 30 | 54,6 | 78,4 | 2,1 | 5.627 | 39.041 |
+
+- **Contra a v0.3 (seção 10.6, 30 dias fora):** `advanceTo` de 13,6 a 19,4 ms passou para **20,1 a 54,6 ms** (o feudo de 7 dias foi de 19,4 para 54,6, 2,8 vezes); `deriveViewState` ficou em 0,8 a 2,1 ms (era 0,4 a 0,7). O estado do bot econômico foi de 4.515 para **5.627 bytes** e a visão, de 21.214 para **39.041** (+84%). Uma volta de 30 dias reais continua abaixo de 80 ms no pior caso, mas **o custo cresceu**; a rodada da v0.3 foi na máquina quieta e em Node v24.15.0, esta em Node v22.22.3 (não é a mesma máquina nem o mesmo Node: a comparação do tempo é indicativa).
+- **O teto de `perf.test.ts` passou** (5 testes). O bot econômico agora treina soldados (política mínima de guerra, V4C-T1.8), o que explica parte do estado maior; **a causa da alta do `advanceTo` do feudo de 7 dias não foi isolada** (o soldado come por hora e o treino entra na linha do tempo; não medi o motor sem o Quartel).
+
+### 7.3 Carga com 50 bots (`--remote`, API de desenvolvimento, banco de dev)
+
+`pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` (API de `pnpm dev:api`, banco de dev na 5432, estratégia `economico`, ciclo de 2 s; 44,4 s de duração, 220 ciclos, 150 comandos aceitos, 0 recusados):
+
+| Endpoint | Chamadas | p50 (ms) | p95 (ms) | máx (ms) |
+|---|---:|---:|---:|---:|
+| GET /events | 220 | 12,2 | 27,9 | 85,6 |
+| GET /view | 230 | 17,7 | 286,4 | 503,3 |
+| POST /auth/anonymous | 50 | 5,9 | 50,5 | 204,9 |
+| POST /commands | 150 | 58,2 | 84,8 | 99,4 |
+| POST /games | 10 | 47,4 | 116,6 | 116,6 |
+
+- **A carga não valeu para 50 bots: só 10 conseguiram conta.** O limite de contas anônimas devolveu `429` a 40 dos 50 (e `429` a 10 leituras de `GET /view`, "tente de novo em 1 hora"). Os números acima são de **10 jogadores efetivos**, 150 comandos, e não de 50. A regra do limite é de produção e não foi mudada; uma carga de 50 contas pede outra forma (outro IP por bot ou o limite relaxado no ambiente de teste), que **não** foi feita nesta tarefa.
+- O p95 de `GET /view` (286 ms) é de poucas leituras com a API recém-subida e as conexões sendo abertas; o p50 de 17,7 ms é o que se pode ler. Os feudos dos bots são novos (poucos kB), por isso **a carga não exercita o pior caso de 52 kB** de 7.1.
+- A rodada deixou 10 contas "Bot N" no banco de dev.
+
+### 7.4 O que não foi medido
+
+- A carga real de 50 contas (7.3).
+- O `advanceTo` e o `deriveViewState` **no pior caso de 7.1**: o roteiro mediu só tamanhos.
+- O motor sem o Quartel, para isolar o custo da v0.4 no `advanceTo` (7.2).
+- O volume da tabela `commands` em produção.
