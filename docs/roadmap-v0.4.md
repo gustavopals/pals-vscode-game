@@ -667,7 +667,7 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 
 - [x] V4D-T3.1 As auras como fatores de fração aplicados à ala; o Mago em área; a Clériga curando; a frase da ficha do herói diz o que ele dá como comandante.
 - [x] V4D-T3.2 O comandante sofre dano quando a Frente cai: ferimento leve ou grave pela parte do dano (`heroCapture` em Rei de Ferro: morte); XP por batalha a quem comandou; o desgaste do equipamento por batalha.
-- [ ] V4D-T3.3 O evento `battleFought` com os três fatores como dados e a frase; `CHRONICLE_HIDDEN_EVENT_TYPES` ganha `battleSimulated`.
+- [x] V4D-T3.3 O evento `battleFought` com os três fatores como dados e a frase; `CHRONICLE_HIDDEN_EVENT_TYPES` ganha `battleSimulated`.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- battle heroes chronicle`.
 
@@ -682,8 +682,8 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 **Trilha:** app.
 **Entregáveis:** `packages/web/src/tabs/Army.tsx`, `components/FormationEditor.tsx` (a linha "Inimigo (prev.)"), **novos** `components/WarCouncilPanel.tsx`, `components/BattleReport.tsx` (por rodada colapsável, os três fatores no topo), `ui/army.ts`, `palette/commands.ts` (`lords.simulateBattle`), `app/controller.ts`, `game/returnReport.ts` (`battleFought` em "O que exigiu um preço"), `tests/e2e/12-exercito.spec.ts`; README do app.
 
-- [ ] V4D-T4.1 **Mostrar ao autor** a prévia de uma formação antes do resto.
-- [ ] V4D-T4.2 "Simular" como ordem com trava `preview:<formação>`; o bloco com Vitória, Gloriosa, Derrota e o risco em uma frase; "prévia desatualizada" quando a formação mudou.
+- [x] V4D-T4.1 **Mostrar ao autor** a prévia de uma formação antes do resto.
+- [x] V4D-T4.2 "Simular" como ordem com trava `preview:<formação>`; o bloco com Vitória, Gloriosa, Derrota e o risco em uma frase; "prévia desatualizada" quando a formação mudou.
 - [ ] V4D-T4.3 O relatório: rodadas colapsáveis, fatores, baixas, muralha, XP; "Ajustar formação" leva ao editor com a formação usada.
 - [ ] V4D-T4.4 Navegador: simular, ler o relatório (posto por `/__test/battle`, rota de teste nova em `tests/e2e/server.ts`), teclado, temas.
 
@@ -695,7 +695,7 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 
 Como V4B-T5, sobre a Fase D, **antes de qualquer incursão usar a batalha**. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-d.md`; correções `V4D: corrige …`; `docs/balance-v0.4.md`, seção 4 (a prévia por formação de referência: o que vence o quê); integração.
 
-- [ ] V4D-T5.1 O revisor tenta: ponto flutuante em qualquer conta; sorte fora da ordem; `state.rng` tocado pela prévia; relatório que depende da ordem de inserção dos esquadrões; dois esquadrões com a mesma iniciativa dos dois lados; muralha em 0 e Ogro; moral de mortos-vivos; o comandante morto fora de Rei de Ferro; a prévia com formação de outro feudo; o pacote do app com um atributo de unidade.
+- [x] V4D-T5.1 O revisor tenta: ponto flutuante em qualquer conta; sorte fora da ordem; `state.rng` tocado pela prévia; relatório que depende da ordem de inserção dos esquadrões; dois esquadrões com a mesma iniciativa dos dois lados; muralha em 0 e Ogro; moral de mortos-vivos; o comandante morto fora de Rei de Ferro; a prévia com formação de outro feudo; o pacote do app com um atributo de unidade.
 - [ ] V4D-T5.2 Correções com teste; relatório; Registro; integração sem `push`.
 - [ ] V4D-T5.3 **Calibragem de referência** (`docs/content-v0.4.md`, seção 2): dez formações contra as composições-base de cada estação, com a prévia; o que nunca vence ou nunca perde volta ao autor.
 
