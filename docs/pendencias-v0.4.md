@@ -241,6 +241,14 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 **D-4. Auras e o Lobo (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: a aura do Senhor da Guerra vale para ele**, e o Lobo como o agente leu.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
 
 
+**D-5. A prévia do Conselho de Guerra (V4D-T2.1 e T2.3).** _(Decisões do agente; o GDD §10.5 e a decisão 10 não fecham estes pontos.)_
+
+- **O inverno usa a composição-base do outono** na prévia; o cerco por onda é do §11.2.
+- **O posto desconhecido sorteia só entre as unidades da linha dele**; sem unidade da estação naquela linha (a Retaguarda da primavera), pesos iguais entre as unidades comuns da linha, sem o Senhor da Guerra nem o Esqueleto.
+- **Vitória** é vencer ou resistir; **Gloriosa** é vitória sem nenhuma muralha em zero no fim (sem muralha, conta como sem brecha); **Derrota**, o resto.
+- **O risco principal** soma os fatores do relatório que favorecem a Horda, por fator e ala, nas derrotas se houve alguma; é aproximado, porque o relatório só guarda os três fatores decisivos.
+- **As perdas esperadas** são a média por posto, arredondada ao inteiro mais próximo.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*
