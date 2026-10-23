@@ -1,4 +1,4 @@
-import { balance } from '@lotg/content';
+import { balance, type UnitId } from '@lotg/content';
 
 import { troopText } from './army';
 import { emit } from './chronicle';
@@ -56,4 +56,22 @@ export function finishTraining(draft: GameState, atMs: number, events: GameEvent
       { tropa: troopText(batch.unit, lost) },
     );
   }
+}
+
+/**
+ * Soldados que uma carta do Conselho entrega já treinados (V4H-T1): saem dos aldeões acima do
+ * piso, como no fim do treino, e entram no Exército sem fila. Devolve quantos entraram; a opção
+ * que os dá é trancada sem vaga (`requires.soldierRoom`), então aqui só se protege o piso.
+ * Nada aqui sorteia, e a Crônica da carta é quem conta o que aconteceu.
+ */
+export function grantSoldiers(draft: GameState, unit: UnitId, amount: number): number {
+  const { settlement } = draft;
+  const spare = Math.max(0, settlement.population.villagers - balance.morale.populationFloor);
+  const trained = Math.min(amount, spare);
+  if (trained > 0) {
+    settlement.population.villagers -= trained;
+    draft.army.units[unit] += trained;
+    releaseExcessWorkers(draft);
+  }
+  return trained;
 }

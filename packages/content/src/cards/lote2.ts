@@ -1,0 +1,221 @@
+import type { CouncilCard } from '../council';
+
+/**
+ * Cartas avulsas e roteirizadas do lote 2 e do lote 3 do Conselho (docs/content-v0.4.md, seções
+ * 7, 8 e 10; roadmap da v0.4, V4H-T1), lidas e aprovadas pelo autor em 2026-10-23. Entram aqui
+ * só as que não pedem estado novo: as que dependem do preço do Mercado, de um risco sorteado
+ * depois, de bônus por prazo, de uma expedição especial ou de uma mecânica de fase futura
+ * esperam as tarefas delas.
+ *
+ * Cada carta é uma constante exportada, escrita por extenso (sem espalhamento), como as demais.
+ */
+
+/** "Um bardo na Taverna" (7.2). */
+export const tavernBard: CouncilCard = {
+  id: 'tavernBard',
+  title: 'Um bardo na Taverna',
+  text: 'Um bardo de passagem pediu o canto da mesa grande da Taverna e começou a afinar o alaúde antes de ser convidado. Conhece as histórias de três reinos e promete incluir o feudo na quarta. Cobra pela canção, pela cama e pela fama. O taverneiro olha o chão e espera.',
+  weight: 2,
+  requires: { buildings: { tavern: 1 } },
+  autoResolve: { peasant: 'dismiss', lord: 'dismiss', ironKing: 'dismiss' },
+  options: [
+    {
+      id: 'pay',
+      label: 'Pagar pela canção',
+      cost: { gold: 40 },
+      effects: [{ type: 'morale', amount: 10, durationDays: 3 }],
+      hint: 'Uma noite de canto vale mais que a bolsa.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou pela canção do bardo. A Taverna cantou o refrão até de madrugada.',
+    },
+    {
+      id: 'meal',
+      label: 'Dar mesa e cama',
+      cost: { food: 30 },
+      effects: [{ type: 'morale', amount: 5, durationDays: 2 }],
+      hint: 'Barriga cheia canta melhor, e paga com a voz.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} deu mesa e cama ao bardo de passagem. Ele agradeceu com duas estrofes e meia.',
+    },
+    {
+      id: 'dismiss',
+      label: 'Mandá-lo embora',
+      effects: [],
+      hint: 'A Taverna fica quieta, e o bardo canta noutra praça.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o bardo seguir caminho. A Taverna ficou quieta, e o alaúde partiu nas costas dele.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o bardo seguir caminho. A Taverna ficou quieta, e o alaúde partiu nas costas dele.',
+    },
+  ],
+};
+
+/** "O mapa rasgado" (8.2). */
+export const tornMap: CouncilCard = {
+  id: 'tornMap',
+  title: 'O mapa rasgado',
+  text: 'Um caçador de barba curta jogou sobre a mesa da Taverna a metade de um mapa, rasgado com cuidado, e disse que a outra metade ficou com um irmão de quem não gosta. O que há é uma trilha, três marcos e um X de tinta velha. Diz que quem tem coragem de seguir a trilha encontra o que o X promete.',
+  weight: 1,
+  requires: {
+    seasons: ['spring', 'summer', 'autumn'],
+    buildings: { guild: 1 },
+    undiscovered: true,
+  },
+  autoResolve: { peasant: 'refuse', lord: 'refuse', ironKing: 'refuse' },
+  options: [
+    {
+      id: 'buy',
+      label: 'Comprar o meio mapa',
+      cost: { gold: 70 },
+      effects: [{ type: 'revealDestination' }],
+      hint: 'Setenta de ouro a menos, e a Guilda tem um destino a mais.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} comprou o meio mapa do caçador. A Guilda passou a noite em volta dele, traçando a trilha com o dedo.',
+    },
+    {
+      id: 'barter',
+      label: 'Pagar em provisões',
+      cost: { food: 40, wood: 20 },
+      effects: [{ type: 'revealDestination' }],
+      hint: 'O caçador aceita o que tem na despensa, e a conversa é a mesma.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o meio mapa em pão e tochas. O caçador saiu mastigando e sem olhar para trás.',
+    },
+    {
+      id: 'refuse',
+      label: 'Recusar o negócio',
+      effects: [],
+      hint: 'Meio mapa é meia mentira.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} recusou o meio mapa. O caçador dobrou o papel e o levou a outra mesa.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou o meio mapa. O caçador dobrou o papel e o levou a outra mesa.',
+    },
+  ],
+};
+
+/** "O mercador itinerante" (8.3), roteirizada no 20º dia de jogo. */
+export const itinerantMerchant: CouncilCard = {
+  id: 'itinerantMerchant',
+  title: 'O mercador itinerante',
+  text: 'Uma carroça coberta de lona remendada parou diante da praça, e o homem que desceu dela abriu as mãos sem pedir licença: tem boa conversa, lugar na estrada e bolsa para quem quiser vender hoje. Não é o Mercado, que o feudo ainda não tem, e ele sabe disso. Faz o preço de quem não volta.',
+  weight: 0,
+  scripted: { atGameDay: 20 },
+  autoResolve: { peasant: 'wait', lord: 'wait', ironKing: 'wait' },
+  options: [
+    {
+      id: 'sellWood',
+      label: 'Vender madeira',
+      cost: { wood: 100 },
+      effects: [{ type: 'resources', amounts: { gold: 50 } }],
+      hint: 'Um preço ruim hoje, para quem precisa de ouro hoje.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu madeira ao mercador itinerante. O preço foi ruim, e a carroça saiu mais pesada do que chegou.',
+    },
+    {
+      id: 'sellStone',
+      label: 'Vender pedra',
+      cost: { stone: 80 },
+      effects: [{ type: 'resources', amounts: { gold: 60 } }],
+      hint: 'A pedra não anda sozinha, e a carroça sim.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu pedra ao mercador itinerante. A carroça rangeu sob o peso até a curva da estrada.',
+    },
+    {
+      id: 'wait',
+      label: 'Esperar ter o Mercado',
+      effects: [{ type: 'setFlag', flag: 'itinerant.heardOfMarket' }],
+      hint: 'Quem espera pelo balcão certo vende melhor, e leva mais tempo.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o mercador itinerante seguir viagem. Ele disse que o feudo ia precisar de um balcão, e foi embora sem insistir.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o mercador itinerante seguir viagem. Ele disse que o feudo ia precisar de um balcão, e foi embora sem insistir.',
+    },
+  ],
+};
+
+/**
+ * "O primeiro recruta" (10.1), roteirizada: sai na primeira audiência com lugar depois de o
+ * Salão chegar ao nível 4, o que abre o Quartel. A opção de treinar pede o Quartel de pé e vaga.
+ */
+export const firstRecruit: CouncilCard = {
+  id: 'firstRecruit',
+  title: 'O primeiro recruta',
+  text: 'No dia em que o Salão ganhou o quarto andar e o Quartel pôde ser riscado no chão, um rapaz de ombros largos esperava no portão desde antes do sol. Não é herói, não é nobre e não tem arma. Quer aprender a segurar uma lança, e o pai dele, que lavra o campo ao lado, fingiu que não via.',
+  weight: 0,
+  scripted: { onHallLevel: 4 },
+  autoResolve: { peasant: 'farm', lord: 'farm', ironKing: 'farm' },
+  options: [
+    {
+      id: 'train',
+      label: 'Treiná-lo como Lanceiro',
+      requires: { building: 'barracks', soldierRoom: 1 },
+      effects: [
+        { type: 'addSoldiers', unit: 'spearman', amount: 1 },
+        { type: 'morale', amount: 5, durationDays: 2 },
+      ],
+      hint: 'O primeiro soldado do feudo, de graça, pelo preço de um aldeão a menos.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} aceitou o primeiro recruta no Quartel. O rapaz recebeu uma lança mais alta do que ele e a segurou como quem segura um sonho.',
+    },
+    {
+      id: 'farm',
+      label: 'Mandá-lo à Fazenda',
+      effects: [
+        { type: 'resources', amounts: { food: 30 } },
+        { type: 'morale', amount: 5, durationDays: 2 },
+      ],
+      hint: 'Um braço a mais na colheita, e um pai em paz.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o rapaz de volta à Fazenda. O pai trouxe pão ao Salão em sinal de gratidão.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o rapaz de volta à Fazenda. O pai trouxe pão ao Salão em sinal de gratidão.',
+    },
+  ],
+};
+
+/** "O capitão veterano" (10.4): Osbert, Guerreiro Veterano e Leal, nível 2, por 240 de ouro. */
+export const veteranCaptain: CouncilCard = {
+  id: 'veteranCaptain',
+  title: 'O capitão veterano',
+  text: 'Um homem de barba cinzenta e cicatriz de ponta a ponta no rosto entrou na Taverna e pagou a rodada com uma moeda de ouro de um rei que já morreu. Disse que lutou em onze cercos, que perdeu a conta dos feridos e que só quer uma cama e um posto onde não o chamem de velho. Quem o ouve conta que ele passou a noite sem sentar.',
+  weight: 2,
+  // `veteranCaptain.hired` impede o senhor de pagar duas vezes por quem já serve: o herói com nome
+  // é um só (`promiseHero`), e a carta volta a cada ano.
+  requires: { buildings: { tavern: 2 }, notFlags: ['veteranCaptain.hired'] },
+  autoResolve: { peasant: 'refuse', lord: 'refuse', ironKing: 'refuse' },
+  options: [
+    {
+      id: 'hire',
+      label: 'Contratar o capitão',
+      requires: { rosterRoom: true },
+      cost: { gold: 240 },
+      effects: [
+        { type: 'addHero', heroId: 'osbert' },
+        { type: 'setFlag', flag: 'veteranCaptain.hired' },
+      ],
+      hint: 'Um veterano de casa pronta, mais barato do que no balcão.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} contratou o capitão Osbert. Ele pendurou a espada atrás da porta e perguntou onde ficava a pedra de amolar.',
+    },
+    {
+      id: 'feast',
+      label: 'Pagar-lhe a mesa e ouvir as histórias',
+      cost: { food: 40 },
+      effects: [{ type: 'morale', amount: 5, durationDays: 3 }],
+      hint: 'Não é um herói que fica, mas é uma noite que o povo conta.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a mesa ao capitão veterano. Ele contou onze cercos até o galo cantar, e ninguém quis ir dormir.',
+    },
+    {
+      id: 'refuse',
+      label: 'Agradecer e deixá-lo seguir',
+      effects: [],
+      hint: 'A Taverna tem outros hóspedes, e o ouro fica no cofre.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes.',
+    },
+  ],
+};
