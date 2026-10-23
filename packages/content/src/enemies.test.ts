@@ -4,7 +4,9 @@ import {
   ARCHETYPE_COUNTERS,
   ARCHETYPES,
   HORDE_UNIT_IDS,
+  hordeBaseMix,
   hordeUnits,
+  SEASON_IDS,
   UNIT_IDS,
   units,
 } from './index';
@@ -64,5 +66,14 @@ describe('Inimigos da Horda (GDD §10.3; ADR 0019, decisão 11)', () => {
     expect(hordeUnits.warlord.endsWaveOnDeath).toBe(true);
     const lateral = HORDE_UNIT_IDS.filter((id) => hordeUnits[id].alwaysLateral);
     expect(lateral).toEqual(['wolf']);
+  });
+
+  it('as composições-base somam 100 por estação e só citam inimigos que existem (Apêndice A)', () => {
+    for (const season of SEASON_IDS) {
+      const mix = hordeBaseMix[season];
+      expect(Object.keys(mix).every((id) => id in hordeUnits)).toBe(true);
+      expect(Object.values(mix).reduce((sum, weight) => sum + (weight ?? 0), 0)).toBe(100);
+    }
+    expect(hordeBaseMix.spring).toEqual({ wolf: 70, raider: 30 });
   });
 });
