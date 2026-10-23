@@ -110,6 +110,7 @@ import {
   HERO_CLASS_IDS_V30,
   HORDE_UNIT_IDS_V30,
 } from './migrations/v30';
+import { PREVIEW_RUNS_V31 } from './migrations/v31';
 import { BATTLE_FACTOR_IDS, buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
 import {
@@ -1451,6 +1452,55 @@ const FROZEN: Record<string, string> = {
   'state-v29-wage-arrears.json': 'ca296f05',
   'state-v29-warehouse-full.json': 'd78562da',
   'state-v29-week-scripted.json': '3069b116',
+  'state-v30-caravan-escort.json': '3d7bad74',
+  'state-v30-caravan.json': '28c23c2a',
+  'state-v30-cold.json': '1dcb1b9e',
+  'state-v30-construction.json': 'fc740aab',
+  'state-v30-council-hidden.json': 'caa637ca',
+  'state-v30-council.json': 'e870c57c',
+  'state-v30-crafts.json': 'cf0f06cf',
+  'state-v30-den-cleared.json': '1b53706b',
+  'state-v30-expedition-crossroads.json': 'c40cf1ea',
+  'state-v30-expedition-returning.json': '941a300d',
+  'state-v30-expedition.json': 'f67c7b14',
+  'state-v30-famine-3x.json': '94b0b647',
+  'state-v30-famine-ended.json': '5f26597b',
+  'state-v30-famine-half.json': '425b4c58',
+  'state-v30-famine-resumed.json': '87f7d2d1',
+  'state-v30-famine-smithy.json': 'a04917a4',
+  'state-v30-famine.json': '853157a9',
+  'state-v30-fresh.json': 'c29b35de',
+  'state-v30-guild.json': 'afc078b5',
+  'state-v30-hero-captured.json': '7396582f',
+  'state-v30-hero-injured.json': 'd095eb32',
+  'state-v30-hero-promised.json': 'b3880f1f',
+  'state-v30-housing-full.json': '09e38d09',
+  'state-v30-iron-king-half.json': '36071584',
+  'state-v30-market-opening.json': '16d97015',
+  'state-v30-market.json': '000173c9',
+  'state-v30-master-waiting.json': '70912bb2',
+  'state-v30-masters.json': 'fcfff34b',
+  'state-v30-migrated-3x.json': '2cfc8a8b',
+  'state-v30-migrated-iron-king-caravan.json': 'a710db40',
+  'state-v30-migrated-iron-king-half.json': 'e461d347',
+  'state-v30-migrated-peasant-3x.json': 'a729e0ee',
+  'state-v30-morale.json': '7670bb25',
+  'state-v30-objectives.json': '699245cf',
+  'state-v30-palisade.json': 'cb979615',
+  'state-v30-peasant-3x.json': 'a8b812b5',
+  'state-v30-queues.json': '4af2e71b',
+  'state-v30-raid-announced.json': 'e16778ee',
+  'state-v30-raid.json': '80f16cad',
+  'state-v30-smithy-forging.json': 'f5e02df8',
+  'state-v30-storage.json': 'f46760ab',
+  'state-v30-tavern-busy.json': 'e2d9b137',
+  'state-v30-tavern.json': '84d9c7e4',
+  'state-v30-threat.json': '4d2fc93a',
+  'state-v30-wage-arrears-ended.json': '65993435',
+  'state-v30-wage-arrears-resumed.json': '9e2008e3',
+  'state-v30-wage-arrears.json': 'f389285c',
+  'state-v30-warehouse-full.json': 'fb401f81',
+  'state-v30-week-scripted.json': '54d069f3',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -6744,6 +6794,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
       formations: [],
       activeFormationId: null,
       reports: [],
+      preview: null,
     });
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
@@ -6862,6 +6913,7 @@ function asVersion28(state: GameState): Draft {
   delete old.army.formations;
   delete old.army.activeFormationId;
   delete old.army.reports;
+  delete old.army.preview;
   return old;
 }
 
@@ -6998,6 +7050,7 @@ function asVersion29(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 29;
   delete old.army.reports;
+  delete old.army.preview;
   return old;
 }
 
@@ -7102,6 +7155,94 @@ describe('versão 29 → 30 (V4D-T1.6: os relatórios de batalha)', () => {
       broken((state) => {
         state.rng['battle:battle-1'] = [1, 2, 3, 4];
       }),
+    ).not.toBeNull();
+  });
+});
+
+/** O estado da versão 30: o de hoje sem a última prévia. */
+function asVersion30(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 30;
+  delete old.army.preview;
+  return old;
+}
+
+/** Uma partida com uma formação e a prévia dela, pelo caminho do jogo. */
+function withPreview(): GameState {
+  const start = barracksYard(0, (draft) => {
+    draft.army.units.spearman = 6;
+    draft.army.units.archer = 4;
+  });
+  const saved = accept(start, saveFormationOrder('Muralha')).state;
+  return accept(saved, command('simulateBattle', { formationId: 'formation-1' })).state;
+}
+
+describe('versão 30 → 31 (V4D-T2.2: a prévia do Conselho de Guerra)', () => {
+  const version30 = fixtures.filter((fixture) => fixture.version === 30);
+
+  it('os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(PREVIEW_RUNS_V31).toBe(balance.battle.previewRuns);
+  });
+
+  it('há retratos da versão 30 com os relatórios', () => {
+    expect(version30.length).toBeGreaterThan(40);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v30-fresh.json'));
+    expect(fresh.army.preview).toBeNull();
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version30)(
+    '$name: só acrescenta a prévia vazia; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.army.preview).toBeNull();
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.stats).toStrictEqual(before.stats);
+      expect(asVersion30(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type === 'battleSimulated')).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion30(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda aceita uma prévia de verdade e recusa a ausente, a de formação inexistente e as contas que não fecham', () => {
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(withPreview())) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.army.preview)).toBe('army.preview: campo ausente');
+    expect(broken((state) => (state.army.preview = null))).toBeNull();
+    expect(broken((state) => (state.army.preview.formationId = 'formation-9'))).toBe(
+      'army.preview.formationId: formação que não está entre as salvas',
+    );
+    expect(broken((state) => (state.army.preview.runs = 100))).toBe(
+      'army.preview.runs: a prévia roda 200 simulações',
+    );
+    expect(broken((state) => (state.army.preview.wins += 1))).toBe(
+      'army.preview: as vitórias, as derrotas e as gloriosas não fecham com as simulações',
+    );
+    expect(broken((state) => (state.army.preview.glorious = 201))).not.toBeNull();
+    expect(broken((state) => (state.army.preview.signature = 1.5))).not.toBeNull();
+    expect(broken((state) => (state.army.preview.extra = 1))).not.toBeNull();
+    expect(broken((state) => (state.army.preview.enemy[0].unit = 'dragon'))).not.toBeNull();
+    expect(
+      broken((state) => (state.army.preview.risk = { factor: 'luck', wing: null, amount: 1 })),
     ).not.toBeNull();
   });
 });

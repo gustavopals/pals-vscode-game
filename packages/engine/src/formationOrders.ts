@@ -73,6 +73,10 @@ export function deleteFormation(
     return reject('FORMATION_ACTIVE');
   }
   draft.army.formations = draft.army.formations.filter((entry) => entry.id !== formation.id);
+  // A prévia de uma formação apagada não tem mais de que falar (a guarda do estado a exige).
+  if (draft.army.preview?.formationId === formation.id) {
+    draft.army.preview = null;
+  }
   emit(
     events,
     draft,

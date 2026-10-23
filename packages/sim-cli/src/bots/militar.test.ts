@@ -59,9 +59,42 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     expect(result.rows.at(-1)?.soldiers).toBeGreaterThan(0);
     // A formação do bot: monta com o que tem e a ativa, sem comandante (V4C-T2).
     const { formations, activeFormationId } = result.finalState.army;
-    expect(formations).toHaveLength(1);
-    expect(activeFormationId).toBe(formations[0]?.id);
-    expect(Object.values(formations[0]?.commanders ?? {}).every((id) => id === null)).toBe(true);
+    // Uma, ou duas se a prévia da primeira deu menos de 50% e o bot tentou a outra (V4D-T2.5).
+    expect(formations.length).toBeGreaterThanOrEqual(1);
+    expect(formations.length).toBeLessThanOrEqual(2);
+    expect(formations.map((entry) => entry.id)).toContain(activeFormationId);
+    expect(
+      formations.every((entry) => Object.values(entry.commanders).every((id) => id === null)),
+    ).toBe(true);
+  });
+
+  it('o militar simula a formação antes de ativá-la e só guarda a de melhor prévia (V4D-T2.5)', async () => {
+    const result = await simulate({
+      seed: 'pedra-alta-001',
+      days: 7,
+      timeScale: 3,
+      strategy: 'militar',
+      sessionsPerDay: 2,
+    });
+    const { army, stats } = result.finalState;
+    expect(stats.battlesSimulated).toBeGreaterThan(0);
+    expect(army.preview).not.toBeNull();
+    const active = army.formations.find((entry) => entry.id === army.activeFormationId);
+    expect(active).toBeDefined();
+    // A ativa é uma das duas do bot, e a prévia guardada é de uma delas.
+    expect(['Defesa do bot', 'Defesa do bot B']).toContain(active?.name);
+    expect(army.formations.some((entry) => entry.id === army.preview?.formationId)).toBe(true);
+  });
+
+  it('o econômico não simula: a formação e a prévia são do militar', async () => {
+    const result = await simulate({
+      seed: 'pedra-alta-001',
+      days: 7,
+      timeScale: 3,
+      strategy: 'economico',
+      sessionsPerDay: 2,
+    });
+    expect(result.finalState.stats.battlesSimulated).toBeUndefined();
   });
 
   it('o econômico não monta formação: ela é do militar', async () => {

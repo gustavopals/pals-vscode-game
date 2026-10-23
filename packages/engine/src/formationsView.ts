@@ -20,6 +20,7 @@ import type {
   Hero,
   HeroCommandingView,
 } from './types';
+import { previewIsStale } from './warCouncilView';
 
 /**
  * As formações salvas na visão (GDD §10.8 e §13.4; ADR 0019, decisões 8 e 9). Só lê o estado:
@@ -62,6 +63,7 @@ export function formationViews(state: GameState): FormationView[] {
       })),
       shortfallText: shortfallText(state, formation),
       canDelete: active?.id !== formation.id,
+      previewStale: previewIsStale(state, formation),
     };
   });
 }

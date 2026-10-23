@@ -886,6 +886,8 @@ const ArmySchema = z.strictObject({
       ),
       shortfallText: z.string(),
       canDelete: z.boolean(),
+      /** Há uma prévia desta formação e ela mudou depois. */
+      previewStale: z.boolean(),
     }),
   ),
   editor: z.strictObject({
@@ -912,6 +914,43 @@ const ArmySchema = z.strictObject({
       }),
     ),
   }),
+  /** A última prévia do Conselho de Guerra (V4D-T2); `null` até a primeira. */
+  preview: z
+    .strictObject({
+      formationId: z.string(),
+      runs: z.number(),
+      /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */
+      winsPercent: z.number(),
+      gloriousPercent: z.number(),
+      lossesPercent: z.number(),
+      /** O risco principal em uma frase, montada no motor a partir do fator. */
+      riskText: z.string(),
+      expectedLosses: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          line: z.enum(LINE_IDS),
+          unit: unitId,
+          unitLabel: z.string(),
+          start: z.number(),
+          expected: z.number(),
+          text: z.string(),
+        }),
+      ),
+      /** O inimigo que a prévia supôs por posto; `?` no texto onde a informação não existe. */
+      knownEnemy: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          wingLabel: z.string(),
+          line: z.enum(LINE_IDS),
+          lineLabel: z.string(),
+          known: z.boolean(),
+          unitLabel: z.string(),
+          count: z.number(),
+          text: z.string(),
+        }),
+      ),
+    })
+    .nullable(),
 });
 
 const MarketSchema = z.strictObject({
@@ -1428,6 +1467,7 @@ export const CHRONICLE_HIDDEN_EVENT_TYPES = [
   'dayStarted',
   'storageWasted',
   'expeditionNodeResolved',
+  'battleSimulated',
 ] as const satisfies ReadonlyArray<(typeof EVENT_TYPES)[number]>;
 
 /** Evento de jogo como a API o entrega: com a sequência na partida e o instante real (UTC). */

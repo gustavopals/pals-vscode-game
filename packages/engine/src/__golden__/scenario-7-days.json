@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -786,7 +786,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -816,7 +817,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1022,7 +1023,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -1069,7 +1071,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1309,7 +1311,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -1364,7 +1367,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1613,7 +1616,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -1672,7 +1676,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1915,7 +1919,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -1978,7 +1983,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2244,7 +2249,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [
@@ -2311,7 +2317,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 30,
+    "schemaVersion": 31,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2555,7 +2561,8 @@
      "training": null,
      "formations": [],
      "activeFormationId": null,
-     "reports": []
+     "reports": [],
+     "preview": null
     },
     "objectives": {
      "active": [

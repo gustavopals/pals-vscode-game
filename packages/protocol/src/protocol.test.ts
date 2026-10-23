@@ -2259,6 +2259,7 @@ describe('ViewStateSchema', () => {
       'dayStarted',
       'storageWasted',
       'expeditionNodeResolved',
+      'battleSimulated',
     ]);
     // O nó que terminou em Revés ou Desastre é linha da Crônica (pendência D-12 da v0.3).
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('expeditionNodeFailed');
@@ -2844,6 +2845,15 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
     ]) {
       expect(CommandSchema.safeParse(order).success).toBe(true);
     }
+  });
+
+  it('aceita simular uma formação (V4D-T2) e recusa a forma errada', () => {
+    const simulate = (payload: unknown) => ({ commandId: uuid, type: 'simulateBattle', payload });
+    expect(CommandSchema.safeParse(simulate({ formationId: 'formation-1' })).success).toBe(true);
+    for (const bad of [{}, { formationId: '' }, { formationId: 3 }, { id: 'formation-1' }]) {
+      expect(CommandSchema.safeParse(simulate(bad)).success).toBe(false);
+    }
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toContain('battleSimulated');
   });
 
   it('recusa a forma errada: ala que falta, chave a mais, unidade fora do Quartel', () => {

@@ -54,6 +54,7 @@ import { ARCHETYPES } from './enemies';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
 const positiveInt = z.number().int().positive();
+const nonNegInt = z.number().int().nonnegative();
 const label = z.string().trim().min(1);
 
 const resourceId = z.enum(RESOURCE_IDS);
@@ -737,6 +738,20 @@ const balanceFields = z.strictObject({
     .strictObject({
       maxRounds: positiveInt,
       previewRuns: positiveInt,
+      previewEnemy: z
+        .strictObject({
+          units: z.strictObject({ light: positiveInt, medium: positiveInt }),
+          shares: z.strictObject({
+            left: z.strictObject({ front: nonNegInt, back: nonNegInt }),
+            center: z.strictObject({ front: nonNegInt, back: nonNegInt }),
+            right: z.strictObject({ front: nonNegInt, back: nonNegInt }),
+          }),
+        })
+        .refine(
+          ({ shares }) =>
+            Object.values(shares).reduce((sum, wing) => sum + wing.front + wing.back, 0) === 100,
+          'as partes dos postos da prévia somam 100',
+        ),
       luck: z.strictObject({ min: positiveInt, max: positiveInt }),
       absorb: ratio,
       minDamage: ratio,

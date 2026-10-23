@@ -85,6 +85,7 @@ export const EVENT_TYPES = [
   'battleFought',
   'commanderInjured',
   'commanderDied',
+  'battleSimulated',
   'itemWorn',
   'repairStarted',
   'itemRepaired',
@@ -373,6 +374,9 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, {heroi} caiu à frente da ala quando a linha cedeu, e saiu da batalha com ferimentos.',
   commanderDied:
     'No {dia}º dia {daEstacao}, {heroi} caiu à frente da ala quando a linha cedeu e não se levantou. {feudo} guarda as armas que ficaram.',
+  // A prévia do Conselho de Guerra (GDD §10.5): escondida da Crônica (CHRONICLE_HIDDEN_EVENT_TYPES).
+  battleSimulated:
+    'No {dia}º dia {daEstacao}, o capitão de {feudo} ensaiou no chão a batalha da formação "{formacao}".',
   // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
   // zero tem linha: cada ponto perdido no caminho não é notícia.
   itemWorn:
