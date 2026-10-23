@@ -552,6 +552,8 @@ export type ArmyDef = {
   /** O tamanho do nome de uma formação, aparado. */
   readonly formationNameMinLength: number;
   readonly formationNameMaxLength: number;
+  /** Quantos relatórios de batalha o exército guarda (`army.reports`, V4D-T1.6). */
+  readonly reportsKept: number;
 };
 
 /**
@@ -612,8 +614,6 @@ export type BattleDef = {
   /** A experiência de quem comandou uma ala, por desfecho, no molde de `expeditions.xpShare`. */
   readonly commanderXp: number;
   readonly commanderXpShare: { readonly won: Ratio; readonly lost: Ratio };
-  /** Quantos relatórios de batalha o exército guarda. */
-  readonly reportsKept: number;
 };
 
 export type MarketDef = {
@@ -1183,6 +1183,8 @@ export const balance: Balance = {
     postMaxFromLevel: { level: 5, max: 30 },
     formationNameMinLength: 1,
     formationNameMaxLength: 30,
+    // V4D-T1.6: os três relatórios de batalha mais recentes, como os de expedição.
+    reportsKept: 3,
   },
   // GDD §10.1 a §10.4 e ADR 0019, decisão 11 (os fatores do GDD em fração). Propostas do agente
   // (V4D-T1.3, por aprovar): o dano do Mago (20), a experiência do comandante (40, metade na
@@ -1211,6 +1213,5 @@ export const balance: Balance = {
     },
     commanderXp: 40,
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
-    reportsKept: 3,
   },
 };

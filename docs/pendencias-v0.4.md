@@ -240,6 +240,20 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 **D-4. Auras e o Lobo (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: a aura do Senhor da Guerra vale para ele**, e o Lobo como o agente leu.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
 
+**D-5. As regras que o agente fechou no motor (V4D-T1.3 a T1.5, 2026-10-23).** _(Leituras e números do agente, por aprovar; todos com teste em `packages/engine/src/battle.test.ts`. Os sete goldens batem com a conta à mão linha a linha.)_
+
+- **A sorte só é pedida a quem ataca**: um esquadrão sem a quem atacar não gasta sorte, e o destruído antes de agir também não (“só se sorteia o que pode acontecer”).
+- **"Sem moral" quer dizer "não debanda"**: o documento (2.7) desconta a moral quando o Senhor da Guerra cai, então a moral do lado conta todas as perdas, e o lado só debanda se tiver um esquadrão vivo com moral. Se os dois lados debandam na mesma rodada, foge o atacante.
+- **O comandante cai** quando um golpe inimigo chega à ala dele sem a Frente de pé (−15, a aura acaba); o comandante de uma ala sem soldados nunca é atingido. Fica **ferido** (a gravidade e o prazo são da Fase E) e só **morre em Rei de Ferro**; a batalha não captura.
+- **Escudeiro**: o golpe à Retaguarda com a Frente de Escudeiros de pé (hoje só o do arqueiro da Horda) divide o bruto ao meio, e cada metade passa pela defesa de quem a recebe.
+- **Muralha à distância**: o ×7/10 do arqueiro da Horda e o ×6/5 do Arqueiro do jogador valem com a muralha da ala de pé; qualquer Retaguarda da Horda (o Xamã também) passa por cima da muralha.
+- **Contra-ataques não se somam**: o Lobo contra o Arqueiro já é ×3/2 pelo ciclo; o `bonusAgainst` não multiplica de novo.
+- **Torres, Mago e Clériga** agem no fim da rodada, ala por ala, antes da debandada, em dano fixo (sem defesa nem sorte): a torre no primeiro esquadrão da ala oposta (Frente, senão Retaguarda), **12 × (nível − 2)**; o **Mago**, em cada esquadrão da ala oposta, **20 de dano** (número do agente), ×2 nos mortos-vivos, nas rodadas 3, 6, 9 e 12; a **Clériga** cura nas rodadas pares **10% da vida da Frente no começo da batalha** (primeiro o residual, depois soldados inteiros, até o efetivo inicial) e dá **+20 de moral** inicial ao lado. A Clériga não causa dano, então o "×2 de Clériga" do Esqueleto não tem efeito ainda.
+- **Experiência do comandante**: **40**, inteira na vitória (e em "Resistiu"), metade na derrota, nada para quem morreu (números do agente).
+- **Lado vazio**: o lado sem esquadrões no começo perde sem rodada nenhuma. Na Fase E, a incursão sem Defesa ativa (decisão 14) vai precisar de outra regra (a muralha e as torres lutando sozinhas).
+- **Relatório**: o fator `wallAbsorbed` conta o dano que a muralha de fato tomou (o excesso perdido não entra), e `percent` é a parte do bruto da Horda; os outros fatores são o dano a mais (`bruto × (1 − 1/fator)`, piso) somado por lado. Empates na ordem do roadmap (muralha, contra-ataque, Retaguarda exposta, flanco, torre, aura).
+- **`army.reportsKept` (3)** ficou em `balance.army`, como diz a T1.6; os outros números em `balance.battle`.
+
 
 ## 6. O que não foi verificado
 

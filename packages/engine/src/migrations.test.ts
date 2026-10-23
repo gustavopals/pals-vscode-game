@@ -23,6 +23,7 @@ import {
   LINE_IDS,
   units,
   WING_IDS,
+  HORDE_UNIT_IDS,
 } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
@@ -101,6 +102,16 @@ import {
   RESOURCE_IDS_V25,
 } from './migrations/v25';
 import { BUILDING_IDS_V26, FORGE_BATCH_MAX_V26 } from './migrations/v26';
+import {
+  BATTLE_ENDINGS_V30,
+  BATTLE_FACTORS_V30,
+  BATTLE_OUTCOMES_V30,
+  BATTLE_REPORTS_CAP_V30,
+  HERO_CLASS_IDS_V30,
+  HORDE_UNIT_IDS_V30,
+} from './migrations/v30';
+import { BATTLE_FACTOR_IDS, buildBattleReport } from './battleReport';
+import { fightBattle } from './battleTurn';
 import {
   FORMATION_NAME_MAX_V29,
   FORMATIONS_CAP_V29,
@@ -1391,6 +1402,55 @@ const FROZEN: Record<string, string> = {
   'state-v28-wage-arrears.json': 'ff6f57ad',
   'state-v28-warehouse-full.json': 'e361c98a',
   'state-v28-week-scripted.json': 'd89564dc',
+  'state-v29-caravan-escort.json': '7302502b',
+  'state-v29-caravan.json': 'bbd7d85f',
+  'state-v29-cold.json': '2e3414e1',
+  'state-v29-construction.json': '59bb50ae',
+  'state-v29-council-hidden.json': '2b212c59',
+  'state-v29-council.json': '401ccd2f',
+  'state-v29-crafts.json': '913c042c',
+  'state-v29-den-cleared.json': '3b379f88',
+  'state-v29-expedition-crossroads.json': '66e1594f',
+  'state-v29-expedition-returning.json': '92af4dc6',
+  'state-v29-expedition.json': 'c037a175',
+  'state-v29-famine-3x.json': 'a9e461d6',
+  'state-v29-famine-ended.json': '3f83f54e',
+  'state-v29-famine-half.json': '580e76ad',
+  'state-v29-famine-resumed.json': '9f258004',
+  'state-v29-famine-smithy.json': '716b4659',
+  'state-v29-famine.json': 'c65efc70',
+  'state-v29-fresh.json': '526ae6d3',
+  'state-v29-guild.json': '31df6aa8',
+  'state-v29-hero-captured.json': '66e2145e',
+  'state-v29-hero-injured.json': '53eacb17',
+  'state-v29-hero-promised.json': '8d703e2c',
+  'state-v29-housing-full.json': 'c877a126',
+  'state-v29-iron-king-half.json': 'ba6bd5cf',
+  'state-v29-market-opening.json': 'a8464a58',
+  'state-v29-market.json': 'd1a42d36',
+  'state-v29-master-waiting.json': 'edd55c37',
+  'state-v29-masters.json': 'eda18b7e',
+  'state-v29-migrated-3x.json': 'ce776b6c',
+  'state-v29-migrated-iron-king-caravan.json': '665340e1',
+  'state-v29-migrated-iron-king-half.json': '8b35323c',
+  'state-v29-migrated-peasant-3x.json': '4e7062af',
+  'state-v29-morale.json': 'ed00f3a4',
+  'state-v29-objectives.json': '1f950d34',
+  'state-v29-palisade.json': '1a3955ca',
+  'state-v29-peasant-3x.json': '2dd344de',
+  'state-v29-queues.json': 'ebacb214',
+  'state-v29-raid-announced.json': '3192e32d',
+  'state-v29-raid.json': '3bf56696',
+  'state-v29-smithy-forging.json': '3fee6041',
+  'state-v29-storage.json': 'b1d077a6',
+  'state-v29-tavern-busy.json': '347f3972',
+  'state-v29-tavern.json': '5f1e13c3',
+  'state-v29-threat.json': 'cb2dd59d',
+  'state-v29-wage-arrears-ended.json': '18650284',
+  'state-v29-wage-arrears-resumed.json': '59ef6d6a',
+  'state-v29-wage-arrears.json': 'ca296f05',
+  'state-v29-warehouse-full.json': 'd78562da',
+  'state-v29-week-scripted.json': '3069b116',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2188,14 +2248,17 @@ describe('a forma da versão atual', () => {
     // A versão 13 continua com os três de antes: a Taverna só entra na 16, e o Mercado, na 21.
     expect(RNG_FIXED_STREAMS_V13).toEqual(['council', 'morale', 'horde']);
     expect(RNG_FIXED_STREAMS_V16).toEqual(['council', 'morale', 'horde', 'tavern']);
-    expect(RNG_STREAM_FAMILIES_V13).toEqual([...RNG_STREAM_FAMILIES]);
+    // A família `battle` (V4D-T1.4) não é gravada: o fluxo nasce e morre no instante da batalha.
+    expect(RNG_STREAM_FAMILIES_V13).toEqual(
+      RNG_STREAM_FAMILIES.filter((family) => family !== 'battle'),
+    );
     // Tudo o que o gerador e o contador escrevem cabe na forma: os fluxos fixos, um fluxo de
     // cada família (com o identificador que `nextId` dá) e os contadores.
     const draft = JSON.parse(JSON.stringify(newGame())) as GameState;
     for (const stream of RNG_STREAMS) {
       nextInt(draft, stream, 6);
     }
-    for (const family of RNG_STREAM_FAMILIES) {
+    for (const family of RNG_STREAM_FAMILIES_V13 as typeof RNG_STREAM_FAMILIES) {
       nextInt(draft, entityStream(family, nextId(draft, family)), 6);
       nextInt(draft, entityStream(family, nextId(draft, family)), 6);
       nextId(draft, 'hero');
@@ -6680,6 +6743,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
       training: null,
       formations: [],
       activeFormationId: null,
+      reports: [],
     });
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
@@ -6797,6 +6861,7 @@ function asVersion28(state: GameState): Draft {
   old.schemaVersion = 28;
   delete old.army.formations;
   delete old.army.activeFormationId;
+  delete old.army.reports;
   return old;
 }
 
@@ -6927,3 +6992,116 @@ function withFormation(): GameState {
     }),
   ).state;
 }
+
+/** O estado da versão 29: o de hoje sem a lista de relatórios. */
+function asVersion29(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 29;
+  delete old.army.reports;
+  return old;
+}
+
+/** Uma partida com uma batalha guardada (a do cenário 2.3 do documento, com sorte sorteada). */
+function withBattleReport(): GameState {
+  const draft = JSON.parse(JSON.stringify(newGame('fixture-battle'))) as GameState;
+  const none = { front: null, back: null };
+  const { id, resolution } = fightBattle(draft, {
+    mode: 'defense',
+    player: {
+      posts: {
+        left: none,
+        center: { front: { unit: 'spearman', count: 12 }, back: null },
+        right: none,
+      },
+      commanders: { left: null, center: null, right: null },
+    },
+    horde: {
+      posts: {
+        left: none,
+        center: { front: { unit: 'blackKnight', count: 6 }, back: null },
+        right: none,
+      },
+    },
+    wall: {},
+    watchtowerLevel: 0,
+    heroCapture: 'capture',
+  });
+  draft.army.reports.push(buildBattleReport(id, draft.lastProcessedAt, resolution));
+  return draft;
+}
+
+describe('versão 29 → 30 (V4D-T1.6: os relatórios de batalha)', () => {
+  const version29 = fixtures.filter((fixture) => fixture.version === 29);
+
+  it('os identificadores e os números escritos na forma são os do conteúdo e do motor de hoje', () => {
+    expect(BATTLE_REPORTS_CAP_V30).toBe(balance.army.reportsKept);
+    expect(HORDE_UNIT_IDS_V30).toEqual([...HORDE_UNIT_IDS]);
+    expect(HERO_CLASS_IDS_V30).toEqual([...HERO_CLASS_IDS]);
+    expect(BATTLE_FACTORS_V30).toEqual([...BATTLE_FACTOR_IDS]);
+    expect(BATTLE_OUTCOMES_V30).toEqual(['victory', 'held', 'defeat', 'withdrew']);
+    expect(BATTLE_ENDINGS_V30).toEqual(['annihilation', 'rout', 'chiefFell', 'rounds']);
+  });
+
+  it('há retratos da versão 29 com as formações', () => {
+    expect(version29.length).toBeGreaterThan(40);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v29-fresh.json'));
+    expect(fresh.army.reports).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version29)(
+    '$name: só acrescenta a lista vazia; o resto, o gerador e os contadores ficam como estavam',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.army.reports).toStrictEqual([]);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(asVersion29(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => /battle/i.test(event.type))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion29(caravanScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda aceita um relatório de verdade e recusa a lista ausente, o teto, o id fora do contador e o fluxo de batalha gravado', () => {
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(withBattleReport())) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.army.reports)).toBe('army.reports: campo ausente');
+    expect(
+      broken((state) => {
+        for (let index = 2; index <= 4; index += 1) {
+          state.army.reports.push({ ...state.army.reports[0], id: `battle-${index}` });
+        }
+        state.ids.battle = 4;
+      }),
+    ).toBe('army.reports: mais relatórios que o teto');
+    expect(broken((state) => (state.ids.battle = 0))).toBe(
+      'army.reports.0.id: identificador fora do contador de ids.battle, repetido ou fora de ordem',
+    );
+    expect(broken((state) => (state.army.reports[0].outcome = 'tie'))).not.toBeNull();
+    expect(broken((state) => (state.army.reports[0].extra = 1))).not.toBeNull();
+    expect(broken((state) => (state.army.reports[0].decisive[0].amount = 0.5))).not.toBeNull();
+    expect(
+      broken((state) => {
+        state.rng['battle:battle-1'] = [1, 2, 3, 4];
+      }),
+    ).not.toBeNull();
+  });
+});

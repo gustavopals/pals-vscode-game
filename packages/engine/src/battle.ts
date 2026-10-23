@@ -334,6 +334,10 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     add('A', 'player', input.player.posts);
   }
   const initial = squads.map(snapshot);
+  // Um lado sem ninguém no campo perde sem luta: nenhuma rodada, nenhuma sorte gasta.
+  const emptyAtStart = (['D', 'A'] as const).find(
+    (side) => !squads.some((squad) => squad.side === side),
+  );
 
   const defense = input.mode === 'defense';
   const wall: Partial<Record<WingId, number>> = {};
@@ -386,7 +390,8 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       (squad) => squad.side === side && squad.wing === wing && squad.line === line && alive(squad),
     ) ?? null;
 
-  let ended: { ending: BattleEnding; winner: BattleSide } | null = null;
+  let ended: { ending: BattleEnding; winner: BattleSide } | null =
+    emptyAtStart === undefined ? null : { ending: 'annihilation', winner: other(emptyAtStart) };
 
   /** Aplica um golpe (parte do dano) a um esquadrão e anota as baixas e a moral. */
   const hit = (

@@ -701,6 +701,7 @@ const balanceFields = z.strictObject({
     postMaxFromLevel: z.strictObject({ level: positiveInt, max: positiveInt }),
     formationNameMinLength: positiveInt,
     formationNameMaxLength: positiveInt,
+    reportsKept: positiveInt,
   }),
   // A batalha (ADR 0019, decisão 11): a sorte é um intervalo de inteiros em torno de 100.
   battle: z
@@ -734,7 +735,6 @@ const balanceFields = z.strictObject({
       }),
       commanderXp: positiveInt,
       commanderXpShare: z.strictObject({ won: ratio, lost: ratio }),
-      reportsKept: positiveInt,
     })
     .refine(({ luck }) => luck.min <= 100 && 100 <= luck.max, 'a sorte tem de conter 100')
     .refine(

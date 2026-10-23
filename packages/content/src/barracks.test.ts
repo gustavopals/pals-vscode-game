@@ -41,6 +41,7 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
       postMaxFromLevel: { level: 5, max: 30 },
       formationNameMinLength: 1,
       formationNameMaxLength: 30,
+      reportsKept: 3,
     });
   });
 
