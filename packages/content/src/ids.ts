@@ -33,6 +33,22 @@ export const UNIT_IDS = ['spearman', 'swordsman', 'archer', 'knight', 'shieldbea
 export type UnitId = (typeof UNIT_IDS)[number];
 
 /**
+ * Os inimigos da Horda (GDD §10.3), na ordem da tabela. Ficam gravados nos relatórios de batalha
+ * (V4D-T1.5): mudar um identificador pede passo de migração.
+ */
+export const HORDE_UNIT_IDS = [
+  'wolf',
+  'raider',
+  'banditArcher',
+  'blackKnight',
+  'ogre',
+  'skeleton',
+  'shaman',
+  'warlord',
+] as const;
+export type HordeUnitId = (typeof HORDE_UNIT_IDS)[number];
+
+/**
  * As três alas do campo de batalha (GDD §10.1), da esquerda para a direita, e as duas linhas de
  * cada ala (a mesma `UnitLine` das unidades: `front` e `back`). Uma formação salva (V4C-T2; ADR
  * 0019, decisões 8 e 9) tem um posto em cada ala e linha; as listas ficam gravadas no estado
