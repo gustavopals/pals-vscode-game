@@ -39,3 +39,31 @@ export const formationTexts = {
   shortfall: 'Faltam {tropa} para preencher todos os postos.',
   noShortfall: 'O feudo tem soldados para todos os postos.',
 } as const;
+
+/** "Na ala esquerda", "No centro": o começo da frase do risco do Conselho de Guerra. */
+export const wingLocatives: Record<WingId, string> = {
+  left: 'Na ala esquerda',
+  center: 'No centro',
+  right: 'Na ala direita',
+};
+
+/**
+ * As frases do Conselho de Guerra (GDD §10.5; V4D-T2.4). O motor escolhe a do fator que mais
+ * dano fez à formação e preenche `{ala}` (ver `wingLocatives`); o app só mostra o resultado.
+ */
+export const warCouncilTexts = {
+  /** O motivo por fator da batalha (`battleReport.ts`); `{ala}` só nos fatores que têm ala. */
+  risk: {
+    wallAbsorbed: '{ala}, o peso da Horda cai sobre a muralha, que cede primeiro.',
+    counter: '{ala}, as armas da Horda vencem as suas pelo ciclo de contra-ataques.',
+    exposedRear: '{ala}, a Frente cai e a Horda alcança a Retaguarda desprotegida.',
+    flank: '{ala}, a Horda entra pelo flanco onde a ala vizinha está vazia.',
+    tower: 'As torres do inimigo castigam a formação.',
+    aura: 'O chefe da Horda levanta o ânimo dela com a sua aura.',
+  },
+  riskPrefix: 'Risco principal: ',
+  /** Quando nenhuma simulação trouxe dano da Horda que valha uma frase. */
+  noRisk: 'Nenhum fator da Horda se destacou nas simulações.',
+  /** Quando a formação não tem soldado nenhum para lutar. */
+  noTroops: 'A formação não tem soldado nenhum no feudo: sem tropa, a Horda vence sem lutar.',
+} as const;

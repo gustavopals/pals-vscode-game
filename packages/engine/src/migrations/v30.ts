@@ -11,6 +11,7 @@ import {
   text,
   type Shape,
 } from './shape';
+import type { MigrationStep } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -138,7 +139,7 @@ export const battleReportV30: Shape = exactObject({
  * batalhas mais recentes, até 3. `rng` e `ids` não mudam de forma: o contador `battle` entra em
  * `ids` como qualquer outro, e nenhum fluxo `battle:<id>` fica gravado.
  *
- * Quem subir `schemaVersion` para 31 acrescenta em `v30.ts` o passo `v30ToV31`.
+ * Para a versão 31, o passo `v30ToV31`, no fim deste arquivo.
  */
 export const stateV30Fields: Readonly<Record<string, Shape>> = {
   ...stateV29Fields,
@@ -203,3 +204,24 @@ export const stateV30: Shape = (value, path) =>
   armyWithinState(value, path) ??
   formationsWithinState(value, path) ??
   battleReportsWithinState(value, path);
+
+/**
+ * 30 → 31: a prévia do Conselho de Guerra (V4D-T2.2; ADR 0019, decisão 10).
+ *
+ * - `army.preview` nasce `null`: nenhuma prévia foi pedida antes da ordem `simulateBattle`.
+ * - `stats.battlesSimulated` não precisa de passo: `stats` é um registro livre de contadores, e
+ *   o que falta vale zero.
+ * - `ids` e `rng` não mudam: a ordem não cria entidade, e o gerador da prévia nasce e morre
+ *   dentro dela, sem nunca ser gravado.
+ *
+ * **O passo não cria prazo**, não emite evento e não toca o gerador.
+ */
+export const v30ToV31: MigrationStep = {
+  from: 30,
+  summary: 'o exército ganha a última prévia do Conselho de Guerra, vazia',
+  shape: stateV30,
+  migrate(state) {
+    const army = state.army as Record<string, unknown>;
+    return { ...state, schemaVersion: 31, army: { ...army, preview: null } };
+  },
+};

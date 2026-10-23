@@ -6,6 +6,7 @@ import type {
   HeroAttributeId,
   HeroCaptureRuleId,
   InjurySeverityId,
+  LineId,
   ItemRarityId,
   MarketResourceId,
   MoraleBandId,
@@ -15,6 +16,7 @@ import type {
   ResourceAmounts,
   ResourceId,
   SeasonId,
+  WingId,
 } from './ids';
 
 /**
@@ -566,6 +568,15 @@ export type BattleDef = {
   readonly maxRounds: number;
   /** Quantas batalhas a prévia do Conselho de Guerra roda (GDD §10.5; ADR 0019, decisão 10). */
   readonly previewRuns: number;
+  /**
+   * O inimigo que a prévia supõe enquanto a Horda não é conhecida (V4D-T2; proposta do agente,
+   * por aprovar): o total de unidades pelo tamanho da incursão que a Ameaça marca, e a parte de
+   * cada posto, em percentuais que somam 100 (posto ausente = sem esquadrão).
+   */
+  readonly previewEnemy: {
+    readonly units: Record<RaidSizeId, number>;
+    readonly shares: Record<WingId, Record<LineId, number>>;
+  };
   /** A sorte de cada esquadrão em cada rodada, um inteiro de `min` a `max`, sobre 100. */
   readonly luck: { readonly min: number; readonly max: number };
   /** O dano que a defesa do alvo absorve: `def × n × absorb`. */
@@ -1194,6 +1205,14 @@ export const balance: Balance = {
   battle: {
     maxRounds: 12,
     previewRuns: 200,
+    previewEnemy: {
+      units: { light: 24, medium: 40 },
+      shares: {
+        left: { front: 25, back: 0 },
+        center: { front: 30, back: 15 },
+        right: { front: 25, back: 5 },
+      },
+    },
     luck: { min: 90, max: 110 },
     absorb: { num: 1, den: 2 },
     minDamage: { num: 1, den: 5 },

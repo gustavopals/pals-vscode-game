@@ -287,6 +287,10 @@ export const SetActiveFormationCommandSchema = command(
   'setActiveFormation',
   z.strictObject({ id: z.string().min(1).max(64).nullable() }),
 );
+export const SimulateBattleCommandSchema = command(
+  'simulateBattle',
+  z.strictObject({ formationId: z.string().min(1).max(64) }),
+);
 
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
@@ -318,6 +322,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   SaveFormationCommandSchema,
   DeleteFormationCommandSchema,
   SetActiveFormationCommandSchema,
+  SimulateBattleCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

@@ -30,7 +30,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 30,
+    schemaVersion: 31,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -124,6 +124,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       formations: [],
       activeFormationId: null,
       reports: [],
+      preview: null,
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

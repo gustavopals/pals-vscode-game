@@ -263,6 +263,16 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **O risco principal** soma os fatores do relatório que favorecem a Horda, por fator e ala, nas derrotas se houve alguma; é aproximado, porque o relatório só guarda os três fatores decisivos.
 - **As perdas esperadas** são a média por posto, arredondada ao inteiro mais próximo.
 
+**D-7. A ordem `simulateBattle` e a prévia na visão (V4D-T2.2, T2.4 e T2.5).** _(Decisões do agente, por aprovar; estado 30 → 31.)_
+
+- **O inimigo da prévia ainda é um palpite de conteúdo**: a Horda é da Fase E, então todo posto do inimigo é desconhecido (`?`). O total vem de `balance.battle.previewEnemy.units` pelo tamanho da incursão que a Ameaça marca (`raidSizeAt`): **24 (leve) e 40 (média)**, repartidos por posto em **25% Frente da esquerda, 30% Frente do centro, 15% Retaguarda do centro, 25% Frente da direita e 5% Retaguarda da direita** (números do agente, por aprovar). A estação é a de `lastProcessedAt`.
+- **A prévia entra sem muralha** (`wall: {}`): o HP da muralha é da V4E-T1. Até lá "Gloriosa" é igual a "Vitória" na prévia, e a Torre conta (dano de torre a partir do Nv3).
+- **A formação é um plano**: a prévia lança os soldados que o feudo tem, posto a posto, na ordem fixa dos postos (o que falta deixa o posto menor ou vazio); o herói comandante só conta se pode ser nomeado agora (`nominationReason`). Sem soldado nenhum, a visão diz isso em vez de apontar um fator.
+- **`army.preview` guarda mais do que o roadmap lista**: `signature` (o `hashText` dos postos e comandantes, sem o nome, para `previewStale`), `runs`, `enemy` (o palpite por posto, para o `?` da visão) e `risk` como `{ factor, wing, amount }`. **Apagar a formação da prévia apaga a prévia** (a guarda do estado exige que a formação exista).
+- **`stats.battlesSimulated`** mora em `stats` (registro livre de contadores), que já existia: o estado não ganha campo para ele, e a migração 30 → 31 só põe `army.preview: null`.
+- **A ordem recusa na ordem**: `FORMATION_NOT_FOUND`, depois `BARRACKS_REQUIRED`. O código mora em `warCouncilOrders.ts` (não em `armyOrders.ts`), junto da montagem da entrada da prévia, para `armyOrders.ts` não importar a prévia.
+- **O bot `militar`** simula a formação que monta antes de ativá-la; se a prévia der menos de 50% de vitória, salva "Defesa do bot B" (frente e Arqueiros repartidos por igual entre as três alas), simula e ativa a de melhor prévia. Só relê a visão (`army.preview.winsPercent`). Não tem faixa; `bands.ts`, `balance.test.ts` e `matrix.test.ts` ficaram como estavam.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

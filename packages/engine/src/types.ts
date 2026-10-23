@@ -1,4 +1,4 @@
-import type { BattleReport } from './battleReport';
+import type { BattleFactorId, BattleReport } from './battleReport';
 import type {
   BuildingId,
   DifficultyId,
@@ -10,6 +10,7 @@ import type {
   HeroHarmId,
   HeroStatusId,
   HeroTraitId,
+  HordeUnitId,
   InjurySeverityId,
   ItemSlotId,
   LineId,
@@ -523,7 +524,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 30;
+  schemaVersion: 31;
   seed: string;
   settings: GameSettings;
   /**
@@ -815,6 +816,41 @@ export type ArmyState = {
    * `balance.army.reportsKept`. Nenhuma batalha acontece ainda (Fase E): a lista fica vazia.
    */
   reports: BattleReport[];
+  /**
+   * A última prévia do Conselho de Guerra (V4D-T2; GDD §10.5): uma por vez, a nova substitui a
+   * anterior; `null` até a primeira. É o resultado de `simulateBattle`: só inteiros e textos.
+   */
+  preview: ArmyPreview | null;
+};
+
+/** O que `simulateBattle` grava: o agregado das 200 simulações (`previewBattle`), em inteiros. */
+export type ArmyPreview = {
+  formationId: string;
+  /** O instante de jogo da ordem. */
+  atMs: number;
+  /**
+   * Uma impressão digital do conteúdo da formação na hora da prévia (`hashText` dos postos e
+   * comandantes): é como a visão sabe que a formação mudou depois (`previewStale`).
+   */
+  signature: number;
+  runs: number;
+  /** Vitória (inclui a Gloriosa): venceu ou resistiu. */
+  wins: number;
+  /** Vitória sem brecha na muralha; contida em `wins`. */
+  glorious: number;
+  losses: number;
+  /** O fator da Horda que mais dano fez; `null` se nenhum se destacou. */
+  risk: { factor: BattleFactorId; wing: WingId | null; amount: number } | null;
+  /** A perda esperada por posto do jogador (a média, arredondada), na ordem dos postos. */
+  expectedLosses: Array<{
+    wing: WingId;
+    line: LineId;
+    unit: UnitId;
+    start: number;
+    expected: number;
+  }>;
+  /** O inimigo que a prévia supôs, por posto: o que se sabe, ou a unidade mais sorteada. */
+  enemy: Array<{ wing: WingId; line: LineId; known: boolean; unit: HordeUnitId; count: number }>;
 };
 
 export type GameEvent = {
@@ -968,7 +1004,13 @@ export type Command =
   /** Apaga uma formação salva; a Defesa ativa não se apaga (desative ou troque antes). */
   | { commandId: string; type: 'deleteFormation'; payload: { id: string } }
   /** Marca a Defesa ativa; `id: null` a desmarca. */
-  | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } };
+  | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } }
+  /**
+   * Roda a prévia do Conselho de Guerra (GDD §10.5; V4D-T2): 200 batalhas com gerador próprio,
+   * contra o inimigo provável da estação. Grava `army.preview` (uma por vez); não sorteia no
+   * gerador do estado nem cria entidade.
+   */
+  | { commandId: string; type: 'simulateBattle'; payload: { formationId: string } };
 
 export type CommandType = Command['type'];
 
@@ -2230,6 +2272,43 @@ export type ArmyView = {
   formations: FormationView[];
   /** O que o editor de formação precisa: o teto, os soldados que há e quem pode comandar. */
   editor: FormationEditorView;
+  /** A última prévia do Conselho de Guerra (V4D-T2.4); `null` até a primeira. */
+  preview: ArmyPreviewView | null;
+};
+
+/** A prévia do Conselho de Guerra na visão: percentuais inteiros e frases prontas. */
+export type ArmyPreviewView = {
+  formationId: string;
+  /** Quantas batalhas a prévia rodou. */
+  runs: number;
+  /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */
+  winsPercent: number;
+  gloriousPercent: number;
+  lossesPercent: number;
+  /** "Risco principal: Na ala esquerda, a Frente cai e a Horda alcança a Retaguarda desprotegida." */
+  riskText: string;
+  /** A perda esperada por posto do jogador, na ordem dos postos. */
+  expectedLosses: Array<{
+    wing: WingId;
+    line: LineId;
+    unit: UnitId;
+    unitLabel: string;
+    start: number;
+    expected: number;
+    text: string;
+  }>;
+  /** O inimigo que a prévia supôs por posto; `?` onde a informação não existe. */
+  knownEnemy: Array<{
+    wing: WingId;
+    wingLabel: string;
+    line: LineId;
+    lineLabel: string;
+    known: boolean;
+    unitLabel: string;
+    count: number;
+    /** "Saqueadores 18" ou "Lobos ~10 ?". */
+    text: string;
+  }>;
 };
 
 /** Um posto de uma formação, já rotulado: o plano e o que o feudo preenche hoje. */
@@ -2270,6 +2349,8 @@ export type FormationView = {
   shortfallText: string;
   /** A ordem `deleteFormation` seria recusada: é a Defesa ativa. */
   canDelete: boolean;
+  /** Há uma prévia desta formação e ela mudou depois (V4D-T2.4); `false` sem prévia. */
+  previewStale: boolean;
 };
 
 /** O que o editor de formação oferece (GDD §13.4). */

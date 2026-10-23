@@ -429,6 +429,12 @@ Os números são os de `balance.battle` (GDD §10.4; [ADR 0019](../../docs/decis
 - **`buildBattleReport(id, foughtAtMs, resolução)`** (`battleReport.ts`): o relatório em inteiros (por rodada; os três fatores decisivos por atribuição de dano, com desempate na ordem `BATTLE_FACTOR_IDS`; as baixas por posto; a muralha; a experiência e o destino dos comandantes). **O estado** (versão 30) guarda até `balance.army.reportsKept` (3) em `army.reports`, vazia até a Fase E.
 - **O comandante** só cai quando um golpe inimigo chega à ala dele sem a Frente de pé (−15 de moral, a aura acaba); fica ferido, e morre só em Rei de Ferro (`heroCapture: 'death'`). Quem não tem moral (`noMorale`) não debanda: o lado debanda só se tiver quem fuja.
 
+### Conselho de Guerra: a prévia (V4D-T2)
+
+- **`previewBattle(input)`** (`warCouncil.ts`) roda `balance.battle.previewRuns` (200) vezes o **mesmo `resolveBattle`**, cada uma com um gerador **próprio da prévia** (`seedStream` sobre a semente da partida, a formação, o que se sabe do inimigo e o número da rodada). Não recebe o estado e nunca toca `state.rng` nem `state.ids`; o `purity.test.ts` confere os imports do arquivo.
+- **`simulateBattle { formationId }`** (`warCouncilOrders.ts`) monta a entrada a partir do estado (os soldados que o feudo tem nos postos, o comandante que pode ser nomeado, a Torre, a regra `heroCapture`; o inimigo é o palpite de `balance.battle.previewEnemy` na estação de agora, com `?` em todos os postos até a Horda existir; a muralha só entra com a V4E-T1), grava `army.preview` (**uma por vez**, a nova substitui a velha) e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado nem cria entidade. Apagar a formação da prévia a apaga. O evento `battleSimulated` fica fora da Crônica (`CHRONICLE_HIDDEN_EVENT_TYPES`).
+- **Na visão** (`warCouncilView.ts`): `army.preview` com os percentuais inteiros (Vitória e Derrota somam 100), `riskText` montado a partir do fator (as frases estão em `warCouncilTexts`, no conteúdo), `expectedLosses` e `knownEnemy` por posto; `army.formations[].previewStale` quando os postos ou os comandantes mudaram depois da prévia (a impressão digital `army.preview.signature`).
+
 ## Sorteios
 
 O motor sorteia com um gerador próprio, com semente, em `src/random.ts`. `Math.random` é barrado pelo lint e por `purity.test.ts`.

@@ -67,6 +67,7 @@ describe('as linhas do Quartel', () => {
       shortfall: [],
       shortfallText: '',
       canDelete: false,
+      previewStale: false,
     };
     const withDefense = { ...army, formations: [formation] };
     expect(armyTreeLine(withDefense, 0)).toBe('Nv2 · 3/40 soldados · Defesa: Muro');
