@@ -366,7 +366,7 @@ Fim da rodada 2: moral D 100, A 100; D-EF 10 (res 16), D-CF 10 (res 8), D-DF 10 
 
 ## 4. Lote 2 do Conselho: primeiro lote de cinco (para o autor)
 
-**Rascunho para o autor ler antes da transcrição** (V4H-T1.3; decisão 23, 2026-10-23: as cartas são apresentadas em lotes de cinco). Nada disto está no código. O ponto de partida foi o branch `wip/v3f-t1-lote2` (`2352e39`, `refugees.ts`), reescrito: a cadeia agora dá **Gil ou Ximena** conforme o que o jogador fez na primeira carta, e as flags e os números foram conferidos contra `balance.ts` e as cartas do lote 1.
+**Lido pelo autor em 2026-10-23** (V4H-T1.3; decisão 23: as cartas são apresentadas em lotes de cinco). **Aprovadas como estão:** a cadeia "Os Refugiados" (4.1 a 4.3) e "Praga nos campos" (4.4). **Sai do lote:** "O aprendiz e o Mestre" (4.5), porque o Mestre ensinar o ofício ainda é mecânica proibida (CLAUDE.md, regra 6); a próxima carta da lista entra no lugar e volta ao autor no próximo lote. Nada disto está no código ainda. O ponto de partida foi o branch `wip/v3f-t1-lote2` (`2352e39`, `refugees.ts`), reescrito: a cadeia agora dá **Gil ou Ximena** conforme o que o jogador fez na primeira carta, e as flags e os números foram conferidos contra `balance.ts` e as cartas do lote 1.
 
 **Por que estas cinco.** Formam a trilha "gente que chega e o que ela sabe fazer": a cadeia completa "Os Refugiados" (3 cartas), que dá origem aos Mestres Gil e Ximena, a "Praga nos campos" (a primeira carta com risco à vista e opção extra por classe) e "O aprendiz e o Mestre" (a primeira que só aparece com um Mestre no feudo). Juntas pedem os ganchos de motor mais baratos do lote: `addMaster`, `rollEffect`, `heroClass` (na opção e no alívio do risco), o requisito de carta `minMasters` e o efeito `craftExperience`.
 
@@ -459,7 +459,7 @@ Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, a prag
 
 **O motor precisará:** `rollEffect` (novo: a opção grava o risco, e o sorteio acontece na virada de dia seguinte, no fluxo `council`), um efeito de recurso **percentual** (hoje `resources` é em unidades; propor `resourcesPercent` calculado sobre o estoque no instante), `heroClass: 'cleric'` no alívio da chance (conta herói em expedição, não conta o capturado; decisão 19). `heroClass` como requisito de opção não é usado nesta carta.
 
-### 4.5 O aprendiz e o Mestre (`masterApprentice`, avulsa)
+### 4.5 O aprendiz e o Mestre (`masterApprentice`, avulsa) — **fora do lote, por decisão do autor (2026-10-23)**
 
 | Campo | Valor |
 |---|---|
