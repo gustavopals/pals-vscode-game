@@ -111,7 +111,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       caravanGold: 0,
       caravanLost: 0,
       goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
-      goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
+      goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, army: 0, other: 0 },
       boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
       caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
       caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },

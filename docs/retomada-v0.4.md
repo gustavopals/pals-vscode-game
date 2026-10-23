@@ -28,7 +28,7 @@ local até Salvar; as ordens seguem o controlador e os dados da visão.
 
 ## Verificação
 
-Em andamento; resultados finais serão registrados antes do encerramento.
+Conferida em 2026-10-23, no commit da integração (`2a27faa`), antes da junção no `main`: `pnpm verify` (155 arquivos, 13.793 testes), integração (28 arquivos, 566) e `pnpm build` + navegador (152 cenários), todos verdes. Juntado no `main` em seguida, com a medição do ouro (V4C-T4.3), a revisão da Fase C (V4C-T4.1) e o roteiro do autor (V4C-T4.5).
 
 ## Próximo marco seguro
 

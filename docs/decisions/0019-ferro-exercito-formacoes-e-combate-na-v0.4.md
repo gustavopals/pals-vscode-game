@@ -67,3 +67,8 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 - Cada número acima é premissa de tarefa e vai para `packages/content` com teste. Se o simulador mostrar problema em algum, ele volta ao autor como pergunta pontual, como na v0.3.
 - As decisões 15 a 24 (lote 2) esperam a sessão V4E-T0 e o ADR 0020.
 - Continuam do autor, fora deste ADR: a tag `v0.3.0`, conferir `schema_version = 24` em toda partida ativa, o ato 23 (backup fora do servidor, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão; antes da primeira publicação da v0.4) e jogar a v0.3.
+
+## Resposta de 2026-10-23 (decisão 2, a medição V4C-T4.3)
+
+A medida da Fase C (docs/balance-v0.4.md, seção 6) mostrou que o treino de soldados leva cerca de 110 de ouro por partida e que o ouro parado continua alto no ritmo Rápido (157 mil no Regular e 300 mil no Dedicado na semana; 2 a 10 mil no Normal). O autor escolheu **não criar regra de ouro antes da Fase D** e levar o ouro parado do Rápido para **custos de ouro de fim de jogo na Muralha e na Fortaleza** (Fase E), dimensionados por esta medida sem apertar o ritmo Normal, com nova medição na V4E. O soldo de soldado ficou de fora.
+

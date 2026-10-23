@@ -379,13 +379,17 @@ export type MarketCounts = {
 
 /** De onde o ouro veio, fora a Mina: o balcão, as caravanas, o saque das expedições e o resto. */
 export type GoldIn = { counter: number; caravans: number; loot: number; other: number };
-/** Para onde o ouro foi: o soldo, a Taverna, as obras, o recrutamento, as compras e o resto. */
+/**
+ * Para onde o ouro foi: o soldo, a Taverna, as obras, o recrutamento, as compras, o treino de
+ * soldados (V4C-T4.3: a medição do ouro com o exército) e o resto.
+ */
 export type GoldOut = {
   wages: number;
   tavern: number;
   works: number;
   recruits: number;
   purchases: number;
+  army: number;
   other: number;
 };
 
@@ -403,6 +407,7 @@ const GOLD_OUT_BY_EVENT: Partial<Record<GameEvent['type'], keyof GoldOut>> = {
   constructionStarted: 'works',
   constructionAutoStarted: 'works',
   recruitmentStarted: 'recruits',
+  trainingStarted: 'army',
 };
 
 /** Os Mestres de uma hora: os do feudo, os da porta e onde cada um trabalha. */
@@ -430,7 +435,7 @@ export function noMarket(): MarketCounts {
     caravanGold: 0,
     caravanLost: 0,
     goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
-    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
+    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, army: 0, other: 0 },
     boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
     caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
     caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },

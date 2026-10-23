@@ -451,7 +451,7 @@ function marketTotalsOf(summaries: Summary[]): MarketTotals {
     caravanRuns: 0,
     mineGold: 0,
     goldIn: { counter: 0, caravans: 0, loot: 0, other: 0 },
-    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, other: 0 },
+    goldOut: { wages: 0, tavern: 0, works: 0, recruits: 0, purchases: 0, army: 0, other: 0 },
     boughtGold: { food: 0, wood: 0, stone: 0, iron: 0 },
     caravanGoldBy: { food: 0, wood: 0, stone: 0, iron: 0 },
     caravanUnits: { food: 0, wood: 0, stone: 0, iron: 0 },
@@ -555,7 +555,7 @@ export function goldTable(cells: readonly MatrixCell[]): string {
       'Ritmo',
       'Perfil',
       'Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas)',
-      'Destinos por partida (soldo · Taverna · obras · recrutamento · compras · cartas e outros)',
+      'Destinos por partida (soldo · Taverna · obras · recrutamento · compras · exército · cartas e outros)',
       'Ouro parado no fim, por partida',
     ],
     cells.map((cell) => {
@@ -573,6 +573,7 @@ export function goldTable(cells: readonly MatrixCell[]): string {
           goldOut.works,
           goldOut.recruits,
           goldOut.purchases,
+          goldOut.army,
           goldOut.other,
         ]
           .map((total) => per(total, market.runs))
