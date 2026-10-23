@@ -416,7 +416,7 @@ Os seis edifícios da v0.1 nascem no nível 1: para eles o expoente é `nível �
 | Celeiro / Armazém | 160 madeira, 80 pedra | 10 min |
 | Torre de Vigia | 120 madeira, 120 pedra, 50 ouro | 12 min |
 | Paliçada (Nv1) | 200 madeira, 50 pedra | 20 min |
-| Muralha de Pedra (Nv3) | 300 madeira, 450 pedra | 1 h |
+| Muralha de Pedra (Nv3) | 300 madeira, 450 pedra, 2.000 ouro `[v0.4]` | 1 h |
 | Taverna | 180 madeira, 60 pedra, 120 ouro | 15 min |
 | Mercado | 150 madeira, 100 pedra, 150 ouro | 15 min |
 | Guilda dos Aventureiros | 300 madeira, 100 pedra, 200 ouro | 20 min |
@@ -424,6 +424,8 @@ Os seis edifícios da v0.1 nascem no nível 1: para eles o expoente é `nível �
 | Ferreiro | 200 madeira, 200 pedra, 150 ouro | 20 min |
 | Capela | 200 madeira, 300 pedra, 200 ouro | 30 min |
 | Posto Avançado | 250 madeira, 150 pedra, 100 ouro | 45 min |
+
+`[v0.4]` **O ouro da Muralha** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md), "Números da Fase E"): os níveis 3 a 6 da Paliçada pedem ouro além da madeira e da pedra, ×3 por nível: Muralha de Pedra Nv3 2.000 e Nv4 6.000; Baluarte Nv5 18.000 e Nv6 54.000. O reparo da muralha custa ouro igual à pedra (50% da pedra do nível), também o de emergência entre as ondas. É o destino do ouro de fim de jogo do ritmo Rápido.
 
 O limite de 8 h de jogo garante que **nenhuma obra exige mais que uma noite**.
 
