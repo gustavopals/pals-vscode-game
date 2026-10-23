@@ -25,24 +25,35 @@ export function finishTraining(draft: GameState, atMs: number, events: GameEvent
   const { settlement } = draft;
   const spare = Math.max(0, settlement.population.villagers - balance.morale.populationFloor);
   const trained = Math.min(batch.amount, spare);
-  if (trained === 0) {
-    return;
+  const lost = batch.amount - trained;
+  if (trained > 0) {
+    settlement.population.villagers -= trained;
+    draft.army.units[batch.unit] += trained;
+    releaseExcessWorkers(draft);
+    emit(
+      events,
+      draft,
+      atMs,
+      'soldiersTrained',
+      {
+        unit: batch.unit,
+        amount: trained,
+        lost,
+        soldiers: draft.army.units[batch.unit],
+        villagers: settlement.population.villagers,
+      },
+      { tropa: troopText(batch.unit, trained) },
+    );
   }
-  settlement.population.villagers -= trained;
-  draft.army.units[batch.unit] += trained;
-  releaseExcessWorkers(draft);
-  emit(
-    events,
-    draft,
-    atMs,
-    'soldiersTrained',
-    {
-      unit: batch.unit,
-      amount: trained,
-      lost: batch.amount - trained,
-      soldiers: draft.army.units[batch.unit],
-      villagers: settlement.population.villagers,
-    },
-    { tropa: troopText(batch.unit, trained) },
-  );
+  // A Crônica sempre diz o que o piso de aldeões tirou do lote (C-3: o custo não volta).
+  if (lost > 0) {
+    emit(
+      events,
+      draft,
+      atMs,
+      'trainingShortfall',
+      { unit: batch.unit, ordered: batch.amount, amount: trained, lost },
+      { tropa: troopText(batch.unit, lost) },
+    );
+  }
 }
