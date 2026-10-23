@@ -1,8 +1,8 @@
 # Arquitetura da v0.3
 
-> **Retomada em 2026-10-22:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
-> Quartel, soldados e formações existem; a interface V4C-T3 está sendo integrada
-> e verificada nesta sessão. A revisão e a medição V4C-T4 ainda faltam.
+> **Retomada em 2026-10-23:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
+> Quartel, soldados, formações e a aba Exército estão no `main` (seção 19c), com a
+> revisão da fase corrigida e a medição do ouro respondida pelo autor.
 > O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
 > e a evidência atual estão em [Retomada da v0.4](retomada-v0.4.md).
 > Não houve publicação da v0.4 nesta sessão.
@@ -222,7 +222,7 @@ A invariante, testada por propriedade e sem tolerância, vale no estado, nos eve
 **Ordem fixa dentro do mesmo instante** (`processEventsAt`, em [`packages/engine/src/advance.ts`](../packages/engine/src/advance.ts); provada em `advance.test.ts`, "no mesmo instante a ordem é fixa", e, para cada mecânica, em `tavern.test.ts`, `expeditions.test.ts`, `market.caravans.test.ts` e `masters.test.ts`):
 
 1. Obras concluídas e, logo depois, o lote da forja que termina (`finishForge`: as armas de um lote, ou o item reparado que volta ao arsenal; v0.4, Fase B).
-2. Aldeões que chegam: os recrutas e, depois, os aldeões feridos que saram e voltam ao ofício.
+2. Aldeões que chegam: os recrutas e, depois, os aldeões feridos que saram e voltam ao ofício; logo depois, o lote do Quartel que termina (`finishTraining`: os soldados saem dos aldeões, até o piso de 3; o que o piso tirou sai como `trainingShortfall`; v0.4, Fase C).
 3. **Mestres que esperavam à porta** (`settleMasterArrivals`): a obra que ampliou as casas já terminou, e o recruta, que tinha a casa reservada, já entrou.
 4. Heróis feridos que saram (`recoverHeroes`): quem sara em um instante já pode partir na ordem dada nele.
 5. A virada do dia (`processCalendar`), ela mesma em ordem fixa: o fecho do desperdício do dia que acabou; o ano (e a lista de cartas vistas no ano, que zera; os lobos que voltam ao Covil limpo, `restoreTiles`, antes de a Ameaça subir); a estação (e a conta das estações sem frio); o amanhecer; a experiência do ofício; a moral (recálculo, sorteio do colono, sorteio da partida, deserção por fome); a cobrança do soldo em atraso (`turnWages`: Descontente e heróis que partem); **o Mercado** (`turnMarket`: o preço de cada recurso anda e o volume do dia volta, só com o Mercado de pé); o sorteio do Conselho, que vem depois da moral porque a faixa de moral é requisito de carta, e depois do Mercado para a carta daquela virada já encontrar o preço de hoje; e, por último, a Ameaça (subida, uivos do roteiro, sorteio da incursão).
@@ -476,6 +476,17 @@ Entram na v0.4 sem publicação (ADR 0019, decisões 3 a 5; estados 25 a 27):
 - **O Ferreiro** (`buildings.smithy`, Salão Nv4, até o Nv6) tem **uma fila** (`settlement.forge`). Um lote de armas custa 2 ferro + 1 madeira por arma, cobrado ao começar, e leva 6 min de jogo por arma, × 10/(10 + nível − 1); cancelar devolve 80%, e o que não cabe no depósito vai ao chão. As armas são uma contagem fora do estoque (`settlement.weapons`), sem cap e sem venda. O fim do lote é instante da linha do tempo, logo depois das obras.
 - **O desgaste e o reparo**: cada item tem `condition`, de 8, 10, 14 ou 20 pela raridade. Uma expedição concluída gasta um ponto de cada item da equipe; a perdida não volta com eles. O item em 0 fica sem bônus e no arsenal. O reparo usa a mesma fila da forja, custa 1 ferro por ponto (Comum e Incomum) ou 2 (Raro e Épico) e leva 2 min de jogo por ponto; não se cancela.
 - **Na tela** (V4B-T4): o ferro no estoque e no Mercado; o painel do Ferreiro na aba Feudo, com a forja em duas etapas e o lote em curso; a linha "Ferreiro" na árvore; `weaponsForged` no Retorno e nos avisos de "Todas"; e "Antes de partir" com o ferro parado e a forja parada. A tela do reparo é a parte que falta da V4B-T4.
+
+## 19c. O Quartel, os soldados e as formações (v0.4, Fase C)
+
+Entram na v0.4 sem publicação (ADR 0019, decisões 7 a 9 e 25; estados 28 e 29):
+
+- **O Quartel** (`buildings.barracks`, Salão Nv4, até o Nv8; 150 de madeira, 150 de pedra e 100 de ouro, resposta do autor à pendência C-1) treina as cinco unidades de `units.ts` (Lanceiro, Espadachim, Arqueiro, Cavaleiro e Escudeiro, com o ciclo de contra-ataques). O exército fica em `state.army` (`units`, `training`), com limite de `10 × nível`. Um lote por vez, de até 10, cobrado ao começar (as armas inteiras do Ferreiro entram no custo do Espadachim e do Cavaleiro); cancelar devolve 80% e pede a identidade do lote (`army.training.lotKey`; `TRAINING_CHANGED` se o lote mudou).
+- **O soldado sai da população** no fim do treino (um aldeão sem ofício, ou do edifício com mais gente), continua nas casas, come 1,5 por hora de jogo e não deserta. O piso de 3 aldeões protege na ordem e no fim do treino; o que o piso tira do lote não volta (decisão C-3) e sai na Crônica (`trainingShortfall`). Dispensar devolve um aldeão sem ofício, sem devolver o custo.
+- **As formações** (`army.formations`, até 5, e `army.activeFormationId`): seis postos (três alas, frente e retaguarda, até 20 soldados por posto, 30 com o Quartel Nv5+), um comandante por ala e uma Defesa ativa. A formação é um plano: pode pedir mais do que há, e a visão diz o que falta (`shortfall`). O comandante da Defesa ativa não parte em expedição nem escolta (`HERO_BUSY`), e sai do comando quando é dispensado, capturado ou morre. **Ainda não há batalha** (Fase D).
+- **Na tela** (V4C-T3): a aba **Exército** (`#/exercito`), com o painel do Quartel (o treino em duas etapas, com o custo do lote vindo da visão, `army.offer[].options`), o editor de formação (seis postos por teclado, sem arrastar), a lista das salvas, a Defesa ativa, o aviso "Sem Defesa ativa" na barra e em "Antes de partir", e o comandante na ficha do herói.
+- **No simulador:** a política mínima de guerra (erguer o Quartel e treinar Lanceiros e Arqueiros com o que sobra) está nos perfis da rodada padrão, e o bot `militar` (fora das faixas) ergue também o Ferreiro e monta uma formação. **O treino quase não gasta ouro** (cerca de 110 por partida; [balance-v0.4.md](balance-v0.4.md), seção 6): o ouro parado do ritmo Rápido vai para a Muralha e a Fortaleza da Fase E (resposta do autor, pendência C-9).
+- A revisão independente da fase está em [reviews/v0.4-fase-c.md](reviews/v0.4-fase-c.md).
 
 ## 20. Divergências aceitas em relação ao GDD
 

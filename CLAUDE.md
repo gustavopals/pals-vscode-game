@@ -3,8 +3,8 @@
 > **Retomada em 2026-10-23:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
 > Quartel, soldados, formações e a aba Exército existem e estão no `main`, com o
 > portão verde. Da V4C-T4 estão feitas a revisão (docs/reviews/v0.4-fase-c.md), a
-> medição do ouro (resposta do autor: Muralha cara em ouro, C-9) e o roteiro do autor;
-> faltam as correções dos achados e a integração final.
+> medição do ouro (resposta do autor: Muralha cara em ouro, C-9), o roteiro do autor e
+> as correções dos achados; falta só o autor jogar a fase (V4C-T4.5). A próxima é a Fase D.
 > O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
 > e a evidência atual estão em [Retomada da v0.4](docs/retomada-v0.4.md).
 > Não houve publicação da v0.4 nesta sessão.
