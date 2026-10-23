@@ -29,6 +29,7 @@ import {
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
+  warRaids,
 } from '@lotg/content';
 
 import { canonicalJson } from './canonical';
@@ -73,6 +74,7 @@ function hashedContent(): Record<string, unknown> {
     startingTiles,
     enemies,
     raidSizes,
+    warRaids,
     threatMarkTemplates,
     raidTemplates,
     injuryTemplates,
