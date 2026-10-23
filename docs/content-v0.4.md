@@ -1017,6 +1017,8 @@ O que resta segue a lista do roadmap (§16.3), menos as cinco acima. **As quatro
 
 ## 10. Lote 3 do Conselho: segundo lote de cinco (para o autor)
 
+**Lido e aprovado pelo autor em 2026-10-23** (decisão 23); as cartas marcadas com uma fase futura só entram com ela.
+
 **Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. São as cinco primeiras das dez que a seção 9.6 deixou: **três roteirizadas** ("O primeiro recruta", "Os corvos do norte" e "O desertor"), uma avulsa de herói ("O capitão veterano") e uma de guerra ("O espião da Horda"). **Três delas dependem de mecânica de fase futura** e vêm marcadas "**entra só com a Fase X**": a ficha já está escrita com a mecânica, para o autor ler, mas a carta só entra no catálogo depois da fase (a Fase E liga a Torre Nv3+, a Fortaleza e os presságios; ADR 0020, decisões 16 e 18). As duas que não dependem de fase nenhuma são a 10.1 e a 10.4.
 
 **Convenções.** As das seções 4 e 9, mais: **presságio** é a frase de Crônica que revela parte das ondas do cerco, com a clareza do nível da Torre (1: "muitas feras"; 3: tipo e ala; 5: composição exata; GDD §11.1); o efeito `omen { wave, clarity }` **entrega** um presságio sem sorteio, lido da versão atual da onda (ADR 0020, decisão 18: o presságio nunca mente sobre ela). Cada roteirizada tem `scripted` com um gatilho próprio, como a "Estrangeira ferida" (`atGameDay: 13`): sai no sorteio da audiência, na frente das sorteadas, uma vez por partida, e **pede lugar na mesa sem reservá-lo**.
@@ -1119,6 +1121,8 @@ Crônica (`release`): "No {dia}º dia {daEstacao}, o senhor de {feudo} soltou o 
 Estações: 10.1 sem estação (gatilho do Salão), 10.2 e 10.3 no outono (roteirizadas), 10.4 em qualquer estação, 10.5 no outono. Mecânicas da v0.4 que este lote usa: Quartel e Lanceiros (10.1), Taverna e o traço Veterano (10.4) e, nas três da Fase E, a Torre Nv3, a Fortaleza e os presságios (10.2, 10.3 e 10.5). Roteirizadas com gatilho novo: `onHallLevel`, `atSeasonStart` e `atSeasonEnd`. Ficam as cinco da seção 11.
 
 ## 11. Lote 3 do Conselho: terceiro lote de cinco (para o autor)
+
+**Lido e aprovado pelo autor em 2026-10-23** (decisão 23); as cartas marcadas com uma fase futura só entram com ela. A vigília de "A véspera" (11.5) segue a decisão 21: só adianta a convocação normal da milícia naquela noite (não produz, até 50% dos aldeões), dispensando o aviso da Torre.
 
 **Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. São as cinco últimas do lote 3: **"Saqueadores pedem passagem"** e **"A muralha rachada"** (Fase E: o Acampamento e a Muralha), **"Conselho de Guerra"** (Fase E: a incursão completa; é a que usa as formações), **"Depois da tempestade"** (Fase G: o Rescaldo) e **"A véspera"** (roteirizada, Fase G: o Cerco marcado). **Todas as cinco são "entra só com a Fase X"**, e a ficha vem escrita com a mecânica para o autor ler. As convenções são as das seções 4, 9 e 10.
 
