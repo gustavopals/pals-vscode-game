@@ -10,6 +10,7 @@ import {
   refuse,
   saveFormationOrder,
 } from './test-helpers';
+import { cloneState } from './state';
 import { riskText } from './warCouncilView';
 import { previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
@@ -181,17 +182,17 @@ describe('previewStale (V4D-T5)', () => {
   it('dispensar ou treinar soldados da formação, e a Torre, desatualizam a prévia', () => {
     const simulated = accept(yard(), simulate('formation-1')).state;
     expect(staleOf(simulated)).toBe(false);
-    const dismissed = structuredClone(simulated);
+    const dismissed = cloneState(simulated);
     dismissed.army.units.spearman -= 1;
     expect(staleOf(dismissed)).toBe(true);
-    const tower = structuredClone(simulated);
+    const tower = cloneState(simulated);
     tower.settlement.buildings.watchtower += 1;
     expect(staleOf(tower)).toBe(true);
   });
 
   it('uma unidade que a formação não usa não desatualiza', () => {
     const simulated = accept(yard(), simulate('formation-1')).state;
-    const other = structuredClone(simulated);
+    const other = cloneState(simulated);
     other.army.units.knight += 3;
     expect(staleOf(other)).toBe(false);
   });
