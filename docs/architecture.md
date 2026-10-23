@@ -2,7 +2,8 @@
 
 > **Retomada em 2026-10-23:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
 > Quartel, soldados, formações e a aba Exército estão no `main` (seção 19c), com a
-> revisão da fase corrigida e a medição do ouro respondida pelo autor.
+> revisão da fase corrigida e a medição do ouro respondida pelo autor; da Fase D, a
+> batalha, a prévia e os comandantes (seção 19d, estado 31).
 > O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
 > e a evidência atual estão em [Retomada da v0.4](retomada-v0.4.md).
 > Não houve publicação da v0.4 nesta sessão.
@@ -487,6 +488,16 @@ Entram na v0.4 sem publicação (ADR 0019, decisões 7 a 9 e 25; estados 28 e 29
 - **Na tela** (V4C-T3): a aba **Exército** (`#/exercito`), com o painel do Quartel (o treino em duas etapas, com o custo do lote vindo da visão, `army.offer[].options`), o editor de formação (seis postos por teclado, sem arrastar), a lista das salvas, a Defesa ativa, o aviso "Sem Defesa ativa" na barra e em "Antes de partir", e o comandante na ficha do herói.
 - **No simulador:** a política mínima de guerra (erguer o Quartel e treinar Lanceiros e Arqueiros com o que sobra) está nos perfis da rodada padrão, e o bot `militar` (fora das faixas) ergue também o Ferreiro e monta uma formação. **O treino quase não gasta ouro** (cerca de 110 por partida; [balance-v0.4.md](balance-v0.4.md), seção 6): o ouro parado do ritmo Rápido vai para a Muralha da Fase E, com o reparo também em ouro (resposta do autor, pendência C-9; números no ADR 0020).
 - A revisão independente da fase está em [reviews/v0.4-fase-c.md](reviews/v0.4-fase-c.md).
+
+## 19d. A batalha, a prévia e os comandantes (v0.4, Fase D)
+
+Entram na v0.4 sem publicação (ADR 0019, decisões 10 e 11, e as respostas D-1 a D-8 de 2026-10-23; estados 30 e 31):
+
+- **A batalha** (`battle.ts`, `resolveBattle`) é uma função pura, em inteiros e frações: até 12 rodadas, iniciativa com desempate pelo defensor e por ala e linha, contra-ataques ×3/2, flanco ×5/4, a muralha por ala (o golpe que a rompe para nela), as torres, as auras de comandante, o Mago, a Clériga, o Escudeiro, a moral e a debandada; as baixas valem na hora, com um arredondamento só, no dano efetivo. Os oito inimigos estão em `enemies.ts` (`hordeUnits`). **Os sete cenários escritos à mão** em `docs/content-v0.4.md`, seção 2, são lidos por `battle.test.ts` e batem com o motor linha a linha.
+- **O sorteio** é a família de fluxo `battle:<id>` (`battleTurn.ts`, `fightBattle`): uma sorte de 90 a 110 por ataque, pedida só por quem ataca; o fluxo nasce e é apagado no mesmo instante, e por isso nunca é gravado. **Nenhuma incursão chama a batalha ainda** (Fase E).
+- **O relatório** (`battleReport.ts`) traz as rodadas, os três fatores decisivos por atribuição de dano, as baixas por posto, a muralha e a experiência dos comandantes; `army.reports` guarda os três últimos (estado 30). `applyBattleOutcome` (`battleOutcome.ts`) aplica ao feudo o ferimento ou a morte do comandante (só em Rei de Ferro), a experiência e o desgaste do equipamento, e emite `battleFought`, `commanderInjured` e `commanderDied`.
+- **A prévia do Conselho de Guerra** (`warCouncil.ts`, `previewBattle`): 200 batalhas com o mesmo `resolveBattle`, cada uma com um gerador próprio semeado por `hash` (nunca `state.rng`), contra a composição-base da estação; cerca de 28 ms. Com o inimigo conhecido, a prévia dá o mesmo relatório que a batalha real (critério 2). A ordem `simulateBattle` grava `army.preview` (estado 31) e conta em `stats.battlesSimulated`; a visão traz os percentuais, o risco em uma frase e `previewStale`.
+- A Muralha de Pedra, o Baluarte e a Torre Nv3+ estão no conteúdo (`futureLevels`) e ainda não no estado.
 
 ## 20. Divergências aceitas em relação ao GDD
 
