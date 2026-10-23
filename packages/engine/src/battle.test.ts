@@ -323,6 +323,19 @@ describe('as regras fora dos sete cenários', () => {
     expect(healed.residual + healed.soldiers * 20).toBeGreaterThan(0);
   });
 
+  it('o comandante de uma ala sem soldados no começo não dá moral nem conta (D-5)', () => {
+    const resolution = resolveBattle(
+      battle(
+        { center: { front: ['spearman', 10] } },
+        { center: { front: ['raider', 10] } },
+        { commanders: { left: { heroId: 'hero-1', heroClass: 'cleric' } } },
+      ),
+      EVEN_LUCK,
+    );
+    expect(resolution.startMorale.D).toBe(100);
+    expect(resolution.commanders).toEqual([]);
+  });
+
   it('o Guerreiro dá +15% de defesa à ala, e o Arqueiro +15% ao dano à distância da ala', () => {
     const resolution = resolveBattle(
       battle(
