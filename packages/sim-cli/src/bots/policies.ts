@@ -2215,6 +2215,7 @@ export const montarFormacao: Policy = {
     }
     const saved = army.formations.find((entry) => entry.name === FORMATION_NAME);
     let current = view;
+    let changed = false;
     if (saved === undefined || saved.total < planned) {
       if (saved === undefined && !army.editor.canSaveNew) {
         return view;
@@ -2225,13 +2226,98 @@ export const montarFormacao: Policy = {
         posts,
         commanders: { left: null, center: null, right: null },
       });
+      changed = true;
     }
     const target = current.army.formations.find((entry) => entry.name === FORMATION_NAME);
-    return target !== undefined && !target.isActive
-      ? act('setActiveFormation', { id: target.id })
+    if (target === undefined) {
+      return current;
+    }
+    const names = [FORMATION_NAME, SPREAD_FORMATION_NAME];
+    const alreadyActive = current.army.formations.some(
+      (entry) => entry.isActive && names.includes(entry.name),
+    );
+    if (!changed && alreadyActive) {
+      return current;
+    }
+    // Simula antes de ativar (V4D-T2.5): a prévia abaixo de 50% de vitória manda tentar a outra
+    // disposição, e fica a que a prévia der melhor. Lê só a visão (`army.preview`).
+    current = await act('simulateBattle', { formationId: target.id });
+    const first = current.army.preview?.winsPercent ?? 100;
+    let best = target;
+    if (first < MIN_PREVIEW_WINS_PERCENT) {
+      const spread = await trySpreadFormation(current, act, have, army.editor.postMax);
+      if (spread !== null && spread.winsPercent > first) {
+        best = spread.formation;
+      }
+      current = spread?.view ?? current;
+    }
+    const chosen = current.army.formations.find((entry) => entry.id === best.id);
+    return chosen !== undefined && !chosen.isActive
+      ? act('setActiveFormation', { id: chosen.id })
       : current;
   },
 };
+
+/** A prévia abaixo disto (em % de vitória) faz o bot tentar outra disposição (V4D-T2.5). */
+const MIN_PREVIEW_WINS_PERCENT = 50;
+const SPREAD_FORMATION_NAME = 'Defesa do bot B';
+
+/**
+ * A outra disposição do bot: as unidades da frente repartidas por igual entre as três alas, e os
+ * Arqueiros por igual atrás. Salva (ou regrava) como "Defesa do bot B" e simula; devolve a
+ * formação, a vitória % e a visão de depois, ou `null` se não coube salvar.
+ */
+async function trySpreadFormation(
+  view: ViewState,
+  act: Act,
+  have: (id: UnitId) => number,
+  postMax: number,
+): Promise<{
+  formation: ViewState['army']['formations'][number];
+  winsPercent: number;
+  view: ViewState;
+} | null> {
+  const frontLine = have('shieldbearer') > 0 ? 'shieldbearer' : 'spearman';
+  const share = (id: UnitId, part: number) =>
+    Math.min(postMax, Math.floor(have(id) / 3) + (part < have(id) % 3 ? 1 : 0));
+  const wings = ['left', 'center', 'right'] as const;
+  const posts = Object.fromEntries(
+    wings.map((wing, part) => {
+      const front = share(frontLine, part);
+      const back = share('archer', part);
+      return [
+        wing,
+        {
+          front: front > 0 ? { unit: frontLine, count: front } : null,
+          back: back > 0 ? { unit: 'archer', count: back } : null,
+        },
+      ];
+    }),
+  ) as Record<
+    (typeof wings)[number],
+    { front: { unit: UnitId; count: number } | null; back: { unit: UnitId; count: number } | null }
+  >;
+  const existing = view.army.formations.find((entry) => entry.name === SPREAD_FORMATION_NAME);
+  if (existing === undefined && !view.army.editor.canSaveNew) {
+    return null;
+  }
+  const saved = await act('saveFormation', {
+    id: existing?.id ?? null,
+    name: SPREAD_FORMATION_NAME,
+    posts,
+    commanders: { left: null, center: null, right: null },
+  });
+  const formation = saved.army.formations.find((entry) => entry.name === SPREAD_FORMATION_NAME);
+  if (formation === undefined) {
+    return null;
+  }
+  const simulated = await act('simulateBattle', { formationId: formation.id });
+  return {
+    formation,
+    winsPercent: simulated.army.preview?.winsPercent ?? 0,
+    view: simulated,
+  };
+}
 
 /** A política mínima de guerra dos bots da rodada padrão: Lanceiros e Arqueiros. */
 export const treinarMinimo: Policy = treinarSoldados(['spearman', 'archer']);
