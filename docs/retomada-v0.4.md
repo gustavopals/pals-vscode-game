@@ -46,3 +46,16 @@ A Fase C não fecha apenas com a interface: revisão e medição continuam pende
 Não publicar: a primeira publicação foi combinada para o fim da Fase E, com
 backup e os procedimentos operacionais do ADR 0019. O arquivo local `.hermes.md`
 não faz parte desta entrega.
+
+## Retomada em 2026-10-23
+
+A Fase C fechou no `main` (`33af479`), sem o autor jogar, por escolha dele, com o portão inteiro verde. Da Fase D estão no `main` a V4D-T1.1 (os sete cenários à mão, `docs/content-v0.4.md`, seção 2) e a T1.2 (os oito inimigos, `packages/content/src/enemies.ts`), e as respostas do autor às leituras D-1 a D-4 (ADR 0019, "Respostas de 2026-10-23"; GDD §10.4). Nenhum dos sete cenários tem arqueiro da Horda, então a D-3 não muda conta nenhuma.
+
+**Plano da V4D-T1.3 em diante (próxima sessão):**
+
+1. T1.3: `packages/engine/src/battle.ts`, `resolveBattle(defender, attacker, field, rng)` pura, em inteiros e frações, com a sorte injetada; os sete cenários viram `__golden__/battle-*.md` com a sorte fixada em 100 e têm de bater com a conta à mão.
+2. T1.4: a família de fluxo `battle:<id>` em `RNG_STREAM_FAMILIES`, apagada no fim do instante; a sorte de 90 a 110 por esquadrão por rodada, em ordem fixa.
+3. T1.5 e T1.6: `battleReport.ts` (os três fatores por atribuição de dano), `army.reports` com teto 3, e o estado 29 → 30 (`migrations/v29.ts` e `v30.ts`, retratos congelados).
+4. T1.7: as propriedades (termina em até 12 rodadas, baixas nunca passam dos efetivos, o relatório é função da entrada e do fluxo).
+
+Nenhuma incursão chama a batalha nesta tarefa (Fase E). Não publicar.
