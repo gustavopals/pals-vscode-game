@@ -1,6 +1,7 @@
-import { balance, buildings } from '@lotg/content';
+import { balance, buildings, unitTexts } from '@lotg/content';
 
 import { nextDayBoundary } from './clock';
+import { soldierCount } from './army';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { moraleRatio, producerOf } from './economy';
@@ -160,8 +161,16 @@ function foodReserveView(
         `para ${mouths}, e faltarão ${thousands(later.missing)}. A moral deixa de ganhar ${bonus}.`,
     };
   }
+  const soldiers = soldierCount(state);
+  const withSoldiers =
+    soldiers === 0
+      ? ''
+      : (soldiers === 1 ? unitTexts.reserveSoldier : unitTexts.reserveSoldiers).replace(
+          '{soldados}',
+          plural(soldiers, 'soldado', 'soldados'),
+        );
   const goal =
-    `Com ${thousands(needed)} de ${food} guardada (o que ${people(villagers)} ${villagers === 1 ? 'come' : 'comem'} em ${reserveText}), ` +
+    `Com ${thousands(needed)} de ${food} guardada (o que ${people(villagers)} ${villagers === 1 ? 'come' : 'comem'} em ${reserveText}${withSoldiers}), ` +
     `a moral ganha ${bonus}.`;
   return {
     ...numbers,

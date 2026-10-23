@@ -1186,6 +1186,22 @@ describe('a moral na visão', () => {
     expect(morale.breakdown).toBe('50 (base) = 50');
   });
 
+  it('com soldados a dica diz que eles comem mais', () => {
+    const one = view(
+      small(40_000, (draft) => {
+        draft.army.units.spearman = 1;
+      }),
+    ).morale.foodReserve.text;
+    expect(one).toContain('em 24 h, contando 1 soldado, que come mais), a moral ganha');
+    const many = view(
+      small(40_000, (draft) => {
+        draft.army.units.spearman = 2;
+        draft.army.units.archer = 1;
+      }),
+    ).morale.foodReserve.text;
+    expect(many).toContain('em 24 h, contando 3 soldados, que comem mais), a moral ganha');
+  });
+
   it('a conta é a da virada: a comida que o consumo leva antes dela já não vale o bônus', () => {
     // 125 de comida, 5 bocas e ninguém na Fazenda: agora cobre os 120, mas em 2 h serão 115.
     const state = small(125_000);
