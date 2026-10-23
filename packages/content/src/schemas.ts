@@ -718,6 +718,35 @@ const balanceFields = z.strictObject({
     formationNameMaxLength: positiveInt,
     reportsKept: positiveInt,
   }),
+  // A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18).
+  horde: z.strictObject({
+    cunning: z.strictObject(
+      Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, ratio])) as Record<
+        (typeof DIFFICULTY_IDS)[number],
+        typeof ratio
+      >,
+    ),
+    counterWeights: z.strictObject(
+      Object.fromEntries(UNIT_IDS.map((id) => [id, nonNegInt])) as Record<
+        (typeof UNIT_IDS)[number],
+        typeof nonNegInt
+      >,
+    ),
+  }),
+  omens: z
+    .strictObject({
+      chancePercent: positiveInt,
+      perTowerLevelAbove1: nonNegInt,
+      maxChancePercent: positiveInt,
+      clarityByLevel: z.array(z.enum(['vague', 'partial', 'exact'])).min(1),
+      kept: positiveInt,
+      roundTo: positiveInt,
+    })
+    .refine(({ maxChancePercent }) => maxChancePercent <= 100, 'a chance não passa de 100')
+    .refine(
+      ({ chancePercent, maxChancePercent }) => chancePercent <= maxChancePercent,
+      'a chance inicial cabe no teto',
+    ),
   // A muralha (GDD §6.1 a §6.3; ADR 0020): a vida por ala em cada nível da Paliçada e o reparo.
   wall: z
     .strictObject({

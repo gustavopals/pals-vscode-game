@@ -32,6 +32,9 @@ export type {
   FutureWatchtowerLevelDef,
   WallDef,
   WatchtowerLevelDef,
+  HordeMindDef,
+  OmenClarityId,
+  OmensDef,
 } from './balance';
 export { buildings } from './buildings';
 export type { BuildingDef, FutureBuildingLevel } from './buildings';
@@ -47,6 +50,7 @@ export {
   wingLabels,
   wingLocatives,
 } from './formations';
+export { omenTexts } from './omens';
 export { COUNTER_CYCLE, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';
 export { ARCHETYPES, ARCHETYPE_COUNTERS, hordeBaseMix, hordeUnits } from './enemies';
