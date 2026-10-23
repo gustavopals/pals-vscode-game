@@ -212,6 +212,39 @@ export type PalisadeLevelDef = {
 };
 
 /**
+ * O que a Torre de Vigia dos níveis 3 a 5 vai dar (V4E-T1; ADR 0020, decisão 16). Ainda não
+ * ligado ao jogo: `threat.watchtowerLevels` continua com os dois níveis de hoje.
+ */
+export type FutureWatchtowerLevelDef = {
+  readonly warningRealMs: number;
+  readonly revealsRaidSize: true;
+  /**
+   * O que a Torre diz da composição: só os arquétipos ("muitas feras"), a ordem de grandeza por
+   * ala ("cerca de 30 lobos") ou a composição exata (GDD §8.3, presságios).
+   */
+  readonly composition: 'archetypes' | 'approximate' | 'exact';
+  /** O dano fixo por ala em cada rodada: `battle.towers.damagePerLevel × (nível − 2)`. */
+  readonly towerDamage: number;
+};
+
+/**
+ * A muralha de pedra (GDD §6.1 a §6.3; ADR 0020, "Números da Fase E"): a vida de **cada ala**
+ * por nível da Paliçada e o reparo.
+ */
+export type WallDef = {
+  /** A vida de cada ala em cada nível da Paliçada, a partir do nível 1. */
+  readonly hpByLevel: readonly number[];
+  readonly repair: {
+    /** A parte da pedra do nível que o reparo custa. */
+    readonly stoneRatio: Ratio;
+    /** O ouro do reparo, como parte da pedra do reparo (1: ouro igual à pedra). */
+    readonly goldRatio: Ratio;
+    /** O tempo de jogo de reparar 25% da vida de uma ala. */
+    readonly quarterMs: number;
+  };
+};
+
+/**
  * A Ameaça (GDD §8.2; ADR 0014, decisões 10 e 11): um número de 0 a `max` que só muda na virada
  * de cada dia de jogo e só aparece para quem tem a Torre de Vigia. Os prazos são tempo de jogo e
  * escalam com o ritmo.
@@ -247,6 +280,8 @@ export type ThreatDef = {
   readonly watchtowerLevels: readonly WatchtowerLevelDef[];
   /** Um item por nível da Paliçada, a partir do nível 1. */
   readonly palisadeLevels: readonly PalisadeLevelDef[];
+  /** Os níveis 3 a 5 da Torre, ainda não ligados ao jogo (V4E-T1). */
+  readonly futureWatchtowerLevels?: readonly FutureWatchtowerLevelDef[];
   /**
    * A parte do estrago que passa quando a incursão é maior do que a Paliçada segura: a cerca
    * não a detém, mas ainda lhe tira a força. Vale para a perda de recursos e para os feridos.
@@ -718,6 +753,7 @@ export type Balance = {
   readonly smithy: SmithyDef;
   readonly army: ArmyDef;
   readonly battle: BattleDef;
+  readonly wall: WallDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -993,6 +1029,23 @@ export const balance: Balance = {
       { warningRealMs: 2 * HOUR_MS, revealsRaidSize: true },
     ],
     palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'medium' }],
+    // Proposta do agente, por aprovar (D-7): 3, 4 e 5 h reais (ADR 0020, decisão 16); dano de
+    // 12 × (nível − 2), o de `battle.towers`.
+    futureWatchtowerLevels: [
+      {
+        warningRealMs: 3 * HOUR_MS,
+        revealsRaidSize: true,
+        composition: 'archetypes',
+        towerDamage: 12,
+      },
+      {
+        warningRealMs: 4 * HOUR_MS,
+        revealsRaidSize: true,
+        composition: 'approximate',
+        towerDamage: 24,
+      },
+      { warningRealMs: 5 * HOUR_MS, revealsRaidSize: true, composition: 'exact', towerDamage: 36 },
+    ],
     palisadeBreach: { num: 1, den: 2 },
   },
   // GDD §8.2 e §5.7 (ADR 0014, decisões 10 e 20). Os uivos soam no início do 10º dia de jogo do
@@ -1216,5 +1269,15 @@ export const balance: Balance = {
     },
     commanderXp: 40,
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
+  },
+  // A vida por ala é proposta do agente, por aprovar (D-7): 60 e 100 nos níveis da Paliçada (as
+  // premissas dos cenários de docs/content-v0.4.md, seção 2), depois cerca de × 1,6 por nível.
+  wall: {
+    hpByLevel: [60, 100, 200, 320, 500, 800],
+    repair: {
+      stoneRatio: { num: 1, den: 2 },
+      goldRatio: { num: 1, den: 1 },
+      quarterMs: 15 * MINUTE_MS,
+    },
   },
 };
