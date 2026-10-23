@@ -830,6 +830,8 @@ Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, o duel
 
 ## 8. Lote 2 do Conselho: o lote E, as três últimas (para o autor)
 
+**Lido e aprovado pelo autor em 2026-10-23, as cartas como estão** (decisão 23).
+
 **Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote E da lista da 4.6: as três cartas que sobravam, uma delas roteirizada. Com elas, o lote 2 fica com 22 das 23 cartas; a 23ª, "O aprendiz e o Mestre" (4.5), espera o Mestre poder ensinar o ofício (regra 6 do CLAUDE.md). **Morte de herói não aparece em nenhuma carta.** Os ganchos de motor são pequenos: o requisito `injuredHero` e o efeito `healHero` (8.1), os já aprovados `revealDestination` e `undiscovered` da seção 5 (8.2) e nada novo na 8.3.
 
 **Convenções.** As da seção 4: dias de jogo, prazo de 24 h reais, ids estáveis em inglês, "Autoaplica" é o que o conselho faz se o prazo passar, e a opção que o conselho aplica sozinho nunca tira recurso nem moral em Camponês e em Senhor. Tamanhos de efeito como os do lote 1 (ouro de 30 a 120, comida de 30 a 90).
@@ -896,6 +898,8 @@ Crônica (`wait`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o mer
 Com estas três, o lote 2 está inteiro nas seções 4 a 8, **exceto o aprendiz** (4.5), que volta quando o Mestre puder ensinar o ofício.
 
 ## 9. Lote 3 do Conselho: primeiro lote de cinco (para o autor)
+
+**Lido e aprovado pelo autor em 2026-10-23, as cartas como estão** (decisão 23).
 
 **Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. O lote 3 tem 15 cartas (roadmap, §16.3); este é o primeiro lote de cinco: a cadeia **"A Filha do Ferreiro"** (9.1 a 9.3, a quinta e última cadeia do GDD §7.1, adaptada à v0.4) e duas avulsas de guerra que só usam o que já existe: **"Mercenários de passagem"** (9.4: Quartel, soldados e armas) e **"Ferro de contrabando"** (9.5: ferro e Mercado). **Nenhuma carta pede batalha nem incursão nova.**
 
