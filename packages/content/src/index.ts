@@ -148,11 +148,6 @@ export type {
 } from './council';
 export { councilCards } from './cards';
 export { WAR_RAID_SIZE_IDS, warRaids } from './raidWar';
-export type {
-  WarRaidLossDef,
-  WarRaidSizeId,
-  WarRaidsDef,
-  WarScriptedRaidDef,
-} from './raidWar';
+export type { WarRaidLossDef, WarRaidSizeId, WarRaidsDef, WarScriptedRaidDef } from './raidWar';
 export { enemies, raidSizes, startingTiles, tileTypes } from './tiles';
 export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';
