@@ -476,17 +476,9 @@ Crônica (`keep`): "No {dia}º dia {daEstacao}, o Mestre {mestre} seguiu no trab
 
 **O motor precisará:** requisito de carta `minMasters` (o branch antigo já tinha o tipo), a lacuna `{mestre}` no texto e na Crônica (o motor escolhe um dos Mestres que trabalham) e um efeito novo `craftExperience` sobre o edifício desse Mestre.
 
-### 4.6 O que fica para os próximos lotes (18 cartas)
+### 4.6 O que fica para os próximos lotes (13 cartas)
 
-Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três.
-
-**Lote B, "O Mercador Misterioso" e o Mercado (5).**
-
-- 6. O Mercador Misterioso (cadeia 1/3): comprar o mapa, prender o homem ou recusar. Pede Mercado Nv1 e `revealDestination`.
-- 7. O que o mapa mostrava, ou a resposta dos mercadores (cadeia 2/3): seguir a pista ou vender a informação.
-- 8. A última oferta do mercador (cadeia 3/3): fechar com lucro, com um destino novo ou com um inimigo a menos.
-- 9. Boicote dos mercadores (avulsa): ceder, resistir com preço pior ou buscar outra rota. Pede `marketPrice`.
-- 10. A caravana real (avulsa): vender a ela agora a bom preço ou guardar para o inverno. Pede `marketPrice`.
+Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três. **O lote B (cartas 6 a 10) saiu: está na seção 5, para o autor ler.** Os lotes seguintes mantêm as letras C, D e E. O "aprendiz e o Mestre" (4.5) volta à lista quando o Mestre puder ensinar o ofício.
 
 **Lote C, "O Cobrador do Rei" e o início do Lobo Branco (5).**
 
@@ -510,4 +502,118 @@ Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três.
 - 22. O mapa rasgado (avulsa): comprar meio mapa, que revela um destino mais cedo. Pede Guilda e `revealDestination`.
 - 23. O mercador itinerante (roteirizada, dia 20 do ano 1): trocar excedente por ouro uma vez, a preço ruim, ou esperar ter o Mercado. Sai por `scripted`; prepara o Mercado.
 
-A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as cinco deste lote e as 18 acima, fecham as 23 do roadmap da v0.4 (as 24 da v0.3 menos ela).
+A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as quatro aprovadas da seção 4, as cinco da seção 5 e as 13 acima, são 22 das 23 do roadmap da v0.4 (as 24 da v0.3 menos ela); a 23ª é o aprendiz (4.5), que espera o Mestre poder ensinar.
+
+## 5. Lote 2 do Conselho: segundo lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote B da lista da 4.6: a cadeia "O Mercador Misterioso" (3 cartas) e as duas cartas que mexem no preço do Mercado ("Boicote dos mercadores" e "A caravana real"). **Nenhuma das quatro primeiras da lista foi pulada**, e a quinta é a próxima da lista (a 10, "A caravana real"), no lugar do aprendiz. Nenhuma depende de mecânica proibida pelo CLAUDE.md (regra 6): `marketPrice` (os efeitos de carta sobre o preço, `market.effects`) é justamente a mecânica da V4H-T1 que este lote pede, e `revealDestination` só liga uma entrada que o motor já tem (`map.discovered`, a mesma que a Patrulha e a Floresta Antiga usam para revelar as Ruínas e a Mina Abandonada). Se o autor não quiser que a V4H-T1 crie `market.effects`, as cartas 5.4 e 5.5 saem do lote, e a 5.1 perde só a alta de 20% nos preços (a opção `imprison` continuaria com ouro e moral).
+
+**Por que estas cinco.** Fecham a ideia "o Mercado também tem política": um forasteiro que vende um mapa, a vingança ou a paz com os mercadores, e dois choques de preço que o jogador pode aproveitar ou aguentar. Pedem três ganchos de motor: `revealDestination`, `marketPrice` e dois requisitos pequenos (`undiscovered` na carta e na opção, e `flags` na opção).
+
+**Convenções.** As da seção 4: dias de jogo, prazo de 24 h reais, ids estáveis em inglês, "Autoaplica" é o que o conselho faz se o prazo passar, tamanhos de efeito como os do lote 1 (moral de ±5 a ±10 por 2 a 4 dias, comida de 30 a 90, ouro de 30 a 120). Números conferidos contra `balance.ts`: o Mercado vai de Nv1 a Nv5; o passeio fica entre 60% e 160% da base, e a venda a 85%. `marketPrice` multiplica o preço **exibido** (compra e venda) sem alterar o passeio (GDD §5.9), de modo que a alta de preço não abre arbitragem (a venda a 85% da compra continua valendo). Flags da cadeia: `merchant.map`, `merchant.hostile`, `merchant.lead`, `merchant.sold`.
+
+### 5.1 O Mercador Misterioso (`mysteriousMerchant`, cadeia 1/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Verão; Mercado Nv1 e Guilda Nv1; as Ruínas de Vel'Thar ainda não reveladas; sem as flags `merchant.map` e `merchant.hostile` |
+| Texto | "Um forasteiro de capa verde armou banca à beira do Mercado sem pedir licença. Vende pouca coisa e promete muito: diz ter um mapa da serra, desenhado por alguém que voltou de lá. Os guardas olham para ele com desconfiança, e ele olha para a bolsa do senhor." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `buy` "Comprar o mapa" | Pede 80 de ouro em estoque; custo 80 de ouro. **Revela as Ruínas de Vel'Thar** como destino da Guilda. Flag `merchant.map`; a carta 2 chega em 4 dias | "O mapa é bom ou é desenho de bêbado, e o feudo só saberá depois." | |
+| `imprison` "Prender o forasteiro" | +50 de ouro (o que ele carregava); moral −10 por 2 dias; **os preços do Mercado sobem 20% por 2 dias** (os quatro recursos). Flag `merchant.hostile`; a carta 2 chega em 3 dias | "A bolsa dele paga a cela, e os mercadores da estrada não esquecem." | Rei de Ferro |
+| `refuse` "Mandar o homem embora" | Sem efeito | "Quem vende mapa a estranhos pode ter vendido o mesmo a outros." | Camponês e Senhor |
+
+Crônica (`buy`): "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou um mapa do forasteiro de capa verde. A tinta ainda cheirava a fumaça."
+Crônica (`imprison`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou prender o mercador de capa verde. Os preços da praça subiram no mesmo dia." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou prender o mercador de capa verde. Os preços da praça subiram no mesmo dia."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o mercador de capa verde embora. Ele dobrou a banca sem reclamar." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o mercador de capa verde embora. Ele dobrou a banca sem reclamar."
+
+**O motor precisará:** `revealDestination { modelId }` (novo: acrescenta o modelo a `map.discovered`, como a recompensa `reveals` de uma expedição já faz), `marketPrice` (novo, em 5.6), requisito de carta `undiscovered` (novo: o destino ainda não está em `map.discovered`) e `buildings: { market: 1, guild: 1 }` (existe).
+
+### 5.2 O que o mapa mostrava (`merchantLead`, cadeia 2/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação (peso 0), 4 dias depois de `buy` ou 3 dias depois de `imprison` |
+| Variante de texto por flag | `merchant.map`: o mapa tem uma marca que ninguém entende. `merchant.hostile`: a resposta dos mercadores, depois da prisão |
+
+Texto (`merchant.map`): "O mapa do forasteiro era verdadeiro, e mais: no canto dele há uma marca a carvão, um traço para além das Ruínas, e um homem do Mercado jura que já viu aquele traço num livro de contas. Seguir a marca dá trabalho. Vendê-la a quem a procura dá ouro."
+Texto (`merchant.hostile`): "O mercador preso escapou na calada da noite e deixou para trás o livro de contas, com uma rota riscada a tinta. Os companheiros dele rondam o Mercado, calados. Seguir a rota dá trabalho. Vender o livro a quem o procura dá ouro."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `follow` "Seguir a pista" | Custo 40 de comida (as provisões dos batedores); +90 de ouro. Moral +5 por 2 dias; flag `merchant.lead`; limpa `merchant.map`; a carta 3 chega em 3 dias | "A pista vale ouro e traz companhia." | |
+| `sell` "Vender a informação" | +120 de ouro; moral −5 por 2 dias (o povo estranha vender o segredo do feudo); flag `merchant.sold`; limpa `merchant.map`; a carta 3 chega em 3 dias | "Mais moedas hoje, e um comprador que volta amanhã." | Rei de Ferro |
+| `drop` "Deixar o assunto de lado" | Sem efeito; limpa `merchant.map`; **a cadeia termina aqui** (`merchant.hostile`, se houver, continua gravada) | "Nem toda pista precisa ser seguida." | Camponês e Senhor |
+
+Crônica (`follow`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou seguir a marca do mercador. Os batedores voltaram com lama até os joelhos e com uma história para contar."
+Crônica (`sell`): "No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu a pista do mercador a quem a procurava. O comprador pagou em moedas miúdas e saiu sem se despedir." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} vendeu a pista do mercador a quem a procurava. O comprador pagou em moedas miúdas e saiu sem se despedir."
+Crônica (`drop`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a pista do mercador de lado. O mapa foi dobrado e guardado numa arca." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou a pista do mercador de lado. O mapa foi dobrado e guardado numa arca."
+
+**O motor precisará:** nada novo (continuação, texto por flag, custo e ouro existem). O efeito das opções é o mesmo nas duas variantes: só o texto muda.
+
+### 5.3 A última oferta do mercador (`merchantFinalOffer`, cadeia 3/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 3 dias depois da carta 2 (`follow` ou `sell`) |
+| Variante de texto por flag | `merchant.lead`: o dono do mapa volta. `merchant.sold`: o comprador volta |
+
+Texto (`merchant.lead`): "A pista deu em um depósito de caravana esquecido, e o homem de capa verde reaparece na praça com um sorriso de quem sabia. Propõe fechar as contas: uma bolsa pelo que os batedores acharam, ou um último mapa em troca de um favor. O conselho quer saber o que o senhor responde."
+Texto (`merchant.sold`): "O comprador da pista voltou à praça com a bolsa leve e a conversa mansa. Diz que a informação valia mais do que pagou, e que está disposto a compensar, de um modo ou de outro. O conselho quer saber o que o senhor responde."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `profit` "Fechar com lucro" | +100 de ouro. Limpa `merchant.lead` e `merchant.sold`; a cadeia termina | "Dinheiro na mão e conta fechada." | as três dificuldades |
+| `destination` "Pedir o último mapa" | Pede a Guilda Nv2 e a Mina Abandonada ainda não revelada; custo 50 de ouro. **Revela a Mina Abandonada** como destino. Limpa `merchant.lead` e `merchant.sold` | "A serra tem mais de um segredo, e este tem ferro." | |
+| `peace` "Fazer as pazes com os mercadores" | **Só aparece com `merchant.hostile`.** Custo 60 de ouro; limpa `merchant.hostile`, `merchant.lead` e `merchant.sold` (o Boicote, 5.4, deixa de sair); moral +5 por 2 dias | "Um inimigo a menos pesa mais que uma bolsa." | |
+
+Crônica (`profit`): "No {dia}º dia {daEstacao}, o senhor de {feudo} fechou as contas com o mercador de capa verde. Ele contou as moedas duas vezes, e nenhuma faltou." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} fechou as contas com o mercador de capa verde. Ele contou as moedas duas vezes, e nenhuma faltou."
+Crônica (`destination`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pediu ao mercador de capa verde o último mapa. Ele o desenhou ali mesmo, e a Mina Abandonada ficou no papel."
+Crônica (`peace`): "No {dia}º dia {daEstacao}, o senhor de {feudo} fez as pazes com os mercadores da estrada. Brindou-se na praça, e os preços voltaram ao normal."
+
+**O motor precisará:** `revealDestination` (o mesmo de 5.1), requisito de opção `undiscovered` e requisito de opção `flags` (novos: a opção só aparece ou só se destranca com a flag; hoje `CouncilOptionRequires` só tem `building` e `resources`).
+
+### 5.4 Boicote dos mercadores (`merchantBoycott`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Outono ou inverno; Mercado Nv1; **só com a flag `merchant.hostile`** (a prisão de 5.1, sem as pazes de 5.3) |
+| Texto | "Os mercadores da estrada não esqueceram o homem que o feudo prendeu. Mandaram dizer que as carroças deles passarão por outro caminho, e que o que ficar na praça será vendido mais caro. O Mercado de {feudo} começa a sentir o vazio das bancas." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `yield` "Ceder às exigências" | Custo 100 de ouro. Limpa `merchant.hostile`. Sem alta de preço | "O ouro compra a paz, e a memória dura mais que ele." | |
+| `resist` "Resistir ao boicote" | **Os preços sobem 20% por 3 dias** (os quatro recursos). Moral +5 por 2 dias (o povo aplaude a teimosia); limpa `merchant.hostile` | "Os preços sobem uns dias, e o feudo mostra de que lado está." | as três dificuldades |
+| `route` "Buscar outra rota" | Custo 60 de madeira (carroças e remos). **Os preços sobem 10% por 2 dias**; limpa `merchant.hostile` | "A estrada nova custa madeira e cura o rancor." | |
+
+Crônica (`yield`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou aos mercadores o preço da paz. As carroças voltaram à praça antes do fim da semana."
+Crônica (`resist`): "No {dia}º dia {daEstacao}, o senhor de {feudo} recusou-se a ceder ao boicote dos mercadores. As bancas ficaram vazias, e o povo cantou na praça." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou-se a ceder ao boicote dos mercadores. As bancas ficaram vazias, e o povo cantou na praça."
+Crônica (`route`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou abrir uma estrada nova para as carroças. Os mercadores a percorreram a contragosto."
+
+**O motor precisará:** `marketPrice { resources, percent, durationDays }` (novo, em 5.6) e a flag `merchant.hostile` como requisito de carta (existe: `flags`).
+
+### 5.5 A caravana real (`royalCaravan`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Verão ou outono; Mercado Nv1 |
+| Texto | "Uma caravana com o estandarte do rei parou à porta do Mercado. Os cavalariços comem como lobos, e o intendente diz que a coroa compra o que o feudo tiver de sobra, e a bom preço, mas só enquanto a caravana estiver na praça. O inverno vem depois, e a despensa depende de quanto o senhor guardar." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `sellNow` "Vender à caravana agora" | **Os preços de comida, madeira e pedra sobem 25% por 1 dia** (o ferro fica de fora: a coroa não o compra). Vale o limite de volume do dia do Mercado | "Um dia de preço alto, e só um dia." | |
+| `hospitality` "Dar hospitalidade à caravana" | Custo 40 de comida. **Os preços de comida, madeira e pedra sobem 10% por 3 dias**. Moral +5 por 2 dias | "A coroa lembra quem a recebeu à mesa: a alta dura mais, só que menor." | |
+| `winter` "Guardar o excedente para o inverno" | Sem efeito | "O celeiro cheio vale mais quando a neve cai e a comida custa 30% a mais." | as três dificuldades |
+
+Crônica (`sellNow`): "No {dia}º dia {daEstacao}, o senhor de {feudo} abriu o Mercado à caravana do rei. As bancas esvaziaram antes do pôr do sol."
+Crônica (`hospitality`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deu mesa à caravana do rei. O intendente elogiou o caldo e a sela dos cavalos."
+Crônica (`winter`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a caravana do rei seguir viagem e guardou o excedente nos celeiros." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou a caravana do rei seguir viagem e guardou o excedente nos celeiros."
+
+**O motor precisará:** `marketPrice` (o mesmo de 5.4).
+
+### 5.6 O que `marketPrice` precisa ser (decisão de motor, para a V4H-T1.2)
+
+Proposta, a conferir com o autor só se ele discordar: o efeito grava em `market.effects` (estado 36 para 37, lista vazia) um fator por recurso e o fim em instante de jogo; `deriveViewState` e as contas de compra e venda usam o **preço exibido** = passeio × estação × os fatores vivos (cada um em fração `{ num, den }`, sem ponto flutuante); a venda segue a 85% do preço exibido de compra; os fatores de vários efeitos **se multiplicam**; o passeio não muda e o teto de 160% só vale para ele, não para o preço exibido (um boicote no inverno pode levar a comida acima de 160%: esperado). O sorteio do passeio e o `quoteDay` não mudam. A propriedade "nenhuma sequência de compra e venda no mesmo dia dá lucro" continua valendo, porque o fator multiplica compra e venda.
+
