@@ -220,6 +220,9 @@ function stripArmy(copy: Draft): void {
   delete copy.army;
   if (copy.settlement !== undefined) {
     delete copy.settlement.buildings?.barracks;
+    // E a muralha, do passo 31 → 32 (V4E-T1.2).
+    delete copy.settlement.wall;
+    delete copy.settlement.wallRepair;
   }
 }
 
@@ -3725,7 +3728,7 @@ describe('versão 9 → 10', () => {
       expect(atBoundary.state.rng).toEqual(state.rng);
       expect(atBoundary.state.council).toEqual(state.council);
       const { defense } = deriveViewState(state, state.lastProcessedAt).threat;
-      expect(defense).toEqual({
+      expect(defense).toMatchObject({
         building: 'palisade',
         palisadeLevel: 0,
         text: 'Sem Paliçada, nada segura um ataque.',
