@@ -197,7 +197,7 @@ describe('a Paliçada como obra, pela API', () => {
       effect:
         'Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
     });
-    expect(view.threat.defense).toEqual({
+    expect(view.threat.defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 0,
       text: 'Sem Paliçada, nada segura um ataque.',
@@ -233,12 +233,14 @@ describe('a Paliçada como obra, pela API', () => {
     await wait(normal, game, 20 * MINUTE);
     const built = await viewOf(normal, game, game.id);
     expect(built.threat.known).toBe(false);
-    expect(built.threat.defense).toEqual({
+    expect(built.threat.defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 1,
       text: NV1,
       next: 'Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido.',
     });
+    // A Paliçada erguida pelo caminho do jogo nasce com a muralha cheia (V4E-T1).
+    expect(built.threat.defense.wall.hpText.left).toBe('Ala esquerda: 60 de 60 de vida.');
     expect(palisade(built)).toMatchObject({
       fromLevel: 1,
       targetLevel: 2,

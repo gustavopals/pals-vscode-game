@@ -160,6 +160,25 @@ const BLIND = {
     palisadeLevel: 0,
     text: 'Sem Paliçada, nada segura um ataque.',
     next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+    // A muralha e as torres (V4E-T1): sem Paliçada e sem Torre, nada.
+    wall: {
+      levelLabel: 'Sem Paliçada',
+      hpText: {
+        left: 'Ala esquerda: sem muralha.',
+        center: 'Centro: sem muralha.',
+        right: 'Ala direita: sem muralha.',
+      },
+      repairOffer: {
+        canRepair: false,
+        stone: 0,
+        gold: 0,
+        seconds: 0,
+        text: 'Sem Paliçada, não há muralha para reparar.',
+        blockedText: 'Sem Paliçada não há muralha para reparar.',
+        repairingInSeconds: null,
+      },
+    },
+    tower: { damageText: null, revealsComposition: 'none' },
   },
 };
 
