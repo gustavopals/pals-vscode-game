@@ -50,6 +50,8 @@ import {
   TILE_TYPE_IDS,
   UNIT_IDS,
   HORDE_UNIT_IDS,
+  LINE_IDS,
+  WING_IDS,
 } from './ids';
 import { ARCHETYPES } from './enemies';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
@@ -719,6 +721,35 @@ const balanceFields = z.strictObject({
     formationNameMaxLength: positiveInt,
     reportsKept: positiveInt,
   }),
+  // A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18).
+  horde: z.strictObject({
+    cunning: z.strictObject(
+      Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, ratio])) as Record<
+        (typeof DIFFICULTY_IDS)[number],
+        typeof ratio
+      >,
+    ),
+    counterWeights: z.strictObject(
+      Object.fromEntries(UNIT_IDS.map((id) => [id, nonNegInt])) as Record<
+        (typeof UNIT_IDS)[number],
+        typeof nonNegInt
+      >,
+    ),
+  }),
+  omens: z
+    .strictObject({
+      chancePercent: positiveInt,
+      perTowerLevelAbove1: nonNegInt,
+      maxChancePercent: positiveInt,
+      clarityByLevel: z.array(z.enum(['vague', 'partial', 'exact'])).min(1),
+      kept: positiveInt,
+      roundTo: positiveInt,
+    })
+    .refine(({ maxChancePercent }) => maxChancePercent <= 100, 'a chance não passa de 100')
+    .refine(
+      ({ chancePercent, maxChancePercent }) => chancePercent <= maxChancePercent,
+      'a chance inicial cabe no teto',
+    ),
   // A muralha (GDD §6.1 a §6.3; ADR 0020): a vida por ala em cada nível da Paliçada e o reparo.
   wall: z
     .strictObject({
@@ -2019,3 +2050,62 @@ export const HordeUnitsSchema = z.strictObject(
     ]),
   ),
 );
+
+/** As incursões como batalha (`raidWar.ts`; V4E-T2.1): conteúdo que o motor ainda não lê. */
+function warSizeRecord<T extends z.ZodType>(value: T) {
+  return z.strictObject({ light: value, medium: value, strong: value });
+}
+
+export const WarRaidsSchema = z
+  .strictObject({
+    sizeBudget: warSizeRecord(positiveInt),
+    thresholds: z.strictObject(
+      Object.fromEntries(
+        SEASON_IDS.map((season) => [
+          season,
+          z
+            .strictObject({ medium: positiveInt, strong: positiveInt })
+            .refine((band) => band.medium < band.strong, 'forte antes da média'),
+        ]),
+      ),
+    ),
+    postShares: z.strictObject(
+      Object.fromEntries(
+        WING_IDS.map((wing) => [
+          wing,
+          z.strictObject(Object.fromEntries(LINE_IDS.map((line) => [line, nonNegInt]))),
+        ]),
+      ),
+    ),
+    unitCost: z.strictObject(Object.fromEntries(HORDE_UNIT_IDS.map((id) => [id, positiveInt]))),
+    scripted: z
+      .array(
+        z.strictObject({
+          id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+          size: z.enum(['light', 'medium', 'strong']),
+          atGameDay: positiveInt,
+          rehearsal: z.boolean(),
+        }),
+      )
+      .min(1),
+    losses: warSizeRecord(
+      z.strictObject({
+        lossRatio: ratio.refine(({ num, den }) => num < den, 'a incursão leva o estoque inteiro'),
+        resources: z.array(resourceId).min(1),
+        injuries: positiveInt,
+      }),
+    ),
+    bandSizes: z.strictObject({
+      raider: warSizeRecord(label),
+      banditArcher: warSizeRecord(label),
+      wolf: warSizeRecord(label),
+      mixed: warSizeRecord(label),
+    }),
+  })
+  .refine(
+    (war) =>
+      Object.values(war.postShares)
+        .flatMap((lines) => Object.values(lines))
+        .reduce((sum, share) => sum + share, 0) === 100,
+    'as partes dos postos não somam 100',
+  );

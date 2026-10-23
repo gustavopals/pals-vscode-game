@@ -97,6 +97,25 @@ describe('a prévia do Conselho de Guerra (V4D-T2)', () => {
     expect(JSON.stringify(preview.resolution)).toBe(JSON.stringify(real.resolution));
   });
 
+  it('a Gloriosa é vencer sem que a Frente de nenhuma ala caia, com ou sem muralha (V4D-T5)', () => {
+    const input = base(knownEnemy({ left: ['wolf', 12], center: ['raider', 20] }));
+    const result = previewBattle(input);
+    let expected = 0;
+    for (let run = 0; run < 200; run += 1) {
+      const { resolution, report } = previewRun(input, run);
+      const won = resolution.outcome === 'victory' || resolution.outcome === 'held';
+      const broken = report.casualties.some(
+        (entry) => entry.owner === 'player' && entry.line === 'front' && entry.lost >= entry.start,
+      );
+      if (won && !broken) {
+        expected += 1;
+      }
+    }
+    expect(result.glorious).toBe(expected);
+    // Sem muralha na entrada, a lista da muralha é vazia: ela não faz de toda vitória uma Gloriosa.
+    expect(result.glorious).toBeLessThan(result.wins + 1);
+  });
+
   it('o agregado confere com as simulações, em inteiros, e se repete', () => {
     const input = base(knownEnemy({ left: ['wolf', 12], center: ['raider', 20] }));
     const result = previewBattle(input);

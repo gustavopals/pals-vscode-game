@@ -15,6 +15,7 @@ import type {
   WatchtowerCompositionId,
   Ratio,
   ResourceAmounts,
+  UnitId,
   ResourceId,
   SeasonId,
   WingId,
@@ -754,6 +755,40 @@ export type Balance = {
   readonly army: ArmyDef;
   readonly battle: BattleDef;
   readonly wall: WallDef;
+  readonly horde: HordeMindDef;
+  readonly omens: OmensDef;
+};
+
+/**
+ * A Horda que aprende (GDD §10.6; ADR 0020, decisão 15). Dado que o motor ainda não lê (V4E-T3).
+ * `peso(tipo) = peso_base(estação) + astúcia × contra(tipo, última formação)`, em frações.
+ */
+export type HordeMindDef = {
+  /** A astúcia por dificuldade (fração). Mora aqui, e não em `difficulties[]`, para não mudar o catálogo. */
+  readonly cunning: Record<DifficultyId, Ratio>;
+  /**
+   * Quanto peso um inimigo ganha, na unidade dos pesos-base (soma 100), por cada formação do
+   * jogador **inteira** de uma unidade que o arquétipo dele vence. Escalado pela parte da
+   * formação que é daquela unidade. O Escudeiro não é vencido por ninguém (0).
+   */
+  readonly counterWeights: Record<UnitId, number>;
+};
+
+/** Os presságios (GDD §11.1; ADR 0020, decisão 18). */
+export type OmenClarityId = 'vague' | 'partial' | 'exact';
+export type OmensDef = {
+  /** A chance, em por cento, na virada de outono e de inverno com a Torre no nível 1. */
+  readonly chancePercent: number;
+  /** O que cada nível da Torre acima do 1 acrescenta, em pontos percentuais. */
+  readonly perTowerLevelAbove1: number;
+  /** O teto da chance, em por cento. */
+  readonly maxChancePercent: number;
+  /** A clareza por nível da Torre, a partir do nível 1. */
+  readonly clarityByLevel: readonly OmenClarityId[];
+  /** Quantos presságios o estado guarda (o mais antigo sai). */
+  readonly kept: number;
+  /** "Cerca de N": o múltiplo a que a contagem do presságio parcial é arredondada. */
+  readonly roundTo: number;
 };
 
 const MINUTE_MS = 60_000;
@@ -1283,6 +1318,23 @@ export const balance: Balance = {
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
     // V4D-T3.2 (número do agente, por aprovar): grave com metade da ala perdida.
     commanderInjury: { severeAtLoss: { num: 1, den: 2 } },
+  },
+  // Propostas do agente, por aprovar (D-21 a D-23): astúcia do ADR 0020 (3/10, 1/2, 4/5).
+  horde: {
+    cunning: {
+      peasant: { num: 3, den: 10 },
+      lord: { num: 1, den: 2 },
+      ironKing: { num: 4, den: 5 },
+    },
+    counterWeights: { spearman: 100, swordsman: 100, archer: 100, knight: 100, shieldbearer: 0 },
+  },
+  omens: {
+    chancePercent: 35,
+    perTowerLevelAbove1: 10,
+    maxChancePercent: 90,
+    clarityByLevel: ['vague', 'vague', 'partial', 'partial', 'exact'],
+    kept: 6,
+    roundTo: 5,
   },
   // A vida por ala (aprovada pelo autor em 2026-10-23, D-7): 60 e 100 nos níveis da Paliçada (as
   // premissas dos cenários de docs/content-v0.4.md, seção 2), depois 200, 320, 500 e 800.

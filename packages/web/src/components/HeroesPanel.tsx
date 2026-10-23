@@ -89,6 +89,10 @@ function HeroSheet(props: {
           </span>
         ) : null}
       </p>
+      {/* O que o herói faz como comandante de ala, na frase do servidor (`commanderText`). */}
+      <p class="hero-commander-text muted" data-testid="hero-commander-text">
+        <Icon name="organization" /> {hero.commanderText}
+      </p>
       {/* O comandante de uma ala da Defesa ativa fica no feudo (a visão: `commanding`, `canDepart`). */}
       {hero.commanding === null ? null : (
         <p class="hero-commanding muted" data-testid="hero-commanding">

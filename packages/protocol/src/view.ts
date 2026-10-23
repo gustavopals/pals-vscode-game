@@ -954,6 +954,73 @@ const ArmySchema = z.strictObject({
       ),
     })
     .nullable(),
+  /** Os relatórios das batalhas, do mais novo ao mais antigo (V4D-T4.3); vazio até a Fase E. */
+  reports: z.array(
+    z.strictObject({
+      id: z.string(),
+      mode: z.enum(['defense', 'attack']),
+      modeLabel: z.string(),
+      outcome: z.enum(['victory', 'held', 'defeat', 'withdrew']),
+      outcomeLabel: z.string(),
+      ending: z.enum(['annihilation', 'rout', 'chiefFell', 'rounds']),
+      endingText: z.string(),
+      roundsCount: z.number(),
+      factors: z.array(
+        z.strictObject({
+          factor: z.enum(['wallAbsorbed', 'counter', 'exposedRear', 'flank', 'tower', 'aura']),
+          owner: z.enum(['player', 'horde']),
+          wing: z.enum(WING_IDS).nullable(),
+          wingLabel: z.string().nullable(),
+          round: z.number(),
+          amount: z.number(),
+          percent: z.number().nullable(),
+          text: z.string(),
+        }),
+      ),
+      noFactorText: z.string(),
+      rounds: z.array(
+        z.strictObject({
+          round: z.number(),
+          attacks: z.array(z.string()),
+          casualtiesPlayer: z.number(),
+          casualtiesHorde: z.number(),
+          moraleText: z.string(),
+          wallText: z.string().nullable(),
+        }),
+      ),
+      casualties: z.array(
+        z.strictObject({
+          owner: z.enum(['player', 'horde']),
+          wing: z.enum(WING_IDS),
+          line: z.enum(LINE_IDS),
+          start: z.number(),
+          lost: z.number(),
+          text: z.string(),
+        }),
+      ),
+      wall: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          start: z.number(),
+          end: z.number(),
+          text: z.string(),
+        }),
+      ),
+      commanders: z.array(
+        z.strictObject({
+          heroId: z.string(),
+          name: z.string(),
+          classLabel: z.string(),
+          wing: z.enum(WING_IDS),
+          fate: z.enum(['wounded', 'died']).nullable(),
+          fateText: z.string(),
+          xp: z.number(),
+          text: z.string(),
+        }),
+      ),
+      adjustFormationId: z.string().nullable(),
+    }),
+  ),
 });
 
 const MarketSchema = z.strictObject({

@@ -2341,6 +2341,62 @@ export type ArmyView = {
   editor: FormationEditorView;
   /** A última prévia do Conselho de Guerra (V4D-T2.4); `null` até a primeira. */
   preview: ArmyPreviewView | null;
+  /** Os relatórios das batalhas, do mais novo ao mais antigo (V4D-T4.3); vazio até a Fase E. */
+  reports: ArmyReportView[];
+};
+
+/** Um relatório de batalha na visão: tudo em frase, nenhum número a recompor no app. */
+export type ArmyReportView = {
+  id: string;
+  mode: 'defense' | 'attack';
+  modeLabel: string;
+  outcome: 'victory' | 'held' | 'defeat' | 'withdrew';
+  outcomeLabel: string;
+  ending: 'annihilation' | 'rout' | 'chiefFell' | 'rounds';
+  endingText: string;
+  roundsCount: number;
+  /** Até três fatores decisivos, do maior ao menor, com a frase pronta. */
+  factors: Array<{
+    factor: BattleFactorId;
+    owner: 'player' | 'horde';
+    wing: WingId | null;
+    wingLabel: string | null;
+    round: number;
+    amount: number;
+    percent: number | null;
+    text: string;
+  }>;
+  /** O que dizer quando `factors` está vazio. */
+  noFactorText: string;
+  rounds: Array<{
+    round: number;
+    attacks: string[];
+    casualtiesPlayer: number;
+    casualtiesHorde: number;
+    moraleText: string;
+    wallText: string | null;
+  }>;
+  casualties: Array<{
+    owner: 'player' | 'horde';
+    wing: WingId;
+    line: LineId;
+    start: number;
+    lost: number;
+    text: string;
+  }>;
+  wall: Array<{ wing: WingId; start: number; end: number; text: string }>;
+  commanders: Array<{
+    heroId: string;
+    name: string;
+    classLabel: string;
+    wing: WingId;
+    fate: 'wounded' | 'died' | null;
+    fateText: string;
+    xp: number;
+    text: string;
+  }>;
+  /** A formação para a qual "Ajustar formação" leva: a Defesa ativa que existe; `null` se não. */
+  adjustFormationId: string | null;
 };
 
 /** A prévia do Conselho de Guerra na visão: percentuais inteiros e frases prontas. */
