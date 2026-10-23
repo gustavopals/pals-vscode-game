@@ -713,7 +713,7 @@ Como V4A-T2, para as decisões 15 a 24 (§11.2), com a medição das Fases B a D
 
 - [x] V4E-T0.1 Levar primeiro o que as Fases B a D mostraram (o ouro, a calibragem, o que o revisor deixou em dúvida).
 - [x] V4E-T0.2 Rodadas curtas: 14 (se ainda aberta), 16, 19 e 26 primeiro (mudam o jogo de quem já joga); depois 15, 17, 18, 20 a 24.
-- [ ] V4E-T0.3 ADR 0020; GDD; §11.
+- [x] V4E-T0.3 ADR 0020; GDD; §11.
 
 ### V4E-T1 · Muralha de Pedra, Baluarte e Torre Nv3+ `M`
 

@@ -1,7 +1,7 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.9 (as regras da v0.4 do lote 1 passam a dizer o que o ADR 0019 fixou, aprovado pelo autor em 2026-10-16 e ainda não implementado, e todo prazo escrito sem unidade passa a dizer "de jogo" ou "reais"; na 0.8, as regras da v0.3 passaram a dizer o que os ADRs 0017 e 0018 fixaram: relógios, soldo e atraso, Taverna, limite de heróis, poder em inteiros, ferimento e captura, expedições desta versão, Mercado, caravanas, Mestres e objetivos 11 a 16; aprovadas pelo autor em 2026-10-05, a maior parte em bloco, e ainda não implementadas. As regras da v0.2 são as dos ADRs 0013 a 0016, confirmadas na mesma data)\
+> **Versão do documento:** 0.10 (o lote 2 de decisões da v0.4, decisões 15 a 24, aprovado pelo autor em 2026-10-23 no [ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md), passa ao texto; na 0.9, as regras da v0.4 do lote 1 passam a dizer o que o ADR 0019 fixou, aprovado pelo autor em 2026-10-16 e ainda não implementado, e todo prazo escrito sem unidade passa a dizer "de jogo" ou "reais"; na 0.8, as regras da v0.3 passaram a dizer o que os ADRs 0017 e 0018 fixaram: relógios, soldo e atraso, Taverna, limite de heróis, poder em inteiros, ferimento e captura, expedições desta versão, Mercado, caravanas, Mestres e objetivos 11 a 16; aprovadas pelo autor em 2026-10-05, a maior parte em bloco, e ainda não implementadas. As regras da v0.2 são as dos ADRs 0013 a 0016, confirmadas na mesma data)\
 > **Idioma:** português (Brasil)  
 > **Plataforma inicial:** app web no navegador, com aparência de editor de código (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
@@ -34,7 +34,8 @@
 - Mudanças da 0.8 (as regras da v0.3, fechadas nos ADRs [0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)): §4.2 (os prazos em tempo real da v0.3), §5.4 (Mestres), §5.7 (Taverna e festival), §5.9 (Mercado e caravanas), §6.1 (Taverna, Mercado e Guilda), §7.1 (a carta roteirizada), §8.2 (o Covil limpo), §9.1 a §9.3 (soldo, atraso, ferimento, limite de heróis, Taverna, encruzilhada, poder em inteiros, o catálogo desta versão), §12.1 (ferimento, captura e morte), §12.2 (objetivos 11 a 16), §16.2 e as notas dos Apêndices B, C e D. O autor respondeu uma a uma às decisões do soldo em atraso, da carta nas partidas em andamento e de como a versão é publicada; **as outras foram aprovadas em bloco**, com a premissa recomendada de cada uma, sem leitura item a item, e voltam a ele se o simulador mostrar problema. Nada disto está implementado: cada regra entra no jogo com a tarefa dela.
 - Detalhes que a implementação da carta "Estrangeira ferida" (V3C-T3) fixou, ainda na 0.8: §7.1 (a roteirizada pede lugar na mesa e não o reserva), §9.1 (o herói de carta, a forma de tratamento do herói e a recompensa que espera com a lista cheia) e §14.11 (`guild.arriving`). No Apêndice B, Rolf continua sendo o irmão de Edda: é o que a Crônica diz quando ele chega.
 - Detalhes que a implementação dos Mestres (V3E-T3, 2026-10-07) fixou, ainda na 0.8, **decididos pelo agente e à espera do autor** ([pendências da v0.3](docs/pendencias-v0.3.md), E-29 a E-40): §5.3 (o fator do Mestre e os habitantes na fórmula) e §5.4 (o Mestre como habitante que não é aldeão e como um braço a mais, o piso que conta os habitantes, a adaptação em toda chegada a um edifício, a espera à porta, os quatro Mestres com nome e de onde vêm).
-- Mudanças da 0.9 (o lote 1 de decisões da v0.4, [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), aprovado pelo autor em 2026-10-16 e **ainda não implementado**; o lote 2, decisões 15 a 24, espera o ADR 0020 e o que depende dele está marcado "a decidir (ADR 0020)"): §4.2 e §4.3 (os relógios da guerra e a Hora da Vigília calculada pelo motor), §5.1, §5.2 e §5.9 (ferro, armas e o soldado), §6.1 a §6.3 (Quartel, Ferreiro, Guilda no nível 4 e as unidades dos tempos), §8.2 (a incursão sem exército), §9.1 a §9.3 (comandante, Lendário e Mina Abandonada), §10.2 a §10.5 e §10.8 (soldados, a batalha em inteiros, a prévia como ordem, as formações), §11.2 e §11.4, §13.5, §14.3, §14.9 e §14.11 (a Vigília no estado), §17.1 e §18.2; e, em todo o documento, "de jogo" ou "reais" onde havia uma duração sem unidade.
+- Mudanças da 0.10 (lote 2 de decisões da v0.4, [ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md), aprovado pelo autor em 2026-10-23 e **ainda não implementado**): §8.2, §8.3, §9.5, §10.6, §11.1 a §11.4, §12.2, §17.2 e o Apêndice B, no que dependia de "a decidir (ADR 0020)"; saiu o "Avançar para o Degelo" (§2.2, §11.4).
+- Mudanças da 0.9 (o lote 1 de decisões da v0.4, [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), aprovado pelo autor em 2026-10-16 e **ainda não implementado**; o lote 2, decisões 15 a 24, foi fechado depois, na 0.10): §4.2 e §4.3 (os relógios da guerra e a Hora da Vigília calculada pelo motor), §5.1, §5.2 e §5.9 (ferro, armas e o soldado), §6.1 a §6.3 (Quartel, Ferreiro, Guilda no nível 4 e as unidades dos tempos), §8.2 (a incursão sem exército), §9.1 a §9.3 (comandante, Lendário e Mina Abandonada), §10.2 a §10.5 e §10.8 (soldados, a batalha em inteiros, a prévia como ordem, as formações), §11.2 e §11.4, §13.5, §14.3, §14.9 e §14.11 (a Vigília no estado), §17.1 e §18.2; e, em todo o documento, "de jogo" ou "reais" onde havia uma duração sem unidade.
 - Correções da revisão independente da Fase D (V3D-T5, 2026-10-06), ainda na 0.8, **decididas pelo agente e à espera do autor** ([pendências da v0.3](docs/pendencias-v0.3.md), D-54 a D-72): §9.1 (os bônus dos itens de um herói somam entre si; quem volta do cativeiro não deve o atraso do soldo que correu com ele preso; dá para desistir de quem está em cativeiro) e §9.3 (o que cada rótulo de risco promete, nas três Posturas; a Patrulha que rende pouco; "Covil de Lobos"; um Resgate por cativo). O estado do jogo está na versão 20.
 
 ### Índice
@@ -123,7 +124,7 @@ No ritmo Normal um dia de jogo dura 2 h reais (§4.2). As horas desta tabela sã
 | **4** Verão | Ruínas reveladas; início da cadeia "O Mercador Misterioso"; incursão média | Espadachins; mapa raio 4; Mina Abandonada (ferro) | Encruzilhada nas ruínas, decidir entre ferro e muralha |
 | **5** Outono | Colheita (+30% comida); **Fortaleza da Horda** surge ao norte; 1º Presságio; preços de comida sobem | Salão Nv5 abre Capela e Posto Avançado; Cavaleiros | Estocar ou investir; sabotar a Horda ou guardar os heróis |
 | **6** Outono | Presságios diários; **incursão forte** (ensaio do cerco); última janela de sabotagem | Torres; Muralha de pedra | Ler o relatório da incursão, corrigir a formação, reparar, salvar plano por onda |
-| **7** Inverno | Comida ×0,4; lenha consumida; **Cerco** na Hora da Vigília (3 ondas, **60 min reais** entre elas, §11.2); Rescaldo; **Crônica do Ano** ao fim das 168 h reais do ano | Legado; escolha de Votos para o Ano 2 | Convocar milícia, reposicionar entre ondas, ler a Crônica, iniciar o Degelo |
+| **7** Inverno | Comida ×0,4; lenha consumida; **Cerco** na Hora da Vigília (3 ondas, **60 min reais** entre elas, §11.2); Rescaldo; **Crônica do Ano** ao fim das 168 h reais do ano | Legado; escolha de Votos para o Ano 2 | Convocar milícia, reposicionar entre ondas, ler a Crônica |
 
 Jogadores mais ativos chegam aos desbloqueios antes (gate por nível do Salão), mas **o mundo segue o calendário**: a Fortaleza, os presságios e o cerco têm data. Isso dá ao jogador ativo mais preparo, não um jogo diferente.
 
@@ -546,12 +547,13 @@ Os números da v0.2 estão fechados no [ADR 0014](docs/decisions/0014-conselho-e
   - **Partida migrada** (decisão 4 do ADR 0013): entra sem feridos; recebe os lobos do roteiro só se ainda não passou do instante deles; e as incursões por Ameaça contam da migração em diante.
   - **Reequilibrado depois da revisão das Fases D e E (aguarda a confirmação do autor).** Com +5 por dia, −10 por incursão e a média a partir de 60, a Ameaça passava o ano entre 90 e 100, toda incursão sorteada era média e um feudo sem Paliçada sofria de 13 a 17 incursões por ano de jogo (§15.1: a derrota tem de custar pouco e ensinar). Com **+2, −35 e a média a partir de 70** ela oscila: a média por estação fica entre 36 e 60 no primeiro ano (a primavera dele é calma: a do roteiro a zera) e entre 45 e 63 nos seguintes; a maioria das incursões sorteadas é leve (de 55% a 70%, conforme o ano e as sementes), e as médias vêm sobretudo do outono; são de 5 a 7 incursões por ano de jogo, de 2,1 a 2,6 por dia real no ritmo Rápido e de 0,7 a 0,9 no Normal, no primeiro ano; e quem joga duas vezes por dia tem a Paliçada antes da primeira incursão sorteada ([docs/balance-v0.2.md](docs/balance-v0.2.md), seção 16).
 - `[v0.2]` **Paliçada:** Nv1 segura as incursões leves (sem perda nem ferido); contra uma média, Nv1 corta a perda pela **metade** e fica 1 ferido; Nv2 segura também as médias. A Paliçada que fica pronta no instante exato da incursão já conta: as obras concluídas vêm antes dela. Nada a danifica nesta versão, e ela não mexe na Ameaça. O painel diz o que o nível de hoje segura e o que a próxima obra muda ("Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago"; "Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido") e, com uma incursão à vista, o que ela fará a essa incursão ("A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago"). Enquanto a Torre não distingue o tamanho, a frase vale para os dois ("segura este ataque se ele for dos leves; se for dos médios, ele passa…") e não o revela. Quem manda erguer a Paliçada depois do aviso lê na mesma frase se dá tempo ("A Paliçada Nv1, que fica pronta a tempo, segura este ataque"; "A obra em curso só termina depois dele").
-- `[v0.4]` Incursões usam a **Formação de Defesa ativa**; saqueadores entram no jogo, e ataques médios ou mais causam dano à paliçada. **Toda incursão vira batalha** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 14): sem Defesa ativa, só a muralha e as torres lutam. O que passa aplica a regra da v0.2 acima (10% ou 15% e feridos) **na proporção do que passou**, e a Paliçada Nv1 e Nv2 continuam segurando, por HP, o que seguravam: **quem joga hoje, sem exército, não piora**, e a incursão de lobos do 16º dia de jogo sai igual à de hoje. O tamanho "forte" e a composição por Ameaça e estação são do lote 2 (**a decidir, ADR 0020**).
+- `[v0.4]` Incursões usam a **Formação de Defesa ativa**; saqueadores entram no jogo, e ataques médios ou mais causam dano à paliçada. **Toda incursão vira batalha** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 14): sem Defesa ativa, só a muralha e as torres lutam. O que passa aplica a regra da v0.2 acima (10% ou 15% e feridos) **na proporção do que passou**, e a Paliçada Nv1 e Nv2 continuam segurando, por HP, o que seguravam: **quem joga hoje, sem exército, não piora**, e a incursão de lobos do 16º dia de jogo sai igual à de hoje. A composição de cada incursão sai da regra da Horda que aprende (§10.6): peso-base pela estação mais a astúcia da dificuldade contra a **última formação vista**, sem memória entre anos ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 15). Quem tem a Torre de Vigia Nv3 a Nv5 é avisado com **3, 4 e 5 h reais** de antecedência e a Torre revela a composição por partes (decisão 16).
+- `[v0.4]` **O Acampamento de Saqueadores** nasce no 25º dia de jogo (o "dia 3" do ritmo Normal), soma +2 de Ameaça por dia como o Covil, é limpo pelo ataque (§10.9) e volta na virada do ano, como o Covil de Lobos ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 16).
 - `[v0.4]` Repelir incursões dá experiência aos heróis-comandantes e **informação**: o relatório mostra a composição inimiga completa, alimentando a leitura da Horda (§10.6).
 
 ### 8.3 Fortaleza da Horda `[v0.4]`
 
-Surge no primeiro dia do outono. É a origem do Cerco. Expedições de **sabotagem** (§9.5) bem-sucedidas reduzem em 15% o tamanho de cada onda (máximo 3 sabotagens, −45%). Cada tentativa é cara e arriscada: heróis podem ser capturados. É a principal decisão estratégica do outono: **gastar os heróis agora para enfraquecer o inimigo, ou preservá-los para comandar as alas no cerco.**
+Nasce na virada que abre o outono, soma +2 de Ameaça por dia, some com o fim do cerco e volta no outono seguinte ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 16). É a origem do Cerco. Cada nó com Sucesso de uma expedição de **sabotagem** (§9.5) reduz em 15% o tamanho de **uma** onda (até 3 sabotagens por ano). Cada tentativa é cara e arriscada: heróis podem ser capturados. É a principal decisão estratégica do outono: **gastar os heróis agora para enfraquecer o inimigo, ou preservá-los para comandar as alas no cerco.**
 
 ---
 
@@ -617,7 +619,7 @@ Narrado em tom de crônica, nó a nó: o que aconteceu, quem se destacou, o que 
 
 ### 9.5 Sabotagem da Horda
 
-Expedição especial do outono. Cada nó bem-sucedido reduz uma onda; o chefe do grafo é um **Xamã** que, derrotado, revela a composição completa da onda 3. Desastre captura um herói e **alerta a Horda** (+10% na onda 1). Decisão central: até três sabotagens, cada uma ocupando 3 heróis por 6 h de jogo e com risco crescente (a Fortaleza reforça a guarda após cada tentativa).
+Expedição especial do outono, **só com a Fortaleza de pé** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 17). Exige **exatamente 3 heróis** por **6 h de jogo**, e cabem **até 3 por ano**. Cada nó com Sucesso reduz em 15% uma onda; o chefe do grafo é um **Xamã** que, derrotado, revela a composição da onda 3. O Desastre captura um herói (pela dificuldade, §9.2) e **alerta a Horda** (+10% na onda 1). A dificuldade sobe a cada tentativa, porque a Fortaleza reforça a guarda. Decisão central: gastar os heróis agora ou guardá-los para comandar as alas.
 
 ---
 
@@ -709,17 +711,18 @@ A prévia **ensina** o sistema, e o inimigo que ela mostra respeita a névoa. El
 
 ### 10.6 A Horda aprende
 
-Depois de cada batalha, a Horda guarda a **composição que você usou**. A próxima incursão (e as ondas do cerco) é gerada assim:
+Depois de cada batalha, a Horda guarda só a **última formação que viu** (de incursão ou de onda), **sem memória entre anos** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 15). A próxima incursão (e as ondas do cerco) é gerada assim:
 
 ```
 peso(tipo_inimigo) = peso_base(estação, ano) + astúcia × peso_de_contra(tipo_inimigo, sua_última_formação)
-astúcia: Camponês 0,3 · Senhor 0,5 · Rei de Ferro 0,8
+astúcia: Camponês 3/10 · Senhor 1/2 · Rei de Ferro 4/5   (em `difficulties[]`, no conteúdo)
 ```
 
 Consequências de design:
 
 - Repetir a mesma formação é punido progressivamente. O jogador precisa **ler o relatório e adaptar**.
 - **Finta:** como a Horda reage à **última** formação vista, o jogador pode usar uma formação-isca na incursão do dia 6 (cheia de arqueiros, por exemplo) para que o cerco traga lobos e cavalaria, e então defender com lanceiros e escudeiros. Isso é intencional e deve ser descoberto, não explicado no tutorial.
+- As três ondas do cerco são geradas na virada que abre o outono, com a memória da Horda daquele instante, e **regeradas a cada formação nova vista até o inverno**; a última vista vale (§11.1).
 - Presságios (§11.1) e sabotagens revelam parte do que a Horda planeja, fechando o ciclo: observar → antecipar → formar → ler o relatório.
 
 ### 10.7 Relatório de batalha
@@ -743,7 +746,7 @@ Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralh
 
 ### 11.1 Presságios `[v0.4]`
 
-A partir do primeiro dia do outono, a cada dia de jogo há 35% de chance (+10% por nível da Torre de Vigia acima de 1) de um **Presságio**: uma frase de crônica que revela algo das ondas do cerco. Clareza por nível da Torre: Nv1 "muitas feras"; Nv3 "cerca de 30 lobos na ala esquerda da segunda onda"; Nv5 composição exata de uma onda. Sabotagens e desertores (carta) também revelam. Presságios ficam listados no painel do Exército ao lado do editor de formação. A chance por dia (35% e o resto) é **a decidir (ADR 0020, decisão 18)**; o tempo é de jogo.
+Em cada virada de outono e de inverno há `35% + 10% × (Torre − 1)` de chance de um **Presságio**, sorteado no fluxo `horde` (§14.3): uma frase de crônica que revela algo das ondas do cerco. Os presságios leem da versão **atual** das ondas e por isso nunca mentem sobre ela, mesmo quando a Horda regera as ondas ao ver uma formação nova (§10.6). Clareza por nível da Torre: Nv1 "muitas feras"; Nv3 "cerca de 30 lobos na ala esquerda da segunda onda"; Nv5 composição exata de uma onda. Sabotagens e desertores (carta) também revelam. Presságios ficam listados no painel do Exército ao lado do editor de formação ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 18).
 
 ### 11.2 O Cerco `[v0.4]`
 
@@ -755,20 +758,20 @@ A partir do primeiro dia do outono, a cada dia de jogo há 35% de chance (+10% p
 
 ```
 tamanho_da_onda = base × dificuldade × (1 − 0,15 × sabotagens_bem_sucedidas) × (1 + 0,10 × anos_anteriores) × votos
-dificuldade: Camponês 0,7 · Senhor 1,0 · Rei de Ferro 1,3
+dificuldade: Camponês 7/10 · Senhor 1 · Rei de Ferro 13/10
 ```
 
-- Ondas a cada **60 min reais** a partir da Hora da Vigília (§4.3), em qualquer ritmo: é a janela de uma pessoa trocar a formação ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12). Dano na muralha persiste entre ondas; reparos de emergência custam pedra e levam **15 min de jogo** por 25% de HP (só se o jogador estiver presente; se o reparo também pode ser pré-agendado no Plano, ou feito na hora, é **a decidir, ADR 0020**).
-- **Resultados:** **Vitória Gloriosa** (nenhuma ala rompida em nenhuma onda), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A Queda custa 30% dos recursos, 20% da população, destrói a muralha e dana 2 edifícios (−2 níveis cada). Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a Primavera da Reconstrução (custos ×0,8 por 2 dias de jogo).
-- Derrotar o Senhor da Guerra encerra a onda 3 imediatamente e vale um Feito.
+- Ondas a cada **60 min reais** a partir da Hora da Vigília (§4.3), em qualquer ritmo: é a janela de uma pessoa trocar a formação ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12). Dano na muralha persiste entre ondas. **O Plano de Batalha** é uma formação por onda, salva antes; entre uma onda e a seguinte há uma **decisão pendente de 60 min reais** para trocar a formação e pedir o **reparo de emergência** (pedra, na hora); sem resposta, o Plano vale. Não há "reparo automático se pedra ≥ X" ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 20).
+- **Resultados:** **Vitória Gloriosa** (sem ala rompida em onda nenhuma), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A **Queda** custa 30% dos recursos e 20% da população (aldeões, sem Mestres nem heróis), leva a muralha a 0 e tira 2 níveis dos dois edifícios de nível mais alto (o Salão incluído), sem sorteio. Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a **Primavera da Reconstrução**: custos ×4/5 por 2 dias de jogo ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 19).
+- Derrotar o Senhor da Guerra encerra a onda 3 imediatamente e vale um Feito (decisão 19).
 
 ### 11.3 Milícia `[v0.4]`
 
-Durante incursões fortes e o cerco, o jogador pode **convocar a milícia**: até 50% dos aldeões viram Milicianos (3/2/12). Enquanto convocados, não produzem. Sobreviventes voltam ao trabalho; perdas reduzem a população. É a carta desesperada que torna a última onda dramática.
+O jogador pode **convocar a milícia** só com uma incursão forte ou o cerco **marcados e dentro da antecedência da Torre de Vigia** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 21): até 50% dos aldeões viram Milicianos (3/2/12, ×5/4). Enquanto convocados, não produzem. A milícia se dissolve ao fim da batalha e as baixas reduzem a população, com o piso de 3 aldeões. É a carta desesperada que torna a última onda dramática.
 
 ### 11.4 Rescaldo e Crônica do Ano `[v0.4]`
 
-Após o cerco até o fim do inverno: reparos com desconto, luto (moral −10 por 1 dia de jogo se houve mortos) ou festa (moral +15 se Vitória Gloriosa). Ao fim das 168 h reais do ano (no ritmo Normal) publica-se a **Crônica do Ano**: narrativa gerada a partir do log (Apêndice E), estatísticas (população máxima, batalhas, expedições, cartas), **pontuação** e Feitos. Pode ser exportada como Markdown no editor (§13.6). O jogador pode **"Avançar para o Degelo"** logo após o cerco para não esperar.
+Após o cerco, até o fim do inverno: reparos com desconto, luto (moral −10 por 1 dia de jogo se houve mortos) ou festa (moral +15 se Vitória Gloriosa). Ao fim das 168 h reais do ano (no ritmo Normal) publica-se a **Crônica do Ano**, montada **pelo servidor** a partir dos eventos do ano e de um evento `yearEnded` com as estatísticas (população máxima, batalhas, expedições, cartas), a **pontuação** (pesos inteiros no conteúdo) e os seis Feitos do cerco, sem lista no estado ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 22). Pode ser exportada como Markdown no editor (§13.6). **"Avançar para o Degelo" não existe**: o jogador espera o fim do ano.
 
 ### 11.5 Legado e anos seguintes `[v0.5]`
 
@@ -835,7 +838,7 @@ Os demais objetivos que este documento listava entre os primeiros 15 saem da seq
 - `[v0.3]` Seis objetivos, do 11 ao 16, com os de 1 a 10 intocados ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 20): 11. Acolha ou contrate o primeiro herói → item comum (`welcomeFirstHero`) · 12. Erga a Guilda dos Aventureiros ("quem recebe soldo precisa de trabalho") → +60 pedra (`buildGuild`) · 13. Envie uma Patrulha → +50 ouro (`sendPatrol`) · 14. Venda no Mercado o que iria para o chão → +40 madeira (`sellSurplus`) · 15. Escolha um caminho em uma encruzilhada → +10 moral por 1 dia de jogo (`chooseAtCrossroads`) · 16. Explore as Ruínas de Vel'Thar → item incomum (`exploreRuins`)
 - `[v0.4]` Alcance Salão Nv4 → desbloqueio: Quartel, Ferreiro · Treine 10 soldados → 1 arma · Salve uma Formação de Defesa → presságio gratuito · Simule uma batalha no Conselho de Guerra → +20 ouro · Repila uma incursão → +XP para o comandante
 
-Depois da sequência inicial, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez"; se entram na v0.4 é **a decidir, ADR 0020, decisão 24**) e **anuais** (Feitos, Apêndice E).
+Depois da sequência inicial, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez"; **ficam fora da v0.4**, seriam os primeiros objetivos que se repetem por ano, [ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md), decisão 24) e **anuais** (Feitos, Apêndice E).
 
 ### 12.3 Tutorial
 
@@ -1408,7 +1411,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 - A Horda deve lembrar das formações entre anos com que peso? (Proposta: 50% do peso do ano corrente.)
 - Caravanas e mercado devem existir já na v0.2 (sem heróis como escolta) para dar saída ao excedente antes do cap?
-- O Plano de Batalha por onda deve permitir também "reparo automático se pedra ≥ X"?
+- ~~O Plano de Batalha por onda deve permitir também "reparo automático se pedra ≥ X"?~~ Não: respondido na decisão 20 ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)).
 - Relíquias devem ter desvantagens (maldições) para não serem sempre boas?
 - Mundo apenas humano ou com facções e raças a partir do Legado?
 - No multiplayer, o cerco é compartilhado por aliança (defender juntos) ou individual?
@@ -1491,7 +1494,7 @@ Lobo = Cavaleiro (sempre lateral; ×1,5 vs Arqueiro) · Ogro: recebe ×1,5 de La
 
 ## Apêndice B — Cartas do Conselho (amostra de 12 das 60)
 
-Nas cartas desta amostra, "dias" são **dias de jogo** e "h" são **horas de jogo** (§4.2). Quantas cartas o jogo terá e o texto final das novas são do lote 2 e do lote 3 (**a decidir, ADR 0020, decisão 23**).
+Nas cartas desta amostra, "dias" são **dias de jogo** e "h" são **horas de jogo** (§4.2). Quantas cartas o jogo terá e o texto final das novas são do lote 2 e do lote 3: 38 cartas (23 + 15), com "A Filha do Ferreiro", cartas de guerra e quatro roteirizadas, apresentadas ao autor em lotes de cinco antes da transcrição ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 23).
 
 | # | Carta | Quando | Opções (efeitos) |
 |---|---|---|---|
