@@ -582,7 +582,7 @@ pnpm --filter @lotg/sim-cli test
 
 Como V4B-T5, sobre a Fase C. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-c.md`; correções `V4C: corrige …`; `docs/balance-v0.4.md`, seção 3; integração e `CLAUDE.md`.
 
-- [ ] V4C-T4.1 O revisor tenta: treinar com as casas cheias; o soldado e o piso de 3; a fome com soldados; dispensar durante o treino; o comandante dispensado, capturado ou que parte em caravana; duas abas salvando a mesma formação; a migração de uma partida com fome aberta; o número de unidades no pacote do app.
+- [x] V4C-T4.1 O revisor tenta: treinar com as casas cheias; o soldado e o piso de 3; a fome com soldados; dispensar durante o treino; o comandante dispensado, capturado ou que parte em caravana; duas abas salvando a mesma formação; a migração de uma partida com fome aberta; o número de unidades no pacote do app.
 - [ ] V4C-T4.2 Correções com teste; relatório no repositório; Registro.
 - [x] V4C-T4.3 **A medição do ouro** (§13): o ouro por fonte e por destino com o treino e o ferro; **volta ao autor com propostas concretas** antes da Fase D (decisão 2).
 - [ ] V4C-T4.4 Integração: portão, `CLAUDE.md`, `architecture.md`, READMEs; linha no §15. Sem `push` (decisão 26).
