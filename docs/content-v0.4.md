@@ -827,3 +827,184 @@ Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, {hero
 Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, o duelo entre {heroi} e {heroi2} acabou em abraço e vinho. Ninguém saiu ferido."
 
 **O motor precisará:** `heroPresent` com mínimo 2 e as lacunas `{heroi}`, `{heroi2}` e `{heroiFerido}` (novo; a última é o herói que o sorteio da virada seguinte escolheu entre os dois), `rollEffect` (o mesmo de 4.4 e 7.4) e `injureHero` (o mesmo de 7.4).
+
+## 8. Lote 2 do Conselho: o lote E, as três últimas (para o autor)
+
+**Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote E da lista da 4.6: as três cartas que sobravam, uma delas roteirizada. Com elas, o lote 2 fica com 22 das 23 cartas; a 23ª, "O aprendiz e o Mestre" (4.5), espera o Mestre poder ensinar o ofício (regra 6 do CLAUDE.md). **Morte de herói não aparece em nenhuma carta.** Os ganchos de motor são pequenos: o requisito `injuredHero` e o efeito `healHero` (8.1), os já aprovados `revealDestination` e `undiscovered` da seção 5 (8.2) e nada novo na 8.3.
+
+**Convenções.** As da seção 4: dias de jogo, prazo de 24 h reais, ids estáveis em inglês, "Autoaplica" é o que o conselho faz se o prazo passar, e a opção que o conselho aplica sozinho nunca tira recurso nem moral em Camponês e em Senhor. Tamanhos de efeito como os do lote 1 (ouro de 30 a 120, comida de 30 a 90).
+
+### 8.1 O curandeiro errante (`wanderingHealer`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; **um herói ferido no feudo** (`injuredHero`: `status: 'injured'`; o motor escolhe um na chegada da carta, pelo fluxo `council`, e grava o nome para a lacuna `{heroi}`) |
+| Texto | "Um homem magro, de bolsa cheia de ervas e dedos manchados de verde, parou diante dos portões e perguntou, sem cumprimentar, quem era o ferido da casa. Já ouviu falar de {heroi}. Diz que cura numa noite o que o tempo cura em muitas, e cobra pela noite." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar pela cura" | Custo 60 de ouro. O ferimento de {heroi} fecha na hora | "A bolsa esvazia hoje, e a espada volta ao trabalho amanhã." | |
+| `herbs` "Comprar só as ervas" | Custo 30 de comida (as ervas viram caldo). O ferimento de {heroi} **encurta pela metade** do que faltava | "Mais lento, mais barato, e a cozinha cheira a mato." | |
+| `wait` "Deixar o tempo curar" | Sem efeito | "O ferimento sara sozinho, no passo dele." | as três dificuldades |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o curandeiro errante. {heroi} acordou sem febre e sem dor, e o homem das ervas sumiu na estrada."
+Crônica (`herbs`): "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou as ervas do curandeiro errante. O caldo fedia, e {heroi} jurou que melhorou por teimosia."
+Crônica (`wait`): "No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou o curandeiro errante. {heroi} continuou de cama, e o homem das ervas foi cobrar noutra porta." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} dispensou o curandeiro errante. {heroi} continuou de cama, e o homem das ervas foi cobrar noutra porta."
+
+**O motor precisará:** requisito de carta `injuredHero` (novo, irmão do `heroPresent` de 7.4: pelo menos um herói `injured` no feudo, não capturado; a carta nunca é sorteada sem ele); efeito `healHero { heroId, mode: 'full' | 'half' }` (novo: `full` encerra o ferimento agora; `half` o encurta para metade do que faltava; o herói volta a `idle` pela mesma porta do herói que sara, sem sorteio). Se o herói sarou ou partiu antes da resposta, o efeito não se aplica e a Crônica diz que o curandeiro chegou tarde. **Nunca mata nem captura.**
+
+### 8.2 O mapa rasgado (`tornMap`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 1, uma vez por ano. Primavera, verão ou outono; Guilda Nv1; **ao menos um destino ainda não descoberto** (`undiscovered`, o requisito da seção 5) |
+| Texto | "Um caçador de barba curta jogou sobre a mesa da Taverna a metade de um mapa, rasgado com cuidado, e disse que a outra metade ficou com um irmão de quem não gosta. O que há é uma trilha, três marcos e um X de tinta velha. Diz que quem tem coragem de seguir a trilha encontra o que o X promete." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `buy` "Comprar o meio mapa" | Custo 70 de ouro. **Revela o próximo destino ainda oculto** (`revealDestination`, o efeito da seção 5), na ordem em que o catálogo os descobre | "Setenta de ouro a menos, e a Guilda tem um destino a mais." | |
+| `barter` "Pagar em provisões" | Custo 40 de comida e 20 de madeira (o pão e as tochas da trilha). **O mesmo efeito de `buy`**, a outro preço | "O caçador aceita o que tem na despensa, e a conversa é a mesma." | |
+| `refuse` "Recusar o negócio" | Sem efeito | "Meio mapa é meia mentira." | as três dificuldades |
+
+Crônica (`buy`): "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou o meio mapa do caçador. A Guilda passou a noite em volta dele, traçando a trilha com o dedo."
+Crônica (`barter`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o meio mapa em pão e tochas. O caçador saiu mastigando e sem olhar para trás."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} recusou o meio mapa. O caçador dobrou o papel e o levou a outra mesa." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou o meio mapa. O caçador dobrou o papel e o levou a outra mesa."
+
+**O motor precisará:** `revealDestination` e `undiscovered` (os mesmos da seção 5, sem novidade); requisito de edifício `guild: 1` (existe). Se o autor achar que `barter` é só um preço diferente, a carta fica com duas opções.
+
+### 8.3 O mercador itinerante (`itinerantMerchant`, roteirizada)
+
+| Campo | Valor |
+|---|---|
+| Quando | **Roteirizada** (`scripted: { atGameDay: 20 }`, o molde da "Estrangeira ferida"): sai no sorteio da audiência, na frente das sorteadas, uma vez por partida; a partida que já passou do dia 20 a recebe na primeira audiência com lugar. Sem edifício nem estação |
+| Texto | "Uma carroça coberta de lona remendada parou diante da praça, e o homem que desceu dela abriu as mãos sem pedir licença: tem boa conversa, lugar na estrada e bolsa para quem quiser vender hoje. Não é o Mercado, que o feudo ainda não tem, e ele sabe disso. Faz o preço de quem não volta." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `sellWood` "Vender madeira" | Custo 100 de madeira; +50 de ouro | "Um preço ruim hoje, para quem precisa de ouro hoje." | |
+| `sellStone` "Vender pedra" | Custo 80 de pedra; +60 de ouro | "A pedra não anda sozinha, e a carroça sim." | |
+| `wait` "Esperar ter o Mercado" | Sem efeito. Grava a flag `itinerant.heardOfMarket`, que só entra no texto das cartas do Mercado | "Quem espera pelo balcão certo vende melhor, e leva mais tempo." | as três dificuldades |
+
+Crônica (`sellWood`): "No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu madeira ao mercador itinerante. O preço foi ruim, e a carroça saiu mais pesada do que chegou."
+Crônica (`sellStone`): "No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu pedra ao mercador itinerante. A carroça rangeu sob o peso até a curva da estrada."
+Crônica (`wait`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o mercador itinerante seguir viagem. Ele disse que o feudo ia precisar de um balcão, e foi embora sem insistir." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o mercador itinerante seguir viagem. Ele disse que o feudo ia precisar de um balcão, e foi embora sem insistir."
+
+**O motor precisará:** nada novo (`scripted` e recursos existem). **Conta conferida contra `balance.ts`:** a madeira vale 1,2 de ouro e a pedra, 2,0 no balcão (`market.basePrice`), então 100 de madeira valeriam 120 de ouro e, na venda do Mercado a 85%, 102; a carta paga 50, menos de metade. A pedra: 80 valeriam 160 e a venda a 85% daria 136; a carta paga 60. É "preço ruim" de propósito, e o texto avisa. Prepara o Mercado (que pede o Salão no Nv3).
+
+### 8.4 O que fica do lote 2
+
+Com estas três, o lote 2 está inteiro nas seções 4 a 8, **exceto o aprendiz** (4.5), que volta quando o Mestre puder ensinar o ofício.
+
+## 9. Lote 3 do Conselho: primeiro lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. O lote 3 tem 15 cartas (roadmap, §16.3); este é o primeiro lote de cinco: a cadeia **"A Filha do Ferreiro"** (9.1 a 9.3, a quinta e última cadeia do GDD §7.1, adaptada à v0.4) e duas avulsas de guerra que só usam o que já existe: **"Mercenários de passagem"** (9.4: Quartel, soldados e armas) e **"Ferro de contrabando"** (9.5: ferro e Mercado). **Nenhuma carta pede batalha nem incursão nova.**
+
+**Convenções.** As da seção 4, mais: **as armas** são o estoque `settlement.weapons` (a forja faz 1 por 6 min de jogo, com 2 de ferro e 1 de madeira por arma, lotes de até 10; só Espadachins e Cavaleiros gastam 1 cada); **o ferro** tem preço-base de 8,0 de ouro (`market.basePrice.iron` = 8000 milésimos, venda a 85%); o Quartel guarda 10 soldados por nível e o soldado come 1,5 por hora de jogo. Dois efeitos temporários novos, no molde do festival e dos de moral (valem em dias de jogo): `smithySpeed` e `smithyBatch`.
+
+### 9.1 A Filha do Ferreiro (`smithsDaughter`, cadeia 1/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Verão; Ferreiro Nv1 (`buildings: { smithy: 1 }`). Sem as flags `smithsDaughter.learning` e `smithsDaughter.tradition` |
+| Texto | "A filha do ferreiro, de quinze anos e braço de homem, pediu licença para ficar diante da forja a noite inteira, e o pai, que nunca deixou ninguém lá, olhou para o chão. Ela já sabe bater o ferro em frio. O que quer é aprender a temperá-lo. A aldeia espiou pela janela, e há quem ache que moça não é lugar para fornalha." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `teach` "Deixar a moça aprender" | Custo 40 de ferro (o primeiro lote dela). **A forja fica 20% mais rápida por 12 dias** (`smithySpeed` 6/5); moral −5 por 2 dias (os conservadores resmungam); flag `smithsDaughter.learning`; a carta 2 chega em 6 dias | "A moça aprende, a forja corre, e a aldeia fala." | |
+| `tradition` "Manter a tradição" | Sem custo. Moral +5 por 3 dias (a aldeia gosta de ordem); flag `smithsDaughter.tradition`; a cadeia termina | "O ofício fica onde sempre esteve, e ninguém reclama." | as três dificuldades |
+
+Crônica (`teach`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a filha do ferreiro aprender o ofício. A forja varou a noite, e as janelas da vizinhança ficaram acesas até tarde."
+Crônica (`tradition`): "No {dia}º dia {daEstacao}, o senhor de {feudo} manteve a tradição da forja. A filha do ferreiro voltou à roca, e a aldeia dormiu em paz." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} manteve a tradição da forja. A filha do ferreiro voltou à roca, e a aldeia dormiu em paz."
+
+**O motor precisará:** `smithySpeed` (novo, efeito de carta temporário no molde do festival: `{ type: 'smithySpeed', factor: { num: 6, den: 5 }, durationDays: 12 }`; entra na conta do tempo de cada arma como mais um fator, vale para cada arma que **começa** depois dele, e a visão explica o termo, "× 1,2 (a filha do ferreiro)"). `buildings`, flags e `scheduleCard` existem. **Troca em relação ao GDD:** o GDD dizia "Ferreiro +10% permanente"; o roadmap (§16.3) diz "por um prazo". Vale o do roadmap, para não mexer em `smithy.speedPerLevel`.
+
+### 9.2 O segredo da têmpera (`temperingSecret`, cadeia 2/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 6 dias depois de `teach` na 9.1 (flag `smithsDaughter.learning`) |
+| Texto | "A filha do ferreiro apareceu na porta do Salão com a cara suja de carvão e um sorriso que nenhum conselheiro soube ler. Descobriu, de tanto errar, que o ferro fica melhor quando esfria em óleo e não em água, e que o óleo certo dá mais peças por fornada. Falta só o ferro para a prova, e o pai fingia que não ouvia." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar o ferro da prova" | Custo 60 de ferro. **Cada lote da forja rende uma arma a mais por 15 dias** (`smithyBatch` +1, até o teto de 10 do lote); flag `smithsDaughter.tempered`; a carta 3 chega em 6 dias | "Um óleo novo, uma arma a mais por lote, e sessenta de ferro a menos." | |
+| `keep` "Guardar o ferro" | Sem custo. Moral +5 por 2 dias (o ferreiro fica orgulhoso); limpa as flags da cadeia; a cadeia termina | "O ferro fica no depósito, e o segredo, na cabeça dela." | as três dificuldades |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o ferro da prova de têmpera. A filha do ferreiro encheu o barril de óleo e não dormiu em casa."
+Crônica (`keep`): "No {dia}º dia {daEstacao}, o senhor de {feudo} guardou o ferro. A filha do ferreiro baixou os olhos, e o pai disse que ela ainda tinha muito para aprender." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} guardou o ferro. A filha do ferreiro baixou os olhos, e o pai disse que ela ainda tinha muito para aprender."
+
+**O motor precisará:** `smithyBatch` (novo, efeito temporário: `{ type: 'smithyBatch', extra: 1, durationDays: 15 }`; o lote encomendado **depois** do efeito rende `quantidade + extra` armas pelo custo e pelo tempo de `quantidade`, sem passar do `smithy.batchMax` de 10; a ordem de forja não muda de contrato, e o motor soma o extra ao concluir). Texto por flag não precisa: só `teach` leva a esta carta.
+
+### 9.3 A espada do Senhor (`lordsSword`, cadeia 3/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 6 dias depois de `pay` na 9.2 (flag `smithsDaughter.tempered`). Ferreiro Nv1 |
+| Texto | "A filha do ferreiro pediu que o senhor viesse à forja e trouxe, enrolada num pano, a primeira lâmina inteira que fez sozinha. Tem o fio limpo e o peso certo, e o pai, ao lado, não disse nada, que é o seu jeito de dizer muito. Ela quer saber o que o feudo faz com o que ela forjou: uma lâmina que merece um nome, ou o ferro de dez outras." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `blade` "Ficar com a lâmina" | **Um item raro**, a Espada do Senhor, entra no arsenal (arma, raridade rara, a potência da Lâmina de Vel'Thar, 28/25; com o arsenal cheio vira ouro, como todo item); moral +5 por 2 dias; limpa as flags; a cadeia termina | "Uma espada com nome, que a Guilda disputa antes do jantar." | |
+| `arms` "Fundir em armas para a tropa" | **+8 armas** no estoque, sem custo; moral +5 por 2 dias; limpa as flags; a cadeia termina | "O ferro volta a ser o que o Quartel gasta: espadas simples, em número." | as três dificuldades |
+
+Crônica (`blade`): "No {dia}º dia {daEstacao}, o senhor de {feudo} ficou com a lâmina da filha do ferreiro. A espada ganhou nome antes do pôr do sol, e a forja ficou em silêncio por respeito."
+Crônica (`arms`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou fundir a lâmina em armas para a tropa. A filha do ferreiro empilhou as peças uma a uma, de cabeça erguida." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou fundir a lâmina em armas para a tropa. A filha do ferreiro empilhou as peças uma a uma, de cabeça erguida."
+
+**O motor precisará:** `addItem { itemId }` (novo, efeito de carta: entrega um item do catálogo pela porta que as expedições já usam, `nextId(draft, 'item')`, com o teto de 30 e a conversão em ouro; **um item novo**, `lordsSword`, na tabela de `items.ts`, com o id fixado em teste) e `addWeapons { amount }` (novo: soma ao estoque de armas, que não tem teto). Nenhum dos dois sorteia. **Troca em relação ao GDD:** "ela forja um item raro mais tarde" vira o item que o senhor recebe de uma vez. As 8 armas valem 16 de ferro e 8 de madeira, bem menos que o item (valor 120 de ouro): a tropa ganha em número, a Guilda em qualidade, e nenhuma opção domina.
+
+### 9.4 Mercenários de passagem (`passingMercenaries`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Primavera, verão ou outono; **Quartel Nv1** e vaga no Quartel para 5 (`army.capPerLevel`, 10 por nível, menos os soldados que já há) |
+| Texto | "Cinco homens de capa verde-escura e espadas de uso longo pararam diante dos portões, e o mais velho tirou o chapéu sem se curvar. Dizem que vêm de uma guerra que acabou na semana passada e que ainda não gastaram a paga. Aceitam servir, por ouro e por armas, a quem lhes der casa e comida. Não prometem ficar para sempre." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `hire` "Contratar os cinco" | Custo 120 de ouro e 5 armas. **+5 Espadachins** entram no Quartel, já treinados, e comem 1,5 de comida por hora cada, como todo soldado. Moral −5 por 2 dias (a aldeia teme homens de armas estranhos) | "Cinco espadas prontas hoje, sem esperar o treino." | |
+| `train` "Pedir que treinem a tropa" | Custo 40 de comida. Moral +5 por 2 dias; **os lotes que já treinam no Quartel terminam em metade do tempo que falta** (`trainBoost`, uma vez); trancada sem fila de treino | "Eles não ficam, mas deixam os rapazes mais depressa de pé." | |
+| `refuse` "Recusar" | Sem efeito | "O Quartel treina os dele, no passo dele." | as três dificuldades |
+
+Crônica (`hire`): "No {dia}º dia {daEstacao}, o senhor de {feudo} contratou cinco mercenários de passagem. Eles entraram em fila no Quartel, de capa verde e queixo erguido."
+Crônica (`train`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pediu aos mercenários que treinassem a tropa. Eles ensinaram numa tarde o que o Quartel levaria uma semana, e seguiram viagem."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} recusou os mercenários. Eles puseram os chapéus e tomaram a estrada do norte." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou os mercenários. Eles puseram os chapéus e tomaram a estrada do norte."
+
+**O motor precisará:** `addSoldiers { unit: 'swordsman', amount: 5 }` (novo, efeito de carta: soma ao `state.army` pela mesma porta da ordem de treino, sem fila nem custo de treino; não passa do teto do Quartel, e a opção fica trancada quando faltam as 5 vagas) e `trainBoost` (novo: corta à metade o tempo que falta dos lotes em treino, uma vez; sem fila, a opção fica trancada). **Troca em relação à lista:** a lista dizia "por um prazo"; aqui **os cinco ficam**, porque soldado temporário é mecânica que o Quartel não tem. Quando a Fase E ligar as incursões, esta opção pode virar batalha (os mercenários lutam na próxima incursão e partem), se o autor quiser.
+
+### 9.5 Ferro de contrabando (`smuggledIron`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; Mercado Nv1 |
+| Texto | "Um carroceiro de olhos baixos esperou a feira acabar e chamou o senhor a um canto da praça. Tem sacos de ferro bom, diz, e preço que não cabe no balcão do Mercado, por razões que prefere não contar. O ferro é pesado e tem cheiro de terra úmida. Pode ser tudo o que ele diz, ou só pedra pintada." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `buy` "Comprar tudo, sem provar" | Custo 260 de ouro. **Risco à vista, sorteado na virada de dia seguinte**: 2 chances em 3 de chegarem **60 de ferro**; 1 em 3 de serem só pedra pintada: nada chega e a moral cai 5 por 2 dias | "Dois sacos em cada três valem, e o terceiro não vale nada." | |
+| `half` "Comprar metade, provando o metal" | Custo 130 de ouro; pede o Ferreiro Nv1, que prova o metal na lima. **30 de ferro na hora, sem risco** | "Um ferreiro por perto vale um balcão inteiro." | |
+| `refuse` "Mandar o carroceiro embora" | Sem efeito | "Ouro no cofre e ferro no ferreiro: o feudo dorme." | as três dificuldades |
+
+Crônica (`buy`): "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou ferro de um carroceiro sem provar o metal. Os sacos foram para o depósito sem ninguém abrir um."
+Crônica (`half`): "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou metade do ferro do carroceiro, depois de o ferreiro prová-lo na lima. O negócio fechou-se sem sorriso."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o carroceiro embora. Ele resmungou do preço, de ninguém e do tempo." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o carroceiro embora. Ele resmungou do preço, de ninguém e do tempo."
+Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, os sacos do carroceiro foram abertos, e o ferro era bom. O ferreiro assobiou baixo."
+Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, os sacos do carroceiro foram abertos, e havia só pedra pintada de preto. O carroceiro já estava a três feudos dali."
+
+**O motor precisará:** `rollEffect` (já proposto em 4.4; aqui com chance de 2 em 3) e o requisito de edifício `smithy: 1` na opção (já existe como requisito de opção). **Conta conferida contra `balance.ts`:** o ferro vale 8,0 de ouro no balcão, então 60 de ferro valeriam 480. A `buy` paga 260 por um valor esperado de 40 de ferro (6,5 de ouro por unidade); a `half` paga 130 por 30 (cerca de 4,3 por unidade), sem risco. **Sem arbitragem:** vender o ferro de volta paga 85% de 8,0, ou 6,8 por unidade: 40 de ferro esperados rendem 272 contra 260 pagos (margem de 12, que o risco de perder tudo come), e os 30 da `half` rendem 204 contra 130, uma margem real, de propósito: **o Ferreiro faz diferença**. Se a margem da `half` incomodar, ela sobe para 150 de ouro.
+
+### 9.6 As outras dez do lote 3 (lista proposta, uma linha cada)
+
+O que resta segue a lista do roadmap (§16.3), menos as cinco acima. **As quatro roteirizadas** entram nos lotes seguintes, na ordem em que o jogo as encontra. Cada uma indica a fase que liga a mecânica de que depende; a ficha só é escrita depois dela.
+
+1. **O primeiro recruta** (roteirizada, quando o Salão chega ao Nv4 pela primeira vez): treinar o voluntário de graça como Lanceiro ou mandá-lo à Fazenda (+30 de comida). Usa só o Quartel; pode vir já no próximo lote.
+2. **Os corvos do norte** (roteirizada, 1º dia de outono do ano 1): erguer a Torre de Vigia ao Nv3 com desconto de 25% ou ignorar o presságio (+5 de moral, "o povo prefere não saber"). Pede a Torre acima do Nv2 e os presságios.
+3. **O desertor** (roteirizada, último dia de outono do ano 1): pagar 60 de ouro pela composição da próxima onda ou expulsá-lo (+5 de moral). Pede a Fortaleza da Horda.
+4. **A véspera** (roteirizada, na noite anterior ao Cerco): festa (+10 de moral por 2 dias) ou vigília (milícia pronta sem custo de produção por uma noite). Pede o Cerco marcado.
+5. **O capitão veterano** (avulsa): um herói Veterano com 20% de desconto na Taverna, ou recusar. Pede a Taverna Nv2 e o traço Veterano (já existe).
+6. **A muralha rachada** (avulsa): reparar agora com 20% de desconto na pedra ou esperar. Pede a Muralha danificada (V4D).
+7. **Saqueadores pedem passagem** (avulsa): pagar 40 de comida ou arriscar uma incursão fraca a mais. Pede o Acampamento de Saqueadores ativo.
+8. **O espião da Horda** (avulsa): interrogar (um presságio) ou enforcar (+5 de moral). Pede a Fortaleza da Horda.
+9. **Conselho de Guerra** (avulsa): um comandante Prudente abre a opção "ouvir", a prévia da próxima incursão de graça; as outras opções cobram ouro. Pede a Defesa ativa e um herói Prudente; **é a carta que usa as formações**.
+10. **Depois da tempestade** (avulsa): luto (reparo com desconto) ou festa pelo cerco (moral). Pede o Rescaldo do Cerco.
+
+**Cobertura.** Verão: 9.1; primavera, verão e outono: 9.4; qualquer estação: 9.5; 9.2 e 9.3 vêm por continuação. Mecânicas da v0.4 já cobertas neste lote: ferro (9.1, 9.2 e 9.5), armas (9.2 a 9.4), Ferreiro (9.1, 9.2 e 9.5) e Quartel e soldados (9.4). Formações, Muralha, Torre, presságios, Fortaleza e Cerco ficam para as dez acima.
