@@ -259,7 +259,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - **O inverno usa a composição-base do outono** na prévia; o cerco por onda é do §11.2.
 - **O posto desconhecido sorteia só entre as unidades da linha dele**; sem unidade da estação naquela linha (a Retaguarda da primavera), pesos iguais entre as unidades comuns da linha, sem o Senhor da Guerra nem o Esqueleto.
-- **Vitória** é vencer ou resistir; **Gloriosa** é vitória sem nenhuma muralha em zero no fim (sem muralha, conta como sem brecha); **Derrota**, o resto.
+- **Vitória** é vencer ou resistir; **Derrota**, o resto. **Gloriosa: respondida pelo autor em 2026-10-23: vitória sem que a Frente de nenhuma ala caia**, com ou sem muralha (era "sem muralha em zero", o que tornava gloriosa toda vitória sem muralha).
 - **O risco principal** soma os fatores do relatório que favorecem a Horda, por fator e ala, nas derrotas se houve alguma; é aproximado, porque o relatório só guarda os três fatores decisivos.
 - **As perdas esperadas** são a média por posto, arredondada ao inteiro mais próximo.
 

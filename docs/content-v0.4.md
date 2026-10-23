@@ -366,6 +366,8 @@ Fim da rodada 2: moral D 100, A 100; D-EF 10 (res 16), D-CF 10 (res 8), D-DF 10 
 
 ## 3. Calibragem de referência (V4D-T5.3)
 
+**Lida pelo autor em 2026-10-23:** a curva (fácil na primavera e no verão, dura no outono e no inverno) fica como está e é revista na medição do simulador (V4I-T1), com as incursões já em batalha. A Vitória Gloriosa passa a ser **vencer sem que a Frente de nenhuma ala caia**, com ou sem muralha (como a decisão 19 do Cerco); o resultado "gloriosa igual a vitória sem muralha" desta tabela é anterior a essa correção.
+
 **Rascunho, não lido pelo autor.** Nenhum número do conteúdo foi mudado: é a medição do que existe (`balance.battle`, `hordeBaseMix`), para o autor decidir se a batalha está no ponto.
 
 **Como foi medido.** Um roteiro descartável (fora do repositório) chama `previewBattle`, a prévia do Conselho de Guerra, com a semente `calib-v4d-t53`, 200 simulações por célula, modo defesa, Torre de Vigia nível 0 e regra de herói ferido. O inimigo é o que a própria prévia supõe hoje: todo posto desconhecido, sorteado a cada simulação na composição-base da estação (Apêndice A), com o total da incursão leve (24) ou média (40) repartido pelos postos como em `balance.battle.previewEnemy.shares` (esquerda: 25% na Frente; centro: 30% na Frente e 15% na Retaguarda; direita: 25% e 5%). A muralha é a mesma vida nas três alas: "sem", Paliçada nível 1 (60) e nível 2 (100). **O Inverno usa a composição do Outono** (o cerco por onda é da Fase F, `hordeBaseMix`); a diferença entre as duas tabelas é só a sorte da semente.
