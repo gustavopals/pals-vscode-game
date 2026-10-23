@@ -319,3 +319,5 @@ Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pn
 5. **A sensação** (2 min): montar a formação parece um quebra-cabeça rápido ou um formulário? Sem batalha ainda, o exército parece servir para alguma coisa? Anote em uma frase o que confundiu.
 
 Se não der para jogar, fica registrado na linha V4C-T4 do Registro do roadmap que a Fase C fechou sem o autor jogar.
+
+**D-10. Os relatórios na visão (V4D-T4.3, 2026-10-23).** _(Decisão do agente, por aprovar.)_ `army.reports` traz o relatório já em frase (`battleReportTexts`, rascunho). O relatório guardado no estado ainda não registra a formação que lutou (a batalha é da Fase E): `adjustFormationId` é a Defesa ativa de hoje, nas defesas; a Fase E deve gravar a formação no relatório. A aura de uma ala só aparece na prévia como a do Xamã (heurística: a do Senhor da Guerra vale para o exército). A Vitória Gloriosa é vencer sem que a Frente de nenhuma ala caia (resposta do autor, 2026-10-23).

@@ -40,6 +40,7 @@ export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './
 export { caravanTexts, marketTexts } from './caravans';
 export { masters, masterTexts } from './masters';
 export {
+  battleReportTexts,
   formationTexts,
   lineLabels,
   warCouncilTexts,

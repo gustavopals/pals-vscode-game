@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
+import { BattleReports } from '../components/BattleReport';
 import { BarracksPanel } from '../components/BarracksPanel';
 import { FormationEditor } from '../components/FormationEditor';
 import { FormationList } from '../components/FormationList';
@@ -67,21 +68,32 @@ function Formations(props: {
           setDraft(saved === undefined ? emptyDraft() : draftOf(saved));
         }}
       />
-      <FormationEditor
-        army={army}
-        draft={draft}
-        onChange={setDraft}
-        disabled={props.disabled}
-        busy={props.busy.has(`formation:${draft.id ?? 'new'}`)}
-        actions={actions}
-      />
-      <WarCouncilPanel
-        army={army}
-        formationId={draft.id}
-        disabled={props.disabled}
-        busy={props.busy}
-        actions={props.actions}
-      />
+      <div class="formation-main">
+        <FormationEditor
+          army={army}
+          draft={draft}
+          onChange={setDraft}
+          disabled={props.disabled}
+          busy={props.busy.has(`formation:${draft.id ?? 'new'}`)}
+          actions={actions}
+        />
+        <WarCouncilPanel
+          army={army}
+          formationId={draft.id}
+          disabled={props.disabled}
+          busy={props.busy}
+          actions={props.actions}
+        />
+        <BattleReports
+          reports={army.reports}
+          onAdjust={(id) => {
+            const saved = army.formations.find((entry) => entry.id === id);
+            if (saved !== undefined) {
+              setDraft(draftOf(saved));
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }

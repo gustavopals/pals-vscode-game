@@ -246,6 +246,13 @@ test.describe('o Conselho de Guerra no editor (V4D-T4)', () => {
     await armyTab(page).click();
     // Sem formação salva, o Conselho pede que se salve.
     await expect(page.getByTestId('war-council-unsaved')).toBeVisible();
+    // O Conselho de Guerra fica logo abaixo do editor, junto do "Salvar" (resposta do autor).
+    const saveBox = await saveButton(page).boundingBox();
+    const councilBox = await page.getByTestId('war-council').boundingBox();
+    expect(saveBox).not.toBeNull();
+    expect(councilBox).not.toBeNull();
+    expect(councilBox?.y ?? 0).toBeGreaterThan((saveBox?.y ?? 0) - 1);
+    expect(Math.abs((councilBox?.x ?? 0) - (saveBox?.x ?? 0))).toBeLessThan(400);
     await page.getByTestId('formation-name').fill('Muralha de Três');
     await fillPost(page, 'center', 'front', 'spearman', '5');
     await fillPost(page, 'left', 'front', 'shieldbearer', '4');

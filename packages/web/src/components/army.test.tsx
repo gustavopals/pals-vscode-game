@@ -7,6 +7,7 @@ import { ArmyTab } from '../tabs/Army';
 import { armyIdleView, armyTrainingView, initialView } from '../test-helpers';
 import type { Actions } from './actions';
 import { BarracksPanel } from './BarracksPanel';
+import { BattleReports } from './BattleReport';
 
 /**
  * O painel do Quartel (V4C-T3.2), desenhado com visões de exemplo. O app só dispõe o que veio:
@@ -107,5 +108,72 @@ describe('o painel do Quartel (V4C-T3.2)', () => {
       );
     expect(tab(true)).toContain('army-units');
     expect(text(tab(false))).toContain('último estado conhecido');
+  });
+});
+
+describe('o relatório de batalha (V4D-T4.3)', () => {
+  const report: ViewState['army']['reports'][number] = {
+    id: 'battle-1',
+    mode: 'defense',
+    modeLabel: 'Defesa do feudo',
+    outcome: 'victory',
+    outcomeLabel: 'Vitória',
+    ending: 'rout',
+    endingText: 'Um dos lados debandou.',
+    roundsCount: 2,
+    factors: [
+      {
+        factor: 'counter',
+        owner: 'player',
+        wing: null,
+        wingLabel: null,
+        round: 1,
+        amount: 12,
+        percent: null,
+        text: 'A tropa certa contra o inimigo deu 12 de dano a mais.',
+      },
+    ],
+    noFactorText: 'Nenhum fator se destacou.',
+    rounds: [
+      {
+        round: 1,
+        attacks: ['O feudo, centro, frente: 5 lanceiros atacam. Dano 10, 1 baixas.'],
+        casualtiesPlayer: 0,
+        casualtiesHorde: 1,
+        moraleText: 'Moral: feudo 100, Horda 95.',
+        wallText: null,
+      },
+    ],
+    casualties: [
+      {
+        owner: 'player',
+        wing: 'center',
+        line: 'front',
+        start: 5,
+        lost: 1,
+        text: 'O feudo, centro, frente: lanceiros, 1 de 5.',
+      },
+    ],
+    wall: [],
+    commanders: [],
+    adjustFormationId: 'formation-1',
+  };
+
+  it('mostra os fatores, as baixas e as rodadas colapsáveis, sem conta no app', () => {
+    const markup = html(<BattleReports reports={[report]} onAdjust={noop} />);
+    const shown = text(markup);
+    expect(shown).toContain('Defesa do feudo: Vitória');
+    expect(shown).toContain('A tropa certa contra o inimigo deu 12 de dano a mais.');
+    expect(shown).toContain('lanceiros, 1 de 5');
+    expect(markup).toContain('<details');
+    expect(markup).toContain('data-testid="battle-adjust"');
+  });
+
+  it('sem formação para ajustar não há botão; sem relatório não há seção', () => {
+    const markup = html(
+      <BattleReports reports={[{ ...report, adjustFormationId: null }]} onAdjust={noop} />,
+    );
+    expect(markup).not.toContain('battle-adjust');
+    expect(html(<BattleReports reports={[]} onAdjust={noop} />)).toBe('');
   });
 });

@@ -1817,8 +1817,32 @@ table.army-units td.num {
   color: var(--vscode-descriptionForeground);
 }
 
+.formation-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
 .war-council {
   margin-top: 12px;
+}
+
+.battle-reports {
+  margin-top: 12px;
+}
+
+.battle-report {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.battle-round summary {
+  cursor: pointer;
+}
+
+.battle-round summary:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
 }
 
 .war-odds {
