@@ -998,6 +998,8 @@ Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, os sa
 
 ### 9.6 As outras dez do lote 3 (lista proposta, uma linha cada)
 
+**Atualização:** as dez foram escritas nas seções 10 (segundo lote de cinco) e 11 (terceiro lote de cinco); a lista abaixo fica como o roteiro de origem.
+
 O que resta segue a lista do roadmap (§16.3), menos as cinco acima. **As quatro roteirizadas** entram nos lotes seguintes, na ordem em que o jogo as encontra. Cada uma indica a fase que liga a mecânica de que depende; a ficha só é escrita depois dela.
 
 1. **O primeiro recruta** (roteirizada, quando o Salão chega ao Nv4 pela primeira vez): treinar o voluntário de graça como Lanceiro ou mandá-lo à Fazenda (+30 de comida). Usa só o Quartel; pode vir já no próximo lote.
@@ -1012,3 +1014,211 @@ O que resta segue a lista do roadmap (§16.3), menos as cinco acima. **As quatro
 10. **Depois da tempestade** (avulsa): luto (reparo com desconto) ou festa pelo cerco (moral). Pede o Rescaldo do Cerco.
 
 **Cobertura.** Verão: 9.1; primavera, verão e outono: 9.4; qualquer estação: 9.5; 9.2 e 9.3 vêm por continuação. Mecânicas da v0.4 já cobertas neste lote: ferro (9.1, 9.2 e 9.5), armas (9.2 a 9.4), Ferreiro (9.1, 9.2 e 9.5) e Quartel e soldados (9.4). Formações, Muralha, Torre, presságios, Fortaleza e Cerco ficam para as dez acima.
+
+## 10. Lote 3 do Conselho: segundo lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. São as cinco primeiras das dez que a seção 9.6 deixou: **três roteirizadas** ("O primeiro recruta", "Os corvos do norte" e "O desertor"), uma avulsa de herói ("O capitão veterano") e uma de guerra ("O espião da Horda"). **Três delas dependem de mecânica de fase futura** e vêm marcadas "**entra só com a Fase X**": a ficha já está escrita com a mecânica, para o autor ler, mas a carta só entra no catálogo depois da fase (a Fase E liga a Torre Nv3+, a Fortaleza e os presságios; ADR 0020, decisões 16 e 18). As duas que não dependem de fase nenhuma são a 10.1 e a 10.4.
+
+**Convenções.** As das seções 4 e 9, mais: **presságio** é a frase de Crônica que revela parte das ondas do cerco, com a clareza do nível da Torre (1: "muitas feras"; 3: tipo e ala; 5: composição exata; GDD §11.1); o efeito `omen { wave, clarity }` **entrega** um presságio sem sorteio, lido da versão atual da onda (ADR 0020, decisão 18: o presságio nunca mente sobre ela). Cada roteirizada tem `scripted` com um gatilho próprio, como a "Estrangeira ferida" (`atGameDay: 13`): sai no sorteio da audiência, na frente das sorteadas, uma vez por partida, e **pede lugar na mesa sem reservá-lo**.
+
+### 10.1 O primeiro recruta (`firstRecruit`, roteirizada)
+
+| Campo | Valor |
+|---|---|
+| Quando | **Roteirizada**, `scripted: { onHallLevel: 4 }` (gatilho novo): sai na primeira audiência com lugar depois de o Salão chegar ao Nv4 pela primeira vez, uma vez por partida; a partida que já passou do Nv4 a recebe na primeira audiência com lugar. Sem estação |
+| Texto | "No dia em que o Salão ganhou o quarto andar e o Quartel pôde ser riscado no chão, um rapaz de ombros largos esperava no portão desde antes do sol. Não é herói, não é nobre e não tem arma. Quer aprender a segurar uma lança, e o pai dele, que lavra o campo ao lado, fingiu que não via." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `train` "Treiná-lo como Lanceiro" | Pede **Quartel Nv1 e vaga** (10 por nível, menos os soldados que já há). **+1 Lanceiro** entra no Quartel, já treinado, sem custo de treino (o lote custaria 30 de comida, 10 de ouro e 5 de madeira); ele sai da população e come 1,5 por hora, como todo soldado. Moral +5 por 2 dias (a aldeia se orgulha do primeiro) | "O primeiro soldado do feudo, de graça, pelo preço de um aldeão a menos." | |
+| `farm` "Mandá-lo à Fazenda" | **+30 de comida**; moral +5 por 2 dias (o pai agradece) | "Um braço a mais na colheita, e um pai em paz." | as três dificuldades |
+
+Crônica (`train`): "No {dia}º dia {daEstacao}, o senhor de {feudo} aceitou o primeiro recruta no Quartel. O rapaz recebeu uma lança mais alta do que ele e a segurou como quem segura um sonho."
+Crônica (`farm`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o rapaz de volta à Fazenda. O pai trouxe pão ao Salão em sinal de gratidão." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o rapaz de volta à Fazenda. O pai trouxe pão ao Salão em sinal de gratidão."
+
+**O motor precisará:** o gatilho `scripted.onHallLevel` (novo, ao lado de `atGameDay`; compara com o nível do Salão na hora do sorteio da audiência; sem passo de migração, como o `atGameDay`) e `addSoldiers { unit: 'spearman', amount: 1 }` (o mesmo efeito proposto em 9.4; não passa do teto do Quartel, e a opção fica trancada sem Quartel ou sem vaga). `resources` e `morale` existem. **Nenhuma fase futura**: só o Quartel (V4C-T1, já no `main`). **Conta conferida:** o custo evitado, 30 de comida, 10 de ouro e 5 de madeira (`units.ts`), é pequeno de propósito, e a `farm` rende 30 de comida; o que decide é ter ou não o Quartel e a vaga.
+
+### 10.2 Os corvos do norte (`northernCrows`, roteirizada) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | **Roteirizada**, `scripted: { atSeasonStart: 'autumn', year: 1 }` (gatilho novo): sai na primeira audiência com lugar depois da virada que abre o outono do ano 1. Uma vez por partida |
+| Texto | "Os corvos chegaram do norte numa nuvem e pousaram nas muralhas, nos telhados, até nas cruzes do cemitério. Não grasnavam. O guarda da torre diz que nunca viu bicho calado daquele jeito. Os mais velhos contam que, quando os corvos descem assim, a Horda vem atrás, e o povo, que ainda não ouviu a notícia direito, já olha para o alto." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `raise` "Erguer a Torre de Vigia ao Nv3" | Pede **Torre Nv2**. Inicia a obra do Nv3 com **25% de desconto** sobre o custo do nível (o custo é da V4E-T1); trancada sem os recursos ou sem a Torre no Nv2 | "Uma torre mais alta enxerga mais longe, e custa menos hoje do que custaria depois." | |
+| `ask` "Consultar o eremita" | Custo 60 de ouro. **Um presságio de clareza 1** ("muitas feras") sobre as ondas do cerco, sem sorteio (`omen { clarity: 1 }`) | "Pouco se sabe, mas é mais do que antes." | |
+| `ignore` "Não dar importância" | Moral +5 por 2 dias ("o povo prefere não saber") | "O que o povo não sabe, não o assusta." | as três dificuldades |
+
+Crônica (`raise`): "No {dia}º dia {daEstacao}, os corvos do norte pousaram sobre {feudo}, e o senhor mandou erguer mais um andar na torre. Os pedreiros subiram ao amanhecer, e os corvos desceram um a um."
+Crônica (`ask`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou chamar o eremita por causa dos corvos. Ele olhou o céu um bom tempo e disse que vinham muitas feras."
+Crônica (`ignore`): "No {dia}º dia {daEstacao}, o senhor de {feudo} não deu importância aos corvos. O povo agradeceu o sossego e fechou as janelas mais cedo." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} não deu importância aos corvos. O povo agradeceu o sossego e fechou as janelas mais cedo."
+
+**O motor precisará (Fase E):** o gatilho `scripted.atSeasonStart` (novo); o **Nv3 da Torre de Vigia** (V4E-T1: hoje a Torre vai só ao Nv2); o efeito `startBuilding { building, level, discount }` (novo: inicia a obra pelo caminho de `startConstruction`, com o desconto sobre o custo); e `omen { wave?, clarity }` (novo, V4E-T3: grava o presságio na lista do Exército; sem `wave`, vale a onda que a Horda tem mais definida na versão atual). A `ask` não funciona sem os presságios. **Troca em relação à lista:** a lista tinha duas opções; a `ask` nasce porque, sem a Torre no Nv2, a primeira não pode existir, e a carta ficaria só com o "ignorar".
+
+### 10.3 O desertor (`hordeDeserter`, roteirizada) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | **Roteirizada**, `scripted: { atSeasonEnd: 'autumn', year: 1 }` (gatilho novo): sai na primeira audiência com lugar a partir do **último dia do outono** do ano 1. Pede a Fortaleza da Horda de pé (ADR 0020, decisão 16). Uma vez por partida |
+| Texto | "O homem chegou ao portão com um trapo amarrado no braço e uma marca de ferro quente no pescoço. Diz que marchava com a Horda até anteontem, que a comida lá é pior do que a nossa e que o Senhor da Guerra manda açoitar quem fala de casa. Fala depressa e olha para trás. O inverno bate à porta, e ele sabe o que vem com ele." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `buy` "Pagar pela composição de uma onda" | Custo 60 de ouro. **Um presságio de clareza 5** (a composição exata) da **onda 2** do cerco, lido da versão atual (`omen { wave: 2, clarity: 5 }`) | "Sessenta de ouro por saber exatamente o que vem na segunda noite." | |
+| `question` "Interrogá-lo de graça" | Sem custo. **Um presságio de clareza 3** (o tipo e a ala) da onda 1; moral −5 por 2 dias (a aldeia não gosta do que ouve da sala do interrogatório) | "Ele fala por medo, e o que diz é só metade." | |
+| `expel` "Expulsá-lo" | Sem custo. Moral +5 por 2 dias | "Um problema a menos, e uma pergunta sem resposta." | as três dificuldades |
+
+Crônica (`buy`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou ao desertor da Horda pela segunda onda do cerco. Ele contou tudo de olho no ouro e não olhou para trás ao sair."
+Crônica (`question`): "No {dia}º dia {daEstacao}, o senhor de {feudo} interrogou o desertor da Horda. A sala ficou fechada até tarde, e a aldeia dormiu mal."
+Crônica (`expel`): "No {dia}º dia {daEstacao}, o senhor de {feudo} expulsou o desertor da Horda. Ele tomou a estrada do sul sem uma palavra." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} expulsou o desertor da Horda. Ele tomou a estrada do sul sem uma palavra."
+
+**O motor precisará (Fase E):** o gatilho `scripted.atSeasonEnd` (novo); a **Fortaleza da Horda** como tile de ameaça (V4E-T3), as **ondas geradas** na virada do outono (decisão 18) e `omen { wave, clarity }` com clareza 3 e 5. **Dúvida para o autor:** a Horda **regera** as ondas a cada formação nova até o inverno (decisão 18), e a carta sai no último dia do outono; um presságio dado aqui lê a versão daquele instante e pode ficar velho se o jogador mudar a Defesa ativa depois. A proposta é gravar a hora em que foi visto ("visto no último dia do outono") e deixar a tela dizer se ainda é a versão atual; o autor decide se prefere outra regra.
+
+### 10.4 O capitão veterano (`veteranCaptain`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; **Taverna Nv2** (`buildings: { tavern: 2 }`) e vaga na lista de heróis (`rosterCap`) |
+| Texto | "Um homem de barba cinzenta e cicatriz de ponta a ponta no rosto entrou na Taverna e pagou a rodada com uma moeda de ouro de um rei que já morreu. Disse que lutou em onze cercos, que perdeu a conta dos feridos e que só quer uma cama e um posto onde não o chamem de velho. Quem o ouve conta que ele passou a noite sem sentar." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `hire` "Contratar o capitão" | Custo 240 de ouro (o Guerreiro Veterano da Taverna custa 300; aqui o desconto é de 20%). **Entra o herói nomeado Osbert, Guerreiro Veterano e Leal, nível 2**, pela mesma porta do herói de carta (`admitHero`); o soldo é o do nível 2 (3 de ouro por hora de jogo). Trancada sem vaga na lista | "Um veterano de casa pronta, mais barato do que no balcão." | |
+| `feast` "Pagar-lhe a mesa e ouvir as histórias" | Custo 40 de comida. Moral +5 por 3 dias (as histórias correm a aldeia) | "Não é um herói que fica, mas é uma noite que o povo conta." | |
+| `refuse` "Agradecer e deixá-lo seguir" | Sem efeito | "A Taverna tem outros hóspedes, e o ouro fica no cofre." | as três dificuldades |
+
+Crônica (`hire`): "No {dia}º dia {daEstacao}, o senhor de {feudo} contratou o capitão Osbert. Ele pendurou a espada atrás da porta e perguntou onde ficava a pedra de amolar."
+Crônica (`feast`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a mesa ao capitão veterano. Ele contou onze cercos até o galo cantar, e ninguém quis ir dormir."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes."
+
+**O motor precisará:** nada novo no motor, só conteúdo: um herói nomeado a mais em `NAMED_HERO_IDS` (`osbert`, com `veteran` e `loyal`, nível 2, fixado em `council.test.ts`) e o efeito `addHero` existente (com o preço como custo da opção). O requisito de Taverna Nv2 e a vaga na lista (`rosterCap`) são requisitos de carta e de opção que já existem. **Nenhuma fase futura.** Usa o traço **Veterano** (nenhuma carta o usava) e o **Leal**. **Conta conferida:** 300 de ouro é o preço do `veteranWarrior` (`tavernCandidates`) e 240 é 80% dele; o soldo do nível 2 é 3 de ouro por hora (`wagePerHourByLevel`). A Taverna dá um herói sorteado, que depende da rotação; a carta dá um herói certo, de nome conhecido.
+
+### 10.5 O espião da Horda (`hordeSpy`, avulsa) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. **Outono**; Fortaleza da Horda de pé; Torre de Vigia Nv1 |
+| Texto | "Os vigias prenderam um homem que dormia dentro de um celeiro, sem fogueira e sem arma, com uma pena de corvo atrás da orelha e um papel dobrado dentro da bota. Nega tudo, e depois pede água. A aldeia, que já viu muita coisa estranha este ano, quer enforcá-lo antes do jantar, e o capitão dos vigias quer ouvi-lo primeiro." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `interrogate` "Interrogá-lo" | Custo 30 de comida (os dias de cela). **Um presságio de clareza 3** (o tipo e a ala), sem sorteio (`omen { clarity: 3 }`); moral −5 por 2 dias | "Ele fala se tem fome, e o que diz vale a ração." | |
+| `hang` "Enforcá-lo" | Sem custo. Moral +5 por 2 dias | "A aldeia dorme melhor, e o feudo sabe menos." | |
+| `release` "Soltá-lo na estrada" | Sem efeito | "Ele leva de volta o que viu, e nada mais." | as três dificuldades |
+
+Crônica (`interrogate`): "No {dia}º dia {daEstacao}, o senhor de {feudo} interrogou o espião da Horda. O papel dobrado na bota era um mapa, e o mapa tinha as portas do feudo marcadas com um corvo."
+Crônica (`hang`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou enforcar o espião da Horda. A aldeia assistiu em silêncio e voltou ao trabalho com a cabeça mais leve."
+Crônica (`release`): "No {dia}º dia {daEstacao}, o senhor de {feudo} soltou o espião da Horda na estrada. Ele agradeceu duas vezes e não olhou para trás." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} soltou o espião da Horda na estrada. Ele agradeceu duas vezes e não olhou para trás."
+
+**O motor precisará (Fase E):** a Fortaleza da Horda e os presságios (V4E-T3), com `omen { clarity }` (sem `wave`: vale a onda que a Horda tem mais definida na versão atual, sem sorteio no `applyCommand`). O requisito `tile` na carta (Fortaleza de pé) é novo; `morale` e `resources` existem. **Troca em relação à lista:** a lista dizia "interrogar (um presságio) ou enforcar (+5 de moral)"; entra a terceira opção, `release`, para a que o conselho aplica sozinho não punir quem falta (GDD §7.1).
+
+### 10.6 Cobertura do segundo lote
+
+Estações: 10.1 sem estação (gatilho do Salão), 10.2 e 10.3 no outono (roteirizadas), 10.4 em qualquer estação, 10.5 no outono. Mecânicas da v0.4 que este lote usa: Quartel e Lanceiros (10.1), Taverna e o traço Veterano (10.4) e, nas três da Fase E, a Torre Nv3, a Fortaleza e os presságios (10.2, 10.3 e 10.5). Roteirizadas com gatilho novo: `onHallLevel`, `atSeasonStart` e `atSeasonEnd`. Ficam as cinco da seção 11.
+
+## 11. Lote 3 do Conselho: terceiro lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T2; decisão 23: lotes de cinco). Nada disto está no código ainda. São as cinco últimas do lote 3: **"Saqueadores pedem passagem"** e **"A muralha rachada"** (Fase E: o Acampamento e a Muralha), **"Conselho de Guerra"** (Fase E: a incursão completa; é a que usa as formações), **"Depois da tempestade"** (Fase G: o Rescaldo) e **"A véspera"** (roteirizada, Fase G: o Cerco marcado). **Todas as cinco são "entra só com a Fase X"**, e a ficha vem escrita com a mecânica para o autor ler. As convenções são as das seções 4, 9 e 10.
+
+### 11.1 Saqueadores pedem passagem (`raidersAskPassage`, avulsa) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Primavera, verão ou outono; **Acampamento de Saqueadores ativo** (o tile nasce no 25º dia de jogo e some quando o jogador o ataca; ADR 0020, decisão 16); Torre de Vigia Nv1 |
+| Texto | "Um cavaleiro de elmo sem plumas veio a pé até a ponte, deixou a espada no chão e levantou as duas mãos. Fala em nome do acampamento do outro lado da colina. Diz que os homens dele passam fome e que preferem comer a lutar, e que por uma carga de pão a estrada fica livre por um tempo. Pergunta, no fim, se o senhor aguenta a sua fome melhor do que eles aguentam a deles." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar a passagem" | Custo 40 de comida. **A Ameaça cai 10** (o acampamento se aquieta por um tempo); nenhuma incursão a mais | "Um saco de pão compra um pouco de sossego, e o sossego não dura." | |
+| `risk` "Mandá-los embora" | Sem custo. **Uma incursão fraca de saqueadores é marcada** para 6 h de jogo depois (a antecedência de `raidLeadMs`) e vira batalha com a Defesa ativa; moral +5 por 2 dias (o povo gosta de quem não paga) | "Mais uma briga pequena, e a tropa treina com ela." | |
+| `wait` "Deixá-lo esperar na ponte" | Sem efeito | "O cavaleiro espera, e o feudo pensa." | as três dificuldades |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a passagem aos saqueadores. A carroça de pão atravessou a ponte e voltou vazia."
+Crônica (`risk`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou os saqueadores embora. O cavaleiro pegou a espada do chão e disse que voltariam, e que não viriam de mãos abertas."
+Crônica (`wait`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o cavaleiro dos saqueadores esperar na ponte. Ao fim da tarde, ele já tinha ido embora." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o cavaleiro dos saqueadores esperar na ponte. Ao fim da tarde, ele já tinha ido embora."
+
+**O motor precisará (Fase E):** o Acampamento de Saqueadores como tile de ameaça (V4E-T2/T3: nasce no 25º dia, soma +2 por dia), o requisito `tile` na carta (o mesmo da 10.5), `threat { delta }` (efeito novo: soma ou tira Ameaça, entre 0 e 100) e `scheduleRaid { kind: 'weak', afterMs }` (efeito novo: marca uma incursão fraca de saqueadores no calendário, pela mesma porta das roteirizadas; se a composição precisar de sorteio, ele sai da virada de dia, nunca do `applyCommand`). **Conta conferida:** a incursão repelida tira 35 da Ameaça (`raidDrop`), então a `risk` também a baixa, com uma briga; a `pay` tira só 10, por 40 de comida.
+
+### 11.2 A muralha rachada (`crackedWall`, avulsa) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; **Muralha de Pedra (Paliçada Nv3 ou mais) com alguma ala abaixo da vida cheia** depois de uma batalha. Não sai com a Muralha nova nem sem batalha |
+| Texto | "O pedreiro subiu na muralha com um prumo e um balde, desceu sem dizer nada e esperou o senhor chegar. Mostrou, no meio da ala, uma fenda do tamanho de um braço, escura por dentro, onde a pedra velha já tinha cedido ao martelo do último ataque. Diz que dá para remendar hoje por pouco, ou esperar, e deixar a pedra decidir sozinha quando cai." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `repair` "Reparar agora" | Repara **a muralha inteira** pelo caminho do reparo (15 min de jogo por 25% da vida de uma ala), com **20% de desconto** em pedra e em ouro sobre o reparo do nível (no Nv3, 225 de pedra e 225 de ouro viram 180 e 180). Trancada sem os recursos | "O reparo de sempre, mais barato, se for hoje." | |
+| `patch` "Remendar o que dá" | Custo 60 de pedra. **A ala mais ferida recupera 25% da vida** na hora, sem a fila do reparo | "Um remendo de ponte: aguenta a primeira chuva." | |
+| `wait` "Esperar" | Sem efeito | "A pedra aguenta até aguentar." | as três dificuldades |
+
+Crônica (`repair`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou reparar a muralha rachada. Os pedreiros trabalharam até o fim do dia, e o balde subiu e desceu cheio de argamassa."
+Crônica (`patch`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou remendar a fenda da muralha. O pedreiro bateu na pedra três vezes e disse que, por enquanto, estava firme."
+Crônica (`wait`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a muralha rachada como estava. O pedreiro desceu da escada e olhou a fenda mais uma vez, sem esperança." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou a muralha rachada como estava. O pedreiro desceu da escada e olhou a fenda mais uma vez, sem esperança."
+
+**O motor precisará (Fase E):** a Muralha de Pedra com vida por ala e o reparo (V4E-T1: vida 60, 100, 200, 320, 500 e 800 do Nv1 ao Nv6; reparo com metade da pedra do nível e ouro igual à pedra, 15 min de jogo por 25% da vida de uma ala; ADR 0020), o requisito `wallDamaged` (novo, na carta) e `repairWall { discount }` e `healWall { fraction }` (efeitos novos, que usam a mesma conta do reparo, sem sorteio). **Troca em relação à lista:** a lista tinha duas opções; a `patch` entra para o jogador sem pedra e ouro para o reparo inteiro ter uma saída que não seja esperar.
+
+### 11.3 Conselho de Guerra (`warCouncil`, avulsa) — entra só com a Fase E
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Primavera, verão ou outono; **Defesa ativa** definida (V4C-T2) e uma **incursão marcada** no calendário (a que a Torre já avisa; V4E-T2). É a carta que usa as formações |
+| Texto | "Os comandantes de ala pediram a mesa grande do Salão e espalharam sobre ela pedras, pinhas e pedaços de pão: cada coisa, um esquadrão. Brigam baixo sobre quem fica à frente e quem fica no flanco. O que fala menos, de braços cruzados, pede só um momento para escutar o que vem, antes de qualquer um mexer numa pinha. Falta saber a quem o senhor dá ouvidos." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `listen` "Ouvir o comandante prudente" | **Pede um comandante com o traço Prudente na Defesa ativa.** Sem custo. **A composição da próxima incursão** (tipos e quantidades por ala) é revelada de graça, como uma prévia (`revealRaid`) | "Quem pensa antes de agir conhece o inimigo antes de ele chegar." | |
+| `hear` "Ouvir a todos" | Custo 50 de ouro (a ceia dos comandantes). A mesma prévia: **a composição da próxima incursão** | "A mesa fica cheia, a prévia também, e o cofre, mais leve." | |
+| `leave` "Deixar que decidam sozinhos" | Sem efeito | "Os comandantes sabem o que fazem, e o senhor confia." | as três dificuldades |
+
+Crônica (`listen`): "No {dia}º dia {daEstacao}, o senhor de {feudo} ouviu o comandante prudente no Conselho de Guerra. Ele moveu duas pinhas e disse, baixinho, o que vinha do norte."
+Crônica (`hear`): "No {dia}º dia {daEstacao}, o senhor de {feudo} ouviu todos os comandantes no Conselho de Guerra. A ceia durou até tarde, e a pinha do meio mudou de lugar três vezes."
+Crônica (`leave`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou os comandantes decidirem sozinhos. A mesa grande ficou posta para ninguém." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou os comandantes decidirem sozinhos. A mesa grande ficou posta para ninguém."
+
+**O motor precisará (Fase E):** o requisito `commanderTrait: 'prudent'` na opção (novo: lê a Defesa ativa e o traço do comandante de cada ala; a opção fica trancada sem esse comandante) e o efeito `revealRaid` (novo, V4E-T2: grava na visão a composição da próxima incursão marcada, **sem sortear**, pelo mesmo caminho que a visão usa para a previsão). O traço **Prudente** nenhuma carta o usava. **Conta:** a `hear` cobra 50 de ouro, dentro do tamanho dos ouros das cartas já aprovadas (30 a 120); quem tem um comandante Prudente na Defesa ativa poupa o ouro.
+
+### 11.4 Depois da tempestade (`afterTheStorm`, avulsa) — entra só com a Fase G
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. **Só no Rescaldo** (entre o fim do cerco e o fim do inverno; ADR 0020, decisão 22) |
+| Texto | "O vento parou na manhã seguinte, e com ele o cheiro de fumaça. A aldeia saiu à rua devagar, como depois de um enterro. Os que ficaram contam os que não voltaram, e os que não voltaram vão ser contados de novo no verão. Falta decidir como o feudo vai chorar, ou se vai chorar de uma vez e cuidar do que sobrou." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `mourn` "Erguer um marco aos mortos" | Pede que **o cerco tenha deixado mortos** (flag do rescaldo). Custo 80 de pedra. Moral +10 por 3 dias | "Uma pedra com os nomes, e a aldeia olha o futuro de cabeça erguida." | |
+| `feast` "Festejar o cerco vencido" | Pede **cerco vencido** (Vitória, Gloriosa ou não). Custo 100 de comida e 50 de ouro. Moral +10 por 2 dias, além do que o Rescaldo já dá | "Quem sobrevive tem o direito de comer à mesa cheia." | |
+| `rebuild` "Pôr todos nas pedras" | Sem custo. **O desconto de reparo do Rescaldo sobe 10 pontos** (o número do Rescaldo é da V4G-T2); moral −5 por 2 dias (ninguém teve tempo de chorar) | "O luto fica para o verão, e o reparo, para hoje." | |
+| `leave` "Deixar cada um com o seu luto" | Sem efeito | "A aldeia sabe o que fazer, e o senhor não se mete." | as três dificuldades |
+
+Crônica (`mourn`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou erguer um marco aos mortos do cerco. Os nomes foram riscados a ponta de faca, e a aldeia leu todos em voz alta."
+Crônica (`feast`): "No {dia}º dia {daEstacao}, {feudo} festejou o cerco vencido. A mesa foi posta na praça, e até os cães comeram à vontade."
+Crônica (`rebuild`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pôs a aldeia inteira nos reparos. O luto ficou para o verão, e as pedras foram assentadas antes do meio-dia."
+Crônica (`leave`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou cada um com o seu luto. A aldeia andou em silêncio por três dias." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou cada um com o seu luto. A aldeia andou em silêncio por três dias."
+
+**O motor precisará (Fase G):** o Rescaldo (V4G-T2) como janela, as flags `siege.casualties` e `siege.won` gravadas ao fim do cerco (o motor as põe, a carta só as lê), o requisito de carta `phase: 'aftermath'` (novo) e `repairDiscount { points }` (efeito novo, que soma ao desconto de reparo do Rescaldo até o fim do inverno). `resources` e `morale` existem. **Troca em relação à lista:** a lista tinha duas opções ("luto ou festa"); entram a `rebuild` e a `leave`, e o luto passa a ser a `mourn`, para o jogador sem mortos ou sem vitória ter uma saída. O luto (−10 de moral por 1 dia com mortos) e a festa (+15 com Vitória Gloriosa) do próprio Rescaldo seguem automáticos; as opções da carta **somam** a eles, e o autor pode preferir o contrário.
+
+### 11.5 A véspera (`siegeEve`, roteirizada) — entra só com a Fase G
+
+| Campo | Valor |
+|---|---|
+| Quando | **Roteirizada**, `scripted: { beforeSiege: true }` (gatilho novo): sai na primeira audiência com lugar depois de o Cerco ficar **marcado** (GDD §4.3), uma vez por ano. Inverno |
+| Texto | "A noite antes do cerco não parece uma noite. Há luz em todas as janelas, o ferreiro bate numa lâmina que já estava pronta e as crianças foram mandadas cedo para a cama sem que nenhuma dormisse. Alguém deixou uma fogueira acesa no meio da praça e ninguém foi apagá-la. A aldeia espera que o senhor diga o que fazer com a espera." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `feast` "Fazer uma festa" | Custo 60 de comida e 30 de ouro. Moral +10 por 2 dias | "Se for a última noite, que seja boa. Se não for, também." | |
+| `vigil` "Passar a noite em vigília" | Sem custo. **A milícia fica pronta**: até 25% dos aldeões são convocados na véspera e **não deixam de produzir até a batalha começar** (a decisão 21 pede que ela pare de produzir ao ser convocada; aqui o corte começa só na batalha). Moral −5 por 1 dia (o povo não dorme) | "Todos de pé, e o trabalho não para até o primeiro corno." | |
+| `rest` "Mandar o povo descansar" | Sem efeito | "O sono vale mais do que a preparação, na noite certa." | as três dificuldades |
+
+Crônica (`feast`): "Na véspera do cerco, o senhor de {feudo} mandou pôr a mesa na praça. Bebeu-se à saúde de todos, vivos e mortos futuros, e a fogueira ficou acesa até o fim."
+Crônica (`vigil`): "Na véspera do cerco, o senhor de {feudo} mandou fazer vigília. Os aldeões armados se alinharam nas muralhas e o ferro das lanças brilhou de noite."
+Crônica (`rest`): "Na véspera do cerco, o senhor de {feudo} mandou o povo descansar. A aldeia dormiu mal, mas dormiu." Prazo vencido: "Na véspera do cerco, sem palavra do senhor, o conselho de {feudo} mandou o povo descansar. A aldeia dormiu mal, mas dormiu."
+
+**O motor precisará (Fase G):** o gatilho `scripted.beforeSiege` (novo; V4G-T1/T2, a partir do Cerco marcado); **o prazo da carta limitado ao instante do Cerco** (o prazo de 24 h reais pode passar da hora da primeira onda: vale o menor entre as 24 h e o início do cerco, e a opção do conselho vale na hora); `militiaReady { fraction: 1/4 }` (efeito novo: convoca a milícia sem o corte de produção até o início da batalha; as regras de 3/2/12, ×5/4 e as baixas contra a população, com o piso de 3, são as da decisão 21). **Dúvida para o autor:** a decisão 21 limita a milícia a até 50% dos aldeões e só dentro da antecedência da Torre; o 25% da carta é proposta nova e não contradiz o limite, e a carta vale mesmo sem Torre (ela é o próprio aviso). A Crônica não usa `{dia}º dia`, porque a véspera não é um dia de calendário que o jogador conte.
+
+### 11.6 Cobertura do lote 3 e as 60
+
+Com as seções 9, 10 e 11, as 15 do lote 3 estão escritas: 9.1 a 9.5, 10.1 a 10.5 e 11.1 a 11.5. **Quatro roteirizadas**: 10.1, 10.2, 10.3 e 11.5. **Cadeia**: 9.1 a 9.3. **Fase de que cada uma depende:** sem fase futura, 9.1 a 9.5, 10.1 e 10.4; Fase E, 10.2, 10.3, 10.5, 11.1, 11.2 e 11.3; Fase G, 11.4 e 11.5. **Traços e mecânicas da v0.4 que o lote usa:** Veterano e Leal (10.4), Prudente (11.3), Torre Nv3 (10.2), Fortaleza e presságios (10.2, 10.3, 10.5), Acampamento (11.1), Muralha (11.2), formações (11.3), Rescaldo (11.4), Cerco e milícia (11.5). A sabotagem (Fase F) não entra em carta nenhuma do lote 3.
