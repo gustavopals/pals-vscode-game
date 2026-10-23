@@ -1239,4 +1239,18 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       expect(idle?.action).toMatchObject({ command: 'lords.sendExpedition', arg: 'patrol' });
     });
   });
+
+  describe('a batalha (V4D-T4)', () => {
+    it('battleFought entra em "O que exigiu um preço", com a ação de ajustar a formação', () => {
+      const text = 'O exército travou batalha: derrota. Pesou mais a Frente que cedeu.';
+      const blocks = blocksOf(guildView, guildView, [event('battleFought', text)]);
+      expect(texts(blocks.cost)).toEqual([text]);
+      expect(blocks.prospered).toEqual([]);
+      expect(blocks.cost[0]?.action).toMatchObject({
+        command: 'lords.openPanel',
+        arg: 'army',
+        label: 'Ajustar formação',
+      });
+    });
+  });
 });

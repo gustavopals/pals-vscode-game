@@ -160,6 +160,10 @@ test.describe('o editor de formação (V4C-T3.3)', () => {
     );
     await page.getByRole('tab', { name: 'Guilda' }).click();
     await expect(page.getByTestId('hero-commanding')).toContainText('Não parte em expedição');
+    // A ficha também diz o que o herói faz como comandante, na frase da visão (V4D-T4.3).
+    await expect(page.getByTestId('hero-commander-text')).toHaveText(
+      new RegExp(aldo?.commanderText.replace(/[+%]/g, '\\$&') ?? ''),
+    );
     await armyTab(page).click();
 
     // Tirar a Defesa ativa manda `setActiveFormation` com `id: null`; depois, o aviso na barra.
@@ -227,5 +231,55 @@ test.describe('a aba Exército nos temas e em janela estreita (V4C-T3.5)', () =>
     } finally {
       await context.close();
     }
+  });
+});
+
+test.describe('o Conselho de Guerra no editor (V4D-T4)', () => {
+  test('simular pelo teclado mostra a prévia e a linha inimiga; mudar a formação a desatualiza', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openEditor(world, page);
+    await applyTheme(page, 'dark');
+    await armyTab(page).click();
+    // Sem formação salva, o Conselho pede que se salve.
+    await expect(page.getByTestId('war-council-unsaved')).toBeVisible();
+    await page.getByTestId('formation-name').fill('Muralha de Três');
+    await fillPost(page, 'center', 'front', 'spearman', '5');
+    await fillPost(page, 'left', 'front', 'shieldbearer', '4');
+    await fillPost(page, 'center', 'back', 'archer', '3');
+    await saveButton(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('war-simulate')).toBeEnabled();
+    await expect(page.getByTestId('war-council-empty')).toBeVisible();
+    const posts = commandPosts(page);
+    await page.getByTestId('war-simulate').focus();
+    await page.keyboard.press('Enter');
+    await expect.poll(() => posts.map((entry) => entry.type)).toEqual(['simulateBattle']);
+    await expect(page.getByTestId('war-preview')).toBeVisible();
+    const view = await serverView(page, request);
+    const preview = view.army.preview;
+    expect(preview).not.toBeNull();
+    await expect(page.getByTestId('war-wins')).toHaveText(
+      new RegExp(`^${preview?.winsPercent}\\s*%`),
+    );
+    await expect(page.getByTestId('war-risk')).toHaveText(preview?.riskText ?? '');
+    await expect(page.getByTestId('war-stale')).toHaveCount(0);
+    // A linha "Inimigo (prev.)": uma célula por posto, com o texto da visão.
+    for (const entry of preview?.knownEnemy ?? []) {
+      await expect(page.getByTestId(`enemy-${entry.wing}-${entry.line}`)).toHaveText(entry.text);
+    }
+    expect(await lowContrast(page)).toEqual([]);
+    await page.setViewportSize({ width: 1280, height: 1300 });
+    await page.screenshot({
+      path: '/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/conselho-previa.png',
+    });
+    // Mexer na formação e salvar de novo deixa a prévia marcada como desatualizada.
+    await fillPost(page, 'right', 'front', 'spearman', '2');
+    await saveButton(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('war-stale')).toBeVisible();
   });
 });

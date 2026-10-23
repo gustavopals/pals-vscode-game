@@ -46,6 +46,9 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
   if (type === 'saveFormation' || type === 'deleteFormation') {
     return `formation:${String(fields.id)}`;
   }
+  if (type === 'simulateBattle') {
+    return `preview:${String(fields.formationId)}`;
+  }
   if (type === 'setActiveFormation') {
     return 'formation:active';
   }
