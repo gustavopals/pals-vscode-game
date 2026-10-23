@@ -701,7 +701,46 @@ const balanceFields = z.strictObject({
     postMaxFromLevel: z.strictObject({ level: positiveInt, max: positiveInt }),
     formationNameMinLength: positiveInt,
     formationNameMaxLength: positiveInt,
+    reportsKept: positiveInt,
   }),
+  // A batalha (ADR 0019, decisão 11): a sorte é um intervalo de inteiros em torno de 100.
+  battle: z
+    .strictObject({
+      maxRounds: positiveInt,
+      luck: z.strictObject({ min: positiveInt, max: positiveInt }),
+      absorb: ratio,
+      minDamage: ratio,
+      flank: ratio,
+      counter: ratio,
+      shieldbearerShare: ratio,
+      wall: z.strictObject({
+        enemyRangedFactor: ratio,
+        coverFactor: ratio,
+        ignoresHalfShare: ratio,
+      }),
+      towers: z.strictObject({ fromLevel: positiveInt, damagePerLevel: positiveInt }),
+      morale: z.strictObject({
+        start: positiveInt,
+        perSquad: positiveInt,
+        perWing: positiveInt,
+        perCommander: positiveInt,
+        routAtOrBelow: positiveInt,
+      }),
+      auras: z.strictObject({
+        warriorDefense: ratio,
+        archerRanged: ratio,
+        mage: z.strictObject({ everyRounds: positiveInt, damage: positiveInt }),
+        cleric: z.strictObject({ everyRounds: positiveInt, heal: ratio, morale: positiveInt }),
+        undeadFactor: ratio,
+      }),
+      commanderXp: positiveInt,
+      commanderXpShare: z.strictObject({ won: ratio, lost: ratio }),
+    })
+    .refine(({ luck }) => luck.min <= 100 && 100 <= luck.max, 'a sorte tem de conter 100')
+    .refine(
+      ({ morale }) => morale.routAtOrBelow < morale.start,
+      'a debandada tem de ficar abaixo da moral inicial',
+    ),
 });
 
 /**

@@ -1,3 +1,4 @@
+import type { BattleReport } from './battleReport';
 import type {
   BuildingId,
   DifficultyId,
@@ -522,7 +523,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 29;
+  schemaVersion: 30;
   seed: string;
   settings: GameSettings;
   /**
@@ -809,6 +810,11 @@ export type ArmyState = {
   formations: Formation[];
   /** A Defesa ativa: o `id` de uma de `formations`, ou `null`. Uma só. */
   activeFormationId: string | null;
+  /**
+   * Os relatórios das batalhas mais recentes (V4D-T1.6), do mais antigo ao mais novo; até
+   * `balance.army.reportsKept`. Nenhuma batalha acontece ainda (Fase E): a lista fica vazia.
+   */
+  reports: BattleReport[];
 };
 
 export type GameEvent = {

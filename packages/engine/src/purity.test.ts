@@ -225,8 +225,11 @@ describe('pureza do motor', () => {
     // Desde V3F-T2, `objectives.ts`: o item de um objetivo concluído nasce com o dele, na
     // avaliação que roda depois de uma ordem ou de um instante da linha do tempo.
     // Desde V4C-T2, `formationOrders.ts`: salvar uma formação nova dá o identificador dela.
+    // Desde V4D-T1.4, `battleTurn.ts`: a batalha ganha o dela ao lutar (nenhuma incursão a
+    // chama ainda; na Fase E, só um instante da linha do tempo). `battle.ts` não cria nada.
     expect(creators).toEqual([
       './arrivals.ts',
+      './battleTurn.ts',
       './caravanOrders.ts',
       './expeditionOrders.ts',
       './expeditionTurn.ts',

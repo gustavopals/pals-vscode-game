@@ -9,6 +9,7 @@ import {
   text,
   type Shape,
 } from './shape';
+import type { MigrationStep } from './step';
 import { rngShape, rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -59,7 +60,7 @@ const eachLine = (shape: Shape) =>
  * - `army.activeFormationId`: o `id` de uma delas, ou `null`.
  * - `rng` e `ids` não mudam de forma: salvar uma formação não sorteia e só dá identificador.
  *
- * Quem subir `schemaVersion` para 30 acrescenta em `v29.ts` o passo `v29ToV30`.
+ * Para a versão 30, o passo `v29ToV30`, no fim deste arquivo.
  */
 export const armyV29: Shape = exactObject({
   ...armyV28Fields(),
@@ -207,3 +208,24 @@ export const stateV29: Shape = (value, path) =>
   forgeWithinStateV27(value, path) ??
   armyWithinState(value, path) ??
   formationsWithinState(value, path);
+
+/**
+ * 29 → 30: os relatórios de batalha (V4D-T1.6; ADR 0019, decisões 10 e 11).
+ *
+ * - `army.reports` nasce vazia: nenhuma batalha acontece por migração, e nenhuma incursão luta
+ *   ainda (Fase E).
+ * - `ids` e `rng` não mudam: o contador `battle` nasce na primeira batalha, e o fluxo
+ *   `battle:<id>` nasce e é apagado no instante dela, sem nunca ser gravado.
+ *
+ * **O passo não cria prazo**, não emite evento, não dá identificador a ninguém e não toca o
+ * gerador.
+ */
+export const v29ToV30: MigrationStep = {
+  from: 29,
+  summary: 'o exército ganha a lista de relatórios de batalha, vazia',
+  shape: stateV29,
+  migrate(state) {
+    const army = state.army as Record<string, unknown>;
+    return { ...state, schemaVersion: 30, army: { ...army, reports: [] } };
+  },
+};
