@@ -606,6 +606,8 @@ Proposta, a conferir com o autor só se ele discordar: o efeito grava em `market
 
 ## 6. Lote 2 do Conselho: terceiro lote de cinco (para o autor)
 
+**Lido e aprovado pelo autor em 2026-10-23, as cinco como estão** (decisão 23), com "A caçada do Lobo Branco" como expedição especial de três nós (e não o sorteio simples).
+
 **Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote C da lista da 4.6: a cadeia "O Cobrador do Rei" (3 cartas) e as duas primeiras do "Lobo Branco" (2 de 3). **Nenhuma carta foi pulada**, mas **três ramos da lista foram trocados** porque dependiam de mecânica que a regra 6 do CLAUDE.md ainda proíbe:
 
 - **A batalha** (carta 13: "batalha se o jogador recusou duas vezes"; e a ofensiva do Cobrador no GDD, Apêndice B, carta 6): a batalha é da Fase D da v0.4 e não existe no motor. No lugar entra uma **requisição de comida e madeira** (6.3). Quando a batalha existir, a opção `hold` da 6.3 é o lugar natural de um combate; isso é mudança de regra, com ADR.
@@ -721,6 +723,8 @@ Crônica (`withdraw`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou r
 **O motor precisará:** `unlockExpedition { modelId, forDays }` (novo: o modelo entra em `map.discovered` com prazo de `forDays` dias de jogo e some quando o prazo passa; hoje `discovered` só cresce) e um **modelo de expedição novo**, `whiteWolfHunt` (3 nós, dificuldade Média, provas de Rastreador e de Guerreiro, saque de ouro e comida, **sem relíquia**), com grafo e ficha a escrever na V4H-T1 e os ids fixados em teste (`STABLE_IDS`), como os demais. **Saída mais barata, se o autor preferir:** trocar a expedição por um `rollEffect` de 1 chance em 2 de ganhar 120 de ouro (a pele) e, na perda, ferimento leve a um herói; custa menos ao motor e à calibragem, mas perde a ideia de a Guilda sair atrás do lobo. **Troca em relação à lista:** sem presságio nem relíquia (ver o começo da seção); `feed` dá moral em lugar do presságio claro.
 
 ## 7. Lote 2 do Conselho: quarto lote de cinco (para o autor)
+
+**Lido e aprovado pelo autor em 2026-10-23, as cinco como estão** (decisão 23).
 
 **Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote D da lista da 4.6: o fim do "Lobo Branco" (a 16) e quatro cartas avulsas da Taverna e dos heróis (17 a 20). **Nenhuma carta foi pulada.** A única adaptação é a da 16, que na lista fecharia com o cerco da v0.4 (mecânica ainda proibida pela regra 6 do CLAUDE.md): o desfecho vira ouro, comida e moral. Os ganchos de motor novos pesam pouco: um requisito de carta (`heroPresent`, que exige herói livre no feudo e guarda o nome dele), um efeito sobre a Taverna (`tavernExtraOffer`) e o efeito `injureHero`, que usa o ferimento leve que já existe (`balance.raids.injuryMs`, 2 h de jogo). **Morte de herói não aparece em nenhuma carta**, e o ferimento é sempre leve.
 
