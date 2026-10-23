@@ -684,7 +684,7 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 
 - [x] V4D-T4.1 **Mostrar ao autor** a prévia de uma formação antes do resto.
 - [x] V4D-T4.2 "Simular" como ordem com trava `preview:<formação>`; o bloco com Vitória, Gloriosa, Derrota e o risco em uma frase; "prévia desatualizada" quando a formação mudou.
-- [ ] V4D-T4.3 O relatório: rodadas colapsáveis, fatores, baixas, muralha, XP; "Ajustar formação" leva ao editor com a formação usada.
+- [x] V4D-T4.3 O relatório: rodadas colapsáveis, fatores, baixas, muralha, XP; "Ajustar formação" leva ao editor com a formação usada.
 - [ ] V4D-T4.4 Navegador: simular, ler o relatório (posto por `/__test/battle`, rota de teste nova em `tests/e2e/server.ts`), teclado, temas.
 
 **Verificação:** `pnpm --filter @lotg/web test`; `pnpm build && pnpm test:e2e 12-exercito`.
@@ -696,7 +696,7 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 Como V4B-T5, sobre a Fase D, **antes de qualquer incursão usar a batalha**. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-d.md`; correções `V4D: corrige …`; `docs/balance-v0.4.md`, seção 4 (a prévia por formação de referência: o que vence o quê); integração.
 
 - [x] V4D-T5.1 O revisor tenta: ponto flutuante em qualquer conta; sorte fora da ordem; `state.rng` tocado pela prévia; relatório que depende da ordem de inserção dos esquadrões; dois esquadrões com a mesma iniciativa dos dois lados; muralha em 0 e Ogro; moral de mortos-vivos; o comandante morto fora de Rei de Ferro; a prévia com formação de outro feudo; o pacote do app com um atributo de unidade.
-- [ ] V4D-T5.2 Correções com teste; relatório; Registro; integração sem `push`.
+- [x] V4D-T5.2 Correções com teste; relatório; Registro; integração sem `push`.
 - [x] V4D-T5.3 **Calibragem de referência** (`docs/content-v0.4.md`, seção 3): dez formações contra as composições-base de cada estação, com a prévia; o que nunca vence ou nunca perde volta ao autor.
 
 **Pronto quando:** como V4B-T5, mais a calibragem gravada.
