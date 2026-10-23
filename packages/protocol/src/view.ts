@@ -479,6 +479,8 @@ const HeroSchema = z.strictObject({
   wagePerHour: z.number(),
   wageNextLevelPerHour: z.number().nullable(),
   wageNextLevelText: z.string().nullable(),
+  /** O que ele dá à ala que comandar em uma batalha: a aura da classe, em uma frase. */
+  commanderText: z.string(),
   discontent: z.boolean(),
 });
 

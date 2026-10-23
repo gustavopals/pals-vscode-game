@@ -119,6 +119,7 @@ describe('a guilda na visão', () => {
         wagePerHour: 2,
         wageNextLevelPerHour: 3,
         wageNextLevelText: 'O soldo de Edda sobe para 3/h no próximo nível.',
+        commanderText: 'Como comandante, dá +15% de defesa aos soldados da ala.',
         discontent: false,
       },
       {
@@ -152,6 +153,8 @@ describe('a guilda na visão', () => {
         wagePerHour: 3,
         wageNextLevelPerHour: 4,
         wageNextLevelText: 'O soldo de Isolda sobe para 4/h no próximo nível.',
+        commanderText:
+          'Como comandante, a cada 3 rodadas fere com 20 de dano cada esquadrão da ala inimiga, com mais força nos mortos-vivos.',
         discontent: false,
       },
       {
@@ -182,6 +185,8 @@ describe('a guilda na visão', () => {
         wagePerHour: 20,
         wageNextLevelPerHour: null,
         wageNextLevelText: null,
+        commanderText:
+          'Como comandante, a cada 2 rodadas cura 10% da Frente da ala, e o exército começa com +20 de moral.',
         discontent: false,
       },
     ]);

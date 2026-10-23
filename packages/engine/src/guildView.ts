@@ -105,6 +105,26 @@ function powerBreakdown(hero: Hero): string {
   return `(${base})${factors} = ${decimal(heroPower(hero) / MILLI, 3)}`;
 }
 
+/** A frase da ficha sobre o comando: a aura da classe, com os números dela (GDD §10.1). */
+export function commanderText(hero: Hero): string {
+  const { aura, commanderText: text } = heroClasses[hero.classId];
+  switch (aura.kind) {
+    case 'defense':
+    case 'ranged':
+      return fillText(text, {
+        percentual: decimal(((aura.ratio.num - aura.ratio.den) * 100) / aura.ratio.den),
+      });
+    case 'area':
+      return fillText(text, { rodadas: aura.everyRounds, dano: aura.damage });
+    case 'heal':
+      return fillText(text, {
+        rodadas: aura.everyRounds,
+        percentual: decimal((aura.heal.num * 100) / aura.heal.den),
+        moral: aura.morale,
+      });
+  }
+}
+
 function conditionText(item: Item): string {
   const total = durabilityOf(item);
   if (isWorn(item)) {
@@ -220,6 +240,7 @@ function heroView(state: GameState, hero: Hero, timeScale: number, target: Hero 
             heroi: hero.name,
             soldo: decimal(nextWage * timeScale),
           }),
+    commanderText: commanderText(hero),
     discontent: hero.discontent,
   };
 }

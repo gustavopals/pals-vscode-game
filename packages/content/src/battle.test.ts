@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { balance } from './balance';
+import { heroClasses } from './heroes';
+import { HERO_CLASS_IDS } from './ids';
 import { BalanceSchema } from './schemas';
 
 describe('a batalha (GDD §10.1 a §10.4; ADR 0019, decisão 11)', () => {
@@ -27,16 +29,26 @@ describe('a batalha (GDD §10.1 a §10.4; ADR 0019, decisão 11)', () => {
       perCommander: 15,
       routAtOrBelow: 30,
     });
-    expect(rules.auras.warriorDefense).toEqual({ num: 23, den: 20 });
-    expect(rules.auras.archerRanged).toEqual({ num: 23, den: 20 });
-    expect(rules.auras.mage.everyRounds).toBe(3);
-    expect(rules.auras.cleric).toMatchObject({
+    // As auras são da classe do herói (GDD §10.1; D-5).
+    expect(heroClasses.warrior.aura).toEqual({ kind: 'defense', ratio: { num: 23, den: 20 } });
+    expect(heroClasses.archer.aura).toEqual({ kind: 'ranged', ratio: { num: 23, den: 20 } });
+    expect(heroClasses.mage.aura).toEqual({ kind: 'area', everyRounds: 3, damage: 20 });
+    expect(heroClasses.cleric.aura).toEqual({
+      kind: 'heal',
       everyRounds: 2,
       heal: { num: 1, den: 10 },
       morale: 20,
     });
-    expect(rules.auras.undeadFactor).toEqual({ num: 2, den: 1 });
+    expect(rules.undeadFactor).toEqual({ num: 2, den: 1 });
     expect(balance.army.reportsKept).toBe(3);
+  });
+
+  it('cada classe diz o que dá como comandante, sem número escrito na frase', () => {
+    for (const id of HERO_CLASS_IDS) {
+      const { commanderText } = heroClasses[id];
+      expect(commanderText, id).toMatch(/^Como comandante, /);
+      expect(commanderText, id).not.toMatch(/\d/);
+    }
   });
 
   it('o schema recusa uma sorte que não contém 100', () => {

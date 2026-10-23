@@ -90,6 +90,7 @@ export {
   wageArrearsTexts,
 } from './heroes';
 export type {
+  HeroAura,
   HeroClassDef,
   HeroTraitDef,
   HeroTraitEffects,

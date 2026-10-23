@@ -23636,6 +23636,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -23682,6 +23683,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         },
         {
@@ -23732,6 +23734,7 @@
           "wagePerHour": 9,
           "wageNextLevelPerHour": 12,
           "wageNextLevelText": "O soldo de Isolda sobe para 12/h no próximo nível.",
+          "commanderText": "Como comandante, a cada 3 rodadas fere com 20 de dano cada esquadrão da ala inimiga, com mais força nos mortos-vivos.",
           "discontent": false
         }
       ],
@@ -25099,6 +25102,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -25145,6 +25149,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": true
         }
       ],
@@ -27863,6 +27868,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         }
       ],
@@ -29379,6 +29385,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Mécia sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, a cada 2 rodadas cura 10% da Frente da ala, e o exército começa com +20 de moral.",
           "discontent": false
         },
         {
@@ -29425,6 +29432,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Nuno sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, a cada 2 rodadas cura 10% da Frente da ala, e o exército começa com +20 de moral.",
           "discontent": false
         }
       ],
@@ -31041,6 +31049,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -31087,6 +31096,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         }
       ],
@@ -32758,6 +32768,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -32804,6 +32815,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         }
       ],
@@ -34431,6 +34443,7 @@
           "wagePerHour": 1,
           "wageNextLevelPerHour": 1.5,
           "wageNextLevelText": "O soldo de Edda sobe para 1,5/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -34477,6 +34490,7 @@
           "wagePerHour": 1,
           "wageNextLevelPerHour": 1.5,
           "wageNextLevelText": "O soldo de Rolf sobe para 1,5/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         },
         {
@@ -34523,6 +34537,7 @@
           "wagePerHour": 1,
           "wageNextLevelPerHour": 1.5,
           "wageNextLevelText": "O soldo de Brann sobe para 1,5/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         }
       ],
@@ -36157,6 +36172,7 @@
           "wagePerHour": 9,
           "wageNextLevelPerHour": 12,
           "wageNextLevelText": "O soldo de Edda sobe para 12/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -36216,6 +36232,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         }
       ],
@@ -37952,6 +37969,7 @@
           "wagePerHour": 0,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Edda sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, a cada 2 rodadas cura 10% da Frente da ala, e o exército começa com +20 de moral.",
           "discontent": false
         },
         {
@@ -38011,6 +38029,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Rolf sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, a cada 2 rodadas cura 10% da Frente da ala, e o exército começa com +20 de moral.",
           "discontent": true
         },
         {
@@ -38057,6 +38076,7 @@
           "wagePerHour": 2,
           "wageNextLevelPerHour": 3,
           "wageNextLevelText": "O soldo de Brann sobe para 3/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         }
       ],
@@ -39745,6 +39765,7 @@
           "wagePerHour": 10,
           "wageNextLevelPerHour": null,
           "wageNextLevelText": null,
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -39791,6 +39812,7 @@
           "wagePerHour": 10,
           "wageNextLevelPerHour": null,
           "wageNextLevelText": null,
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         }
       ],
@@ -45852,6 +45874,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Edda sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de defesa aos soldados da ala.",
           "discontent": false
         },
         {
@@ -45898,6 +45921,7 @@
           "wagePerHour": 6,
           "wageNextLevelPerHour": 9,
           "wageNextLevelText": "O soldo de Rolf sobe para 9/h no próximo nível.",
+          "commanderText": "Como comandante, dá +15% de dano à Retaguarda da ala.",
           "discontent": false
         }
       ],

@@ -2079,6 +2079,7 @@ describe('ViewStateSchema', () => {
       wagePerHour: 2,
       wageNextLevelPerHour: 3,
       wageNextLevelText: 'O soldo de Edda sobe para 3/h no próximo nível.',
+      commanderText: 'Como comandante, dá +15% de defesa aos soldados da ala.',
       discontent: false,
     };
     const item = {

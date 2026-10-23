@@ -1618,6 +1618,11 @@ export type HeroView = {
   wageNextLevelPerHour: number | null;
   /** "O soldo de Edda sobe para 9/h no próximo nível."; `null` no nível máximo. */
   wageNextLevelText: string | null;
+  /**
+   * O que ele dá à ala que comandar em uma batalha, com os números da aura da classe:
+   * "Como comandante, dá +15% de defesa aos soldados da ala." (GDD §10.1).
+   */
+  commanderText: string;
   /** Descontente com o soldo em atraso: os atributos valem menos enquanto o atraso durar. */
   discontent: boolean;
 };

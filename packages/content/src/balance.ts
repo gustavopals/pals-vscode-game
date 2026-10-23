@@ -596,23 +596,11 @@ export type BattleDef = {
     /** Debandada com a moral igual ou abaixo deste valor, conferida no fim da rodada. */
     readonly routAtOrBelow: number;
   };
-  /** As auras dos comandantes por classe (GDD §10.1). */
-  readonly auras: {
-    /** Guerreiro: a defesa da ala. */
-    readonly warriorDefense: Ratio;
-    /** Arqueiro: o dano à distância da ala. */
-    readonly archerRanged: Ratio;
-    /** Mago: dano fixo em cada esquadrão da ala oposta, a cada `everyRounds` rodadas. */
-    readonly mage: { readonly everyRounds: number; readonly damage: number };
-    /** Clériga: cura uma parte da Frente da ala a cada `everyRounds` rodadas, e moral no começo. */
-    readonly cleric: {
-      readonly everyRounds: number;
-      readonly heal: Ratio;
-      readonly morale: number;
-    };
-    /** O dano de Mago e Clériga contra quem o sofre em dobro (`takesDoubleFrom`). */
-    readonly undeadFactor: Ratio;
-  };
+  /**
+   * O dano de Mago e Clériga contra quem o sofre em dobro (`takesDoubleFrom`). As auras dos
+   * comandantes são da classe do herói (`heroClasses[].aura`, em `heroes.ts`).
+   */
+  readonly undeadFactor: Ratio;
   /** A experiência de quem comandou uma ala, por desfecho, no molde de `expeditions.xpShare`. */
   readonly commanderXp: number;
   readonly commanderXpShare: { readonly won: Ratio; readonly lost: Ratio };
@@ -1207,13 +1195,7 @@ export const balance: Balance = {
     },
     towers: { fromLevel: 3, damagePerLevel: 12 },
     morale: { start: 100, perSquad: 10, perWing: 20, perCommander: 15, routAtOrBelow: 30 },
-    auras: {
-      warriorDefense: { num: 23, den: 20 },
-      archerRanged: { num: 23, den: 20 },
-      mage: { everyRounds: 3, damage: 20 },
-      cleric: { everyRounds: 2, heal: { num: 1, den: 10 }, morale: 20 },
-      undeadFactor: { num: 2, den: 1 },
-    },
+    undeadFactor: { num: 2, den: 1 },
     commanderXp: 40,
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
   },

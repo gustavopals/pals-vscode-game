@@ -1,11 +1,13 @@
 import {
   ARCHETYPE_COUNTERS,
   balance,
+  heroClasses,
   hordeUnits,
   LINE_IDS,
   units,
   WING_IDS,
   type Archetype,
+  type HeroAura,
   type HeroCaptureRuleId,
   type HeroClassId,
   type HordeUnitDef,
@@ -368,16 +370,25 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
           },
         ];
   });
-  const commanderOf = (wing: WingId, heroClass?: HeroClassId) => {
-    const commander = commanders.find((entry) => entry.wing === wing && !entry.fell);
-    return commander !== undefined && (heroClass === undefined || commander.heroClass === heroClass)
-      ? commander
-      : null;
+  const commanderOf = (wing: WingId) =>
+    commanders.find((entry) => entry.wing === wing && !entry.fell) ?? null;
+  /** A aura do comandante de pé na ala, se for do tipo pedido (`heroClasses[].aura`). */
+  const auraOf = <K extends HeroAura['kind']>(
+    wing: WingId,
+    kind: K,
+  ): Extract<HeroAura, { kind: K }> | null => {
+    const commander = commanderOf(wing);
+    const aura = commander === null ? null : heroClasses[commander.heroClass].aura;
+    return aura !== null && aura.kind === kind ? (aura as Extract<HeroAura, { kind: K }>) : null;
   };
 
   const morale: Record<BattleSide, number> = { D: rules.morale.start, A: rules.morale.start };
-  morale[playerSide] +=
-    commanders.filter((entry) => entry.heroClass === 'cleric').length * rules.auras.cleric.morale;
+  for (const entry of commanders) {
+    const aura = heroClasses[entry.heroClass].aura;
+    if (aura.kind === 'heal') {
+      morale[playerSide] += aura.morale;
+    }
+  }
   const startMorale = { ...morale };
 
   const alive = (squad: Squad) => squad.count > 0;
@@ -407,8 +418,9 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     let effective: number;
     if (absorbs) {
       absorbed = mul(frac(target.stats.defense * target.count), rules.absorb);
-      if (target.owner === 'player' && commanderOf(target.wing, 'warrior') !== null) {
-        defenseAura = rules.auras.warriorDefense;
+      const aura = target.owner === 'player' ? auraOf(target.wing, 'defense') : null;
+      if (aura !== null) {
+        defenseAura = aura.ratio;
         absorbed = mul(absorbed, defenseAura);
       }
       effective = floorOf(maxOf(sub(raw, absorbed), mul(raw, rules.minDamage)));
@@ -635,8 +647,11 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
           found.push(ally.stats.horde.auraWing);
         }
       }
-    } else if (isRanged(squad) && commanderOf(squad.wing, 'archer') !== null) {
-      found.push(rules.auras.archerRanged);
+    } else if (isRanged(squad)) {
+      const aura = auraOf(squad.wing, 'ranged');
+      if (aura !== null) {
+        found.push(aura.ratio);
+      }
     }
     return found;
   };
@@ -667,16 +682,14 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       if (ended !== null) {
         return;
       }
-      const mage = commanderOf(wing, 'mage');
-      if (mage !== null && round % rules.auras.mage.everyRounds === 0) {
+      const mage = commanderOf(wing);
+      const area = auraOf(wing, 'area');
+      if (mage !== null && area !== null && round % area.everyRounds === 0) {
         const notes: BattleNote[] = [];
         const hits: BattleHit[] = [];
         for (const target of wingSquads(hordeSide, wing)) {
           const double = target.stats.horde?.takesDoubleFrom?.includes('mage') === true;
-          const damage = mul(
-            frac(rules.auras.mage.damage),
-            double ? rules.auras.undeadFactor : ONE,
-          );
+          const damage = mul(frac(area.damage), double ? rules.undeadFactor : ONE);
           if (ended === null) {
             hits.push(hit(target, damage, false, notes, { overFront: false, exposedRear: false }));
           }
@@ -685,10 +698,11 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
           actions.push({ kind: 'mage', wing, heroId: mage.heroId, hits, healed: null, notes });
         }
       }
-      const cleric = commanderOf(wing, 'cleric');
+      const cleric = commanderOf(wing);
+      const care = auraOf(wing, 'heal');
       const front = at(playerSide, wing, 'front');
-      if (cleric !== null && front !== null && round % rules.auras.cleric.everyRounds === 0) {
-        let heal = floorOf(mul(frac(front.initial * front.stats.health), rules.auras.cleric.heal));
+      if (cleric !== null && care !== null && front !== null && round % care.everyRounds === 0) {
+        let heal = floorOf(mul(frac(front.initial * front.stats.health), care.heal));
         const residual = Math.min(heal, front.residual);
         front.residual -= residual;
         heal -= residual;
