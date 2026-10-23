@@ -255,7 +255,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **`army.reportsKept` (3)** ficou em `balance.army`, como diz a T1.6; os outros números em `balance.battle`.
 
 
-**D-5. A prévia do Conselho de Guerra (V4D-T2.1 e T2.3).** _(Decisões do agente; o GDD §10.5 e a decisão 10 não fecham estes pontos.)_
+**D-6. A prévia do Conselho de Guerra (V4D-T2.1 e T2.3).** _(Decisões do agente; o GDD §10.5 e a decisão 10 não fecham estes pontos.)_
 
 - **O inverno usa a composição-base do outono** na prévia; o cerco por onda é do §11.2.
 - **O posto desconhecido sorteia só entre as unidades da linha dele**; sem unidade da estação naquela linha (a Retaguarda da primavera), pesos iguais entre as unidades comuns da linha, sem o Senhor da Guerra nem o Esqueleto.
