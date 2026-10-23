@@ -239,3 +239,15 @@ Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pn
 5. **A sensação** (2 min): o ferro parece um recurso que se **acha** ou se **compra**, e não um que se produz? A forja parada te dá vontade de ter um Quartel? Anote em uma frase o que confundiu.
 
 Se não der para jogar, fica registrado na linha V4B-T5 do Registro do roadmap que a Fase B fechou sem o autor jogar, como nas fases da v0.3.
+
+## 8. Roteiro de 15 minutos para o autor jogar a Fase C (V4C-T4.5)
+
+Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pnpm dev:web`, e abrir `http://localhost:5173`. "Jogar agora" no ritmo Rápido, seguindo os objetivos até o Salão Nv4.
+
+1. **O Quartel** (3 min): erga o Quartel (150 de madeira, 150 de pedra, 100 de ouro). A aba **Exército** aparece depois do Mercado? A tabela das cinco unidades diz o custo, a comida por hora e contra quem cada uma é forte?
+2. **O treino** (4 min): treine 3 Lanceiros em duas etapas ("Revisar o treino", "Confirmar"). A conferência diz o custo do lote inteiro e o prazo? Os soldados saem da população (a contagem de aldeões cai) e a comida por hora passa a contá-los? Cancele um segundo lote e veja se a frase do que volta bate com o estoque.
+3. **A formação** (5 min): no editor, ande pelos seis postos com as setas e aperte Enter para pôr tropa em três deles. O posto vazio se distingue do preenchido de relance? Nomeie um herói comandante de uma ala, salve e marque como Defesa ativa. A árvore diz "Defesa: <nome>"? Tente mandar esse herói em expedição: a tela explica por que ele fica?
+4. **O aviso** (1 min): tire a Defesa ativa. A barra de status diz "Sem Defesa ativa", e "Antes de partir" oferece "Ativar uma formação"?
+5. **A sensação** (2 min): montar a formação parece um quebra-cabeça rápido ou um formulário? Sem batalha ainda, o exército parece servir para alguma coisa? Anote em uma frase o que confundiu.
+
+Se não der para jogar, fica registrado na linha V4C-T4 do Registro do roadmap que a Fase C fechou sem o autor jogar.
