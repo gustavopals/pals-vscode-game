@@ -436,10 +436,11 @@ export type EquipmentDef = {
   readonly inventoryCap: number;
   /**
    * Quantos pontos de condição cada item equipado perde quando a equipe volta de uma expedição
-   * concluída (V4B-T3; ADR 0019, decisão 5). A expedição perdida não volta com o item; a batalha
-   * comandada é da Fase D e acrescenta o desgaste dela quando existir.
+   * concluída (V4B-T3; ADR 0019, decisão 5). A expedição perdida não volta com o item.
    */
   readonly wearPerExpedition: number;
+  /** Quantos pontos cada item de quem comandou uma ala perde por batalha (V4D-T3.2). */
+  readonly wearPerBattle: number;
   /** O reparo no Ferreiro, na mesma fila da forja. */
   readonly repair: {
     /** O ferro de cada ponto devolvido, por raridade (cobrado ao começar). */
@@ -604,6 +605,12 @@ export type BattleDef = {
   /** A experiência de quem comandou uma ala, por desfecho, no molde de `expeditions.xpShare`. */
   readonly commanderXp: number;
   readonly commanderXpShare: { readonly won: Ratio; readonly lost: Ratio };
+  /**
+   * O comandante que cai fica ferido (V4D-T3.2; GDD §10.4): de forma grave quando a ala dele
+   * perdeu ao menos `severeAtLoss` dos soldados com que começou, de leve abaixo disso. Os prazos
+   * são os das expedições (`injuries.durationMs`). Em Rei de Ferro ele morre.
+   */
+  readonly commanderInjury: { readonly severeAtLoss: Ratio };
 };
 
 export type MarketDef = {
@@ -1091,6 +1098,8 @@ export const balance: Balance = {
     // ADR 0019, decisão 5: 1 ponto por expedição concluída; reparo a 1 ferro por ponto nos itens
     // Comuns e Incomuns e a 2 nos Raros e Épicos, 2 min de jogo por ponto.
     wearPerExpedition: 1,
+    // V4D-T3.2 (número do agente, por aprovar): 1 ponto por batalha comandada.
+    wearPerBattle: 1,
     repair: {
       ironPerPoint: { common: 1, uncommon: 1, rare: 2, epic: 2 },
       msPerPoint: 2 * MINUTE_MS,
@@ -1198,5 +1207,7 @@ export const balance: Balance = {
     undeadFactor: { num: 2, den: 1 },
     commanderXp: 40,
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
+    // V4D-T3.2 (número do agente, por aprovar): grave com metade da ala perdida.
+    commanderInjury: { severeAtLoss: { num: 1, den: 2 } },
   },
 };

@@ -40,6 +40,9 @@ describe('a batalha (GDD §10.1 a §10.4; ADR 0019, decisão 11)', () => {
       morale: 20,
     });
     expect(rules.undeadFactor).toEqual({ num: 2, den: 1 });
+    // V4D-T3.2 (números do agente): grave com metade da ala perdida; 1 ponto de desgaste.
+    expect(rules.commanderInjury).toEqual({ severeAtLoss: { num: 1, den: 2 } });
+    expect(balance.equipment.wearPerBattle).toBe(1);
     expect(balance.army.reportsKept).toBe(3);
   });
 

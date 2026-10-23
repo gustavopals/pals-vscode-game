@@ -666,7 +666,7 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test -- battle   # só na primeira gr
 **Entregáveis:** `packages/content/src/heroes.ts` (`aura` por classe, como dado), `balance.ts` (`battle.commanderXp`), `chronicle.ts` (`battleFought` com `{fatores}`; `commanderInjured`); `packages/engine/src/battle.ts`, `battleReport.ts`, `heroes.ts`, `expeditionTurn.ts` (o desgaste por batalha); `expeditions.test.ts`.
 
 - [x] V4D-T3.1 As auras como fatores de fração aplicados à ala; o Mago em área; a Clériga curando; a frase da ficha do herói diz o que ele dá como comandante.
-- [ ] V4D-T3.2 O comandante sofre dano quando a Frente cai: ferimento leve ou grave pela parte do dano (`heroCapture` em Rei de Ferro: morte); XP por batalha a quem comandou; o desgaste do equipamento por batalha.
+- [x] V4D-T3.2 O comandante sofre dano quando a Frente cai: ferimento leve ou grave pela parte do dano (`heroCapture` em Rei de Ferro: morte); XP por batalha a quem comandou; o desgaste do equipamento por batalha.
 - [ ] V4D-T3.3 O evento `battleFought` com os três fatores como dados e a frase; `CHRONICLE_HIDDEN_EVENT_TYPES` ganha `battleSimulated`.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- battle heroes chronicle`.

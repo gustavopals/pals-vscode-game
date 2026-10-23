@@ -669,6 +669,7 @@ const balanceFields = z.strictObject({
   equipment: z.strictObject({
     inventoryCap: positiveInt,
     wearPerExpedition: positiveInt,
+    wearPerBattle: positiveInt,
     repair: z.strictObject({
       ironPerPoint: z.strictObject(
         Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, positiveInt])),
@@ -730,6 +731,7 @@ const balanceFields = z.strictObject({
       undeadFactor: ratio,
       commanderXp: positiveInt,
       commanderXpShare: z.strictObject({ won: ratio, lost: ratio }),
+      commanderInjury: z.strictObject({ severeAtLoss: ratio }),
     })
     .refine(({ luck }) => luck.min <= 100 && 100 <= luck.max, 'a sorte tem de conter 100')
     .refine(
