@@ -1,5 +1,13 @@
 # Arquitetura da v0.3
 
+> **Retomada em 2026-10-22:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
+> Quartel, soldados e formações existem; a interface V4C-T3 está sendo integrada
+> e verificada nesta sessão. A revisão e a medição V4C-T4 ainda faltam.
+> O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
+> e a evidência atual estão em [Retomada da v0.4](retomada-v0.4.md).
+> Não houve publicação da v0.4 nesta sessão.
+
+
 O que está construído em Lords of the Guild depois da v0.3 "A Guilda", como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em **2026-10-15** e aponta para o código. Ele foi reescrito nessa data como retrato da v0.3, e não anotado por cima do retrato da v0.2 (tarefa V3G-T4.3 do [roadmap da v0.3](roadmap-v0.3.md)): as versões anteriores estão no histórico do Git.
 
 **Estado em 2026-10-15.** A v0.3 está implementada no `main` **local**, com o **estado do jogo na versão 24** e o **protocolo 3**, e **não foi publicada**: a produção roda a v0.2.0 (estado 12, protocolo 2) até o autor dar o `push`, e a publicação salta de uma vez as Fases B a F ([deploy/README.md](../deploy/README.md), "A primeira publicação da v0.3"). O lote 2 do Conselho (V3F-T1) ficou **fora** da v0.3.0 (pendência F-3). As regras novas são as dos ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), com as respostas do autor de 2026-10-06 e 2026-10-07 registradas neles. **Nenhuma pessoa jogou a v0.3**, e o conteúdo novo (heróis, candidatos, os dezoito grafos de expedição, frases do relatório, do Mercado, das caravanas e dos Mestres) é rascunho que o autor não leu. Antes de afirmar o que está no ar, confira `protocol` e `builtAt` em `GET /v1/version`.

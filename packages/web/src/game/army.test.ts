@@ -12,7 +12,15 @@ import {
   isSmithyEvent,
   type PolicyInput,
 } from '../notifications/policy';
-import { armyIdleView, armyTrainingView, initialView } from '../test-helpers';
+import {
+  armyIdleView,
+  armyTrainingView,
+  coldView,
+  expeditionCrossroadsView,
+  guildArrearsView,
+  initialView,
+  threatIncomingView,
+} from '../test-helpers';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { rowActions } from '../workbench/Tree';
 import { beforeLeaving } from './beforeLeaving';
@@ -169,6 +177,35 @@ describe('o ciclo de leitura e o fim do treino (V4C-T3.2)', () => {
 });
 
 describe('o exército sem Defesa ativa (V4C-T3.4)', () => {
+  const input = {
+    connection: { kind: 'online' as const },
+    discreetMode: false,
+    signedIn: true,
+    elapsedSeconds: 0,
+    pending: 0,
+  };
+
+  it.each([coldView, expeditionCrossroadsView, guildArrearsView, threatIncomingView])(
+    'não encobre urgências nem decisões que já tomavam a barra',
+    (view) => {
+      const before = statusBar({ ...input, view });
+      const withArmy = { ...view, army: armyIdleView.army };
+      expect(statusBar({ ...input, view: withArmy })).toEqual(before);
+    },
+  );
+
+  it('mantém o modo discreto e o aviso de falta de conexão', () => {
+    const view = armyIdleView;
+    expect(statusBar({ ...input, view, discreetMode: true }).text).not.toContain('Defesa');
+    expect(
+      statusBar({
+        ...input,
+        view,
+        connection: { kind: 'offline', retryInMs: 5000, attempt: 1 },
+      }).text,
+    ).toContain('Sem ligação');
+  });
+
   it('"Antes de partir": um aviso que leva ao Exército; sem soldados, nada', () => {
     const item = beforeLeaving(armyIdleView).find((entry) => entry.id === 'army-defense');
     expect(item?.severity).toBe('warning');
@@ -184,7 +221,7 @@ describe('o exército sem Defesa ativa (V4C-T3.4)', () => {
   it('a barra de status: aviso sem alarme, e não é decisão pendente', () => {
     const bar = statusBar({
       view: armyIdleView,
-      connection: { kind: 'online' } as never,
+      connection: { kind: 'online' },
       discreetMode: false,
       signedIn: true,
       elapsedSeconds: 0,

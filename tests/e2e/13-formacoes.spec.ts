@@ -202,18 +202,27 @@ test.describe('a aba Exército nos temas e em janela estreita (V4C-T3.5)', () =>
     try {
       const page = await world.open(context);
       await openEditor(world, page);
-      await page.getByTestId('formation-name').fill('Muralha');
-      await fillPost(page, 'center', 'front', 'spearman', '4');
-      await saveButton(page).click();
-      await expect(page.getByTestId('formation-list')).toContainText('Muralha');
       for (const theme of THEMES) {
         await applyTheme(page, theme);
+        await page.getByTestId('formation-name').fill(`Muralha ${theme}`);
+        await fillPost(page, 'center', 'front', 'spearman', '4');
+        await saveButton(page).focus();
+        await page.keyboard.press('Enter');
+        await expect(page.getByTestId('formation-list')).toContainText(`Muralha ${theme}`);
+        await expect(page.getByTestId('formation-activate')).toBeEnabled();
+        await page.getByTestId('formation-activate').focus();
+        await page.keyboard.press('Enter');
+        await expect(page.getByTestId('formation-active')).toBeVisible();
         await expect(page.getByTestId('formation-list')).toBeVisible();
         expect(await lowContrast(page), `contraste no Exército, tema ${theme}`).toEqual([]);
         expect(await overflow(page), `rolagem a 720 px, tema ${theme}`).toEqual({
           page: 0,
           content: 0,
         });
+        await page.screenshot({ path: test.info().outputPath(`exercito-${theme}-720.png`) });
+        // A próxima montagem também começa vazia, e é salva e ativada naquele tema.
+        await page.getByTestId('formation-new').focus();
+        await page.keyboard.press('Enter');
       }
     } finally {
       await context.close();

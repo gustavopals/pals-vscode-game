@@ -1,5 +1,13 @@
 # CLAUDE.md
 
+> **Retomada em 2026-10-22:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
+> Quartel, soldados e formações existem; a interface V4C-T3 está sendo integrada
+> e verificada nesta sessão. A revisão e a medição V4C-T4 ainda faltam.
+> O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
+> e a evidência atual estão em [Retomada da v0.4](docs/retomada-v0.4.md).
+> Não houve publicação da v0.4 nesta sessão.
+
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## O que é

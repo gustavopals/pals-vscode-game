@@ -126,7 +126,11 @@ test.describe('a aba Exército (V4C-T3.2)', () => {
     await trainForm(page).getByTestId('train-confirm-button').click();
     await expect(running(page)).toBeVisible();
 
+    // A visão do lote pode aparecer antes de a trava da ordem de treino ser liberada.
+    // `focus()` não espera um botão desabilitado ficar disponível como `click()` espera.
+    await expect(running(page).getByTestId('army-cancel')).toBeEnabled();
     await running(page).getByTestId('army-cancel').focus();
+    await expect(running(page).getByTestId('army-cancel')).toBeFocused();
     await page.keyboard.press('Enter');
     await expect.poll(() => posts.filter((post) => post.type === 'cancelTraining').length).toBe(1);
     await expect(running(page)).toHaveCount(0);

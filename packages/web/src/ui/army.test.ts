@@ -57,8 +57,18 @@ describe('as linhas do Quartel', () => {
   });
 
   it('a linha da árvore diz a Defesa ativa pelo nome da visão; sem soldados não avisa', () => {
-    const formation = { ...army.formations[0], id: 'f1', name: 'Muro', isActive: true };
-    const withDefense = { ...army, formations: [formation as never] };
+    const formation = {
+      id: 'f1',
+      name: 'Muro',
+      isActive: true,
+      posts: [],
+      commanders: [],
+      total: 3,
+      shortfall: [],
+      shortfallText: '',
+      canDelete: false,
+    };
+    const withDefense = { ...army, formations: [formation] };
     expect(armyTreeLine(withDefense, 0)).toBe('Nv2 · 3/40 soldados · Defesa: Muro');
     expect(lacksDefense(withDefense)).toBe(false);
     expect(lacksDefense(army)).toBe(true);
