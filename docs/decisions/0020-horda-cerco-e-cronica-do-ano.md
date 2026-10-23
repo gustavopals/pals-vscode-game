@@ -18,7 +18,16 @@
 ## Consequências
 
 - A Fase E começa quando o motor de batalha (V4D-T1) estiver no `main`: a Muralha (V4E-T1) é dado da batalha.
-- O ouro parado do ritmo Rápido vai para a Muralha e a Fortaleza com custos de ouro de fim de jogo (resposta C-9, ADR 0019), dimensionados contra a seção 6 do balanceamento, sem apertar o ritmo Normal.
+- O ouro parado do ritmo Rápido vai para a Muralha, com custos de ouro de fim de jogo e o reparo com ouro (resposta C-9, ADR 0019; os números estão abaixo, em "Números da Fase E").
 - As cartas dos lotes 2 e 3 só entram no jogo depois de o autor ler cada lote de cinco (decisão 23).
 - Os objetivos sazonais ficam fora da v0.4 (decisão 24); os cinco do GDD §12.2 são medidos no simulador antes de fechar (V4H-T3).
 - O GDD (§8.2, §8.3, §9.5, §10.6, §11.1 a §11.4) é corrigido para estas respostas (V4E-T0.3).
+
+## Números da Fase E respondidos em 2026-10-23: o ouro da Muralha
+
+A resposta C-9 (ADR 0019, "Resposta de 2026-10-23") mandava o ouro parado do ritmo Rápido para "a Muralha e a Fortaleza"; a Fortaleza é o forte da Horda, e não um edifício do jogador, e o autor corrigiu o destino:
+
+- **Os níveis 3 a 6 da Paliçada pedem ouro, além da madeira e da pedra, ×3 por nível:** Muralha de Pedra Nv3 **2.000**, Nv4 **6.000**; Baluarte Nv5 **18.000**, Nv6 **54.000** (80 mil no total). A madeira e a pedra seguem a regra do GDD (§6.2: Nv3 com 300 de madeira e 450 de pedra, ×1,6 por nível).
+- **O reparo da muralha custa ouro além da pedra:** o mesmo tanto de ouro que de pedra (50% da pedra do nível), também no reparo de emergência entre as ondas do cerco.
+- Medir na V4E-T5 contra a seção 6 do balanceamento: o ouro parado do Rápido cai, e o Normal não fica sem o Nv3.
+

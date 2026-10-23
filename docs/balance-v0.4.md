@@ -230,7 +230,7 @@ pnpm -s sim -- --matrix --profile especulador
 - **O `militar` gasta como o Regular**, porque não compra ferro: quase não forja, e treina Lanceiros e Arqueiros como o econômico.
 - **O ferro também não mudou o quadro:** nenhum bot da rodada padrão compra ferro (balcão de 0 a 2.737 de ouro por partida, quase tudo comida e lenha).
 
-**Resposta do autor (2026-10-23, pendência C-9):** nenhuma regra nova antes da Fase D; o ouro parado do Rápido vai para custos de ouro de fim de jogo na Muralha e na Fortaleza (Fase E), dimensionados por esta medida e medidos de novo. Nenhum número foi mudado.
+**Resposta do autor (2026-10-23, pendência C-9):** nenhuma regra nova antes da Fase D; o ouro parado do Rápido vai para custos de ouro de fim de jogo na Muralha (Fase E): 2.000, 6.000, 18.000 e 54.000 de ouro nos níveis 3 a 6, e o reparo com ouro igual à pedra (ADR 0020, "Números da Fase E"), medidos de novo na V4E-T5. Nenhum número foi mudado.
 
 ## 7. Tamanho e custo (V4A-T1.8, 2026-10-23)
 

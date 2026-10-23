@@ -221,7 +221,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 - A medida (docs/balance-v0.4.md, seção 6): o treino leva ~110 de ouro por partida, 0,06% do que a Mina dá na semana do Rápido; o ouro parado fica em 157 mil (Regular) e 300 mil (Dedicado) na semana do Rápido, 2 a 10 mil no Normal e menos de mil no Tranquilo.
 - Opções apresentadas: (1) nenhuma regra agora, e a Muralha e a Fortaleza da Fase E com custos de ouro de fim de jogo, dimensionados por esta medida; (2) soldo de 1 ouro por hora de jogo por soldado (aperta o Normal); (3) aceitar.
-- **Resposta:** a (1). Nenhum número muda antes da Fase D; a V4E dimensiona o ouro da Muralha e da Fortaleza contra o ouro parado do Rápido sem apertar o Normal, e mede de novo.
+- **Resposta:** a (1). Nenhum número muda antes da Fase D; a V4E dimensiona o ouro da Muralha contra o ouro parado do Rápido sem apertar o Normal, e mede de novo. **Correção e números, 2026-10-23:** a "Fortaleza" da opção era um engano (é o forte da Horda); o autor fixou o ouro dos níveis 3 a 6 em 2.000, 6.000, 18.000 e 54.000 (×3 por nível) e o reparo com ouro igual à pedra (ADR 0020, "Números da Fase E").
 
 ### Fase D: o motor de batalha (V4D-T1)
 
