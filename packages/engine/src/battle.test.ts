@@ -236,6 +236,16 @@ describe('as regras fora dos sete cenários', () => {
     expect(shot.hits[1]?.overFront).toBe(true);
   });
 
+  it('o arqueiro da Horda sem Frente a vencer fere a Retaguarda exposta, e não "por cima" (V4D-T5)', () => {
+    const resolution = resolveBattle(
+      battle({ center: { back: ['archer', 2] } }, { center: { back: ['banditArcher', 4] } }),
+      EVEN_LUCK,
+    );
+    const shot = attacks(resolution, 1).find((action) => action.actor.side === 'A') as Attack;
+    expect(shot.hits.length).toBeGreaterThan(0);
+    expect(shot.hits.every((hit) => !hit.overFront && hit.exposedRear)).toBe(true);
+  });
+
   it('os arqueiros da Horda passam por cima da muralha a ×7/10; os do jogador, atrás dela, ×6/5', () => {
     const resolution = resolveBattle(
       battle(
@@ -311,6 +321,19 @@ describe('as regras fora dos sete cenários', () => {
     // 10% da vida da Frente no começo: 10 lanceiros × 20 / 10 = 20.
     expect(healed.residual + healed.soldiers * 20).toBeLessThanOrEqual(20);
     expect(healed.residual + healed.soldiers * 20).toBeGreaterThan(0);
+  });
+
+  it('o comandante de uma ala sem soldados no começo não dá moral nem conta (D-5)', () => {
+    const resolution = resolveBattle(
+      battle(
+        { center: { front: ['spearman', 10] } },
+        { center: { front: ['raider', 10] } },
+        { commanders: { left: { heroId: 'hero-1', heroClass: 'cleric' } } },
+      ),
+      EVEN_LUCK,
+    );
+    expect(resolution.startMorale.D).toBe(100);
+    expect(resolution.commanders).toEqual([]);
   });
 
   it('o Guerreiro dá +15% de defesa à ala, e o Arqueiro +15% ao dano à distância da ala', () => {
@@ -507,6 +530,13 @@ describe('o relatório (V4D-T1.5)', () => {
     expect(report.decisive.map((entry) => entry.factor)).toContain('exposedRear');
     const rear = report.decisive.find((entry) => entry.factor === 'exposedRear');
     expect(rear).toMatchObject({ owner: 'horde', amount: 234, round: 3, wing: null });
+  });
+
+  it('a batalha de zero rodadas não dá baixa a ninguém (V4D-T5)', () => {
+    const resolution = resolveBattle(battle({ center: { front: ['spearman', 5] } }, {}), EVEN_LUCK);
+    expect(resolution.rounds).toHaveLength(0);
+    const report = buildBattleReport('battle-1', 0, resolution);
+    expect(report.casualties.map((entry) => entry.lost)).toEqual([0]);
   });
 
   it('a experiência do comandante: inteira na vitória, metade na derrota, nada para quem morreu', () => {

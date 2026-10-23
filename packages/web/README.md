@@ -286,7 +286,8 @@ A aba Exército (fixa depois do Mercado) tem o Quartel (`components/BarracksPane
 
 - **Conselho de Guerra** (V4D-T4; `components/WarCouncilPanel.tsx`). Abaixo do editor, para a formação **salva** que ele edita: "Simular" manda `simulateBattle` (`lords.simulateBattle`, por `controller.simulateBattle` e `guildOrder`, trava `preview:<formação>`, intenção `preview:<formação>`; pela paleta pergunta qual formação). O bloco mostra Vitória, Gloriosa e Derrota em percentual, `riskText` e as perdas esperadas, **tudo de `army.preview`, sem conta no app**; só aparece a prévia da formação em edição (a de outra seria engano), e `formations[].previewStale` põe "Prévia desatualizada". No editor, as linhas "Inimigo (prev.)" (frente e retaguarda) repetem `preview.knownEnemy[].text`, com `?` onde a visão não sabe.
 - **Retorno e ficha.** `battleFought` entra em "O que exigiu um preço" (`game/returnReport.ts`, tópico `battle`, ação "Ajustar formação", que abre o Exército). A ficha do herói mostra `commanderText`.
-- **Falta (V4D-T4.3/T4.4):** o relatório de batalha (`BattleReport`) espera que a visão exponha `army.reports`: o estado já guarda `BattleReport[]`, mas o `ViewState` não os traz.
+- **Relatórios de batalha** (V4D-T4.3; `components/BattleReport.tsx`): `army.reports` (do mais novo ao mais antigo, tudo em frase: fatores, rodadas, baixas, muralha, comandantes e experiência) em uma seção abaixo do Conselho de Guerra; as rodadas são `<details>` (teclado nativo) e "Ajustar formação" carrega no editor a formação de `adjustFormationId` (a Defesa ativa, pendência D-10). O Conselho de Guerra fica logo abaixo do editor (`.formation-main`), junto do "Salvar".
+- **Falta (V4D-T4.4):** o cenário em navegador do relatório (rota `/__test/battle`).
 
 Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px, a prévia do Conselho de Guerra pelo teclado).
 

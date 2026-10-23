@@ -13,6 +13,7 @@ import {
 import { trainingBlock } from './armyOrders';
 import { decimal, fillText, plural } from './format';
 import { formationEditorView, formationViews } from './formationsView';
+import { armyReportsView } from './battleReportView';
 import { armyPreviewView } from './warCouncilView';
 import type { ArmyView, BuildingId, GameState, UnitId } from './types';
 import { MILLI, realSecondsCeil } from './units';
@@ -141,6 +142,7 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
     formations: formationViews(state),
     editor: formationEditorView(state),
     preview: armyPreviewView(state),
+    reports: armyReportsView(state),
   };
 }
 

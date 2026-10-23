@@ -281,7 +281,7 @@ export function buildBattleReport(
       line: squad.post.line,
       unit: squad.unit,
       start: squad.count,
-      lost: squad.count - (end?.count ?? 0),
+      lost: last === undefined ? 0 : squad.count - (end?.count ?? 0),
     };
   });
 

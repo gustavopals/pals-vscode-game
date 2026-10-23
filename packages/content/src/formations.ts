@@ -61,9 +61,75 @@ export const warCouncilTexts = {
     tower: 'As torres do inimigo castigam a formação.',
     aura: 'O chefe da Horda levanta o ânimo dela com a sua aura.',
   },
+  /** A mesma lista para quando o fator não é de uma ala só: sem `{ala}` e sem vírgula na frente. */
+  riskNoWing: {
+    wallAbsorbed: 'O peso da Horda cai sobre a muralha, que cede primeiro.',
+    counter: 'As armas da Horda vencem as suas pelo ciclo de contra-ataques.',
+    exposedRear: 'Quando a Frente cai, a Horda alcança a Retaguarda desprotegida.',
+    flank: 'A Horda entra pelo flanco onde a ala vizinha está vazia.',
+    tower: 'As torres do inimigo castigam a formação.',
+    aura: 'O chefe da Horda levanta o ânimo dela com a sua aura.',
+  },
+  /** A aura de uma ala só é a do Xamã (a do Senhor da Guerra vale para o exército inteiro). */
+  riskAuraWing: '{ala}, o Xamã da Horda fortalece os seus com a sua aura.',
   riskPrefix: 'Risco principal: ',
   /** Quando nenhuma simulação trouxe dano da Horda que valha uma frase. */
   noRisk: 'Nenhum fator da Horda se destacou nas simulações.',
   /** Quando a formação não tem soldado nenhum para lutar. */
   noTroops: 'A formação não tem soldado nenhum no feudo: sem tropa, a Horda vence sem lutar.',
+} as const;
+
+/**
+ * As frases do relatório de batalha na visão (V4D-T4.3). Os números entram por `{...}`; o motor
+ * preenche e o app só mostra. Rascunho que o autor não leu.
+ */
+export const battleReportTexts = {
+  modes: { defense: 'Defesa do feudo', attack: 'Ataque' },
+  endings: {
+    annihilation: 'Um dos lados ficou sem esquadrões.',
+    rout: 'Um dos lados debandou.',
+    chiefFell: 'O chefe da Horda caiu.',
+    rounds: 'O limite de rodadas chegou, com as duas linhas de pé.',
+  },
+  /** Um fator decisivo, uma forma por lado; `{valor}` é o dano que ele trouxe ou evitou. */
+  factors: {
+    wallAbsorbed: {
+      player: 'A muralha tomou {valor} de dano ({percentual}% do golpe da Horda).',
+      horde: 'A muralha tomou {valor} de dano.',
+    },
+    counter: {
+      player: 'A tropa certa contra o inimigo deu {valor} de dano a mais.',
+      horde: 'O inimigo certo contra a nossa tropa deu {valor} de dano a mais.',
+    },
+    exposedRear: {
+      player: 'A Retaguarda inimiga exposta tomou {valor} de dano.',
+      horde: 'Depois que a Frente caiu, a Retaguarda tomou {valor} de dano.',
+    },
+    flank: {
+      player: 'O ataque pelo flanco deu {valor} de dano a mais.',
+      horde: 'O flanco que o inimigo achou deu {valor} de dano a mais.',
+    },
+    tower: {
+      player: 'As torres causaram {valor} de dano.',
+      horde: 'As torres causaram {valor} de dano.',
+    },
+    aura: {
+      player: 'Os comandantes à frente das alas deram {valor} de dano a mais.',
+      horde: 'Os chefes do inimigo deram {valor} de dano a mais.',
+    },
+  },
+  noFactor: 'Nenhum fator se destacou: pesou a força dos braços.',
+  attack: '{ator}: {quantos} {unidade} atacam {alvo}. Dano {dano}, {baixas} baixas.',
+  roundMorale: 'Moral: feudo {feudo}, Horda {horda}.',
+  roundWall: 'Muralha: {muralha}.',
+  casualty: '{posto}: {unidade}, {perdeu} de {comecou}.',
+  wall: '{ala}: a muralha foi de {comecou} a {terminou}.',
+  commander: '{nome} ({classe}) comandou {ala}. {destino} Experiência: {xp}.',
+  fates: {
+    none: 'Saiu ileso.',
+    wounded: 'Saiu ferido.',
+    died: 'Morreu em combate.',
+  },
+  unknownHero: 'Um herói que não está mais na lista',
+  sides: { player: 'O feudo', horde: 'A Horda' },
 } as const;
