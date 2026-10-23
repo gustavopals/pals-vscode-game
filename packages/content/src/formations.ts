@@ -61,6 +61,17 @@ export const warCouncilTexts = {
     tower: 'As torres do inimigo castigam a formação.',
     aura: 'O chefe da Horda levanta o ânimo dela com a sua aura.',
   },
+  /** A mesma lista para quando o fator não é de uma ala só: sem `{ala}` e sem vírgula na frente. */
+  riskNoWing: {
+    wallAbsorbed: 'O peso da Horda cai sobre a muralha, que cede primeiro.',
+    counter: 'As armas da Horda vencem as suas pelo ciclo de contra-ataques.',
+    exposedRear: 'Quando a Frente cai, a Horda alcança a Retaguarda desprotegida.',
+    flank: 'A Horda entra pelo flanco onde a ala vizinha está vazia.',
+    tower: 'As torres do inimigo castigam a formação.',
+    aura: 'O chefe da Horda levanta o ânimo dela com a sua aura.',
+  },
+  /** A aura de uma ala só é a do Xamã (a do Senhor da Guerra vale para o exército inteiro). */
+  riskAuraWing: '{ala}, o Xamã da Horda fortalece os seus com a sua aura.',
   riskPrefix: 'Risco principal: ',
   /** Quando nenhuma simulação trouxe dano da Horda que valha uma frase. */
   noRisk: 'Nenhum fator da Horda se destacou nas simulações.',

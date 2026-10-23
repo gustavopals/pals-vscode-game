@@ -35,9 +35,15 @@ export function riskText(preview: ArmyPreview, hasTroops: boolean): string {
   if (risk === null) {
     return warCouncilTexts.noRisk;
   }
-  const sentence = fillText(warCouncilTexts.risk[risk.factor], {
-    ala: risk.wing === null ? '' : wingLocatives[risk.wing],
-  });
+  // Sem ala não há `{ala}` para preencher: cada fator tem a sua forma sem ela, para a frase não
+  // começar por uma vírgula. A aura de uma ala só é a do Xamã.
+  const sentence =
+    risk.wing === null
+      ? warCouncilTexts.riskNoWing[risk.factor]
+      : fillText(
+          risk.factor === 'aura' ? warCouncilTexts.riskAuraWing : warCouncilTexts.risk[risk.factor],
+          { ala: wingLocatives[risk.wing] },
+        );
   return `${warCouncilTexts.riskPrefix}${sentence}`;
 }
 

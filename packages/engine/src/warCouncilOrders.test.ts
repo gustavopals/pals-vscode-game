@@ -10,6 +10,7 @@ import {
   refuse,
   saveFormationOrder,
 } from './test-helpers';
+import { riskText } from './warCouncilView';
 import { previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
 import type { GameState } from './types';
@@ -145,5 +146,29 @@ describe('a prévia não vaza a Ameaça (V4D-T5)', () => {
 
   it('com Torre, a Ameaça alta dá a incursão média', () => {
     expect(enemyAt(100, 1)).not.toEqual(enemyAt(0, 1));
+  });
+});
+
+describe('a frase do risco (V4D-T5)', () => {
+  const base = accept(yard(), simulate('formation-1')).state.army.preview;
+  const withRisk = (factor: string, wing: 'left' | null) => {
+    if (base === null) {
+      throw new Error('sem prévia');
+    }
+    return { ...base, risk: { factor, wing, amount: 10 } } as unknown as typeof base;
+  };
+
+  it('nunca começa por vírgula, com ala ou sem ela', () => {
+    for (const factor of ['wallAbsorbed', 'counter', 'exposedRear', 'flank', 'tower', 'aura']) {
+      for (const wing of ['left', null] as const) {
+        const text = riskText(withRisk(factor, wing), true);
+        expect(text).toMatch(/^Risco principal: [A-ZÀ-Ý]/);
+      }
+    }
+  });
+
+  it('a aura de uma ala só é a do Xamã; a do exército, a do chefe', () => {
+    expect(riskText(withRisk('aura', 'left'), true)).toMatch(/Xamã/);
+    expect(riskText(withRisk('aura', null), true)).toMatch(/chefe da Horda/);
   });
 });
