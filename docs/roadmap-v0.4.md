@@ -584,7 +584,7 @@ Como V4B-T5, sobre a Fase C. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-
 
 - [ ] V4C-T4.1 O revisor tenta: treinar com as casas cheias; o soldado e o piso de 3; a fome com soldados; dispensar durante o treino; o comandante dispensado, capturado ou que parte em caravana; duas abas salvando a mesma formação; a migração de uma partida com fome aberta; o número de unidades no pacote do app.
 - [ ] V4C-T4.2 Correções com teste; relatório no repositório; Registro.
-- [ ] V4C-T4.3 **A medição do ouro** (§13): o ouro por fonte e por destino com o treino e o ferro; **volta ao autor com propostas concretas** antes da Fase D (decisão 2).
+- [x] V4C-T4.3 **A medição do ouro** (§13): o ouro por fonte e por destino com o treino e o ferro; **volta ao autor com propostas concretas** antes da Fase D (decisão 2).
 - [ ] V4C-T4.4 Integração: portão, `CLAUDE.md`, `architecture.md`, READMEs; linha no §15. Sem `push` (decisão 26).
 - [ ] V4C-T4.5 O autor joga a fase (roteiro em `docs/pendencias-v0.4.md`), ou fica registrado que não jogou.
 
