@@ -24,3 +24,102 @@ Fim da rodada 1: moral D 100, A 100; D-EF 10 (res 0), D-CF 5 (res 0), D-DF 10 (r
   - ala D do lado A caiu: moral −20 → 40
 
 **Desfecho.** victory (annihilation), vence D, em 2 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "victory",
+ "ending": "annihilation",
+ "rounds": 2,
+ "decisive": [
+  {
+   "factor": "wallAbsorbed",
+   "owner": "player",
+   "amount": 120,
+   "wing": null,
+   "round": 1,
+   "percent": 81
+  },
+  {
+   "factor": "counter",
+   "owner": "player",
+   "amount": 120,
+   "wing": null,
+   "round": 1,
+   "percent": null
+  },
+  {
+   "factor": "flank",
+   "owner": "player",
+   "amount": 3,
+   "wing": "center",
+   "round": 1,
+   "percent": null
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "left",
+   "line": "front",
+   "unit": "spearman",
+   "start": 10,
+   "lost": 0
+  },
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "shieldbearer",
+   "start": 5,
+   "lost": 0
+  },
+  {
+   "owner": "player",
+   "wing": "right",
+   "line": "front",
+   "unit": "spearman",
+   "start": 10,
+   "lost": 0
+  },
+  {
+   "owner": "horde",
+   "wing": "left",
+   "line": "front",
+   "unit": "wolf",
+   "start": 8,
+   "lost": 8
+  },
+  {
+   "owner": "horde",
+   "wing": "right",
+   "line": "front",
+   "unit": "wolf",
+   "start": 8,
+   "lost": 8
+  }
+ ],
+ "wall": [
+  {
+   "wing": "left",
+   "start": 60,
+   "end": 0
+  },
+  {
+   "wing": "center",
+   "start": 60,
+   "end": 60
+  },
+  {
+   "wing": "right",
+   "start": 60,
+   "end": 0
+  }
+ ],
+ "commanders": []
+}
+```

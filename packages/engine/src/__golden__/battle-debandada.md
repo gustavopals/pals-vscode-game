@@ -43,3 +43,110 @@ Fim da rodada 2: moral D 80, A 70; D-EB 3 (res 0), D-CF 9 (res 4), D-DB 3 (res 0
 Fim da rodada 3: moral D = 20 ≤ 30: debandada.
 
 **Desfecho.** defeat (rout), vence A, em 3 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "defeat",
+ "ending": "rout",
+ "rounds": 3,
+ "decisive": [
+  {
+   "factor": "exposedRear",
+   "owner": "horde",
+   "amount": 234,
+   "wing": null,
+   "round": 3,
+   "percent": null
+  },
+  {
+   "factor": "counter",
+   "owner": "player",
+   "amount": 93,
+   "wing": null,
+   "round": 1,
+   "percent": null
+  },
+  {
+   "factor": "counter",
+   "owner": "horde",
+   "amount": 80,
+   "wing": null,
+   "round": 3,
+   "percent": null
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "left",
+   "line": "front",
+   "unit": "spearman",
+   "start": 4,
+   "lost": 4
+  },
+  {
+   "owner": "player",
+   "wing": "left",
+   "line": "back",
+   "unit": "archer",
+   "start": 3,
+   "lost": 3
+  },
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "spearman",
+   "start": 10,
+   "lost": 1
+  },
+  {
+   "owner": "player",
+   "wing": "right",
+   "line": "front",
+   "unit": "spearman",
+   "start": 4,
+   "lost": 4
+  },
+  {
+   "owner": "player",
+   "wing": "right",
+   "line": "back",
+   "unit": "archer",
+   "start": 3,
+   "lost": 3
+  },
+  {
+   "owner": "horde",
+   "wing": "left",
+   "line": "front",
+   "unit": "blackKnight",
+   "start": 8,
+   "lost": 2
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "blackKnight",
+   "start": 4,
+   "lost": 4
+  },
+  {
+   "owner": "horde",
+   "wing": "right",
+   "line": "front",
+   "unit": "blackKnight",
+   "start": 8,
+   "lost": 0
+  }
+ ],
+ "wall": [],
+ "commanders": []
+}
+```

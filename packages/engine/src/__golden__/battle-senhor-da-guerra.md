@@ -35,3 +35,78 @@ Fim da rodada 2: moral D 100, A 100; D-EF 10 (res 16), D-CF 10 (res 8), D-DF 10 
   - o Senhor da Guerra caiu: a onda termina
 
 **Desfecho.** victory (chiefFell), vence D, em 3 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "victory",
+ "ending": "chiefFell",
+ "rounds": 3,
+ "decisive": [
+  {
+   "factor": "aura",
+   "owner": "horde",
+   "amount": 28,
+   "wing": null,
+   "round": 1,
+   "percent": null
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "left",
+   "line": "front",
+   "unit": "knight",
+   "start": 10,
+   "lost": 0
+  },
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "knight",
+   "start": 10,
+   "lost": 0
+  },
+  {
+   "owner": "player",
+   "wing": "right",
+   "line": "front",
+   "unit": "knight",
+   "start": 10,
+   "lost": 0
+  },
+  {
+   "owner": "horde",
+   "wing": "left",
+   "line": "front",
+   "unit": "raider",
+   "start": 10,
+   "lost": 10
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "warlord",
+   "start": 1,
+   "lost": 1
+  },
+  {
+   "owner": "horde",
+   "wing": "right",
+   "line": "front",
+   "unit": "raider",
+   "start": 10,
+   "lost": 9
+  }
+ ],
+ "wall": [],
+ "commanders": []
+}
+```

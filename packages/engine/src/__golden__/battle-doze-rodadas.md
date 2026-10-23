@@ -87,3 +87,37 @@ Fim da rodada 11: moral D 100, A 100; D-CF 6 (res 18), A-CF 7 (res 13)
 Fim da rodada 12: moral D 100, A 100; D-CF 4 (res 1), A-CF 7 (res 15)
 
 **Desfecho.** held (rounds), vence D, em 12 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "held",
+ "ending": "rounds",
+ "rounds": 12,
+ "decisive": [],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "shieldbearer",
+   "start": 16,
+   "lost": 12
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "blackKnight",
+   "start": 10,
+   "lost": 3
+  }
+ ],
+ "wall": [],
+ "commanders": []
+}
+```

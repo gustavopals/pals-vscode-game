@@ -63,3 +63,94 @@ Fim da rodada 5: moral D 40, A 40; D-DF 7 (res 4), A-EF 3 (res 11)
   - ala E do lado A caiu: moral −20 → 10
 
 **Desfecho.** victory (annihilation), vence D, em 6 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "victory",
+ "ending": "annihilation",
+ "rounds": 6,
+ "decisive": [
+  {
+   "factor": "counter",
+   "owner": "horde",
+   "amount": 95,
+   "wing": null,
+   "round": 1,
+   "percent": null
+  },
+  {
+   "factor": "flank",
+   "owner": "player",
+   "amount": 35,
+   "wing": null,
+   "round": 4,
+   "percent": null
+  },
+  {
+   "factor": "flank",
+   "owner": "horde",
+   "amount": 35,
+   "wing": "left",
+   "round": 3,
+   "percent": null
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "left",
+   "line": "front",
+   "unit": "swordsman",
+   "start": 2,
+   "lost": 2
+  },
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "spearman",
+   "start": 8,
+   "lost": 8
+  },
+  {
+   "owner": "player",
+   "wing": "right",
+   "line": "front",
+   "unit": "spearman",
+   "start": 8,
+   "lost": 1
+  },
+  {
+   "owner": "horde",
+   "wing": "left",
+   "line": "front",
+   "unit": "raider",
+   "start": 8,
+   "lost": 8
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "raider",
+   "start": 6,
+   "lost": 6
+  },
+  {
+   "owner": "horde",
+   "wing": "right",
+   "line": "front",
+   "unit": "raider",
+   "start": 6,
+   "lost": 6
+  }
+ ],
+ "wall": [],
+ "commanders": []
+}
+```

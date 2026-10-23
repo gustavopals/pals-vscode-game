@@ -24,3 +24,46 @@ Fim da rodada 2: moral D 100, A 100; D-CF 10 (res 14), A-CF 1 (res 9)
   - ala C do lado A caiu: moral −20 → 70
 
 **Desfecho.** victory (annihilation), vence D, em 3 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "victory",
+ "ending": "annihilation",
+ "rounds": 3,
+ "decisive": [
+  {
+   "factor": "counter",
+   "owner": "player",
+   "amount": 93,
+   "wing": "center",
+   "round": 1,
+   "percent": null
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "spearman",
+   "start": 12,
+   "lost": 2
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "blackKnight",
+   "start": 6,
+   "lost": 6
+  }
+ ],
+ "wall": [],
+ "commanders": []
+}
+```

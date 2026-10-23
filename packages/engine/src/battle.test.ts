@@ -11,6 +11,11 @@ import {
   type BattleResolution,
 } from './battle';
 import { renderRounds } from './battle.render';
+import { buildBattleReport } from './battleReport';
+import { fightBattle } from './battleTurn';
+import { entityStream, nextInt } from './random';
+import { cloneState } from './state';
+import { newGame } from './test-helpers';
 
 // A conta à mão (V4D-T1.1): o motor tem de reproduzir cada linha do documento.
 const doc = Object.values(
@@ -192,6 +197,12 @@ describe('os sete cenários escritos à mão (docs/content-v0.4.md, seção 2)',
       renderRounds(resolution),
       '',
       `**Desfecho.** ${resolution.outcome} (${resolution.ending}), vence ${resolution.winner}, em ${String(resolution.rounds.length)} rodadas.`,
+      '',
+      '**Relatório** (`battleReport.ts`, sem o registro por rodada):',
+      '',
+      '```json',
+      JSON.stringify({ ...buildBattleReport('battle-1', 0, resolution), log: undefined }, null, 1),
+      '```',
       '',
     ].join('\n');
     await expect(text).toMatchFileSnapshot(`./__golden__/${golden}.md`);
@@ -414,5 +425,134 @@ describe('as regras fora dos sete cenários', () => {
     expect(() =>
       resolveBattle(battle({ center: { front: ['spearman', 0] } }, {}), EVEN_LUCK),
     ).toThrow(/quantidade/);
+  });
+});
+
+const lucksOf = (resolution: BattleResolution) =>
+  resolution.rounds.flatMap((round) =>
+    round.actions.flatMap((action) => (action.kind === 'attack' ? [action.luck] : [])),
+  );
+
+describe('o fluxo da batalha (V4D-T1.4)', () => {
+  const input = SCENARIOS[4]?.input as BattleInput;
+
+  it('a mesma entrada e o mesmo fluxo dão a mesma batalha; o fluxo nasce e é apagado no instante', () => {
+    const one = cloneState(newGame('pedra-alta'));
+    const two = cloneState(newGame('pedra-alta'));
+    const first = fightBattle(one, input);
+    const again = fightBattle(two, input);
+    expect(first.id).toBe('battle-1');
+    expect(JSON.stringify(again)).toBe(JSON.stringify(first));
+    expect(one.ids.battle).toBe(1);
+    expect(Object.keys(one.rng).some((name) => name.startsWith('battle:'))).toBe(false);
+    expect(JSON.stringify(one)).toBe(JSON.stringify(two));
+  });
+
+  it('uma sorte de 90 a 110 por ataque, tirada do fluxo na ordem dos ataques', () => {
+    const draft = cloneState(newGame('pedra-alta'));
+    const { id, resolution } = fightBattle(draft, input);
+    const lucks = lucksOf(resolution);
+    expect(lucks.length).toBeGreaterThan(0);
+    expect(lucks.every((luck) => luck >= 90 && luck <= 110)).toBe(true);
+    // O mesmo fluxo, lido à mão, dá as mesmas sortes na mesma ordem.
+    const replay = cloneState(newGame('pedra-alta'));
+    replay.ids.battle = 1;
+    const stream = entityStream('battle', id);
+    expect(lucks.map(() => 90 + nextInt(replay, stream, 21))).toEqual(lucks);
+  });
+
+  it('a segunda batalha tem outro identificador e outro fluxo', () => {
+    const draft = cloneState(newGame('pedra-alta'));
+    const first = fightBattle(draft, input);
+    const second = fightBattle(draft, input);
+    expect(second.id).toBe('battle-2');
+    expect(lucksOf(second.resolution)).not.toEqual(lucksOf(first.resolution));
+  });
+});
+
+describe('o relatório (V4D-T1.5)', () => {
+  const reportOf = (index: number) =>
+    buildBattleReport(
+      'battle-1',
+      0,
+      resolveBattle(SCENARIOS[index]?.input as BattleInput, EVEN_LUCK),
+    );
+
+  it('2.1: a Paliçada, o contra-ataque dos Lanceiros e o flanco dos Escudeiros, nessa ordem', () => {
+    const report = reportOf(0);
+    expect(report.decisive).toEqual([
+      // 56 + 56 + 4 + 4 dos 147 de bruto dos Lobos.
+      { factor: 'wallAbsorbed', owner: 'player', amount: 120, wing: null, round: 1, percent: 81 },
+      // 30 a mais em cada um dos quatro golpes de 90.
+      { factor: 'counter', owner: 'player', amount: 120, wing: null, round: 1, percent: null },
+      // 75/4 × (1 − 4/5) = 15/4, piso 3.
+      { factor: 'flank', owner: 'player', amount: 3, wing: 'center', round: 1, percent: null },
+    ]);
+    expect(report.wall).toEqual([
+      { wing: 'left', start: 60, end: 0 },
+      { wing: 'center', start: 60, end: 60 },
+      { wing: 'right', start: 60, end: 0 },
+    ]);
+    expect(
+      report.casualties.filter((entry) => entry.owner === 'player').map((e) => e.lost),
+    ).toEqual([0, 0, 0]);
+    expect(report.casualties.filter((entry) => entry.owner === 'horde').map((e) => e.lost)).toEqual(
+      [8, 8],
+    );
+  });
+
+  it('2.5: a Retaguarda exposta aparece como fator da Horda', () => {
+    const report = reportOf(4);
+    expect(report.outcome).toBe('defeat');
+    expect(report.decisive.map((entry) => entry.factor)).toContain('exposedRear');
+    const rear = report.decisive.find((entry) => entry.factor === 'exposedRear');
+    expect(rear).toMatchObject({ owner: 'horde', amount: 234, round: 3, wing: null });
+  });
+
+  it('a experiência do comandante: inteira na vitória, metade na derrota, nada para quem morreu', () => {
+    const won = buildBattleReport(
+      'battle-1',
+      0,
+      resolveBattle(
+        battle(
+          { center: { front: ['spearman', 12] } },
+          { center: { front: ['blackKnight', 6] } },
+          { commanders: { center: { heroId: 'hero-1', heroClass: 'warrior' } } },
+        ),
+        EVEN_LUCK,
+      ),
+    );
+    expect(won.commanders).toEqual([
+      { heroId: 'hero-1', wing: 'center', heroClass: 'warrior', fate: null, xp: 40 },
+    ]);
+    const input = battle(
+      { center: { front: ['spearman', 1], back: ['archer', 2] } },
+      { center: { front: ['blackKnight', 10] } },
+      { commanders: { center: { heroId: 'hero-1', heroClass: 'warrior' } } },
+    );
+    expect(
+      buildBattleReport('battle-1', 0, resolveBattle(input, EVEN_LUCK)).commanders[0],
+    ).toMatchObject({ fate: 'wounded', xp: 20 });
+    expect(
+      buildBattleReport('battle-1', 0, resolveBattle({ ...input, heroCapture: 'death' }, EVEN_LUCK))
+        .commanders[0],
+    ).toMatchObject({ fate: 'died', xp: 0 });
+  });
+
+  it('o relatório só tem inteiros, textos e nulos: cabe no estado', () => {
+    for (const index of SCENARIOS.keys()) {
+      const report = reportOf(index);
+      const walk = (value: unknown): void => {
+        if (typeof value === 'number') {
+          expect(Number.isSafeInteger(value)).toBe(true);
+        } else if (Array.isArray(value)) {
+          value.forEach(walk);
+        } else if (value !== null && typeof value === 'object') {
+          Object.values(value).forEach(walk);
+        }
+      };
+      walk(report);
+      expect(JSON.parse(JSON.stringify(report))).toEqual(report);
+    }
   });
 });

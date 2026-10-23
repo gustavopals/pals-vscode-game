@@ -16,3 +16,60 @@ Fim da rodada 1: moral D 100, A 100; D-CF 6 (res 1), A-CF 1 (res 51); muralha {1
   - ala C do lado A caiu: moral −20 → 70
 
 **Desfecho.** victory (annihilation), vence D, em 2 rodadas.
+
+**Relatório** (`battleReport.ts`, sem o registro por rodada):
+
+```json
+{
+ "id": "battle-1",
+ "foughtAtMs": 0,
+ "mode": "defense",
+ "outcome": "victory",
+ "ending": "annihilation",
+ "rounds": 2,
+ "decisive": [
+  {
+   "factor": "counter",
+   "owner": "player",
+   "amount": 36,
+   "wing": "center",
+   "round": 1,
+   "percent": null
+  },
+  {
+   "factor": "wallAbsorbed",
+   "owner": "player",
+   "amount": 7,
+   "wing": "center",
+   "round": 1,
+   "percent": 50
+  }
+ ],
+ "casualties": [
+  {
+   "owner": "player",
+   "wing": "center",
+   "line": "front",
+   "unit": "spearman",
+   "start": 6,
+   "lost": 0
+  },
+  {
+   "owner": "horde",
+   "wing": "center",
+   "line": "front",
+   "unit": "ogre",
+   "start": 1,
+   "lost": 1
+  }
+ ],
+ "wall": [
+  {
+   "wing": "center",
+   "start": 100,
+   "end": 93
+  }
+ ],
+ "commanders": []
+}
+```
