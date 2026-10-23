@@ -240,7 +240,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 **D-4. Auras e o Lobo (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: a aura do Senhor da Guerra vale para ele**, e o Lobo como o agente leu.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
 
-**D-5. As regras que o agente fechou no motor (V4D-T1.3 a T1.5, 2026-10-23).** _(Leituras e números do agente, por aprovar; todos com teste em `packages/engine/src/battle.test.ts`. Os sete goldens batem com a conta à mão linha a linha.)_
+**D-5. As regras que o agente fechou no motor (V4D-T1.3 a T1.5, 2026-10-23).** _(**Aprovada inteira pelo autor em 2026-10-23**, com o Mago a 20 de dano e a experiência do comandante a 40. Antes: leituras e números do agente; todos com teste em `packages/engine/src/battle.test.ts`. Os sete goldens batem com a conta à mão linha a linha.)_
 
 - **A sorte só é pedida a quem ataca**: um esquadrão sem a quem atacar não gasta sorte, e o destruído antes de agir também não (“só se sorteia o que pode acontecer”).
 - **"Sem moral" quer dizer "não debanda"**: o documento (2.7) desconta a moral quando o Senhor da Guerra cai, então a moral do lado conta todas as perdas, e o lado só debanda se tiver um esquadrão vivo com moral. Se os dois lados debandam na mesma rodada, foge o atacante.
@@ -265,7 +265,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 ### Fase E: a Muralha de Pedra, o Baluarte e a Torre Nv3+ (V4E-T1)
 
-**D-7. Os números da muralha e da Torre dos níveis novos (V4E-T1.1 e T1.3).** _(Propostas do agente, por aprovar; o GDD §6.1 e o ADR 0020 não fecham a vida da muralha nem a composição que a Torre revela.)_
+**D-7. Os números da muralha e da Torre dos níveis novos (V4E-T1.1 e T1.3).** _(**Aprovada pelo autor em 2026-10-23**: a vida por ala 60, 100, 200, 320, 500 e 800, e a Torre revelando os tipos no Nv3, a quantidade no Nv4 e a composição exata no Nv5.)_
 
 - **A vida por ala** (`balance.wall.hpByLevel`), do Nv1 ao Nv6: **60, 100, 200, 320, 500 e 800**. Os dois primeiros são as premissas dos cenários de `docs/content-v0.4.md`, seção 2 (60 e 100); dali em diante, cerca de × 1,6 por nível. O GDD §13.4 mostra "600 HP por ala" no Nv2 só como desenho de tela; o agente não o seguiu.
 - **O reparo** (`balance.wall.repair`): reparar toda a muralha (as três alas a zero) custa metade da pedra da obra do nível e **ouro igual à pedra**; o custo é proporcional ao que falta, arredondado para cima. O prazo é de 15 min de jogo por 25% da vida de **uma ala**, também proporcional, com as alas em sequência (o texto "15 min por 25%" não diz se é por ala ou no total).

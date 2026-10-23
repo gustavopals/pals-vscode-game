@@ -31,3 +31,9 @@ A resposta C-9 (ADR 0019, "Resposta de 2026-10-23") mandava o ouro parado do rit
 - **O reparo da muralha custa ouro além da pedra:** o mesmo tanto de ouro que de pedra (50% da pedra do nível), também no reparo de emergência entre as ondas do cerco.
 - Medir na V4E-T5 contra a seção 6 do balanceamento: o ouro parado do Rápido cai, e o Normal não fica sem o Nv3.
 
+## Números aprovados em 2026-10-23: a vida da muralha e a Torre Nv3+ (pendência D-7)
+
+- **Vida da muralha por ala, do nível 1 ao 6:** 60, 100, 200, 320, 500 e 800.
+- **A Torre de Vigia Nv3 a Nv5** avisa com 3, 4 e 5 h reais (decisão 16), causa 12 × (nível − 2) de dano por ala na batalha, e revela da Horda os tipos no Nv3, a quantidade por ala no Nv4 e a composição exata no Nv5.
+- **O reparo** custa metade da pedra do nível e ouro igual à pedra, e leva 15 min de jogo por 25% da vida de uma ala.
+
