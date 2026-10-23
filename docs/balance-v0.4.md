@@ -208,3 +208,26 @@ pnpm -s sim -- --matrix --profile especulador
 - **O Explorador** volta a encher os seis lugares da Taverna nas 50 sementes da semana e do ano do Normal (eram de cinco a seis), e na semana do Rápido e no ano do Tranquilo termina com seis em todas (eram de seis a sete); a causa exata não foi investigada.
 
 **Não verificado:** a matriz do `militar` (`--profile militar`) não foi rodada nesta tarefa; a medição do exército no cerco é da Fase E.
+
+## 6. A medição do ouro da Fase C (V4C-T4.3, 2026-10-23)
+
+**Pergunta (decisão 2 do ADR 0019):** com o ferro, o Ferreiro e o treino de soldados, o ouro parado caiu? A tabela "Ouro por fonte e por destino" do simulador ganhou o destino **exército** (`goldOut.army`, o ouro de `trainingStarted`; antes caía em "outros"). Rodadas: `pnpm -s sim -- --matrix` (Senhor, 50 sementes, rodada padrão) e `pnpm -s sim -- --matrix --profile militar`, no branch `v4c-t4-ouro-exercito`.
+
+**Resposta: não.** O treino é um destino desprezível do ouro, e o ouro parado continua onde estava.
+
+| Janela e ritmo | Perfil | Mina (por partida) | Exército | Obras | Ouro parado no fim |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 7 dias, Rápido 3× | Regular | 174.044 | 112 | 15.442 | 157.085 |
+| 7 dias, Rápido 3× | Dedicado | 314.474 | 125 | 16.586 | 300.214 |
+| 7 dias, Rápido 3× | Explorador | 216.158 | 115 | 17.298 | 193.124 |
+| 7 dias, Rápido 3× | Militar | 162.068 | 110 | 19.197 | 141.445 |
+| 7 dias, Normal 1× | Regular | 20.370 | 93 | 9.572 | 10.106 |
+| 7 dias, Normal 1× | Dedicado | 17.666 | 125 | 15.254 | 2.235 |
+| 7 dias, Tranquilo 0,5× | Regular | 4.718 | 26 | 3.943 | 582 |
+
+- **O exército leva 0,06% do que a Mina dá na semana do Rápido.** A política mínima de guerra treina até um quarto dos aldeões e um lote por vez, e o Quartel do bot fica no nível 1 (10 soldados): são 10 a 15 de ouro por soldado. Mesmo o Quartel cheio no nível 8 (80 soldados) daria uns 1.200 de ouro, menos de 1% do parado.
+- **O ouro parado é um problema do ritmo Rápido.** Na semana do Rápido passam três anos de jogo: as obras acabam (o Regular esgota a lista na hora 154) e a Mina continua. No Normal a sobra é de 2.000 a 10.000; no Tranquilo, de 500 a 700.
+- **O `militar` gasta como o Regular**, porque não compra ferro: quase não forja, e treina Lanceiros e Arqueiros como o econômico.
+- **O ferro também não mudou o quadro:** nenhum bot da rodada padrão compra ferro (balcão de 0 a 2.737 de ouro por partida, quase tudo comida e lenha).
+
+**Resposta do autor (2026-10-23, pendência C-9):** nenhuma regra nova antes da Fase D; o ouro parado do Rápido vai para custos de ouro de fim de jogo na Muralha e na Fortaleza (Fase E), dimensionados por esta medida e medidos de novo. Nenhum número foi mudado.

@@ -217,6 +217,13 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - As frases novas da Crônica (`formationSaved`, `formationActivated`, `formationDeleted`) e os nomes das alas ("Ala esquerda", "Centro", "Ala direita") são rascunho que o autor não leu (`packages/content/src/chronicle.ts` e `formations.ts`).
 - O bot `militar` (único) monta uma formação "Defesa do bot" com o que tem, sem comandante, e a ativa; o Regular não (decisão 25 deixava a escolha ao agente: o Regular não precisa dela até a batalha).
 
+**C-9. O ouro parado com o exército (V4C-T4.3; decisão 2).** _(Respondida pelo autor em 2026-10-23: **Muralha cara em ouro**.)_
+
+- A medida (docs/balance-v0.4.md, seção 6): o treino leva ~110 de ouro por partida, 0,06% do que a Mina dá na semana do Rápido; o ouro parado fica em 157 mil (Regular) e 300 mil (Dedicado) na semana do Rápido, 2 a 10 mil no Normal e menos de mil no Tranquilo.
+- Opções apresentadas: (1) nenhuma regra agora, e a Muralha e a Fortaleza da Fase E com custos de ouro de fim de jogo, dimensionados por esta medida; (2) soldo de 1 ouro por hora de jogo por soldado (aperta o Normal); (3) aceitar.
+- **Resposta:** a (1). Nenhum número muda antes da Fase D; a V4E dimensiona o ouro da Muralha e da Fortaleza contra o ouro parado do Rápido sem apertar o Normal, e mede de novo.
+
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*
@@ -232,3 +239,15 @@ Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pn
 5. **A sensação** (2 min): o ferro parece um recurso que se **acha** ou se **compra**, e não um que se produz? A forja parada te dá vontade de ter um Quartel? Anote em uma frase o que confundiu.
 
 Se não der para jogar, fica registrado na linha V4B-T5 do Registro do roadmap que a Fase B fechou sem o autor jogar, como nas fases da v0.3.
+
+## 8. Roteiro de 15 minutos para o autor jogar a Fase C (V4C-T4.5)
+
+Em desenvolvimento, sem mexer na produção: `pnpm dev:up`, `pnpm dev:api` e `pnpm dev:web`, e abrir `http://localhost:5173`. "Jogar agora" no ritmo Rápido, seguindo os objetivos até o Salão Nv4.
+
+1. **O Quartel** (3 min): erga o Quartel (150 de madeira, 150 de pedra, 100 de ouro). A aba **Exército** aparece depois do Mercado? A tabela das cinco unidades diz o custo, a comida por hora e contra quem cada uma é forte?
+2. **O treino** (4 min): treine 3 Lanceiros em duas etapas ("Revisar o treino", "Confirmar"). A conferência diz o custo do lote inteiro e o prazo? Os soldados saem da população (a contagem de aldeões cai) e a comida por hora passa a contá-los? Cancele um segundo lote e veja se a frase do que volta bate com o estoque.
+3. **A formação** (5 min): no editor, ande pelos seis postos com as setas e aperte Enter para pôr tropa em três deles. O posto vazio se distingue do preenchido de relance? Nomeie um herói comandante de uma ala, salve e marque como Defesa ativa. A árvore diz "Defesa: <nome>"? Tente mandar esse herói em expedição: a tela explica por que ele fica?
+4. **O aviso** (1 min): tire a Defesa ativa. A barra de status diz "Sem Defesa ativa", e "Antes de partir" oferece "Ativar uma formação"?
+5. **A sensação** (2 min): montar a formação parece um quebra-cabeça rápido ou um formulário? Sem batalha ainda, o exército parece servir para alguma coisa? Anote em uma frase o que confundiu.
+
+Se não der para jogar, fica registrado na linha V4C-T4 do Registro do roadmap que a Fase C fechou sem o autor jogar.
