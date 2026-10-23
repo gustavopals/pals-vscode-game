@@ -695,6 +695,8 @@ fim:
 
 Mortos-vivos e o Senhor da Guerra não têm moral. Heróis-comandantes recebem dano apenas quando a Frente da ala cai; podem ser **feridos**, nunca mortos fora de Rei de Ferro.
 
+`[v0.4]` **Leituras fechadas pelo autor em 2026-10-23** ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), "Respostas de 2026-10-23"): as baixas valem na hora, dentro da rodada (quem age depois bate com o que sobrou, e o esquadrão destruído não age); um arredondamento só, no dano efetivo; a moral de cada lado começa em 100 e a debandada é conferida no fim da rodada; o dano que passa da vida que resta na muralha se perde; o arqueiro da Horda mira a Retaguarda por cima da Frente; e a aura do Senhor da Guerra vale também para ele.
+
 ### 10.5 Conselho de Guerra (prévia)
 
 Antes de salvar a formação, o jogador pode **Simular**, e **Simular é uma ordem** (`simulateBattle`; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 10): ela grava o resultado (uma por vez) e conta para o objetivo "Simule uma batalha". O motor roda 200 batalhas com sementes **derivadas por `hash` da semente da partida, da formação e do que se sabe do inimigo, nunca do `state.rng`** (a única exceção explícita à regra de que só `advanceTo` sorteia), preenchendo o que não se sabe do inimigo com amostras da composição provável (presságios e vigias reduzem a incerteza). Saída:

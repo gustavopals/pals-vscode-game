@@ -225,7 +225,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 
 ### Fase D: o motor de batalha (V4D-T1)
 
-**D-1. As convenções da conta dos sete goldens (V4D-T1.1).** _(Leituras do agente; o GDD §10.4 e o ADR 0019, decisão 11, não fecham estes pontos. Estão em `docs/content-v0.4.md`, seção 2.0.)_
+**D-1. As convenções da conta dos sete goldens (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: as baixas valem na hora**, e o resto como o agente leu. Antes: leituras do agente; o GDD §10.4 e o ADR 0019, decisão 11, não fecham estes pontos. Estão em `docs/content-v0.4.md`, seção 2.0.)_
 
 - **Ataques sequenciais.** A ordem é fixada no começo da rodada, mas as baixas valem na hora: o `n` de quem ataca é o de quando ele age, e um esquadrão destruído antes de agir não age. A alternativa (todos batem com o `n` do começo da rodada) é mais simples de explicar e muda os goldens.
 - **Um arredondamento só.** O bruto fica fração exata e o piso é aplicado ao efetivo, não ao bruto nem ao absorvido.
@@ -234,11 +234,11 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **Ala "caída" inclui a ala vazia desde o início** para o flanco (o ataque cuja ala oposta não tem esquadrões flanqueia ×5/4 o Centro, depois a esquerda, depois a direita), mas só a ala que **tinha** esquadrões e os perdeu custa −20 de moral.
 - **Residual** é por esquadrão, inteiro, e zera quando o esquadrão morre.
 
-**D-2. A Paliçada como muralha nos goldens (V4D-T1.1).** _(Leitura do agente.)_ O GDD §10.1 só tem a Muralha, e a vida dela por nível (`wallHpPerLevel`) é da Fase E. Os cenários 2.1 e 2.4 usam uma muralha com 60 e 100 de vida **por ala**, só para a conta; a muralha não tem defesa, o corpo a corpo bate nela inteiro e o excesso de dano além da vida que resta se perde (não passa às tropas no mesmo golpe). Ao ligar a Paliçada ao motor, o autor ou a Fase E dizem a vida dela e se o excesso passa.
+**D-2. A Paliçada como muralha nos goldens (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: o excesso se perde**; a vida por nível continua da Fase E.)_ O GDD §10.1 só tem a Muralha, e a vida dela por nível (`wallHpPerLevel`) é da Fase E. Os cenários 2.1 e 2.4 usam uma muralha com 60 e 100 de vida **por ala**, só para a conta; a muralha não tem defesa, o corpo a corpo bate nela inteiro e o excesso de dano além da vida que resta se perde (não passa às tropas no mesmo golpe). Ao ligar a Paliçada ao motor, o autor ou a Fase E dizem a vida dela e se o excesso passa.
 
-**D-3. Arqueiros e Retaguarda (V4D-T1.1).** _(Leitura do agente.)_ O §10.1 diz que a Retaguarda "ataca à distância por cima da própria Frente" e é atingida "por arqueiros inimigos", mas não diz **onde** o arqueiro acerta. Nos goldens o arqueiro ataca a Frente da ala oposta como qualquer esquadrão (e a Retaguarda quando a Frente cai); só o cenário 2.5 tem arqueiros, e do lado do jogador. A regra "arqueiro inimigo acerta a Retaguarda por cima da Frente" fica para a T1.3, a decidir.
+**D-3. Arqueiros e Retaguarda (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: o arqueiro da Horda mira a Retaguarda por cima da Frente**; regra da T1.3.)_ O §10.1 diz que a Retaguarda "ataca à distância por cima da própria Frente" e é atingida "por arqueiros inimigos", mas não diz **onde** o arqueiro acerta. Nos goldens o arqueiro ataca a Frente da ala oposta como qualquer esquadrão (e a Retaguarda quando a Frente cai); só o cenário 2.5 tem arqueiros, e do lado do jogador. A regra "arqueiro inimigo acerta a Retaguarda por cima da Frente" fica para a T1.3, a decidir.
 
-**D-4. Auras e o Lobo (V4D-T1.1).** _(Leitura do agente.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
+**D-4. Auras e o Lobo (V4D-T1.1).** _(**Respondida pelo autor em 2026-10-23: a aura do Senhor da Guerra vale para ele**, e o Lobo como o agente leu.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
 
 
 ## 6. O que não foi verificado

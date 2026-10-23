@@ -72,3 +72,12 @@ A sessão aconteceu em 2026-10-16, um dia depois da publicação da v0.3.0 (esta
 
 A medida da Fase C (docs/balance-v0.4.md, seção 6) mostrou que o treino de soldados leva cerca de 110 de ouro por partida e que o ouro parado continua alto no ritmo Rápido (157 mil no Regular e 300 mil no Dedicado na semana; 2 a 10 mil no Normal). O autor escolheu **não criar regra de ouro antes da Fase D** e levar o ouro parado do Rápido para **custos de ouro de fim de jogo na Muralha e na Fortaleza** (Fase E), dimensionados por esta medida sem apertar o ritmo Normal, com nova medição na V4E. O soldo de soldado ficou de fora.
 
+## Respostas de 2026-10-23 (a conta da batalha, pendências D-1 a D-4)
+
+Antes do motor de batalha (V4D-T1.3), o autor fechou as quatro leituras dos sete cenários escritos à mão (`docs/content-v0.4.md`, seção 2), todas na opção recomendada:
+
+1. **As baixas valem na hora** dentro da rodada: o esquadrão bate com o número de soldados de quando age, e o destruído antes de agir não age. Um arredondamento só (o piso no dano efetivo), a moral de cada lado começa em 100 e a debandada é conferida no fim da rodada.
+2. **O dano que passa da vida que resta na muralha se perde**: o golpe que a rompe para nela. A vida da Paliçada e da Muralha por nível continua da Fase E.
+3. **O arqueiro da Horda mira a Retaguarda por cima da Frente** (o Escudeiro a protege); os outros atacam a Frente e passam à Retaguarda quando ela cai.
+4. **A aura do Senhor da Guerra vale também para ele**; o Lobo ataca a ala lateral do mesmo lado e, se ela caiu, flanqueia.
+

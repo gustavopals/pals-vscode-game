@@ -6,7 +6,7 @@
 > medição do ouro (resposta do autor: Muralha cara em ouro, C-9), o roteiro do autor e
 > as correções dos achados. A Fase C fechou em 2026-10-23 sem o autor jogar, por escolha dele.
 > A Fase D (batalha) começou: os sete cenários à mão e os inimigos (V4D-T1.1 e T1.2) estão
-> no `main`; as leituras D-1 a D-4 pedem o autor antes do motor (T1.3).
+> no `main`; o autor fechou as leituras D-1 a D-4 em 2026-10-23, e o próximo passo é o motor (T1.3).
 > O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
 > e a evidência atual estão em [Retomada da v0.4](docs/retomada-v0.4.md).
 > Não houve publicação da v0.4 nesta sessão.
