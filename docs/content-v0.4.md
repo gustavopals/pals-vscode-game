@@ -476,25 +476,9 @@ Crônica (`keep`): "No {dia}º dia {daEstacao}, o Mestre {mestre} seguiu no trab
 
 **O motor precisará:** requisito de carta `minMasters` (o branch antigo já tinha o tipo), a lacuna `{mestre}` no texto e na Crônica (o motor escolhe um dos Mestres que trabalham) e um efeito novo `craftExperience` sobre o edifício desse Mestre.
 
-### 4.6 O que fica para os próximos lotes (13 cartas)
+### 4.6 O que fica para os próximos lotes (3 cartas)
 
-Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três. **O lote B (cartas 6 a 10) saiu: está na seção 5, para o autor ler.** Os lotes seguintes mantêm as letras C, D e E. O "aprendiz e o Mestre" (4.5) volta à lista quando o Mestre puder ensinar o ofício.
-
-**Lote C, "O Cobrador do Rei" e o início do Lobo Branco (5).**
-
-- 11. Impostos do Rei (cadeia 1/3, recorrente, Salão Nv3): pagar, negociar (Carismático) ou recusar. Pede `heroTrait`.
-- 12. O Cobrador do Rei (cadeia 2/3): multa dobrada, negociar ou ceder parte, com o ramo de soldados da v0.4 (sem adaptação).
-- 13. A resposta da coroa (cadeia 3/3): desfecho por ramo, com batalha se o jogador recusou duas vezes.
-- 14. Pegadas brancas (Lobo Branco 1/3, outono, depois do Covil limpo): caçar, oferecer carne ou ignorar. Pede `clearedTiles`.
-- 15. O Lobo Branco (Lobo Branco 2/3): a caçada como expedição especial, ou a oferenda que se repete, com presságio da v0.4.
-
-**Lote D, o fim do Lobo Branco e a vida na Guilda (5).**
-
-- 16. O que a floresta devolve (Lobo Branco 3/3): desfecho que lembra quem caçou, com cerco da v0.4.
-- 17. Um bardo na Taverna (avulsa): pagar pela canção (moral) ou mandá-lo embora. Pede Taverna.
-- 18. Recrutador de passagem (avulsa): pagar por um candidato a mais nesta rotação. Pede Taverna e um efeito sobre a rotação.
-- 19. A dívida de jogo (avulsa): cobrir a dívida de um herói ou deixá-lo resolver. Pede `heroPresent`.
-- 20. Duelo na praça (avulsa): permitir (moral, risco de ferimento leve) ou proibir. Pede `heroPresent` e `rollEffect`.
+Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três. **O lote B (cartas 6 a 10) está na seção 5, aprovado. Os lotes C (cartas 11 a 15) e D (cartas 16 a 20) estão nas seções 6 e 7, para o autor ler.** Resta o lote E, abaixo. O "aprendiz e o Mestre" (4.5) volta à lista quando o Mestre puder ensinar o ofício.
 
 **Lote E, o que sobra e a roteirizada (3).**
 
@@ -502,7 +486,7 @@ Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três. **O l
 - 22. O mapa rasgado (avulsa): comprar meio mapa, que revela um destino mais cedo. Pede Guilda e `revealDestination`.
 - 23. O mercador itinerante (roteirizada, dia 20 do ano 1): trocar excedente por ouro uma vez, a preço ruim, ou esperar ter o Mercado. Sai por `scripted`; prepara o Mercado.
 
-A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as quatro aprovadas da seção 4, as cinco da seção 5 e as 13 acima, são 22 das 23 do roadmap da v0.4 (as 24 da v0.3 menos ela); a 23ª é o aprendiz (4.5), que espera o Mestre poder ensinar.
+A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as quatro aprovadas da seção 4, as cinco da seção 5, as dez das seções 6 e 7 e as 3 acima, são 22 das 23 do roadmap da v0.4 (as 24 da v0.3 menos ela); a 23ª é o aprendiz (4.5), que espera o Mestre poder ensinar.
 
 ## 5. Lote 2 do Conselho: segundo lote de cinco (para o autor)
 
@@ -619,3 +603,223 @@ Crônica (`winter`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a c
 
 Proposta, a conferir com o autor só se ele discordar: o efeito grava em `market.effects` (estado 36 para 37, lista vazia) um fator por recurso e o fim em instante de jogo; `deriveViewState` e as contas de compra e venda usam o **preço exibido** = passeio × estação × os fatores vivos (cada um em fração `{ num, den }`, sem ponto flutuante); a venda segue a 85% do preço exibido de compra; os fatores de vários efeitos **se multiplicam**; o passeio não muda e o teto de 160% só vale para ele, não para o preço exibido (um boicote no inverno pode levar a comida acima de 160%: esperado). O sorteio do passeio e o `quoteDay` não mudam. A propriedade "nenhuma sequência de compra e venda no mesmo dia dá lucro" continua valendo, porque o fator multiplica compra e venda.
 
+
+## 6. Lote 2 do Conselho: terceiro lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote C da lista da 4.6: a cadeia "O Cobrador do Rei" (3 cartas) e as duas primeiras do "Lobo Branco" (2 de 3). **Nenhuma carta foi pulada**, mas **três ramos da lista foram trocados** porque dependiam de mecânica que a regra 6 do CLAUDE.md ainda proíbe:
+
+- **A batalha** (carta 13: "batalha se o jogador recusou duas vezes"; e a ofensiva do Cobrador no GDD, Apêndice B, carta 6): a batalha é da Fase D da v0.4 e não existe no motor. No lugar entra uma **requisição de comida e madeira** (6.3). Quando a batalha existir, a opção `hold` da 6.3 é o lugar natural de um combate; isso é mudança de regra, com ADR.
+- **O presságio** (carta 15: "oferecer carne dá presságio claro") e **o cerco** (carta 14: "ignorar dá lobos +30% no cerco"): os dois são de fases mais adiante da v0.4. No lugar, "oferecer carne" dá **moral** (6.5) e "ignorar" dá **perda de comida** (6.4).
+- **A relíquia Osso de Lobo** (GDD, carta 5): é da v0.5; a caçada rende **ouro e comida**, não relíquia (6.5).
+
+Nenhuma outra carta dependeu de mecânica proibida. O soldado como requisito de opção (`minSoldiers`) usa só o Exército que já existe (Quartel e treino, V4C-T1). A "expedição especial" da 6.5 é um modelo novo de expedição, não uma mecânica nova; está descrita ali, com o custo para o motor e uma saída mais barata, caso o autor prefira.
+
+**Por que estas cinco.** Fecham a ideia "a coroa e a floresta cobram": o imposto que volta todo ano e vira ameaça se o jogador recusa (3 cartas) e o primeiro aviso de que o Covil limpo deixou um lobo para trás (2 cartas; o fim está no lote D). Pedem os ganchos de motor: `resourcesPercent` (já proposto em 4.4), `heroTrait` e `minSoldiers` como requisitos de opção, `clearedTiles` como requisito de carta e uma expedição liberada por carta (`unlockExpedition`).
+
+**Convenções.** As da seção 4. Números conferidos contra `balance.ts`: o Quartel guarda 10 soldados por nível (`army.capPerLevel`), então "10 soldados" é um Quartel Nv1 cheio. Os tamanhos de efeito seguem o lote 1 (moral de ±5 a ±10 por 2 a 4 dias, comida de 30 a 90, ouro de 30 a 120). As perdas percentuais de ouro (7%, 15%, 20% e 30%) pesam mais que a de comida da "Praga nos campos" (30% da comida estocada) só onde a carta é a punição de uma recusa. Flags da cadeia do imposto: `tax.refused`, `tax.defied`, `tax.refusedTwice`. Flags do Lobo Branco: `whiteWolf.hunt`, `whiteWolf.offer`, `whiteWolf.ignored`.
+
+### 6.1 Impostos do Rei (`kingsTax`, cadeia 1/3, recorrente)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, **recorrente** (pode sair mais de uma vez no ano). Primavera ou outono; Salão Nv3; sem as flags `tax.refused`, `tax.defied` e `tax.refusedTwice` (a cadeia em curso segura a carta) |
+| Texto | "Um arauto do rei parou ao pé da escadaria do Salão e leu o rolo em voz alta, devagar, para que ninguém dissesse que não ouviu. A coroa lembra que o feudo existe por mercê dela e que a mercê tem preço. O escrivão já tem a pena molhada." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar o imposto" | **Perde 15% do ouro estocado**, na hora. Sem efeito futuro | "O ouro sai inteiro, e o arauto vai embora satisfeito." | Camponês e Senhor |
+| `negotiate` "Negociar com o arauto" | **Só com um herói Carismático livre no feudo** (traço `charismatic`). **Perde 7% do ouro estocado**, na hora | "Quem sabe falar paga menos que quem só sabe pagar." | |
+| `refuse` "Recusar o imposto" | Sem custo. Moral +10 por 3 dias (o povo aplaude); flag `tax.refused`; **a carta 6.2 chega em 2 dias** | "O povo gosta da altivez. O rei não gosta de nada." | Rei de Ferro |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o imposto da coroa. O arauto contou as moedas em voz alta e partiu a cavalo." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} pagou o imposto da coroa. O arauto contou as moedas em voz alta e partiu a cavalo."
+Crônica (`negotiate`): "No {dia}º dia {daEstacao}, {heroi} falou ao arauto do rei até o imposto encolher. O escrivão riscou um número e escreveu outro."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} recusou o imposto da coroa. A praça aplaudiu, e o arauto não voltou a falar." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou o imposto da coroa. A praça aplaudiu, e o arauto não voltou a falar."
+
+**O motor precisará:** `resourcesPercent` (já proposto em 4.4: o ouro estocado é lido no instante da escolha, em fração `{ num, den }`), requisito de opção `heroTrait: 'charismatic'` (novo; hoje `CouncilOptionRequires` só tem `building` e `resources`, e o teste de conteúdo o recusa de propósito em `council.test.ts`) e a lacuna `{heroi}` na Crônica (o motor escolhe um herói Carismático livre e o grava com a escolha; a mesma lacuna das cartas 7.4 e 7.5). `buildings: { townHall: 3 }`, `seasons` e `notFlags` existem.
+
+### 6.2 O Cobrador do Rei (`kingsCollector`, cadeia 2/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação (peso 0), 2 dias depois de `refuse` na 6.1 |
+| Texto | "O arauto voltou com companhia: o cobrador do rei, um homem de rosto fechado, e quatro soldados de brasão na mão. Diz que a coroa não esquece quem a esquece e que a conta, agora, vem com multa. Os soldados olham o portão como quem avalia a madeira." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `fine` "Pagar a multa dobrada" | **Perde 30% do ouro estocado**, na hora; moral −5 por 2 dias; limpa `tax.refused`; **a cadeia termina** | "Paga-se o dobro do que se devia, e o assunto morre." | Camponês e Senhor |
+| `soldiers` "Mostrar os soldados" | **Só com 10 soldados ou mais no Exército.** Sem custo. Moral +10 por 3 dias; limpa `tax.refused`; flag `tax.defied`; **a carta 6.3 chega em 4 dias** | "A fileira diante do portão pesa mais que a pena do escrivão." | |
+| `refuse` "Mandar o cobrador embora" | Sem custo. Moral +5 por 2 dias; limpa `tax.refused`; flag `tax.refusedTwice`; **a carta 6.3 chega em 3 dias** | "Duas recusas seguidas, e a coroa perde a paciência." | Rei de Ferro |
+
+Crônica (`fine`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a multa dobrada ao cobrador do rei. Os soldados contaram os sacos e não levaram um a mais." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} pagou a multa dobrada ao cobrador do rei. Os soldados contaram os sacos e não levaram um a mais."
+Crônica (`soldiers`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pôs os soldados em fila diante do cobrador do rei. Ele olhou para a fileira, depois para o escrivão, e baixou a voz."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o cobrador do rei embora de mãos vazias. Os soldados dele não se mexeram, e isso pesou mais que qualquer ameaça." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o cobrador do rei embora de mãos vazias. Os soldados dele não se mexeram, e isso pesou mais que qualquer ameaça."
+
+**O motor precisará:** `resourcesPercent` (o mesmo de 6.1) e o requisito de opção `minSoldiers` (novo: soma dos soldados treinados em `state.army`, sem o lote em treino; lê só o Exército que já existe). **Mudança em relação à lista:** a lista dá a esta carta "multa dobrada, negociar ou ceder parte" além do ramo de soldados; são quatro ramos e a carta só comporta três opções (o schema pede duas ou três). "Negociar" fica só na 6.1, e "ceder parte" virou a opção `hold` da 6.3.
+
+### 6.3 A resposta da coroa (`kingsAnswer`, cadeia 3/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 4 dias depois de `soldiers` ou 3 dias depois de `refuse` na 6.2 |
+| Variante de texto por flag | `tax.defied`: a coroa respeita a força. `tax.refusedTwice`: a coroa perdeu a paciência |
+
+Texto (`tax.defied`): "A carta do rei chegou lacrada. O cobrador escreveu à corte que o feudo tem soldados em fileira e vontade de usá-los, e a corte, por ora, prefere conversa a guerra. A coroa propõe um acordo; o conselho quer saber qual."
+Texto (`tax.refusedTwice`): "A carta do rei chegou lacrada, e o tom é de quem se cansou. Duas recusas pesaram mais que o ouro devido: a coroa manda dizer que cobrará o atraso, de um jeito ou de outro, e que os homens dela já sabem o caminho. O conselho quer saber o que o senhor responde."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `tribute` "Pagar o tributo atrasado" | **Perde 20% do ouro estocado**; moral −5 por 2 dias; limpa `tax.defied` e `tax.refusedTwice`; a cadeia termina | "O rei esquece rápido o que recebe em dia." | Camponês e Senhor |
+| `envoy` "Mandar um enviado à corte" | Custo 80 de ouro e 40 de comida (os presentes). Moral +5 por 2 dias; limpa as flags; a cadeia termina | "Cartas e presentes compram tempo, e tempo compra paz." | |
+| `hold` "Manter a recusa" | **Perde 40 de comida e 40 de madeira** (a coroa requisita o que vê); moral +10 por 3 dias; limpa as flags; a cadeia termina | "O povo canta a teimosia, e a despensa paga a conta." | Rei de Ferro |
+
+Crônica (`tribute`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o tributo atrasado. A carta do rei veio curta, e o selo não tinha cera demais." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} pagou o tributo atrasado. A carta do rei veio curta, e o selo não tinha cera demais."
+Crônica (`envoy`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou um enviado à corte com presentes e boas palavras. A coroa os aceitou, e o assunto foi arquivado."
+Crônica (`hold`): "No {dia}º dia {daEstacao}, o senhor de {feudo} manteve a recusa. Os homens do rei levaram o que acharam nos celeiros e no pátio da serraria, e o povo cantou de portão fechado." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} manteve a recusa. Os homens do rei levaram o que acharam nos celeiros e no pátio da serraria, e o povo cantou de portão fechado."
+
+**O motor precisará:** nada além dos itens das cartas anteriores: `resourcesPercent` e texto variante por flag (existe). O efeito das opções é o mesmo nas duas variantes: só o texto muda. **Troca em relação à lista:** sem batalha (ver o começo da seção).
+
+### 6.4 Pegadas brancas (`whitePaws`, Lobo Branco 1/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Outono; **o Covil de Lobos já foi limpo** (`clearedTiles: ['wolfDen']`); sem as flags `whiteWolf.hunt`, `whiteWolf.offer` e `whiteWolf.ignored` |
+| Texto | "Os caçadores acharam pegadas na neve cedo, pegadas largas, de um lobo maior que o maior que já se viu, e brancas ao redor, como se a terra tivesse dado à luz uma sombra clara. O Covil está limpo, mas a serra não esqueceu quem morava nele. O conselho quer saber o que o senhor responde." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `hunt` "Organizar a caçada" | Custo 40 de comida (as provisões dos caçadores). Flag `whiteWolf.hunt`; **a carta 6.5 chega em 3 dias** | "Atrás de um rastro assim vai gente, e volta nem sempre." | |
+| `offer` "Deixar carne na orla do bosque" | Custo 80 de comida. Moral +5 por 2 dias; flag `whiteWolf.offer`; **a carta 6.5 chega em 3 dias** | "A fera come o que deixam, e quem a alimenta vira conhecido dela." | |
+| `ignore` "Fingir que não viu" | **Perde 30 de comida** (o curral esvaziado, de um dia para o outro). Flag `whiteWolf.ignored`; **a carta 6.5 chega em 6 dias** | "O rastro some com a neve. O lobo, não." | as três dificuldades |
+
+Crônica (`hunt`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou os caçadores seguirem as pegadas brancas. Levaram sal, corda e pouca conversa."
+Crônica (`offer`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou deixar carne na orla do bosque. De manhã, a carne tinha sumido e a neve estava amassada em círculo."
+Crônica (`ignore`): "No {dia}º dia {daEstacao}, o senhor de {feudo} fez de conta que não viu as pegadas brancas. Na noite seguinte, o curral amanheceu mais leve." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} fez de conta que não viu as pegadas brancas. Na noite seguinte, o curral amanheceu mais leve."
+
+**O motor precisará:** requisito de carta `clearedTiles` (novo: o tile está desligado por um Covil limpo, estado que o motor já guarda desde a V3D-T2; a carta só lê). Custo, moral e `scheduleCard` existem. **Troca em relação à lista:** "ignorar" perde 30 de comida, não "lobos +30% no cerco" (sem cerco ainda).
+
+### 6.5 O Lobo Branco (`whiteWolf`, Lobo Branco 2/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 3 dias depois de `hunt` ou `offer`, ou 6 dias depois de `ignore` na 6.4 |
+| Variante de texto por flag | `whiteWolf.hunt`: os caçadores viram o lobo. `whiteWolf.offer`: o lobo come na orla. `whiteWolf.ignored`: o lobo desceu ao curral |
+
+Texto (`whiteWolf.hunt`): "Os caçadores voltaram sem a fera e sem o rastro, mas com certeza: é um lobo só, branco como cinza fria, e vive onde o bosque fecha. Dizem que um grupo bem armado, com quem entenda de trilha, o alcança em dois dias. O conselho quer saber se a Guilda sai atrás dele."
+Texto (`whiteWolf.offer`): "A carne some toda noite, e o lobo já deixa que o vejam: branco, calmo, sentado à beira da neve como um cão de guarda que ninguém contratou. Há quem diga que ele aprendeu o gosto do feudo. O conselho quer saber se a oferenda continua ou se a Guilda sai atrás dele."
+Texto (`whiteWolf.ignored`): "O lobo desceu ao curral duas noites seguidas, e nenhuma cerca o deteve. A aldeia dorme de lanterna acesa. Há quem proponha alimentá-lo para amansar, e há quem queira vê-lo pendurado no portão. O conselho quer saber o que o senhor responde."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `hunt` "Mandar a Guilda atrás dele" | **Só com a Guilda Nv1 e um herói livre.** Sem custo. **Libera a expedição especial "A caçada do Lobo Branco" (3 nós), disponível por 6 dias de jogo**; flag `whiteWolf.hunt`; **a carta 7.1 chega em 5 dias** | "A caçada é longa, e a recompensa é a pele, a honra e a quietude." | |
+| `feed` "Manter a oferenda" | Custo 60 de comida. Moral +5 por 3 dias; flag `whiteWolf.offer`; **a carta 7.1 chega em 5 dias** | "Quem alimenta uma fera ganha tempo, e dívida." | |
+| `withdraw` "Recolher os homens e as lanternas" | Sem efeito. Limpa `whiteWolf.hunt`, `whiteWolf.offer` e `whiteWolf.ignored`; **a cadeia termina aqui** | "Nem toda fera quer ser caçada." | as três dificuldades |
+
+Crônica (`hunt`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou a Guilda atrás do Lobo Branco. Partiram de madrugada, em fila, calados."
+Crônica (`feed`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou manter a carne na orla do bosque. O lobo veio comer à vista de todos."
+Crônica (`withdraw`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou recolher os homens e apagar as lanternas. O lobo se foi pela serra, e a aldeia dormiu." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou recolher os homens e apagar as lanternas. O lobo se foi pela serra, e a aldeia dormiu."
+
+**O motor precisará:** `unlockExpedition { modelId, forDays }` (novo: o modelo entra em `map.discovered` com prazo de `forDays` dias de jogo e some quando o prazo passa; hoje `discovered` só cresce) e um **modelo de expedição novo**, `whiteWolfHunt` (3 nós, dificuldade Média, provas de Rastreador e de Guerreiro, saque de ouro e comida, **sem relíquia**), com grafo e ficha a escrever na V4H-T1 e os ids fixados em teste (`STABLE_IDS`), como os demais. **Saída mais barata, se o autor preferir:** trocar a expedição por um `rollEffect` de 1 chance em 2 de ganhar 120 de ouro (a pele) e, na perda, ferimento leve a um herói; custa menos ao motor e à calibragem, mas perde a ideia de a Guilda sair atrás do lobo. **Troca em relação à lista:** sem presságio nem relíquia (ver o começo da seção); `feed` dá moral em lugar do presságio claro.
+
+## 7. Lote 2 do Conselho: quarto lote de cinco (para o autor)
+
+**Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote D da lista da 4.6: o fim do "Lobo Branco" (a 16) e quatro cartas avulsas da Taverna e dos heróis (17 a 20). **Nenhuma carta foi pulada.** A única adaptação é a da 16, que na lista fecharia com o cerco da v0.4 (mecânica ainda proibida pela regra 6 do CLAUDE.md): o desfecho vira ouro, comida e moral. Os ganchos de motor novos pesam pouco: um requisito de carta (`heroPresent`, que exige herói livre no feudo e guarda o nome dele), um efeito sobre a Taverna (`tavernExtraOffer`) e o efeito `injureHero`, que usa o ferimento leve que já existe (`balance.raids.injuryMs`, 2 h de jogo). **Morte de herói não aparece em nenhuma carta**, e o ferimento é sempre leve.
+
+**Convenções.** As da seção 4. Números conferidos contra `balance.ts`: a Taverna vai do Nv1 ao Nv5 e mostra 2, 2, 3, 3 e 3 candidatos; o festival custa 100 de comida e 50 de ouro e dá +15 de moral por 12 dias de jogo, de modo que as cartas desta seção, baratas e de moral pequena, **não substituem o festival**; o ferimento leve dura 2 h de jogo; o soldo vai de 2 a 20 de ouro por hora de jogo por herói (a dívida de 90 de ouro da 7.4 é um pouco menos que um dia de soldo do herói de nível 10 no ritmo Normal).
+
+### 7.1 O que a floresta devolve (`forestReturns`, Lobo Branco 3/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 5 dias depois de `hunt` ou `feed` na 6.5 |
+| Variante de texto por flag | `whiteWolf.hunt`: a pele e a história de quem caçou. `whiteWolf.offer`: o lobo some e deixa um presente |
+
+Texto (`whiteWolf.hunt`): "Os caçadores da Guilda voltaram com a pele do Lobo Branco dobrada em dois e a história na ponta da língua, que cada um conta de um jeito. O bosque, dizem, ficou quieto depois do golpe, como quem acompanha um enterro. O conselho quer saber o que se faz com o que a floresta devolveu."
+Texto (`whiteWolf.offer`): "O lobo parou de vir à orla uma manhã, e na seguinte havia, onde antes ficava a carne, uma pilha de ossos limpos e de couro de caça, como se o bosque quisesse acertar contas. O conselho quer saber o que se faz com o que a floresta devolveu."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `claim` "Aceitar o que a floresta deixou" | +70 de ouro e +40 de comida (a pele, o couro e a caça). Moral +5 por 3 dias; limpa as flags do Lobo Branco; a cadeia termina | "O que o bosque devolve é do feudo, e o feudo agradece em silêncio." | as três dificuldades |
+| `honor` "Honrar o lobo com uma pedra" | Custo 40 de pedra (o marco na orla). Moral +10 por 3 dias; limpa as flags; a cadeia termina | "Um marco na orla, e a serra fica em paz com quem a invadiu." | |
+| `sell` "Vender a pele a um nobre" | +120 de ouro; moral −5 por 2 dias (o povo estranha vender o que o bosque deu); limpa as flags; a cadeia termina | "Mais ouro hoje, e menos orgulho amanhã." | |
+
+Crônica (`claim`): "No {dia}º dia {daEstacao}, o senhor de {feudo} aceitou o que a floresta devolveu. A pele foi pendurada na parede do Salão, e a aldeia dormiu mais leve." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} aceitou o que a floresta devolveu. A pele foi pendurada na parede do Salão, e a aldeia dormiu mais leve."
+Crônica (`honor`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou erguer um marco de pedra na orla do bosque. Ninguém soube dizer ao certo para quê, e ninguém o derrubou."
+Crônica (`sell`): "No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu a pele do Lobo Branco a um nobre da estrada. O negócio foi fechado antes do almoço."
+
+**O motor precisará:** nada novo (texto por flag, recursos, moral e flags existem). O efeito das opções é o mesmo nas duas variantes: só o texto muda. **Troca em relação à lista:** sem cerco (ver o começo da seção) e sem a lacuna do herói que caçou (a lista dizia "lembra quem caçou"; o relatório da expedição já guarda quem se destacou).
+
+### 7.2 Um bardo na Taverna (`tavernBard`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; Taverna Nv1 |
+| Texto | "Um bardo de passagem pediu o canto da mesa grande da Taverna e começou a afinar o alaúde antes de ser convidado. Conhece as histórias de três reinos e promete incluir o feudo na quarta. Cobra pela canção, pela cama e pela fama. O taverneiro olha o chão e espera." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar pela canção" | Custo 40 de ouro. Moral +10 por 3 dias | "Uma noite de canto vale mais que a bolsa." | |
+| `meal` "Dar mesa e cama" | Custo 30 de comida. Moral +5 por 2 dias | "Barriga cheia canta melhor, e paga com a voz." | |
+| `dismiss` "Mandá-lo embora" | Sem efeito | "A Taverna fica quieta, e o bardo canta noutra praça." | as três dificuldades |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou pela canção do bardo. A Taverna cantou o refrão até de madrugada."
+Crônica (`meal`): "No {dia}º dia {daEstacao}, o senhor de {feudo} deu mesa e cama ao bardo de passagem. Ele agradeceu com duas estrofes e meia."
+Crônica (`dismiss`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou o bardo seguir caminho. A Taverna ficou quieta, e o alaúde partiu nas costas dele." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou o bardo seguir caminho. A Taverna ficou quieta, e o alaúde partiu nas costas dele."
+
+**O motor precisará:** nada novo (`buildings: { tavern: 1 }`, custo e moral existem).
+
+### 7.3 Recrutador de passagem (`passingRecruiter`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; Taverna Nv1 |
+| Texto | "Um recrutador de capa gasta bateu à porta da Taverna e abriu a bolsa de couro sem rodeios. Conhece gente que procura trabalho de espada e que não pediria mal. Cobra a taxa de quem encontra, não de quem contrata, e diz que não volta tão cedo." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `pay` "Pagar a taxa do recrutador" | Custo 100 de ouro. **Na próxima rotação da Taverna ela mostra um candidato a mais** (um sorteio a mais no fluxo `tavern`, sem repetir o nome de quem já serve) | "O candidato extra sai da rotação seguinte, e a bolsa sai agora." | |
+| `refuse` "Dispensar o recrutador" | Sem efeito | "A Taverna escolhe quem aparece por conta própria." | as três dificuldades |
+
+Crônica (`pay`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a taxa do recrutador de passagem. Ele garantiu mais um nome na lista da Taverna e pegou a estrada."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou o recrutador. Ele guardou a bolsa e foi bater a outra porta." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} dispensou o recrutador. Ele guardou a bolsa e foi bater a outra porta."
+
+**O motor precisará:** `tavernExtraOffer` (novo, efeito de carta: grava um marcador em `guild.tavern` e a **próxima rotação** sorteia um candidato a mais, além do número do nível; o sorteio fica na rotação, dentro de `advanceTo`, e nunca na resposta da carta, para o invariante de divisão do intervalo valer; o marcador some quando a rotação passa). **O limite de contratação não muda**: o candidato extra é um a mais para o jogador contratar ou deixar.
+
+### 7.4 A dívida de jogo (`gamblingDebt`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Qualquer estação; Taverna Nv1; **um herói livre no feudo** (`heroPresent`: no feudo e sem estar ferido, em expedição, capturado ou em escolta) |
+| Texto | "Um cobrador de dados e baralhos bateu à porta com um papel dobrado na mão: {heroi}, dizem, perdeu na mesa mais do que o soldo de um mês e não tem como pagar. O homem não fala alto, mas não parece disposto a esperar. O conselho quer saber o que o senhor responde." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `cover` "Cobrir a dívida" | Custo 90 de ouro. Moral +5 por 2 dias (a equipe gosta de quem a defende) | "Uma dívida paga é lealdade comprada." | |
+| `leave` "Deixá-lo resolver sozinho" | **Risco à vista, sorteado na virada de dia seguinte**: 1 chance em 2 de o herói voltar **ferido de leve** (2 h de jogo) e a moral cair 5 por 3 dias; se der certo, ele resolve sozinho e a moral sobe 5 por 2 dias | "Cada um sabe da própria mesa, e do próprio fim de noite." | as três dificuldades |
+
+Crônica (`cover`): "No {dia}º dia {daEstacao}, o senhor de {feudo} cobriu a dívida de jogo de {heroi}. O cobrador contou as moedas duas vezes e se foi sem dizer o nome da taverna."
+Crônica (`leave`, escolha): "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou {heroi} se resolver com o cobrador." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou {heroi} se resolver com o cobrador."
+Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, {heroi} voltou da conversa com o cobrador de olho roxo e costelas doloridas. A Taverna comentou por uma semana."
+Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, {heroi} acertou as contas com o cobrador sem derramar sangue. Ninguém soube explicar como, e ninguém perguntou."
+
+**O motor precisará:** requisito de carta `heroPresent` (novo: pelo menos um herói livre; o motor escolhe um na chegada da carta, pelo fluxo `council`, e grava o nome para a lacuna `{heroi}`; a carta nunca é sorteada sem herói livre); `rollEffect` (já proposto em 4.4); e o efeito `injureHero { heroId, kind: 'light' }` (novo: aplica o ferimento leve que já existe, 2 h de jogo, ao herói gravado; se ele já estiver ferido, em expedição ou capturado quando o risco se resolver, o ferimento não se aplica e a Crônica conta o desfecho bom). **Nunca mata e nunca captura.**
+
+### 7.5 Duelo na praça (`squareDuel`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Primavera, verão ou outono; **dois heróis livres no feudo** (`heroPresent` com 2) |
+| Texto | "{heroi} e {heroi2} trocaram palavras duras na Taverna, e a coisa foi parar na praça, onde se juntou a aldeia inteira com os braços cruzados. Ambos querem resolver com o aço. O capitão da guarda olha para o senhor, esperando uma palavra." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `allow` "Permitir o duelo" | Moral +10 por 2 dias (a aldeia gosta de espetáculo). **Risco à vista, sorteado na virada de dia seguinte**: 1 chance em 3 de um dos dois sair **ferido de leve** (2 h de jogo) | "O povo gosta de ver o aço, e o aço nem sempre sai limpo." | |
+| `train` "Marcar um duelo de treino" | Custo 30 de ouro (as lanças de madeira). Moral +5 por 2 dias; nenhum risco | "Madeira no lugar de aço: a honra fica salva, e as costelas também." | |
+| `forbid` "Proibir o duelo" | Moral −5 por 2 dias (a aldeia queria ver); nenhum risco | "A ordem do senhor vale mais que a honra dos dois, mesmo que ninguém goste." | as três dificuldades |
+
+Crônica (`allow`): "No {dia}º dia {daEstacao}, o senhor de {feudo} permitiu o duelo entre {heroi} e {heroi2}. A praça lotou antes do meio-dia."
+Crônica (`train`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou {heroi} e {heroi2} duelarem com lanças de madeira. Ganhou quem apanhou menos, e a praça aplaudiu os dois."
+Crônica (`forbid`): "No {dia}º dia {daEstacao}, o senhor de {feudo} proibiu o duelo na praça. A aldeia resmungou e foi para casa." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} proibiu o duelo na praça. A aldeia resmungou e foi para casa."
+Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, {heroiFerido} saiu do duelo na praça com um corte no braço, e a aldeia cantou o nome do outro."
+Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, o duelo entre {heroi} e {heroi2} acabou em abraço e vinho. Ninguém saiu ferido."
+
+**O motor precisará:** `heroPresent` com mínimo 2 e as lacunas `{heroi}`, `{heroi2}` e `{heroiFerido}` (novo; a última é o herói que o sorteio da virada seguinte escolheu entre os dois), `rollEffect` (o mesmo de 4.4 e 7.4) e `injureHero` (o mesmo de 7.4).
