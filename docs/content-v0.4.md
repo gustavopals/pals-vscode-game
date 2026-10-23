@@ -363,3 +363,151 @@ Fim da rodada 2: moral D 100, A 100; D-EF 10 (res 16), D-CF 10 (res 8), D-DF 10 
   - o Senhor da Guerra caiu: a onda termina
 
 **Resultado.** O Senhor da Guerra cai na rodada 3 e **encerra a onda** na hora: a Horda ainda tem 1 Saqueador (ala D); D não perdeu soldado nenhum. **Fatores decisivos:** (1) o chefe morre antes de a moral entrar: 96 efetivos por rodada (residual 96, 192) e a baixa na rodada 3, contra os 200 de vida; (2) a aura ×5/4 do chefe não bastou: 45 de bruto contra 30 absorvidos pela defesa 6 de dez Cavaleiros; (3) a iniciativa 5 dos Cavaleiros contra 4 e 3 faz D bater primeiro: a Horda cai de 10 para 6 e 1 Saqueador por ala, e o golpe do que sobra rende 15/2 de bruto, que o mínimo de 1/5 reduz a 1.
+
+## 4. Lote 2 do Conselho: primeiro lote de cinco (para o autor)
+
+**Rascunho para o autor ler antes da transcrição** (V4H-T1.3; decisão 23, 2026-10-23: as cartas são apresentadas em lotes de cinco). Nada disto está no código. O ponto de partida foi o branch `wip/v3f-t1-lote2` (`2352e39`, `refugees.ts`), reescrito: a cadeia agora dá **Gil ou Ximena** conforme o que o jogador fez na primeira carta, e as flags e os números foram conferidos contra `balance.ts` e as cartas do lote 1.
+
+**Por que estas cinco.** Formam a trilha "gente que chega e o que ela sabe fazer": a cadeia completa "Os Refugiados" (3 cartas), que dá origem aos Mestres Gil e Ximena, a "Praga nos campos" (a primeira carta com risco à vista e opção extra por classe) e "O aprendiz e o Mestre" (a primeira que só aparece com um Mestre no feudo). Juntas pedem os ganchos de motor mais baratos do lote: `addMaster`, `rollEffect`, `heroClass` (na opção e no alívio do risco), o requisito de carta `minMasters` e o efeito `craftExperience`.
+
+**Convenções.** Dias são dias de jogo; o prazo de resposta é o de sempre (24 h reais). Ids de carta e de opção são estáveis e em inglês; os ids dos Mestres (`gil`, `ximena`) já existem em `masters.ts`. "Autoaplica" é a opção que o conselho aplica sozinho se o prazo passar (`autoResolve`). Tamanhos de efeito seguem as cartas do lote 1: moral de ±5 a ±10 por 2 a 4 dias, comida de 30 a 90, ouro de 30 a 120. As frases de prazo vencido só existem onde a opção é a que o conselho aplica sozinho.
+
+### 4.1 Refugiados nos portões (`refugeesAtGates`, cadeia 1/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2. Dia de jogo 20 ou mais; primavera, verão ou outono. Sem as flags `refugees.open` e `refugees.settled`, e **não** depois de "Mais bocas à mesa" (`routine.moreMouths`) |
+| Exclusão | Nunca com a cadeia aberta, e nunca depois de um Mestre ter chegado por ela (`refugees.settled`) |
+| Texto | "Uma dúzia de famílias chegou pela estrada do sul, com carroças vazias e crianças no colo. Dizem que a enchente levou a aldeia delas. Pedem um canto para atravessar a estação, e a despensa do feudo terá de dar para todos." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `shelter` "Abrigar as famílias" | Pede 150 de comida em estoque; custo 60 de comida. Moral +5 por 2 dias; flags `refugees.open` e `refugees.sheltered`; a carta 2 chega em 3 dias | "Quem recebe teto na hora ruim lembra do feudo na hora boa." | |
+| `provide` "Dar provisões para a estrada" | Custo 30 de comida. Flags `refugees.open` e `refugees.provisioned`; a carta 2 chega em 4 dias | "Eles seguem viagem de barriga cheia, e a estrada dá voltas." | |
+| `refuse` "Fechar os portões" | Sem efeito | "Nada se gasta, e as famílias procuram outro feudo." | as três dificuldades |
+
+Crônica (`shelter`): "No {dia}º dia {daEstacao}, o senhor de {feudo} abriu os portões aos refugiados da enchente. Houve palha nova nos celeiros e caldo para todos."
+Crônica (`provide`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou encher as carroças dos refugiados com pão e nabos. Eles seguiram para o norte ao amanhecer."
+Crônica (`refuse`): "No {dia}º dia {daEstacao}, o senhor de {feudo} manteve os portões fechados. Os refugiados seguiram pela estrada sem olhar para trás." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, os portões de {feudo} ficaram fechados. Os refugiados seguiram pela estrada sem olhar para trás."
+
+**O motor precisará:** nada novo (`scheduleCard`, flags e custo existem; `routine.moreMouths` é do lote 1).
+
+### 4.2 O retorno dos refugiados (`refugeesReturn`, cadeia 2/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação (peso 0), 3 ou 4 dias depois, conforme a escolha da carta 1 |
+| Variante de texto por flag | `refugees.sheltered`: as famílias abrigadas voltam. `refugees.provisioned`: as que partiram com o pão voltam |
+| Quem chega | **Sheltered: Gil**, carpinteiro de ribeira. **Provisioned: Ximena**, mineira dos veios fundos. A origem é só narrativa; o bônus vale em qualquer edifício |
+
+Texto (sheltered): "As famílias que o feudo abrigou foram ver o que restava da aldeia e voltaram: não restava nada. Pedem para ficar de vez. Entre elas vem Gil, carpinteiro de ribeira, que promete pagar o teto com o ofício."
+Texto (provisioned): "As famílias que partiram com o pão do feudo acharam as outras portas fechadas e voltaram. Pedem para ficar de vez. Entre elas vem Ximena, mineira dos veios fundos, que promete pagar o teto com o ofício."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `welcome` "Acolher quem voltou" | Custo 40 de comida. **O Mestre chega** (Gil ou Ximena, pela variante; entra se houver vaga nas casas, espera à porta se não). Moral +5 por 2 dias; flags `refugees.welcomed` e `refugees.settled`; a carta 3 chega em 2 dias | "Um Mestre fica para sempre e precisa de uma casa com vaga." | |
+| `lodge` "Emprestar o celeiro por umas noites" | Sem custo. Flag `refugees.passing`; a carta 3 chega em 2 dias. **Ninguém chega ainda** | "Ninguém é mandado embora hoje, e a decisão fica para depois." | Camponês e Senhor |
+| `dismiss` "Mandar seguir viagem" | Moral −5 por 2 dias; +30 de madeira (a lenha das carroças); a cadeia se fecha (limpa `refugees.open`, `sheltered` e `provisioned`). **Nenhum Mestre** | "Eles deixam a lenha das carroças em paga, e o feudo os vê partir." | Rei de Ferro |
+
+Crônica (`welcome`, sheltered): "No {dia}º dia {daEstacao}, o senhor de {feudo} acolheu de vez as famílias da enchente. O carpinteiro Gil já media as vigas do salão com o palmo."
+Crônica (`welcome`, provisioned): "No {dia}º dia {daEstacao}, o senhor de {feudo} acolheu de vez as famílias da enchente. A mineira Ximena já espiava o chão do feudo, em busca de veio."
+Crônica (`lodge`): "No {dia}º dia {daEstacao}, o senhor de {feudo} emprestou o celeiro às famílias da enchente por umas noites." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} emprestou o celeiro às famílias da enchente por umas noites."
+Crônica (`dismiss`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou as famílias da enchente seguirem viagem. Deixaram a lenha das carroças e levaram o ofício que traziam." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou as famílias da enchente seguirem viagem. Deixaram a lenha das carroças e levaram o ofício que traziam."
+
+**O motor precisará:** `addMaster { masterId }` (novo; chama `deliverMaster`, que já existe) e **uma forma de escolher o Mestre pela variante**: ou duas opções `welcome` por flag, ou `addMaster` com `masterIdByFlag`. É decisão de motor; o texto vale nas duas.
+
+### 4.3 O ofício que eles trouxeram (`refugeesCraft`, cadeia 3/3)
+
+| Campo | Valor |
+|---|---|
+| Quando | Só por continuação, 2 dias depois da carta 2 |
+| Variantes de texto | Sem flag (`refugees.welcomed`): o Mestre já chegou e pede um lugar para trabalhar. `refugees.passing`: as noites emprestadas acabaram e o Mestre oferece ficar (Gil, se a carta 1 foi `shelter`; Ximena, se foi `provide`) |
+
+Texto (`welcomed`): "As famílias da enchente já ajudam na lida, e o Mestre que chegou com elas pede o que um mestre pede: um lugar de verdade para trabalhar. Diz que um feudo com ofício e sem bancada perde metade do que faz. O conselho quer saber se a bancada sai."
+Texto (`passing`): "As noites emprestadas acabaram, e as famílias da enchente arrumam as carroças. O mestre entre elas oferece ficar, se o feudo lhe der madeira para uma bancada. O conselho quer saber se a bancada sai."
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `workshop` "Erguer a bancada" | Custo 50 de madeira. **Com `passing`: o Mestre chega agora.** Com `welcomed` ele já está. Moral +10 por 2 dias; flag `refugees.settled`; limpa as flags transitórias | "Com a bancada o mestre fica, e quem veio com ele trabalha contente." | |
+| `thank` "Agradecer e deixar como está" | Sem custo. Limpa as flags transitórias. Com `welcomed` o Mestre já ficou; com `passing` ninguém chega e a cadeia termina | "Nada se gasta: quem já ficou continua, e quem estava de passagem segue viagem." | Camponês e Senhor |
+| `charge` "Cobrar a hospedagem" | +30 de ouro; moral −5 por 2 dias; limpa as flags transitórias. Mesmo efeito de `thank` sobre o Mestre | "As moedas entram, e o feudo comenta o preço de um teto." | Rei de Ferro |
+
+Crônica (`workshop`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou erguer a bancada do mestre da enchente. As famílias já não falam em partir."
+Crônica (`thank`): "No {dia}º dia {daEstacao}, o senhor de {feudo} agradeceu a oferta do mestre e guardou a madeira para as obras." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} agradeceu a oferta do mestre e guardou a madeira para as obras."
+Crônica (`charge`): "No {dia}º dia {daEstacao}, o senhor de {feudo} cobrou das famílias da enchente as noites de teto. Pagaram em moedas miúdas, sem dizer palavra." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} cobrou das famílias da enchente as noites de teto. Pagaram em moedas miúdas, sem dizer palavra."
+
+**O motor precisará:** `addMaster` (o mesmo de 4.2) e texto variante por flag (existe). **Mudança em relação ao branch antigo:** lá o Mestre podia ser entregue nas duas cartas; aqui ele chega **uma só vez**: na carta 2 se acolhido, na 3 se emprestado.
+
+### 4.4 Praga nos campos (`fieldBlight`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Verão, com mais de 200 de comida estocada |
+| Texto | "As folhas do trigo amarelam de ponta a ponta, e o cheiro de mofo chega até o portão. Os velhos dizem que a praga se espalha rápido e que a hora de decidir é agora. A despensa depende da colheita." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `burn` "Queimar a plantação" | Perde 30% da comida estocada, na hora; moral −5 por 2 dias; sem efeito futuro | "A fumaça sobe cedo. O que resta fica a salvo." | Rei de Ferro |
+| `pray` "Rezar e esperar" | **Risco à vista, sorteado na virada de dia seguinte** (nunca no comando): 1 chance em 2 de perder 50% da comida estocada; **com uma Clériga no feudo, 1 em 5**. Se a praga cede, moral +5 por 2 dias | "Fé não se mede em sacos. Uma Clériga costuma acalmar o campo." | Camponês e Senhor |
+| `alchemist` "Pagar o alquimista" | Custo 120 de ouro. Nenhuma perda | "Ouro rende pó de cal e fé, nessa ordem." | |
+
+Crônica (`burn`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou queimar o trigo doente. A fumaça cobriu o vale até o meio-dia." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou queimar o trigo doente. A fumaça cobriu o vale até o meio-dia."
+Crônica (`alchemist`): "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou ao alquimista para tratar os campos. O homem espalhou cal e disse palavras demoradas."
+Crônica (`pray`, escolha): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou rezar nos campos e esperar." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou rezar nos campos e esperar."
+Crônica (desfecho ruim, na virada seguinte): "No {dia}º dia {daEstacao}, a praga levou metade do que {feudo} guardava nos celeiros."
+Crônica (desfecho bom, na virada seguinte): "No {dia}º dia {daEstacao}, a praga cedeu sozinha. O povo de {feudo} diz que foi a reza."
+
+**O motor precisará:** `rollEffect` (novo: a opção grava o risco, e o sorteio acontece na virada de dia seguinte, no fluxo `council`), um efeito de recurso **percentual** (hoje `resources` é em unidades; propor `resourcesPercent` calculado sobre o estoque no instante), `heroClass: 'cleric'` no alívio da chance (conta herói em expedição, não conta o capturado; decisão 19). `heroClass` como requisito de opção não é usado nesta carta.
+
+### 4.5 O aprendiz e o Mestre (`masterApprentice`, avulsa)
+
+| Campo | Valor |
+|---|---|
+| Quando | Sorteada, peso 2, uma vez por ano. Só com ao menos um Mestre no feudo (já trabalhando; não conta quem espera à porta) |
+| Texto | "Um rapaz do feudo anda atrás do Mestre {mestre} desde o raiar do sol, com o avental torto e as mãos abertas. O Mestre diz que ensina, se o feudo suportar uma tarde de produção a menos. O rapaz promete que não erra mais de três vezes." |
+
+| Opção | Texto e efeitos | Hint | Autoaplica |
+|---|---|---|---|
+| `teach` "Deixar o Mestre ensinar" | Custo 30 de ouro (a tarde parada). O edifício do Mestre ganha 20 pontos de experiência do ofício (o máximo é 100; hoje o ofício ganha 4 por dia). Moral +5 por 3 dias | "Ofício ensinado vale mais que a tarde que se perdeu." | |
+| `keep` "Manter a produção" | Sem efeito | "O rapaz volta amanhã, e o Mestre também." | as três dificuldades |
+
+Crônica (`teach`): "No {dia}º dia {daEstacao}, o Mestre {mestre} passou a tarde ensinando um rapaz de {feudo}. O aprendiz errou três vezes, como prometeu."
+Crônica (`keep`): "No {dia}º dia {daEstacao}, o Mestre {mestre} seguiu no trabalho, e o rapaz foi mandado de volta ao campo." Prazo vencido: "No {dia}º dia {daEstacao}, sem palavra do senhor, o Mestre {mestre} seguiu no trabalho, e o rapaz voltou ao campo."
+
+**O motor precisará:** requisito de carta `minMasters` (o branch antigo já tinha o tipo), a lacuna `{mestre}` no texto e na Crônica (o motor escolhe um dos Mestres que trabalham) e um efeito novo `craftExperience` sobre o edifício desse Mestre.
+
+### 4.6 O que fica para os próximos lotes (18 cartas)
+
+Ordem proposta: cada lote de cinco fecha uma ideia, e o último tem três.
+
+**Lote B, "O Mercador Misterioso" e o Mercado (5).**
+
+- 6. O Mercador Misterioso (cadeia 1/3): comprar o mapa, prender o homem ou recusar. Pede Mercado Nv1 e `revealDestination`.
+- 7. O que o mapa mostrava, ou a resposta dos mercadores (cadeia 2/3): seguir a pista ou vender a informação.
+- 8. A última oferta do mercador (cadeia 3/3): fechar com lucro, com um destino novo ou com um inimigo a menos.
+- 9. Boicote dos mercadores (avulsa): ceder, resistir com preço pior ou buscar outra rota. Pede `marketPrice`.
+- 10. A caravana real (avulsa): vender a ela agora a bom preço ou guardar para o inverno. Pede `marketPrice`.
+
+**Lote C, "O Cobrador do Rei" e o início do Lobo Branco (5).**
+
+- 11. Impostos do Rei (cadeia 1/3, recorrente, Salão Nv3): pagar, negociar (Carismático) ou recusar. Pede `heroTrait`.
+- 12. O Cobrador do Rei (cadeia 2/3): multa dobrada, negociar ou ceder parte, com o ramo de soldados da v0.4 (sem adaptação).
+- 13. A resposta da coroa (cadeia 3/3): desfecho por ramo, com batalha se o jogador recusou duas vezes.
+- 14. Pegadas brancas (Lobo Branco 1/3, outono, depois do Covil limpo): caçar, oferecer carne ou ignorar. Pede `clearedTiles`.
+- 15. O Lobo Branco (Lobo Branco 2/3): a caçada como expedição especial, ou a oferenda que se repete, com presságio da v0.4.
+
+**Lote D, o fim do Lobo Branco e a vida na Guilda (5).**
+
+- 16. O que a floresta devolve (Lobo Branco 3/3): desfecho que lembra quem caçou, com cerco da v0.4.
+- 17. Um bardo na Taverna (avulsa): pagar pela canção (moral) ou mandá-lo embora. Pede Taverna.
+- 18. Recrutador de passagem (avulsa): pagar por um candidato a mais nesta rotação. Pede Taverna e um efeito sobre a rotação.
+- 19. A dívida de jogo (avulsa): cobrir a dívida de um herói ou deixá-lo resolver. Pede `heroPresent`.
+- 20. Duelo na praça (avulsa): permitir (moral, risco de ferimento leve) ou proibir. Pede `heroPresent` e `rollEffect`.
+
+**Lote E, o que sobra e a roteirizada (3).**
+
+- 21. O curandeiro errante (avulsa): pagar pela cura de um herói ferido ou esperar. Pede `injuredHero`.
+- 22. O mapa rasgado (avulsa): comprar meio mapa, que revela um destino mais cedo. Pede Guilda e `revealDestination`.
+- 23. O mercador itinerante (roteirizada, dia 20 do ano 1): trocar excedente por ouro uma vez, a preço ruim, ou esperar ter o Mercado. Sai por `scripted`; prepara o Mercado.
+
+A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as cinco deste lote e as 18 acima, fecham as 23 do roadmap da v0.4 (as 24 da v0.3 menos ela).
