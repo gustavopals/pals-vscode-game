@@ -707,6 +707,7 @@ const balanceFields = z.strictObject({
   battle: z
     .strictObject({
       maxRounds: positiveInt,
+      previewRuns: positiveInt,
       luck: z.strictObject({ min: positiveInt, max: positiveInt }),
       absorb: ratio,
       minDamage: ratio,

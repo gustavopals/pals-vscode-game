@@ -40,7 +40,7 @@ export { masters, masterTexts } from './masters';
 export { formationTexts, lineLabels, wingLabels } from './formations';
 export { COUNTER_CYCLE, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';
-export { ARCHETYPES, ARCHETYPE_COUNTERS, hordeUnits } from './enemies';
+export { ARCHETYPES, ARCHETYPE_COUNTERS, hordeBaseMix, hordeUnits } from './enemies';
 export type { Archetype, DoubleDamageSource, HordeUnitDef } from './enemies';
 export type { MasterDef } from './masters';
 export {

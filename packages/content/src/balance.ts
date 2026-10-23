@@ -564,6 +564,8 @@ export type ArmyDef = {
 export type BattleDef = {
   /** O fim por tempo: em defesa é "Resistiu"; em ataque, o atacante recua. */
   readonly maxRounds: number;
+  /** Quantas batalhas a prévia do Conselho de Guerra roda (GDD §10.5; ADR 0019, decisão 10). */
+  readonly previewRuns: number;
   /** A sorte de cada esquadrão em cada rodada, um inteiro de `min` a `max`, sobre 100. */
   readonly luck: { readonly min: number; readonly max: number };
   /** O dano que a defesa do alvo absorve: `def × n × absorb`. */
@@ -1191,6 +1193,7 @@ export const balance: Balance = {
   // derrota) e a cura da Clériga sobre a vida da Frente no começo da batalha.
   battle: {
     maxRounds: 12,
+    previewRuns: 200,
     luck: { min: 90, max: 110 },
     absorb: { num: 1, den: 2 },
     minDamage: { num: 1, den: 5 },

@@ -1,0 +1,78 @@
+{
+  "runs": 200,
+  "wins": 199,
+  "glorious": 0,
+  "losses": 1,
+  "risk": {
+    "factor": "exposedRear",
+    "wing": null,
+    "amount": 279
+  },
+  "expectedLosses": [
+    {
+      "wing": "left",
+      "line": "front",
+      "unit": "spearman",
+      "start": 7,
+      "expected": 1
+    },
+    {
+      "wing": "left",
+      "line": "back",
+      "unit": "archer",
+      "start": 7,
+      "expected": 0
+    },
+    {
+      "wing": "center",
+      "line": "front",
+      "unit": "shieldbearer",
+      "start": 7,
+      "expected": 7
+    },
+    {
+      "wing": "center",
+      "line": "back",
+      "unit": "archer",
+      "start": 7,
+      "expected": 7
+    },
+    {
+      "wing": "right",
+      "line": "front",
+      "unit": "spearman",
+      "start": 7,
+      "expected": 0
+    },
+    {
+      "wing": "right",
+      "line": "back",
+      "unit": "archer",
+      "start": 7,
+      "expected": 0
+    }
+  ],
+  "enemy": [
+    {
+      "wing": "left",
+      "line": "front",
+      "known": true,
+      "unit": "wolf",
+      "count": 24
+    },
+    {
+      "wing": "center",
+      "line": "front",
+      "known": true,
+      "unit": "raider",
+      "count": 40
+    },
+    {
+      "wing": "right",
+      "line": "front",
+      "known": true,
+      "unit": "blackKnight",
+      "count": 14
+    }
+  ]
+}

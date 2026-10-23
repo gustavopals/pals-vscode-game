@@ -260,6 +260,28 @@ describe('pureza do motor', () => {
     const ids = sources.find(([path]) => path === './ids.ts')?.[1] ?? '';
     expect([...ids.matchAll(/from '([^']+)'/g)].map((match) => match[1])).toEqual(['./types']);
   });
+
+  it('a prévia do Conselho de Guerra tem gerador próprio e nunca toca o gerador do estado (V4D-T2)', () => {
+    // `warCouncil.ts` é a exceção explícita à regra de que só `advanceTo` sorteia (GDD §10.5;
+    // ADR 0019, decisão 10): importa o gerador (`seedStream`, `nextUint32`) para derivar fluxos
+    // próprios da semente, mas não os sorteios sobre o estado, nem o contador de identidades,
+    // nem o próprio estado. `warCouncil.test.ts` prova que `state.rng` sai como entrou.
+    const source = sources.find(([path]) => path === './warCouncil.ts')?.[1] ?? '';
+    expect(source).not.toBe('');
+    const imported = [...source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+'(\.[^']*)'/g)];
+    const fromRandom = imported
+      .filter((match) => match[2] === './random')
+      .flatMap((match) => (match[1] ?? '').split(',').map((name) => name.trim()))
+      .filter((name) => name !== '' && !name.startsWith('type '))
+      .sort();
+    expect(fromRandom).toEqual(['nextUint32', 'seedStream']);
+    expect(imported.map((match) => match[2])).not.toContain('./ids');
+    expect(imported.map((match) => match[2])).not.toContain('./state');
+    expect(imported.map((match) => match[2])).not.toContain('./types');
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(code).not.toMatch(/\b(nextInt|chance|pickWeighted|entityStream|dropStream|nextId)\b/);
+    expect(code).not.toMatch(/\.rng\b/);
+  });
 });
 
 describe('API pública', () => {

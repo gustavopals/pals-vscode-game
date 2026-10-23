@@ -1,4 +1,4 @@
-import type { HordeUnitId, Ratio, UnitId } from './ids';
+import type { HordeUnitId, Ratio, SeasonId, UnitId } from './ids';
 import type { UnitLine } from './units';
 
 /**
@@ -161,4 +161,17 @@ export const hordeUnits: Record<HordeUnitId, HordeUnitDef> = {
     auraArmy: { num: 5, den: 4 },
     endsWaveOnDeath: true,
   },
+};
+
+/**
+ * As composições-base da Horda por estação (GDD Apêndice A): pesos inteiros, antes da adaptação
+ * (§10.6, da Fase F). Servem à prévia do Conselho de Guerra (V4D-T2) para preencher o que não
+ * se sabe do inimigo. O inverno (o cerco) é montado por onda (§11.2, Fase F): até lá, a prévia
+ * usa a composição do outono, a mais variada.
+ */
+export const hordeBaseMix: Record<SeasonId, Partial<Record<HordeUnitId, number>>> = {
+  spring: { wolf: 70, raider: 30 },
+  summer: { raider: 50, banditArcher: 30, wolf: 20 },
+  autumn: { raider: 35, blackKnight: 25, ogre: 15, banditArcher: 15, shaman: 10 },
+  winter: { raider: 35, blackKnight: 25, ogre: 15, banditArcher: 15, shaman: 10 },
 };
