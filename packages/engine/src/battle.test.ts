@@ -519,6 +519,13 @@ describe('o relatório (V4D-T1.5)', () => {
     expect(rear).toMatchObject({ owner: 'horde', amount: 234, round: 3, wing: null });
   });
 
+  it('a batalha de zero rodadas não dá baixa a ninguém (V4D-T5)', () => {
+    const resolution = resolveBattle(battle({ center: { front: ['spearman', 5] } }, {}), EVEN_LUCK);
+    expect(resolution.rounds).toHaveLength(0);
+    const report = buildBattleReport('battle-1', 0, resolution);
+    expect(report.casualties.map((entry) => entry.lost)).toEqual([0]);
+  });
+
   it('a experiência do comandante: inteira na vitória, metade na derrota, nada para quem morreu', () => {
     const won = buildBattleReport(
       'battle-1',
