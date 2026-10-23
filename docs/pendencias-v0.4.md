@@ -273,6 +273,14 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **A Paliçada Nv3 a Nv6:** madeira e pedra × 1,6 a partir de 300 e 450 (Nv6: 1.229 e 1.843, arredondado), ouro de 2.000, 6.000, 18.000 e 54.000 (ADR 0020), tempo de 1 h no Nv3 e × 1,5 por nível (202,5 min no Nv6, abaixo do teto de 8 h).
 - **Como ficou fora do jogo (regra 6):** os níveis novos estão em `buildings[...].futureLevels` e `balance.threat.futureWatchtowerLevels`, campos que o motor não lê; `maxLevel` continua 2 nos dois edifícios. A tarefa que ligar a muralha ao estado (V4E-T1.2 a T1.4) passa `maxLevel` ao último nível e apaga esses campos.
 
+**D-8. Os comandantes depois da batalha (V4D-T3, 2026-10-23).** _(Números e leituras do agente, por aprovar; testes em `packages/engine/src/battleOutcome.test.ts`.)_
+
+- **As auras são dado da classe** (`heroClasses[].aura`), com os mesmos números da D-5 (+15% de defesa, +15% à distância, 20 de dano a cada 3 rodadas, 10% de cura a cada 2 rodadas e +20 de moral); saíram de `balance.battle.auras`, e o fator dos mortos-vivos ficou em `balance.battle.undeadFactor`. A ficha do herói diz o que ele dá como comandante (`commanderText`; as frases são rascunho).
+- **A gravidade do ferimento** é "a parte do dano" lida como a parte dos soldados que a ala do comandante perdeu: **grave com metade ou mais** (`battle.commanderInjury.severeAtLoss`, 1/2), leve abaixo disso; os prazos são os das expedições (2 h e 12 h de jogo).
+- **O desgaste por batalha** é de **1 ponto** por item de quem comandou e sobreviveu (`equipment.wearPerBattle`); quem morreu devolve o que levava ao arsenal sem desgaste.
+- **A ordem**: a linha `battleFought` primeiro, depois, comandante a comandante, o ferimento ou a morte (`commanderInjured`, e `commanderDied`, evento novo além do que o roadmap pede, porque a frase de `heroDied` fala de expedição), depois a experiência e por último o desgaste.
+- **A frase de `battleFought`** diz o desfecho e os três fatores decisivos sem número (`battleFactorLabels`, uma forma para o fator a favor do feudo e outra para o da Horda); sem fator, "a força dos braços". Rascunho que o autor não leu.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

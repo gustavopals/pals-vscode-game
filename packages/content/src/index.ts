@@ -56,6 +56,9 @@ export {
   foundingTemplates,
   heroDismissalTemplates,
   heroHarmTemplates,
+  battleFactorLabels,
+  battleNoFactorText,
+  battleOutcomeLabels,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -92,6 +95,7 @@ export {
   wageArrearsTexts,
 } from './heroes';
 export type {
+  HeroAura,
   HeroClassDef,
   HeroTraitDef,
   HeroTraitEffects,

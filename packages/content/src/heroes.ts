@@ -23,28 +23,66 @@ export type HeroClassDef = {
   /** "Guerreira": a mesma classe na ficha de uma heroína. */
   readonly labelFeminine: string;
   readonly attributes: Record<HeroAttributeId, number>;
+  /** O que o herói desta classe dá à ala que comanda em uma batalha (GDD §10.1). */
+  readonly aura: HeroAura;
+  /**
+   * A frase da ficha do herói sobre o comando, com os números da aura postos pelo motor
+   * (`{percentual}`, `{rodadas}`, `{dano}`, `{moral}`): o que ele dá como comandante.
+   */
+  readonly commanderText: string;
 };
+
+/**
+ * A aura de comandante (GDD §10.1; D-5 da v0.4), por classe, em frações e inteiros:
+ *
+ * - `defense` (Guerreiro): a defesa dos soldados da ala é multiplicada por `ratio`.
+ * - `ranged` (Arqueiro): o dano da Retaguarda da ala é multiplicado por `ratio`.
+ * - `area` (Mago): a cada `everyRounds` rodadas, `damage` de dano fixo em cada esquadrão da ala
+ *   oposta (`balance.battle.undeadFactor` vezes isso em quem sofre em dobro).
+ * - `heal` (Clériga): a cada `everyRounds` rodadas, cura `heal` da vida que a Frente da ala tinha
+ *   no começo da batalha, e o lado começa com `morale` de moral a mais.
+ */
+export type HeroAura =
+  | { readonly kind: 'defense'; readonly ratio: Ratio }
+  | { readonly kind: 'ranged'; readonly ratio: Ratio }
+  | { readonly kind: 'area'; readonly everyRounds: number; readonly damage: number }
+  | {
+      readonly kind: 'heal';
+      readonly everyRounds: number;
+      readonly heal: Ratio;
+      readonly morale: number;
+    };
 
 export const heroClasses: Record<HeroClassId, HeroClassDef> = {
   warrior: {
     label: 'Guerreiro',
     labelFeminine: 'Guerreira',
     attributes: { health: 120, attack: 14, defense: 16, speed: 8, skill: 6, will: 8 },
+    aura: { kind: 'defense', ratio: { num: 23, den: 20 } },
+    commanderText: 'Como comandante, dá +{percentual}% de defesa aos soldados da ala.',
   },
   archer: {
     label: 'Arqueiro',
     labelFeminine: 'Arqueira',
     attributes: { health: 90, attack: 18, defense: 9, speed: 14, skill: 14, will: 8 },
+    aura: { kind: 'ranged', ratio: { num: 23, den: 20 } },
+    commanderText: 'Como comandante, dá +{percentual}% de dano à Retaguarda da ala.',
   },
   mage: {
     label: 'Mago',
     labelFeminine: 'Maga',
     attributes: { health: 70, attack: 22, defense: 6, speed: 9, skill: 10, will: 16 },
+    aura: { kind: 'area', everyRounds: 3, damage: 20 },
+    commanderText:
+      'Como comandante, a cada {rodadas} rodadas fere com {dano} de dano cada esquadrão da ala inimiga, com mais força nos mortos-vivos.',
   },
   cleric: {
     label: 'Clérigo',
     labelFeminine: 'Clériga',
     attributes: { health: 100, attack: 9, defense: 13, speed: 9, skill: 8, will: 16 },
+    aura: { kind: 'heal', everyRounds: 2, heal: { num: 1, den: 10 }, morale: 20 },
+    commanderText:
+      'Como comandante, a cada {rodadas} rodadas cura {percentual}% da Frente da ala, e o exército começa com +{moral} de moral.',
   },
 };
 

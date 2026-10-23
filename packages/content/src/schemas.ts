@@ -682,6 +682,7 @@ const balanceFields = z.strictObject({
   equipment: z.strictObject({
     inventoryCap: positiveInt,
     wearPerExpedition: positiveInt,
+    wearPerBattle: positiveInt,
     repair: z.strictObject({
       ironPerPoint: z.strictObject(
         Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, positiveInt])),
@@ -755,15 +756,10 @@ const balanceFields = z.strictObject({
         perCommander: positiveInt,
         routAtOrBelow: positiveInt,
       }),
-      auras: z.strictObject({
-        warriorDefense: ratio,
-        archerRanged: ratio,
-        mage: z.strictObject({ everyRounds: positiveInt, damage: positiveInt }),
-        cleric: z.strictObject({ everyRounds: positiveInt, heal: ratio, morale: positiveInt }),
-        undeadFactor: ratio,
-      }),
+      undeadFactor: ratio,
       commanderXp: positiveInt,
       commanderXpShare: z.strictObject({ won: ratio, lost: ratio }),
+      commanderInjury: z.strictObject({ severeAtLoss: ratio }),
     })
     .refine(({ luck }) => luck.min <= 100 && 100 <= luck.max, 'a sorte tem de conter 100')
     .refine(
@@ -1182,6 +1178,27 @@ export const HeroClassesSchema = z.strictObject(
         attributes: z.strictObject(
           Object.fromEntries(HERO_ATTRIBUTE_IDS.map((attribute) => [attribute, positiveInt])),
         ),
+        // A aura de comandante (GDD §10.1; V4D-T3.1), em frações e inteiros.
+        aura: z.discriminatedUnion('kind', [
+          z.strictObject({ kind: z.literal('defense'), ratio }),
+          z.strictObject({ kind: z.literal('ranged'), ratio }),
+          z.strictObject({
+            kind: z.literal('area'),
+            everyRounds: positiveInt,
+            damage: positiveInt,
+          }),
+          z.strictObject({
+            kind: z.literal('heal'),
+            everyRounds: positiveInt,
+            heal: ratio,
+            morale: positiveInt,
+          }),
+        ]),
+        // Sem número escrito: os da aura entram pelos marcadores.
+        commanderText: z
+          .string()
+          .min(1)
+          .regex(/^[^\d]*$/, 'a frase não escreve número'),
       }),
     ]),
   ),

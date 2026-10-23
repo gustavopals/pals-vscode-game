@@ -471,10 +471,11 @@ export type EquipmentDef = {
   readonly inventoryCap: number;
   /**
    * Quantos pontos de condição cada item equipado perde quando a equipe volta de uma expedição
-   * concluída (V4B-T3; ADR 0019, decisão 5). A expedição perdida não volta com o item; a batalha
-   * comandada é da Fase D e acrescenta o desgaste dela quando existir.
+   * concluída (V4B-T3; ADR 0019, decisão 5). A expedição perdida não volta com o item.
    */
   readonly wearPerExpedition: number;
+  /** Quantos pontos cada item de quem comandou uma ala perde por batalha (V4D-T3.2). */
+  readonly wearPerBattle: number;
   /** O reparo no Ferreiro, na mesma fila da forja. */
   readonly repair: {
     /** O ferro de cada ponto devolvido, por raridade (cobrado ao começar). */
@@ -631,26 +632,20 @@ export type BattleDef = {
     /** Debandada com a moral igual ou abaixo deste valor, conferida no fim da rodada. */
     readonly routAtOrBelow: number;
   };
-  /** As auras dos comandantes por classe (GDD §10.1). */
-  readonly auras: {
-    /** Guerreiro: a defesa da ala. */
-    readonly warriorDefense: Ratio;
-    /** Arqueiro: o dano à distância da ala. */
-    readonly archerRanged: Ratio;
-    /** Mago: dano fixo em cada esquadrão da ala oposta, a cada `everyRounds` rodadas. */
-    readonly mage: { readonly everyRounds: number; readonly damage: number };
-    /** Clériga: cura uma parte da Frente da ala a cada `everyRounds` rodadas, e moral no começo. */
-    readonly cleric: {
-      readonly everyRounds: number;
-      readonly heal: Ratio;
-      readonly morale: number;
-    };
-    /** O dano de Mago e Clériga contra quem o sofre em dobro (`takesDoubleFrom`). */
-    readonly undeadFactor: Ratio;
-  };
+  /**
+   * O dano de Mago e Clériga contra quem o sofre em dobro (`takesDoubleFrom`). As auras dos
+   * comandantes são da classe do herói (`heroClasses[].aura`, em `heroes.ts`).
+   */
+  readonly undeadFactor: Ratio;
   /** A experiência de quem comandou uma ala, por desfecho, no molde de `expeditions.xpShare`. */
   readonly commanderXp: number;
   readonly commanderXpShare: { readonly won: Ratio; readonly lost: Ratio };
+  /**
+   * O comandante que cai fica ferido (V4D-T3.2; GDD §10.4): de forma grave quando a ala dele
+   * perdeu ao menos `severeAtLoss` dos soldados com que começou, de leve abaixo disso. Os prazos
+   * são os das expedições (`injuries.durationMs`). Em Rei de Ferro ele morre.
+   */
+  readonly commanderInjury: { readonly severeAtLoss: Ratio };
 };
 
 export type MarketDef = {
@@ -1156,6 +1151,8 @@ export const balance: Balance = {
     // ADR 0019, decisão 5: 1 ponto por expedição concluída; reparo a 1 ferro por ponto nos itens
     // Comuns e Incomuns e a 2 nos Raros e Épicos, 2 min de jogo por ponto.
     wearPerExpedition: 1,
+    // V4D-T3.2 (número do agente, por aprovar): 1 ponto por batalha comandada.
+    wearPerBattle: 1,
     repair: {
       ironPerPoint: { common: 1, uncommon: 1, rare: 2, epic: 2 },
       msPerPoint: 2 * MINUTE_MS,
@@ -1260,15 +1257,11 @@ export const balance: Balance = {
     },
     towers: { fromLevel: 3, damagePerLevel: 12 },
     morale: { start: 100, perSquad: 10, perWing: 20, perCommander: 15, routAtOrBelow: 30 },
-    auras: {
-      warriorDefense: { num: 23, den: 20 },
-      archerRanged: { num: 23, den: 20 },
-      mage: { everyRounds: 3, damage: 20 },
-      cleric: { everyRounds: 2, heal: { num: 1, den: 10 }, morale: 20 },
-      undeadFactor: { num: 2, den: 1 },
-    },
+    undeadFactor: { num: 2, den: 1 },
     commanderXp: 40,
     commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
+    // V4D-T3.2 (número do agente, por aprovar): grave com metade da ala perdida.
+    commanderInjury: { severeAtLoss: { num: 1, den: 2 } },
   },
   // A vida por ala é proposta do agente, por aprovar (D-7): 60 e 100 nos níveis da Paliçada (as
   // premissas dos cenários de docs/content-v0.4.md, seção 2), depois cerca de × 1,6 por nível.

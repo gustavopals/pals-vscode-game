@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { balance } from './balance';
+import {
+  battleFactorLabels,
+  battleNoFactorText,
+  battleOutcomeLabels,
+  chronicleTemplates,
+  EVENT_TYPES,
+} from './chronicle';
+import { heroClasses } from './heroes';
+import { HERO_CLASS_IDS } from './ids';
 import { BalanceSchema } from './schemas';
 
 describe('a batalha (GDD §10.1 a §10.4; ADR 0019, decisão 11)', () => {
@@ -27,16 +36,62 @@ describe('a batalha (GDD §10.1 a §10.4; ADR 0019, decisão 11)', () => {
       perCommander: 15,
       routAtOrBelow: 30,
     });
-    expect(rules.auras.warriorDefense).toEqual({ num: 23, den: 20 });
-    expect(rules.auras.archerRanged).toEqual({ num: 23, den: 20 });
-    expect(rules.auras.mage.everyRounds).toBe(3);
-    expect(rules.auras.cleric).toMatchObject({
+    // As auras são da classe do herói (GDD §10.1; D-5).
+    expect(heroClasses.warrior.aura).toEqual({ kind: 'defense', ratio: { num: 23, den: 20 } });
+    expect(heroClasses.archer.aura).toEqual({ kind: 'ranged', ratio: { num: 23, den: 20 } });
+    expect(heroClasses.mage.aura).toEqual({ kind: 'area', everyRounds: 3, damage: 20 });
+    expect(heroClasses.cleric.aura).toEqual({
+      kind: 'heal',
       everyRounds: 2,
       heal: { num: 1, den: 10 },
       morale: 20,
     });
-    expect(rules.auras.undeadFactor).toEqual({ num: 2, den: 1 });
+    expect(rules.undeadFactor).toEqual({ num: 2, den: 1 });
+    // V4D-T3.2 (números do agente): grave com metade da ala perdida; 1 ponto de desgaste.
+    expect(rules.commanderInjury).toEqual({ severeAtLoss: { num: 1, den: 2 } });
+    expect(balance.equipment.wearPerBattle).toBe(1);
     expect(balance.army.reportsKept).toBe(3);
+  });
+
+  it('cada classe diz o que dá como comandante, sem número escrito na frase', () => {
+    for (const id of HERO_CLASS_IDS) {
+      const { commanderText } = heroClasses[id];
+      expect(commanderText, id).toMatch(/^Como comandante, /);
+      expect(commanderText, id).not.toMatch(/\d/);
+    }
+  });
+
+  it('a batalha e o comandante na Crônica (V4D-T3.3)', () => {
+    for (const type of ['battleFought', 'commanderInjured', 'commanderDied'] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type].startsWith('No {dia}º dia {daEstacao}, '), type).toBe(true);
+    }
+    expect(chronicleTemplates.battleFought).toContain('{fatores}');
+    expect(chronicleTemplates.battleFought).toContain('{desfecho}');
+    expect(chronicleTemplates.commanderInjured).toContain('{heroi}');
+    expect(chronicleTemplates.commanderDied).toContain('{heroi}');
+    expect(Object.keys(battleOutcomeLabels).sort()).toEqual([
+      'defeat',
+      'held',
+      'victory',
+      'withdrew',
+    ]);
+    expect(Object.keys(battleFactorLabels).sort()).toEqual([
+      'aura',
+      'counter',
+      'exposedRear',
+      'flank',
+      'tower',
+      'wallAbsorbed',
+    ]);
+    const phrases = [
+      battleNoFactorText,
+      ...Object.values(battleOutcomeLabels),
+      ...Object.values(battleFactorLabels).flatMap((entry) => [entry.player, entry.horde]),
+    ];
+    for (const phrase of phrases) {
+      expect(phrase).not.toMatch(/\d|\{/);
+    }
   });
 
   it('o schema recusa uma sorte que não contém 100', () => {

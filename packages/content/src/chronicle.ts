@@ -82,6 +82,9 @@ export const EVENT_TYPES = [
   'formationSaved',
   'formationActivated',
   'formationDeleted',
+  'battleFought',
+  'commanderInjured',
+  'commanderDied',
   'itemWorn',
   'repairStarted',
   'itemRepaired',
@@ -170,6 +173,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   // O nome de uma formação salva.
   'formacao',
   'pontos',
+  // Os fatores decisivos de uma batalha, em uma frase: "a muralha, as torres e o flanco".
+  'fatores',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -360,6 +365,14 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o capitão de {feudo} mandou que a formação "{formacao}" guardasse o feudo.',
   formationDeleted:
     'No {dia}º dia {daEstacao}, o capitão de {feudo} apagou do chão a formação "{formacao}".',
+  // A batalha (GDD §10.4 e §10.7; V4D-T3.3). {desfecho} vem de `battleOutcomeLabels` e
+  // {fatores}, dos três fatores decisivos do relatório, com as frases de `battleFactorLabels`.
+  battleFought:
+    'No {dia}º dia {daEstacao}, o exército de {feudo} travou batalha: {desfecho}. Pesou mais {fatores}.',
+  commanderInjured:
+    'No {dia}º dia {daEstacao}, {heroi} caiu à frente da ala quando a linha cedeu, e saiu da batalha com ferimentos.',
+  commanderDied:
+    'No {dia}º dia {daEstacao}, {heroi} caiu à frente da ala quando a linha cedeu e não se levantou. {feudo} guarda as armas que ficaram.',
   // O desgaste e o reparo do equipamento (GDD §9.1; ADR 0019, decisão 5). Só o item que chega a
   // zero tem linha: cada ponto perdido no caminho não é notícia.
   itemWorn:
@@ -660,3 +673,34 @@ export const cutRewardTemplates = {
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}. Faltou lugar no depósito, e foi ao chão: {perda}.',
 } as const satisfies Partial<Record<GameEventType, string>>;
+
+/** O desfecho de uma batalha, do ponto de vista do feudo, para o meio da frase de `battleFought`. */
+export const battleOutcomeLabels = {
+  victory: 'vitória',
+  held: 'a linha resistiu até o fim',
+  defeat: 'derrota',
+  withdrew: 'o inimigo resistiu até o fim',
+} as const;
+
+/**
+ * Os fatores decisivos de uma batalha (`battleReport.ts`), para a frase de `battleFought`: uma
+ * forma para o fator que favoreceu o feudo (`player`) e outra para o que favoreceu a Horda
+ * (`horde`). Sem número: o relatório guarda o dano de cada um.
+ */
+export const battleFactorLabels = {
+  wallAbsorbed: { player: 'a muralha, que segurou o golpe', horde: 'a muralha' },
+  counter: {
+    player: 'a tropa certa contra o inimigo',
+    horde: 'o inimigo certo contra a nossa tropa',
+  },
+  exposedRear: {
+    player: 'a retaguarda inimiga exposta',
+    horde: 'a nossa Retaguarda exposta depois que a Frente caiu',
+  },
+  flank: { player: 'o ataque pelo flanco', horde: 'o flanco que o inimigo achou' },
+  tower: { player: 'as torres', horde: 'as torres' },
+  aura: { player: 'os comandantes à frente das alas', horde: 'os chefes do inimigo' },
+} as const;
+
+/** A frase de `battleFought` quando nenhum fator pesou: só a força dos braços. */
+export const battleNoFactorText = 'a força dos braços';

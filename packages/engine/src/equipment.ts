@@ -32,7 +32,8 @@ export function inventoryHasRoom(state: GameState): boolean {
 /**
  * Cobra o desgaste de uma expedição concluída (V4B-T3; ADR 0019, decisão 5): cada item que a
  * equipe que **voltou** leva perde `wearPerExpedition` pontos, sem passar de zero. Só o item que
- * chega a zero tem linha na Crônica. Não sorteia nem dá identificador; a ordem é a dos heróis
+ * chega a zero tem linha na Crônica. A batalha usa a mesma conta, com `amount` igual a
+ * `wearPerBattle` (`battleOutcome.ts`). Não sorteia nem dá identificador; a ordem é a dos heróis
  * da equipe e, em cada um, a dos espaços do conteúdo.
  */
 export function wearTeam(
@@ -40,13 +41,14 @@ export function wearTeam(
   team: readonly Hero[],
   atMs: number,
   events: GameEvent[],
+  amount: number = rules.wearPerExpedition,
 ): void {
   for (const hero of team) {
     for (const item of equippedItems(hero)) {
       if (item.condition <= 0) {
         continue;
       }
-      item.condition = Math.max(0, item.condition - rules.wearPerExpedition);
+      item.condition = Math.max(0, item.condition - amount);
       if (item.condition === 0) {
         emit(
           events,
