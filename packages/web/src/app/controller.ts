@@ -1828,6 +1828,16 @@ export class Controller {
     return this.guildOrder(`formation:${id}`, 'deleteFormation', { id }, 'ao Exército');
   }
 
+  /** Pede a prévia do Conselho de Guerra para uma formação salva; a trava é `preview:<formação>`. */
+  simulateBattle(formationId: string): Promise<boolean> {
+    return this.guildOrder(
+      `preview:${formationId}`,
+      'simulateBattle',
+      { formationId },
+      'ao Exército',
+    );
+  }
+
   /** Põe uma formação como a Defesa ativa (`null` tira a Defesa). */
   setActiveFormation(id: string | null): Promise<boolean> {
     return this.guildOrder('formation:active', 'setActiveFormation', { id }, 'ao Exército');

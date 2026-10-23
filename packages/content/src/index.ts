@@ -31,6 +31,9 @@ export type {
   ThreatDef,
   WallDef,
   WatchtowerLevelDef,
+  HordeMindDef,
+  OmenClarityId,
+  OmensDef,
 } from './balance';
 export { buildings } from './buildings';
 export type { BuildingDef, BuildingLevelDef } from './buildings';
@@ -39,6 +42,7 @@ export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './
 export { caravanTexts, marketTexts } from './caravans';
 export { masters, masterTexts } from './masters';
 export {
+  battleReportTexts,
   formationTexts,
   lineLabels,
   warCouncilTexts,
@@ -46,6 +50,7 @@ export {
   wingPhrases,
   wingLocatives,
 } from './formations';
+export { omenTexts } from './omens';
 export { COUNTER_CYCLE, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';
 export { ARCHETYPES, ARCHETYPE_COUNTERS, hordeBaseMix, hordeUnits } from './enemies';
@@ -146,5 +151,7 @@ export type {
   CouncilOptionRequires,
 } from './council';
 export { councilCards } from './cards';
+export { WAR_RAID_SIZE_IDS, warRaids } from './raidWar';
+export type { WarRaidLossDef, WarRaidSizeId, WarRaidsDef, WarScriptedRaidDef } from './raidWar';
 export { enemies, raidSizes, startingTiles, tileTypes } from './tiles';
 export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';

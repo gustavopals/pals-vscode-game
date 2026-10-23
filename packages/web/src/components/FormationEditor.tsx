@@ -176,6 +176,9 @@ export function FormationEditor(props: {
   const name = draft.name.trim();
   const canSave = !props.disabled && !props.busy && !blockedNew && name !== '';
   const saved = army.formations.find((entry) => entry.id === draft.id);
+  // A linha inimiga é a da última prévia, e só desta formação: de outra, seria engano.
+  const enemy =
+    army.preview !== null && army.preview.formationId === draft.id ? army.preview.knownEnemy : null;
 
   return (
     <section
@@ -260,6 +263,28 @@ export function FormationEditor(props: {
             })}
           </div>
         ))}
+        {enemy === null
+          ? null
+          : LINES.map((line) => (
+              <div role="row" class="formation-row formation-enemy" key={`enemy-${line}`}>
+                <span role="rowheader" class="formation-head">
+                  Inimigo (prev.), {army.editor.lineLabels[line].toLowerCase()}
+                </span>
+                {WINGS.map((wing) => {
+                  const entry = enemy.find((item) => item.wing === wing && item.line === line);
+                  return (
+                    <span
+                      key={wing}
+                      role="gridcell"
+                      class={`formation-enemy-cell${entry?.known === true ? '' : ' empty'}`}
+                      data-testid={`enemy-${wing}-${line}`}
+                    >
+                      {entry?.text ?? '?'}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
       </div>
 
       <fieldset class="formation-commanders" disabled={props.disabled}>

@@ -10,6 +10,9 @@ import {
   refuse,
   saveFormationOrder,
 } from './test-helpers';
+import { cloneState } from './state';
+import { riskText } from './warCouncilView';
+import { previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
 import type { GameState } from './types';
 
@@ -123,5 +126,74 @@ describe('simulateBattle (V4D-T2.2)', () => {
     const { state } = accept(yard(), simulate('formation-1'));
     const later = advanceTo(state, state.lastProcessedAt + 3_600_000).state;
     expect(later.army.preview).toEqual(state.army.preview);
+  });
+});
+
+describe('a prévia não vaza a Ameaça (V4D-T5)', () => {
+  const enemyAt = (threat: number, tower: number) => {
+    const state = yard();
+    state.map.threat = threat;
+    state.settlement.buildings.watchtower = tower;
+    const formation = state.army.formations[0];
+    if (formation === undefined) {
+      throw new Error('sem formação');
+    }
+    return previewInputFor(state, formation).enemy;
+  };
+
+  it('sem Torre de Vigia, Ameaça 0 e 100 dão a mesma prévia', () => {
+    expect(enemyAt(100, 0)).toEqual(enemyAt(0, 0));
+  });
+
+  it('com Torre, a Ameaça alta dá a incursão média', () => {
+    expect(enemyAt(100, 1)).not.toEqual(enemyAt(0, 1));
+  });
+});
+
+describe('a frase do risco (V4D-T5)', () => {
+  const base = accept(yard(), simulate('formation-1')).state.army.preview;
+  const withRisk = (factor: string, wing: 'left' | null) => {
+    if (base === null) {
+      throw new Error('sem prévia');
+    }
+    return { ...base, risk: { factor, wing, amount: 10 } } as unknown as typeof base;
+  };
+
+  it('nunca começa por vírgula, com ala ou sem ela', () => {
+    for (const factor of ['wallAbsorbed', 'counter', 'exposedRear', 'flank', 'tower', 'aura']) {
+      for (const wing of ['left', null] as const) {
+        const text = riskText(withRisk(factor, wing), true);
+        expect(text).toMatch(/^Risco principal: [A-ZÀ-Ý]/);
+      }
+    }
+  });
+
+  it('a aura de uma ala só é a do Xamã; a do exército, a do chefe', () => {
+    expect(riskText(withRisk('aura', 'left'), true)).toMatch(/Xamã/);
+    expect(riskText(withRisk('aura', null), true)).toMatch(/chefe da Horda/);
+  });
+});
+
+describe('previewStale (V4D-T5)', () => {
+  const staleOf = (state: GameState) =>
+    deriveViewState(state, state.lastProcessedAt, { timeScale: 3 }).army.formations[0]
+      ?.previewStale;
+
+  it('dispensar ou treinar soldados da formação, e a Torre, desatualizam a prévia', () => {
+    const simulated = accept(yard(), simulate('formation-1')).state;
+    expect(staleOf(simulated)).toBe(false);
+    const dismissed = cloneState(simulated);
+    dismissed.army.units.spearman -= 1;
+    expect(staleOf(dismissed)).toBe(true);
+    const tower = cloneState(simulated);
+    tower.settlement.buildings.watchtower += 1;
+    expect(staleOf(tower)).toBe(true);
+  });
+
+  it('uma unidade que a formação não usa não desatualiza', () => {
+    const simulated = accept(yard(), simulate('formation-1')).state;
+    const other = cloneState(simulated);
+    other.army.units.knight += 3;
+    expect(staleOf(other)).toBe(false);
   });
 });

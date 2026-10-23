@@ -358,7 +358,11 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
 
   const commanders = WING_IDS.flatMap((wing) => {
     const commander = input.player.commanders[wing];
-    return commander === null
+    // O comandante só entra se a ala dele tem soldados no começo (resposta do autor, D-5): numa
+    // ala vazia ele não dá aura nem moral, e também não corre risco.
+    const posts = input.player.posts[wing];
+    const manned = (posts.front?.count ?? 0) > 0 || (posts.back?.count ?? 0) > 0;
+    return commander === null || !manned
       ? []
       : [
           {
@@ -525,7 +529,10 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     const back = at(foe, aim.wing, 'back');
     // O arqueiro da Horda mira a Retaguarda por cima da Frente (D-3); os outros, a Frente.
     const overFront =
-      squad.owner === 'horde' && squad.stats.archetype === 'archer' && back !== null;
+      squad.owner === 'horde' &&
+      squad.stats.archetype === 'archer' &&
+      back !== null &&
+      front !== null;
     const target = overFront ? back : (front ?? back);
     if (target === null) {
       return null;

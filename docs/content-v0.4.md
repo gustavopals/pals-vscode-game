@@ -364,6 +364,120 @@ Fim da rodada 2: moral D 100, A 100; D-EF 10 (res 16), D-CF 10 (res 8), D-DF 10 
 
 **Resultado.** O Senhor da Guerra cai na rodada 3 e **encerra a onda** na hora: a Horda ainda tem 1 Saqueador (ala D); D não perdeu soldado nenhum. **Fatores decisivos:** (1) o chefe morre antes de a moral entrar: 96 efetivos por rodada (residual 96, 192) e a baixa na rodada 3, contra os 200 de vida; (2) a aura ×5/4 do chefe não bastou: 45 de bruto contra 30 absorvidos pela defesa 6 de dez Cavaleiros; (3) a iniciativa 5 dos Cavaleiros contra 4 e 3 faz D bater primeiro: a Horda cai de 10 para 6 e 1 Saqueador por ala, e o golpe do que sobra rende 15/2 de bruto, que o mínimo de 1/5 reduz a 1.
 
+## 3. Calibragem de referência (V4D-T5.3)
+
+**Lida pelo autor em 2026-10-23:** a curva (fácil na primavera e no verão, dura no outono e no inverno) fica como está e é revista na medição do simulador (V4I-T1), com as incursões já em batalha. A Vitória Gloriosa passa a ser **vencer sem que a Frente de nenhuma ala caia**, com ou sem muralha (como a decisão 19 do Cerco); o resultado "gloriosa igual a vitória sem muralha" desta tabela é anterior a essa correção.
+
+**Rascunho, não lido pelo autor.** Nenhum número do conteúdo foi mudado: é a medição do que existe (`balance.battle`, `hordeBaseMix`), para o autor decidir se a batalha está no ponto.
+
+**Como foi medido.** Um roteiro descartável (fora do repositório) chama `previewBattle`, a prévia do Conselho de Guerra, com a semente `calib-v4d-t53`, 200 simulações por célula, modo defesa, Torre de Vigia nível 0 e regra de herói ferido. O inimigo é o que a própria prévia supõe hoje: todo posto desconhecido, sorteado a cada simulação na composição-base da estação (Apêndice A), com o total da incursão leve (24) ou média (40) repartido pelos postos como em `balance.battle.previewEnemy.shares` (esquerda: 25% na Frente; centro: 30% na Frente e 15% na Retaguarda; direita: 25% e 5%). A muralha é a mesma vida nas três alas: "sem", Paliçada nível 1 (60) e nível 2 (100). **O Inverno usa a composição do Outono** (o cerco por onda é da Fase F, `hordeBaseMix`); a diferença entre as duas tabelas é só a sorte da semente.
+
+**Como ler a célula.** `V/G/D`: vitórias em 200 (inclui as gloriosas) / gloriosas (vitória sem nenhuma muralha a zero) / derrotas. A coluna "Risco principal" é o fator do inimigo que mais dano fez na incursão de 40, sem muralha (nas derrotas, se houve).
+
+**As formações** (quantidade por posto; Frente e Retaguarda das alas esquerda, centro e direita):
+
+- Só Lanceiros: 12 Lanceiros na Frente das três alas.
+- Lanceiros + Arqueiros atrás: 10 Lanceiros na Frente e 10 Arqueiros na Retaguarda, nas três alas.
+- Mista equilibrada: Espadachins (8) à esquerda; Escudeiros (8) e Arqueiros (10) no centro; Lanceiros (8) e Arqueiros (6) à direita.
+- Anticavalaria: 15 Lanceiros na Frente das três alas e 6 Arqueiros atrás no centro.
+- Escudeiros + Arqueiros atrás: 10 Escudeiros na Frente e 10 Arqueiros na Retaguarda, nas três alas.
+- Cavaleiros: 10 Cavaleiros na Frente das três alas.
+- Um posto só: 10 Lanceiros na Frente do centro.
+- Cheia de 20 e Cheia de 30: Espadachins à esquerda, Escudeiros no centro e Lanceiros à direita na Frente, e Arqueiros nas três Retaguardas; 20 ou 30 por posto (120 ou 180 soldados).
+- Quatro formações com comandantes: a de Escudeiros + Arqueiros atrás, com um herói da mesma classe (Guerreiro, Arqueiro, Mago ou Clériga) comandando as três alas.
+
+### Tabelas por estação
+
+#### Primavera
+
+| Formação | 24 sem | 24 Nv1 | 24 Nv2 | 40 sem | 40 Nv1 | 40 Nv2 | Risco principal (40, sem muralha) |
+|---|---|---|---|---|---|---|---|
+| Só Lanceiros | 200/200/0 | 200/62/0 | 200/161/0 | 200/200/0 | 200/0/0 | 200/0/0 | contra-ataque |
+| Lanceiros + Arqueiros atrás | 200/200/0 | 200/95/0 | 200/168/0 | 200/200/0 | 200/5/0 | 200/60/0 | aura |
+| Mista equilibrada | 200/200/0 | 200/51/0 | 200/108/0 | 198/198/2 | 200/0/0 | 200/11/0 | retaguarda exposta (dir.) |
+| Anticavalaria | 200/200/0 | 200/62/0 | 200/166/0 | 200/200/0 | 200/0/0 | 200/46/0 | contra-ataque |
+| Escudeiros + Arqueiros atrás | 200/200/0 | 200/87/0 | 200/170/0 | 200/200/0 | 200/4/0 | 200/28/0 | aura |
+| Cavaleiros | 200/200/0 | 200/71/0 | 200/148/0 | 200/200/0 | 200/0/0 | 200/23/0 | aura |
+| Um posto só (Centro, 10 Lanceiros) | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | flanco |
+| Cheia de 20 | 200/200/0 | 200/88/0 | 200/172/0 | 200/200/0 | 200/7/0 | 200/91/0 | aura |
+| Cheia de 30 | 200/200/0 | 200/87/0 | 200/169/0 | 200/200/0 | 200/8/0 | 200/90/0 | aura |
+| Escudeiros + Arqueiros, comandantes warrior | 200/200/0 | 200/87/0 | 200/179/0 | 200/200/0 | 200/3/0 | 200/33/0 | aura |
+| Escudeiros + Arqueiros, comandantes archer | 200/200/0 | 200/103/0 | 200/187/0 | 200/200/0 | 200/2/0 | 200/50/0 | aura |
+| Escudeiros + Arqueiros, comandantes mage | 200/200/0 | 200/93/0 | 200/167/0 | 200/200/0 | 200/4/0 | 200/31/0 | aura |
+| Escudeiros + Arqueiros, comandantes cleric | 200/200/0 | 200/88/0 | 200/173/0 | 200/200/0 | 200/6/0 | 200/35/0 | aura |
+
+#### Verão
+
+| Formação | 24 sem | 24 Nv1 | 24 Nv2 | 40 sem | 40 Nv1 | 40 Nv2 | Risco principal (40, sem muralha) |
+|---|---|---|---|---|---|---|---|
+| Só Lanceiros | 200/200/0 | 200/134/0 | 200/199/0 | 199/199/1 | 200/0/0 | 200/0/0 | contra-ataque |
+| Lanceiros + Arqueiros atrás | 200/200/0 | 200/181/0 | 200/200/0 | 200/200/0 | 200/76/0 | 200/145/0 | contra-ataque |
+| Mista equilibrada | 200/200/0 | 200/132/0 | 200/191/0 | 200/200/0 | 200/0/0 | 200/99/0 | contra-ataque (dir.) |
+| Anticavalaria | 200/200/0 | 200/149/0 | 200/200/0 | 200/200/0 | 200/0/0 | 200/153/0 | contra-ataque |
+| Escudeiros + Arqueiros atrás | 200/200/0 | 200/185/0 | 200/200/0 | 200/200/0 | 200/69/0 | 200/133/0 | - |
+| Cavaleiros | 200/200/0 | 200/165/0 | 200/199/0 | 200/200/0 | 200/16/0 | 200/123/0 | - |
+| Um posto só (Centro, 10 Lanceiros) | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | contra-ataque |
+| Cheia de 20 | 200/200/0 | 200/180/0 | 200/200/0 | 200/200/0 | 200/73/0 | 200/179/0 | - |
+| Cheia de 30 | 200/200/0 | 200/180/0 | 200/200/0 | 200/200/0 | 200/70/0 | 200/183/0 | - |
+| Escudeiros + Arqueiros, comandantes warrior | 200/200/0 | 200/182/0 | 200/200/0 | 200/200/0 | 200/78/0 | 200/136/0 | - |
+| Escudeiros + Arqueiros, comandantes archer | 200/200/0 | 200/184/0 | 200/200/0 | 200/200/0 | 200/72/0 | 200/139/0 | - |
+| Escudeiros + Arqueiros, comandantes mage | 200/200/0 | 200/179/0 | 200/199/0 | 200/200/0 | 200/78/0 | 200/142/0 | - |
+| Escudeiros + Arqueiros, comandantes cleric | 200/200/0 | 200/185/0 | 200/200/0 | 200/200/0 | 200/75/0 | 200/122/0 | - |
+
+#### Outono
+
+| Formação | 24 sem | 24 Nv1 | 24 Nv2 | 40 sem | 40 Nv1 | 40 Nv2 | Risco principal (40, sem muralha) |
+|---|---|---|---|---|---|---|---|
+| Só Lanceiros | 190/190/10 | 200/20/0 | 200/77/0 | 12/12/188 | 72/0/128 | 107/0/93 | contra-ataque |
+| Lanceiros + Arqueiros atrás | 200/200/0 | 200/65/0 | 200/174/0 | 133/133/67 | 185/27/15 | 190/27/10 | retaguarda exposta |
+| Mista equilibrada | 183/183/17 | 198/19/2 | 199/45/1 | 84/84/116 | 114/0/86 | 125/23/75 | retaguarda exposta |
+| Anticavalaria | 200/200/0 | 200/38/0 | 200/160/0 | 111/111/89 | 183/0/17 | 183/22/17 | retaguarda exposta (centro) |
+| Escudeiros + Arqueiros atrás | 200/200/0 | 200/34/0 | 200/78/0 | 143/143/57 | 167/18/33 | 170/18/30 | retaguarda exposta |
+| Cavaleiros | 197/197/3 | 200/53/0 | 200/153/0 | 138/138/62 | 173/0/27 | 176/25/24 | flanco |
+| Um posto só (Centro, 10 Lanceiros) | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | flanco |
+| Cheia de 20 | 200/200/0 | 200/83/0 | 200/197/0 | 200/200/0 | 200/30/0 | 200/47/0 | aura (centro) |
+| Cheia de 30 | 200/200/0 | 200/86/0 | 200/200/0 | 200/200/0 | 200/53/0 | 200/79/0 | aura (centro) |
+| Escudeiros + Arqueiros, comandantes warrior | 200/200/0 | 200/40/0 | 200/96/0 | 160/160/40 | 180/22/20 | 180/22/20 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes archer | 200/200/0 | 200/52/0 | 200/132/0 | 169/169/31 | 184/28/16 | 188/28/12 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes mage | 200/200/0 | 200/43/0 | 200/103/0 | 162/162/38 | 183/15/17 | 185/15/15 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes cleric | 200/200/0 | 200/33/0 | 200/74/0 | 155/155/45 | 178/22/22 | 186/22/14 | retaguarda exposta |
+
+#### Inverno
+
+| Formação | 24 sem | 24 Nv1 | 24 Nv2 | 40 sem | 40 Nv1 | 40 Nv2 | Risco principal (40, sem muralha) |
+|---|---|---|---|---|---|---|---|
+| Só Lanceiros | 186/186/14 | 200/18/0 | 200/75/0 | 18/18/182 | 95/0/105 | 120/0/80 | contra-ataque |
+| Lanceiros + Arqueiros atrás | 200/200/0 | 200/42/0 | 200/174/0 | 117/117/83 | 184/29/16 | 190/29/10 | retaguarda exposta |
+| Mista equilibrada | 187/187/13 | 200/15/0 | 200/39/0 | 76/76/124 | 103/0/97 | 119/20/81 | retaguarda exposta |
+| Anticavalaria | 200/200/0 | 200/42/0 | 200/142/0 | 119/119/81 | 187/0/13 | 187/20/13 | retaguarda exposta (centro) |
+| Escudeiros + Arqueiros atrás | 200/200/0 | 200/31/0 | 200/86/0 | 147/147/53 | 178/14/22 | 180/14/20 | retaguarda exposta |
+| Cavaleiros | 200/200/0 | 200/62/0 | 200/144/0 | 140/140/60 | 174/0/26 | 180/19/20 | flanco |
+| Um posto só (Centro, 10 Lanceiros) | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | 0/0/200 | flanco |
+| Cheia de 20 | 200/200/0 | 200/87/0 | 200/198/0 | 200/200/0 | 200/34/0 | 200/52/0 | aura (centro) |
+| Cheia de 30 | 200/200/0 | 200/89/0 | 200/200/0 | 200/200/0 | 200/52/0 | 200/79/0 | aura (centro) |
+| Escudeiros + Arqueiros, comandantes warrior | 200/200/0 | 200/35/0 | 200/86/0 | 149/149/51 | 172/17/28 | 173/17/27 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes archer | 200/200/0 | 200/47/0 | 200/118/0 | 172/172/28 | 182/17/18 | 187/17/13 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes mage | 200/200/0 | 200/27/0 | 200/82/0 | 154/154/46 | 181/25/19 | 185/25/15 | retaguarda exposta |
+| Escudeiros + Arqueiros, comandantes cleric | 200/200/0 | 200/32/0 | 200/88/0 | 162/162/38 | 180/23/20 | 187/23/13 | retaguarda exposta |
+
+### 3.1 O que nunca vence e o que nunca perde
+
+Para o autor (soma das 24 condições de cada formação: 4 estações × 2 tamanhos × 3 muralhas):
+
+- **Nunca vence, em nenhuma condição:** o **posto único** (10 Lanceiros no centro): 0 vitórias em 4.800 simulações, nem contra 24 Lobos e Saqueadores da Primavera com a Paliçada nível 2. A Horda flanqueia as alas vazias.
+- **Nunca perde, em nenhuma condição:** a **formação cheia**, de 20 e de 30 por posto: 0 derrotas em 4.800 simulações cada, até na incursão média do Outono e do Inverno sem muralha. A de 30 só ganha da de 20 na Gloriosa (Outono, 40 com Paliçada nível 2: 79 contra 47 de 200).
+- **Quase nunca perde** (a incursão leve, de Primavera e Verão, e qualquer coisa com a Paliçada nível 2): todas as formações com as três alas ocupadas, com 0 a 2 derrotas em 1.600 simulações nessas estações. Só o Outono e o Inverno, na incursão média, derrotam as formações do meio-termo (de 17 a 188 derrotas em 200, sem muralha).
+- **A pior das formações que ocupam as três alas** é a de **só Lanceiros**: no Outono e no Inverno, com a incursão de 40 e sem muralha, vence em 12 e 18 de 200. A **mista equilibrada** é a segunda pior (84 e 76 de 200). A com Arqueiros atrás e a Anticavalaria ficam em 111 a 143.
+- **O comandante vale pouco, mas vale**: na formação de Escudeiros + Arqueiros, o Arqueiro dá o melhor resultado (Outono, 40, sem muralha: 169 vitórias contra 143 sem comandante); o Mago (162), o Guerreiro (160) e a Clériga (155) vêm depois, na mesma ordem de grandeza.
+- **A Paliçada vale muito na incursão média** do Outono e do Inverno (Só Lanceiros: de 12 para 72 e 107 vitórias), mas **só a Paliçada nível 2 traz a Gloriosa** de modo frequente na incursão média de Primavera e Verão. O nível 1 quase sempre cai a zero nas alas atacadas.
+
+### 3.2 Resultados que parecem estranhos (descritos, não corrigidos)
+
+1. **A Gloriosa sem muralha é vazia.** Sem Paliçada, "nenhuma muralha chegou a zero" é verdade por não haver muralha, e por isso a coluna "sem" tem `G = V` em todas as células. É a leitura do código de `previewBattle` (`report.wall.every(...)` sobre uma lista vazia); fica a pergunta ao autor se a Gloriosa sem muralha deve contar.
+2. **Primavera e Verão não ameaçam ninguém** com três alas ocupadas (a derrota mais frequente é 2 em 200): a incursão de 40 de Lobos e Saqueadores não desafia nem a formação só de Lanceiros. O desafio está no Outono (Cavaleiros Negros, Ogros e Xamãs). Vale conferir se é o desenho que o autor quer para a curva.
+3. **A formação cheia de 30 não vence mais do que a de 20**: já ganhava tudo. O efeito de passar de 20 para 30 por posto só aparece na Gloriosa. Não há teto de quantidade por posto nesta medição; se houver (Fase G), esta linha muda.
+4. **Com a Paliçada nível 1 a vitória é quase certa e a Gloriosa raríssima na incursão média**: a muralha de 60 é derrubada em quase toda partida, e o nível 2 (100) resolve (a Gloriosa vai de 0 a 91 de 200 na Primavera). A vida da muralha é proposta do agente, por aprovar (D-7).
+
 ## 4. Lote 2 do Conselho: primeiro lote de cinco (para o autor)
 
 **Lido pelo autor em 2026-10-23** (V4H-T1.3; decisão 23: as cartas são apresentadas em lotes de cinco). **Aprovadas como estão:** a cadeia "Os Refugiados" (4.1 a 4.3) e "Praga nos campos" (4.4). **Sai do lote:** "O aprendiz e o Mestre" (4.5), porque o Mestre ensinar o ofício ainda é mecânica proibida (CLAUDE.md, regra 6); a próxima carta da lista entra no lugar e volta ao autor no próximo lote. Nada disto está no código ainda. O ponto de partida foi o branch `wip/v3f-t1-lote2` (`2352e39`, `refugees.ts`), reescrito: a cadeia agora dá **Gil ou Ximena** conforme o que o jogador fez na primeira carta, e as flags e os números foram conferidos contra `balance.ts` e as cartas do lote 1.

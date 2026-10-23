@@ -237,7 +237,12 @@ export function previewBattle(input: PreviewInput): PreviewResult {
     const won = resolution.outcome === 'victory' || resolution.outcome === 'held';
     if (won) {
       wins += 1;
-      if (report.wall.every((entry) => entry.end > 0)) {
+      // Gloriosa: vencer sem que a Frente de nenhuma ala caia (nenhuma ala rompida), com ou sem
+      // muralha (resposta do autor, 2026-10-23; igual à decisão 19 do Cerco).
+      const broken = report.casualties.some(
+        (entry) => entry.owner === 'player' && entry.line === 'front' && entry.lost >= entry.start,
+      );
+      if (!broken) {
         glorious += 1;
       }
     } else {

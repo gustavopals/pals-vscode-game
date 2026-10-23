@@ -284,7 +284,12 @@ A aba Exército (fixa depois do Mercado) tem o Quartel (`components/BarracksPane
 - **Defesa ativa.** A árvore diz "Nv · N soldados · Defesa: nome" (ou "sem Defesa ativa", havendo soldados). Soldados sem Defesa ativa são **aviso, não decisão**: a barra de status mostra "Sem Defesa ativa" (abaixo das decisões e acima dos depósitos, sem alarme, e leva à aba), "Antes de partir" e o Retorno trazem "Ativar uma formação", e nada disso entra em `pendingDecisions` nem no contador. `lacksDefense` e `activeFormation` (`ui/format.ts`) só leem a visão.
 - **Comandante.** Na ficha do herói (aba Guilda), `commanding` diz a ala e a formação; sendo a Defesa ativa, "Não parte em expedição" (a recusa é do motor: `canDepart`, `eligibleHeroIds`).
 
-Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px).
+- **Conselho de Guerra** (V4D-T4; `components/WarCouncilPanel.tsx`). Abaixo do editor, para a formação **salva** que ele edita: "Simular" manda `simulateBattle` (`lords.simulateBattle`, por `controller.simulateBattle` e `guildOrder`, trava `preview:<formação>`, intenção `preview:<formação>`; pela paleta pergunta qual formação). O bloco mostra Vitória, Gloriosa e Derrota em percentual, `riskText` e as perdas esperadas, **tudo de `army.preview`, sem conta no app**; só aparece a prévia da formação em edição (a de outra seria engano), e `formations[].previewStale` põe "Prévia desatualizada". No editor, as linhas "Inimigo (prev.)" (frente e retaguarda) repetem `preview.knownEnemy[].text`, com `?` onde a visão não sabe.
+- **Retorno e ficha.** `battleFought` entra em "O que exigiu um preço" (`game/returnReport.ts`, tópico `battle`, ação "Ajustar formação", que abre o Exército). A ficha do herói mostra `commanderText`.
+- **Relatórios de batalha** (V4D-T4.3; `components/BattleReport.tsx`): `army.reports` (do mais novo ao mais antigo, tudo em frase: fatores, rodadas, baixas, muralha, comandantes e experiência) em uma seção abaixo do Conselho de Guerra; as rodadas são `<details>` (teclado nativo) e "Ajustar formação" carrega no editor a formação de `adjustFormationId` (a Defesa ativa, pendência D-10). O Conselho de Guerra fica logo abaixo do editor (`.formation-main`), junto do "Salvar".
+- **Falta (V4D-T4.4):** o cenário em navegador do relatório (rota `/__test/battle`).
+
+Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px, a prévia do Conselho de Guerra pelo teclado).
 
 ## Ameaça e Torre de Vigia (GDD §8.2)
 

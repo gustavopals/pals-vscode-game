@@ -1804,3 +1804,65 @@ table.army-units td.num {
 #formation-name {
   width: min(100%, 28ch);
 }
+
+.formation-enemy-cell {
+  min-height: 32px;
+  padding: 4px 6px;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.formation-enemy-cell.empty {
+  font-style: italic;
+  color: var(--vscode-descriptionForeground);
+}
+
+.formation-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.war-council {
+  margin-top: 12px;
+}
+
+.battle-reports {
+  margin-top: 12px;
+}
+
+.battle-report {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.battle-round summary {
+  cursor: pointer;
+}
+
+.battle-round summary:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+.war-odds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.war-odds dt {
+  color: var(--vscode-descriptionForeground);
+}
+
+.war-odds dd {
+  margin: 0;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.war-losses {
+  padding-left: 18px;
+  margin: 4px 0;
+}
