@@ -937,7 +937,7 @@ export type Command =
    */
   | { commandId: string; type: 'trainSoldiers'; payload: { unit: UnitId; amount: number } }
   /** Cancela o lote em treino e devolve 80% do custo (as armas voltam inteiras, arredondando para baixo). */
-  | { commandId: string; type: 'cancelTraining'; payload: Record<string, never> }
+  | { commandId: string; type: 'cancelTraining'; payload: { lotKey: string } }
   /** Dispensa `amount` soldados de `unit`: viram aldeões sem ofício, sem devolver o custo. */
   | { commandId: string; type: 'disbandSoldiers'; payload: { unit: UnitId; amount: number } }
   /**
@@ -1030,6 +1030,7 @@ export const REJECTION_CODES = [
   'ARMY_LIMIT',
   'NOT_ENOUGH_WEAPONS',
   'NOT_TRAINING',
+  'TRAINING_CHANGED',
   'INVALID_UNIT',
   'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
@@ -2197,6 +2198,8 @@ export type ArmyView = {
     endsInSeconds: number;
     totalSeconds: number;
     cancelRefundText: string;
+    /** Identidade estável do lote em curso (do instante em que começou); o cancelamento a confere. */
+    lotKey: string;
   } | null;
   /** O que uma ordem de treino de cada unidade pode pedir agora. */
   offer: Array<{

@@ -24,7 +24,17 @@ function Formations(props: {
   const { army } = props.view;
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const savedCount = useRef<number | null>(null);
+  const savingNew = props.busy.has('formation:new');
+  const wasSaving = useRef(false);
   useLayoutEffect(() => {
+    // O salvamento de um rascunho novo terminou sem formação nova (recusado, falha de rede):
+    // esquece a contagem, para uma formação criada depois em outra aba não ser adotada.
+    if (wasSaving.current && !savingNew && savedCount.current !== null) {
+      if (army.formations.length <= savedCount.current) {
+        savedCount.current = null;
+      }
+    }
+    wasSaving.current = savingNew;
     // Uma formação nova apareceu na lista depois de "Salvar" de um rascunho novo: adota-a.
     if (savedCount.current !== null && army.formations.length > savedCount.current) {
       const latest = army.formations[army.formations.length - 1];
@@ -33,7 +43,7 @@ function Formations(props: {
         setDraft({ ...draft, id: latest.id });
       }
     }
-  }, [army.formations, draft]);
+  }, [army.formations, draft, savingNew]);
   const actions: Actions = {
     ...props.actions,
     run: (id, arg) => {

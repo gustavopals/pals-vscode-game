@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { trainingLotKey } from './army';
 import { inhabitants } from './masters';
 import { housingCapacity } from './population';
 import { apply, barracksYard, command, HOUR, MINUTE } from './test-helpers';
@@ -14,6 +15,9 @@ import type { GameEvent, GameState } from './types';
  */
 const MILLI = 1000;
 const UNITS = ['spearman', 'swordsman', 'archer', 'knight', 'shieldbearer'] as const;
+
+const lotKeyOf = (state: GameState): string =>
+  state.army.training === null ? 'sem-lote' : trainingLotKey(state.army.training);
 
 /** O pátio com poucos mantimentos e soldados já alistados: a fome abre no caminho do treino. */
 function hungryYard(
@@ -91,12 +95,19 @@ describe('o exército nas propriedades (V4C-T1.9)', () => {
   });
 
   it('a comida nunca fica negativa e os habitantes nunca passam das casas, com ordens no meio do caminho', () => {
-    const stepOrder = (kind: string, unit: (typeof UNITS)[number], amount: number) => {
+    const stepOrder = (
+      state: GameState,
+      kind: string,
+      unit: (typeof UNITS)[number],
+      amount: number,
+    ) => {
       if (kind === 'train') {
         return command('trainSoldiers', { unit, amount });
       }
       if (kind === 'cancel') {
-        return command('cancelTraining', {});
+        return command('cancelTraining', {
+          lotKey: state.army.training === null ? 'sem-lote' : trainingLotKey(state.army.training),
+        });
       }
       return command('disbandSoldiers', { unit, amount });
     };
@@ -120,7 +131,7 @@ describe('o exército nas propriedades (V4C-T1.9)', () => {
             state = advanceTo(state, state.lastProcessedAt + step.wait * MINUTE).state;
             expect(state.settlement.resources.food).toBeGreaterThanOrEqual(0);
             expect(inhabitants(state)).toBeLessThanOrEqual(housingCapacity(state));
-            const result = apply(state, stepOrder(step.kind, step.unit, step.amount));
+            const result = apply(state, stepOrder(state, step.kind, step.unit, step.amount));
             if (result.ok) {
               state = result.state;
             }
@@ -143,7 +154,10 @@ describe('o exército nas propriedades (V4C-T1.9)', () => {
           const start = hungryYard(500, 0, 20, 3);
           // Cancelar logo depois de ordenar: nada volta além do que se pagou.
           const ordered = order(start, unit, amount);
-          const cancelled = apply(ordered, command('cancelTraining', {}));
+          const cancelled = apply(
+            ordered,
+            command('cancelTraining', { lotKey: lotKeyOf(ordered) }),
+          );
           if (!cancelled.ok) {
             throw new Error('Cancelar um lote em treino devia ser aceito.');
           }

@@ -346,6 +346,9 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // início, o cancelamento e a dispensa são ordens do jogador e ficam na Crônica.
     case 'soldiersTrained':
       return { block: 'prospered', topic: 'army' };
+    // O lote que o piso de aldeões encolheu: o custo não volta, é preço.
+    case 'trainingShortfall':
+      return { block: 'cost', topic: 'army:shortfall' };
     // O item que se gastou de vez na estrada não dá bônus até o Ferreiro refazê-lo: é preço, e a
     // próxima ação é "Reparar…".
     case 'itemWorn':

@@ -112,4 +112,7 @@ export const unitTexts = {
   neutral: 'Sem vantagem nem fraqueza; protege a retaguarda.',
   /** "Vence o Cavaleiro." */
   counters: 'Vence {unidade}.',
+  /** O fecho da reserva de comida da moral quando há soldados: eles comem mais que um aldeão. */
+  reserveSoldier: ', contando {soldados}, que come mais',
+  reserveSoldiers: ', contando {soldados}, que comem mais',
 } as const;

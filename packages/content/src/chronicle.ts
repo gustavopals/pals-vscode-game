@@ -77,6 +77,7 @@ export const EVENT_TYPES = [
   'trainingStarted',
   'trainingCancelled',
   'soldiersTrained',
+  'trainingShortfall',
   'soldiersDisbanded',
   'formationSaved',
   'formationActivated',
@@ -347,6 +348,8 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o capitão de {feudo} mandou o pátio dispersar: o treino de {tropa} ficou por fazer.',
   soldiersTrained:
     'No {dia}º dia {daEstacao}, terminou o treino no Quartel de {feudo}: {tropa} para o exército.',
+  trainingShortfall:
+    'No {dia}º dia {daEstacao}, faltaram aldeões em {feudo} para fechar o lote do Quartel: {tropa} ficaram por treinar, e o custo não volta.',
   soldiersDisbanded:
     'No {dia}º dia {daEstacao}, o capitão de {feudo} dispensou o serviço de {tropa}: a lavoura os recebe de volta como aldeões.',
   // As formações salvas (GDD §10.8; ADR 0019, decisões 8 e 9). `{formacao}` é o nome que o

@@ -235,7 +235,10 @@ export const TrainSoldiersCommandSchema = command(
     amount: z.number().int().min(-1_000_000).max(1_000_000),
   }),
 );
-export const CancelTrainingCommandSchema = command('cancelTraining', z.strictObject({}));
+export const CancelTrainingCommandSchema = command(
+  'cancelTraining',
+  z.strictObject({ lotKey: z.string().min(1).max(120) }),
+);
 export const DisbandSoldiersCommandSchema = command(
   'disbandSoldiers',
   z.strictObject({

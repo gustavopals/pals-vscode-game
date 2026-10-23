@@ -129,10 +129,14 @@ test.describe('a aba Exército (V4C-T3.2)', () => {
     // A visão do lote pode aparecer antes de a trava da ordem de treino ser liberada.
     // `focus()` não espera um botão desabilitado ficar disponível como `click()` espera.
     await expect(running(page).getByTestId('army-cancel')).toBeEnabled();
+    const lotKey = (await serverView(page, request)).army.training?.lotKey;
+    expect(lotKey).toBeTruthy();
     await running(page).getByTestId('army-cancel').focus();
     await expect(running(page).getByTestId('army-cancel')).toBeFocused();
     await page.keyboard.press('Enter');
     await expect.poll(() => posts.filter((post) => post.type === 'cancelTraining').length).toBe(1);
+    // A ordem leva a identidade do lote que a visão mostrava.
+    expect(posts.find((post) => post.type === 'cancelTraining')?.payload).toEqual({ lotKey });
     await expect(running(page)).toHaveCount(0);
     await expect(trainForm(page)).toBeVisible();
     const after = await serverView(page, request);

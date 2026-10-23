@@ -122,7 +122,7 @@ function dispatch(
     case 'trainSoldiers':
       return trainSoldiers(draft, payload.unit, payload.amount, nowMs, events);
     case 'cancelTraining':
-      return cancelTraining(draft, nowMs, events);
+      return cancelTraining(draft, payload.lotKey, nowMs, events);
     case 'disbandSoldiers':
       return disbandSoldiers(draft, payload.unit, payload.amount, nowMs, events);
     case 'saveFormation':

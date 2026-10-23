@@ -136,6 +136,7 @@ describe('unidades (GDD §10.2)', () => {
       'trainingStarted',
       'trainingCancelled',
       'soldiersTrained',
+      'trainingShortfall',
       'soldiersDisbanded',
     ] as const) {
       expect(EVENT_TYPES).toContain(type);

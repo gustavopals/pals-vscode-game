@@ -1801,8 +1801,8 @@ export class Controller {
   }
 
   /** Cancela o lote em treino: o servidor devolve a parte do custo que a visão diz. */
-  cancelTraining(): Promise<boolean> {
-    return this.guildOrder('train', 'cancelTraining', {}, 'ao Quartel');
+  cancelTraining(lotKey: string): Promise<boolean> {
+    return this.guildOrder('train', 'cancelTraining', { lotKey }, 'ao Quartel');
   }
 
   /** Dispensa soldados de uma unidade: voltam a ser aldeões. A trava é por unidade. */

@@ -126,7 +126,9 @@ function Running(props: {
         data-testid="army-cancel"
         disabled={props.disabled || props.busy}
         aria-describedby="army-running-terms"
-        onClick={() => props.actions.run('lords.cancelTraining', { confirmed: true })}
+        onClick={() =>
+          props.actions.run('lords.cancelTraining', { confirmed: true, lotKey: training.lotKey })
+        }
       >
         Cancelar o treino
       </button>

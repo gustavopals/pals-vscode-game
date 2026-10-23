@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { netRates } from './economy';
+import { trainingLotKey } from './army';
 import { inhabitants } from './masters';
 import { accept, apply, barracksYard, command, DAY, HOUR, MINUTE } from './test-helpers';
 import { nextEventAt } from './timeline';
@@ -108,9 +109,32 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     // Dois aldeões a menos no meio do treino (a população cai a 3): ninguém mais vira soldado.
     const thinned = JSON.parse(JSON.stringify(ordered)) as GameState;
     thinned.settlement.population.villagers = 3;
-    const done = advanceTo(thinned, 20 * MINUTE).state;
+    const result = advanceTo(thinned, 20 * MINUTE);
+    const done = result.state;
     expect(done.army.units.spearman).toBe(0);
     expect(done.settlement.population.villagers).toBe(3);
+    // Nenhum treinado: a Crônica diz que o lote ficou por treinar, no instante exato.
+    expect(result.events.filter((event) => event.type === 'soldiersTrained')).toEqual([]);
+    const short = result.events.filter((event) => event.type === 'trainingShortfall');
+    expect(short).toHaveLength(1);
+    expect(short[0]?.atMs).toBe(20 * MINUTE);
+    expect(short[0]?.text).toContain('2 lanceiros');
+    expect(short[0]?.text).toContain('o custo não volta');
+  });
+
+  it('o lote que o piso encolhe em parte emite soldiersTrained e trainingShortfall', () => {
+    const start = barracksYard(0, (draft) => {
+      draft.settlement.population.villagers = 6;
+    });
+    const ordered = accept(start, command('trainSoldiers', { unit: 'spearman', amount: 3 })).state;
+    const thinned = JSON.parse(JSON.stringify(ordered)) as GameState;
+    thinned.settlement.population.villagers = 4;
+    const result = advanceTo(thinned, 30 * MINUTE);
+    expect(result.state.army.units.spearman).toBe(1);
+    expect(result.events.filter((event) => event.type === 'soldiersTrained')).toHaveLength(1);
+    const short = result.events.filter((event) => event.type === 'trainingShortfall');
+    expect(short).toHaveLength(1);
+    expect(short[0]?.text).toContain('2 lanceiros');
   });
 
   it('o soldado come 1,5 por hora de jogo, contra 1 do aldeão', () => {
@@ -133,7 +157,12 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     const start = barracksYard(0);
     const ordered = accept(start, command('trainSoldiers', { unit: 'knight', amount: 5 })).state;
     expect(ordered.settlement.weapons).toBe(1);
-    const { state, events } = accept(ordered, command('cancelTraining', {}));
+    const { state, events } = accept(
+      ordered,
+      command('cancelTraining', {
+        lotKey: ordered.army.training ? trainingLotKey(ordered.army.training) : '',
+      }),
+    );
     expect(state.army.training).toBeNull();
     // 80% de 5 cavaleiros: 240 de comida, 240 de ouro e 4 armas.
     expect(state.settlement.resources.food).toBe(
@@ -146,6 +175,23 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     expect(events.map((event) => event.type)).toEqual(['trainingCancelled']);
     // O lote cancelado não deixa instante marcado na linha do tempo.
     expect(nextEventAt(state)).not.toBe(20 * MINUTE + 0);
+  });
+
+  it('cancelar confere a identidade do lote: o lote que mudou com a pergunta aberta é recusado', () => {
+    const ordered = accept(
+      barracksYard(0),
+      command('trainSoldiers', { unit: 'archer', amount: 2 }),
+    ).state;
+    const seen = deriveViewState(ordered, 1).army.training?.lotKey;
+    expect(seen).toBe(ordered.army.training ? trainingLotKey(ordered.army.training) : '?');
+    // O lote visto terminou e outro entrou, mais tarde.
+    const later = advanceTo(ordered, 2 * HOUR).state;
+    const another = accept(later, command('trainSoldiers', { unit: 'archer', amount: 2 })).state;
+    const stale = refused(another, 'cancelTraining', { lotKey: seen ?? '' });
+    expect(stale.code).toBe('TRAINING_CHANGED');
+    expect(stale.message).toContain('mudou');
+    // Sem lote nenhum, continua NOT_TRAINING.
+    expect(refused(later, 'cancelTraining', { lotKey: seen ?? '' }).code).toBe('NOT_TRAINING');
   });
 
   it('dispensar devolve aldeões sem ofício e não devolve o custo', () => {
