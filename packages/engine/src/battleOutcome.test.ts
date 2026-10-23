@@ -1,4 +1,12 @@
-import { balance, type HeroCaptureRuleId, type HordeUnitId, type UnitId } from '@lotg/content';
+import {
+  balance,
+  battleFactorLabels,
+  battleNoFactorText,
+  battleOutcomeLabels,
+  type HeroCaptureRuleId,
+  type HordeUnitId,
+  type UnitId,
+} from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { EVEN_LUCK, resolveBattle, type BattleInput } from './battle';
@@ -68,7 +76,7 @@ describe('o comandante depois da batalha (V4D-T3.2; GDD §10.4 e §8.2)', () => 
     expect(edda.xp).toBe(40);
     expect(edda.injury).toBeNull();
     expect(edda.status).toBe('idle');
-    expect(events.map((event) => event.type)).toEqual([]);
+    expect(events.map((event) => event.type)).toEqual(['battleFought']);
     // Os outros heróis não comandaram: nada muda.
     expect(state.guild.heroes.slice(1)).toEqual(start.guild.heroes.slice(1));
   });
@@ -78,7 +86,7 @@ describe('o comandante depois da batalha (V4D-T3.2; GDD §10.4 e §8.2)', () => 
     start.guild.heroes[0]!.xp = balance.heroes.xpToNext[0]! - 10;
     const { state, events } = apply(start, won);
     expect(state.guild.heroes[0]).toMatchObject({ level: 2, xp: 30 });
-    expect(events.map((event) => event.type)).toEqual(['heroLeveledUp']);
+    expect(events.map((event) => event.type)).toEqual(['battleFought', 'heroLeveledUp']);
   });
 
   it('quem cai fica ferido: grave com metade da ala perdida, e metade da experiência', () => {
@@ -93,9 +101,9 @@ describe('o comandante depois da batalha (V4D-T3.2; GDD §10.4 e §8.2)', () => 
       untilMs: start.lastProcessedAt + balance.injuries.durationMs.severe,
     });
     expect(edda.xp).toBe(20);
-    expect(events.map((event) => event.type)).toEqual(['commanderInjured']);
-    expect(events[0]?.data).toEqual({ heroId: 'hero-1', battleId: 'battle-1', severity: 'severe' });
-    expect(events[0]?.text).toContain('Edda');
+    expect(events.map((event) => event.type)).toEqual(['battleFought', 'commanderInjured']);
+    expect(events[1]?.data).toEqual({ heroId: 'hero-1', battleId: 'battle-1', severity: 'severe' });
+    expect(events[1]?.text).toContain('Edda');
   });
 
   it('a ala que perdeu menos da metade deixa o comandante ferido de leve', () => {
@@ -127,7 +135,7 @@ describe('o comandante depois da batalha (V4D-T3.2; GDD §10.4 e §8.2)', () => 
     const { state, events } = apply(start, died);
     expect(state.guild.heroes.map((hero) => hero.id)).not.toContain('hero-1');
     expect(state.guild.inventory.map((item) => item.id)).toContain(sword.id);
-    expect(events.map((event) => event.type)).toEqual(['commanderDied']);
+    expect(events.map((event) => event.type)).toEqual(['battleFought', 'commanderDied']);
     // Fora de Rei de Ferro a resolução nunca diz "morreu".
     for (const rule of ['injury', 'capture'] as const) {
       expect(
@@ -147,15 +155,42 @@ describe('o comandante depois da batalha (V4D-T3.2; GDD §10.4 e §8.2)', () => 
     );
     expect(once.guild.heroes[1]!.equipment.weapon?.condition).toBe(other.condition);
     start.guild.heroes[0]!.equipment.weapon!.condition = 1;
-    expect(apply(start, won).events.map((event) => event.type)).toEqual(['itemWorn']);
+    expect(apply(start, won).events.map((event) => event.type)).toEqual([
+      'battleFought',
+      'itemWorn',
+    ]);
   });
 
   it('o herói que o estado já não tem é saltado; a função não sorteia nem dá identificador', () => {
     const start = heroesStart('batalha-sem-heroi', 0);
     start.guild.heroes = start.guild.heroes.slice(1);
     const { state, events } = apply(start, fell);
-    expect(events).toEqual([]);
+    expect(events.map((event) => event.type)).toEqual(['battleFought']);
     expect(state.rng).toEqual(start.rng);
     expect(state.ids).toEqual(start.ids);
+  });
+
+  it('battleFought: o desfecho e os três fatores decisivos, como dados e na frase', () => {
+    const start = heroesStart('batalha-linha', 0);
+    const [line] = apply(start, fell).events;
+    expect(line?.type).toBe('battleFought');
+    expect(fell.decisive.length).toBeGreaterThan(0);
+    expect(line?.data).toMatchObject({
+      battleId: 'battle-1',
+      outcome: fell.outcome,
+      rounds: fell.rounds,
+    });
+    fell.decisive.forEach((entry, index) => {
+      expect(line?.data[`factor${index + 1}`]).toBe(entry.factor);
+      expect(line?.data[`factor${index + 1}Owner`]).toBe(entry.owner);
+      expect(line?.data[`factor${index + 1}Amount`]).toBe(entry.amount);
+      expect(line?.text).toContain(battleFactorLabels[entry.factor][entry.owner]);
+    });
+    expect(line?.text).toContain(battleOutcomeLabels[fell.outcome]);
+    expect(line?.text).not.toMatch(/\{[a-zA-Z]+\}/);
+    // Sem fator nenhum, a frase diz a força dos braços.
+    const bare = apply(start, { ...won, decisive: [] }).events[0];
+    expect(bare?.text).toContain(battleNoFactorText);
+    expect(bare?.data).not.toHaveProperty('factor1');
   });
 });

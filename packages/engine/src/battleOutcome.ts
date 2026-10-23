@@ -1,4 +1,10 @@
-import { balance, type InjurySeverityId } from '@lotg/content';
+import {
+  balance,
+  battleFactorLabels,
+  battleNoFactorText,
+  battleOutcomeLabels,
+  type InjurySeverityId,
+} from '@lotg/content';
 
 import type { BattleReport } from './battleReport';
 import { emit } from './chronicle';
@@ -11,7 +17,8 @@ import type { GameEvent, GameState, Hero } from './types';
  * O que uma batalha faz aos heróis que comandaram as alas (GDD §10.4 e §8.2; V4D-T3.2): consome
  * o relatório (`buildBattleReport`) e muda o estado em um instante da linha do tempo.
  *
- * Na ordem dos comandantes do relatório (a das alas), e em três passos:
+ * Primeiro a linha da batalha (`battleFought`, com os três fatores decisivos como dados e na
+ * frase); depois, na ordem dos comandantes do relatório (a das alas), em três passos:
  *
  * 1. **Quem caiu.** O ferido (`fate: 'wounded'`) fica com `Hero.injury`, com os prazos das
  *    expedições (`injuries.durationMs`): grave quando a ala dele perdeu ao menos
@@ -33,6 +40,7 @@ export function applyBattleOutcome(
   atMs: number,
   events: GameEvent[],
 ): void {
+  emitBattleFought(draft, report, atMs, events);
   const survivors: Array<{ hero: Hero; xp: number }> = [];
   for (const commander of report.commanders) {
     const hero = draft.guild.heroes.find((entry) => entry.id === commander.heroId);
@@ -84,6 +92,49 @@ export function commanderSeverity(
   const start = squads.reduce((sum, entry) => sum + entry.start, 0);
   const lost = squads.reduce((sum, entry) => sum + entry.lost, 0);
   return start > 0 && lost * severeAtLoss.den >= start * severeAtLoss.num ? 'severe' : 'light';
+}
+
+/**
+ * A linha da batalha na Crônica (GDD §10.7; V4D-T3.3): o desfecho e os fatores decisivos do
+ * relatório, do maior ao menor, em `{fatores}` ("a muralha, que segurou o golpe, as torres e o
+ * flanco que o inimigo achou"), e nos dados, `factor<n>`, `factor<n>Owner`, `factor<n>Amount` e
+ * `factor<n>Wing` (vazio quando o fator pesou em mais de uma ala), de 1 a 3.
+ */
+export function emitBattleFought(
+  draft: GameState,
+  report: BattleReport,
+  atMs: number,
+  events: GameEvent[],
+): void {
+  const data: Record<string, string | number> = {
+    battleId: report.id,
+    mode: report.mode,
+    outcome: report.outcome,
+    ending: report.ending,
+    rounds: report.rounds,
+  };
+  report.decisive.forEach((entry, index) => {
+    const n = index + 1;
+    data[`factor${n}`] = entry.factor;
+    data[`factor${n}Owner`] = entry.owner;
+    data[`factor${n}Amount`] = entry.amount;
+    data[`factor${n}Wing`] = entry.wing ?? '';
+  });
+  const labels = report.decisive.map((entry) => battleFactorLabels[entry.factor][entry.owner]);
+  emit(events, draft, atMs, 'battleFought', data, {
+    desfecho: battleOutcomeLabels[report.outcome],
+    fatores: listText(labels) ?? battleNoFactorText,
+  });
+}
+
+/** "a, b e c"; `null` para a lista vazia. */
+function listText(parts: readonly string[]): string | null {
+  if (parts.length === 0) {
+    return null;
+  }
+  return parts.length === 1
+    ? parts[0]!
+    : `${parts.slice(0, -1).join(', ')} e ${parts[parts.length - 1]!}`;
 }
 
 const SEVERITY_ORDER: readonly InjurySeverityId[] = ['light', 'severe'];

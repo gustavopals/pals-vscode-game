@@ -263,6 +263,14 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **O risco principal** soma os fatores do relatório que favorecem a Horda, por fator e ala, nas derrotas se houve alguma; é aproximado, porque o relatório só guarda os três fatores decisivos.
 - **As perdas esperadas** são a média por posto, arredondada ao inteiro mais próximo.
 
+**D-7. Os comandantes depois da batalha (V4D-T3, 2026-10-23).** _(Números e leituras do agente, por aprovar; testes em `packages/engine/src/battleOutcome.test.ts`.)_
+
+- **As auras são dado da classe** (`heroClasses[].aura`), com os mesmos números da D-5 (+15% de defesa, +15% à distância, 20 de dano a cada 3 rodadas, 10% de cura a cada 2 rodadas e +20 de moral); saíram de `balance.battle.auras`, e o fator dos mortos-vivos ficou em `balance.battle.undeadFactor`. A ficha do herói diz o que ele dá como comandante (`commanderText`; as frases são rascunho).
+- **A gravidade do ferimento** é "a parte do dano" lida como a parte dos soldados que a ala do comandante perdeu: **grave com metade ou mais** (`battle.commanderInjury.severeAtLoss`, 1/2), leve abaixo disso; os prazos são os das expedições (2 h e 12 h de jogo).
+- **O desgaste por batalha** é de **1 ponto** por item de quem comandou e sobreviveu (`equipment.wearPerBattle`); quem morreu devolve o que levava ao arsenal sem desgaste.
+- **A ordem**: a linha `battleFought` primeiro, depois, comandante a comandante, o ferimento ou a morte (`commanderInjured`, e `commanderDied`, evento novo além do que o roadmap pede, porque a frase de `heroDied` fala de expedição), depois a experiência e por último o desgaste.
+- **A frase de `battleFought`** diz o desfecho e os três fatores decisivos sem número (`battleFactorLabels`, uma forma para o fator a favor do feudo e outra para o da Horda); sem fator, "a força dos braços". Rascunho que o autor não leu.
+
 ## 6. O que não foi verificado
 
 *Por tarefa, no Registro do [roadmap](roadmap-v0.4.md), §15.*

@@ -1163,7 +1163,10 @@ export const HeroClassesSchema = z.strictObject(
           }),
         ]),
         // Sem número escrito: os da aura entram pelos marcadores.
-        commanderText: z.string().min(1).regex(/^[^\d]*$/, 'a frase não escreve número'),
+        commanderText: z
+          .string()
+          .min(1)
+          .regex(/^[^\d]*$/, 'a frase não escreve número'),
       }),
     ]),
   ),
