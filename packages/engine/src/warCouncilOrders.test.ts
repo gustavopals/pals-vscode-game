@@ -172,3 +172,27 @@ describe('a frase do risco (V4D-T5)', () => {
     expect(riskText(withRisk('aura', null), true)).toMatch(/chefe da Horda/);
   });
 });
+
+describe('previewStale (V4D-T5)', () => {
+  const staleOf = (state: GameState) =>
+    deriveViewState(state, state.lastProcessedAt, { timeScale: 3 }).army.formations[0]
+      ?.previewStale;
+
+  it('dispensar ou treinar soldados da formação, e a Torre, desatualizam a prévia', () => {
+    const simulated = accept(yard(), simulate('formation-1')).state;
+    expect(staleOf(simulated)).toBe(false);
+    const dismissed = structuredClone(simulated);
+    dismissed.army.units.spearman -= 1;
+    expect(staleOf(dismissed)).toBe(true);
+    const tower = structuredClone(simulated);
+    tower.settlement.buildings.watchtower += 1;
+    expect(staleOf(tower)).toBe(true);
+  });
+
+  it('uma unidade que a formação não usa não desatualiza', () => {
+    const simulated = accept(yard(), simulate('formation-1')).state;
+    const other = structuredClone(simulated);
+    other.army.units.knight += 3;
+    expect(staleOf(other)).toBe(false);
+  });
+});

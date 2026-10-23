@@ -53,7 +53,7 @@ export function previewIsStale(state: GameState, formation: Formation): boolean 
   return (
     preview !== null &&
     preview.formationId === formation.id &&
-    preview.signature !== formationSignature(formation)
+    preview.signature !== formationSignature(state, formation)
   );
 }
 

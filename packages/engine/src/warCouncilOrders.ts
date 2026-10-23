@@ -18,11 +18,23 @@ import { previewBattle, type EnemyGuessPosts, type PreviewInput } from './warCou
  */
 
 /**
- * A impressão digital do conteúdo de uma formação (postos e comandantes, sem o nome): é o que a
- * prévia guarda para a visão saber que a formação mudou depois (`previewStale`).
+ * A impressão digital de uma prévia (V4D-T5): o conteúdo da formação (postos e comandantes, sem o
+ * nome), os soldados que o feudo tem em cada unidade que ela usa e o nível da Torre de Vigia.
+ * É o que a prévia guarda para a visão saber que ela envelheceu (`previewStale`): renomear não
+ * envelhece, mas dispensar ou treinar soldados, mudar a formação ou erguer a Torre, sim.
  */
-export function formationSignature(formation: Formation): number {
-  return hashText(JSON.stringify([formation.posts, formation.commanders]));
+export function formationSignature(state: GameState, formation: Formation): number {
+  const used = [
+    ...new Set(postEntries(formation).flatMap(({ post }) => (post === null ? [] : [post.unit]))),
+  ].sort();
+  return hashText(
+    JSON.stringify([
+      formation.posts,
+      formation.commanders,
+      used.map((unit) => [unit, state.army.units[unit]]),
+      watchtowerLevel(state),
+    ]),
+  );
 }
 
 /**
@@ -117,7 +129,7 @@ export function simulateBattle(
   draft.army.preview = {
     formationId: formation.id,
     atMs: nowMs,
-    signature: formationSignature(formation),
+    signature: formationSignature(draft, formation),
     runs: result.runs,
     wins: result.wins,
     glorious: result.glorious,
