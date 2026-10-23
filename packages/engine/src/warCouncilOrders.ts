@@ -8,6 +8,7 @@ import { findFormation, nominationReason, postEntries } from './formations';
 import { hashText } from './hash';
 import { reject } from './rejections';
 import { raidSizeAt, watchtowerLevel } from './threat';
+import { wallForBattle } from './wallRepair';
 import type { Formation, GameEvent, GameState, Rejection } from './types';
 import { previewBattle, type EnemyGuessPosts, type PreviewInput } from './warCouncil';
 
@@ -86,8 +87,8 @@ export function previewInputFor(state: GameState, formation: Formation): Preview
     mode: 'defense',
     player: { posts: filledPosts(state, formation), commanders },
     enemy: estimatedEnemy(state),
-    // A muralha com HP é da V4E-T1: até lá a prévia entra sem muralha (pendência D-7).
-    wall: {},
+    // A muralha como está agora, ala por ala (V4E-T1): a ala derrubada entra sem muralha.
+    wall: wallForBattle(state),
     watchtowerLevel: watchtowerLevel(state),
     heroCapture: balance.difficulties[state.settings.difficulty].heroCapture,
   };

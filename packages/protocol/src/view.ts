@@ -88,6 +88,9 @@ export const REJECTION_CODES = [
   'INVALID_UNIT',
   'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
+  'WALL_REQUIRED',
+  'WALL_INTACT',
+  'WALL_REPAIRING',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -1098,8 +1101,27 @@ const ThreatDefenseSchema = z.strictObject({
    * ferido; os médios passam, mas com metade do estrago."
    */
   text: z.string(),
-  /** O que o próximo nível passa a segurar; `null` com a Paliçada no teto desta versão. */
+  /** O que o próximo nível passa a segurar; `null` com a Paliçada no teto. */
   next: z.string().nullable(),
+  /** A muralha (V4E-T1): a vida de cada ala e o reparo. */
+  wall: z.strictObject({
+    levelLabel: z.string(),
+    hpText: z.strictObject({ left: z.string(), center: z.string(), right: z.string() }),
+    repairOffer: z.strictObject({
+      canRepair: z.boolean(),
+      stone: z.number(),
+      gold: z.number(),
+      seconds: z.number(),
+      text: z.string(),
+      blockedText: z.string().nullable(),
+      repairingInSeconds: z.number().nullable(),
+    }),
+  }),
+  /** As torres na batalha e o que os vigias dizem da composição (V4E-T1). */
+  tower: z.strictObject({
+    damageText: z.string().nullable(),
+    revealsComposition: z.enum(['none', 'archetypes', 'approximate', 'exact']),
+  }),
 });
 
 /** Uma incursão que os vigias já avistaram. */

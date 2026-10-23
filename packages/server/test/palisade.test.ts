@@ -257,7 +257,7 @@ describe('a Paliçada como obra, pela API', () => {
     expect(row.state.map.threat).toBe(0);
   });
 
-  it('no ritmo Rápido o prazo sai em tempo real, o nível 2 é o teto, e a recusa diz que a Muralha fica para depois', async () => {
+  it('no ritmo Rápido o prazo sai em tempo real, e depois do nível 2 vem a Muralha de Pedra', async () => {
     const game = await insertGame(fast, readyForPalisade('cerca-rapida', PACE), PACE);
     const fresh = await viewOf(fast, game, game.id);
     // 20 min de jogo são 6 min 40 s reais.
@@ -275,24 +275,15 @@ describe('a Paliçada como obra, pela API', () => {
     expect((await build()).status).toBe(200);
     await wait(fast, game, 10 * MINUTE);
     const top = await viewOf(fast, game, game.id);
-    expect(palisade(top)).toBeUndefined();
-    expect(top.threat.defense).toEqual({
+    // Desde a V4E-T1 o nível 2 não é mais o teto: a próxima obra é a Muralha de Pedra.
+    expect(palisade(top)?.targetLevel).toBe(3);
+    expect(top.threat.defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 2,
-      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido. A Muralha de Pedra chega em uma versão futura.',
-      next: null,
+      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido.',
+      next: 'Muralha de Pedra Nv3: cada ala da muralha passa a ter 200 de vida (em vez de 100).',
     });
-    const refused = await send<GameRuleError>(
-      fast,
-      game.token,
-      game.id,
-      order('startConstruction', { building: 'palisade' }),
-    );
-    expect(refused.status).toBe(422);
-    expect(refused.body.details.code).toBe('MAX_LEVEL');
-    expect(refused.body.message).toBe(
-      'A Paliçada já está no nível máximo. A Muralha de Pedra chega em uma versão futura.',
-    );
+    expect(top.threat.defense.wall.hpText.left).toBe('Ala esquerda: 100 de 100 de vida.');
   });
 
   it('cancelar a obra devolve 80% e deixa o feudo sem Paliçada', async () => {
@@ -496,8 +487,8 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
     expect(palisade(view)?.blockedCode).not.toBe('GATE_LOCKED');
 
     const row = await storedState(fast, game.id);
-    expect(row.schema_version).toBe(31);
-    expect(row.state.schemaVersion).toBe(31);
+    expect(row.schema_version).toBe(32);
+    expect(row.state.schemaVersion).toBe(32);
     // A Paliçada da versão 10, a Taverna da 16, a Guilda dos Aventureiros da 17 e o Mercado da 21
     // entram por construir.
     expect(row.state.settlement.buildings).toEqual({

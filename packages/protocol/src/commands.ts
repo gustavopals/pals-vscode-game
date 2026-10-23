@@ -292,6 +292,9 @@ export const SimulateBattleCommandSchema = command(
   z.strictObject({ formationId: z.string().min(1).max(64) }),
 );
 
+/** Repara a muralha (V4E-T1): o reparo entra na frente das obras e termina junto delas. */
+export const RepairWallCommandSchema = command('repairWall', z.strictObject({}));
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -323,6 +326,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   DeleteFormationCommandSchema,
   SetActiveFormationCommandSchema,
   SimulateBattleCommandSchema,
+  RepairWallCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

@@ -287,7 +287,9 @@ describe('Caravanas (GDD §5.9; ADR 0018, decisão 17)', () => {
     const { basePercent, perWatchtowerLevel, floorPercent } = caravan.ambush;
     const at = (level: number) => Math.max(floorPercent, basePercent - perWatchtowerLevel * level);
     expect([0, 1, 2].map(at)).toEqual([10, 5, 2]);
-    expect(buildings.watchtower.maxLevel).toBe(2);
+    // Do nível 3 ao 5 (V4E-T1) o piso continua valendo.
+    expect([3, 4, 5].map(at)).toEqual([2, 2, 2]);
+    expect(buildings.watchtower.maxLevel).toBe(5);
     expect(at(buildings.watchtower.maxLevel)).toBeGreaterThan(0);
   });
 

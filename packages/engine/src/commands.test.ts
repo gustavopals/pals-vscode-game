@@ -33,6 +33,7 @@ import {
   tavernScenario,
   tradeOrder,
   wear,
+  wallSite,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
@@ -356,6 +357,12 @@ describe('catálogo de recusas', () => {
     FORMATIONS_CAP: [formationYard(balance.army.formationsCap), saveFormationOrder('Mais uma')],
     INVALID_FORMATION: [yard, saveFormationOrder('   ')],
     FORMATION_ACTIVE: [formationYard(1, 0), command('deleteFormation', { id: 'formation-1' })],
+    WALL_REQUIRED: [rich, command('repairWall', {})],
+    WALL_INTACT: [wallSite(2), command('repairWall', {})],
+    WALL_REPAIRING: [
+      accept(wallSite(2, { left: 10 }), command('repairWall', {})).state,
+      command('repairWall', {}),
+    ],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

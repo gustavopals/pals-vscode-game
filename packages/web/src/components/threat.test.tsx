@@ -388,12 +388,12 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     );
   });
 
-  it('com a Torre no teto desta versão não há obra a ordenar, e a frase do servidor diz por quê', () => {
+  it('com a Torre no nível 2 a frase é a do servidor, e a obra do nível 3 existe (V4E-T1)', () => {
     const markup = box(panel(threatIncomingView), 'tower');
-    expect(buttons(markup)).toEqual([]);
-    expect(text(markup)).toBe(
-      'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
+    expect(text(markup)).toContain(
+      'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela.',
     );
+    expect(text(markup)).not.toContain('versões futuras');
   });
 
   it('com a Ameaça no máximo: sem prazo e sem seta de subida, só a frase do servidor', () => {
@@ -526,22 +526,23 @@ describe('painel "Ameaça": a Paliçada, com a obra ao lado (GDD §8.2 e §12.3)
     );
   });
 
-  it('no teto desta versão não há obra, e o motivo do limite é a frase do servidor', () => {
+  it('no teto não há obra, e a frase é a do servidor', () => {
     const ceiling = withoutPalisadeWork({
       ...threatWatchedView,
       threat: {
         ...watched(threatWatchedView),
         defense: {
+          ...watched(threatWatchedView).defense,
           building: 'palisade',
-          palisadeLevel: 2,
-          text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido. A Muralha de Pedra chega em uma versão futura.',
+          palisadeLevel: 6,
+          text: 'Baluarte Nv6: segura ataques leves e médios, sem perda nem ferido.',
           next: null,
         },
       },
     });
     const markup = box(panel(ceiling), 'defense');
     expect(buttons(markup)).toEqual([]);
-    expect(text(markup)).toContain('A Muralha de Pedra chega em uma versão futura.');
+    expect(text(markup)).toContain('Baluarte Nv6: segura ataques leves e médios');
     expect(text(markup)).not.toContain('madeira,');
   });
 
@@ -888,7 +889,7 @@ describe('a Torre de Vigia na lista de obras', () => {
     expect(open).not.toContain('Melhore antes');
   });
 
-  it('erguida, passa para "Melhorar" com o que o nível 2 acrescenta; no teto, sai da lista', () => {
+  it('erguida, passa para "Melhorar" com o que o nível 2 acrescenta, e depois o 3', () => {
     const built = constructions(threatWatchedView);
     expect(text(built)).toContain('Torre de Vigia Nv1 → Nv2 · 6 min');
     expect(text(built)).toContain(
@@ -897,7 +898,7 @@ describe('a Torre de Vigia na lista de obras', () => {
     expect(built.indexOf('Torre de Vigia Nv1 → Nv2')).toBeLessThan(
       built.indexOf('<h3>Construir</h3>'),
     );
-    expect(constructions(threatIncomingView)).not.toContain('Torre de Vigia');
+    expect(text(constructions(threatIncomingView))).toContain('Torre de Vigia Nv2 → Nv3');
   });
 });
 

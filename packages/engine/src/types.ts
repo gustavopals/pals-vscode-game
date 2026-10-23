@@ -28,6 +28,7 @@ import type {
   TileTypeId,
   TradeDirectionId,
   UnitId,
+  WatchtowerCompositionId,
   WingId,
 } from '@lotg/content';
 
@@ -524,7 +525,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 31;
+  schemaVersion: 32;
   seed: string;
   settings: GameSettings;
   /**
@@ -567,6 +568,18 @@ export type GameState = {
      * quantas estão abertas é derivado do nível do Salão, nunca guardado.
      */
     constructionQueues: Array<Construction | null>;
+    /**
+     * A muralha (V4E-T1; GDD §6.1 a §6.3): a vida de cada ala, de 0 à do nível da Paliçada
+     * (`balance.wall.hpByLevel`); sem Paliçada, zero nas três. O dano de uma batalha persiste
+     * até o reparo; a obra que sobe o nível soma a cada ala a vida que o nível novo dá a mais.
+     */
+    wall: { hp: Record<WingId, number> };
+    /**
+     * O reparo da muralha em curso (ordem `repairWall`), ou `null`: termina em `untilMs`, junto
+     * das obras, e deixa cada ala com `toHp`. Enquanto ele dura, as obras esperam (entra na
+     * frente da fila).
+     */
+    wallRepair: { untilMs: number; toHp: Record<WingId, number> } | null;
     /** As obras planejadas, na ordem em que o jogador as pôs: é a ordem do início automático. */
     planned: PlannedConstruction[];
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
@@ -1010,7 +1023,13 @@ export type Command =
    * contra o inimigo provável da estação. Grava `army.preview` (uma por vez); não sorteia no
    * gerador do estado nem cria entidade.
    */
-  | { commandId: string; type: 'simulateBattle'; payload: { formationId: string } };
+  | { commandId: string; type: 'simulateBattle'; payload: { formationId: string } }
+  /**
+   * Repara a muralha (GDD §6.3; V4E-T1): custa metade da pedra do nível e ouro igual, na
+   * proporção do que falta; leva 15 min de jogo por 25% da vida de uma ala; entra na frente das
+   * obras (que esperam) e termina junto delas. Não sorteia nem cria entidade.
+   */
+  | { commandId: string; type: 'repairWall'; payload: Record<string, never> };
 
 export type CommandType = Command['type'];
 
@@ -1082,6 +1101,9 @@ export const REJECTION_CODES = [
   'INVALID_UNIT',
   'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
+  'WALL_REQUIRED',
+  'WALL_INTACT',
+  'WALL_REPAIRING',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1470,10 +1492,50 @@ export type ThreatDefenseView = {
   text: string;
   /**
    * O que a próxima obra da Paliçada muda: "Paliçada Nv2: passa a segurar também os ataques
-   * médios, sem perda nem ferido."; `null` com a Paliçada no teto desta versão (`text` diz o
-   * que vem depois).
+   * médios, sem perda nem ferido."; `null` com a Paliçada no teto.
    */
   next: string | null;
+  /** A muralha (V4E-T1): a vida de cada ala e o reparo. */
+  wall: ThreatWallView;
+  /** As torres da Torre de Vigia na batalha e o que os vigias dizem da composição (V4E-T1). */
+  tower: ThreatTowerView;
+};
+
+/** A muralha na visão (V4E-T1; GDD §6.1 a §6.3). */
+export type ThreatWallView = {
+  /** "Muralha de Pedra Nv3", "Paliçada Nv1"; "Sem Paliçada" no nível 0. */
+  levelLabel: string;
+  /** "Ala esquerda: 120 de 200 de vida.", uma frase por ala; "Sem muralha." no nível 0. */
+  hpText: Record<WingId, string>;
+  repairOffer: ThreatWallRepairView;
+};
+
+/** O reparo da muralha (ordem `repairWall`): o que custa, quanto leva e se pode começar agora. */
+export type ThreatWallRepairView = {
+  /** A ordem `repairWall` seria aceita agora. */
+  canRepair: boolean;
+  /** Pedra e ouro do reparo de tudo o que falta, em unidades; zero sem nada a reparar. */
+  stone: number;
+  gold: number;
+  /** O prazo do reparo, em segundos reais. */
+  seconds: number;
+  /**
+   * "Reparar tudo custa 90 de pedra e 90 de ouro e leva 45 min; as obras em curso esperam."; "A
+   * muralha está inteira."; "Os pedreiros estão na muralha: termina em 20 min."
+   */
+  text: string;
+  /** Por que não pode começar agora (a frase da recusa), ou `null`. */
+  blockedText: string | null;
+  /** Segundos reais até o reparo em curso terminar; `null` sem reparo. */
+  repairingInSeconds: number | null;
+};
+
+/** As torres na visão (V4E-T1). */
+export type ThreatTowerView = {
+  /** "As torres atiram 12 de dano em cada ala a cada rodada de batalha."; `null` antes do Nv3. */
+  damageText: string | null;
+  /** O que os vigias dizem da composição de uma incursão, no nível de hoje da Torre. */
+  revealsComposition: WatchtowerCompositionId;
 };
 
 /** Uma incursão que os vigias já avistaram. Só existe para quem tem a Torre de Vigia. */

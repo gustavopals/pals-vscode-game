@@ -11,6 +11,7 @@ import {
   yearOf,
 } from './clock';
 import { finishConstructions } from './construction';
+import { finishWallRepair } from './wallRepair';
 import { finishForge } from './smithy';
 import { finishTraining } from './armyTurn';
 import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council';
@@ -130,6 +131,8 @@ export function processEventsAt(
   events: GameEvent[],
   catalog: Catalog = CATALOG,
 ): void {
+  // O reparo da muralha entra na frente das obras e termina junto delas, logo antes.
+  finishWallRepair(draft, atMs, events);
   finishConstructions(draft, atMs, events);
   // O lote da forja termina junto das obras: as armas já existem para tudo o que vem depois.
   finishForge(draft, atMs, events);
@@ -243,6 +246,7 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
   draft.lastProcessedAt = turn;
   draft.clock.gameTimeMs = turn;
   const unused: GameEvent[] = [];
+  finishWallRepair(draft, turn, unused);
   finishConstructions(draft, turn, unused);
   finishForge(draft, turn, unused);
   finishRecruitments(draft, turn, unused);

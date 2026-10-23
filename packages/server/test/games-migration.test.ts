@@ -105,6 +105,8 @@ function beforeMasters<T>(state: T): T {
       mastersWaiting?: unknown;
       weapons?: unknown;
       forge?: unknown;
+      wall?: unknown;
+      wallRepair?: unknown;
       buildings?: Record<string, unknown>;
     };
     guild?: {
@@ -121,6 +123,9 @@ function beforeMasters<T>(state: T): T {
   // E o Quartel e o exército, da versão 28 (V4C-T1): o edifício por construir e ninguém treinado.
   delete copy.settlement?.buildings?.barracks;
   delete (copy as { army?: unknown }).army;
+  // E a muralha, da versão 32 (V4E-T1.2): entra cheia pelo nível da Paliçada, sem reparo.
+  delete copy.settlement?.wall;
+  delete copy.settlement?.wallRepair;
   // E a condição dos itens, da versão 27 (V4B-T3): todo item entra cheio, e o lote da forja ganha o
   // tipo. Quem compara com um retrato antigo tira os dois.
   const stripCondition = (node: unknown): void => {

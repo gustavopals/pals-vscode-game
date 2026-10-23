@@ -456,6 +456,26 @@ describe('a divisão de intervalo continua exata com a Ameaça', () => {
   });
 });
 
+/** A muralha de quem não tem Paliçada, na visão (V4E-T1). */
+const NO_WALL = {
+  levelLabel: 'Sem Paliçada',
+  hpText: {
+    left: 'Ala esquerda: sem muralha.',
+    center: 'Centro: sem muralha.',
+    right: 'Ala direita: sem muralha.',
+  },
+  repairOffer: {
+    canRepair: false,
+    stone: 0,
+    gold: 0,
+    seconds: 0,
+    text: 'Sem Paliçada, não há muralha para reparar.',
+    blockedText: 'Sem Paliçada não há muralha para reparar.',
+    repairingInSeconds: null,
+  },
+};
+const NO_TOWERS = { damageText: null, revealsComposition: 'none' };
+
 describe('névoa de informação: a visão sem a Torre de Vigia', () => {
   it('diz que ninguém sabe o que ronda o feudo, o que a Torre daria e o que protege o feudo: mais nada', () => {
     expect(view(newGame())).toEqual({
@@ -474,6 +494,8 @@ describe('névoa de informação: a visão sem a Torre de Vigia', () => {
         palisadeLevel: 0,
         text: 'Sem Paliçada, nada segura um ataque.',
         next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+        wall: NO_WALL,
+        tower: NO_TOWERS,
       },
     });
   });
@@ -562,6 +584,8 @@ describe('a visão com a Torre de Vigia', () => {
         palisadeLevel: 0,
         text: 'Sem Paliçada, nada segura um ataque.',
         next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+        wall: NO_WALL,
+        tower: NO_TOWERS,
       },
     });
   });
@@ -667,13 +691,34 @@ describe('a visão com a Torre de Vigia', () => {
     }
   });
 
-  it('nível 2: diz o que faz e que os níveis seguintes ficam para depois, sem prometer data', () => {
+  it('nível 2: diz o que faz e o que o nível 3 muda: o aviso, os tipos de inimigo e as torres (V4E-T1)', () => {
     const { watchtower } = known(feud(8 * DAY, 40, 2));
     expect(watchtower).toEqual({
       building: 'watchtower',
       level: 2,
-      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
-      next: null,
+      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela.',
+      next: 'Torre de Vigia Nv3: avisa com 3 h de antecedência (em vez de 2 h), passa a dizer os tipos de inimigo e as torres passam a atirar 12 de dano em cada ala a cada rodada de batalha.',
+    });
+  });
+
+  it('níveis 3 a 5: a composição por partes e o dano das torres; no 5, sem próxima obra nem promessa', () => {
+    const three = known(feud(8 * DAY, 40, 3));
+    expect(three.watchtower.text).toBe(
+      'Torre de Vigia Nv3: mostra a Ameaça com a explicação, avisa de uma incursão com 3 h de antecedência, diz o tamanho dela e os tipos de inimigo e as torres atiram 12 de dano em cada ala a cada rodada de batalha.',
+    );
+    expect(three.watchtower.next).toBe(
+      'Torre de Vigia Nv4: avisa com 4 h de antecedência (em vez de 3 h), passa a dizer quantos inimigos vêm em cada ala e as torres atiram 24 de dano em cada ala (em vez de 12).',
+    );
+    expect(three.defense.tower).toEqual({
+      damageText: 'As torres atiram 12 de dano em cada ala a cada rodada de batalha.',
+      revealsComposition: 'archetypes',
+    });
+    const five = known(feud(8 * DAY, 40, 5));
+    expect(five.watchtower.next).toBeNull();
+    expect(five.watchtower.text).not.toMatch(/vers[aã]o|breve/);
+    expect(five.defense.tower).toEqual({
+      damageText: 'As torres atiram 36 de dano em cada ala a cada rodada de batalha.',
+      revealsComposition: 'exact',
     });
   });
 });
@@ -753,9 +798,11 @@ describe('a incursão marcada, vista da Torre', () => {
 
   it('os avisos de cada nível são os do conteúdo', () => {
     expect(watchtowerPerks(0)).toBeNull();
-    expect(watchtowerPerks(1)).toEqual({ warningRealMs: HOUR, revealsRaidSize: false });
-    expect(watchtowerPerks(2)).toEqual({ warningRealMs: 2 * HOUR, revealsRaidSize: true });
-    expect(watchtowerPerks(3)).toBeNull();
+    expect(watchtowerPerks(1)).toMatchObject({ warningRealMs: HOUR, revealsRaidSize: false });
+    expect(watchtowerPerks(2)).toMatchObject({ warningRealMs: 2 * HOUR, revealsRaidSize: true });
+    expect(watchtowerPerks(3)).toMatchObject({ warningRealMs: 3 * HOUR, towerDamage: 12 });
+    expect(watchtowerPerks(5)).toMatchObject({ warningRealMs: 5 * HOUR, composition: 'exact' });
+    expect(watchtowerPerks(6)).toBeNull();
   });
 });
 
@@ -835,27 +882,31 @@ describe('a Torre de Vigia como obra (GDD §6.1 e §6.2)', () => {
     ]);
   });
 
-  it('no nível 2 sai da lista, e a recusa diz que os níveis seguintes ficam para outra versão', () => {
-    const state = feud(10 * DAY, 50, 2, rich);
-    expect(buildings.watchtower.maxLevel).toBe(2);
-    expect(tower(state)).toBeUndefined();
-    const message =
-      'A Torre de Vigia já está no nível máximo. Os níveis seguintes chegam em versões futuras do jogo.';
-    expect(refuse(state, command('startConstruction', { building: 'watchtower' }))).toEqual({
+  it('do nível 2 ao 5 pela regra geral, com o que cada nível muda ao lado do custo; no 5 sai da lista, sem promessa (V4E-T1)', () => {
+    const state = feud(10 * DAY, 50, 2, (draft) => {
+      rich(draft);
+      draft.settlement.buildings.townHall = 4;
+    });
+    expect(tower(state)).toMatchObject({
+      fromLevel: 2,
+      targetLevel: 3,
+      durationSeconds: 27 * 60,
+      effect:
+        'Aviso de incursão: de 2 h para 3 h de antecedência. Os vigias passam a dizer os tipos de inimigo. As torres atiram 12 de dano em cada ala a cada rodada de batalha.',
+    });
+    expect(tower(state)?.cost.map((cost) => cost.amount)).toEqual([307, 307, 128]);
+    const top = feud(10 * DAY, 50, 5, rich);
+    expect(buildings.watchtower.maxLevel).toBe(5);
+    expect(tower(top)).toBeUndefined();
+    const message = 'A Torre de Vigia já está no nível máximo.';
+    expect(refuse(top, command('startConstruction', { building: 'watchtower' }))).toEqual({
       code: 'MAX_LEVEL',
       message,
     });
-    expect(refuse(state, command('planConstruction', { building: 'watchtower' }))).toEqual({
+    expect(refuse(top, command('planConstruction', { building: 'watchtower' }))).toEqual({
       code: 'MAX_LEVEL',
       message,
     });
-    // Os outros edifícios continuam com a recusa de sempre.
-    const top = feud(10 * DAY, 50, 2, (draft) => {
-      draft.settlement.buildings.farm = buildings.farm.maxLevel;
-    });
-    expect(refuse(top, command('planConstruction', { building: 'farm' })).message).toBe(
-      'A Fazenda já está no nível máximo.',
-    );
   });
 
   it('no inverno a obra leva uma vez e meia o prazo, como as outras', () => {

@@ -836,7 +836,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -2068,7 +2089,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -3337,7 +3379,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -4760,7 +4823,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -6182,7 +6266,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -7776,7 +7881,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -9209,7 +9335,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -10638,7 +10785,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -12058,7 +12226,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -13576,7 +13765,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -15077,7 +15287,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -16524,7 +16755,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -17385,6 +17637,39 @@
           "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 307,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 307,
+              "missing": 14
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 128,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 540,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 14 pedra.",
+          "planned": false,
+          "effect": "Aviso de incursão: de 2 h para 3 h de antecedência. Os vigias passam a dizer os tipos de inimigo. As torres atiram 12 de dano em cada ala a cada rodada de batalha."
+        },
+        {
           "building": "palisade",
           "label": "Paliçada",
           "fromLevel": 0,
@@ -17939,14 +18224,35 @@
       "watchtower": {
         "building": "watchtower",
         "level": 2,
-        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
-        "next": null
+        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela.",
+        "next": "Torre de Vigia Nv3: avisa com 3 h de antecedência (em vez de 2 h), passa a dizer os tipos de inimigo e as torres passam a atirar 12 de dano em cada ala a cada rodada de batalha."
       },
       "defense": {
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -19404,7 +19710,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -20265,6 +20592,39 @@
           "effect": "Capacidade de madeira, de pedra e de ferro: 500 → 1.000 cada."
         },
         {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 307,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 307,
+              "missing": 14
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 128,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 540,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 14 pedra.",
+          "planned": false,
+          "effect": "Aviso de incursão: de 2 h para 3 h de antecedência. Os vigias passam a dizer os tipos de inimigo. As torres atiram 12 de dano em cada ala a cada rodada de batalha."
+        },
+        {
           "building": "palisade",
           "label": "Paliçada",
           "fromLevel": 1,
@@ -20819,14 +21179,35 @@
       "watchtower": {
         "building": "watchtower",
         "level": 2,
-        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
-        "next": null
+        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela.",
+        "next": "Torre de Vigia Nv3: avisa com 3 h de antecedência (em vez de 2 h), passa a dizer os tipos de inimigo e as torres passam a atirar 12 de dano em cada ala a cada rodada de batalha."
       },
       "defense": {
         "building": "palisade",
         "palisadeLevel": 1,
         "text": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
-        "next": "Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido."
+        "next": "Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido.",
+        "wall": {
+          "levelLabel": "Paliçada Nv1",
+          "hpText": {
+            "left": "Ala esquerda: 0 de 60 de vida.",
+            "center": "Centro: 0 de 60 de vida.",
+            "right": "Ala direita: 0 de 60 de vida."
+          },
+          "repairOffer": {
+            "canRepair": true,
+            "stone": 25,
+            "gold": 25,
+            "seconds": 3600,
+            "text": "Reparar tudo custa 25 de pedra e 25 de ouro e leva 1 h; as obras em curso esperam o reparo.",
+            "blockedText": null,
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -22292,7 +22673,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -23576,7 +23978,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -25043,7 +25466,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -26378,7 +26822,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -27811,7 +28276,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -29329,7 +29815,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -30884,7 +31391,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -32521,7 +33049,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -34234,7 +34783,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -35963,7 +36533,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -37679,7 +38270,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -39545,7 +40157,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -41256,7 +41889,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -42760,7 +43414,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -44276,7 +44951,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -45828,7 +46524,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -47448,7 +48165,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -48930,7 +49668,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -50400,7 +51159,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {
@@ -51813,7 +52593,28 @@
         "building": "palisade",
         "palisadeLevel": 0,
         "text": "Sem Paliçada, nada segura um ataque.",
-        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.",
+        "wall": {
+          "levelLabel": "Sem Paliçada",
+          "hpText": {
+            "left": "Ala esquerda: sem muralha.",
+            "center": "Centro: sem muralha.",
+            "right": "Ala direita: sem muralha."
+          },
+          "repairOffer": {
+            "canRepair": false,
+            "stone": 0,
+            "gold": 0,
+            "seconds": 0,
+            "text": "Sem Paliçada, não há muralha para reparar.",
+            "blockedText": "Sem Paliçada não há muralha para reparar.",
+            "repairingInSeconds": null
+          }
+        },
+        "tower": {
+          "damageText": null,
+          "revealsComposition": "none"
+        }
       }
     },
     "guild": {

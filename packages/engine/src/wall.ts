@@ -1,4 +1,6 @@
-import { balance, buildings, WING_IDS, type Ratio, type WingId } from '@lotg/content';
+import { balance, WING_IDS, type Ratio, type WingId } from '@lotg/content';
+
+import { upgradeCost } from './construction';
 
 /**
  * As contas puras da muralha de pedra (GDD §6.1 a §6.3; ADR 0020, "Números da Fase E"):
@@ -30,22 +32,7 @@ export function wallTotalHp(level: number): number {
 
 /** A pedra que a obra do nível pedido da Paliçada custa (a base do reparo). */
 export function palisadeStoneAtLevel(level: number): number {
-  const def = buildings.palisade;
-  if (level <= 0) {
-    return 0;
-  }
-  const base = def.baseCost.stone ?? 0;
-  if (level === 1) {
-    return base;
-  }
-  if (level === 2) {
-    // Obra 1 -> 2: o custo base vezes 1,6, arredondado.
-    const { num, den } = balance.construction.costFactor;
-    return Math.floor((2 * base * num + den) / (2 * den));
-  }
-  const future = def.futureLevels ?? [];
-  const entry = future[Math.min(level - 2, future.length) - 1];
-  return entry?.cost.stone ?? 0;
+  return level <= 0 ? 0 : (upgradeCost('palisade', level - 1).stone ?? 0);
 }
 
 function ceilDiv(value: number, by: number): number {

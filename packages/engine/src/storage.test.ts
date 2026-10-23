@@ -1141,8 +1141,8 @@ describe('a visão do armazenamento', () => {
           housing: 9,
           granary: 8,
           warehouse: 8,
-          watchtower: 2,
-          palisade: 2,
+          watchtower: 5,
+          palisade: 6,
           tavern: 5,
           guild: 4,
           market: 5,
@@ -1983,8 +1983,11 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       housing: 9,
       granary: 8,
       warehouse: 8,
-      watchtower: 2,
-      palisade: 2,
+      // Desde a V4E-T1 a Torre vai até o 5 e a Paliçada até o 6 (a Muralha de Pedra e o
+      // Baluarte): a obra mais cara, a do Baluarte Nv6, pede 1.229 de madeira, 1.843 de pedra e
+      // 54.000 de ouro, e cabe (o ouro não tem teto de depósito).
+      watchtower: 5,
+      palisade: 6,
       tavern: 5,
       guild: 4,
       market: 5,
@@ -2009,8 +2012,9 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       housing: 8,
       granary: 7,
       warehouse: 7,
-      watchtower: 2,
-      palisade: 2,
+      // Em Rei de Ferro também: o Armazém no nível 7 (3.680) leva a obra mais cara da muralha.
+      watchtower: 5,
+      palisade: 6,
       tavern: 5,
       guild: 4,
       market: 5,

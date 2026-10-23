@@ -129,7 +129,6 @@ describe('cenário golden de 7 dias', () => {
       ['constructionStarted', 2],
       ['constructionFinished', 2],
     ]);
-    expect(refusals).toContain('MAX_LEVEL');
     expect(state.settlement.buildings.watchtower).toBe(2);
     // Os lobos (GDD §8.2). Os uivos às 18 h, sem vigia nenhum. A incursão do roteiro às 30 h,
     // leve, já com a Torre: os vigias avisam uma hora antes, e sem Paliçada ela custa 10% da
@@ -396,12 +395,14 @@ describe('cenário golden de 7 dias', () => {
       ],
     ]);
     expect(state.settlement.buildings.palisade).toBe(2);
-    expect(lastView.defense).toEqual({
+    expect(lastView.defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 2,
-      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido. A Muralha de Pedra chega em uma versão futura.',
-      next: null,
+      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido.',
+      next: 'Muralha de Pedra Nv3: cada ala da muralha passa a ter 200 de vida (em vez de 100).',
     });
+    // A Paliçada erguida pelo caminho do jogo tem a muralha cheia (V4E-T1).
+    expect(state.settlement.wall.hp).toEqual({ left: 100, center: 100, right: 100 });
     // A continuação da ponte chegou na mesma virada da roteirizada, com lugar para as duas; e,
     // mais adiante, outra continuação chegou na mesma virada de um sorteio.
     expect(

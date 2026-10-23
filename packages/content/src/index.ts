@@ -29,12 +29,11 @@ export type {
   StorageDef,
   TavernDef,
   ThreatDef,
-  FutureWatchtowerLevelDef,
   WallDef,
   WatchtowerLevelDef,
 } from './balance';
 export { buildings } from './buildings';
-export type { BuildingDef, FutureBuildingLevel } from './buildings';
+export type { BuildingDef, BuildingLevelDef } from './buildings';
 export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
 export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
 export { caravanTexts, marketTexts } from './caravans';
@@ -44,6 +43,7 @@ export {
   lineLabels,
   warCouncilTexts,
   wingLabels,
+  wingPhrases,
   wingLocatives,
 } from './formations';
 export { COUNTER_CYCLE, unitTexts, units } from './units';

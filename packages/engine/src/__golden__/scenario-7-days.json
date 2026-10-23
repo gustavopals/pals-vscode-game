@@ -349,14 +349,6 @@
    "hour": 97,
    "type": "startConstruction",
    "payload": {
-    "building": "watchtower"
-   },
-   "result": "MAX_LEVEL"
-  },
-  {
-   "hour": 97,
-   "type": "startConstruction",
-   "payload": {
     "building": "palisade"
    },
    "result": "accepted"
@@ -579,7 +571,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -650,6 +642,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     },
+     "wallRepair": null,
      "planned": [
       {
        "building": "farm",
@@ -817,7 +817,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -888,6 +888,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -1071,7 +1079,7 @@
    "day": 3,
    "eventsSoFar": 129,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1151,6 +1159,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -1367,7 +1383,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1447,6 +1463,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 60,
+       "center": 60,
+       "right": 60
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
@@ -1676,7 +1700,7 @@
    "day": 5,
    "eventsSoFar": 225,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1756,6 +1780,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 100,
+       "center": 100,
+       "right": 100
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -1983,7 +2015,7 @@
    "day": 6,
    "eventsSoFar": 273,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2069,6 +2101,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 100,
+       "center": 100,
+       "right": 100
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -2317,7 +2357,7 @@
    "day": 7,
    "eventsSoFar": 324,
    "state": {
-    "schemaVersion": 31,
+    "schemaVersion": 32,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2403,6 +2443,14 @@
       null,
       null
      ],
+     "wall": {
+      "hp": {
+       "left": 100,
+       "center": 100,
+       "right": 100
+      }
+     },
+     "wallRepair": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,

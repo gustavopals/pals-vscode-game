@@ -11,6 +11,7 @@ import {
 import { scriptedRaidsAfter } from './raids';
 import type { BuildingId, GameSettings, GameState, UnitId } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
+import { wallFullHp } from './wall';
 
 /** Cópia profunda: o estado é JSON puro, sem datas, mapas ou funções. */
 export function cloneState(state: GameState): GameState {
@@ -30,7 +31,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 31,
+    schemaVersion: 32,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -52,6 +53,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       workers: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       buildings: levels,
       constructionQueues: Array.from({ length: balance.construction.queues }, () => null),
+      wall: { hp: wallFullHp(levels.palisade) },
+      wallRepair: null,
       planned: [],
       recruitmentQueue: [],
       famine: null,

@@ -271,7 +271,7 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **O reparo** (`balance.wall.repair`): reparar toda a muralha (as três alas a zero) custa metade da pedra da obra do nível e **ouro igual à pedra**; o custo é proporcional ao que falta, arredondado para cima. O prazo é de 15 min de jogo por 25% da vida de **uma ala**, também proporcional, com as alas em sequência (o texto "15 min por 25%" não diz se é por ala ou no total).
 - **A Torre Nv3 a Nv5:** aviso com 3, 4 e 5 h reais (decisão 16), dano de 12, 24 e 36 por ala, e a composição revelada em três graus: Nv3 só os arquétipos ("muitas feras"), Nv4 a ordem de grandeza por ala, Nv5 a composição exata. Custo e tempo pela regra geral (× 1,6 e × 1,5) a partir do Nv2.
 - **A Paliçada Nv3 a Nv6:** madeira e pedra × 1,6 a partir de 300 e 450 (Nv6: 1.229 e 1.843, arredondado), ouro de 2.000, 6.000, 18.000 e 54.000 (ADR 0020), tempo de 1 h no Nv3 e × 1,5 por nível (202,5 min no Nv6, abaixo do teto de 8 h).
-- **Como ficou fora do jogo (regra 6):** os níveis novos estão em `buildings[...].futureLevels` e `balance.threat.futureWatchtowerLevels`, campos que o motor não lê; `maxLevel` continua 2 nos dois edifícios. A tarefa que ligar a muralha ao estado (V4E-T1.2 a T1.4) passa `maxLevel` ao último nível e apaga esses campos.
+- **Ligados ao jogo em 2026-10-23 (V4E-T1.2 a T1.4, branch `v4e-t1-estado`):** `maxLevel` 6 e 5; `futureLevels` e `futureWatchtowerLevels` saíram. A Torre Nv3 a Nv5 segue a regra geral sem tabela; a Paliçada Nv3 a Nv6 virou `buildings.palisade.levelTable` (o nível, o nome, o custo e o prazo de cada obra), e a Torre ganhou `composition` e `towerDamage` em `balance.threat.watchtowerLevels` (cinco entradas).
 
 **D-8. Os comandantes depois da batalha (V4D-T3, 2026-10-23).** _(**Aprovada pelo autor em 2026-10-23.** Antes: Números e leituras do agente, por aprovar; testes em `packages/engine/src/battleOutcome.test.ts`.)_
 
@@ -290,6 +290,18 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - **`stats.battlesSimulated`** mora em `stats` (registro livre de contadores), que já existia: o estado não ganha campo para ele, e a migração 30 → 31 só põe `army.preview: null`.
 - **A ordem recusa na ordem**: `FORMATION_NOT_FOUND`, depois `BARRACKS_REQUIRED`. O código mora em `warCouncilOrders.ts` (não em `armyOrders.ts`), junto da montagem da entrada da prévia, para `armyOrders.ts` não importar a prévia.
 - **O bot `militar`** simula a formação que monta antes de ativá-la; se a prévia der menos de 50% de vitória, salva "Defesa do bot B" (frente e Arqueiros repartidos por igual entre as três alas), simula e ativa a de melhor prévia. Só relê a visão (`army.preview.winsPercent`). Não tem faixa; `bands.ts`, `balance.test.ts` e `matrix.test.ts` ficaram como estavam.
+
+**D-10. A muralha no estado, o reparo e a visão (V4E-T1.2 a T1.4, 2026-10-23).** _(Decisões do agente, por aprovar; estado 31 → 32.)_
+
+- **Os níveis 3 a 6 da Paliçada seguram o que o 2 segura** (`palisadeLevels` com seis entradas, as quatro novas `medium`): até a V4E-T2 a incursão continua com a regra da v0.2, e a Muralha de Pedra não pode segurar menos que a Paliçada. O que a obra muda, na lista, é a vida de cada ala ("Cada ala da muralha passa a ter 200 de vida (em vez de 100).").
+- **O aviso da Torre Nv3 a Nv5 passa do prazo da incursão sorteada no ritmo 3** (9, 12 e 15 h de jogo contra 6 h): o schema deixou de exigir que todo nível caiba no prazo (só os dois primeiros). A incursão sorteada é avisada na virada que a sorteia; a antecedência a mais só vale para as marcadas antes (as do roteiro). A medir na V4E-T2.
+- **O reparo entra na frente de toda a fila**, não só da primeira: no instante da ordem toda obra em curso espera o prazo do reparo, e a obra que começa durante ele só corre depois. O prazo de tabela da lista de obras (`durationSeconds`) não conta essa espera. **O reparo não tem cancelamento** e repara sempre tudo o que falta (não há reparo de uma ala só).
+- **A obra da Paliçada soma à vida de cada ala o que o nível novo dá a mais**, sem curar o dano (a ala com 40 de 100 vira 140 de 200); durante um reparo, o alvo do reparo sobe junto.
+- **O dano de uma batalha** (`applyWallDamage`) põe cada ala no fim do relatório e não mexe no reparo em curso, que termina com o alvo que tinha (a batalha durante o reparo é da V4E-T2 e da revisão V4E-T5.1).
+- **A prévia do Conselho de Guerra passou a receber a muralha de hoje** (antes `wall: {}`); a ala com vida zero entra sem muralha.
+- **Os nomes Muralha de Pedra e Baluarte** aparecem na visão da defesa (`text`, `next`, `wall.levelLabel`) e não no rótulo da lista de obras, que continua "Paliçada".
+- **Na visão**, `threat.defense.wall.repairOffer` dá a pedra, o ouro e o prazo em segundos reais; as frases do reparo e das torres são rascunho que o autor não leu, montadas no motor (`threatView.ts`), como as outras da defesa.
+- **O cenário de 7 dias** deixou de pedir o nível 3 da Torre às 97 h (era para ver a recusa do teto, que não há mais).
 
 ## 6. O que não foi verificado
 
