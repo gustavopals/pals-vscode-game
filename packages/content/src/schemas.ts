@@ -1422,6 +1422,13 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
     heroId: z.enum(NAMED_HERO_IDS),
     afterDays: positiveInt.optional(),
   }),
+  z.strictObject({
+    type: z.literal('addMaster'),
+    masterId: z.enum(MASTER_IDS),
+    ifFlags: z.array(flag).min(1).optional(),
+  }),
+  z.strictObject({ type: z.literal('revealDestination') }),
+  z.strictObject({ type: z.literal('addSoldiers'), unit: z.enum(UNIT_IDS), amount: positiveInt }),
 ]);
 
 const effects = z
@@ -1445,11 +1452,16 @@ export const CouncilOptionSchema = z
     // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
     // dizendo o mesmo número.
     label: label.regex(
-      /^\p{Lu}\p{Ll}*(?:ar|er|ir|or|ôr)(?:\s[^\d.]*)?$/u,
+      /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la))(?:\s[^\d.]*)?$/u,
       'verbo no infinitivo, sem números',
     ),
     requires: z
-      .strictObject({ building: buildingId.optional(), resources: resourceAmounts.optional() })
+      .strictObject({
+        building: buildingId.optional(),
+        resources: resourceAmounts.optional(),
+        soldierRoom: positiveInt.optional(),
+        rosterRoom: z.literal(true).optional(),
+      })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
     cost: resourceAmounts.optional(),
@@ -1473,8 +1485,13 @@ export const CouncilOptionSchema = z
     if (known > 1) {
       context.addIssue({ code: 'custom', message: 'mais de um herói na mesma opção' });
     }
-    if (known > 0 && (option.cost !== undefined || option.requires !== undefined)) {
-      context.addIssue({ code: 'custom', message: 'herói de carta com custo ou requisito' });
+    // Um herói que o senhor contrata por um preço (docs/content-v0.4.md, 10.4) traz o custo e a
+    // vaga na lista de heróis; sem custo, a opção não exige nada, nem a vaga: o herói espera.
+    if (known > 0 && option.cost === undefined && option.requires !== undefined) {
+      context.addIssue({ code: 'custom', message: 'herói de carta sem custo com requisito' });
+    }
+    if ((option.hidden?.effects ?? []).some((effect) => effect.type === 'addMaster')) {
+      context.addIssue({ code: 'custom', message: 'Mestre de carta em efeito escondido' });
     }
     if (givesHero(option.hidden?.effects ?? []) > 0) {
       context.addIssue({ code: 'custom', message: 'herói de carta em efeito escondido' });
@@ -1504,10 +1521,16 @@ export const CouncilCardSchema = z
         flags: z.array(flag).min(1).optional(),
         notFlags: z.array(flag).min(1).optional(),
         moralRange: moralRange.optional(),
+        undiscovered: z.literal(true).optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
-    scripted: z.strictObject({ atGameDay: positiveInt }).optional(),
+    scripted: z
+      .union([
+        z.strictObject({ atGameDay: positiveInt }),
+        z.strictObject({ onHallLevel: positiveInt }),
+      ])
+      .optional(),
     autoResolve: z.strictObject(
       Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, identifier])) as Record<
         (typeof DIFFICULTY_IDS)[number],
@@ -1596,7 +1619,11 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
       ...(card.variants ?? []).map((variant) => variant.flag),
       ...card.options.flatMap((option) =>
         [...option.effects, ...(option.hidden?.effects ?? [])].flatMap((effect) =>
-          effect.type === 'clearFlag' ? [effect.flag] : [],
+          effect.type === 'clearFlag'
+            ? [effect.flag]
+            : effect.type === 'addMaster'
+              ? (effect.ifFlags ?? [])
+              : [],
         ),
       ),
     ];

@@ -379,12 +379,16 @@ describe('carta roteirizada', () => {
     expect(scriptedCard(later.state, 3 * YEAR, catalog)).toBeNull();
   });
 
-  it('a única roteirizada do jogo é a "Estrangeira ferida", no 13º dia (stranger.test.ts a segue de ponta a ponta)', () => {
+  it('a primeira roteirizada do jogo é a "Estrangeira ferida", no 13º dia (stranger.test.ts a segue de ponta a ponta); as do lote 2 vêm depois', () => {
     expect(
       councilCards
         .filter((entry) => entry.scripted !== undefined)
-        .map((entry) => [entry.id, entry.scripted?.atGameDay]),
-    ).toEqual([['woundedStranger', 13]]);
+        .map((entry) => [entry.id, entry.scripted]),
+    ).toEqual([
+      ['woundedStranger', { atGameDay: 13 }],
+      ['itinerantMerchant', { atGameDay: 20 }],
+      ['firstRecruit', { onHallLevel: 4 }],
+    ]);
   });
 });
 

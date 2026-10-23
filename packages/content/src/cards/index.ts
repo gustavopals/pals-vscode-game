@@ -5,6 +5,8 @@ import {
   palisadePromisePlea,
   palisadePromiseReckoning,
 } from './palisadePromise';
+import { firstRecruit, itinerantMerchant, tavernBard, tornMap, veteranCaptain } from './lote2';
+import { refugeesAtGates, refugeesCraft, refugeesReturn } from './refugees';
 import { woundedStranger } from './scripted';
 import {
   apprenticesTable,
@@ -37,6 +39,10 @@ import { thawBridgeCrossing, thawBridgePlea, thawBridgeSlab } from './thawBridge
  * nenhuma outra. O que ela muda é a audiência em que chega: vai na frente das sorteadas, e
  * naquela audiência o gerador não anda.
  *
+ * O lote 2 do Conselho (docs/content-v0.4.md, seções 4 a 8; roadmap da v0.4, V4H-T1) entra **no
+ * fim**, depois da roteirizada, cadeia a cadeia e carta a carta: ele não muda a ordem de quem já
+ * estava. A cadeia "Os Refugiados" é a primeira dele.
+ *
  * A lista é escrita carta a carta, sem espalhamento (`...`): assim o build do app, que só usa
  * as listas de identificadores do conteúdo, descarta as cartas inteiras.
  */
@@ -63,4 +69,12 @@ export const councilCards: readonly CouncilCard[] = [
   roofBeforeCold,
   harvestFeast,
   woundedStranger,
+  refugeesAtGates,
+  refugeesReturn,
+  refugeesCraft,
+  tavernBard,
+  tornMap,
+  itinerantMerchant,
+  firstRecruit,
+  veteranCaptain,
 ];

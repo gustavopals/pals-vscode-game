@@ -1,6 +1,7 @@
 import {
   balance,
   type ExpeditionDisasterId,
+  expeditionModels,
   type ExpeditionNodeKind,
   type ExpeditionOutcomeId,
   type HeroHarmId,
@@ -330,4 +331,17 @@ export function revealDestination(draft: GameState, modelId: string): boolean {
   }
   draft.map.discovered.push(modelId);
   return true;
+}
+
+/**
+ * O próximo destino que só aparece por descoberta e ainda não foi revelado, na ordem do
+ * catálogo de expedições; `null` quando todos já são conhecidos. É a conta do efeito de carta
+ * `revealDestination` e do requisito `undiscovered`; não sorteia.
+ */
+export function nextHiddenDestination(state: GameState): string | null {
+  return (
+    expeditionModels.find(
+      (model) => model.access.kind === 'discovered' && !state.map.discovered.includes(model.id),
+    )?.id ?? null
+  );
 }

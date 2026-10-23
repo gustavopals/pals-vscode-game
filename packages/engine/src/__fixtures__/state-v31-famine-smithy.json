@@ -21,12 +21,6 @@
    2222900658,
    4209952303,
    2123976726
-  ],
-  "council": [
-   3672655608,
-   3090227447,
-   2759847516,
-   3329409022
   ]
  },
  "ids": {},
@@ -116,8 +110,8 @@
  "council": {
   "pending": [
    {
-    "instanceId": "collapsedWell-1",
-    "cardId": "collapsedWell",
+    "instanceId": "firstRecruit-1",
+    "cardId": "firstRecruit",
     "drawnAtMs": 28800000,
     "expiresAtMs": 288000000,
     "origin": null
@@ -125,7 +119,7 @@
   ],
   "flags": {},
   "seenThisYear": [
-   "collapsedWell"
+   "firstRecruit"
   ],
   "nextDrawAtMs": 57600000,
   "scheduled": [],
@@ -215,6 +209,6 @@
  },
  "stats": {
   "cardsDrawn": 1,
-  "cardsDrawn:collapsedWell": 1
+  "cardsDrawn:firstRecruit": 1
  }
 }

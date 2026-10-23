@@ -214,21 +214,23 @@ describe('cenário golden de 7 dias', () => {
     expect(bands).toEqual([
       [92, 'restless'],
       [98, 'content'],
-      // A paliçada mostrada aos aldeões (+20 por três dias de jogo) leva o povo a "orgulhoso".
-      [122, 'proud'],
-      [128, 'content'],
-      [160, 'restless'],
-      [164, 'content'],
+      // V4H-T1: com o lote 2 no sorteio, a paliçada só é mostrada aos aldeões às 163 h, depois de
+      // o frio acabar (+20 por três dias de jogo levam o povo a "orgulhoso"): o "inquieto" das
+      // 160 h é o frio, e a moral não volta a "contente" antes do fim da semana.
+      [162, 'restless'],
+      [164, 'proud'],
     ]);
     const cold = events
       .filter((event) => event.type === 'coldStarted' || event.type === 'coldEnded')
       .map((event) => [event.type, Math.floor(event.atMs / HOUR)]);
     expect(cold).toEqual([
-      ['coldStarted', 159],
+      // V4H-T1: o sorteio mudou, a lenha úmida não saiu, e o frio abre uma hora depois (160 h).
+      ['coldStarted', 160],
       ['coldEnded', 163],
     ]);
     expect(events.filter((event) => event.type === 'villagerDeserted')).toEqual([]);
-    expect(state.settlement.morale).toBe(60);
+    // V4H-T1: a paliçada foi mostrada às 163 h, e a semana acaba com o efeito dela ainda valendo.
+    expect(state.settlement.morale).toBe(80);
     // O Conselho, de ponta a ponta, com as cartas do jogo. A primeira audiência é no 5º dia de
     // jogo (8 h). "A Ponte do Degelo" inteira: as vigas cedidas, a laje dois dias de jogo depois
     // da escolha, os pilares de pedra (o que eles escondiam aparece na 4ª virada: a carroça
@@ -257,29 +259,27 @@ describe('cenário golden de 7 dias', () => {
       [44, 'cardEffectApplied', 'thawBridgeSlab', 'piers'],
       [48, 'cardAnswered', 'woundedStranger', 'shelter'],
       [48, 'cardAnswered', 'thawBridgeCrossing', 'feast'],
-      [56, 'cardDrawn', 'moreMouths', undefined],
-      [60, 'cardAnswered', 'moreMouths', 'close'],
-      [64, 'cardDrawn', 'neighborsWatch', undefined],
-      [72, 'cardDrawn', 'apprenticesTable', undefined],
-      [88, 'cardExpired', 'neighborsWatch', 'vigil'],
-      [96, 'cardDrawn', 'roofBeforeCold', undefined],
-      [96, 'cardExpired', 'apprenticesTable', 'watch'],
-      [104, 'cardDrawn', 'collapsedWell', undefined],
+      [56, 'cardDrawn', 'itinerantMerchant', undefined],
+      [64, 'cardDrawn', 'masonsMeal', undefined],
+      [80, 'cardExpired', 'itinerantMerchant', 'wait'],
+      [88, 'cardDrawn', 'collapsedWell', undefined],
+      [88, 'cardExpired', 'masonsMeal', 'bread'],
+      [96, 'cardDrawn', 'neighborsWatch', undefined],
       [108, 'cardAnswered', 'collapsedWell', 'wait'],
-      [112, 'cardDrawn', 'palisadePromisePlea', undefined],
+      [112, 'cardDrawn', 'commonGranaryPlanks', undefined],
       [112, 'cardEffectApplied', 'collapsedWell', 'wait'],
-      [120, 'cardExpired', 'roofBeforeCold', 'hall'],
-      [120, 'cardAnswered', 'palisadePromisePlea', 'show'],
-      [128, 'cardDrawn', 'commonGranaryPlanks', undefined],
-      [132, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
-      [136, 'cardDrawn', 'dampFirewood', undefined],
-      [136, 'cardDrawn', 'commonGranaryShare', undefined],
-      [144, 'cardAnswered', 'commonGranaryShare', 'reserve'],
-      [148, 'cardDrawn', 'commonGranaryOutcome', undefined],
-      [150, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
-      [152, 'cardDrawn', 'sawmillRest', undefined],
-      [160, 'cardExpired', 'dampFirewood', 'leave'],
-      [168, 'cardDrawn', 'springNews', undefined],
+      [120, 'cardExpired', 'neighborsWatch', 'vigil'],
+      [120, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
+      [124, 'cardDrawn', 'commonGranaryShare', undefined],
+      [128, 'cardDrawn', 'harvestFeast', undefined],
+      [132, 'cardAnswered', 'commonGranaryShare', 'reserve'],
+      [136, 'cardDrawn', 'commonGranaryOutcome', undefined],
+      [144, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
+      [152, 'cardDrawn', 'firstRecruit', undefined],
+      [152, 'cardExpired', 'harvestFeast', 'store'],
+      [160, 'cardDrawn', 'palisadePromisePlea', undefined],
+      [163, 'cardAnswered', 'palisadePromisePlea', 'show'],
+      [168, 'cardDrawn', 'commonGranaryPlanks', undefined],
     ]);
     // Cada continuação leva a escolha que a trouxe: é o que liga as linhas na Crônica.
     const continuations = cards.filter((event) => event.data.source === 'continuation');
@@ -288,8 +288,8 @@ describe('cenário golden de 7 dias', () => {
     ).toEqual([
       ['thawBridgePlea-2', 'timber'],
       ['thawBridgeSlab-3', 'piers'],
-      ['commonGranaryPlanks-12', 'cede'],
-      ['commonGranaryShare-14', 'reserve'],
+      ['commonGranaryPlanks-10', 'cede'],
+      ['commonGranaryShare-11', 'reserve'],
     ]);
     // A estrangeira (GDD §9.1; ADR 0017, decisão 6): a carta chega pelo roteiro, uma vez, e a
     // resposta dá o primeiro herói no mesmo instante, sem custo. A linha da chegada dele vem
@@ -386,12 +386,12 @@ describe('cenário golden de 7 dias', () => {
       [
         'cardDrawn',
         undefined,
-        'No 9º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.',
+        'No 9º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.',
       ],
       [
         'cardAnswered',
         20,
-        'No 13º dia do Outono, o senhor de Pedra Alta do Norte levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
+        'No 10º dia do Inverno, o senhor de Pedra Alta do Norte levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
       ],
     ]);
     expect(state.settlement.buildings.palisade).toBe(2);
@@ -404,16 +404,17 @@ describe('cenário golden de 7 dias', () => {
     // A Paliçada erguida pelo caminho do jogo tem a muralha cheia (V4E-T1).
     expect(state.settlement.wall.hp).toEqual({ left: 100, center: 100, right: 100 });
     // A continuação da ponte chegou na mesma virada da roteirizada, com lugar para as duas; e,
-    // mais adiante, outra continuação chegou na mesma virada de um sorteio.
+    // mais adiante (V4H-T1: às 124 h, depois que o sorteio mudou), a continuação do celeiro chega
+    // sozinha, e a carta da colheita sai quatro horas depois.
     expect(
       cards.filter((event) => event.atMs === 40 * HOUR).map((event) => event.data.source),
     ).toEqual(['scripted', 'continuation']);
     expect(
-      cards.filter((event) => event.atMs === 136 * HOUR).map((event) => event.data.source),
-    ).toEqual(['draw', 'continuation']);
+      cards.filter((event) => event.atMs === 124 * HOUR).map((event) => event.data.source),
+    ).toEqual(['continuation']);
     expect(
       orders.filter((order) => order.type === 'answerCard').map((order) => order.result),
-    ).toEqual(Array.from({ length: 10 }, () => 'accepted'));
+    ).toEqual(Array.from({ length: 9 }, () => 'accepted'));
     // Quem não respondeu não perdeu nada: nenhuma expiração tirou recurso nem moral.
     for (const expired of cards.filter((event) => event.type === 'cardExpired')) {
       expect(Object.keys(expired.data).filter((key) => /^(spent|lost|morale)/.test(key))).toEqual(
@@ -428,16 +429,19 @@ describe('cenário golden de 7 dias', () => {
       'palisadePromise.kept': true,
       'commonGranary.gifted': true,
       'routine.neighborsWatch': true,
+      // V4H-T1: o mercador itinerante, que o conselho deixou seguir viagem sem o senhor.
+      'itinerant.heardOfMarket': true,
     });
     // A virada do ano zerou a lista das cartas vistas, e a audiência dela já trouxe a primeira
-    // carta do ano novo: a notícia da primavera. A serraria ainda espera na mesa. A estrangeira
-    // não volta: é uma vez por partida.
-    expect(state.council.seenThisYear).toEqual(['springNews']);
+    // carta do ano novo (V4H-T1: as tábuas para as reservas, que o ano anterior já tinha visto).
+    // A estrangeira não volta: é uma vez por partida.
+    expect(state.council.seenThisYear).toEqual(['commonGranaryPlanks']);
+    // E "O primeiro recruta" (às 152 h, com o Salão no nível 4) ainda espera na mesa.
     expect(state.council.pending.map((entry) => entry.cardId)).toEqual([
-      'sawmillRest',
-      'springNews',
+      'firstRecruit',
+      'commonGranaryPlanks',
     ]);
-    expect(state.stats).toMatchObject({ cardsDrawn: 17, cardsAnswered: 10, cardsExpired: 5 });
+    expect(state.stats).toMatchObject({ cardsDrawn: 16, cardsAnswered: 9, cardsExpired: 5 });
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
     // Os Objetivos do Senhor: nove dos dez, cada um quando o roteiro faz o que ele pede. Com o
