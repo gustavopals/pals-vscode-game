@@ -55,7 +55,8 @@ function filledPosts(state: GameState, formation: Formation): BattlePosts<UnitId
  */
 function estimatedEnemy(state: GameState): EnemyGuessPosts {
   const { units: totals, shares } = balance.battle.previewEnemy;
-  const total = totals[raidSizeAt(state.map.threat)];
+  // Sem Torre de Vigia o jogador não vê a Ameaça: a prévia não a lê e supõe a incursão leve.
+  const total = totals[watchtowerLevel(state) > 0 ? raidSizeAt(state.map.threat) : 'light'];
   const guess = (wing: WingId, line: LineId) => {
     const share = shares[wing][line];
     return share === 0

@@ -10,6 +10,7 @@ import {
   refuse,
   saveFormationOrder,
 } from './test-helpers';
+import { previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
 import type { GameState } from './types';
 
@@ -123,5 +124,26 @@ describe('simulateBattle (V4D-T2.2)', () => {
     const { state } = accept(yard(), simulate('formation-1'));
     const later = advanceTo(state, state.lastProcessedAt + 3_600_000).state;
     expect(later.army.preview).toEqual(state.army.preview);
+  });
+});
+
+describe('a prévia não vaza a Ameaça (V4D-T5)', () => {
+  const enemyAt = (threat: number, tower: number) => {
+    const state = yard();
+    state.map.threat = threat;
+    state.settlement.buildings.watchtower = tower;
+    const formation = state.army.formations[0];
+    if (formation === undefined) {
+      throw new Error('sem formação');
+    }
+    return previewInputFor(state, formation).enemy;
+  };
+
+  it('sem Torre de Vigia, Ameaça 0 e 100 dão a mesma prévia', () => {
+    expect(enemyAt(100, 0)).toEqual(enemyAt(0, 0));
+  });
+
+  it('com Torre, a Ameaça alta dá a incursão média', () => {
+    expect(enemyAt(100, 1)).not.toEqual(enemyAt(0, 1));
   });
 });
