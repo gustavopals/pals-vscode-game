@@ -18,7 +18,8 @@ import type { GameState } from './types';
  *
  * Há fluxos **fixos**, um por assunto (`RNG_STREAMS`), e fluxos **de entidade**, um por entidade
  * que nasce e morre durante a partida (`RNG_STREAM_FAMILIES`): `expedition:expedition-<n>`,
- * `caravan:caravan-<n>`, sempre de um identificador já dado (`1 ≤ n ≤ state.ids[família]`). O fluxo de uma entidade é apagado quando ela termina (`dropStream`), e o
+ * `caravan:caravan-<n>` e, desde a v0.4 (V4D-T1.4), `battle:battle-<n>`, que nasce e é apagado
+ * dentro do instante da batalha e por isso nunca é gravado; sempre de um identificador já dado (`1 ≤ n ≤ state.ids[família]`). O fluxo de uma entidade é apagado quando ela termina (`dropStream`), e o
  * identificador dela nunca é reutilizado (`ids.ts`), então um fluxo apagado não renasce.
  *
  * Quem sorteia é `advanceTo`, em eventos com hora marcada na linha do tempo. `deriveViewState`,
@@ -49,7 +50,7 @@ export type FixedRngStream = (typeof RNG_STREAMS)[number];
  * entidades nunca dividem um fluxo, então a ordem em que são processadas e a existência de
  * uma não mudam a sorte da outra.
  */
-export const RNG_STREAM_FAMILIES = ['expedition', 'caravan'] as const;
+export const RNG_STREAM_FAMILIES = ['expedition', 'caravan', 'battle'] as const;
 export type RngStreamFamily = (typeof RNG_STREAM_FAMILIES)[number];
 export type EntityRngStream = `${RngStreamFamily}:${string}`;
 

@@ -423,8 +423,8 @@ describe('fluxos de entidade', () => {
   /** Um nome qualquer, como chegaria de um código que burlou o tipo. */
   const unsafe = (name: string) => name as RngStream;
 
-  it('as famílias são a expedição e a caravana, e os fluxos fixos são os três da v0.2, o da Taverna e o do Mercado', () => {
-    expect(RNG_STREAM_FAMILIES).toEqual(['expedition', 'caravan']);
+  it('as famílias são a expedição, a caravana e a batalha, e os fluxos fixos são os três da v0.2, o da Taverna e o do Mercado', () => {
+    expect(RNG_STREAM_FAMILIES).toEqual(['expedition', 'caravan', 'battle']);
     expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern', 'market']);
   });
 
