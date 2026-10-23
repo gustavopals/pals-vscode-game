@@ -554,6 +554,68 @@ export type ArmyDef = {
   readonly formationNameMaxLength: number;
 };
 
+/**
+ * A batalha (GDD §10.1 a §10.4; ADR 0019, decisões 10 e 11). Tudo em inteiros e frações: um
+ * arredondamento só, para baixo, no dano efetivo. Os atributos das unidades estão em `units.ts`
+ * e os dos inimigos em `enemies.ts`.
+ */
+export type BattleDef = {
+  /** O fim por tempo: em defesa é "Resistiu"; em ataque, o atacante recua. */
+  readonly maxRounds: number;
+  /** A sorte de cada esquadrão em cada rodada, um inteiro de `min` a `max`, sobre 100. */
+  readonly luck: { readonly min: number; readonly max: number };
+  /** O dano que a defesa do alvo absorve: `def × n × absorb`. */
+  readonly absorb: Ratio;
+  /** A parte do dano bruto que sempre passa. */
+  readonly minDamage: Ratio;
+  /** O ataque pelo flanco, quando a ala oposta não tem esquadrões. */
+  readonly flank: Ratio;
+  /** O contra-ataque do ciclo de arquétipos. */
+  readonly counter: Ratio;
+  /** A parte do dano à Retaguarda que os Escudeiros da Frente da ala tomam para si. */
+  readonly shieldbearerShare: Ratio;
+  readonly wall: {
+    /** O dano à distância da Horda, que passa por cima da muralha. */
+    readonly enemyRangedFactor: Ratio;
+    /** Os arqueiros do jogador atrás da muralha de pé da própria ala. */
+    readonly coverFactor: Ratio;
+    /** A parte do golpe de quem ignora metade da muralha (o Ogro) que vai à muralha. */
+    readonly ignoresHalfShare: Ratio;
+  };
+  /** As torres: dano fixo por ala, em cada rodada, a partir deste nível da Torre de Vigia. */
+  readonly towers: { readonly fromLevel: number; readonly damagePerLevel: number };
+  readonly morale: {
+    readonly start: number;
+    readonly perSquad: number;
+    readonly perWing: number;
+    readonly perCommander: number;
+    /** Debandada com a moral igual ou abaixo deste valor, conferida no fim da rodada. */
+    readonly routAtOrBelow: number;
+  };
+  /** As auras dos comandantes por classe (GDD §10.1). */
+  readonly auras: {
+    /** Guerreiro: a defesa da ala. */
+    readonly warriorDefense: Ratio;
+    /** Arqueiro: o dano à distância da ala. */
+    readonly archerRanged: Ratio;
+    /** Mago: dano fixo em cada esquadrão da ala oposta, a cada `everyRounds` rodadas. */
+    readonly mage: { readonly everyRounds: number; readonly damage: number };
+    /** Clériga: cura uma parte da Frente da ala a cada `everyRounds` rodadas, e moral no começo. */
+    readonly cleric: {
+      readonly everyRounds: number;
+      readonly heal: Ratio;
+      readonly morale: number;
+    };
+    /** O dano de Mago e Clériga contra quem o sofre em dobro (`takesDoubleFrom`). */
+    readonly undeadFactor: Ratio;
+  };
+  /** A experiência de quem comandou uma ala, por desfecho, no molde de `expeditions.xpShare`. */
+  readonly commanderXp: number;
+  readonly commanderXpShare: { readonly won: Ratio; readonly lost: Ratio };
+  /** Quantos relatórios de batalha o exército guarda. */
+  readonly reportsKept: number;
+};
+
 export type MarketDef = {
   /** O que se negocia, na ordem do sorteio do preço de cada dia. */
   readonly resources: readonly MarketResourceId[];
@@ -653,6 +715,7 @@ export type Balance = {
   readonly masters: MastersDef;
   readonly smithy: SmithyDef;
   readonly army: ArmyDef;
+  readonly battle: BattleDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -1120,5 +1183,34 @@ export const balance: Balance = {
     postMaxFromLevel: { level: 5, max: 30 },
     formationNameMinLength: 1,
     formationNameMaxLength: 30,
+  },
+  // GDD §10.1 a §10.4 e ADR 0019, decisão 11 (os fatores do GDD em fração). Propostas do agente
+  // (V4D-T1.3, por aprovar): o dano do Mago (20), a experiência do comandante (40, metade na
+  // derrota) e a cura da Clériga sobre a vida da Frente no começo da batalha.
+  battle: {
+    maxRounds: 12,
+    luck: { min: 90, max: 110 },
+    absorb: { num: 1, den: 2 },
+    minDamage: { num: 1, den: 5 },
+    flank: { num: 5, den: 4 },
+    counter: { num: 3, den: 2 },
+    shieldbearerShare: { num: 1, den: 2 },
+    wall: {
+      enemyRangedFactor: { num: 7, den: 10 },
+      coverFactor: { num: 6, den: 5 },
+      ignoresHalfShare: { num: 1, den: 2 },
+    },
+    towers: { fromLevel: 3, damagePerLevel: 12 },
+    morale: { start: 100, perSquad: 10, perWing: 20, perCommander: 15, routAtOrBelow: 30 },
+    auras: {
+      warriorDefense: { num: 23, den: 20 },
+      archerRanged: { num: 23, den: 20 },
+      mage: { everyRounds: 3, damage: 20 },
+      cleric: { everyRounds: 2, heal: { num: 1, den: 10 }, morale: 20 },
+      undeadFactor: { num: 2, den: 1 },
+    },
+    commanderXp: 40,
+    commanderXpShare: { won: { num: 1, den: 1 }, lost: { num: 1, den: 2 } },
+    reportsKept: 3,
   },
 };

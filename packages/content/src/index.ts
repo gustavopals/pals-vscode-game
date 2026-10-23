@@ -16,6 +16,7 @@ export type {
   MastersDef,
   SmithyDef,
   ArmyDef,
+  BattleDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,
