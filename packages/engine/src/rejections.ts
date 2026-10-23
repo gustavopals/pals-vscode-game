@@ -238,6 +238,8 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       ? 'Falta 1 arma: o Ferreiro a forja.'
       : `Faltam ${count} armas: o Ferreiro as forja.`,
   NOT_TRAINING: () => 'Não há lote em treino para cancelar.',
+  TRAINING_CHANGED: () =>
+    'O lote do pátio mudou desde que você o viu: nada foi cancelado. Confira o lote de agora.',
   INVALID_UNIT: () => 'Essa unidade não existe no Quartel.',
   NOT_ENOUGH_SOLDIERS: ({ count = 0 }) =>
     count === 0 ? 'Não há soldados dessa unidade.' : `Só há ${count} soldados dessa unidade.`,

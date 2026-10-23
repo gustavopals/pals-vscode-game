@@ -8,6 +8,7 @@ import {
   soldierCount,
   trainingCost,
   trainingDurationMs,
+  trainingLotKey,
   trainingRefund,
   trainingWeapons,
   troopText,
@@ -120,12 +121,17 @@ export function trainSoldiers(
  */
 export function cancelTraining(
   draft: GameState,
+  lotKey: unknown,
   nowMs: number,
   events: GameEvent[],
 ): Rejection | null {
   const batch = draft.army.training;
   if (batch === null) {
     return reject('NOT_TRAINING');
+  }
+  // O lote que o jogador viu terminou e outro entrou: cancelar este seria cancelar o que ele não viu.
+  if (trainingLotKey(batch) !== lotKey) {
+    return reject('TRAINING_CHANGED');
   }
   const refund = trainingRefund(batch.unit, batch.amount);
   const gained: Record<string, number> = {};

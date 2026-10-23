@@ -99,6 +99,18 @@ export function soldierFoodExtra(state: GameState): number {
   );
 }
 
+/**
+ * A identidade do lote em treino: derivada do instante em que começou, da unidade e da
+ * quantidade (um lote por vez; nada sorteia nem pede identificador). O cancelamento a confere.
+ */
+export function trainingLotKey(batch: {
+  unit: UnitId;
+  amount: number;
+  startedAtMs: number;
+}): string {
+  return `${batch.startedAtMs}:${batch.unit}:${batch.amount}`;
+}
+
 /** "3 lanceiros", "1 espadachim": a tropa de um lote, nas frases da Crônica e da visão. */
 export function troopText(unit: UnitId, amount: number): string {
   const def = units[unit];

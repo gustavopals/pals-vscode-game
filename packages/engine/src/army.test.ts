@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { netRates } from './economy';
+import { trainingLotKey } from './army';
 import { inhabitants } from './masters';
 import { accept, apply, barracksYard, command, DAY, HOUR, MINUTE } from './test-helpers';
 import { nextEventAt } from './timeline';
@@ -156,7 +157,12 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     const start = barracksYard(0);
     const ordered = accept(start, command('trainSoldiers', { unit: 'knight', amount: 5 })).state;
     expect(ordered.settlement.weapons).toBe(1);
-    const { state, events } = accept(ordered, command('cancelTraining', {}));
+    const { state, events } = accept(
+      ordered,
+      command('cancelTraining', {
+        lotKey: ordered.army.training ? trainingLotKey(ordered.army.training) : '',
+      }),
+    );
     expect(state.army.training).toBeNull();
     // 80% de 5 cavaleiros: 240 de comida, 240 de ouro e 4 armas.
     expect(state.settlement.resources.food).toBe(
@@ -169,6 +175,23 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
     expect(events.map((event) => event.type)).toEqual(['trainingCancelled']);
     // O lote cancelado não deixa instante marcado na linha do tempo.
     expect(nextEventAt(state)).not.toBe(20 * MINUTE + 0);
+  });
+
+  it('cancelar confere a identidade do lote: o lote que mudou com a pergunta aberta é recusado', () => {
+    const ordered = accept(
+      barracksYard(0),
+      command('trainSoldiers', { unit: 'archer', amount: 2 }),
+    ).state;
+    const seen = deriveViewState(ordered, 1).army.training?.lotKey;
+    expect(seen).toBe(ordered.army.training ? trainingLotKey(ordered.army.training) : '?');
+    // O lote visto terminou e outro entrou, mais tarde.
+    const later = advanceTo(ordered, 2 * HOUR).state;
+    const another = accept(later, command('trainSoldiers', { unit: 'archer', amount: 2 })).state;
+    const stale = refused(another, 'cancelTraining', { lotKey: seen ?? '' });
+    expect(stale.code).toBe('TRAINING_CHANGED');
+    expect(stale.message).toContain('mudou');
+    // Sem lote nenhum, continua NOT_TRAINING.
+    expect(refused(later, 'cancelTraining', { lotKey: seen ?? '' }).code).toBe('NOT_TRAINING');
   });
 
   it('dispensar devolve aldeões sem ofício e não devolve o custo', () => {

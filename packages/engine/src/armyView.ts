@@ -6,6 +6,7 @@ import {
   soldierCount,
   soldierFoodRate,
   trainingDurationMs,
+  trainingLotKey,
   trainingRefund,
   troopText,
 } from './army';
@@ -133,6 +134,7 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
             endsInSeconds: realSecondsCeil(training.endsAtMs - state.lastProcessedAt, timeScale),
             totalSeconds: realSecondsCeil(training.endsAtMs - training.startedAtMs, timeScale),
             cancelRefundText: refundText(training.unit, training.amount),
+            lotKey: trainingLotKey(training),
           },
     offer: UNIT_IDS.map((id) => offerOf(state, id, level, timeScale)),
     formations: formationViews(state),

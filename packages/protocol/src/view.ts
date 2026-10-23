@@ -84,6 +84,7 @@ export const REJECTION_CODES = [
   'ARMY_LIMIT',
   'NOT_ENOUGH_WEAPONS',
   'NOT_TRAINING',
+  'TRAINING_CHANGED',
   'INVALID_UNIT',
   'NOT_ENOUGH_SOLDIERS',
   'ITEM_INTACT',
@@ -829,6 +830,7 @@ const ArmySchema = z.strictObject({
       endsInSeconds: z.number(),
       totalSeconds: z.number(),
       cancelRefundText: z.string(),
+      lotKey: z.string(),
     })
     .nullable(),
   offer: z.array(

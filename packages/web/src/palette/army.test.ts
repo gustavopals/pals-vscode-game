@@ -143,18 +143,39 @@ describe('cancelar o treino', () => {
       throw new Error('esperava a confirmação');
     }
     expect(confirm.detail).toContain(armyTrainingView.army.training?.cancelRefundText);
-    expect(orders()).toEqual([{ type: 'cancelTraining', payload: {} }]);
+    expect(orders()).toEqual([{ type: 'cancelTraining', payload: { lotKey: '0:archer:4' } }]);
   });
 
   it('o painel manda o cancelamento conferido; sem lote, um aviso', async () => {
     const sent = await setup(armyTrainingView);
-    await sent.run('lords.cancelTraining', { confirmed: true });
+    await sent.run('lords.cancelTraining', { confirmed: true, lotKey: '0:archer:4' });
     expect(sent.shown).toEqual([]);
-    expect(sent.orders()).toEqual([{ type: 'cancelTraining', payload: {} }]);
+    expect(sent.orders()).toEqual([{ type: 'cancelTraining', payload: { lotKey: '0:archer:4' } }]);
     const none = await setup(armyIdleView);
     await none.run('lords.cancelTraining');
     expect(none.orders()).toEqual([]);
     expect(none.toasts().join(' ')).toContain('Não há lote');
+  });
+
+  it('o lote que mudou com a pergunta aberta (outra identidade) não é cancelado', async () => {
+    const made = await setup(armyTrainingView);
+    const training = armyTrainingView.army.training;
+    if (training === null) {
+      throw new Error('o cenário pede um lote');
+    }
+    made.answers.push(async () => {
+      // Mesma unidade, mesma quantidade, mesma duração: só a identidade do lote mudou.
+      made.api.state.view = {
+        ...armyTrainingView,
+        army: { ...armyTrainingView.army, training: { ...training, lotKey: '9999:archer:4' } },
+      };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      return true;
+    });
+    await made.run('lords.cancelTraining');
+    expect(made.orders()).toEqual([]);
+    expect(made.toasts().join(' ')).toContain('O lote do pátio mudou');
   });
 
   it('manter o lote não envia nada', async () => {
@@ -200,13 +221,13 @@ describe('dispensar', () => {
 describe('a intenção do treino', () => {
   it('treinar e cancelar são a mesma intenção; dispensar é por unidade', () => {
     expect(intentOf('trainSoldiers', { unit: 'archer', amount: 2 })).toBe(
-      intentOf('cancelTraining', {}),
+      intentOf('cancelTraining', { lotKey: 'k' }),
     );
     expect(intentOf('disbandSoldiers', { unit: 'archer', amount: 1 })).not.toBe(
       intentOf('disbandSoldiers', { unit: 'knight', amount: 1 }),
     );
     expect(intentOf('disbandSoldiers', { unit: 'archer', amount: 1 })).not.toBe(
-      intentOf('cancelTraining', {}),
+      intentOf('cancelTraining', { lotKey: 'k' }),
     );
   });
 });

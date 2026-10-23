@@ -1368,11 +1368,14 @@ export function createCommands(
   };
 
   /** A unidade e a quantidade que o painel manda já conferidas (`confirmed`). */
-  const armyArg = (arg: unknown): { unit?: UnitId; amount?: number; confirmed: boolean } => {
+  const armyArg = (
+    arg: unknown,
+  ): { unit?: UnitId; amount?: number; lotKey?: string; confirmed: boolean } => {
     const record = typeof arg === 'object' && arg !== null ? (arg as Record<string, unknown>) : {};
     return {
       ...(typeof record.unit === 'string' ? { unit: record.unit as UnitId } : {}),
       ...(typeof record.amount === 'number' ? { amount: record.amount } : {}),
+      ...(typeof record.lotKey === 'string' ? { lotKey: record.lotKey } : {}),
       confirmed: record.confirmed === true,
     };
   };
@@ -1499,8 +1502,9 @@ export function createCommands(
     if (view === null) {
       return;
     }
-    if (armyArg(arg).confirmed) {
-      await controller.cancelTraining();
+    const asked = armyArg(arg);
+    if (asked.confirmed && asked.lotKey !== undefined) {
+      await controller.cancelTraining(asked.lotKey);
       return;
     }
     const none = () =>
@@ -1535,11 +1539,7 @@ export function createCommands(
     }
     // A ordem não leva o lote: se ele terminou e outro entrou com a pergunta aberta, cancelar
     // agora seria cancelar o que o jogador não viu (como na forja).
-    if (
-      now.unit !== training.unit ||
-      now.amount !== training.amount ||
-      now.totalSeconds !== training.totalSeconds
-    ) {
+    if (now.lotKey !== training.lotKey) {
       controller.toast({
         kind: 'info',
         text: 'O lote do pátio mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
@@ -1547,7 +1547,7 @@ export function createCommands(
       });
       return;
     }
-    await controller.cancelTraining();
+    await controller.cancelTraining(training.lotKey);
   });
 
   /**

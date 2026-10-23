@@ -960,6 +960,7 @@ export const armyTrainingView: ViewState = {
       endsInSeconds: 600,
       totalSeconds: 900,
       cancelRefundText: 'Cancelar devolve 80% dos recursos: 96 de comida.',
+      lotKey: '0:archer:4',
     },
   },
 };
