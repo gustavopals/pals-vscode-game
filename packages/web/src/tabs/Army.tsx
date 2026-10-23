@@ -7,6 +7,7 @@ import { BarracksPanel } from '../components/BarracksPanel';
 import { FormationEditor } from '../components/FormationEditor';
 import { FormationList } from '../components/FormationList';
 import { Header } from '../components/Header';
+import { WarCouncilPanel } from '../components/WarCouncilPanel';
 import { Icon } from '../components/shared';
 import { type Draft, draftOf, emptyDraft } from '../ui/formation';
 
@@ -73,6 +74,13 @@ function Formations(props: {
         disabled={props.disabled}
         busy={props.busy.has(`formation:${draft.id ?? 'new'}`)}
         actions={actions}
+      />
+      <WarCouncilPanel
+        army={army}
+        formationId={draft.id}
+        disabled={props.disabled}
+        busy={props.busy}
+        actions={props.actions}
       />
     </div>
   );

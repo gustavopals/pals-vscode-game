@@ -1711,6 +1711,59 @@ export function createCommands(
     await controller.setActiveFormation(id);
   });
 
+  /**
+   * "Simular batalha…" (V4D-T4): a prévia do Conselho de Guerra de uma formação salva. O painel
+   * manda o `id`; a paleta pergunta qual. A formação é conferida de novo depois do diálogo.
+   */
+  const simulateBattle = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const record = formationArg(arg);
+      if (view.army.formations.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: 'Não há formação salva para simular. Monte uma no editor do Exército.',
+          actions: [seeArmy],
+        });
+        return;
+      }
+      const id =
+        typeof record.id === 'string'
+          ? record.id
+          : await dialogs.pick<string>({
+              title: 'Simular batalha',
+              placeholder: 'Qual formação?',
+              items: view.army.formations.map((entry) => ({
+                icon: ARMY_ICON,
+                label: entry.name,
+                description: entry.isActive ? 'Defesa ativa' : entry.shortfallText,
+                value: entry.id,
+              })),
+            });
+      if (id === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a prévia da batalha');
+        return;
+      }
+      if (!(controller.view?.army.formations ?? []).some((entry) => entry.id === id)) {
+        controller.toast({
+          kind: 'info',
+          text: 'A formação já não existe. Nada foi enviado.',
+          actions: [seeArmy],
+        });
+        return;
+      }
+      await controller.simulateBattle(id);
+    },
+    (arg) => `simulate:${String(formationArg(arg).id ?? '')}`,
+  );
+
   const deleteFormation = oneAtATime(
     async (arg) => {
       const view = requireView();
@@ -3548,6 +3601,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: setActiveFormation,
+    },
+    {
+      id: 'lords.simulateBattle',
+      title: 'Simular batalha…',
+      palette: true,
+      when: hasGame,
+      run: simulateBattle,
     },
     {
       id: 'lords.deleteFormation',
