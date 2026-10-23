@@ -48,7 +48,9 @@ import {
   TAVERN_CANDIDATE_IDS,
   TILE_TYPE_IDS,
   UNIT_IDS,
+  HORDE_UNIT_IDS,
 } from './ids';
+import { ARCHETYPES } from './enemies';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
 const positiveInt = z.number().int().positive();
@@ -1852,3 +1854,37 @@ const unitDef = z.strictObject({
 
 /** As unidades do Quartel (`units.ts`): nenhuma custa ferro direto, e o ciclo fecha. */
 export const UnitsSchema = z.strictObject(Object.fromEntries(UNIT_IDS.map((id) => [id, unitDef])));
+
+const optionalRatio = ratio.optional();
+const unitRatios = z.partialRecord(z.enum(UNIT_IDS), ratio).optional();
+
+/** Os inimigos da Horda (`enemies.ts`): atributos inteiros e as regras especiais como dado. */
+export const HordeUnitsSchema = z.strictObject(
+  Object.fromEntries(
+    HORDE_UNIT_IDS.map((id) => [
+      id,
+      z.strictObject({
+        label: z.string().min(1),
+        pluralLabel: z.string().min(1),
+        archetype: z.enum(ARCHETYPES),
+        attack: positiveInt,
+        defense: positiveInt,
+        health: positiveInt,
+        initiative: positiveInt,
+        line: z.enum(['front', 'back']),
+        alwaysLateral: z.literal(true).optional(),
+        ignoresWallHalf: z.literal(true).optional(),
+        noMorale: z.literal(true).optional(),
+        auraWing: optionalRatio,
+        auraArmy: optionalRatio,
+        endsWaveOnDeath: z.literal(true).optional(),
+        takesDoubleFrom: z
+          .array(z.enum(['mage', 'cleric']))
+          .min(1)
+          .optional(),
+        takesBonusFrom: unitRatios,
+        bonusAgainst: unitRatios,
+      }),
+    ]),
+  ),
+);

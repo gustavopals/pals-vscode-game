@@ -223,6 +223,23 @@ Vêm da tarefa V4B-T1 (o ferro como recurso, a Mina Abandonada e o ferro no Merc
 - Opções apresentadas: (1) nenhuma regra agora, e a Muralha e a Fortaleza da Fase E com custos de ouro de fim de jogo, dimensionados por esta medida; (2) soldo de 1 ouro por hora de jogo por soldado (aperta o Normal); (3) aceitar.
 - **Resposta:** a (1). Nenhum número muda antes da Fase D; a V4E dimensiona o ouro da Muralha e da Fortaleza contra o ouro parado do Rápido sem apertar o Normal, e mede de novo.
 
+### Fase D: o motor de batalha (V4D-T1)
+
+**D-1. As convenções da conta dos sete goldens (V4D-T1.1).** _(Leituras do agente; o GDD §10.4 e o ADR 0019, decisão 11, não fecham estes pontos. Estão em `docs/content-v0.4.md`, seção 2.0.)_
+
+- **Ataques sequenciais.** A ordem é fixada no começo da rodada, mas as baixas valem na hora: o `n` de quem ataca é o de quando ele age, e um esquadrão destruído antes de agir não age. A alternativa (todos batem com o `n` do começo da rodada) é mais simples de explicar e muda os goldens.
+- **Um arredondamento só.** O bruto fica fração exata e o piso é aplicado ao efetivo, não ao bruto nem ao absorvido.
+- **Sorte fixada em 100** nos goldens (o motor injeta a sorte); a faixa 90 a 110 é provada por propriedade.
+- **Moral por lado, começando em 100;** −10 por esquadrão destruído e −20 pela ala que cai (soma-se); a debandada (≤ 30) é conferida **no fim da rodada**, não no meio dela. O GDD não diz o valor inicial.
+- **Ala "caída" inclui a ala vazia desde o início** para o flanco (o ataque cuja ala oposta não tem esquadrões flanqueia ×5/4 o Centro, depois a esquerda, depois a direita), mas só a ala que **tinha** esquadrões e os perdeu custa −20 de moral.
+- **Residual** é por esquadrão, inteiro, e zera quando o esquadrão morre.
+
+**D-2. A Paliçada como muralha nos goldens (V4D-T1.1).** _(Leitura do agente.)_ O GDD §10.1 só tem a Muralha, e a vida dela por nível (`wallHpPerLevel`) é da Fase E. Os cenários 2.1 e 2.4 usam uma muralha com 60 e 100 de vida **por ala**, só para a conta; a muralha não tem defesa, o corpo a corpo bate nela inteiro e o excesso de dano além da vida que resta se perde (não passa às tropas no mesmo golpe). Ao ligar a Paliçada ao motor, o autor ou a Fase E dizem a vida dela e se o excesso passa.
+
+**D-3. Arqueiros e Retaguarda (V4D-T1.1).** _(Leitura do agente.)_ O §10.1 diz que a Retaguarda "ataca à distância por cima da própria Frente" e é atingida "por arqueiros inimigos", mas não diz **onde** o arqueiro acerta. Nos goldens o arqueiro ataca a Frente da ala oposta como qualquer esquadrão (e a Retaguarda quando a Frente cai); só o cenário 2.5 tem arqueiros, e do lado do jogador. A regra "arqueiro inimigo acerta a Retaguarda por cima da Frente" fica para a T1.3, a decidir.
+
+**D-4. Auras e o Lobo (V4D-T1.1).** _(Leitura do agente.)_ A aura do Senhor da Guerra (×5/4 para a Horda) vale **também para ele**. O Lobo "sempre ataca uma ala lateral": o da ala esquerda ou direita ataca a ala do mesmo lado; se ela caiu, flanqueia (×5/4) o Centro, depois a outra lateral (nos goldens o Lobo está sempre numa lateral; o do Centro iria à esquerda e depois à direita). O Escudeiro e as auras de comandante não entram nos goldens: ficam para a T1.3.
+
 
 ## 6. O que não foi verificado
 
