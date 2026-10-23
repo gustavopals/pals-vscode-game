@@ -17,10 +17,10 @@
  "lastProcessedAt": 537544321,
  "rng": {
   "council": [
-   2323732901,
-   2775638940,
-   138651800,
-   3839636383
+   3408759206,
+   665981601,
+   1661323581,
+   1719671309
   ],
   "horde": [
    571426369,
@@ -127,35 +127,33 @@
  "council": {
   "pending": [
    {
-    "instanceId": "harvestFeast-9",
-    "cardId": "harvestFeast",
+    "instanceId": "dampFirewood-9",
+    "cardId": "dampFirewood",
     "drawnAtMs": 489600000,
     "expiresAtMs": 576000000,
     "origin": null
    },
    {
-    "instanceId": "neighborsWatch-10",
-    "cardId": "neighborsWatch",
+    "instanceId": "sawmillRest-10",
+    "cardId": "sawmillRest",
     "drawnAtMs": 518400000,
     "expiresAtMs": 604800000,
     "origin": null
    }
   ],
   "flags": {
-   "itinerant.heardOfMarket": true,
-   "routine.masonsMeal": true
+   "routine.moreMouths": true
   },
   "seenThisYear": [
    "collapsedWell",
    "springSeeds",
    "woundedStranger",
-   "itinerantMerchant",
+   "neighborsWatch",
+   "moreMouths",
    "masonsMeal",
-   "apprenticesTable",
+   "roofBeforeCold",
    "dampFirewood",
-   "refugeesAtGates",
-   "harvestFeast",
-   "neighborsWatch"
+   "sawmillRest"
   ],
   "nextDrawAtMs": 547200000,
   "scheduled": [],
@@ -164,11 +162,11 @@
    "collapsedWell-1",
    "springSeeds-2",
    "woundedStranger-3",
-   "itinerantMerchant-4",
-   "masonsMeal-5",
-   "apprenticesTable-6",
-   "dampFirewood-7",
-   "refugeesAtGates-8"
+   "neighborsWatch-4",
+   "moreMouths-5",
+   "masonsMeal-6",
+   "roofBeforeCold-7",
+   "moreMouths-8"
   ]
  },
  "map": {
@@ -278,16 +276,15 @@
   "cardsExpired": 8,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 1,
-  "cardsDrawn:itinerantMerchant": 1,
+  "cardsDrawn:neighborsWatch": 1,
   "threatCrossed:40": 4,
+  "cardsDrawn:moreMouths": 2,
   "cardsDrawn:masonsMeal": 1,
-  "cardsDrawn:apprenticesTable": 1,
   "seasonsSurvived:summer": 1,
-  "cardsDrawn:dampFirewood": 1,
-  "cardsDrawn:refugeesAtGates": 1,
+  "cardsDrawn:roofBeforeCold": 1,
   "threatCrossed:70": 3,
-  "cardsDrawn:harvestFeast": 1,
+  "cardsDrawn:dampFirewood": 1,
   "seasonsSurvived:autumn": 1,
-  "cardsDrawn:neighborsWatch": 1
+  "cardsDrawn:sawmillRest": 1
  }
 }

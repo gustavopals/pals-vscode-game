@@ -146,15 +146,7 @@
    "dampFirewood",
    "roofBeforeCold",
    "harvestFeast",
-   "woundedStranger",
-   "refugeesAtGates",
-   "refugeesReturn",
-   "refugeesCraft",
-   "tavernBard",
-   "tornMap",
-   "itinerantMerchant",
-   "firstRecruit",
-   "veteranCaptain"
+   "woundedStranger"
   ],
   "nextDrawAtMs": 172800000,
   "scheduled": [],
@@ -257,8 +249,6 @@
  },
  "stats": {
   "cardsDrawn:woundedStranger": 1,
-  "cardsDrawn:itinerantMerchant": 1,
-  "cardsDrawn:firstRecruit": 1,
   "mastersArrived": 1
  }
 }

@@ -17,10 +17,10 @@
  "lastProcessedAt": 255781234,
  "rng": {
   "council": [
-   68034720,
-   3572878321,
-   3673010077,
-   2204866070
+   3336457682,
+   3479223404,
+   3712694863,
+   229691678
   ]
  },
  "ids": {
@@ -121,8 +121,8 @@
  "council": {
   "pending": [
    {
-    "instanceId": "collapsedWell-4",
-    "cardId": "collapsedWell",
+    "instanceId": "itinerantMerchant-4",
+    "cardId": "itinerantMerchant",
     "drawnAtMs": 172800000,
     "expiresAtMs": 259200000,
     "origin": null
@@ -135,7 +135,7 @@
    "thawBridgePlea",
    "masonsMeal",
    "woundedStranger",
-   "collapsedWell"
+   "itinerantMerchant"
   ],
   "nextDrawAtMs": 259200000,
   "scheduled": [],
@@ -256,7 +256,7 @@
   "cardsExpired": 3,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
-  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:itinerantMerchant": 1,
   "threatCrossed:40": 1,
   "constructionsStarted:warehouse": 1
  }
