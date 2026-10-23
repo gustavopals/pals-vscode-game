@@ -506,6 +506,8 @@ A "Estrangeira ferida", roteirizada, já está no jogo desde a v0.3. Com as quat
 
 ## 5. Lote 2 do Conselho: segundo lote de cinco (para o autor)
 
+**Lido e aprovado pelo autor em 2026-10-23, as cinco como estão** (decisão 23), inclusive o efeito de carta sobre o preço do Mercado (`marketPrice`, da V4H-T1) e a revelação de destino.
+
 **Para leitura do autor** (V4H-T1.3; decisão 23). Nada disto está no código ainda. É o lote B da lista da 4.6: a cadeia "O Mercador Misterioso" (3 cartas) e as duas cartas que mexem no preço do Mercado ("Boicote dos mercadores" e "A caravana real"). **Nenhuma das quatro primeiras da lista foi pulada**, e a quinta é a próxima da lista (a 10, "A caravana real"), no lugar do aprendiz. Nenhuma depende de mecânica proibida pelo CLAUDE.md (regra 6): `marketPrice` (os efeitos de carta sobre o preço, `market.effects`) é justamente a mecânica da V4H-T1 que este lote pede, e `revealDestination` só liga uma entrada que o motor já tem (`map.discovered`, a mesma que a Patrulha e a Floresta Antiga usam para revelar as Ruínas e a Mina Abandonada). Se o autor não quiser que a V4H-T1 crie `market.effects`, as cartas 5.4 e 5.5 saem do lote, e a 5.1 perde só a alta de 20% nos preços (a opção `imprison` continuaria com ouro e moral).
 
 **Por que estas cinco.** Fecham a ideia "o Mercado também tem política": um forasteiro que vende um mapa, a vingança ou a paz com os mercadores, e dois choques de preço que o jogador pode aproveitar ou aguentar. Pedem três ganchos de motor: `revealDestination`, `marketPrice` e dois requisitos pequenos (`undiscovered` na carta e na opção, e `flags` na opção).
