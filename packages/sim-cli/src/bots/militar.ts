@@ -1,11 +1,5 @@
 import { economicoPolicies, preparedFor } from './economico';
-import {
-  erguerFerreiro,
-  forjarArmas,
-  montarFormacao,
-  treinarMinimo,
-  treinarSoldados,
-} from './policies';
+import { erguerFerreiro, forjarArmas, treinarMinimo, treinarSoldados } from './policies';
 import { botOf, type Bot, type Policy } from './types';
 
 /**
@@ -15,7 +9,8 @@ import { botOf, type Bot, type Policy } from './types';
  * com as armas forjadas. A cada visita o lote é o que o ferro, as armas e a comida permitem
  * (`army.offer` e o saldo da comida na visão).
  *
- * **Monta uma formação com o que tem e a ativa** (V4C-T2; `montarFormacao`), sem comandante.
+ * **Monta uma formação com o que tem e a ativa** (V4C-T2; `montarFormacao`), sem comandante: desde
+ * a V4E-T2.7 a política vem do econômico, logo depois do treino.
  * Ainda não há Plano, finta, sabotagem nem milícia: entram nas fases seguintes, e este bot as
  * ganha então. **Não tem faixa de balanceamento** (a rodada padrão
  * continua com os três perfis do econômico); roda a pedido (`--strategy militar`,
@@ -27,7 +22,6 @@ export const militarPolicies: readonly Policy[] = [
   ...economicoPolicies.map((policy) =>
     policy === treinarMinimo ? treinarSoldados(['swordsman', 'spearman', 'archer']) : policy,
   ),
-  montarFormacao,
 ];
 
 export const militar = botOf(militarPolicies);

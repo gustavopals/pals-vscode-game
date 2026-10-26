@@ -101,6 +101,12 @@ describe('matriz de balanceamento: o que é jogado', () => {
     for (const cell of matrix.cells) {
       const { hired, heroes, departed } = cell.measure.guild;
       if (cell.profile.id === 'explorador') {
+        // Desde a V4E-T2 uma das três sementes do ano do Rápido não contrata: as incursões do
+        // roteiro da guerra a pegam antes da Taverna (docs/balance-v0.4.md, seção 9).
+        if (cell.key === 'year/3/explorador') {
+          expect(hired.max, cell.key).toBeGreaterThan(0);
+          continue;
+        }
         expect(hired.min, cell.key).toBeGreaterThan(0);
         expect(heroes.min, cell.key).toBeGreaterThan(1);
       } else {
@@ -236,7 +242,8 @@ describe('relatório da matriz', () => {
       // população desce e o ouro parado também (o treino gasta ouro).
       // Remedida de propósito com a Muralha, a Torre Nv3+ e as cartas do lote 2 (V4E-T1;
       // docs/balance-v0.4.md, seção 8): o Salão fecha a semana no 7 e o ouro parado cai.
-      '| Rápido 3× | Regular | 57 a 86 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 114.350 | ≤ 38 | 0 |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a população sobe e o ouro parado também.
+      '| Rápido 3× | Regular | 64 a 93 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 138.945 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -266,12 +273,14 @@ describe('relatório da matriz', () => {
       // madeira passa a ir ao chão por 2 a 4 h.
       // Com a Muralha, a Torre Nv3+ e as cartas do lote 2 (V4E-T1; docs/balance-v0.4.md, seção
       // 8) a semana do Rápido passa a perder comida por 21 a 24 h, e a pedra por até 24 h.
-      '| 7 dias reais | Rápido 3× | Regular | 21 a 24 | 12 a 30 | 6 a 24 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 a 4 | 0 a 2 | 0 | ≤ 8 | dentro |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): na semana do Rápido a comida vai ao chão por 15 a 21 h e a madeira por até 33 h;
+      // no Normal a madeira, por 4 a 8 h; no ano do Rápido só a madeira, por 6 h.
+      '| 7 dias reais | Rápido 3× | Regular | 15 a 21 | 21 a 33 | 15 a 24 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 | 4 a 8 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 3 a 6 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 a 4 | 0 a 2 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 1,5 | 0,5 a 2 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 0 | 6 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 | 4 a 8 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -282,8 +291,8 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      // Remedida na V4E-T1 (docs/balance-v0.4.md, seção 8).
-      "  'week/3/regular': measured([67, 77], 7, 0, 0, 2951, 4773, 97524, 30),",
+      // Remedida na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9).
+      "  'week/3/regular': measured([79, 83], 8, 0, 0, 3075, 4782, 77175, 33),",
     );
   });
 
@@ -311,33 +320,38 @@ describe('relatório da matriz', () => {
     expect(week).toContain(
       // V4E-T1 (docs/balance-v0.4.md, seção 8): a Paliçada sai na hora 25 ou 26 e as obras novas
       // seguram o fim das obras até a hora 143 em uma semente.
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 a 26 | 143 a — | 63 a 68 | 7 | 13 | — |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Salão Nv4 sai na hora 42, a Paliçada na 26 ou 27, e as três sementes
+      // esgotam as obras entre as horas 156 e 165.
+      '| Rápido 3× | Regular | 11 | 24 | 42 | 15 | 37 | 20 | 26 a 27 | 156 a 165 | 66 a 68 | 7 | 12 a 13 | — |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 a 26 | — | 33 a 34 | 7 | 12 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 42 | 15 | 37 | 20 | 26 a 27 | — | 33 | 7 | 12 | — |',
     );
+    // REGRESSÃO MEDIDA (V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9); pendência D-39): o Preguiçoso do ano do Rápido sofre as
+    // incursões do roteiro da guerra sem defesa, e não passa do Salão Nv1 nem chega à Torre
+    // (era Salão Nv3 na hora 53 a 55, Torre na 50 e 51, Paliçada na 54 e 55, onze objetivos).
     expect(year).toContain(
-      '| Rápido 3× | Preguiçoso | 29 | 53 a 55 | — | 31 | 33 | 50 a 51 | 54 a 55 | — | 16 | 7 | 11 | — |',
+      '| Rápido 3× | Preguiçoso | — | — | — | — | — | — | — | — | 4 | 7 | 4 | — |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
-      townHall4: { min: 35, max: 35 },
+      townHall4: { min: 42, max: 42 },
       granary: { min: 15, max: 15 },
       watchtower: { min: 20, max: 20 },
-      palisade: { min: 25, max: 26 },
+      palisade: { min: 26, max: 27 },
     });
     // Com a política mínima de guerra (V4C-T1.8) uma das três sementes esgota as obras uma
     // hora depois.
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 143, max: null });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 156, max: 165 });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
-    expect(cell?.measure.objectivesDone).toEqual({ min: 13, max: 13 });
+    expect(cell?.measure.objectivesDone).toEqual({ min: 12, max: 13 });
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
-    expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: 51 });
-    expect(lazy?.measure.milestones.palisade).toEqual({ min: 54, max: 55 });
+    expect(lazy?.measure.milestones.watchtower).toEqual({ min: null, max: null });
+    expect(lazy?.measure.milestones.palisade).toEqual({ min: null, max: null });
     expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
-    expect(lazy?.measure.objectivesDone).toEqual({ min: 11, max: 11 });
+    expect(lazy?.measure.objectivesDone).toEqual({ min: 4, max: 4 });
     expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
   });
 
@@ -352,19 +366,22 @@ describe('relatório da matriz', () => {
     // Ameaça termina entre 39 e 60. Até a Ameaça ser reequilibrada (revisão das Fases D e E)
     // eram de 7 a 10 sofridas e de 39 a 44 repelidas, com a Ameaça entre 90 e 100.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 1 a 2 | 17 a 18 | 18 a 19 | 1 a 2 | 30 a 119 | 25 a 42 | 39 a 60 |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Regular sofre três (a dos lobos e as duas primeiras do roteiro da guerra,
+      // antes da Defesa ativa e da Paliçada) e repele 17.
+      '| Rápido 3× | Regular | 3 | 17 | 18 | 4 | 176 a 178 | 45 a 46 | 44 a 53 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
-      suffered: { min: 1, max: 2 },
-      repelled: { min: 17, max: 18 },
-      threatFinal: { min: 39, max: 60 },
+      suffered: { min: 3, max: 3 },
+      repelled: { min: 17, max: 17 },
+      threatFinal: { min: 44, max: 53 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
     // os vigias anunciam no máximo uma incursão, e nenhuma é repelida (a Paliçada sai nas
     // últimas horas do ano).
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
-    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 1 });
+    // Desde a V4E-T2 ele nem chega à Torre (pendência D-39): nenhuma é anunciada.
+    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 0 });
     expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 0 });
     expect(lazy?.measure.raids.suffered.min).toBeGreaterThan(0);
   });
@@ -382,7 +399,8 @@ describe('relatório da matriz', () => {
     // soma traz mais gente, e o Regular do ritmo 3 passou a perder de 7% a 15% da comida e até
     // 28% da madeira (eram até 6% e até 9%), com sequências de até 33 h de jogo.
     expect(week).toContain(
-      '| Rápido 3× | Preguiçoso | 49% a 51% | 15% a 42% | 32% a 57% | 63 | 63 | 36 a 66 |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a madeira passa a ir ao chão pela metade, com sequências de até 123 h.
+      '| Rápido 3× | Preguiçoso | 52% a 53% | 51% | 43% a 60% | 63 | 96 a 123 | 42 a 72 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
@@ -393,7 +411,8 @@ describe('relatório da matriz', () => {
       // muda: a comida vai de 2% a 15% ao chão, a madeira de 15% a 16%, e a pedra deixa de ir
       // nestas três sementes.
       // V4E-T1 (docs/balance-v0.4.md, seção 8): a pedra volta a ir ao chão e a comida passa a 14%-16%.
-      '| Rápido 3× | Regular | 14% a 16% | 3% a 22% | 2% a 15% | 21 a 24 | 12 a 30 | 6 a 24 |',
+      // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a comida vai menos ao chão (5% a 10%) e a madeira, até 18%.
+      '| Rápido 3× | Regular | 5% a 10% | 6% a 18% | 6% a 10% | 15 a 21 | 21 a 33 | 15 a 24 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
   });
@@ -433,10 +452,10 @@ describe('problemas de uma célula', () => {
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
       'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5460 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 57 a 86 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: população 3, fora da faixa de 64 a 93 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 57 a 86 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 64 a 93 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });
@@ -528,13 +547,14 @@ describe('CSV da matriz', () => {
       }
     }
     const lazyYear = lines.find((line) => line.startsWith('year,3,preguicoso,'))?.split(',') ?? [];
-    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('53');
+    // Desde a V4E-T2 o Preguiçoso do ano do Rápido não chega ao Salão Nv3 (pendência D-39).
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
     // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum. O
     // Preguiçoso do ano do Rápido cumpre os dez da v0.2 e o primeiro herói, e a lista de
     // dezesseis (V3F-T2) não fecha.
-    expect(lazyYear[header.indexOf('objectives_done')]).toBe('11');
+    expect(lazyYear[header.indexOf('objectives_done')]).toBe('4');
     expect(lazyYear[header.indexOf('objectives_done_hour')]).toBe('');
     // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 falta um, e o
     // primeiro herói e a Guilda já caíram.

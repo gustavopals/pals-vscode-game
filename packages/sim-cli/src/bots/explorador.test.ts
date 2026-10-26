@@ -44,6 +44,8 @@ describe('bot explorador', () => {
       'planejar automáticas',
       'recrutar',
       'treinar soldados',
+      // A Defesa ativa, herdada do econômico (V4E-T2.7, decisão 25).
+      'montar a formação',
       'responder a carta',
       'erguer a Guilda',
       'contratar',
