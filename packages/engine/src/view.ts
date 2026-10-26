@@ -10,6 +10,7 @@ import {
 import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './clock';
 import {
+  buildingLabelAt,
   cancelRefund,
   constructionOf,
   queuesUnlocked,
@@ -206,7 +207,7 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
   const quote = upgradeQuote(state, building);
   return {
     building,
-    label: buildings[building].label,
+    label: buildingLabelAt(building, quote.targetLevel),
     fromLevel: quote.fromLevel,
     targetLevel: quote.targetLevel,
     cost: costView(state, quote.cost),
@@ -231,7 +232,7 @@ function plannedView(
   const costs = costView(state, planCost(plan));
   return {
     building,
-    label: buildings[building].label,
+    label: buildingLabelAt(building, targetLevel),
     fromLevel: targetLevel - 1,
     targetLevel,
     cost: costs,
@@ -259,7 +260,7 @@ function activeView(
   const now = state.lastProcessedAt;
   return {
     building: slot.building,
-    label: buildings[slot.building].label,
+    label: buildingLabelAt(slot.building, slot.targetLevel),
     targetLevel: slot.targetLevel,
     secondsRemaining: realSecondsCeil(slot.finishesAtMs - now, timeScale),
     totalSeconds: realSecondsCeil(slot.finishesAtMs - slot.startedAtMs, timeScale),
