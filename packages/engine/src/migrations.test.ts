@@ -111,6 +111,7 @@ import {
   HORDE_UNIT_IDS_V30,
 } from './migrations/v30';
 import { PREVIEW_RUNS_V31, WALL_HP_BY_LEVEL_V32 } from './migrations/v31';
+import { WAR_SCRIPTED_RAIDS_V33 } from './migrations/v32';
 import { BATTLE_FACTOR_IDS, buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
 import {
@@ -215,6 +216,21 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
+/** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
+function stripComposition(copy: Draft): void {
+  const horde = (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde;
+  if (horde?.scheduledRaids === undefined) {
+    return;
+  }
+  // E as incursões-batalha do roteiro que o passo marca para quem está na antecedência (T2.4).
+  horde.scheduledRaids = horde.scheduledRaids.filter(
+    (raid) => !WAR_SCRIPTED_RAIDS_V33.some((war) => war.id === raid.id),
+  );
+  for (const raid of horde.scheduledRaids) {
+    delete raid.composition;
+  }
+}
+
 /** Tira de um estado, no lugar, o que o passo 27 → 28 acrescenta: o Quartel (nível 0) e o exército. */
 function stripArmy(copy: Draft): void {
   delete copy.army;
@@ -225,10 +241,7 @@ function stripArmy(copy: Draft): void {
     delete copy.settlement.wallRepair;
   }
   // E a composição de cada incursão marcada, do passo 32 → 33 (V4E-T2.2).
-  const horde = (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde;
-  for (const raid of horde?.scheduledRaids ?? []) {
-    delete raid.composition;
-  }
+  stripComposition(copy);
 }
 
 /**
@@ -327,6 +340,7 @@ function asVersion22(state: GameState): Draft {
   old.schemaVersion = 22;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripMasters(old);
   return old;
 }
@@ -349,6 +363,7 @@ function asVersion20(state: GameState): Draft {
   old.schemaVersion = 20;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripMarket(old);
   return old;
 }
@@ -377,6 +392,7 @@ function asVersion19(state: GameState): Draft {
   old.schemaVersion = 19;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripFreed(old);
   return old;
 }
@@ -417,6 +433,7 @@ function asVersion18(state: GameState): Draft {
   old.schemaVersion = 18;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripReport(old);
   return old;
 }
@@ -469,6 +486,7 @@ function asVersion17(state: GameState): Draft {
   old.schemaVersion = 17;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripOutcomes(old);
   return old;
 }
@@ -493,6 +511,7 @@ function asVersion16(state: GameState): Draft {
   old.schemaVersion = 16;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.settlement.buildings.guild;
   delete old.guild.expeditions;
   delete old.guild.reports;
@@ -524,6 +543,7 @@ function asVersion15(state: GameState): Draft {
   old.schemaVersion = 15;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.settlement.buildings.tavern;
   delete old.guild.tavernOffers;
   delete old.guild.tavern;
@@ -555,6 +575,7 @@ function asVersion14(state: GameState): Draft {
   old.schemaVersion = 14;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.guild.arriving;
   for (const hero of old.guild.heroes as Draft[]) {
     delete hero.gender;
@@ -571,6 +592,7 @@ function asVersion13(state: GameState): Draft {
   old.schemaVersion = 13;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.guild;
   return old;
 }
@@ -581,6 +603,7 @@ function asVersion12(state: GameState): Draft {
   old.schemaVersion = 12;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.ids;
   return old;
 }
@@ -594,6 +617,7 @@ function asVersion11(state: GameState): Draft {
   old.schemaVersion = 11;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   if (old.settlement.famine !== null) {
     old.settlement.famine = { sinceMs: old.settlement.famine.sinceMs };
   }
@@ -621,6 +645,8 @@ function besidesPrizes(
 ): Record<string, number> {
   const rest = { ...ids };
   delete rest.item;
+  // As batalhas das incursões (V4E-T2.3) também não são obra do passo.
+  delete rest.battle;
   if (before.item !== undefined) {
     rest.item = before.item;
   }
@@ -3872,6 +3898,7 @@ describe('versão 10 → 11', () => {
     old.schemaVersion = 10;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     delete old.settlement.injured;
     old.horde.scheduledRaids = [];
     return old;
@@ -5853,6 +5880,7 @@ describe('versão 21 → 22', () => {
     old.schemaVersion = 21;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     stripMasters(old);
     delete old.market.caravans;
     return old;
@@ -6294,6 +6322,7 @@ describe('versão 23 → 24', () => {
     old.schemaVersion = 23;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     stripIron(old);
     for (const entry of old.settlement.masters as Draft[]) {
       delete entry.worked;
@@ -6501,6 +6530,7 @@ function asVersion24(state: GameState): Draft {
   old.schemaVersion = 24;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripIron(old);
   return old;
 }
@@ -6610,6 +6640,7 @@ function asVersion25(state: GameState): Draft {
   old.schemaVersion = 25;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripSmithy(old);
   return old;
 }
@@ -6745,6 +6776,7 @@ function asVersion26(state: GameState): Draft {
   old.schemaVersion = 26;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripRepair(old);
   return old;
 }
@@ -6910,6 +6942,7 @@ function asVersion27(state: GameState): Draft {
   old.schemaVersion = 27;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripArmy(old);
   return old;
 }
@@ -7060,6 +7093,7 @@ function asVersion28(state: GameState): Draft {
   old.schemaVersion = 28;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.formations;
   delete old.army.activeFormationId;
   delete old.army.reports;
@@ -7201,6 +7235,7 @@ function asVersion29(state: GameState): Draft {
   old.schemaVersion = 29;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.reports;
   delete old.army.preview;
   return old;
@@ -7317,6 +7352,7 @@ function asVersion30(state: GameState): Draft {
   old.schemaVersion = 30;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.preview;
   return old;
 }
@@ -7407,6 +7443,7 @@ function asVersion31(state: GameState): Draft {
   old.schemaVersion = 31;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   return old;
 }
 
