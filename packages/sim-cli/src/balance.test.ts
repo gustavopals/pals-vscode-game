@@ -237,7 +237,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const tavernAt = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.tavernAtHour;
     expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
-    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 59 });
+    // V4E-T1: de 51 a 63 (era até 59): a Muralha e a Torre entram na fila antes da Taverna.
+    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 63 });
     // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
     // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97); com os
     // objetivos 11 a 16 (V3F-T2), na hora 103.
