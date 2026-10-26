@@ -25,7 +25,6 @@ import {
   namedHeroes,
   objectives,
   raidSizes,
-  warRaids,
   raidTemplates,
   startingTiles,
   tavernCandidates,
