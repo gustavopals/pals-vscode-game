@@ -208,22 +208,25 @@ describe('faixas a partir da linha de base medida', () => {
     // pedra no Armazém, até 200.203 de ouro parado (com as obras esgotadas o bot manda todo
     // mundo para a Mina, e desde o Mercado, V3E-T1, vende o que iria ao chão) e até 30 h de jogo
     // seguidas com um recurso indo ao chão.
+    // Remedida de propósito (V4E-T1, docs/balance-v0.4.md, seção 8): a Muralha, a Torre acima do
+    // nível 2 e as oito cartas do lote 2 mudam o sorteio e a fila de obras; o Salão fecha a
+    // semana no 7 e o ouro parado cai de 200 mil para 114 mil.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 59, max: 84 },
-      townHallMin: 8,
+      villagers: { min: 57, max: 86 },
+      townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_454, gold: 183_639 },
-      wasteStreakMax: 32,
+      surplusMax: { wood: 5_460, stone: 5_460, gold: 114_350 },
+      wasteStreakMax: 38,
     });
   });
 
   it('há faixa nas três dificuldades, cada uma com a sua medida, e só nos ritmos medidos', () => {
     const cell = cellKey('week', 3, 'regular');
     expect(bandFor(cell, 'lord')).toEqual(bandFor(cell));
-    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 7 (era 8 antes da guerra); em Rei de Ferro guarda
+    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 8 (a Muralha, V4E-T1, tirou o Salão do 8 em Senhor e em Rei de Ferro, mas não em Camponês, onde o Armazém maior sustenta as duas obras); em Rei de Ferro guarda
     // 20% a menos, e o teto de madeira parada cai junto.
-    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(7);
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(8);
     expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(7);
     expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
       bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,

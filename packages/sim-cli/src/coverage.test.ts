@@ -113,10 +113,15 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     ] as const) {
       // A primeira carta sai em quase toda partida do ritmo Normal; o bot só a paga com folga
       // (sem tirar o material da próxima obra), e ainda assim abre a cadeia em mais da metade.
-      expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(45);
+      // 45 → 40 com as oito cartas do lote 2 (V4E-T1): elas disputam a mesa (44 em 50 na Ponte).
+      expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(40);
       expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(25);
       // Quem abre a cadeia chega ao desfecho dentro do ano: as continuações vêm em 2 dias.
-      expect(runsOf(normal, ending), ending).toBe(runsOf(normal, middle));
+      // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
+      // do ano não alcança o desfecho antes da última leitura (2 de 35 no Celeiro Comum): a
+      // regra é "chega, salvo a que abre perto do fim", e não mais "chega em toda semente".
+      expect(runsOf(normal, ending), ending).toBeLessThanOrEqual(runsOf(normal, middle));
+      expect(runsOf(normal, ending), ending).toBeGreaterThanOrEqual(runsOf(normal, middle) - 3);
     }
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
@@ -124,7 +129,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // primeiro depósito, que o objetivo pede: a cadeia do Celeiro Comum é aberta em 19 das 50
     // sementes (eram 20 ou mais).
     expect(runsOf(fast, 'thawBridgeSlab')).toBeGreaterThan(0);
-    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(15);
+    // V4E-T1: com a Torre acima do nível 2 e a Muralha a folga do começo some de vez: 6 das 50
+    // sementes abrem a cadeia (eram 19). Piso novo: 5. Registrado em docs/balance-v0.4.md, seção 8.
+    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(5);
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {
