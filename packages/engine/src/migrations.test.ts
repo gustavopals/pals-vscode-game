@@ -3881,9 +3881,9 @@ describe('versão 10 → 11', () => {
     enemy: 'wolves',
     size: 'light',
     announcedAtMs: null,
-    // A composição entra no passo 32 → 33 (V4E-T2.2): a partida migrada chega sem ela.
-    composition: null,
   };
+  // Na versão atual a incursão tem a composição (passo 32 → 33, V4E-T2.2), nula na migrada.
+  const WOLVES_NOW = { ...WOLVES, composition: null };
   const raidEvents = (events: GameEvent[]) =>
     events.filter((event) => /^(raid|wolves|villager(Injured|Recovered))/.test(event.type));
   // Só até a versão 11: o que as incursões mudaram, sem o que as versões seguintes acrescentaram.
@@ -3908,9 +3908,9 @@ describe('versão 10 → 11', () => {
     const fresh = migrated(named('state-v10-fresh.json'));
     expect(fresh.horde).toEqual(newGame().horde);
     expect(fresh.settlement.injured).toEqual(newGame().settlement.injured);
-    expect(fresh.horde.scheduledRaids).toEqual([WOLVES]);
+    expect(fresh.horde.scheduledRaids).toEqual([WOLVES_NOW]);
     // O número escrito no passo coincide com o do conteúdo de hoje.
-    expect(scriptedRaidsAfter(0)).toEqual([WOLVES]);
+    expect(scriptedRaidsAfter(0)).toEqual([WOLVES_NOW]);
     expect(balance.raids.scripted).toHaveLength(1);
   });
 
@@ -3943,7 +3943,9 @@ describe('versão 10 → 11', () => {
 
   it('os retratos cobrem os dois lados: quem ainda vai receber os lobos e quem já passou deles', () => {
     const receives = version10
-      .filter((fixture) => migrated(fixture).horde.scheduledRaids.length > 0)
+      .filter((fixture) =>
+        migrated(fixture).horde.scheduledRaids.some((raid) => raid.id === WOLVES.id),
+      )
       .map((fixture) => fixture.name);
     expect(receives).toEqual([
       'state-v10-construction.json',
@@ -4003,7 +4005,7 @@ describe('versão 10 → 11', () => {
   it('quem migra no instante exato dos lobos, ou depois, não os recebe: o instante já passou', () => {
     const at = (boundary: number) =>
       migrateState(asVersion10(gameAt(boundary)), { timeScale: 1 }).horde.scheduledRaids;
-    expect(at(WOLVES_AT - 1)).toEqual([WOLVES]);
+    expect(at(WOLVES_AT - 1)).toEqual([WOLVES_NOW]);
     expect(at(WOLVES_AT)).toEqual([]);
     expect(at(WOLVES_AT + 1)).toEqual([]);
     expect(at(84 * DAY + 3 * DAY)).toEqual([]);
@@ -4063,7 +4065,7 @@ describe('versão 10 → 11', () => {
       }),
     );
     const state = migrateState(old, { timeScale: 1 });
-    expect(state.horde.scheduledRaids).toEqual([WOLVES]);
+    expect(state.horde.scheduledRaids).toEqual([WOLVES_NOW]);
     expect(state.migratedAtMs).toBe(boundary);
     // A visão já mostra os lobos a caminho, antes de qualquer avanço.
     expect(deriveViewState(state, boundary).threat.incoming).toMatchObject({ inSeconds: 1800 });
@@ -4515,7 +4517,8 @@ describe('versão 13 → 14', () => {
       expect(resolved).toBeDefined();
       const before = advanceTo(state, (resolved as GameEvent).atMs - 1);
       expect(withoutTavern(before.state).guild).toEqual(EMPTY_GUILD);
-      expect(before.state.ids).toEqual({});
+      // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte.
+      expect(besidesPrizes(before.state.ids, {})).toEqual({});
       expect(
         before.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
       ).toEqual([]);
