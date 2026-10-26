@@ -17,16 +17,10 @@
  "lastProcessedAt": 418020000,
  "rng": {
   "council": [
-   3757937042,
-   4050452760,
-   973369031,
-   66629682
-  ],
-  "morale": [
-   3064948913,
-   794306229,
-   706916659,
-   1947401870
+   3653103236,
+   1590350303,
+   1981431363,
+   1485483721
   ],
   "horde": [
    2616926429,
@@ -99,8 +93,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 6325,
-   "wood": 2674,
+   "food": 5905,
+   "wood": 3194,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -144,15 +138,15 @@
    }
   ],
   "flags": {
-   "routine.moreMouths": true,
-   "palisadePromise.kept": true
+   "itinerant.heardOfMarket": true,
+   "routine.moreMouths": true
   },
   "seenThisYear": [
    "springNews",
    "collapsedWell",
    "woundedStranger",
+   "itinerantMerchant",
    "moreMouths",
-   "palisadePromisePlea",
    "thawBridgePlea",
    "roofBeforeCold",
    "dampFirewood"
@@ -164,8 +158,8 @@
    "springNews-1",
    "collapsedWell-2",
    "woundedStranger-3",
-   "moreMouths-4",
-   "palisadePromisePlea-5",
+   "itinerantMerchant-4",
+   "moreMouths-5",
    "thawBridgePlea-6"
   ]
  },
@@ -462,15 +456,15 @@
  "stats": {
   "cardsDrawn": 8,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 4120325,
+  "wasted_food": 4089905,
   "cardsDrawn:collapsedWell": 1,
-  "wasted_wood": 2135674,
+  "wasted_wood": 2123194,
   "raids_repelled": 2,
   "cardsExpired": 6,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
+  "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:moreMouths": 1,
-  "cardsDrawn:palisadePromisePlea": 1,
   "raids_suffered": 1,
   "cardsDrawn:thawBridgePlea": 1,
   "seasonsSurvived:summer": 1,

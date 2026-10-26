@@ -1319,7 +1319,7 @@ export const balance: Balance = {
     // V4D-T3.2 (número do agente, por aprovar): grave com metade da ala perdida.
     commanderInjury: { severeAtLoss: { num: 1, den: 2 } },
   },
-  // Propostas do agente, por aprovar (D-21 a D-23): astúcia do ADR 0020 (3/10, 1/2, 4/5).
+  // Propostas do agente, D-21 a D-23, respondidas pelo autor: astúcia do ADR 0020 (3/10, 1/2, 4/5).
   horde: {
     cunning: {
       peasant: { num: 3, den: 10 },

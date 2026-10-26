@@ -17,10 +17,10 @@
  "lastProcessedAt": 604800000,
  "rng": {
   "council": [
-   3507590106,
-   3030398707,
-   2315681371,
-   3477768878
+   254088279,
+   2199138813,
+   2636224978,
+   936507135
   ],
   "horde": [
    1784935854,
@@ -43,16 +43,16 @@
   "name": "Pedra Alta do Norte",
   "resources": {
    "food": 1600000,
-   "wood": 42009,
-   "stone": 895255,
-   "gold": 1724659,
+   "wood": 67273,
+   "stone": 908585,
+   "gold": 1727480,
    "iron": 0
   },
   "accumulators": {
-   "food": 348834,
+   "food": 1485156,
    "wood": 0,
-   "stone": 2679921,
-   "gold": 2773096,
+   "stone": 3175239,
+   "gold": 2063428,
    "iron": 0
   },
   "population": {
@@ -103,9 +103,9 @@
   },
   "cold": null,
   "wasted": {
-   "food": 44,
-   "wood": 318,
-   "stone": 709,
+   "food": 45,
+   "wood": 177,
+   "stone": 561,
    "gold": 0,
    "iron": 0
   },
@@ -122,8 +122,15 @@
    "goldMine": 1
   },
   "adaptation": [],
-  "morale": 60,
-  "moraleEffects": [],
+  "morale": 80,
+  "moraleEffects": [
+   {
+    "id": "card:palisadePromisePlea-15",
+    "label": "Carta: Os aldeões perguntam pela cerca",
+    "amount": 20,
+    "untilMs": 608400000
+   }
+  ],
   "injured": [],
   "masters": [],
   "mastersWaiting": [],
@@ -133,15 +140,15 @@
  "council": {
   "pending": [
    {
-    "instanceId": "sawmillRest-16",
-    "cardId": "sawmillRest",
+    "instanceId": "firstRecruit-14",
+    "cardId": "firstRecruit",
     "drawnAtMs": 547200000,
     "expiresAtMs": 633600000,
     "origin": null
    },
    {
-    "instanceId": "springNews-17",
-    "cardId": "springNews",
+    "instanceId": "commonGranaryPlanks-16",
+    "cardId": "commonGranaryPlanks",
     "drawnAtMs": 604800000,
     "expiresAtMs": 691200000,
     "origin": null
@@ -149,12 +156,13 @@
   ],
   "flags": {
    "thawBridge.piers": true,
+   "itinerant.heardOfMarket": true,
    "routine.neighborsWatch": true,
-   "palisadePromise.kept": true,
-   "commonGranary.gifted": true
+   "commonGranary.gifted": true,
+   "palisadePromise.kept": true
   },
   "seenThisYear": [
-   "springNews"
+   "commonGranaryPlanks"
   ],
   "nextDrawAtMs": 633600000,
   "scheduled": [],
@@ -276,12 +284,12 @@
  "stats": {
   "constructionsStarted:housing": 4,
   "villagersRecruited": 21,
-  "cardsDrawn": 17,
+  "cardsDrawn": 16,
   "cardsDrawn:neighborsWatch": 2,
   "constructionsStarted:townHall": 3,
   "constructionsStarted:lumberMill": 3,
   "cardsDrawn:thawBridgePlea": 1,
-  "cardsAnswered": 10,
+  "cardsAnswered": 9,
   "constructionsStarted:farm": 2,
   "plansMarkedAuto": 3,
   "constructionsStarted:quarry": 4,
@@ -292,28 +300,26 @@
   "cardsExpired": 5,
   "cardsDrawn:woundedStranger": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5583044,
+  "wasted_food": 5533045,
   "coldSpellsThisSeason": 0,
   "constructionsStarted:goldMine": 2,
-  "wasted_wood": 2370318,
+  "wasted_wood": 2351177,
   "constructionsStarted:granary": 2,
-  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:itinerantMerchant": 1,
+  "cardsDrawn:masonsMeal": 1,
   "threatCrossed:40": 2,
-  "wasted_stone": 2362709,
-  "cardsDrawn:apprenticesTable": 1,
+  "wasted_stone": 2351561,
   "constructionsStarted:palisade": 2,
+  "cardsDrawn:collapsedWell": 1,
   "seasonsSurvived:summer": 1,
-  "cardsDrawn:roofBeforeCold": 1,
   "threatCrossed:70": 5,
   "raids_repelled": 4,
-  "cardsDrawn:collapsedWell": 1,
-  "cardsDrawn:palisadePromisePlea": 1,
-  "cardsDrawn:commonGranaryPlanks": 1,
-  "cardsDrawn:dampFirewood": 1,
+  "cardsDrawn:commonGranaryPlanks": 2,
   "cardsDrawn:commonGranaryShare": 1,
-  "seasonsSurvived:autumn": 1,
+  "cardsDrawn:harvestFeast": 1,
   "cardsDrawn:commonGranaryOutcome": 1,
-  "cardsDrawn:sawmillRest": 1,
-  "cardsDrawn:springNews": 1
+  "seasonsSurvived:autumn": 1,
+  "cardsDrawn:firstRecruit": 1,
+  "cardsDrawn:palisadePromisePlea": 1
  }
 }

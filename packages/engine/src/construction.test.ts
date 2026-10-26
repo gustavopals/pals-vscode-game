@@ -598,6 +598,10 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
       durationSeconds: 60 * 60,
       effect: 'Cada ala da muralha passa a ter 200 de vida (em vez de 100).',
     });
+    // A lista de obras diz o nome do nível que sai da obra (resposta do autor, 2026-10-23, D-10).
+    expect(palisade(state)?.label).toBe('Muralha de Pedra');
+    expect(palisade(feud(4, 1))?.label).toBe('Paliçada');
+    expect(palisade(feud(8, 4))?.label).toBe('Baluarte');
     expect(upgradeCost('palisade', 2)).toEqual({ wood: 300, stone: 450, gold: 2_000 });
     expect(upgradeCost('palisade', 5)).toEqual({ wood: 1_229, stone: 1_843, gold: 54_000 });
     expect(upgradeDurationMs('palisade', 5)).toBe(202.5 * MINUTE);

@@ -171,7 +171,7 @@ export type HeroGenderId = (typeof HERO_GENDER_IDS)[number];
  * Os heróis com nome próprio, que uma carta do Conselho entrega (GDD §9.1 e Apêndice B; ADR
  * 0017, decisão 6). Não são modelos da Taverna. A ficha de cada um está em `namedHeroes`.
  */
-export const NAMED_HERO_IDS = ['edda', 'rolf'] as const;
+export const NAMED_HERO_IDS = ['edda', 'rolf', 'osbert'] as const;
 export type NamedHeroId = (typeof NAMED_HERO_IDS)[number];
 
 /**

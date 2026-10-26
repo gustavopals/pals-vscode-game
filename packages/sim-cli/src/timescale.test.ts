@@ -126,10 +126,11 @@ describe('simulação no ritmo 3', () => {
     let earlier = 0;
     for (const [raidId, hours] of inNormal) {
       const fastHours = inFast.get(raidId) ?? 0;
-      // No máximo a antecedência do nível 2: 2 h reais, que são 2 h de jogo no ritmo 1 e 6 h no
-      // ritmo 3. A Torre que fica pronta com a incursão já à vista avisa com menos.
-      expect(hours).toBeLessThanOrEqual(2);
-      expect(fastHours).toBeLessThanOrEqual(6);
+      // No máximo a antecedência do nível 3 (V4E-T1: o bot leva a Torre além do 2 e o conteúdo
+      // tem os níveis 3 a 5, de 3 a 5 h reais): 3 h reais, que são 3 h de jogo no ritmo 1 e 9 h
+      // no ritmo 3. A Torre que fica pronta com a incursão já à vista avisa com menos.
+      expect(hours).toBeLessThanOrEqual(3);
+      expect(fastHours).toBeLessThanOrEqual(9);
       expect(fastHours).toBeGreaterThanOrEqual(hours);
       earlier += fastHours > hours ? 1 : 0;
     }

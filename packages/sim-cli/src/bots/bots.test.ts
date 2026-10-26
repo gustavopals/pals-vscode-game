@@ -2082,11 +2082,12 @@ describe('os bots jogando contra o motor', () => {
         levels.push(feudo.view().threat.watchtower.level);
       }
       expect(feudo.refused).toEqual([]);
-      expect(levels[levels.length - 1]).toBe(2);
+      // Desde a Torre Nv3 a 5 (V4E-T1) o bot continua erguendo a Torre além do nível 2 (chega a 5
+      // nas duas semanas); o piso do teste é o nível 2 da v0.2, e as ordens seguem sem recusa.
+      expect(levels[levels.length - 1]).toBeGreaterThanOrEqual(2);
       // Da Torre em diante a visão mostra a Ameaça; antes, não.
       const view = feudo.view();
       expect(view.threat.known).toBe(true);
-      expect(view.threat.watchtower.next).toBeNull();
       expect(levels[0]).toBe(0);
       // Uma ordem por nível. O primeiro é o do objetivo: a Torre fica planejada como automática
       // antes de o Salão a liberar, e começa sozinha. O segundo é o de `erguer a Torre`, com
@@ -2094,10 +2095,12 @@ describe('os bots jogando contra o motor', () => {
       const forTower = feudo.orders.filter(
         (order) => (order.payload as { building?: string }).building === 'watchtower',
       );
-      expect(forTower.map((order) => order.type)).toEqual([
+      expect(forTower.map((order) => order.type).slice(0, 2)).toEqual([
         'planConstruction',
         'startConstruction',
       ]);
+      // Os níveis 3 a 5 são ordens `startConstruction` a mais.
+      expect(forTower.slice(2).every((order) => order.type === 'startConstruction')).toBe(true);
       expect(forTower[0]?.payload).toEqual({
         building: 'watchtower',
         autoStart: true,

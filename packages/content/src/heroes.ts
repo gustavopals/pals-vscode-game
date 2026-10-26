@@ -325,6 +325,15 @@ export const namedHeroes: Record<NamedHeroId, NamedHeroDef> = {
     arrival:
       'No {dia}º dia {daEstacao}, um arqueiro bateu ao portão de {feudo}: {heroi}, irmão de Edda, vindo pagar a dívida dela. Passou a servir ao senhor.',
   },
+  // O capitão veterano do lote 2 (docs/content-v0.4.md, 10.4): o Guerreiro Veterano e Leal da
+  // Taverna com nome certo, contratado por carta com 20% de desconto.
+  osbert: {
+    name: 'Osbert',
+    gender: 'm',
+    classId: 'warrior',
+    level: 2,
+    traits: ['veteran', 'loyal'],
+  },
 };
 
 /**

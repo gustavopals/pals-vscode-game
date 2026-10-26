@@ -17,10 +17,10 @@
  "lastProcessedAt": 1246380777,
  "rng": {
   "council": [
-   4023269029,
-   404823173,
-   598990954,
-   1951322805
+   3110125439,
+   2513904367,
+   882278677,
+   3279530805
   ],
   "horde": [
    515272011,
@@ -98,8 +98,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 9805,
-   "wood": 4788,
+   "food": 9855,
+   "wood": 5592,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -128,23 +128,26 @@
  "council": {
   "pending": [
    {
-    "instanceId": "neighborsWatch-9",
-    "cardId": "neighborsWatch",
+    "instanceId": "sawmillRest-9",
+    "cardId": "sawmillRest",
     "drawnAtMs": 1180800000,
     "expiresAtMs": 1440000000,
     "origin": null
    },
    {
-    "instanceId": "thawBridgePlea-10",
-    "cardId": "thawBridgePlea",
+    "instanceId": "springSeeds-10",
+    "cardId": "springSeeds",
     "drawnAtMs": 1209600000,
     "expiresAtMs": 1468800000,
     "origin": null
    }
   ],
-  "flags": {},
+  "flags": {
+   "itinerant.heardOfMarket": true,
+   "routine.neighborsWatch": true
+  },
   "seenThisYear": [
-   "thawBridgePlea"
+   "springSeeds"
   ],
   "nextDrawAtMs": 1267200000,
   "scheduled": [],
@@ -265,23 +268,24 @@
  "stats": {
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
-  "cardsDrawn:springNews": 2,
-  "wasted_food": 11098805,
-  "cardsDrawn:thawBridgePlea": 3,
+  "cardsDrawn:springNews": 1,
+  "wasted_food": 11096855,
+  "cardsDrawn:thawBridgePlea": 1,
   "raids_suffered": 12,
-  "wasted_wood": 5924788,
+  "wasted_wood": 5923592,
   "coldSpellsThisSeason": 0,
   "threatCrossed:40": 7,
   "cardsExpired": 8,
   "cardsDrawn:woundedStranger": 1,
   "seasonsSurvived:summer": 2,
-  "cardsDrawn:roofBeforeCold": 1,
+  "cardsDrawn:itinerantMerchant": 1,
   "threatCrossed:70": 9,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
+  "cardsDrawn:springSeeds": 2,
+  "cardsDrawn:sawmillRest": 2,
   "seasonsSurvived:spring": 1,
-  "cardsDrawn:apprenticesTable": 1,
-  "cardsDrawn:collapsedWell": 1,
-  "cardsDrawn:neighborsWatch": 1
+  "cardsDrawn:neighborsWatch": 1,
+  "cardsDrawn:refugeesAtGates": 1
  }
 }

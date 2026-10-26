@@ -1,10 +1,12 @@
 import type {
   BuildingId,
   DifficultyId,
+  MasterId,
   NamedHeroId,
   ResourceAmounts,
   ResourceId,
   SeasonId,
+  UnitId,
 } from './ids';
 
 /**
@@ -24,6 +26,9 @@ export const COUNCIL_EFFECT_TYPES = [
   'clearFlag',
   'scheduleCard',
   'addHero',
+  'addMaster',
+  'revealDestination',
+  'addSoldiers',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
@@ -47,7 +52,32 @@ export type CouncilEffect =
    * não é segredo: a visão diz quem vem e quando. O limite de contratação não barra a chegada
    * (ADR 0017, decisão 5). Só vale entre os efeitos conhecidos de uma opção sem custo.
    */
-  | { readonly type: 'addHero'; readonly heroId: NamedHeroId; readonly afterDays?: number };
+  | { readonly type: 'addHero'; readonly heroId: NamedHeroId; readonly afterDays?: number }
+  /**
+   * Um Mestre com nome (`masters`) chega ao feudo agora, pela mesma porta da recompensa de
+   * expedição (`deliverMaster`): entra se houver vaga nas casas, espera à porta se não, e nunca
+   * chega duas vezes. Com `ifFlags`, só chega se **todas** essas flags estiverem gravadas no
+   * instante em que o efeito roda (os efeitos de uma opção rodam na ordem em que estão escritos):
+   * é como uma mesma opção dá Gil a quem abrigou e Ximena a quem deu provisões. Só vale entre os
+   * efeitos conhecidos de uma opção, e a chegada não é segredo.
+   */
+  | {
+      readonly type: 'addMaster';
+      readonly masterId: MasterId;
+      readonly ifFlags?: readonly string[];
+    }
+  /**
+   * O próximo destino de expedição que só aparece por descoberta e ainda não foi revelado entra
+   * em `map.discovered`, na ordem do catálogo (a mesma entrada que a Patrulha e a Floresta Antiga
+   * usam). A carta que o dá pede `undiscovered`, e a revelação não é segredo.
+   */
+  | { readonly type: 'revealDestination' }
+  /**
+   * Soldados já treinados entram no Exército, sem fila nem custo de treino, saindo dos aldeões
+   * (a mesma conta do fim do treino). A opção que os dá pede o Quartel e a vaga
+   * (`requires.soldierRoom`), então o efeito nunca passa do teto nem do piso de aldeões.
+   */
+  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number };
 
 /** Quando uma carta pode ser sorteada. Sem um campo, ele não restringe. */
 export type CouncilCardRequires = {
@@ -62,6 +92,8 @@ export type CouncilCardRequires = {
   readonly notFlags?: readonly string[];
   /** A moral do feudo, do mínimo ao máximo, os dois inclusive. */
   readonly moralRange?: readonly [number, number];
+  /** Ao menos um destino de expedição que só aparece por descoberta ainda não foi revelado. */
+  readonly undiscovered?: true;
 };
 
 /** O que uma opção exige além do custo. Sem o requisito, ela aparece trancada, com o motivo. */
@@ -70,6 +102,13 @@ export type CouncilOptionRequires = {
   readonly building?: BuildingId;
   /** Recursos que o feudo tem de ter em estoque, sem gastá-los. */
   readonly resources?: ResourceAmounts;
+  /**
+   * Vaga para tantos soldados novos: o Quartel de pé com lugar sob o teto (contando o lote em
+   * treino) e aldeões sobrando acima do piso. Para o efeito `addSoldiers`.
+   */
+  readonly soldierRoom?: number;
+  /** Cabe mais um herói na lista de heróis (`rosterCap`). Para o efeito `addHero` com custo. */
+  readonly rosterRoom?: true;
 };
 
 /**
@@ -129,9 +168,11 @@ export type CouncilCard = {
    * Carta roteirizada: chega no primeiro sorteio a partir desse dia de jogo, uma vez por
    * partida, na frente das sorteadas. O dia conta da fundação do feudo (o primeiro é 1); a
    * partida que já passou dele recebe a carta na primeira audiência com lugar. A primeira é
-   * "Estrangeira ferida" (ADR 0017, decisão 6).
+   * "Estrangeira ferida" (ADR 0017, decisão 6). A outra forma, `onHallLevel`, chega na primeira
+   * audiência com lugar em que o Salão já está nesse nível ou acima (V4H-T1): nenhum campo novo
+   * no estado, porque a conta lê o Salão no instante do sorteio.
    */
-  readonly scripted?: { readonly atGameDay: number };
+  readonly scripted?: { readonly atGameDay: number } | { readonly onHallLevel: number };
   /**
    * A opção que o conselho aplica quando a carta expira, por dificuldade (GDD §12.1). É marcada
    * por quem escreve a carta; as três existem e não têm custo nem requisito.
