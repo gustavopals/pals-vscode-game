@@ -225,6 +225,9 @@ export async function quietHorde(target: TestApp, gameId: string): Promise<void>
     kind: 'threat',
     enemy: 'wolves',
     size: 'light',
+    // Desde o estado 33 (V4E-T2.2) a incursão marcada leva a composição; `null` luta com a
+    // composição-base da estação, sem sorteio.
+    composition: null,
     announcedAtMs: null,
   };
   const { rowCount } = await target.pool.query(
