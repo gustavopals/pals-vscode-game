@@ -31,7 +31,7 @@ import type { GameEvent, GameState, Hero } from './types';
  *    (`wearTeam`), com `itemWorn` para o que chega a zero.
  *
  * Nada aqui sorteia nem dá identificador. O herói que o estado já não tem (dispensado entre a
- * marcação e a batalha) é saltado. **Nenhuma incursão chama esta função ainda**: a batalha entra
+ * marcação e a batalha) é saltado. Desde a V4E-T2.3 quem a chama é a incursão (`raids.ts`, `fightRaid`): a batalha entra
  * na linha do tempo na Fase E (V4E-T2).
  */
 export function applyBattleOutcome(

@@ -2189,7 +2189,8 @@ const FORMATION_NAME = 'Defesa do bot';
  * centro, atrás), com no máximo `editor.postMax` por posto, sem comandante nenhum (o herói
  * comandante da Defesa ativa não parte, e o bot não quer mudar quem vai às expedições). Salva
  * uma vez e só regrava quando o exército cresce além do que a formação pede; ativa a que salvou.
- * Formação não tem efeito no motor nesta versão (a batalha é da Fase D): é só dado.
+ * Desde a V4E-T2 a Defesa ativa é quem luta nas incursões: o econômico, o preguiçoso e o militar
+ * a mantêm (ADR 0019, decisão 25).
  */
 export const montarFormacao: Policy = {
   name: 'montar a formação',

@@ -1,0 +1,400 @@
+{
+ "schemaVersion": 33,
+ "seed": "fixture-council-623",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 340201234,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 340201234,
+ "rng": {
+  "council": [
+   1574687722,
+   2594894172,
+   1435123593,
+   3043442846
+  ]
+ },
+ "ids": {
+  "battle": 3
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 1000000,
+   "wood": 500000,
+   "stone": 85000,
+   "gold": 729113,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 1162300,
+   "wood": 1096572,
+   "stone": 0,
+   "gold": 3137640,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 1,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 18705,
+   "wood": 6681,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 0,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "woundedStranger-4",
+    "cardId": "woundedStranger",
+    "drawnAtMs": 86400000,
+    "expiresAtMs": 345600000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "commonGranary.open": true,
+   "commonGranary.supported": true,
+   "commonGranary.reserved": true
+  },
+  "seenThisYear": [
+   "collapsedWell",
+   "commonGranaryPlanks",
+   "commonGranaryShare",
+   "woundedStranger"
+  ],
+  "nextDrawAtMs": 345600000,
+  "scheduled": [
+   {
+    "cardId": "commonGranaryOutcome",
+    "atMs": 346020000,
+    "previousCardId": "commonGranaryShare",
+    "previousOptionId": "reserve",
+    "previousInstanceId": "commonGranaryShare-3"
+   }
+  ],
+  "delayed": [],
+  "expired": [
+   "commonGranaryShare-3"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 22,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [
+   {
+    "id": "battle-1",
+    "foughtAtMs": 108000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "wolf",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 7,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-2",
+    "foughtAtMs": 172800000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-3",
+    "foughtAtMs": 259200000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
+  "preview": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 4,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsAnswered": 2,
+  "cardsDrawn:commonGranaryPlanks": 1,
+  "cardsDrawn:commonGranaryShare": 1,
+  "wasted_food": 2180705,
+  "cardsDrawn:woundedStranger": 1,
+  "raids_suffered": 3,
+  "coldSpellsThisSeason": 0,
+  "wasted_wood": 453681,
+  "cardsExpired": 1
+ }
+}

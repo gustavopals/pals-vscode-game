@@ -138,6 +138,9 @@ control.post('/__test/horde-quiet', async () => {
     kind: 'threat',
     enemy: 'wolves',
     size: 'light',
+    // Desde o estado 33 (V4E-T2.2) a incursão marcada leva a composição; `null` luta com a
+    // composição-base da estação, sem sorteio.
+    composition: null,
     announcedAtMs: null,
   };
   await pool.query(

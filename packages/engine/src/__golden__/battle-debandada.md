@@ -50,6 +50,7 @@ Fim da rodada 3: moral D = 20 ≤ 30: debandada.
 {
  "id": "battle-1",
  "foughtAtMs": 0,
+ "formationId": null,
  "mode": "defense",
  "outcome": "defeat",
  "ending": "rout",

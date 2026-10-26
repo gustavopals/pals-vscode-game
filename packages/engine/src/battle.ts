@@ -27,7 +27,7 @@ import {
  *
  * O que a função **não** faz: ler o estado, sortear, criar entidade, emitir evento. Quem a chama
  * monta a entrada (a formação, a onda, a muralha, a Torre) e decide o que fazer com o resultado.
- * Nenhuma incursão a chama ainda (Fase E).
+ * Desde a V4E-T2.3, a incursão a chama por `fightBattle`.
  */
 
 /** O lado do campo: `D` defende, `A` ataca (as siglas de `docs/content-v0.4.md`, seção 2.0). */

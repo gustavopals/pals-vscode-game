@@ -3,8 +3,10 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { seasonAt } from './clock';
 import { applyCommand } from './commands';
 import { ableVillagers, assignedWorkers, freeVillagers } from './population';
+import { baseRaidComposition } from './raidArmy';
 import { scriptedRaidsAfter } from './raids';
 import {
   accept,
@@ -61,6 +63,7 @@ const raid = (atMs: number, size: Size = 'light', id = 'threat-1'): ScheduledRai
   enemy: 'wolves',
   size,
   announcedAtMs: null,
+  composition: null,
 });
 
 /**
@@ -596,7 +599,13 @@ describe('a resolução no instante marcado', () => {
     const { state, events } = advanceTo(feud({ tower: 1, edit: at30 }), RAID_AT);
     const at = events.filter((event) => event.atMs === RAID_AT).map((event) => event.type);
     // O fecho do desperdício do dia que acabou abre a virada (a despensa do cenário enche).
-    expect(at).toEqual(['storageWasted', 'dayStarted', 'raidSuffered', 'villagerInjured']);
+    expect(at).toEqual([
+      'storageWasted',
+      'dayStarted',
+      'battleFought',
+      'raidSuffered',
+      'villagerInjured',
+    ]);
     // A Ameaça subiu na virada (30 + 3 × 2) e caiu com a incursão, nessa ordem: ao contrário,
     // daria 34 − 35 = 0, e a virada a levaria a 2.
     expect(only(events, 'raidSuffered').data).toMatchObject({ previousThreat: 36, threat: 1 });
@@ -1100,6 +1109,7 @@ describe('os lobos do ano 1: os uivos e a incursão do roteiro (ADR 0014, decis�
         enemy: 'wolves',
         size: 'light',
         announcedAtMs: null,
+        composition: null,
       },
     ]);
     expect(WOLVES_AT).toBe(30 * HOUR);
@@ -1274,20 +1284,30 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
     // 67 + 2 = 69: ainda leve. 68 + 2 = 70: média.
     expect([...sizes(67)]).toEqual(['light']);
     expect([...sizes(68)]).toEqual(['medium']);
-    expect([...sizes(95)]).toEqual(['medium']);
+    // Desde a V4E-T2.4 a Ameaça alta traz a forte, conforme a estação (`warRaids.thresholds`).
+    expect([...sizes(95)]).not.toContain('light');
     expect(rules.mediumRaidAbove).toBe(70);
   });
 
   it('a incursão sorteada chega 6 h de jogo depois, em outra virada de dia, e são os lobos do covil', () => {
     const [marked] = drawnOver(100, 5);
-    expect(marked).toEqual({
+    expect(marked).toMatchObject({
       id: 'threat-1',
       atMs: TURN + rules.raidLeadMs,
       kind: 'threat',
       enemy: 'wolves',
-      size: 'medium',
+      // Com a Ameaça em 100 a forte (V4E-T2.4) vem em qualquer estação que a traga.
+      size: marked?.size === 'strong' ? 'strong' : 'medium',
       announcedAtMs: null,
     });
+    // A composição é sorteada na marcação (estado 33, V4E-T2.2): seis postos ou menos, na
+    // estação em que ela chega, com o orçamento da média.
+    expect(marked?.composition?.length).toBeGreaterThan(0);
+    expect(marked?.composition?.map((post) => `${post.wing}:${post.line}`)).toEqual(
+      baseRaidComposition('medium', seasonAt(TURN + rules.raidLeadMs).id).map(
+        (post) => `${post.wing}:${post.line}`,
+      ),
+    );
     expect(rules.raidLeadMs).toBe(6 * HOUR);
     expect((TURN + rules.raidLeadMs) % DAY).toBe(0);
   });
@@ -1732,6 +1752,7 @@ describe('o aviso da Torre em tempo real (V2G-T3; ADR 0016, item 4)', () => {
         'enemy',
         'size',
         'announcedAtMs',
+        'composition',
       ]);
     });
   });
@@ -1760,8 +1781,14 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
       expect(raidsSeen[0]?.atMs).toBe(15 * DAY);
       // As seguintes vêm da Ameaça, numeradas na ordem da partida, e nunca em menos de 4 dias
       // de jogo da anterior: o sorteio só volta na virada seguinte à chegada, e a marcada leva 3.
-      raidsSeen.slice(1).forEach((event, index) => {
+      // Desde a V4E-T2.4 as do roteiro da guerra (dias 25, 37 e 61) entram na fila também.
+      const drawn = raidsSeen
+        .slice(1)
+        .filter((event) => String(event.data.raidId).startsWith('threat-'));
+      drawn.forEach((event, index) => {
         expect(event.data.raidId).toBe(`threat-${index + 2}`);
+      });
+      raidsSeen.slice(1).forEach((event, index) => {
         const previous = raidsSeen[index];
         expect(event.atMs - (previous?.atMs ?? 0)).toBeGreaterThanOrEqual(rules.raidLeadMs + DAY);
       });
@@ -1883,7 +1910,8 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
           expect(stock).toBeGreaterThanOrEqual(0);
         }
         expect(assignedWorkers(state)).toBeLessThanOrEqual(ableVillagers(state));
-        expect(settlement.injured.length).toBeLessThanOrEqual(2);
+        // A forte (V4E-T2.4) fere até 3.
+        expect(settlement.injured.length).toBeLessThanOrEqual(3);
         expect(state.horde.scheduledRaids.length).toBeLessThanOrEqual(1);
         expect(state.map.threat).toBeGreaterThanOrEqual(0);
         expect(state.map.threat).toBeLessThanOrEqual(rules.max);

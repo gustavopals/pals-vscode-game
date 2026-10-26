@@ -76,7 +76,7 @@ const wallByWing = keyedRecordOf((key) => WING_IDS_V29.includes(key), 'uma ala',
  * Um relatório de batalha (`battleReport.ts`): só inteiros, textos e nulos. A moral é inteira e
  * pode ficar abaixo de zero numa rodada de muitas baixas.
  */
-export const battleReportV30: Shape = exactObject({
+export const battleReportV30Fields: Readonly<Record<string, Shape>> = {
   id: text,
   foughtAtMs: natural,
   mode: oneOf(['defense', 'attack']),
@@ -132,7 +132,9 @@ export const battleReportV30: Shape = exactObject({
       wall: wallByWing,
     }),
   ),
-});
+};
+
+export const battleReportV30: Shape = exactObject(battleReportV30Fields);
 
 /**
  * O `GameState` da versão 30: o da versão 29 com `army.reports` (V4D-T1.6), os relatórios das

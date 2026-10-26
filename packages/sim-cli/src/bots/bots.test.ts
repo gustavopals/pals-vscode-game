@@ -26,6 +26,7 @@ import {
   erguerGuilda,
   erguerQuartel,
   treinarMinimo,
+  montarFormacao,
   escolherCaminho,
   escolherTodoCaminho,
   alocarPorDemandaFor,
@@ -188,6 +189,8 @@ describe('um bot é uma lista de políticas', () => {
       planejarAutomaticas,
       recrutar,
       treinarMinimo,
+      // A Defesa ativa (V4E-T2.7, decisão 25): toda incursão é batalha.
+      montarFormacao,
       responderCartas,
       // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
@@ -211,6 +214,7 @@ describe('um bot é uma lista de políticas', () => {
       planejarAutomaticas,
       recrutar,
       treinarMinimo,
+      montarFormacao,
       responderCartasSemGastar,
       comidaPrimeiro,
       ocuparLivres,
@@ -1547,6 +1551,7 @@ describe('política "erguer a Paliçada"', () => {
     text: 'Lobos a caminho.',
     costText: 'O que custa.',
     defenseText: 'Sem Paliçada, nada segura este ataque.',
+    compositionText: null,
   };
   const decide = async (view: ViewState) => {
     const { act, orders } = recorder(view);
@@ -2117,7 +2122,7 @@ describe('os bots jogando contra o motor', () => {
       3: withoutExpedition.slice(0, 2),
       0.5: withoutExpedition,
     },
-    preguicoso: { 1: withoutExpedition.slice(0, 2), 3: withoutExpedition.slice(0, 1) },
+    preguicoso: { 1: withoutExpedition.slice(0, 2) },
   };
 
   it.each([
@@ -2125,7 +2130,9 @@ describe('os bots jogando contra o motor', () => {
     ['economico', 3],
     ['economico', 0.5],
     ['preguicoso', 1],
-    ['preguicoso', 3],
+    // O preguiçoso no ritmo 3 saiu daqui na V4E-T2: as incursões-batalha do roteiro da guerra
+    // (dias 25 e 37) o pegam sem Paliçada nem exército, os feridos param a pedreira e ele
+    // termina o ano com o Salão no nível 1 e 4 objetivos (pendência D-39, para o autor).
   ] as const)(
     'o %s, no ritmo %d, percorre a sequência inteira dos objetivos em um ano de jogo, na ordem',
     async (strategy, timeScale) => {

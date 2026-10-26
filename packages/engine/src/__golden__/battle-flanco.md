@@ -70,6 +70,7 @@ Fim da rodada 5: moral D 40, A 40; D-DF 7 (res 4), A-EF 3 (res 11)
 {
  "id": "battle-1",
  "foughtAtMs": 0,
+ "formationId": null,
  "mode": "defense",
  "outcome": "victory",
  "ending": "annihilation",

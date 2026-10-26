@@ -48,9 +48,14 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
       // O teto subiu com a Taverna (V3C-T2): os candidatos da rotação, o festival e os heróis
       // contratados. A linha de base por fase está em docs/balance-v0.3.md. Subiu de 5.500 para 5.600 com as formações salvas (V4C-T2).
       // De 5.600 para 6.100 com a muralha no estado (vida por ala e reparo, V4E-T1; medido: 5.971).
-      expect(measure.stateBytes).toBeLessThan(6_100);
+      // De 6.100 para 11.000 com as incursões-batalha (V4E-T2.7): `army.reports` guarda até três
+      // relatórios de batalha, cada incursão marcada leva a composição e o bot econômico passou a
+      // guardar a formação e a prévia do Conselho de Guerra (medido: 10.028 no feudo de 7 dias).
+      expect(measure.stateBytes).toBeLessThan(11_000);
       expect(measure.viewBytes).toBeGreaterThan(measure.stateBytes * 3);
-      expect(measure.viewBytes).toBeLessThan(40_000);
+      // De 40.000 para 55.000 com os relatórios de batalha, a formação e a prévia na visão
+      // (V4E-T2.7; medido: 50.882 no feudo de 7 dias).
+      expect(measure.viewBytes).toBeLessThan(55_000);
     }
   });
 

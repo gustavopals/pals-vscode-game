@@ -14,7 +14,7 @@ import type { GameState } from './types';
  *
  * Só um evento da linha do tempo, dentro de `advanceTo`, pode chamar esta função (é ela que
  * sorteia e cria a entidade); várias batalhas no mesmo instante vão na ordem do identificador,
- * porque cada uma pede o seu a `nextId` na hora de lutar. **Nenhuma incursão a chama ainda**: a
+ * porque cada uma pede o seu a `nextId` na hora de lutar. Desde a V4E-T2.3 quem a chama é a incursão (`fightRaid`, em `raids.ts`): a
  * batalha entra na linha do tempo na Fase E (V4E-T2).
  */
 export function fightBattle(

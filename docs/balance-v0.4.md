@@ -342,3 +342,48 @@ Fome e frio continuam em **zero** em toda célula, nas três dificuldades.
 - **Incursões em Senhor**, depois da rodada (não há "antes" guardado nesta sessão; a medida de referência é a desta tabela): Regular e Dedicado do Rápido sofrem 1 a 2 incursões em 18 a 20 anunciadas, e o Preguiçoso, 5 a 6; no Normal e no Tranquilo, 1.
 
 **O que não foi medido.** O que cada obra nova (Muralha, Torre Nv3+) entrega à parte da ordem na fila; o efeito isolado das oito cartas; a rodada do perfil `militar` (fora da rodada padrão); e as incursões sofridas antes da Muralha em Camponês e Rei de Ferro. As células de Camponês e de Rei de Ferro estão na tabela de `MEASURED`; os arquivos da rodada ficaram no scratchpad da sessão, não no repositório.
+
+## 9. As incursões que viram batalha (V4E-T2.7, 2026-10-26)
+
+**Pergunta:** o que mudou quando toda incursão passou a ser uma batalha contra a Defesa ativa e a muralha, com a composição sorteada no fluxo `horde`, o tamanho forte e as três incursões do roteiro da guerra no ano 1 (dias 25, 37 e 61), e quando o `economico` e o `preguicoso` passaram a manter uma Defesa ativa com os soldados do treino mínimo (decisão 25; antes só o `militar` a tinha)? Rodadas: `pnpm -s sim -- --matrix --difficulty <d>` nas três dificuldades, 50 sementes, no branch `v4e-t2-batalha` (estado 33) depois da junção do `main` (`1fac3e1`). O "antes" é a rodada da seção 8. `MEASURED` foi trocada pela medida desta rodada; **o bot só ganhou a política da decisão 25** (`montarFormacao` no econômico e no preguiçoso), nenhum ajuste para caber.
+
+**Duas mudanças misturadas.** A regra (a incursão-batalha e o roteiro da guerra) e a Defesa ativa nos bots entram na mesma rodada; não há medida que as separe. Na semente `pedra-alta-001`, um ano do Rápido, o Preguiçoso joga igual com e sem `montarFormacao` (ele não tem soldados quando as incursões chegam): a piora dele é da regra.
+
+| Dificuldade | Células que mudaram (de 24) | Salão: soma dos níveis finais | População mínima: soma | População máxima: soma | Ouro parado: soma | Maior sequência desperdiçando: soma (h de jogo) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Camponês | 24 | 130 → 136 | 1.077 → 1.146 | 1.347 → 1.396 | 719.770 → 764.251 (+6,2%) | 327,5 → 457,5 |
+| Senhor | 24 | 126 → 131 | 1.051 → 1.145 | 1.342 → 1.386 | 730.493 → 757.675 (+3,7%) | 368,5 → 490,5 |
+| Rei de Ferro | 24 | 125 → 127 | 1.052 → 1.094 | 1.298 → 1.332 | 676.859 → 749.970 (+10,8%) | 388,5 → 493 |
+
+Fome e frio continuam em **zero** em toda célula, nas três dificuldades.
+
+**Incursões em Senhor** (sofridas, repelidas e feridos, de 50 sementes; antes → depois). Uma incursão sofrida é uma batalha perdida (`raids_suffered`; D-38):
+
+| Célula | Sofridas | Repelidas | Feridos |
+| --- | --- | --- | --- |
+| semana, Rápido 3×, Preguiçoso | 5 a 6 → **11 a 14** | 13 a 15 → 5 a 9 | 5 a 9 → **12 a 21** |
+| semana, Rápido 3×, Regular | 1 a 2 → 3 | 17 a 19 → 16 a 18 | 1 a 2 → 4 |
+| semana, Rápido 3×, Dedicado | 1 → 3 | 17 a 19 → 16 a 18 | 1 → 3 |
+| semana, Rápido 3×, Explorador | 1 a 2 → 3 | 8 a 18 → 6 a 17 | 1 a 2 → 4 |
+| ano, Rápido 3×, Preguiçoso | 5 a 6 → 6 a 7 | 0 a 1 → 0 | 5 a 9 → 7 a 12 |
+| ano, Normal 1×, Preguiçoso | 1 a 3 → 3 a 4 | 2 a 5 → 2 a 4 | 1 a 3 → 4 a 5 |
+| ano, Normal 1×, Regular | 1 → 3 | 4 a 5 → 3 a 4 | 1 → 3 |
+| ano, Normal 1×, Dedicado | 1 → 2 | 4 a 5 | 1 → 2 |
+| ano, Tranquilo 0,5×, Regular | 1 → 2 | 4 a 5 | 1 → 2 |
+
+Camponês e Rei de Ferro contam o mesmo (o Preguiçoso da semana do Rápido em Rei de Ferro: 5 a 7 → 11 a 14 sofridas, 6 a 10 → 13 a 21 feridos). Toda partida passa a sofrer duas incursões a mais: as do roteiro da guerra dos dias 25 e 37 chegam antes da Paliçada (que pede o Salão Nv3) e antes de qualquer soldado. A do dia 61 o Regular e o Dedicado já repelem.
+
+**O que melhorou.**
+
+- **O Regular, o Dedicado e o Explorador terminam com mais gente e mais Salão** em quase toda célula do Normal e do Tranquilo (Senhor, ano do Tranquilo, Regular: população 54–65 → 63–72, Salão 6 → 7; semana do Rápido, Dedicado: 74–75 → 81–85). A leitura do agente, não provada: a Defesa ativa repele sem perda o que antes passava pela Paliçada pequena, e os feridos e a moral deixam de cortar a produção. O Salão perdido na seção 8 voltou em parte (soma 126 → 131 em Senhor).
+
+**O que piorou.**
+
+- **O Preguiçoso do Rápido** (pendência **D-39**, para o autor): na semana, população 35–54 → **29–33** e a maior sequência desperdiçando de 66 para **123 h de jogo**; no ano, **o Salão para no nível 1** (era 3), a população em 15 (era 16), quatro objetivos (eram onze) e a Torre nunca sai. As incursões do roteiro o pegam sem defesa, os feridos e a moral param a Pedreira, e ele não se recupera com uma visita por dia. É a resposta à pergunta de validação da decisão 14 ("o Preguiçoso perde mais do que hoje?"): **sim**.
+- **O ouro parado subiu** de 4% a 11% na soma, puxado pelo Rápido (Senhor, semana do Rápido, Dedicado: 254.077 → 288.429): o feudo maior junta mais. A Muralha cara em ouro (C-9) não basta para ele.
+- **A maior sequência desperdiçando** subiu em toda dificuldade (Senhor: 368,5 → 490,5), quase toda no Preguiçoso do Rápido.
+- **A meta de desperdício do Regular** (GDD §15.2; até 8 h de jogo) volta a falhar no Normal (10 h, na semana e no ano; cinco das 50 sementes da semana passam dela, eram nenhuma) e no ano do Rápido (15 h); a semana do Rápido melhora (36 → 33 h). Só o Tranquilo cabe.
+- **O Preguiçoso atrasa o soldo também no Rápido**: 7,3 h reais na semana, em toda semente (eram zero); a Torre dele sai entre as horas 74 e 85 (era 50 e 51), e no ano do Rápido ele não ergue a Taverna em semente nenhuma.
+- **O Explorador contrata menos nas piores sementes**: no Normal (a semana e o ano são a mesma partida) termina com quatro a sete heróis (eram seis a sete).
+
+**O que não foi medido.** O efeito isolado da Defesa ativa nos bots (a rodada sem ela não foi feita); `raids_lost` e `wall_breaches` (D-38: a perdida é a sofrida, e a muralha rompida não tem coluna); o `militar` (fora da rodada padrão); a matriz com o ensaio do dia 61 na Hora da Vigília (V4G-T1). Os arquivos da rodada ficaram no scratchpad da sessão.

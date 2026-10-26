@@ -160,7 +160,7 @@ export function raiseWall(draft: GameState, from: number, to: number): void {
 /**
  * Aplica à muralha o dano de uma batalha de defesa (o fim de cada ala no relatório): a vida de
  * cada ala passa a ser a do fim da batalha, nunca acima da de agora, e sai `wallDamaged` quando
- * alguma ala perdeu vida. **Nenhuma incursão a chama ainda** (V4E-T2). O reparo em curso, se
+ * alguma ala perdeu vida. Quem a chama é a incursão (`fightRaid`, V4E-T2.3). O reparo em curso, se
  * houver, continua e termina com o alvo que tinha.
  */
 export function applyWallDamage(

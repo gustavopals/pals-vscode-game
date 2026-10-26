@@ -848,6 +848,7 @@ describe('nenhuma regra de perda alcança o Mestre (V3E-T3.6; QA-11)', () => {
           enemy: 'wolves',
           size: 'medium',
           announcedAtMs: null,
+          composition: null,
         },
       ];
     });
@@ -1285,6 +1286,7 @@ describe('o Mestre que uma expedição encontra (V3E-T3.3)', () => {
         enemy: 'wolves',
         size: 'medium',
         announcedAtMs: null,
+        composition: null,
       },
     ];
     const villagers = cursed.settlement.population.villagers;

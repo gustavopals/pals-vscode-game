@@ -84,39 +84,24 @@ describe('cenário golden de 7 dias', () => {
         .map((event) => [event.atMs / HOUR, event.data.mark, event.text]),
     ).toEqual([
       [
-        70,
+        104,
         40,
-        'No 12º dia do Verão, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 40.',
+        'No 5º dia do Outono, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 44.',
       ],
       [
-        98,
+        116,
         70,
-        'No 2º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 71.',
+        'No 11º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 74.',
       ],
       [
-        100,
-        40,
-        'No 3º dia do Outono, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 41.',
-      ],
-      [
-        112,
+        130,
         70,
-        'No 9º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
+        'No 18º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
       ],
       [
-        126,
+        144,
         70,
-        'No 16º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
-      ],
-      [
-        140,
-        70,
-        'No 23º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
-      ],
-      [
-        168,
-        70,
-        'No 1º dia da Primavera, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 70.',
+        'No 1º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
       ],
     ]);
     expect(
@@ -133,8 +118,8 @@ describe('cenário golden de 7 dias', () => {
     // Os lobos (GDD §8.2). Os uivos às 18 h, sem vigia nenhum. A incursão do roteiro às 30 h,
     // leve, já com a Torre: os vigias avisam uma hora antes, e sem Paliçada ela custa 10% da
     // comida e da madeira e um ferido. Depois a Ameaça leva um verão inteiro para voltar aos 40,
-    // e as que ela sorteia no outono são leves: as quatro recuam diante da Paliçada, já no nível
-    // 2 desde as 97 h 30. A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
+    // e as que ela sorteia no outono recuam diante da Paliçada, já no nível 2 desde as 97 h 30
+    // (desde o estado 33 são cinco, uma delas média). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
     // com o tamanho; as outras, duas horas antes.
     const raidStory = events
       .filter((event) => /^(wolvesHowl|raidSuffered|raidRepelled)$/.test(event.type))
@@ -146,21 +131,25 @@ describe('cenário golden de 7 dias', () => {
         event.data.injured ?? null,
       ]);
     expect(raidStory).toEqual([
+      // Desde o estado 33 as incursões-batalha do roteiro (25º e 37º dias) chegam antes da
+      // Paliçada, e as sorteadas caem em outros dias (a forte é segura pela Paliçada Nv2).
       [18, 'wolvesHowl', null, null, null],
       [30, 'raidSuffered', 'light', 0, 1],
-      [98, 'raidRepelled', 'light', 2, null],
-      [114, 'raidRepelled', 'light', 2, null],
-      [128, 'raidRepelled', 'light', 2, null],
-      [144, 'raidRepelled', 'light', 2, null],
+      [48, 'raidSuffered', 'light', 0, 1],
+      [72, 'raidSuffered', 'medium', 0, 2],
+      [120, 'raidRepelled', 'strong', 2, null],
+      [138, 'raidRepelled', 'medium', 2, null],
+      [152, 'raidRepelled', 'medium', 2, null],
     ]);
     // Cada uma foi anunciada pelos vigias, com a antecedência do nível da Torre daquela hora.
     const announced = events.filter((event) => event.type === 'raidAnnounced');
     expect(announced.map((event) => [event.atMs / HOUR, event.data.warning])).toEqual([
       [29, 'warned'],
-      [96 + 18 / 60, 'sized'],
-      [112, 'sized'],
-      [126, 'sized'],
-      [142, 'sized'],
+      [47, 'warned'],
+      [71, 'warned'],
+      [118, 'sized'],
+      [136, 'sized'],
+      [150, 'sized'],
     ]);
     // Entre uma incursão e a seguinte passam ao menos quatro dias de jogo (8 h).
     const resolvedAt = raidStory.slice(1).map(([hour]) => hour as number);
@@ -175,60 +164,75 @@ describe('cenário golden de 7 dias', () => {
     expect(told(30)).toBe(
       'No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 30,2 de comida, 35,3 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
     );
-    expect(told(98)).toBe(
-      'No 2º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma matilha pequena, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
+    // A forte do 13º dia do Outono (V4E-T2.4) é segura pela Paliçada Nv2, como a média (D-35).
+    expect(told(120)).toBe(
+      'No 13º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
     );
     // O ferido do roteiro estava sem ofício: fica de cama um dia de jogo e sara.
     const hurt = events.filter((event) => event.type === 'villagerInjured');
     const healed = events.filter((event) => event.type === 'villagerRecovered');
+    // E os das incursões-batalha do roteiro (25º e 37º dias), antes da Paliçada.
     expect(hurt.map((event) => [event.atMs / HOUR, event.data.building ?? null])).toEqual([
       [30, null],
+      [48, 'lumberMill'],
+      [72, null],
+      [72, null],
     ]);
     expect(healed.map((event) => [event.atMs / HOUR, event.data.building ?? null])).toEqual([
       [32, null],
+      [50, 'lumberMill'],
+      [74, null],
+      [74, null],
     ]);
     expect(state.settlement.injured).toEqual([]);
-    expect(state.stats).toMatchObject({ raids_suffered: 1, raids_repelled: 4 });
+    expect(state.stats).toMatchObject({ raids_suffered: 3, raids_repelled: 3 });
     expect(state.rng.horde).toHaveLength(4);
     // A última incursão do ano já passou, e a seguinte ainda não foi sorteada.
     expect(state.horde.scheduledRaids).toEqual([]);
-    expect(state.map.threat).toBe(70);
+    expect(state.map.threat).toBe(63);
     const lastView = deriveViewState(state, state.lastProcessedAt).threat;
     expect(lastView).toMatchObject({
       known: true,
-      level: 70,
+      level: 63,
       risePerDay: 2,
-      raidChancePercent: 32,
+      raidChancePercent: 25,
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no
     // inverno, o frio a derruba de novo e ela volta. Com o Armazém guardando 1.000 de madeira, a
     // lenha dura até o fim do 8º dia do inverno (159 h 48 min): a virada das 160 h ainda pega o
     // frio, que acaba às 163 h, com os lenhadores de volta. Os lobos não pesam: a única incursão
-    // sofrida é a do roteiro, com o povo contente. Ninguém deserta (o golden da fome longa, com
+    // sofrida é a do roteiro, com o povo contente (até a V4E-T2.4: agora sofre também as do 25º e do 37º dia, e um aldeão deserta às 96 h). Fora isso ninguém deserta (o golden da fome longa, com
     // gente que parte, é o retrato `famine`, e a regra está em `morale.test.ts` e
     // `famine.test.ts`).
     const bands = events
       .filter((event) => event.type === 'moraleBandChanged')
       .map((event) => [event.atMs / HOUR, event.data.band]);
+    // Desde a V4E-T2.4 as incursões-batalha do 25º e do 37º dia (antes da Paliçada) pesam: a
+    // moral cai às 74 h e às 84 h, e a fome leva um aldeão às 96 h.
     expect(bands).toEqual([
-      [92, 'restless'],
+      [74, 'restless'],
+      [78, 'content'],
+      [84, 'restless'],
+      [90, 'desperate'],
       [98, 'content'],
       // V4H-T1: com o lote 2 no sorteio, a paliçada só é mostrada aos aldeões às 163 h, depois de
       // o frio acabar (+20 por três dias de jogo levam o povo a "orgulhoso"): o "inquieto" das
-      // 160 h é o frio, e a moral não volta a "contente" antes do fim da semana.
+      // 162 h é o frio, e a moral não volta a "contente" antes do fim da semana.
       [162, 'restless'],
       [164, 'proud'],
     ]);
     const cold = events
       .filter((event) => event.type === 'coldStarted' || event.type === 'coldEnded')
       .map((event) => [event.type, Math.floor(event.atMs / HOUR)]);
+    // Com as incursões-batalha e o lote 2 no sorteio, o frio abre às 161 h.
     expect(cold).toEqual([
-      // V4H-T1: o sorteio mudou, a lenha úmida não saiu, e o frio abre uma hora depois (160 h).
-      ['coldStarted', 160],
+      ['coldStarted', 161],
       ['coldEnded', 163],
     ]);
-    expect(events.filter((event) => event.type === 'villagerDeserted')).toEqual([]);
+    expect(
+      events.filter((event) => event.type === 'villagerDeserted').map((event) => event.atMs / HOUR),
+    ).toEqual([96]);
     // V4H-T1: a paliçada foi mostrada às 163 h, e a semana acaba com o efeito dela ainda valendo.
     expect(state.settlement.morale).toBe(80);
     // O Conselho, de ponta a ponta, com as cartas do jogo. A primeira audiência é no 5º dia de
@@ -346,7 +350,8 @@ describe('cenário golden de 7 dias', () => {
       // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
       inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
-    expect(state.ids).toEqual({ hero: 1, item: 1 });
+    // As seis incursões da semana viraram batalha (V4E-T2.3).
+    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 6 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a

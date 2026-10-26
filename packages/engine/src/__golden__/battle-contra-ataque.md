@@ -31,6 +31,7 @@ Fim da rodada 2: moral D 100, A 100; D-CF 10 (res 14), A-CF 1 (res 9)
 {
  "id": "battle-1",
  "foughtAtMs": 0,
+ "formationId": null,
  "mode": "defense",
  "outcome": "victory",
  "ending": "annihilation",

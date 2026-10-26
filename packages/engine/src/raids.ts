@@ -1,7 +1,10 @@
 import {
   balance,
   craftGuilds,
+  warRaids,
+  type WarRaidSizeId,
   enemies,
+  type EnemyId,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -11,8 +14,14 @@ import {
   type ScriptedRaidDef,
 } from '@lotg/content';
 
+import { applyBattleOutcome } from './battleOutcome';
+import { buildBattleReport } from './battleReport';
+import { fightBattle } from './battleTurn';
 import { emit } from './chronicle';
-import { DAY_MS } from './clock';
+import { DAY_MS, seasonAt } from './clock';
+import { nominationReason } from './formations';
+import { baseRaidComposition, buildDefender, scaledLoss, toHordePosts } from './raidArmy';
+import { applyWallDamage, wallForBattle } from './wallRepair';
 import { decimal, joinList } from './format';
 import { addMoraleEffect } from './morale';
 import { ableVillagers, releaseExcessWorkers } from './population';
@@ -20,6 +29,7 @@ import {
   isThreatWatched,
   palisadeAgainst,
   palisadeLevel,
+  raidingEnemy,
   watchtowerLevel,
   watchtowerPerks,
   watchtowerWarningMs,
@@ -38,9 +48,10 @@ import { MILLI } from './units';
  * As incursões (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20): a do roteiro do ano 1, o
  * aviso da Torre de Vigia, a resolução no instante marcado, os feridos e a volta deles.
  *
- * **Nada aqui sorteia.** Quem marca uma incursão por Ameaça é a virada do dia (`hordeTurn.ts`);
- * este módulo só cumpre o que está marcado, e por isso serve também à linha do tempo e às
- * previsões da visão. A regra do que a Paliçada segura é `palisadeAgainst` (`threat.ts`).
+ * Quem marca uma incursão por Ameaça (e sorteia a composição dela) é a virada do dia
+ * (`hordeTurn.ts`); este módulo só cumpre o que está marcado. **O único sorteio daqui é o da
+ * batalha** (V4E-T2.3), no fluxo `battle:<id>`, que nasce e morre no instante da incursão
+ * (`fightBattle`). As previsões da visão não chegam à resolução e por isso não sorteiam. A regra do que a Paliçada segura é `palisadeAgainst` (`threat.ts`).
  *
  * Uma incursão conta três coisas na Crônica: como chegou (o aviso), o que a defesa fez (e o que
  * o ataque custou) e o que teria mudado o desfecho. Os eventos levam os números: é deles que o
@@ -49,7 +60,7 @@ import { MILLI } from './units';
 
 const { raids: rules, threat: threatRules } = balance;
 
-const scriptedAtMs = (def: ScriptedRaidDef) => (def.atGameDay - 1) * DAY_MS;
+const scriptedAtMs = (def: { atGameDay: number }) => (def.atGameDay - 1) * DAY_MS;
 const howlAtMs = (def: ScriptedRaidDef) => (def.howlAtGameDay - 1) * DAY_MS;
 
 /**
@@ -66,9 +77,62 @@ export function scriptedRaidsAfter(boundaryMs: number): ScheduledRaid[] {
       enemy: def.enemy,
       size: def.size,
       announcedAtMs: null,
+      composition: null,
     }))
     .filter((raid) => raid.atMs > boundaryMs)
     .sort((a, b) => a.atMs - b.atMs);
+}
+
+/** Uma incursão-batalha do roteiro do ano 1, marcada (sem composição: a da estação, sem sorteio). */
+function warScriptedRaid(def: (typeof warRaids.scripted)[number]): ScheduledRaid {
+  return {
+    id: def.id,
+    atMs: scriptedAtMs(def),
+    kind: 'scripted',
+    enemy: 'wolves',
+    size: def.size,
+    announcedAtMs: null,
+    composition: null,
+  };
+}
+
+/**
+ * As incursões-batalha do roteiro do ano 1 (V4E-T2.4; ADR 0020, D-11: dias 25, 37 e 61) são
+ * marcadas **na virada do dia que fica `threat.raidLeadMs` antes delas**, como uma sorteada, e
+ * não na criação: até lá a Ameaça sorteia como sempre. Assim só as recebe a partida que ainda não
+ * passou daquele instante (a que a migração encontra dentro da antecedência, o passo 32 → 33
+ * marca). O inimigo é o que o feudo conhece hoje; o exército é a composição-base da estação.
+ * Nada aqui sorteia. A lista fica em ordem de chegada.
+ */
+export function markScriptedWarRaids(draft: GameState, atMs: number): void {
+  const { scheduledRaids } = draft.horde;
+  for (const def of warRaids.scripted) {
+    const raid = warScriptedRaid(def);
+    if (raid.atMs - threatRules.raidLeadMs !== atMs) {
+      continue;
+    }
+    // Uma marcada por vez, como as sorteadas (D-33): com outra incursão marcada, a do roteiro
+    // não é marcada e não volta (a partida segue com a que já vinha).
+    // E só com quem ataque (D-34): com o Covil limpo, fora do outono, ninguém vem.
+    const enemy = raidingEnemy(draft, atMs);
+    if (scheduledRaids.length === 0 && enemy !== null) {
+      scheduledRaids.push({ ...raid, enemy });
+    }
+  }
+  scheduledRaids.sort((a, b) => a.atMs - b.atMs);
+}
+
+/**
+ * O tamanho da v0.2 que serve às frases, à Paliçada e às tabelas antigas: a forte (que a v0.2
+ * não tinha) usa as da média, e a perda dela vem de `warRaids.losses.strong`.
+ */
+export function legacySize(size: WarRaidSizeId): RaidSizeId {
+  return size === 'strong' ? 'medium' : size;
+}
+
+/** Como os vigias contam um bando deste tamanho. */
+export function bandText(enemy: EnemyId, size: WarRaidSizeId): string {
+  return size === 'strong' ? warRaids.bandSizes.wolf.strong : enemies[enemy].sizes[size];
 }
 
 /**
@@ -142,7 +206,7 @@ export function announceRaids(draft: GameState, atMs: number, events: GameEvent[
         warning: perks.revealsRaidSize ? 'sized' : 'warned',
         ...(perks.revealsRaidSize ? { size: raid.size } : {}),
       },
-      { inimigo: enemy.label, bando: enemy.sizes[raid.size] },
+      { inimigo: enemy.label, bando: bandText(raid.enemy, raid.size) },
       perks.revealsRaidSize ? announced.sized : announced.warned,
     );
   }
@@ -259,6 +323,68 @@ function injuredText(count: number): string | null {
   return count === 1 ? injuredLoss.one : injuredLoss.many.replace('{quantidade}', String(count));
 }
 
+/** `a < b`, em frações exatas. */
+function lessThan(a: Ratio, b: Ratio): boolean {
+  return a.num * b.den < b.num * a.den;
+}
+
+/**
+ * A batalha de uma incursão (V4E-T2.3; GDD §8.2 e §10; ADR 0019, decisão 14): o atacante é a
+ * composição marcada (a composição-base da estação, sem sorteio, na incursão que já estava
+ * marcada antes do estado 33 e nas do roteiro); o defensor é a Defesa ativa, preenchida com o
+ * que o exército tem (`buildDefender`), e, sem formação ativa, só a muralha e as torres. A
+ * batalha sorteia no fluxo `battle:<id>` (`fightBattle`), e depois, em ordem: o dano à muralha
+ * (`applyWallDamage`), as baixas ao exército, o que a batalha faz aos comandantes
+ * (`applyBattleOutcome`: a linha da batalha, ferimentos, experiência, desgaste) e o relatório
+ * em `army.reports`, com a formação que lutou.
+ *
+ * Devolve **a parte da força inimiga que passou**: zero se a defesa venceu ou segurou; na
+ * derrota, os pontos de tropa (`warRaids.unitCost`) dos inimigos que sobraram sobre os do
+ * começo.
+ */
+function fightRaid(
+  draft: GameState,
+  raid: ScheduledRaid,
+  atMs: number,
+  events: GameEvent[],
+): Ratio {
+  const composition = raid.composition ?? baseRaidComposition(raid.size, seasonAt(raid.atMs).id);
+  const { army } = draft;
+  const formation = army.formations.find((entry) => entry.id === army.activeFormationId) ?? null;
+  const defender = buildDefender(formation, army.units, (heroId) => {
+    const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
+    return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
+  });
+  const { id, resolution } = fightBattle(draft, {
+    mode: 'defense',
+    player: defender,
+    horde: { posts: toHordePosts(composition) },
+    wall: wallForBattle(draft),
+    watchtowerLevel: watchtowerLevel(draft),
+    heroCapture: balance.difficulties[draft.settings.difficulty].heroCapture,
+  });
+  const report = buildBattleReport(id, atMs, resolution, formation?.id ?? null);
+  applyWallDamage(draft, report, atMs, events);
+  let start = 0;
+  let left = 0;
+  for (const casualty of report.casualties) {
+    if (casualty.owner === 'player') {
+      const unit = casualty.unit as keyof typeof army.units;
+      army.units[unit] = Math.max(0, army.units[unit] - casualty.lost);
+      continue;
+    }
+    const cost = warRaids.unitCost[casualty.unit as keyof typeof warRaids.unitCost];
+    start += casualty.start * cost;
+    left += Math.max(0, casualty.start - casualty.lost) * cost;
+  }
+  applyBattleOutcome(draft, report, atMs, events);
+  army.reports = [...army.reports, report].slice(-balance.army.reportsKept);
+  if (report.outcome !== 'defeat' || start <= 0 || left <= 0) {
+    return { num: 0, den: 1 };
+  }
+  return { num: left, den: start };
+}
+
 /**
  * Resolve uma incursão, uma vez, no instante dela (GDD §8.2). Roda **depois** das obras
  * concluídas do mesmo instante: a Paliçada que fica pronta na hora do ataque já conta.
@@ -283,7 +409,7 @@ function resolveRaid(
 ): void {
   const { settlement, stats } = draft;
   const level = palisadeLevel(draft);
-  const outcome = palisadeAgainst(level, raid.size);
+  const outcome = palisadeAgainst(level, legacySize(raid.size));
   const enemy = enemies[raid.enemy];
   const phrases = raidTemplates[raid.enemy];
   const warning: Warning =
@@ -305,9 +431,11 @@ function resolveRaid(
     // A Ameaça só sai em evento para quem tem vigias: sem a Torre ela não sai do servidor.
     ...(isThreatWatched(draft) ? { threat: draft.map.threat, previousThreat } : {}),
   };
-  const params = { inimigo: enemy.label, bando: enemy.sizes[raid.size] };
+  const params = { inimigo: enemy.label, bando: bandText(raid.enemy, raid.size) };
 
-  if (outcome.kind === 'held') {
+  const passed = fightRaid(draft, raid, atMs, events);
+  data.battleId = draft.army.reports[draft.army.reports.length - 1]?.id ?? '';
+  if (outcome.kind === 'held' || passed.num === 0) {
     stats.raids_repelled = (stats.raids_repelled ?? 0) + 1;
     emit(
       events,
@@ -322,11 +450,19 @@ function resolveRaid(
   }
 
   const share = outcome.kind === 'breached' ? outcome.share : WHOLE;
-  const damage = rules.damage[raid.enemy][raid.size];
+  const damage =
+    raid.size === 'strong' ? warRaids.losses.strong : rules.damage[raid.enemy][raid.size];
+  // A batalha só pode aliviar a regra da v0.2 (ADR 0019, decisão 14): a perda é a do que passou
+  // pela defesa, nunca maior que a que a Paliçada deixava passar.
+  const battleShare = passed !== null && lessThan(passed, share) ? passed : null;
   const losses: string[] = [];
   let lost = false;
+  const scaled = battleShare === null ? null : scaledLoss(raid.size, battleShare);
   for (const resource of damage.resources) {
-    const taken = partOf(settlement.resources[resource], damage.lossRatio, share);
+    const taken =
+      scaled === null
+        ? partOf(settlement.resources[resource], damage.lossRatio, share)
+        : partOf(settlement.resources[resource], scaled.lossRatio, WHOLE);
     if (taken <= 0) {
       continue;
     }
@@ -338,7 +474,10 @@ function resolveRaid(
       losses.push(text);
     }
   }
-  const injuries = Math.min(partOf(damage.injuries, WHOLE, share), ableVillagers(draft));
+  const injuries = Math.min(
+    scaled === null ? partOf(damage.injuries, WHOLE, share) : scaled.injuries,
+    ableVillagers(draft),
+  );
   const hurt: InjuredVillager[] = [];
   for (let index = 0; index < injuries; index += 1) {
     hurt.push(injureVillager(draft, atMs + rules.injuryMs));
@@ -359,7 +498,7 @@ function resolveRaid(
   }
   stats.raids_suffered = (stats.raids_suffered ?? 0) + 1;
 
-  const needed = holdingLevel(raid.size);
+  const needed = raid.size === 'strong' ? null : holdingLevel(raid.size);
   if (needed !== null) {
     data.palisadeLevelNeeded = needed;
   }

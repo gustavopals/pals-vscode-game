@@ -14,6 +14,7 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartas,
+  montarFormacao,
   seguirObjetivos,
   treinarMinimo,
   venderExcedente,
@@ -53,6 +54,10 @@ import { type Bot, botOf, type Policy } from './types';
  * que `obra mais barata` ergue como qualquer outro edifício. **Não contrata nem dá festival**:
  * quem faz isso é o `explorador`, e a diferença entre os dois é o que a contratação custa.
  *
+ * Da guerra tem a política mínima (V4C-T1.8; ADR 0019, decisão 25): ergue o Quartel, treina
+ * Lanceiros e Arqueiros com o que sobra e, desde a V4E-T2.7, **monta com eles uma formação e a
+ * deixa como Defesa ativa** (`montarFormacao`, logo depois do treino): toda incursão é batalha.
+ *
  * A Paliçada vem na frente de tudo: é a defesa, e só entra quando a Ameaça que a Torre mostra
  * passou do limiar das incursões (sem Torre o bot não sabe de nada, e não a ergue).
  *
@@ -77,6 +82,7 @@ export const economicoPolicies: readonly Policy[] = [
   planejarAutomaticas,
   recrutar,
   treinarMinimo,
+  montarFormacao,
   responderCartas,
   alocarPorDemanda,
   alocarMestre,

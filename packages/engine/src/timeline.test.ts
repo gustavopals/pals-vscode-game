@@ -74,6 +74,7 @@ describe('nextEventAt', () => {
             enemy: 'wolves',
             size: 'light',
             announcedAtMs: null,
+            composition: null,
           },
         ];
         edit(draft);

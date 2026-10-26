@@ -1215,6 +1215,8 @@ const ThreatIncomingSchema = z.strictObject({
    * qualquer um e não o revela. Com a obra da Paliçada em curso, diz se ela fica pronta a tempo.
    */
   defenseText: z.string(),
+  /** O que os vigias dizem do exército da incursão, conforme o nível da Torre (V4E-T2.5). */
+  compositionText: z.string().nullable(),
 });
 
 /**

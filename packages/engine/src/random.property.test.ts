@@ -272,7 +272,8 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
     const { state, events } = advanceWithEntities(start, 30 * DAY_MS, plan);
     expect(syntheticEntitiesOf(state)).toEqual([]);
     expect(Object.keys(state.rng).sort()).toEqual([...RNG_STREAMS].sort());
-    expect(state.ids).toEqual({ expedition: 2, caravan: 1 });
+    // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte: fora desta conta.
+    expect({ ...state.ids, battle: undefined }).toEqual({ expedition: 2, caravan: 1 });
     expect(steps(events, 'born').map((event) => [event.atMs / DAY_MS, event.data.entity])).toEqual([
       [2, 'expedition-1'],
       [5, 'expedition-2'],
@@ -360,6 +361,10 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
           expect(born).toHaveLength(expected.length);
           expect(new Set(born).size).toBe(born.length);
           for (const family of RNG_STREAM_FAMILIES) {
+            if (family === 'battle') {
+              // As batalhas das incursões (V4E-T2.3) não são entidades do roteiro.
+              continue;
+            }
             expect(pieces.state.ids[family] ?? 0).toBe(
               expected.filter((entity) => entity.family === family).length,
             );
@@ -490,7 +495,12 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
     // passado e não nasce. As outras três nasceram, e só a última ainda vive. No caminho o feudo
     // recebeu a carta da estrangeira, que ninguém respondeu: o conselho a acolheu, e o herói
     // dela tem o identificador dele, igual nos dois caminhos.
-    expect(direct.state.ids).toEqual({ expedition: 2, caravan: 1, hero: 1 });
+    // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte: fora desta conta.
+    expect({ ...direct.state.ids, battle: undefined }).toEqual({
+      expedition: 2,
+      caravan: 1,
+      hero: 1,
+    });
     expect(syntheticEntitiesOf(direct.state).map((entity) => entity.id)).toEqual(['expedition-2']);
     expect(Object.keys(direct.state.rng).sort()).toEqual(
       [...RNG_STREAMS, 'expedition:expedition-2'].sort(),

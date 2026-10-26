@@ -5,6 +5,7 @@ import {
   erguerQuartel,
   erguerTorre,
   guardarLenha,
+  montarFormacao,
   obraMaisBarata,
   ocuparLivres,
   planejarAutomaticas,
@@ -27,7 +28,8 @@ import { botOf, type Policy } from './types';
  * a comida que falta e, com o inverno à vista, a lenha que falta.
  *
  * Da guerra (V4C-T1.8) tem só a política mínima do econômico: ergue o Quartel e treina Lanceiros
- * e Arqueiros com o que sobra.
+ * e Arqueiros com o que sobra; desde a V4E-T2.7 (decisão 25) monta com eles a formação e a deixa
+ * como Defesa ativa (`montarFormacao`), porque toda incursão passou a ser batalha.
  *
  * **Nunca contrata na Taverna e nunca dá festival** (roadmap da v0.3, V3C-T2.7): o herói dele é
  * o que a carta da estrangeira entrega. A Taverna ele ergue, sem querer, quando ela é a obra
@@ -43,6 +45,7 @@ export const preguicosoPolicies: readonly Policy[] = [
   planejarAutomaticas,
   recrutar,
   treinarMinimo,
+  montarFormacao,
   responderCartasSemGastar,
   comidaPrimeiro,
   ocuparLivres,

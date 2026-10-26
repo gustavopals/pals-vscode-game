@@ -66,6 +66,7 @@ const raid = (atMs: number, size: ScheduledRaid['size'] = 'light'): ScheduledRai
   enemy: 'wolves',
   size,
   announcedAtMs: null,
+  composition: null,
 });
 
 describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
@@ -745,6 +746,7 @@ describe('a incursão marcada, vista da Torre', () => {
         'Sem defesa, um ataque dos leves leva 10% do estoque de comida e madeira e fere 1 aldeão; um ataque dos médios leva 15% do estoque de comida e madeira e fere 2 aldeões. Quem se fere fica 2 h sem trabalhar.',
       // O que a Paliçada faz a ela está em `palisade.test.ts`.
       defenseText: 'Sem Paliçada, nada segura este ataque.',
+      compositionText: null,
     });
     expect(known(hunted(arrival - 10 * MINUTE, 1, 'medium')).incoming).toMatchObject({
       inSeconds: 600,
@@ -764,6 +766,7 @@ describe('a incursão marcada, vista da Torre', () => {
       costText:
         'Sem defesa, uma matilha pequena leva 10% do estoque de comida e madeira (hoje, 18 de comida e 12 de madeira) e fere 1 aldeão, que fica 2 h sem trabalhar.',
       defenseText: 'Sem Paliçada, nada segura este ataque.',
+      compositionText: null,
     });
     expect(known(hunted(arrival - HOUR, 2, 'medium')).incoming).toMatchObject({
       sizeText: 'uma matilha grande',

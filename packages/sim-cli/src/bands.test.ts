@@ -211,13 +211,15 @@ describe('faixas a partir da linha de base medida', () => {
     // Remedida de propósito (V4E-T1, docs/balance-v0.4.md, seção 8): a Muralha, a Torre acima do
     // nível 2 e as oito cartas do lote 2 mudam o sorteio e a fila de obras; o Salão fecha a
     // semana no 7 e o ouro parado cai de 200 mil para 114 mil.
+    // Remedida de novo com as incursões-batalha (V4E-T2, seção 9): com a Defesa ativa o Regular
+    // perde menos gente e fecha a semana com 72 a 84 aldeões; o ouro parado sobe para 132 mil.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 57, max: 86 },
+      villagers: { min: 64, max: 93 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_460, gold: 114_350 },
-      wasteStreakMax: 38,
+      surplusMax: { wood: 5_460, stone: 5_460, gold: 138_945 },
+      wasteStreakMax: 35,
     });
   });
 

@@ -81,9 +81,11 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
         expect(row.models.length, season).toBeGreaterThanOrEqual(4);
       }
     }
-    // No ritmo Normal nenhuma estação passa em branco em nenhuma semente.
+    // No ritmo Normal nenhuma estação passa em branco em nenhuma semente. Era "ao menos 2" até
+    // a V4E-T2: com as incursões-batalha o sorteio de toda semente mudou, e uma delas tira uma
+    // carta só no inverno.
     for (const [season, row] of Object.entries(normal.bySeason)) {
-      expect(row.drawn.min, season).toBeGreaterThanOrEqual(2);
+      expect(row.drawn.min, season).toBeGreaterThanOrEqual(1);
     }
   });
 

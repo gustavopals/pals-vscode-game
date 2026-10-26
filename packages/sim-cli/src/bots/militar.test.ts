@@ -46,8 +46,10 @@ describe('os bots na guerra (V4C-T1.8)', () => {
   it('o militar é o econômico com o Ferreiro, a forja e a formação', async () => {
     const names = militarPolicies.map((policy) => policy.name);
     expect(names.slice(0, 2)).toEqual(['erguer o Ferreiro', 'forjar armas']);
-    expect(names.at(-1)).toBe('montar a formação');
-    expect(names).toHaveLength(economicoPolicies.length + 3);
+    // Desde a V4E-T2.7 (decisão 25) a formação é do econômico, logo depois do treino; o militar
+    // a herda dele e só acrescenta o Ferreiro e a forja.
+    expect(names).toContain('montar a formação');
+    expect(names).toHaveLength(economicoPolicies.length + 2);
     const result = await simulate({
       seed: 'pedra-alta-001',
       days: 7,
@@ -86,7 +88,10 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     expect(army.formations.some((entry) => entry.id === army.preview?.formationId)).toBe(true);
   });
 
-  it('o econômico não simula: a formação e a prévia são do militar', async () => {
+  // Desde a V4E-T2.7 (ADR 0019, decisão 25) o econômico também mantém a Defesa ativa: toda
+  // incursão é batalha. Ele monta a formação com os Lanceiros e Arqueiros do treino mínimo,
+  // simula e a ativa, sem comandante.
+  it('o econômico monta e ativa a formação com o que treina, e simula antes (V4E-T2.7)', async () => {
     const result = await simulate({
       seed: 'pedra-alta-001',
       days: 7,
@@ -94,17 +99,9 @@ describe('os bots na guerra (V4C-T1.8)', () => {
       strategy: 'economico',
       sessionsPerDay: 2,
     });
-    expect(result.finalState.stats.battlesSimulated).toBeUndefined();
-  });
-
-  it('o econômico não monta formação: ela é do militar', async () => {
-    const result = await simulate({
-      seed: 'pedra-alta-001',
-      days: 7,
-      timeScale: 3,
-      strategy: 'economico',
-      sessionsPerDay: 2,
-    });
-    expect(result.finalState.army.formations).toEqual([]);
+    const { army, stats } = result.finalState;
+    expect(army.formations.length).toBeGreaterThanOrEqual(1);
+    expect(army.formations.map((entry) => entry.id)).toContain(army.activeFormationId);
+    expect(stats.battlesSimulated).toBeGreaterThan(0);
   });
 });

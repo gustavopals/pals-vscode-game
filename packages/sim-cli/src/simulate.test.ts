@@ -357,13 +357,15 @@ describe('CSV de uma partida', () => {
       /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+, Torre de Vigia na hora \d+, Paliçada na hora \d+ · \d+ obras começaram sozinhas · /,
     );
     // A Ameaça é medida no estado, com ou sem Torre; a linha diz se o jogador chegou a vê-la.
-    // Ela sobe 2 por dia de jogo (5 no outono) e cai 35 a cada incursão: oscila, e no ano não
-    // passa de 76.
+    // Ela sobe 2 por dia de jogo (5 no outono) e cai 35 a cada incursão: oscila.
     // Torre Nv3: com a Torre acima do 2 no conteúdo (V4E-T1), o bot que a ergue ("erguer a Torre")
     // passa do nível 2 e chega ao 3 no ano.
-    expect(summary.threat).toEqual({ final: 70, max: 76, watchtower: 3 });
+    // V4E-T2: com as incursões-batalha (o sorteio do fluxo `horde` mudou e o roteiro da guerra
+    // derruba a Ameaça nos dias 25, 37 e 61) o ano termina em 63, com a máxima em 89, e o bot
+    // leva a Torre ao nível 4.
+    expect(summary.threat).toEqual({ final: 63, max: 89, watchtower: 4 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 70 no fim (máxima 76) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 63 no fim (máxima 89) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -658,7 +660,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 
@@ -667,12 +669,13 @@ describe('resumo de uma partida', () => {
     // (V3F-T2), os três que alcança sem enviar expedição (o primeiro herói, a Guilda e a venda
     // no Mercado). A sequência inteira não fecha, e a linha não traz a hora do último.
     const summary = summarize(twoSessions);
-    expect(summary.objectives).toEqual({ done: 13, total: objectives.length, allDoneAtHour: null });
-    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 16 concluídos\n');
+    // 12 (eram 13 até a V4E-T2: as incursões-batalha do roteiro custam um objetivo no ano).
+    expect(summary.objectives).toEqual({ done: 12, total: objectives.length, allDoneAtHour: null });
+    expect(formatSummary(twoSessions)).toContain('Objetivos: 12 de 16 concluídos\n');
     // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
     const done = twoSessions.rows.map((row) => row.objectives);
     expect(done[0]).toBeGreaterThanOrEqual(2);
-    expect(done[done.length - 1]).toBe(13);
+    expect(done[done.length - 1]).toBe(12);
     expect(done.every((count, index) => index === 0 || count >= (done[index - 1] ?? 0))).toBe(true);
     // Dois dias reais não bastam: falta o que o Salão no nível 3 e o inverno trazem.
     const twoDays = await simulate({ ...twoSessions.options, days: 2 });
@@ -727,8 +730,9 @@ describe('resumo de uma partida', () => {
         iron: 0,
       },
       losses: Math.round(sum('raided_food') + sum('raided_wood')),
-      // Paliçada Nv4 (era 2): a Muralha de Pedra existe desde a V4E-T1 e o bot a ergue.
-      palisade: 4,
+      // Paliçada Nv3 (era 4 na V4E-T1, 2 antes dela): com as incursões-batalha o bot chega ao
+      // primeiro nível da Muralha de Pedra.
+      palisade: 3,
     });
     // A do roteiro e as da Ameaça: o bot sofre as primeiras e, com a Paliçada, repele o resto.
     expect(summary.raids.suffered).toBeGreaterThan(0);
@@ -743,7 +747,7 @@ describe('resumo de uma partida', () => {
     expect(formatSummary(twoSessions)).toContain(
       `Lobos: ${summary.raids.suffered} incursões sofridas, ${summary.raids.repelled} repelidas (${summary.raids.announced} anunciadas pela Torre) · ` +
         `levaram food ${summary.raids.lost.food}, wood ${summary.raids.lost.wood} · ${summary.raids.injured} feridos · ` +
-        `Paliçada Nv4, erguida na hora ${summary.milestones.palisade}\n`,
+        `Paliçada Nv3, erguida na hora ${summary.milestones.palisade}\n`,
     );
     // As colunas do CSV são as mesmas contas, acumuladas hora a hora: nunca diminuem.
     const last = twoSessions.rows[167];

@@ -11,9 +11,12 @@ import {
   WING_IDS,
   wingLabels,
   type WingId,
+  hordeUnits,
+  lineLabels,
+  wingPhrases,
 } from '@lotg/content';
 
-import { DAY_MS, nextDayBoundary } from './clock';
+import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { buildingLabelAt, constructionOf, missingResources } from './construction';
 import { reject } from './rejections';
 import { currentRepairQuote, wallMissingHp, wallRepairBlocked } from './wallRepair';
@@ -27,6 +30,8 @@ import {
   shareText,
 } from './format';
 import { clearedTiles, tileWithArticle } from './outcomes';
+import { baseRaidComposition } from './raidArmy';
+import { bandText, legacySize } from './raids';
 import {
   isThreatWatched,
   palisadeAgainst,
@@ -593,10 +598,12 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   const now = state.lastProcessedAt;
   const enemy = enemies[raid.enemy];
   const enemyLabel = sentenceCase(enemy.label);
-  const sizeText = perks.revealsRaidSize ? enemy.sizes[raid.size] : null;
+  const sizeText = perks.revealsRaidSize ? bandText(raid.enemy, raid.size) : null;
   // Os tamanhos que a incursão pode ter, para quem olha da Torre: o que os vigias contaram, ou
   // todos, enquanto ela não distingue.
-  const sizes: readonly RaidSizeId[] = perks.revealsRaidSize ? [raid.size] : RAID_SIZE_IDS;
+  const sizes: readonly RaidSizeId[] = perks.revealsRaidSize
+    ? [legacySize(raid.size)]
+    : RAID_SIZE_IDS;
   return {
     enemy: raid.enemy,
     enemyLabel,
@@ -609,7 +616,55 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
     costText: incomingCostText(state, raid.enemy, sizes, timeScale),
     // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
     defenseText: incomingDefenseText(palisadeAtRaid(state, raid.atMs), sizes),
+    compositionText: incomingCompositionText(raid, perks),
   };
+}
+
+/** A parte do arredondamento da contagem aproximada (V4E-T2.5): múltiplos de 5, ao menos 5. */
+const APPROXIMATE_STEP = 5;
+
+/**
+ * O que os vigias dizem do exército da incursão (V4E-T2.5; GDD §8.2; `watchtowerLevels[]
+ * .composition`), e **só isso sai na visão**: nada nos níveis 1 e 2; os tipos de inimigo no 3;
+ * quantos vêm por ala, em múltiplos de 5, no 4; a composição exata, posto a posto, no 5. A
+ * composição sai da marcada ou, sem ela, da composição-base da estação: a mesma que vai lutar.
+ */
+function incomingCompositionText(raid: ScheduledRaid, perks: WatchtowerLevelDef): string | null {
+  if (perks.composition === 'none') {
+    return null;
+  }
+  const posts = raid.composition ?? baseRaidComposition(raid.size, seasonAt(raid.atMs).id);
+  if (perks.composition === 'archetypes') {
+    const kinds: string[] = [];
+    for (const post of posts) {
+      const label = hordeUnits[post.unit].pluralLabel;
+      if (!kinds.includes(label)) {
+        kinds.push(label);
+      }
+    }
+    return `Os vigias distinguem ${joinList(kinds)}.`;
+  }
+  if (perks.composition === 'approximate') {
+    const parts = WING_IDS.flatMap((wing) => {
+      const total = posts
+        .filter((post) => post.wing === wing)
+        .reduce((sum, post) => sum + post.count, 0);
+      if (total === 0) {
+        return [];
+      }
+      const rounded = Math.max(
+        APPROXIMATE_STEP,
+        Math.round(total / APPROXIMATE_STEP) * APPROXIMATE_STEP,
+      );
+      return [`cerca de ${String(rounded)} contra ${wingPhrases[wing]}`];
+    });
+    return `Os vigias contam ${joinList(parts)}.`;
+  }
+  const parts = posts.map(
+    (post) =>
+      `${String(post.count)} ${post.count === 1 ? hordeUnits[post.unit].label.toLowerCase() : hordeUnits[post.unit].pluralLabel} na ${lineLabels[post.line].toLowerCase()} contra ${wingPhrases[post.wing]}`,
+  );
+  return `Os vigias contam ${joinList(parts)}.`;
 }
 
 /**

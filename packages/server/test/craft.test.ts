@@ -18,6 +18,7 @@ import {
   newPlayer,
   order,
   type Player,
+  quietHorde,
   renew,
   send,
   type TestApp,
@@ -222,6 +223,9 @@ describe.each([
 describe('experiência do ofício com o jogador fora', () => {
   it('no ritmo Rápido, 25 dias de jogo ocupados dominam o ofício, e a Crônica conta', async () => {
     const who = await newPlayer(fast);
+    // A Horda calada: desde a V4E-T2 a incursão-batalha do roteiro do 25º dia cai dentro destes
+    // 25 dias e o termo dela na moral mudaria a conta da produção, que é o que se mede aqui.
+    await quietHorde(fast, who.game.id);
     for (const [building, count] of [
       ['farm', 2],
       ['lumberMill', 2],

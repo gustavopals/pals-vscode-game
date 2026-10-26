@@ -7,6 +7,8 @@
 > O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
 > e a evidência atual estão em [Retomada da v0.4](retomada-v0.4.md).
 > Não houve publicação da v0.4 nesta sessão.
+> **Em 2026-10-26:** a Muralha e as cartas do lote 2 (estado 32) e as incursões que viram
+> batalha (estado 33, seção 19e).
 
 
 O que está construído em Lords of the Guild depois da v0.3 "A Guilda", como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em **2026-10-15** e aponta para o código. Ele foi reescrito nessa data como retrato da v0.3, e não anotado por cima do retrato da v0.2 (tarefa V3G-T4.3 do [roadmap da v0.3](roadmap-v0.3.md)): as versões anteriores estão no histórico do Git.
@@ -177,6 +179,8 @@ Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. 
 | 25 | V4B-T1 | O ferro: `iron` no estoque, nos acumuladores, no desperdício, nos preços do Mercado e nos registros de quantidade das expedições; nenhum no feudo, o preço na base |
 | 26 | V4B-T2 | O Ferreiro: `buildings.smithy` em 0, `settlement.weapons` em 0 e `settlement.forge` em `null` |
 | 27 | V4B-T3 | O desgaste: `condition` em cada item (cheia, pela raridade) e `kind` no lote da forja, que passa a guardar também um reparo |
+| 28 a 32 | V4C-T1 a V4E-T1 | O exército, as formações, os relatórios de batalha, a prévia e a muralha (seções 19c e 19d; a tabela do README do motor) |
+| 33 | V4E-T2 | `composition` em cada incursão marcada (`null` no passo, que não sorteia), o tamanho `strong` e `formationId` em cada relatório de batalha; o passo marca a incursão do roteiro da guerra que a fronteira encontra dentro da antecedência |
 
 Os objetivos 5 a 10 (V2E-T4) e os 11 a 16 (V3F-T2) **não mudaram a forma**: uma partida gravada antes deles fica fora do repouso e é acomodada na fronteira, antes de o tempo andar (seção 6). O contador novo dos objetivos (`expeditionsReturned:<modelo>`) não é preenchido por passo nenhum (pendência F-5; seção 21).
 
@@ -231,7 +235,7 @@ A invariante, testada por propriedade e sem tolerância, vale no estado, nos eve
 7. O Conselho fora do sorteio (`settleCouncil`): cartas que expiram, efeitos escondidos que acontecem, continuações que chegam, nessa ordem.
 8. Heróis prometidos que chegam (`settleHeroArrivals`): o que uma carta acabou de dar e o que tinha instante marcado. Depois da virada, porque a cobrança do soldo daquela virada não alcança quem chega nela.
 9. Fim de adaptação (`finishAdaptations`): as levas de aldeões e os Mestres.
-10. As incursões (`settleRaids`): o aviso da Torre e a resolução das que chegaram.
+10. As incursões (`settleRaids`): o aviso da Torre e a resolução das que chegaram, que desde a V4E-T2 é uma batalha contra a Defesa ativa e a muralha (o fluxo `battle:<id>` nasce e morre ali; seção 19e).
 11. A Taverna (`settleTavern`): o festival que acabou e a troca dos candidatos, com o sorteio dela.
 12. As expedições (`settleExpeditions`): os nós que terminam, os prazos de encruzilhada e as equipes que voltam, **na ordem do identificador**, cada uma com o sorteio do próprio fluxo. Dentro de um nó a ordem dos sorteios é fixa: a sorte, quem sofre, a cobiça do Ganancioso, as quantidades do saque, o item e, por último, o Mestre, só no Sucesso e só se ele ainda pode chegar. O saque entra antes da conta do ouro.
 13. As caravanas que chegam (`settleCaravans`), na ordem do identificador: com escolta, sem sorteio; sem escolta, um sorteio no fluxo da caravana, com a Torre de Vigia **deste** instante. O ouro entra antes das planejadas e da conta do soldo, e o fluxo é apagado por último.
@@ -494,10 +498,20 @@ Entram na v0.4 sem publicação (ADR 0019, decisões 7 a 9 e 25; estados 28 e 29
 Entram na v0.4 sem publicação (ADR 0019, decisões 10 e 11, e as respostas D-1 a D-8 de 2026-10-23; estados 30 e 31):
 
 - **A batalha** (`battle.ts`, `resolveBattle`) é uma função pura, em inteiros e frações: até 12 rodadas, iniciativa com desempate pelo defensor e por ala e linha, contra-ataques ×3/2, flanco ×5/4, a muralha por ala (o golpe que a rompe para nela), as torres, as auras de comandante, o Mago, a Clériga, o Escudeiro, a moral e a debandada; as baixas valem na hora, com um arredondamento só, no dano efetivo. Os oito inimigos estão em `enemies.ts` (`hordeUnits`). **Os sete cenários escritos à mão** em `docs/content-v0.4.md`, seção 2, são lidos por `battle.test.ts` e batem com o motor linha a linha.
-- **O sorteio** é a família de fluxo `battle:<id>` (`battleTurn.ts`, `fightBattle`): uma sorte de 90 a 110 por ataque, pedida só por quem ataca; o fluxo nasce e é apagado no mesmo instante, e por isso nunca é gravado. **Nenhuma incursão chama a batalha ainda** (Fase E).
+- **O sorteio** é a família de fluxo `battle:<id>` (`battleTurn.ts`, `fightBattle`): uma sorte de 90 a 110 por ataque, pedida só por quem ataca; o fluxo nasce e é apagado no mesmo instante, e por isso nunca é gravado. Desde a V4E-T2 toda incursão chama a batalha (seção 19e).
 - **O relatório** (`battleReport.ts`) traz as rodadas, os três fatores decisivos por atribuição de dano, as baixas por posto, a muralha e a experiência dos comandantes; `army.reports` guarda os três últimos (estado 30). `applyBattleOutcome` (`battleOutcome.ts`) aplica ao feudo o ferimento ou a morte do comandante (só em Rei de Ferro), a experiência e o desgaste do equipamento, e emite `battleFought`, `commanderInjured` e `commanderDied`.
 - **A prévia do Conselho de Guerra** (`warCouncil.ts`, `previewBattle`): 200 batalhas com o mesmo `resolveBattle`, cada uma com um gerador próprio semeado por `hash` (nunca `state.rng`), contra a composição-base da estação; cerca de 28 ms. Com o inimigo conhecido, a prévia dá o mesmo relatório que a batalha real (critério 2). A ordem `simulateBattle` grava `army.preview` (estado 31) e conta em `stats.battlesSimulated`; a visão traz os percentuais, o risco em uma frase e `previewStale`.
-- A Muralha de Pedra, o Baluarte e a Torre Nv3+ estão no conteúdo (`futureLevels`) e ainda não no estado.
+- A Muralha de Pedra, o Baluarte e a Torre Nv3+ entraram no estado na V4E-T1 (estado 32: a vida da muralha por ala e o reparo).
+
+## 19e. As incursões que viram batalha (v0.4, Fase E)
+
+Entram na v0.4 sem publicação (ADR 0019, decisões 13 e 14; pendências D-11 e D-31 a D-38; estado 33):
+
+- **Toda incursão é uma batalha** (`raids.ts`, `fightRaid`): o atacante é a composição da incursão, sorteada no fluxo `horde` quando ela é marcada (a do roteiro e a marcada antes do estado 33 usam a composição-base da estação, sem sorteio); o defensor é a Defesa ativa, e, sem ela, só a muralha e as torres lutam. A batalha sorteia no fluxo `battle:<id>`, danifica a muralha, mata soldados, fere comandantes e guarda o relatório em `army.reports` com a formação que lutou.
+- **A batalha só alivia a regra da v0.2** (decisão 14): a perda é a menor entre a que a Paliçada deixava passar e a do que passou pela batalha, na proporção. Sem exército, os lobos do 16º dia custam o mesmo que antes.
+- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; o ensaio do cerco no início do 61º dia, até a Hora da Vigília da V4G-T1), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
+- **A névoa**: `threat.incoming.compositionText` diz da composição só o que o nível da Torre revela (nada nos níveis 1 e 2; os tipos, as quantidades por ala e a composição exata nos 3, 4 e 5).
+- **No simulador**, o econômico e o preguiçoso montam e ativam a formação com o que treinam (decisão 25); a medição está em [balance-v0.4.md](balance-v0.4.md), seção 9.
 
 ## 20. Divergências aceitas em relação ao GDD
 

@@ -16,7 +16,7 @@ import {
   MARKET_RESOURCE_IDS,
   MASTER_IDS,
   PRODUCTION_BUILDING_IDS,
-  RAID_SIZE_IDS,
+  WAR_RAID_SIZE_IDS,
   RESOURCE_IDS,
   TILE_TYPE_IDS,
   UNIT_IDS,
@@ -111,6 +111,7 @@ import {
   HORDE_UNIT_IDS_V30,
 } from './migrations/v30';
 import { PREVIEW_RUNS_V31, WALL_HP_BY_LEVEL_V32 } from './migrations/v31';
+import { WAR_SCRIPTED_RAIDS_V33 } from './migrations/v32';
 import { BATTLE_FACTOR_IDS, buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
 import {
@@ -215,6 +216,21 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
+/** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
+function stripComposition(copy: Draft): void {
+  const horde = (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde;
+  if (horde?.scheduledRaids === undefined) {
+    return;
+  }
+  // E as incursões-batalha do roteiro que o passo marca para quem está na antecedência (T2.4).
+  horde.scheduledRaids = horde.scheduledRaids.filter(
+    (raid) => !WAR_SCRIPTED_RAIDS_V33.some((war) => war.id === raid.id),
+  );
+  for (const raid of horde.scheduledRaids) {
+    delete raid.composition;
+  }
+}
+
 /** Tira de um estado, no lugar, o que o passo 27 → 28 acrescenta: o Quartel (nível 0) e o exército. */
 function stripArmy(copy: Draft): void {
   delete copy.army;
@@ -224,6 +240,8 @@ function stripArmy(copy: Draft): void {
     delete copy.settlement.wall;
     delete copy.settlement.wallRepair;
   }
+  // E a composição de cada incursão marcada, do passo 32 → 33 (V4E-T2.2).
+  stripComposition(copy);
 }
 
 /**
@@ -322,6 +340,7 @@ function asVersion22(state: GameState): Draft {
   old.schemaVersion = 22;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripMasters(old);
   return old;
 }
@@ -344,6 +363,7 @@ function asVersion20(state: GameState): Draft {
   old.schemaVersion = 20;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripMarket(old);
   return old;
 }
@@ -372,6 +392,7 @@ function asVersion19(state: GameState): Draft {
   old.schemaVersion = 19;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripFreed(old);
   return old;
 }
@@ -412,6 +433,7 @@ function asVersion18(state: GameState): Draft {
   old.schemaVersion = 18;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripReport(old);
   return old;
 }
@@ -464,6 +486,7 @@ function asVersion17(state: GameState): Draft {
   old.schemaVersion = 17;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripOutcomes(old);
   return old;
 }
@@ -488,6 +511,7 @@ function asVersion16(state: GameState): Draft {
   old.schemaVersion = 16;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.settlement.buildings.guild;
   delete old.guild.expeditions;
   delete old.guild.reports;
@@ -519,6 +543,7 @@ function asVersion15(state: GameState): Draft {
   old.schemaVersion = 15;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.settlement.buildings.tavern;
   delete old.guild.tavernOffers;
   delete old.guild.tavern;
@@ -550,6 +575,7 @@ function asVersion14(state: GameState): Draft {
   old.schemaVersion = 14;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.guild.arriving;
   for (const hero of old.guild.heroes as Draft[]) {
     delete hero.gender;
@@ -566,6 +592,7 @@ function asVersion13(state: GameState): Draft {
   old.schemaVersion = 13;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.guild;
   return old;
 }
@@ -576,6 +603,7 @@ function asVersion12(state: GameState): Draft {
   old.schemaVersion = 12;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.ids;
   return old;
 }
@@ -589,6 +617,7 @@ function asVersion11(state: GameState): Draft {
   old.schemaVersion = 11;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   if (old.settlement.famine !== null) {
     old.settlement.famine = { sinceMs: old.settlement.famine.sinceMs };
   }
@@ -616,6 +645,8 @@ function besidesPrizes(
 ): Record<string, number> {
   const rest = { ...ids };
   delete rest.item;
+  // As batalhas das incursões (V4E-T2.3) também não são obra do passo.
+  delete rest.battle;
   if (before.item !== undefined) {
     rest.item = before.item;
   }
@@ -1577,6 +1608,55 @@ const FROZEN: Record<string, string> = {
   'state-v31-wage-arrears.json': 'b60c36be',
   'state-v31-warehouse-full.json': '65e832ff',
   'state-v31-week-scripted.json': '23e171ff',
+  'state-v32-caravan-escort.json': '2b267201',
+  'state-v32-caravan.json': '8a1ffe05',
+  'state-v32-cold.json': '43556b3c',
+  'state-v32-construction.json': 'ad8beb8c',
+  'state-v32-council-hidden.json': '2ffe720f',
+  'state-v32-council.json': '48d59281',
+  'state-v32-crafts.json': 'c0cdc7b6',
+  'state-v32-den-cleared.json': '97cd4326',
+  'state-v32-expedition-crossroads.json': '5b02ef45',
+  'state-v32-expedition-returning.json': '6be75528',
+  'state-v32-expedition.json': '5dc44e7f',
+  'state-v32-famine-3x.json': '1f981090',
+  'state-v32-famine-ended.json': '8a262d0c',
+  'state-v32-famine-half.json': 'e737644f',
+  'state-v32-famine-resumed.json': 'ff9291ce',
+  'state-v32-famine-smithy.json': '41dbbe5e',
+  'state-v32-famine.json': '391b895a',
+  'state-v32-fresh.json': 'a6d1bec1',
+  'state-v32-guild.json': '6b71ab6e',
+  'state-v32-hero-captured.json': '9411df04',
+  'state-v32-hero-injured.json': '832727a5',
+  'state-v32-hero-promised.json': 'dbda8ef2',
+  'state-v32-housing-full.json': 'c61613cc',
+  'state-v32-iron-king-half.json': '6610e205',
+  'state-v32-market-opening.json': 'a48b3a46',
+  'state-v32-market.json': 'd2b848a0',
+  'state-v32-master-waiting.json': '03c54865',
+  'state-v32-masters.json': '24436fd0',
+  'state-v32-migrated-3x.json': '7fa8489a',
+  'state-v32-migrated-iron-king-caravan.json': 'f4bebb97',
+  'state-v32-migrated-iron-king-half.json': '440cb1de',
+  'state-v32-migrated-peasant-3x.json': 'ce791ff5',
+  'state-v32-morale.json': '1b10a336',
+  'state-v32-objectives.json': '779594f2',
+  'state-v32-palisade.json': '80a7b5b4',
+  'state-v32-peasant-3x.json': 'c2557b98',
+  'state-v32-queues.json': 'f201045e',
+  'state-v32-raid-announced.json': '0b8f0a66',
+  'state-v32-raid.json': '926e3b9c',
+  'state-v32-smithy-forging.json': '4662f24b',
+  'state-v32-storage.json': '8bc24271',
+  'state-v32-tavern-busy.json': 'ea3583d0',
+  'state-v32-tavern.json': '460f8dc9',
+  'state-v32-threat.json': 'c1c758fb',
+  'state-v32-wage-arrears-ended.json': 'eec14256',
+  'state-v32-wage-arrears-resumed.json': 'e5cd8bd8',
+  'state-v32-wage-arrears.json': 'db39b4f7',
+  'state-v32-warehouse-full.json': 'ee8555c4',
+  'state-v32-week-scripted.json': 'dcb57b8d',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2566,7 +2646,7 @@ describe('a forma da versão atual', () => {
       expect(currentShape(state, ''), type).toBeNull();
     }
     for (const enemy of ENEMY_IDS) {
-      for (const size of RAID_SIZE_IDS) {
+      for (const size of WAR_RAID_SIZE_IDS) {
         const state = JSON.parse(JSON.stringify(newGame())) as Draft;
         state.horde.scheduledRaids = [
           {
@@ -2576,6 +2656,7 @@ describe('a forma da versão atual', () => {
             enemy,
             size,
             announcedAtMs: null,
+            composition: null,
           },
           {
             id: 'threat-2',
@@ -2584,6 +2665,7 @@ describe('a forma da versão atual', () => {
             enemy,
             size,
             announcedAtMs: 126_000_000,
+            composition: [{ wing: 'left', line: 'front', unit: 'wolf', count: 3 }],
           },
         ];
         expect(currentShape(state, ''), `${enemy}/${size}`).toBeNull();
@@ -3614,8 +3696,17 @@ describe('versão 8 → 9', () => {
   it.each(version8)(
     '$name: a Ameaça conta a partir da fronteira e sobe na primeira virada de dia depois dela',
     (fixture) => {
-      const state = migrated(fixture);
-      const turn = nextDay(state);
+      const whole = migrated(fixture);
+      const turn = nextDay(whole);
+      // Sem as incursões que chegam nos dois dias medidos: a do roteiro do dia 37 (estado 33,
+      // V4E-T2.4) chega na primeira virada do retrato `v8-storage` e zera a Ameaça ao ser
+      // sofrida. Aqui se mede só a subida.
+      const state: GameState = {
+        ...whole,
+        horde: {
+          scheduledRaids: whole.horde.scheduledRaids.filter((raid) => raid.atMs > turn + DAY),
+        },
+      };
       // Nada acontece na fronteira: nenhuma linha, nenhum sorteio, a Ameaça parada em zero.
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type === 'threatRose')).toEqual([]);
@@ -3800,6 +3891,8 @@ describe('versão 10 → 11', () => {
     size: 'light',
     announcedAtMs: null,
   };
+  // Na versão atual a incursão tem a composição (passo 32 → 33, V4E-T2.2), nula na migrada.
+  const WOLVES_NOW = { ...WOLVES, composition: null };
   const raidEvents = (events: GameEvent[]) =>
     events.filter((event) => /^(raid|wolves|villager(Injured|Recovered))/.test(event.type));
   // Só até a versão 11: o que as incursões mudaram, sem o que as versões seguintes acrescentaram.
@@ -3814,6 +3907,7 @@ describe('versão 10 → 11', () => {
     old.schemaVersion = 10;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     delete old.settlement.injured;
     old.horde.scheduledRaids = [];
     return old;
@@ -3823,9 +3917,9 @@ describe('versão 10 → 11', () => {
     const fresh = migrated(named('state-v10-fresh.json'));
     expect(fresh.horde).toEqual(newGame().horde);
     expect(fresh.settlement.injured).toEqual(newGame().settlement.injured);
-    expect(fresh.horde.scheduledRaids).toEqual([WOLVES]);
+    expect(fresh.horde.scheduledRaids).toEqual([WOLVES_NOW]);
     // O número escrito no passo coincide com o do conteúdo de hoje.
-    expect(scriptedRaidsAfter(0)).toEqual([WOLVES]);
+    expect(scriptedRaidsAfter(0)).toEqual([WOLVES_NOW]);
     expect(balance.raids.scripted).toHaveLength(1);
   });
 
@@ -3858,7 +3952,9 @@ describe('versão 10 → 11', () => {
 
   it('os retratos cobrem os dois lados: quem ainda vai receber os lobos e quem já passou deles', () => {
     const receives = version10
-      .filter((fixture) => migrated(fixture).horde.scheduledRaids.length > 0)
+      .filter((fixture) =>
+        migrated(fixture).horde.scheduledRaids.some((raid) => raid.id === WOLVES.id),
+      )
       .map((fixture) => fixture.name);
     expect(receives).toEqual([
       'state-v10-construction.json',
@@ -3918,7 +4014,7 @@ describe('versão 10 → 11', () => {
   it('quem migra no instante exato dos lobos, ou depois, não os recebe: o instante já passou', () => {
     const at = (boundary: number) =>
       migrateState(asVersion10(gameAt(boundary)), { timeScale: 1 }).horde.scheduledRaids;
-    expect(at(WOLVES_AT - 1)).toEqual([WOLVES]);
+    expect(at(WOLVES_AT - 1)).toEqual([WOLVES_NOW]);
     expect(at(WOLVES_AT)).toEqual([]);
     expect(at(WOLVES_AT + 1)).toEqual([]);
     expect(at(84 * DAY + 3 * DAY)).toEqual([]);
@@ -3978,7 +4074,7 @@ describe('versão 10 → 11', () => {
       }),
     );
     const state = migrateState(old, { timeScale: 1 });
-    expect(state.horde.scheduledRaids).toEqual([WOLVES]);
+    expect(state.horde.scheduledRaids).toEqual([WOLVES_NOW]);
     expect(state.migratedAtMs).toBe(boundary);
     // A visão já mostra os lobos a caminho, antes de qualquer avanço.
     expect(deriveViewState(state, boundary).threat.incoming).toMatchObject({ inSeconds: 1800 });
@@ -4430,7 +4526,8 @@ describe('versão 13 → 14', () => {
       expect(resolved).toBeDefined();
       const before = advanceTo(state, (resolved as GameEvent).atMs - 1);
       expect(withoutTavern(before.state).guild).toEqual(EMPTY_GUILD);
-      expect(before.state.ids).toEqual({});
+      // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte.
+      expect(besidesPrizes(before.state.ids, {})).toEqual({});
       expect(
         before.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
       ).toEqual([]);
@@ -5795,6 +5892,7 @@ describe('versão 21 → 22', () => {
     old.schemaVersion = 21;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     stripMasters(old);
     delete old.market.caravans;
     return old;
@@ -6236,6 +6334,7 @@ describe('versão 23 → 24', () => {
     old.schemaVersion = 23;
     delete old.settlement.wall;
     delete old.settlement.wallRepair;
+    stripComposition(old);
     stripIron(old);
     for (const entry of old.settlement.masters as Draft[]) {
       delete entry.worked;
@@ -6443,6 +6542,7 @@ function asVersion24(state: GameState): Draft {
   old.schemaVersion = 24;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripIron(old);
   return old;
 }
@@ -6552,6 +6652,7 @@ function asVersion25(state: GameState): Draft {
   old.schemaVersion = 25;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripSmithy(old);
   return old;
 }
@@ -6687,6 +6788,7 @@ function asVersion26(state: GameState): Draft {
   old.schemaVersion = 26;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripRepair(old);
   return old;
 }
@@ -6852,6 +6954,7 @@ function asVersion27(state: GameState): Draft {
   old.schemaVersion = 27;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   stripArmy(old);
   return old;
 }
@@ -7002,6 +7105,7 @@ function asVersion28(state: GameState): Draft {
   old.schemaVersion = 28;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.formations;
   delete old.army.activeFormationId;
   delete old.army.reports;
@@ -7143,6 +7247,7 @@ function asVersion29(state: GameState): Draft {
   old.schemaVersion = 29;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.reports;
   delete old.army.preview;
   return old;
@@ -7259,6 +7364,7 @@ function asVersion30(state: GameState): Draft {
   old.schemaVersion = 30;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   delete old.army.preview;
   return old;
 }
@@ -7349,6 +7455,7 @@ function asVersion31(state: GameState): Draft {
   old.schemaVersion = 31;
   delete old.settlement.wall;
   delete old.settlement.wallRepair;
+  stripComposition(old);
   return old;
 }
 

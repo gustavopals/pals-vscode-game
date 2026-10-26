@@ -648,8 +648,14 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     expect(resolved.filter((event) => event.type === 'raidRepelled').length).toBeGreaterThan(1);
     const ids = resolved.map((event) => event.data.raidId);
     expect(new Set(ids).size).toBe(ids.length);
+    // Desde a V4E-T2, o roteiro do ano 1 traz também as incursões-batalha dos dias 25 e 37 (a do
+    // 61º, o ensaio, não é marcada neste ano: a Ameaça já tinha uma incursão marcada, D-33). As da
+    // Ameaça contam todas as resolvidas antes delas: a ordem na partida é o número do id.
+    expect(ids.slice(0, 3)).toEqual(['wolvesYear1', 'raidersYear1Weak', 'raidersYear1Medium']);
     resolved.slice(1).forEach((event, index) => {
-      expect(event.data.raidId).toBe(`threat-${index + 2}`);
+      if (index >= 2) {
+        expect(event.data.raidId).toBe(`threat-${index + 2}`);
+      }
       // Entre duas incursões passam ao menos quatro dias de jogo.
       expect(event.atMs - (resolved[index]?.atMs ?? 0)).toBeGreaterThanOrEqual(4 * GAME_DAY);
     });
@@ -722,8 +728,8 @@ describe('uma partida gravada antes das incursões (estado na versão 10)', () =
     const view = await viewOf(normal, game, game.id);
     expect(view.population).toMatchObject({ injured: 0, injuredNote: null });
     const row = await storedState(normal, game.id);
-    expect(row.schema_version).toBe(32);
-    expect(row.state.schemaVersion).toBe(32);
+    expect(row.schema_version).toBe(33);
+    expect(row.state.schemaVersion).toBe(33);
     expect(row.state.settlement.injured).toEqual([]);
     expect(row.state.horde.scheduledRaids).toEqual([
       {
@@ -733,6 +739,8 @@ describe('uma partida gravada antes das incursões (estado na versão 10)', () =
         enemy: 'wolves',
         size: 'light',
         announcedAtMs: null,
+        // A marcada pelo roteiro não guarda composição (estado 33): a batalha usa a da estação.
+        composition: null,
       },
     ]);
     // Nada aconteceu na fronteira; os lobos chegam na hora deles.
