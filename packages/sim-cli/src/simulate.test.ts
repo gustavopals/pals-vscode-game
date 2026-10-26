@@ -362,10 +362,11 @@ describe('CSV de uma partida', () => {
     // passa do nível 2 e chega ao 3 no ano.
     // V4E-T2: com as incursões-batalha (o sorteio do fluxo `horde` mudou e o roteiro da guerra
     // derruba a Ameaça nos dias 25, 37 e 61) o ano termina em 63, com a máxima em 89, e o bot
-    // leva a Torre ao nível 4.
-    expect(summary.threat).toEqual({ final: 63, max: 89, watchtower: 4 });
+    // leva a Torre ao nível 4. Com as do roteiro dos dias 25 e 37 leves e sem ferido (D-39) a
+    // Ameaça termina igual, e o ouro vai para outras obras: a Torre fica no nível 3.
+    expect(summary.threat).toEqual({ final: 63, max: 89, watchtower: 3 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 63 no fim (máxima 89) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 63 no fim (máxima 89) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -669,13 +670,14 @@ describe('resumo de uma partida', () => {
     // (V3F-T2), os três que alcança sem enviar expedição (o primeiro herói, a Guilda e a venda
     // no Mercado). A sequência inteira não fecha, e a linha não traz a hora do último.
     const summary = summarize(twoSessions);
-    // 12 (eram 13 até a V4E-T2: as incursões-batalha do roteiro custam um objetivo no ano).
-    expect(summary.objectives).toEqual({ done: 12, total: objectives.length, allDoneAtHour: null });
-    expect(formatSummary(twoSessions)).toContain('Objetivos: 12 de 16 concluídos\n');
+    // 13: eram 13 até a V4E-T2, 12 com as incursões-batalha do roteiro, e 13 de novo desde que
+    // as dos dias 25 e 37 são leves e não ferem (D-39).
+    expect(summary.objectives).toEqual({ done: 13, total: objectives.length, allDoneAtHour: null });
+    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 16 concluídos\n');
     // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
     const done = twoSessions.rows.map((row) => row.objectives);
     expect(done[0]).toBeGreaterThanOrEqual(2);
-    expect(done[done.length - 1]).toBe(12);
+    expect(done[done.length - 1]).toBe(13);
     expect(done.every((count, index) => index === 0 || count >= (done[index - 1] ?? 0))).toBe(true);
     // Dois dias reais não bastam: falta o que o Salão no nível 3 e o inverno trazem.
     const twoDays = await simulate({ ...twoSessions.options, days: 2 });

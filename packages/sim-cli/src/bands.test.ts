@@ -213,12 +213,14 @@ describe('faixas a partir da linha de base medida', () => {
     // semana no 7 e o ouro parado cai de 200 mil para 114 mil.
     // Remedida de novo com as incursões-batalha (V4E-T2, seção 9): com a Defesa ativa o Regular
     // perde menos gente e fecha a semana com 72 a 84 aldeões; o ouro parado sobe para 132 mil.
+    // E com a resposta do autor à D-39 (seção 10: as do roteiro dos dias 25 e 37 leves e sem
+    // ferido): de 70 a 84 aldeões, e o ouro parado cai para 111 mil.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 64, max: 93 },
+      villagers: { min: 63, max: 93 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_460, gold: 138_945 },
+      surplusMax: { wood: 5_460, stone: 5_414, gold: 116_167 },
       wasteStreakMax: 35,
     });
   });

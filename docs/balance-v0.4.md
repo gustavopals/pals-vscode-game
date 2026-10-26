@@ -387,3 +387,51 @@ Camponês e Rei de Ferro contam o mesmo (o Preguiçoso da semana do Rápido em R
 - **O Explorador contrata menos nas piores sementes**: no Normal (a semana e o ano são a mesma partida) termina com quatro a sete heróis (eram seis a sete).
 
 **O que não foi medido.** O efeito isolado da Defesa ativa nos bots (a rodada sem ela não foi feita); `raids_lost` e `wall_breaches` (D-38: a perdida é a sofrida, e a muralha rompida não tem coluna); o `militar` (fora da rodada padrão); a matriz com o ensaio do dia 61 na Hora da Vigília (V4G-T1). Os arquivos da rodada ficaram no scratchpad da sessão.
+
+## 10. As incursões do roteiro dos dias 25 e 37 leves e sem ferido (D-39, 2026-10-26)
+
+**Pergunta:** a resposta do autor à pendência D-39 (opção b: as incursões-batalha do roteiro da guerra dos dias 25 e 37 são leves e não ferem ninguém; a do dia 61 fica como está) devolve ao Preguiçoso do Rápido o que a V4E-T2 tirou dele? Rodadas: `pnpm -s sim -- --matrix --difficulty <d>` nas três dificuldades, 50 sementes, no branch `v4e-d39` (a partir de `7afd7bd`, estado 33; `contentHash` `376a76fd2bd8a6c9`; Node 22.22.3). O "antes" é a rodada da seção 9, que estava em `MEASURED`. **Só a regra mudou**: nenhum bot foi mexido. `MEASURED` foi trocada pela medida desta rodada.
+
+**O que a regra faz.** As duas incursões continuam chegando e continuam sendo batalhas; sem defesa elas passam e levam a parte do estoque da leve (10% da comida e da madeira), e a moral cai como em toda incursão com perda. Só não ferem: o motor lê `warRaids.scripted[].injures` pelo id da incursão marcada (`raidInjures`), sem campo novo no estado. A do dia 37 era média (15% e dois feridos) e passou a leve.
+
+| Dificuldade | Células que mudaram (de 24) | Salão: soma dos níveis finais | População mínima: soma | População máxima: soma | Ouro parado: soma | Maior sequência desperdiçando: soma (h de jogo) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Camponês | 24 | 136 → 138 | 1.146 → 1.187 | 1.396 → 1.419 | 764.251 → 737.656 (−3,5%) | 457,5 → 344,5 |
+| Senhor | 24 | 131 → 134 | 1.145 → 1.165 | 1.386 → 1.408 | 757.675 → 732.885 (−3,3%) | 490,5 → 362 |
+| Rei de Ferro | 24 | 127 → 132 | 1.094 → 1.121 | 1.332 → 1.375 | 749.970 → 719.332 (−4,1%) | 493 → 374 |
+
+Fome e frio continuam em **zero** em toda célula, nas três dificuldades.
+
+**O Preguiçoso do Rápido, em Senhor** (50 sementes; seção 8, antes das incursões-batalha → seção 9 → agora):
+
+| Célula | Grandeza | Seção 8 | Seção 9 | Agora |
+| --- | --- | --- | --- | --- |
+| semana | População (menor a maior) | 35–54 | 29–33 | **36–54** |
+| semana | Salão (menor nível final) | 5 | 5 | **6** |
+| semana | Maior sequência desperdiçando (h de jogo) | 66 | 123 | **63** |
+| semana | Incursões sofridas / repelidas | 5 a 6 / 13 a 15 | 11 a 14 / 5 a 9 | **6 a 9 / 11 a 15** |
+| semana | Feridos | 5 a 9 | 12 a 21 | **4 a 11** |
+| semana | Soldo em atraso (h reais) | 0 | 7,3 | **0** |
+| ano | População | 16 | 15 | **16** |
+| ano | Salão (menor nível final; marco do Nv3) | 3 | 1 | **2** (o Nv3 na hora 53 em parte das sementes) |
+| ano | Objetivos concluídos | 11 | 4 | **9 a 11** |
+| ano | Torre de Vigia; Paliçada (hora) | 50 e 51; 54 e 55 | não sai | **50 a —; 53 a —** (não sai em algumas sementes) |
+| ano | Incursões sofridas / repelidas | 5 a 6 / 0 a 1 | 6 a 7 / 0 | **6 a 7 / 0 a 1** |
+| ano | Feridos | 5 a 9 | 7 a 12 | **4 a 9** |
+| ano | Maior sequência desperdiçando (h de jogo) | 63 | 123 | **54** |
+| ano | Taverna (nível) | não anotado | não ergue | **0 a 1** |
+
+Na semente `pedra-alta-001`, um ano de jogo no Rápido (`pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy preguicoso --sessions-per-day 1`): **Salão Nv3 na hora 53, 11 objetivos**, 7 incursões sofridas e **7 feridos** (eram Nv1, 4 objetivos e 10 feridos na seção 9; Nv3, 11 objetivos, 5 sofridas e 6 feridos antes das incursões-batalha). Ele continua sofrendo as duas do roteiro (não tem defesa nos dias 25 e 37), mas elas só levam estoque: os feridos que sobram são os dos lobos do dia 16 e das sorteadas. Camponês e Rei de Ferro contam o mesmo (o ano do Rápido: Salão Nv3 na hora 53 ou 54 em parte das sementes, 9 a 11 objetivos em Camponês e 9 a 10 em Rei de Ferro; a semana: população 36–54).
+
+**O que melhorou, além do Preguiçoso.**
+
+- **Os feridos caem**: em Senhor o Regular, o Dedicado e o Explorador ficam com um ferido por partida (dois em algumas sementes do Explorador do Normal), onde a seção 9 tinha de 2 a 4.
+- **A maior sequência desperdiçando** volta para perto da seção 8 (Senhor: 490,5 → 362; era 368,5 na seção 8). A meta do Regular (até 8 h de jogo) continua acima na semana do Rápido (até 33 h) e no Normal (9 h, eram 10); o ano do Rápido volta a caber (0 h, eram 15).
+- **O ouro parado cai** de 3% a 4% na soma (o Rápido do Regular: Senhor, semana, 132.328 → 110.635).
+
+**O que piorou ou mudou sem explicação.**
+
+- O Explorador da semana do Rápido em Senhor cai de 8 para 7 no menor nível do Salão (era 7 na seção 8), e o Regular do Normal, de 7 para 6. Leitura do agente, não provada: o caminho de obras muda com o sorteio, e a medida de uma semente pior basta para mexer no menor nível.
+- Em testes de uma semente só (não na matriz): o econômico do ritmo 1 já não chega à venda no Mercado no ano da semente de `bots.test.ts`, a `pedra-alta-001` deixou de mandar caravana na semana do Rápido (o teste passou para a `pedra-alta-005`), o explorador da `pedra-alta-017` termina com sete heróis (o herói da carta entra acima do limite da Taverna, como a regra deixa), e a cadeia do Celeiro Comum abre em 4 das 50 sementes do Rápido (eram 6; o piso do teste desceu para 4).
+
+**O que não foi medido.** A rodada da seção 9 não foi refeita: as linhas "seção 9" acima são as da tabela daquela seção e de `MEASURED`. O `militar` e o `especulador` (fora da rodada padrão). Os arquivos desta rodada ficaram no scratchpad da sessão.

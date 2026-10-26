@@ -145,10 +145,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         return [cell.key, [Math.min(...hours), Math.max(...hours)]];
       }),
     );
-    // REGRESSÃO MEDIDA na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Preguiçoso da semana do Rápido passa a atrasar o soldo por 7,3 h
-    // em toda semente (as incursões do roteiro o deixam sem Mina; pendência D-39).
+    // Na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9) o Preguiçoso da semana do
+    // Rápido passou a atrasar o soldo por 7,3 h em toda semente (as incursões do roteiro o
+    // deixavam sem Mina; pendência D-39). Com as dos dias 25 e 37 leves e sem ferido (resposta
+    // do autor, seção 10) ele volta a não atrasar.
     expect(Object.entries(arrears).filter(([, [, max]]) => (max ?? 0) > 0)).toEqual([
-      ['week/3/preguicoso', [7.3, 7.3]],
       ['week/1/preguicoso', [21, 21]],
       ['year/1/preguicoso', [21, 21]],
     ]);
@@ -207,8 +208,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // sementes termina com o resgatado acima do limite: seis em todas.
     // Com a Muralha, a Torre acima do 2 e as cartas do lote 2 (V4E-T1; docs/balance-v0.4.md,
     // seção 8) o capitão veterano entrega um sétimo herói em algumas sementes do Normal e do
-    // Rápido: de seis a sete.
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
+    // Rápido: de seis a sete. Com as do roteiro dos dias 25 e 37 leves e sem ferido (D-39;
+    // seção 10), em alguma semente chegam os dois de carta com a casa cheia: de seis a oito.
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 8 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -233,10 +235,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
     // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a cinco.
-    expect(heroes('week/0.5/explorador')).toEqual({ min: 2, max: 5 });
+    // D-39 (seção 10): de um a cinco.
+    expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
     // No ano do Rápido o cofre não paga o contrato em uma semente (V4E-T1): de um a três.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a três.
-    expect(heroes('year/3/explorador')).toEqual({ min: 2, max: 3 });
+    // D-39 (seção 10): de um a três.
+    expect(heroes('year/3/explorador')).toEqual({ min: 1, max: 3 });
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de quatro a sete.
     expect(heroes('year/1/explorador')).toEqual({ min: 4, max: 7 });
@@ -249,7 +253,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const tavernAt = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.tavernAtHour;
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de 26 a 34.
-    expect(tavernAt('week/3/regular')).toEqual({ min: 26, max: 34 });
+    // D-39 (seção 10): de 25 a 27.
+    expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
     // V4E-T1: de 51 a 63 (era até 59): a Muralha e a Torre entram na fila antes da Taverna.
     expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 63 });
     // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
@@ -257,8 +262,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // objetivos 11 a 16 (V3F-T2), na hora 103.
     expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 103 });
     expect(tavernAt('week/3/explorador')).toEqual(tavernAt('week/3/regular'));
-    // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Preguiçoso do ano do Rápido não ergue a Taverna em semente nenhuma (D-39).
-    expect(tavernAt('year/3/preguicoso')).toEqual({ min: null, max: null });
+    // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Preguiçoso do ano do Rápido não erguia a Taverna em semente nenhuma (D-39).
+    // Com as do roteiro dos dias 25 e 37 leves e sem ferido (seção 10) ele a ergue na hora 55
+    // em parte das sementes.
+    expect(tavernAt('year/3/preguicoso')).toEqual({ min: 55, max: null });
     // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
     // gasta. Na semana do Rápido o Explorador termina com mais ouro parado do que o Regular.
     const gold = (key: string) =>
@@ -379,8 +386,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       matrix.cells.find((cell) => cell.key === key)?.measure.objectivesDone;
     expect(lazy('year/0.5/preguicoso')).toEqual({ min: 12, max: 12 });
     expect(lazy('year/1/preguicoso')).toEqual({ min: 12, max: 12 });
-    // REGRESSÃO MEDIDA na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): quatro (eram onze; pendência D-39).
-    expect(lazy('year/3/preguicoso')).toEqual({ min: 4, max: 4 });
+    // Na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9) caíram para quatro (eram
+    // onze; pendência D-39). Com as do roteiro dos dias 25 e 37 leves e sem ferido (resposta do
+    // autor, seção 10), de nove a onze.
+    expect(lazy('year/3/preguicoso')).toEqual({ min: 9, max: 11 });
     expect(lazy('week/3/preguicoso')).toEqual({ min: 12, max: 12 });
   });
 
@@ -418,10 +427,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // volta atrás e passa: a Torre sai na hora 80. O soldo deixa o saldo do ouro negativo, o
     // Preguiçoso manda os aldeões sem ofício para a Mina, que é onde falta, e o ouro que
     // segurava a Torre aparece. É efeito da política do bot, não de regra nova.
-    // REGRESSÃO MEDIDA na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): no Rápido a Torre do Preguiçoso sai entre as horas 74 e 85 (era 50
-    // e 51), e no Normal na 80 (era 78; pendência D-39).
-    expect(tower('week/3/preguicoso')).toEqual({ min: 74, max: 85 });
-    expect(tower('week/1/preguicoso')).toEqual({ min: 80, max: 80 });
+    // Na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9) a Torre do Preguiçoso do
+    // Rápido passou a sair entre as horas 74 e 85 (era 50 e 51), e no Normal na 80 (era 78;
+    // pendência D-39). Com a resposta do autor (seção 10): de 50 a 57 no Rápido e 78 no Normal.
+    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 57 });
+    expect(tower('week/1/preguicoso')).toEqual({ min: 78, max: 78 });
     expect(tower('week/0.5/preguicoso')).toEqual({ min: 80, max: 80 });
     // A Ameaça não satura: com +2 por dia, −35 por incursão e as médias a partir de 70, ela
     // oscila, e nenhuma partida de um ano de jogo ou mais termina perto do máximo. Até a revisão
@@ -492,8 +502,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const year = matrix.cells.find((cell) => cell.key === 'year/1/regular')?.measure.raids;
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): três sofridas (a dos lobos e as duas primeiras do roteiro da guerra, antes da
     // Paliçada e dos soldados), três ou quatro repelidas, a Ameaça no fim entre 28 e 63.
-    expect(year?.suffered).toEqual({ min: 3, max: 3 });
-    expect(year?.repelled).toEqual({ min: 3, max: 4 });
+    // D-39 (seção 10): duas sofridas, de quatro a cinco repelidas.
+    expect(year?.suffered).toEqual({ min: 2, max: 2 });
+    expect(year?.repelled).toEqual({ min: 4, max: 5 });
     expect(year?.threatFinal).toEqual({ min: 28, max: 63 });
   });
 
@@ -542,8 +553,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Muralha, a Torre acima do 2 e as cartas do lote 2 (V4E-T1; docs/balance-v0.4.md,
     // seção 8): de 46 a 68 aldeões na medida, faixa de 41 a 75, e o Salão no nível 6.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de 57 a 71 na medida, faixa de 51 a 79, e o Salão no nível 7.
-    expect(band?.villagers).toEqual({ min: 51, max: 79 });
-    expect(band?.townHallMin).toBe(7);
+    // D-39 (seção 10): de 54 a 70 na medida, faixa de 48 a 77, e o Salão no nível 6.
+    expect(band?.villagers).toEqual({ min: 48, max: 77 });
+    expect(band?.townHallMin).toBe(6);
     expect(band?.famineHoursMax).toBe(0);
   });
 
@@ -617,14 +629,16 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // madeira e a pedra), e a semana do Rápido passa de 30 para 36 h.
     // REGRESSÃO MEDIDA na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Normal volta a passar da meta (10 h, na semana e no ano) e o
     // ano do Rápido também (15 h); a semana do Rápido cai de 36 para 33 h. Só o Tranquilo cabe.
+    // D-39 (as do roteiro dos dias 25 e 37 leves e sem ferido; seção 10): o ano do Rápido volta
+    // a caber na meta, e o Normal fica em 9 h.
     expect(over).toEqual({
       'week/3/regular': 33,
-      'week/1/regular': 10,
-      'year/3/regular': 15,
-      'year/1/regular': 10,
+      'week/1/regular': 9,
+      'year/1/regular': 9,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
       'week/0.5/regular',
+      'year/3/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -643,13 +657,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // pelo autor em 2026-10-22).
     // Com a Muralha e as cartas do lote 2 (V4E-T1) nenhuma das 50 sementes passa da meta no Normal.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): cinco das 50 sementes do Normal voltam a passar da meta.
-    expect(beyond.map((run) => run.seed)).toEqual([
-      'pedra-alta-007',
-      'pedra-alta-017',
-      'pedra-alta-023',
-      'pedra-alta-024',
-      'pedra-alta-029',
-    ]);
+    // D-39 (seção 10): duas, outras.
+    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-032', 'pedra-alta-050']);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

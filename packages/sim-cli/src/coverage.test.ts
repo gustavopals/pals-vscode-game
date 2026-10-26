@@ -133,7 +133,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     expect(runsOf(fast, 'thawBridgeSlab')).toBeGreaterThan(0);
     // V4E-T1: com a Torre acima do nível 2 e a Muralha a folga do começo some de vez: 6 das 50
     // sementes abrem a cadeia (eram 19). Piso novo: 5. Registrado em docs/balance-v0.4.md, seção 8.
-    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(5);
+    // D-39 (as incursões do roteiro dos dias 25 e 37 leves e sem ferido): 4 das 50. Piso 4,
+    // registrado em docs/balance-v0.4.md, seção 10.
+    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(4);
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {

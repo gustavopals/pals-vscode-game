@@ -505,7 +505,9 @@ describe('mandar caravana (V3E-T2.5)', () => {
 describe('as caravanas em uma partida inteira', () => {
   it('o econômico manda caravanas sem recusa, e o resumo conta as enviadas, as escoltadas, as emboscadas e o ouro delas', async () => {
     const result = await simulate({
-      seed: 'pedra-alta-001',
+      // Desde a D-39 (as incursões do roteiro dos dias 25 e 37 leves e sem ferido) a
+      // pedra-alta-001 não manda caravana nesta semana; a 005 manda uma, com escolta.
+      seed: 'pedra-alta-005',
       days: 7,
       strategy: 'economico',
       sessionsPerDay: 2,

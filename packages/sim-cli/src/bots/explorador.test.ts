@@ -1,3 +1,4 @@
+import { balance } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { summarize, toCsv } from '../report';
@@ -115,8 +116,10 @@ describe('bot explorador', () => {
       expect(explorador.guild.heroes).toBe(
         joined + explorador.guild.hired - explorador.guild.departed,
       );
-      // E nunca passa do que a Taverna abriga.
-      expect(explorador.guild.heroes).toBeLessThanOrEqual(1 + explorador.guild.tavernLevel);
+      // E nunca passa do teto da lista. A Taverna só contrata até 1 + o nível dela, mas o herói
+      // que uma carta dá entra acima disso (só o teto o faz esperar): desde a D-39, em
+      // pedra-alta-017, o feudo termina com 7 heróis e a Taverna no nível 5.
+      expect(explorador.guild.heroes).toBeLessThanOrEqual(balance.heroes.rosterCap);
       // As colunas dos heróis saem medidas no CSV.
       const last = result.rows[result.rows.length - 1];
       expect(last?.guild.heroes).toBe(explorador.guild.heroes);
