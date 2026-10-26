@@ -126,6 +126,12 @@ function beforeMasters<T>(state: T): T {
   // E a muralha, da versão 32 (V4E-T1.2): entra cheia pelo nível da Paliçada, sem reparo.
   delete copy.settlement?.wall;
   delete copy.settlement?.wallRepair;
+  // E a composição da incursão marcada, da versão 33 (V4E-T2.2): a que já estava marcada entra
+  // com `null` (luta com a composição-base da estação).
+  for (const raid of (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde
+    ?.scheduledRaids ?? []) {
+    delete raid.composition;
+  }
   // E a condição dos itens, da versão 27 (V4B-T3): todo item entra cheio, e o lote da forja ganha o
   // tipo. Quem compara com um retrato antigo tira os dois.
   const stripCondition = (node: unknown): void => {
@@ -1257,7 +1263,16 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
       expect(beforeOutcomes(row.state).guild).toEqual(EMPTY_GUILD);
-      expect(row.state.ids).toEqual({});
+      // Nenhum herói nem item. A batalha é a da incursão deste dia: desde a V4E-T2 (estado 33)
+      // toda incursão é uma batalha, com identificador próprio.
+      expect(row.state.ids).toEqual({ battle: 1 });
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and kind = 'battleFought'`,
+        ),
+      ).toBe(1);
       expect(
         await countRows(
           app.pool,
@@ -1375,8 +1390,16 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       );
       // Nenhum herói novo. O único identificador novo é o item do objetivo 11 ("Acolha ou
       // contrate o primeiro herói", V3F-T2.2): a heroína que já servia conta na avaliação
-      // seguinte à migração, e a recompensa sai uma vez.
-      expect(row.state.ids).toEqual({ ...before.ids, item: 1 });
+      // seguinte à migração, e a recompensa sai uma vez. E a batalha da incursão deste dia: desde
+      // a V4E-T2 (estado 33) toda incursão é uma batalha, com identificador próprio.
+      expect(row.state.ids).toEqual({ ...before.ids, item: 1, battle: 1 });
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and kind = 'battleFought'`,
+        ),
+      ).toBe(1);
       expect(Object.keys(row.state.rng)).not.toContain('tavern');
       expect(
         await countRows(
