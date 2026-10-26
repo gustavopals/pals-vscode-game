@@ -3696,8 +3696,17 @@ describe('versão 8 → 9', () => {
   it.each(version8)(
     '$name: a Ameaça conta a partir da fronteira e sobe na primeira virada de dia depois dela',
     (fixture) => {
-      const state = migrated(fixture);
-      const turn = nextDay(state);
+      const whole = migrated(fixture);
+      const turn = nextDay(whole);
+      // Sem as incursões que chegam nos dois dias medidos: a do roteiro do dia 37 (estado 33,
+      // V4E-T2.4) chega na primeira virada do retrato `v8-storage` e zera a Ameaça ao ser
+      // sofrida. Aqui se mede só a subida.
+      const state: GameState = {
+        ...whole,
+        horde: {
+          scheduledRaids: whole.horde.scheduledRaids.filter((raid) => raid.atMs > turn + DAY),
+        },
+      };
       // Nada acontece na fronteira: nenhuma linha, nenhum sorteio, a Ameaça parada em zero.
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type === 'threatRose')).toEqual([]);
