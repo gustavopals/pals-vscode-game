@@ -1,4 +1,3 @@
-import { balance } from './balance';
 import type { HordeUnitId, LineId, Ratio, ResourceId, SeasonId, WingId } from './ids';
 
 /**
@@ -63,7 +62,13 @@ export const warRaids: WarRaidsDef = {
     autumn: { medium: 70, strong: 85 },
     winter: { medium: 70, strong: 80 },
   },
-  postShares: balance.battle.previewEnemy.shares,
+  // As mesmas frações de `balance.battle.previewEnemy.shares` (o teste confere), escritas
+  // aqui: ler `balance` no carregamento do módulo levava a tabela de números ao app.
+  postShares: {
+    left: { front: 25, back: 0 },
+    center: { front: 30, back: 15 },
+    right: { front: 25, back: 5 },
+  },
   unitCost: {
     wolf: 1,
     raider: 1,
