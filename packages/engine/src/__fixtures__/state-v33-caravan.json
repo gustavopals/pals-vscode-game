@@ -1,0 +1,232 @@
+{
+ "schemaVersion": 33,
+ "seed": "fixture-caravan",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 230402345,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 230402345,
+ "rng": {
+  "market": [
+   1096098985,
+   2099276154,
+   278683826,
+   3340872871
+  ]
+ },
+ "ids": {
+  "caravan": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 1062107,
+   "wood": 2545248,
+   "stone": 1000000,
+   "gold": 2000000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 315320,
+   "wood": 791135,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 1,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 2,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 8,
+   "lumberMill": 8,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 4,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1013,
+   "wood": 1265,
+   "stone": 2044,
+   "iron": 7955
+  },
+  "previousPrices": {
+   "food": 1050,
+   "wood": 1255,
+   "stone": 1986,
+   "iron": 7752
+  },
+  "quoteDay": 33,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": [
+   {
+    "id": "caravan-1",
+    "resource": "wood",
+    "amount": 300,
+    "unitPrice": 1173,
+    "arrivesAtMs": 236400000,
+    "escortHeroId": null
+   }
+  ]
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
+  ]
+ },
+ "stats": {
+  "caravansSent": 1
+ }
+}

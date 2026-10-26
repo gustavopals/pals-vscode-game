@@ -31,6 +31,7 @@ Fim da rodada 1: moral D 100, A 100; D-EF 10 (res 0), D-CF 5 (res 0), D-DF 10 (r
 {
  "id": "battle-1",
  "foughtAtMs": 0,
+ "formationId": null,
  "mode": "defense",
  "outcome": "victory",
  "ending": "annihilation",

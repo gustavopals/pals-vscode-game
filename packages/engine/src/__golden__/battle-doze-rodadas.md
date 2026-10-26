@@ -94,6 +94,7 @@ Fim da rodada 12: moral D 100, A 100; D-CF 4 (res 1), A-CF 7 (res 15)
 {
  "id": "battle-1",
  "foughtAtMs": 0,
+ "formationId": null,
  "mode": "defense",
  "outcome": "held",
  "ending": "rounds",

@@ -25,6 +25,7 @@ import {
   namedHeroes,
   objectives,
   raidSizes,
+  warRaids,
   raidTemplates,
   startingTiles,
   tavernCandidates,
@@ -975,6 +976,7 @@ describe('ViewStateSchema', () => {
             enemy: 'wolves',
             size: 'medium',
             announcedAtMs: null,
+            composition: null,
           },
         ];
         const view = deriveViewState(state, 0);
@@ -2689,6 +2691,7 @@ describe('contentHash', () => {
         startingTiles,
         enemies,
         raidSizes,
+        warRaids,
         threatMarkTemplates,
         raidTemplates,
         injuryTemplates,
@@ -2747,6 +2750,7 @@ describe('contentHash', () => {
       'threatMarkTemplates',
       'tileTypes',
       'wageArrearsReliefs',
+      'warRaids',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);

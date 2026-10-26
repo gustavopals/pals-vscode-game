@@ -60,6 +60,7 @@ const raid = (atMs: number, size: ScheduledRaid['size']): ScheduledRaid => ({
   enemy: 'wolves',
   size,
   announcedAtMs: null,
+  composition: null,
 });
 
 const view = (state: GameState, timeScale = 1): ThreatView =>

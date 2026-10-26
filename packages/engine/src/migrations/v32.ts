@@ -1,3 +1,4 @@
+import type { MigrationStep } from './step';
 import { exactObject, literal, natural, nullable, positive, type Shape } from './shape';
 import { rngWithinIds } from './v13';
 import { guildWithinState } from './v14';
@@ -26,7 +27,7 @@ const hpByWing = exactObject({ left: natural, center: natural, right: natural })
  * vida de cada ala, e `settlement.wallRepair`, o reparo em curso ou `null`. `rng` e `ids` não
  * mudam: o reparo não sorteia nem cria entidade.
  *
- * Quem subir `schemaVersion` para 33 acrescenta aqui o passo `v32ToV33`.
+ * Para a versão 33, o passo `v32ToV33`, no fim deste arquivo.
  */
 export const settlementV32Fields: Readonly<Record<string, Shape>> = {
   ...settlementV28Fields,
@@ -101,3 +102,37 @@ export const stateV32: Shape = (value, path) =>
   battleReportsWithinState(value, path) ??
   previewWithinState(value, path) ??
   wallWithinState(value, path);
+
+/**
+ * 32 → 33: a composição das incursões e a formação no relatório (V4E-T2.2; GDD §8.2; ADR 0019,
+ * decisão 14; ADR 0020).
+ *
+ * - Cada incursão marcada ganha `composition: null`: **o passo não sorteia**, e a batalha dela
+ *   usa a composição-base da estação em que chega (`baseRaidComposition`), sem gastar o fluxo.
+ * - Cada relatório de batalha ganha `formationId: null` (não há relatório antes desta versão:
+ *   nenhuma incursão lutava).
+ * - `ids` e `rng` não mudam. O passo não cria prazo nem emite evento.
+ */
+export const v32ToV33: MigrationStep = {
+  from: 32,
+  summary: 'as incursões marcadas ficam sem composição sorteada e os relatórios, sem formação',
+  shape: stateV32,
+  migrate(state) {
+    const horde = state.horde as { scheduledRaids: Array<Record<string, unknown>> };
+    const army = state.army as Record<string, unknown> & {
+      reports: Array<Record<string, unknown>>;
+    };
+    return {
+      ...state,
+      schemaVersion: 33,
+      horde: {
+        ...horde,
+        scheduledRaids: horde.scheduledRaids.map((raid) => ({ ...raid, composition: null })),
+      },
+      army: {
+        ...army,
+        reports: army.reports.map((report) => ({ ...report, formationId: null })),
+      },
+    };
+  },
+};

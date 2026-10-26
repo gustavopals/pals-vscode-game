@@ -1100,6 +1100,7 @@ export function quietHorde(draft: GameState): void {
       enemy: 'wolves',
       size: 'light',
       announcedAtMs: null,
+      composition: null,
     },
   ];
 }
@@ -1555,6 +1556,7 @@ export function raidInSightScenario(): GameState {
       size: 'medium',
       // Como se os vigias do nível 2 a tivessem anunciado na hora deles, 2 h de jogo antes.
       announcedAtMs: draft.lastProcessedAt + 47 * MINUTE - 2 * HOUR,
+      composition: null,
     },
   ];
   return draft;
@@ -1583,6 +1585,7 @@ export function raidAftermathScenario(): GameState {
       enemy: 'wolves',
       size: 'medium',
       announcedAtMs: null,
+      composition: null,
     },
   ];
   return advanceTo(start, arrival + HOUR).state;

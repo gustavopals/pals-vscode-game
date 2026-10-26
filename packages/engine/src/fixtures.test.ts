@@ -749,10 +749,11 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
         enemy: 'wolves',
         size: 'light',
         announcedAtMs: null,
+        composition: null,
       },
     ]);
     expect(of('fresh').horde).toEqual(threat.horde);
-    expect(of('week-scripted').map.threat).toBe(70);
+    expect(of('week-scripted').map.threat).toBe(35); // 70 até o estado 32: a composição sorteada no fluxo `horde` mudou a semana.
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
@@ -789,7 +790,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
     expect(incoming?.atMs).toBeGreaterThan(sighted.lastProcessedAt);
     expect(sighted.rng.horde).toHaveLength(4);
-    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 1, raids_repelled: 4 });
+    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 1, raids_repelled: 5 });
     expect(of('week-scripted').rng.horde).toHaveLength(4);
     // Todo cenário tem a lista de feridos, vazia ou não.
     for (const state of all0()) {

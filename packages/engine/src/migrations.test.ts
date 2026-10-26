@@ -16,7 +16,7 @@ import {
   MARKET_RESOURCE_IDS,
   MASTER_IDS,
   PRODUCTION_BUILDING_IDS,
-  RAID_SIZE_IDS,
+  WAR_RAID_SIZE_IDS,
   RESOURCE_IDS,
   TILE_TYPE_IDS,
   UNIT_IDS,
@@ -1577,6 +1577,55 @@ const FROZEN: Record<string, string> = {
   'state-v31-wage-arrears.json': 'b60c36be',
   'state-v31-warehouse-full.json': '65e832ff',
   'state-v31-week-scripted.json': '23e171ff',
+  'state-v32-caravan-escort.json': '2b267201',
+  'state-v32-caravan.json': '8a1ffe05',
+  'state-v32-cold.json': '401e3ad7',
+  'state-v32-construction.json': 'ad8beb8c',
+  'state-v32-council-hidden.json': '2ffe720f',
+  'state-v32-council.json': '48d59281',
+  'state-v32-crafts.json': '077dc5b2',
+  'state-v32-den-cleared.json': '97cd4326',
+  'state-v32-expedition-crossroads.json': '5b02ef45',
+  'state-v32-expedition-returning.json': '6be75528',
+  'state-v32-expedition.json': '5dc44e7f',
+  'state-v32-famine-3x.json': '1f981090',
+  'state-v32-famine-ended.json': '8a262d0c',
+  'state-v32-famine-half.json': 'e737644f',
+  'state-v32-famine-resumed.json': 'ff9291ce',
+  'state-v32-famine-smithy.json': '799be3d3',
+  'state-v32-famine.json': '391b895a',
+  'state-v32-fresh.json': 'a6d1bec1',
+  'state-v32-guild.json': '6b71ab6e',
+  'state-v32-hero-captured.json': '9411df04',
+  'state-v32-hero-injured.json': '832727a5',
+  'state-v32-hero-promised.json': 'dbda8ef2',
+  'state-v32-housing-full.json': 'c61613cc',
+  'state-v32-iron-king-half.json': '6610e205',
+  'state-v32-market-opening.json': 'a48b3a46',
+  'state-v32-market.json': 'd2b848a0',
+  'state-v32-master-waiting.json': 'cdb1f6d9',
+  'state-v32-masters.json': '2d40fc98',
+  'state-v32-migrated-3x.json': '7fa8489a',
+  'state-v32-migrated-iron-king-caravan.json': 'f4bebb97',
+  'state-v32-migrated-iron-king-half.json': '440cb1de',
+  'state-v32-migrated-peasant-3x.json': 'ce791ff5',
+  'state-v32-morale.json': '262545a6',
+  'state-v32-objectives.json': '779594f2',
+  'state-v32-palisade.json': '80a7b5b4',
+  'state-v32-peasant-3x.json': 'a2814ebc',
+  'state-v32-queues.json': 'f201045e',
+  'state-v32-raid-announced.json': 'cb37f0a7',
+  'state-v32-raid.json': '926e3b9c',
+  'state-v32-smithy-forging.json': '4662f24b',
+  'state-v32-storage.json': '0f63a25c',
+  'state-v32-tavern-busy.json': 'ea3583d0',
+  'state-v32-tavern.json': '460f8dc9',
+  'state-v32-threat.json': 'c1c758fb',
+  'state-v32-wage-arrears-ended.json': 'eec14256',
+  'state-v32-wage-arrears-resumed.json': 'e5cd8bd8',
+  'state-v32-wage-arrears.json': 'db39b4f7',
+  'state-v32-warehouse-full.json': 'ee8555c4',
+  'state-v32-week-scripted.json': '40e4e143',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -2566,7 +2615,7 @@ describe('a forma da versão atual', () => {
       expect(currentShape(state, ''), type).toBeNull();
     }
     for (const enemy of ENEMY_IDS) {
-      for (const size of RAID_SIZE_IDS) {
+      for (const size of WAR_RAID_SIZE_IDS) {
         const state = JSON.parse(JSON.stringify(newGame())) as Draft;
         state.horde.scheduledRaids = [
           {
@@ -2576,6 +2625,7 @@ describe('a forma da versão atual', () => {
             enemy,
             size,
             announcedAtMs: null,
+            composition: null,
           },
           {
             id: 'threat-2',
@@ -2584,6 +2634,7 @@ describe('a forma da versão atual', () => {
             enemy,
             size,
             announcedAtMs: 126_000_000,
+            composition: [{ wing: 'left', line: 'front', unit: 'wolf', count: 3 }],
           },
         ];
         expect(currentShape(state, ''), `${enemy}/${size}`).toBeNull();

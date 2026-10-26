@@ -203,6 +203,9 @@ export type MapTile = {
  * pela Ameaça, na virada do dia. Há no máximo uma sorteada por vez, e nenhuma é sorteada
  * enquanto houver outra marcada. Sai da lista no instante em que é resolvida.
  */
+/** Um posto do exército de uma incursão marcada: o tipo e quantos, naquela ala e linha. */
+export type RaidCompositionPost = { wing: WingId; line: LineId; unit: HordeUnitId; count: number };
+
 export type ScheduledRaid = {
   /** A ocorrência: o id do roteiro ("wolvesYear1") ou "threat-3", pela ordem das incursões da partida. */
   id: string;
@@ -212,6 +215,13 @@ export type ScheduledRaid = {
   kind: 'scripted' | 'threat';
   enemy: EnemyId;
   size: RaidSizeId;
+  /**
+   * O exército da incursão, sorteado no fluxo `horde` **quando ela é marcada** (estado 33,
+   * V4E-T2.2), na estação do instante em que chega. `null` na incursão que já estava marcada
+   * quando a composição passou a existir e nas do roteiro: a batalha usa a composição-base da
+   * estação (`baseRaidComposition`), sem sorteio. Nunca sai na visão além do que a Torre revela.
+   */
+  composition: RaidCompositionPost[] | null;
   /**
    * O instante em que os vigias da Torre deram o alarme; `null` enquanto ninguém avisou. Quem
    * chega ao fim sem aviso entra na Crônica como quem ninguém viu vir.
@@ -525,7 +535,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 32;
+  schemaVersion: 33;
   seed: string;
   settings: GameSettings;
   /**

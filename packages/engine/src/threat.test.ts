@@ -66,6 +66,7 @@ const raid = (atMs: number, size: ScheduledRaid['size'] = 'light'): ScheduledRai
   enemy: 'wolves',
   size,
   announcedAtMs: null,
+  composition: null,
 });
 
 describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {

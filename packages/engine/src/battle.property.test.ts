@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveBattle, type BattleInput, type BattlePosts, type LuckSource } from './battle';
 import { buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
-import { battleReportV30 } from './migrations/v30';
+import { battleReportV33 } from './migrations/v33';
 import { cloneState } from './state';
 import { newGame } from './test-helpers';
 
@@ -135,7 +135,7 @@ describe('propriedades da batalha (V4D-T1.7)', () => {
           expect(entry.lost).toBeLessThanOrEqual(entry.start);
         }
         expect(report.decisive.length).toBeLessThanOrEqual(3);
-        expect(battleReportV30(JSON.parse(JSON.stringify(report)), 'report')).toBeNull();
+        expect(battleReportV33(JSON.parse(JSON.stringify(report)), 'report')).toBeNull();
         expect(report.casualties.reduce((sum, entry) => sum + entry.start, 0)).toBe(
           startCount(input),
         );

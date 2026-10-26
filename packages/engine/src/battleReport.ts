@@ -85,6 +85,8 @@ export type BattleReportRound = {
 export type BattleReport = {
   readonly id: string;
   readonly foughtAtMs: number;
+  /** A formação que lutou (a Defesa ativa do instante da incursão); `null` sem nenhuma. */
+  readonly formationId: string | null;
   readonly mode: 'defense' | 'attack';
   readonly outcome: BattleOutcome;
   readonly ending: BattleEnding;
@@ -125,6 +127,7 @@ export function buildBattleReport(
   id: string,
   foughtAtMs: number,
   resolution: BattleResolution,
+  formationId: string | null = null,
 ): BattleReport {
   const rules = balance.battle;
   const ownerOf = (side: BattleSide): BattleOwner =>
@@ -290,6 +293,7 @@ export function buildBattleReport(
   return {
     id,
     foughtAtMs,
+    formationId,
     mode: resolution.input.mode,
     outcome: resolution.outcome,
     ending: resolution.ending,

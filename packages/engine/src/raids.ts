@@ -66,6 +66,7 @@ export function scriptedRaidsAfter(boundaryMs: number): ScheduledRaid[] {
       enemy: def.enemy,
       size: def.size,
       announcedAtMs: null,
+      composition: null,
     }))
     .filter((raid) => raid.atMs > boundaryMs)
     .sort((a, b) => a.atMs - b.atMs);

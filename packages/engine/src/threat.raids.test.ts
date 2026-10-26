@@ -3,8 +3,10 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { seasonAt } from './clock';
 import { applyCommand } from './commands';
 import { ableVillagers, assignedWorkers, freeVillagers } from './population';
+import { baseRaidComposition } from './raidArmy';
 import { scriptedRaidsAfter } from './raids';
 import {
   accept,
@@ -61,6 +63,7 @@ const raid = (atMs: number, size: Size = 'light', id = 'threat-1'): ScheduledRai
   enemy: 'wolves',
   size,
   announcedAtMs: null,
+  composition: null,
 });
 
 /**
@@ -1100,6 +1103,7 @@ describe('os lobos do ano 1: os uivos e a incursão do roteiro (ADR 0014, decis�
         enemy: 'wolves',
         size: 'light',
         announcedAtMs: null,
+        composition: null,
       },
     ]);
     expect(WOLVES_AT).toBe(30 * HOUR);
@@ -1280,7 +1284,7 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
 
   it('a incursão sorteada chega 6 h de jogo depois, em outra virada de dia, e são os lobos do covil', () => {
     const [marked] = drawnOver(100, 5);
-    expect(marked).toEqual({
+    expect(marked).toMatchObject({
       id: 'threat-1',
       atMs: TURN + rules.raidLeadMs,
       kind: 'threat',
@@ -1288,6 +1292,14 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
       size: 'medium',
       announcedAtMs: null,
     });
+    // A composição é sorteada na marcação (estado 33, V4E-T2.2): seis postos ou menos, na
+    // estação em que ela chega, com o orçamento da média.
+    expect(marked?.composition?.length).toBeGreaterThan(0);
+    expect(marked?.composition?.map((post) => `${post.wing}:${post.line}`)).toEqual(
+      baseRaidComposition('medium', seasonAt(TURN + rules.raidLeadMs).id).map(
+        (post) => `${post.wing}:${post.line}`,
+      ),
+    );
     expect(rules.raidLeadMs).toBe(6 * HOUR);
     expect((TURN + rules.raidLeadMs) % DAY).toBe(0);
   });
@@ -1732,6 +1744,7 @@ describe('o aviso da Torre em tempo real (V2G-T3; ADR 0016, item 4)', () => {
         'enemy',
         'size',
         'announcedAtMs',
+        'composition',
       ]);
     });
   });

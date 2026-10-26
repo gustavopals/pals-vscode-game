@@ -1235,6 +1235,7 @@ describe('o Covil de Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () =
       enemy: 'wolves',
       size: 'light',
       announcedAtMs: null,
+      composition: null,
     } as const;
     const { sent, clearsAt } = toTheDen(100, (draft) => {
       draft.horde.scheduledRaids = [{ ...marked }];
