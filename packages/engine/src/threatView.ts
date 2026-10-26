@@ -31,7 +31,7 @@ import {
 } from './format';
 import { clearedTiles, tileWithArticle } from './outcomes';
 import { baseRaidComposition } from './raidArmy';
-import { bandText, legacySize } from './raids';
+import { bandText, legacySize, raidInjures } from './raids';
 import {
   isThreatWatched,
   palisadeAgainst,
@@ -466,9 +466,25 @@ function incomingCostText(
   enemy: EnemyId,
   sizes: readonly RaidSizeId[],
   timeScale: number,
+  injures: boolean,
 ): string {
   const rest = real(raids.injuryMs, timeScale);
   const [only] = sizes;
+  if (!injures) {
+    // As do roteiro da guerra que não ferem (D-39): só o estoque.
+    if (sizes.length === 1 && only !== undefined) {
+      return (
+        `Sem defesa, ${enemies[enemy].sizes[only]} leva ${lossPercent(enemy, only)} do estoque de ` +
+        `${lootNames(enemy, only)} e não fere ninguém.`
+      );
+    }
+    const each = sizes.map(
+      (size) =>
+        `um ataque dos ${raidSizes[size].plural} leva ${lossPercent(enemy, size)} do estoque de ` +
+        `${lootNames(enemy, size)}`,
+    );
+    return `Sem defesa, ${each.join('; ')}. Esta incursão não fere ninguém.`;
+  }
   if (sizes.length === 1 && only !== undefined) {
     const damage = raids.damage[enemy][only];
     const { num, den } = damage.lossRatio;
@@ -613,7 +629,7 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
       sizeText === null
         ? `${enemyLabel} a caminho. Daqui os vigias ainda não distinguem quantos são.`
         : `${enemyLabel} a caminho. Os vigias contam ${sizeText}.`,
-    costText: incomingCostText(state, raid.enemy, sizes, timeScale),
+    costText: incomingCostText(state, raid.enemy, sizes, timeScale, raidInjures(raid)),
     // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
     defenseText: incomingDefenseText(palisadeAtRaid(state, raid.atMs), sizes),
     compositionText: incomingCompositionText(raid, perks),

@@ -23,10 +23,10 @@
    936507135
   ],
   "morale": [
-   4239011119,
-   459421924,
-   4085315312,
-   3016102111
+   3881588205,
+   3039749652,
+   1225820957,
+   2933432022
   ],
   "horde": [
    1703112334,
@@ -46,14 +46,14 @@
    "food": 1600000,
    "wood": 69773,
    "stone": 909678,
-   "gold": 1670559,
+   "gold": 1681301,
    "iron": 0
   },
   "accumulators": {
-   "food": 877854,
+   "food": 3597222,
    "wood": 0,
-   "stone": 425046,
-   "gold": 533268,
+   "stone": 262833,
+   "gold": 2872764,
    "iron": 0
   },
   "population": {
@@ -99,14 +99,14 @@
   "famine": null,
   "lastFamine": {
    "endedAtMs": 349200000,
-   "lastedMs": 49411514,
+   "lastedMs": 44665569,
    "deserted": 1
   },
   "cold": null,
   "wasted": {
-   "food": 654,
-   "wood": 1,
-   "stone": 397,
+   "food": 285,
+   "wood": 430,
+   "stone": 874,
    "gold": 0,
    "iron": 0
   },
@@ -515,14 +515,14 @@
   "cardsExpired": 5,
   "cardsDrawn:woundedStranger": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5609654,
+  "wasted_food": 5609285,
   "coldSpellsThisSeason": 0,
   "constructionsStarted:goldMine": 2,
   "constructionsStarted:granary": 2,
-  "wasted_wood": 1818001,
+  "wasted_wood": 1946430,
   "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:masonsMeal": 1,
-  "wasted_stone": 2227397,
+  "wasted_stone": 2249874,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:collapsedWell": 1,
   "seasonsSurvived:summer": 1,

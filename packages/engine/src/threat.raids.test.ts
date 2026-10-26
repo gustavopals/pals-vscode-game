@@ -1013,6 +1013,27 @@ describe('a visão de quem tem a Torre: a chance, o custo e o que fazer', () => 
     );
   });
 
+  it('a do roteiro da guerra que não fere (D-39) diz só o estoque', () => {
+    const state = (watchtower: number) =>
+      watched(55, (draft) => {
+        draft.settlement.buildings.watchtower = watchtower;
+        draft.settlement.resources.food = 321_500;
+        draft.horde.scheduledRaids = [
+          {
+            ...raid(draft.lastProcessedAt + 50 * MINUTE),
+            id: 'raidersYear1Weak',
+            kind: 'scripted',
+          },
+        ];
+      });
+    expect(known(state(2), 3).incoming?.costText).toBe(
+      'Sem defesa, uma matilha pequena leva 10% do estoque de comida e madeira e não fere ninguém.',
+    );
+    expect(known(state(1), 3).incoming?.costText).toBe(
+      'Sem defesa, um ataque dos leves leva 10% do estoque de comida e madeira; um ataque dos médios leva 15% do estoque de comida e madeira. Esta incursão não fere ninguém.',
+    );
+  });
+
   it('a chance anunciada não denuncia a incursão que os vigias ainda não viram', () => {
     // A mesma Ameaça, com e sem uma incursão marcada fora da antecedência: a visão é a mesma.
     const hidden = watched(55, (draft) => {

@@ -52,13 +52,18 @@ describe('Incursões como batalha (V4E-T2.1; ADR 0019, decisão 14; ADR 0020)', 
     expect(warRaids.postShares).toEqual(balance.battle.previewEnemy.shares);
   });
 
-  it('as roteirizadas: dias de jogo 25, 37 e 61, fraca, média e forte; só a última ensaia o cerco', () => {
+  it('as roteirizadas: dias de jogo 25, 37 e 61; as duas primeiras leves e sem ferido (D-39), a última forte e o ensaio do cerco', () => {
     expect(
-      warRaids.scripted.map(({ atGameDay, size, rehearsal }) => [atGameDay, size, rehearsal]),
+      warRaids.scripted.map(({ atGameDay, size, rehearsal, injures }) => [
+        atGameDay,
+        size,
+        rehearsal,
+        injures,
+      ]),
     ).toEqual([
-      [25, 'light', false],
-      [37, 'medium', false],
-      [61, 'strong', true],
+      [25, 'light', false, false],
+      [37, 'light', false, false],
+      [61, 'strong', true, true],
     ]);
     // Nenhuma colide com a incursão dos lobos nem entre si (uma incursão marcada por vez).
     const days = [

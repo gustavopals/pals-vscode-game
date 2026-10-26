@@ -2112,6 +2112,7 @@ export const WarRaidsSchema = z
           size: z.enum(['light', 'medium', 'strong']),
           atGameDay: positiveInt,
           rehearsal: z.boolean(),
+          injures: z.boolean(),
         }),
       )
       .min(1),

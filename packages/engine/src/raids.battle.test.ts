@@ -176,7 +176,7 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
     }
     expect(marked).toEqual([
       ['raidersYear1Weak', 25, 'light'],
-      ['raidersYear1Medium', 37, 'medium'],
+      ['raidersYear1Medium', 37, 'light'],
       ['raidersYear1Rehearsal', 61, 'strong'],
     ]);
   });
@@ -201,6 +201,62 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
       here.some((event) => event.type === 'raidSuffered' || event.type === 'raidRepelled'),
     ).toBe(true);
     expect(state.horde.scheduledRaids.some((raid) => raid.id === 'raidersYear1Weak')).toBe(false);
+  });
+
+  it.each([
+    ['raidersYear1Weak', 25],
+    ['raidersYear1Medium', 37],
+  ])(
+    'a %s (dia %i), sofrida sem defesa nenhuma, leva do estoque e não fere ninguém (D-39)',
+    (id, day) => {
+      const atMs = (day - 1) * DAY_MS;
+      const before = advanceTo(newGame(), atMs - 1).state;
+      before.horde.scheduledRaids = [
+        {
+          id,
+          atMs,
+          kind: 'scripted',
+          enemy: 'wolves',
+          size: 'light',
+          announcedAtMs: null,
+          composition: null,
+        },
+      ];
+      before.settlement.buildings.palisade = 0;
+      before.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+      before.settlement.resources.food = 500_000;
+      before.settlement.resources.wood = 500_000;
+      const injuredBefore = before.settlement.injured.length;
+      const { state, events } = advanceTo(before, atMs);
+      const here = at(events, atMs);
+      const suffered = here.find((event) => event.type === 'raidSuffered');
+      expect(suffered?.data).toMatchObject({ size: 'light', injured: 0 });
+      expect(Number(suffered?.data.raided_food ?? 0)).toBeGreaterThan(0);
+      expect(suffered?.text).not.toMatch(/ferid|fere/);
+      expect(here.some((event) => event.type === 'villagerInjured')).toBe(false);
+      expect(state.settlement.injured.length).toBe(injuredBefore);
+    },
+  );
+
+  it('a mesma incursão leve, sem ser a do roteiro, continua ferindo', () => {
+    const atMs = 24 * DAY_MS;
+    const before = advanceTo(newGame(), atMs - 1).state;
+    before.horde.scheduledRaids = [
+      {
+        id: 'raid-x',
+        atMs,
+        kind: 'threat',
+        enemy: 'wolves',
+        size: 'light',
+        announcedAtMs: null,
+        composition: null,
+      },
+    ];
+    before.settlement.buildings.palisade = 0;
+    before.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+    const { events } = advanceTo(before, atMs);
+    const suffered = at(events, atMs).find((event) => event.type === 'raidSuffered');
+    expect(Number(suffered?.data.injured)).toBeGreaterThan(0);
   });
 
   it('a forte do 61º dia (o ensaio), sem defesa, leva no máximo a perda de `warRaids.losses.strong`', () => {

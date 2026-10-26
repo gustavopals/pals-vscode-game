@@ -57,10 +57,9 @@ describe('advanceTo', () => {
       'dayStarted',
       'villagerDeserted',
       'cardDrawn',
-      // A incursão-batalha do 25º dia (V4E-T2.4), depois do Conselho.
+      // A incursão-batalha do 25º dia (V4E-T2.4), depois do Conselho. Ela não fere (D-39).
       'battleFought',
       'raidSuffered',
-      'villagerInjured',
     ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');

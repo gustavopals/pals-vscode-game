@@ -112,7 +112,9 @@ export const RAID_LEAD_MS_V33 = 21_600_000;
 
 export const WAR_SCRIPTED_RAIDS_V33: ReadonlyArray<{ id: string; atMs: number; size: string }> = [
   { id: 'raidersYear1Weak', atMs: 24 * 7_200_000, size: 'light' },
-  { id: 'raidersYear1Medium', atMs: 36 * 7_200_000, size: 'medium' },
+  // Leve desde a resposta do autor à D-39 (2026-10-26), antes de a v0.4 ser publicada: nenhuma
+  // partida passou por este passo com a média.
+  { id: 'raidersYear1Medium', atMs: 36 * 7_200_000, size: 'light' },
   { id: 'raidersYear1Rehearsal', atMs: 60 * 7_200_000, size: 'strong' },
 ];
 

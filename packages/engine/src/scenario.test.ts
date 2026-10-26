@@ -133,10 +133,11 @@ describe('cenário golden de 7 dias', () => {
     expect(raidStory).toEqual([
       // Desde o estado 33 as incursões-batalha do roteiro (25º e 37º dias) chegam antes da
       // Paliçada, e as sorteadas caem em outros dias (a forte é segura pela Paliçada Nv2).
+      // Desde a resposta do autor à D-39 as duas do roteiro são leves e não ferem.
       [18, 'wolvesHowl', null, null, null],
       [30, 'raidSuffered', 'light', 0, 1],
-      [48, 'raidSuffered', 'light', 0, 1],
-      [72, 'raidSuffered', 'medium', 0, 2],
+      [48, 'raidSuffered', 'light', 0, 0],
+      [72, 'raidSuffered', 'light', 0, 0],
       [120, 'raidRepelled', 'strong', 2, null],
       [138, 'raidRepelled', 'medium', 2, null],
       [152, 'raidRepelled', 'medium', 2, null],
@@ -171,18 +172,13 @@ describe('cenário golden de 7 dias', () => {
     // O ferido do roteiro estava sem ofício: fica de cama um dia de jogo e sara.
     const hurt = events.filter((event) => event.type === 'villagerInjured');
     const healed = events.filter((event) => event.type === 'villagerRecovered');
-    // E os das incursões-batalha do roteiro (25º e 37º dias), antes da Paliçada.
+    // As incursões-batalha do roteiro (25º e 37º dias) chegam antes da Paliçada e não ferem
+    // ninguém (resposta do autor à D-39; antes, um ferido às 48 h e dois às 72 h).
     expect(hurt.map((event) => [event.atMs / HOUR, event.data.building ?? null])).toEqual([
       [30, null],
-      [48, 'lumberMill'],
-      [72, null],
-      [72, null],
     ]);
     expect(healed.map((event) => [event.atMs / HOUR, event.data.building ?? null])).toEqual([
       [32, null],
-      [50, 'lumberMill'],
-      [74, null],
-      [74, null],
     ]);
     expect(state.settlement.injured).toEqual([]);
     expect(state.stats).toMatchObject({ raids_suffered: 3, raids_repelled: 3 });
@@ -202,19 +198,20 @@ describe('cenário golden de 7 dias', () => {
     // inverno, o frio a derruba de novo e ela volta. Com o Armazém guardando 1.000 de madeira, a
     // lenha dura até o fim do 8º dia do inverno (159 h 48 min): a virada das 160 h ainda pega o
     // frio, que acaba às 163 h, com os lenhadores de volta. Os lobos não pesam: a única incursão
-    // sofrida é a do roteiro, com o povo contente (até a V4E-T2.4: agora sofre também as do 25º e do 37º dia, e um aldeão deserta às 96 h). Fora isso ninguém deserta (o golden da fome longa, com
+    // sofrida é a do roteiro, com o povo contente (até a V4E-T2.4: agora sofre também as do 25º e do 37º dia, e um aldeão deserta às 98 h). Fora isso ninguém deserta (o golden da fome longa, com
     // gente que parte, é o retrato `famine`, e a regra está em `morale.test.ts` e
     // `famine.test.ts`).
     const bands = events
       .filter((event) => event.type === 'moraleBandChanged')
       .map((event) => [event.atMs / HOUR, event.data.band]);
     // Desde a V4E-T2.4 as incursões-batalha do 25º e do 37º dia (antes da Paliçada) pesam: a
-    // moral cai às 74 h e às 84 h, e a fome leva um aldeão às 96 h.
+    // moral cai às 74 h e às 86 h (às 84 h até a D-39, quando elas ainda feriam), e a fome leva
+    // um aldeão às 98 h (às 96 h até a D-39).
     expect(bands).toEqual([
       [74, 'restless'],
       [78, 'content'],
-      [84, 'restless'],
-      [90, 'desperate'],
+      [86, 'restless'],
+      [92, 'desperate'],
       [98, 'content'],
       // V4H-T1: com o lote 2 no sorteio, a paliçada só é mostrada aos aldeões às 163 h, depois de
       // o frio acabar (+20 por três dias de jogo levam o povo a "orgulhoso"): o "inquieto" das
@@ -232,7 +229,7 @@ describe('cenário golden de 7 dias', () => {
     ]);
     expect(
       events.filter((event) => event.type === 'villagerDeserted').map((event) => event.atMs / HOUR),
-    ).toEqual([96]);
+    ).toEqual([98]);
     // V4H-T1: a paliçada foi mostrada às 163 h, e a semana acaba com o efeito dela ainda valendo.
     expect(state.settlement.morale).toBe(80);
     // O Conselho, de ponta a ponta, com as cartas do jogo. A primeira audiência é no 5º dia de

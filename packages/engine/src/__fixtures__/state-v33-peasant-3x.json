@@ -99,8 +99,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 9680,
-   "wood": 5052,
+   "food": 9578,
+   "wood": 5302,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -427,10 +427,10 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 10865680,
+  "wasted_food": 10978578,
   "cardsDrawn:thawBridgePlea": 1,
   "raids_suffered": 14,
-  "wasted_wood": 5709052,
+  "wasted_wood": 5740302,
   "coldSpellsThisSeason": 0,
   "cardsExpired": 8,
   "cardsDrawn:woundedStranger": 1,

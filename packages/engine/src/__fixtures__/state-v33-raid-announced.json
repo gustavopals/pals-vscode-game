@@ -93,8 +93,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 5905,
-   "wood": 3194,
+   "food": 6505,
+   "wood": 3478,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -398,7 +398,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -406,7 +406,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 7,
       "lost": 0
      },
      {
@@ -414,23 +414,23 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -456,16 +456,15 @@
  "stats": {
   "cardsDrawn": 8,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 4089905,
+  "wasted_food": 4162505,
   "cardsDrawn:collapsedWell": 1,
-  "wasted_wood": 2123194,
-  "raids_repelled": 2,
+  "wasted_wood": 2165478,
+  "raids_repelled": 3,
   "cardsExpired": 6,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
   "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:moreMouths": 1,
-  "raids_suffered": 1,
   "cardsDrawn:thawBridgePlea": 1,
   "seasonsSurvived:summer": 1,
   "cardsDrawn:roofBeforeCold": 1,

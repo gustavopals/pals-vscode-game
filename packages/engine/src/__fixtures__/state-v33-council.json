@@ -86,7 +86,7 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 18705,
+   "food": 18353,
    "wood": 6681,
    "stone": 0,
    "gold": 0,
@@ -320,7 +320,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -328,7 +328,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 7,
       "lost": 0
      },
      {
@@ -336,23 +336,23 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -390,11 +390,11 @@
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
-  "wasted_food": 2180705,
+  "wasted_food": 2312353,
   "cardsDrawn:woundedStranger": 1,
   "raids_suffered": 3,
   "coldSpellsThisSeason": 0,
-  "wasted_wood": 453681,
+  "wasted_wood": 478681,
   "cardsExpired": 1
  }
 }

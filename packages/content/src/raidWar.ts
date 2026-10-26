@@ -31,6 +31,12 @@ export type WarScriptedRaidDef = {
   readonly atGameDay: number;
   /** O ensaio do cerco: na Hora da Vigília (V4G-T1); até lá, o início do dia marcado. */
   readonly rehearsal: boolean;
+  /**
+   * Se ela fere aldeões quando passa. As dos dias 25 e 37 não ferem ninguém (resposta do autor à
+   * pendência D-39, 2026-10-26): o jogador que visita pouco ainda não tem Paliçada nem soldados
+   * quando elas chegam. Levam do estoque como qualquer outra.
+   */
+  readonly injures: boolean;
 };
 
 export type WarRaidsDef = {
@@ -80,9 +86,17 @@ export const warRaids: WarRaidsDef = {
     warlord: 12,
   },
   scripted: [
-    { id: 'raidersYear1Weak', size: 'light', atGameDay: 25, rehearsal: false },
-    { id: 'raidersYear1Medium', size: 'medium', atGameDay: 37, rehearsal: false },
-    { id: 'raidersYear1Rehearsal', size: 'strong', atGameDay: 61, rehearsal: true },
+    // As duas primeiras são leves e não ferem (D-39, 2026-10-26); o id da do dia 37 continua
+    // `raidersYear1Medium` porque é o que fica gravado no estado.
+    { id: 'raidersYear1Weak', size: 'light', atGameDay: 25, rehearsal: false, injures: false },
+    { id: 'raidersYear1Medium', size: 'light', atGameDay: 37, rehearsal: false, injures: false },
+    {
+      id: 'raidersYear1Rehearsal',
+      size: 'strong',
+      atGameDay: 61,
+      rehearsal: true,
+      injures: true,
+    },
   ],
   losses: {
     light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },

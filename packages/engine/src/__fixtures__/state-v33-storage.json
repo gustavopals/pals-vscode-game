@@ -92,7 +92,7 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 23917,
+   "food": 24321,
    "wood": 25410,
    "stone": 0,
    "gold": 0,
@@ -164,7 +164,7 @@
     "atMs": 259200000,
     "kind": "scripted",
     "enemy": "wolves",
-    "size": "medium",
+    "size": "light",
     "announcedAtMs": null,
     "composition": null
    }
@@ -353,7 +353,7 @@
  "stats": {
   "cardsDrawn": 4,
   "cardsDrawn:thawBridgePlea": 1,
-  "wasted_food": 797917,
+  "wasted_food": 824321,
   "cardsDrawn:masonsMeal": 1,
   "wasted_wood": 807410,
   "constructionsStarted:townHall": 1,

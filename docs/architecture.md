@@ -509,7 +509,7 @@ Entram na v0.4 sem publicação (ADR 0019, decisões 13 e 14; pendências D-11 e
 
 - **Toda incursão é uma batalha** (`raids.ts`, `fightRaid`): o atacante é a composição da incursão, sorteada no fluxo `horde` quando ela é marcada (a do roteiro e a marcada antes do estado 33 usam a composição-base da estação, sem sorteio); o defensor é a Defesa ativa, e, sem ela, só a muralha e as torres lutam. A batalha sorteia no fluxo `battle:<id>`, danifica a muralha, mata soldados, fere comandantes e guarda o relatório em `army.reports` com a formação que lutou.
 - **A batalha só alivia a regra da v0.2** (decisão 14): a perda é a menor entre a que a Paliçada deixava passar e a do que passou pela batalha, na proporção. Sem exército, os lobos do 16º dia custam o mesmo que antes.
-- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; o ensaio do cerco no início do 61º dia, até a Hora da Vigília da V4G-T1), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
+- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; as duas primeiras leves e sem ferido, pela resposta do autor à D-39; o ensaio do cerco, forte, no início do 61º dia, até a Hora da Vigília da V4G-T1), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
 - **A névoa**: `threat.incoming.compositionText` diz da composição só o que o nível da Torre revela (nada nos níveis 1 e 2; os tipos, as quantidades por ala e a composição exata nos 3, 4 e 5).
 - **No simulador**, o econômico e o preguiçoso montam e ativam a formação com o que treinam (decisão 25); a medição está em [balance-v0.4.md](balance-v0.4.md), seção 9.
 

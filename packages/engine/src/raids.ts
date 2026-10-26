@@ -123,6 +123,18 @@ export function markScriptedWarRaids(draft: GameState, atMs: number): void {
 }
 
 /**
+ * Se a incursão fere aldeões quando passa. Só as do roteiro da guerra podem não ferir
+ * (`warRaids.scripted[].injures`; as dos dias 25 e 37, resposta do autor à D-39): o resto fere.
+ * A regra é lida pelo id gravado na marcada, sem campo novo no estado.
+ */
+export function raidInjures(raid: Pick<ScheduledRaid, 'id' | 'kind'>): boolean {
+  if (raid.kind !== 'scripted') {
+    return true;
+  }
+  return warRaids.scripted.find((def) => def.id === raid.id)?.injures ?? true;
+}
+
+/**
  * O tamanho da v0.2 que serve às frases, à Paliçada e às tabelas antigas: a forte (que a v0.2
  * não tinha) usa as da média, e a perda dela vem de `warRaids.losses.strong`.
  */
@@ -474,10 +486,12 @@ function resolveRaid(
       losses.push(text);
     }
   }
-  const injuries = Math.min(
-    scaled === null ? partOf(damage.injuries, WHOLE, share) : scaled.injuries,
-    ableVillagers(draft),
-  );
+  const injuries = raidInjures(raid)
+    ? Math.min(
+        scaled === null ? partOf(damage.injuries, WHOLE, share) : scaled.injuries,
+        ableVillagers(draft),
+      )
+    : 0;
   const hurt: InjuredVillager[] = [];
   for (let index = 0; index < injuries; index += 1) {
     hurt.push(injureVillager(draft, atMs + rules.injuryMs));

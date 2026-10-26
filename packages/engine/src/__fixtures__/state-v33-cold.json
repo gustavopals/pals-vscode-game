@@ -99,7 +99,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 18470,
+   "food": 18118,
    "wood": 0,
    "stone": 0,
    "gold": 0,
@@ -273,7 +273,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -281,7 +281,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 7,
       "lost": 0
      },
      {
@@ -289,23 +289,23 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -438,7 +438,7 @@
  },
  "stats": {
   "constructionsStarted:quarry": 1,
-  "wasted_food": 9418470,
+  "wasted_food": 9525118,
   "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:springSeeds": 1,
