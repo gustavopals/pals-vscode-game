@@ -33,11 +33,25 @@ import {
   stateV30Fields,
 } from './v30';
 import { RNG_FIXED_STREAMS_V21 } from './v21';
+import type { MigrationStep } from './step';
 
 // Como nas outras versões, os identificadores e os números ficam escritos aqui; o teste confere
 // que hoje coincidem com o conteúdo e o motor (`BATTLE_FACTOR_IDS`, `balance.battle.previewRuns`).
 /** Quantas batalhas a prévia roda (`balance.battle.previewRuns`). */
 export const PREVIEW_RUNS_V31 = 200;
+
+// Como nas outras versões, os identificadores e os números ficam escritos aqui; o teste confere
+// que hoje coincidem com o conteúdo (`balance.wall.hpByLevel`, `WING_IDS`).
+/** A vida de cada ala por nível da Paliçada, a partir do nível 1 (`balance.wall.hpByLevel`). */
+export const WALL_HP_BY_LEVEL_V32: readonly number[] = [60, 100, 200, 320, 500, 800];
+
+/** A vida de cada ala no nível pedido; zero sem Paliçada. */
+export function wallHpV32(level: number): number {
+  if (level <= 0) {
+    return 0;
+  }
+  return WALL_HP_BY_LEVEL_V32[Math.min(level, WALL_HP_BY_LEVEL_V32.length) - 1] ?? 0;
+}
 
 const wing = oneOf(WING_IDS_V29);
 const line = oneOf(LINE_IDS_V29);
@@ -74,7 +88,7 @@ export const armyPreviewV31: Shape = exactObject({
  * Conselho de Guerra, ou `null`. O contador `stats.battlesSimulated` mora em `stats`, que é um
  * registro livre de números: não muda de forma. `rng` e `ids` também não mudam.
  *
- * Quem subir `schemaVersion` para 32 acrescenta em `v31.ts` o passo `v31ToV32`.
+ * Para a versão 32, o passo `v31ToV32`, no fim deste arquivo.
  */
 export const stateV31Fields: Readonly<Record<string, Shape>> = {
   ...stateV30Fields,
@@ -159,3 +173,35 @@ export const stateV31: Shape = (value, path) =>
   formationsWithinState(value, path) ??
   battleReportsWithinState(value, path) ??
   previewWithinState(value, path);
+
+/**
+ * 31 → 32: a muralha (V4E-T1.2; GDD §6.1 a §6.3; ADR 0020).
+ *
+ * - `settlement.wall.hp` nasce **cheio pelo nível de hoje da Paliçada** (60 ou 100 por ala; zero
+ *   nas três sem Paliçada): nada danificou a Paliçada antes desta versão.
+ * - `settlement.wallRepair` nasce `null`: não há reparo antes da ordem `repairWall`.
+ * - `ids` e `rng` não mudam: o reparo não sorteia nem cria entidade.
+ *
+ * **O passo não cria prazo**, não emite evento e não toca o gerador. Uma obra da Paliçada em
+ * curso na fronteira soma a vida do nível novo quando termina, como toda obra dela.
+ */
+export const v31ToV32: MigrationStep = {
+  from: 31,
+  summary: 'a muralha ganha a vida de cada ala, cheia pelo nível da Paliçada, e nenhum reparo',
+  shape: stateV31,
+  migrate(state) {
+    const settlement = state.settlement as Record<string, unknown> & {
+      buildings: { palisade: number };
+    };
+    const hp = wallHpV32(settlement.buildings.palisade);
+    return {
+      ...state,
+      schemaVersion: 32,
+      settlement: {
+        ...settlement,
+        wall: { hp: { left: hp, center: hp, right: hp } },
+        wallRepair: null,
+      },
+    };
+  },
+};

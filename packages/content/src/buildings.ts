@@ -25,16 +25,19 @@ export type BuildingDef = {
    */
   readonly maxLevelNote?: string;
   /**
-   * Os níveis **depois** de `maxLevel` que a v0.4 vai ligar (Fase E, V4E-T1), com o rótulo, o
-   * custo e a duração de cada obra, na ordem (o primeiro é o nível `maxLevel + 1`). O motor
-   * ainda não lê este campo: o jogador não vê esses níveis, e `maxLevel` continua o teto. A
-   * tarefa que ligar a Muralha ao estado passa `maxLevel` ao último e apaga o campo.
+   * As obras que **não** seguem a regra geral (custo × 1,6 e tempo × 1,5 por nível): o nível que
+   * cada uma alcança, o nome do edifício nesse nível, o custo e a duração de tabela (o fator da
+   * estação e o teto de 8 h valem como em toda obra). Só a Paliçada tem: a Muralha de Pedra e o
+   * Baluarte (V4E-T1; ADR 0020, "Números da Fase E"). Do primeiro nível da tabela em diante, o
+   * nome vale até o nível seguinte da tabela.
    */
-  readonly futureLevels?: readonly FutureBuildingLevel[];
+  readonly levelTable?: readonly BuildingLevelDef[];
 };
 
-/** Um nível ainda não ligado ao jogo (ver `BuildingDef.futureLevels`). */
-export type FutureBuildingLevel = {
+/** Uma obra de tabela (ver `BuildingDef.levelTable`). */
+export type BuildingLevelDef = {
+  /** O nível que a obra alcança. */
+  readonly level: number;
   readonly label: string;
   readonly cost: ResourceAmounts;
   readonly durationMs: number;
@@ -127,70 +130,54 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 2 },
   },
-  // Vai até o nível 2 nesta versão (ADR 0014, decisão 11): cada nível vendido muda algo que o
-  // jogador vê. Os níveis 3 a 5 do GDD entram com as versões que os usam.
+  // Até o nível 5 (GDD §6.1; ADR 0020, decisão 16, e "Números aprovados … D-7"): os níveis 3 a 5
+  // seguem a regra geral a partir do Nv2 (307, 492 e 786 de madeira e de pedra; 128, 205 e 328
+  // de ouro; 27, 40,5 e 60,75 min) e, do Nv3 em diante, as torres atiram na batalha.
   watchtower: {
     label: 'Torre de Vigia',
     article: 'a',
     baseCost: { wood: 120, stone: 120, gold: 50 },
     baseDurationMs: 12 * MINUTE_MS,
     initialLevel: 0,
-    maxLevel: 2,
+    maxLevel: 5,
     produces: null,
     requires: { townHall: 2 },
-    maxLevelNote: 'Os níveis seguintes chegam em versões futuras do jogo.',
-    // Nv3 a Nv5 (GDD §6.1; ADR 0020, decisão 16): a regra geral (custo × 1,6 e tempo × 1,5 por
-    // nível) a partir do Nv2 (192, 192 e 80 em 18 min). Dispara a partir do Nv3.
-    futureLevels: [
-      {
-        label: 'Torre de Vigia',
-        cost: { wood: 307, stone: 307, gold: 128 },
-        durationMs: 27 * MINUTE_MS,
-      },
-      {
-        label: 'Torre de Vigia',
-        cost: { wood: 492, stone: 492, gold: 205 },
-        durationMs: 40.5 * MINUTE_MS,
-      },
-      {
-        label: 'Torre de Vigia',
-        cost: { wood: 786, stone: 786, gold: 328 },
-        durationMs: 60.75 * MINUTE_MS,
-      },
-    ],
   },
-  // Também até o nível 2 nesta versão (ADR 0014, decisão 11). Do nível 3 em diante o GDD a
-  // chama de Muralha de Pedra, com alas, dano e reparo: entra com a versão que traz os cercos.
+  // Até o nível 6 (GDD §6.1 e §6.2; ADR 0020): Paliçada nos níveis 1 e 2, Muralha de Pedra nos
+  // 3 e 4, Baluarte nos 5 e 6. A vida de cada ala por nível está em `balance.wall`.
   palisade: {
     label: 'Paliçada',
     article: 'a',
     baseCost: { wood: 200, stone: 50 },
     baseDurationMs: 20 * MINUTE_MS,
     initialLevel: 0,
-    maxLevel: 2,
+    maxLevel: 6,
     produces: null,
     requires: { townHall: 3 },
-    maxLevelNote: 'A Muralha de Pedra chega em uma versão futura.',
     // Nv3 a Nv6 (GDD §6.1 e §6.2; ADR 0020, "Números da Fase E"): madeira e pedra pela regra do
     // GDD (Nv3 com 300 e 450, × 1,6 por nível), ouro × 3 por nível (2.000, 6.000, 18.000 e
     // 54.000), tempo de 1 h no Nv3 e × 1,5 por nível. Nv3-4 Muralha de Pedra, Nv5-6 Baluarte.
-    futureLevels: [
+    levelTable: [
       {
+        level: 3,
         label: 'Muralha de Pedra',
         cost: { wood: 300, stone: 450, gold: 2_000 },
         durationMs: 60 * MINUTE_MS,
       },
       {
+        level: 4,
         label: 'Muralha de Pedra',
         cost: { wood: 480, stone: 720, gold: 6_000 },
         durationMs: 90 * MINUTE_MS,
       },
       {
+        level: 5,
         label: 'Baluarte',
         cost: { wood: 768, stone: 1_152, gold: 18_000 },
         durationMs: 135 * MINUTE_MS,
       },
       {
+        level: 6,
         label: 'Baluarte',
         cost: { wood: 1_229, stone: 1_843, gold: 54_000 },
         durationMs: 202.5 * MINUTE_MS,

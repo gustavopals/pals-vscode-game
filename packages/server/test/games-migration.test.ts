@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 31;
+const CURRENT = 32;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -105,6 +105,8 @@ function beforeMasters<T>(state: T): T {
       mastersWaiting?: unknown;
       weapons?: unknown;
       forge?: unknown;
+      wall?: unknown;
+      wallRepair?: unknown;
       buildings?: Record<string, unknown>;
     };
     guild?: {
@@ -121,6 +123,9 @@ function beforeMasters<T>(state: T): T {
   // E o Quartel e o exército, da versão 28 (V4C-T1): o edifício por construir e ninguém treinado.
   delete copy.settlement?.buildings?.barracks;
   delete (copy as { army?: unknown }).army;
+  // E a muralha, da versão 32 (V4E-T1.2): entra cheia pelo nível da Paliçada, sem reparo.
+  delete copy.settlement?.wall;
+  delete copy.settlement?.wallRepair;
   // E a condição dos itens, da versão 27 (V4B-T3): todo item entra cheio, e o lote da forja ganha o
   // tipo. Quem compara com um retrato antigo tira os dois.
   const stripCondition = (node: unknown): void => {
@@ -267,6 +272,9 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     masters: [],
     mastersWaiting: [],
     constructionQueues: [...constructionQueues, null],
+    // A muralha (V4E-T1, versão 32): sem Paliçada, nenhuma vida, nenhum reparo.
+    wall: { hp: { left: 0, center: 0, right: 0 } },
+    wallRepair: null,
     planned: planned.map((plan) => ({ ...plan, autoStart: false })),
     // Os ofícios (V2C-T3): experiência em zero e todo mundo já adaptado.
     craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
@@ -960,6 +968,9 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       resources: { ...site.resources, iron: 0 },
       accumulators: { ...(site as unknown as Amounts).accumulators, iron: 0 },
       wasted: { ...(site as unknown as Amounts).wasted, iron: 0 },
+      // E a muralha, da versão 32: sem Paliçada, nenhuma vida, nenhum reparo.
+      wall: { hp: { left: 0, center: 0, right: 0 } },
+      wallRepair: null,
     });
   });
 

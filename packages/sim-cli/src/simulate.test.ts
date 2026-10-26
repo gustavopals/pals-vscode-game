@@ -31,6 +31,7 @@ import {
   marketTemplates,
   wageArrearsReliefs,
   tavernCandidates,
+  warRaids,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -358,9 +359,11 @@ describe('CSV de uma partida', () => {
     // A Ameaça é medida no estado, com ou sem Torre; a linha diz se o jogador chegou a vê-la.
     // Ela sobe 2 por dia de jogo (5 no outono) e cai 35 a cada incursão: oscila, e no ano não
     // passa de 76.
-    expect(summary.threat).toEqual({ final: 70, max: 76, watchtower: 2 });
+    // Torre Nv3: com a Torre acima do 2 no conteúdo (V4E-T1), o bot que a ergue ("erguer a Torre")
+    // passa do nível 2 e chega ao 3 no ano.
+    expect(summary.threat).toEqual({ final: 70, max: 76, watchtower: 3 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 70 no fim (máxima 76) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 70 no fim (máxima 76) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -626,6 +629,7 @@ describe('resumo de uma partida', () => {
             startingTiles,
             enemies,
             raidSizes,
+            warRaids, // entrou no hash com os incursores da Fase D (V4E-T2)
             threatMarkTemplates,
             raidTemplates,
             injuryTemplates,
@@ -723,7 +727,8 @@ describe('resumo de uma partida', () => {
         iron: 0,
       },
       losses: Math.round(sum('raided_food') + sum('raided_wood')),
-      palisade: 2,
+      // Paliçada Nv4 (era 2): a Muralha de Pedra existe desde a V4E-T1 e o bot a ergue.
+      palisade: 4,
     });
     // A do roteiro e as da Ameaça: o bot sofre as primeiras e, com a Paliçada, repele o resto.
     expect(summary.raids.suffered).toBeGreaterThan(0);
@@ -738,7 +743,7 @@ describe('resumo de uma partida', () => {
     expect(formatSummary(twoSessions)).toContain(
       `Lobos: ${summary.raids.suffered} incursões sofridas, ${summary.raids.repelled} repelidas (${summary.raids.announced} anunciadas pela Torre) · ` +
         `levaram food ${summary.raids.lost.food}, wood ${summary.raids.lost.wood} · ${summary.raids.injured} feridos · ` +
-        `Paliçada Nv2, erguida na hora ${summary.milestones.palisade}\n`,
+        `Paliçada Nv4, erguida na hora ${summary.milestones.palisade}\n`,
     );
     // As colunas do CSV são as mesmas contas, acumuladas hora a hora: nunca diminuem.
     const last = twoSessions.rows[167];

@@ -60,7 +60,7 @@ describe('muralha: o reparo', () => {
   });
 
   it('a tabela de pedra confere com o conteúdo', () => {
-    expect(buildings.palisade.futureLevels?.map((level) => level.cost.stone)).toEqual([
+    expect(buildings.palisade.levelTable?.map((level) => level.cost.stone)).toEqual([
       450, 720, 1152, 1843,
     ]);
   });

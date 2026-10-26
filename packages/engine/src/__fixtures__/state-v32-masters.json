@@ -1,0 +1,269 @@
+{
+ "schemaVersion": 32,
+ "seed": "pedra-alta",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 213601234,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 213601234,
+ "rng": {},
+ "ids": {
+  "master": 2
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 666273,
+   "wood": 459808,
+   "stone": 364480,
+   "gold": 213001,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 1685694,
+   "wood": 125934,
+   "stone": 1411486,
+   "gold": 1644500,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 10
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 2,
+   "quarry": 2,
+   "goldMine": 1
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 8,
+   "warehouse": 8,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 4,
+   "lumberMill": 4,
+   "quarry": 4,
+   "goldMine": 4
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [
+   {
+    "id": "master-1",
+    "masterId": "odo",
+    "building": "quarry",
+    "adaptingUntilMs": null,
+    "worked": true
+   },
+   {
+    "id": "master-2",
+    "masterId": "berta",
+    "building": "farm",
+    "adaptingUntilMs": 217800000,
+    "worked": true
+   }
+  ],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [],
+  "flags": {
+   "routine.masonsMeal": true,
+   "routine.sawmillRest": true,
+   "routine.neighborsWatch": true,
+   "routine.moreMouths": true
+  },
+  "seenThisYear": [
+   "commonGranaryPlanks",
+   "commonGranaryShare",
+   "commonGranaryOutcome",
+   "thawBridgePlea",
+   "thawBridgeSlab",
+   "thawBridgeCrossing",
+   "palisadePromisePlea",
+   "palisadePromiseDeadline",
+   "palisadePromiseReckoning",
+   "collapsedWell",
+   "masonsMeal",
+   "sawmillRest",
+   "neighborsWatch",
+   "moreMouths",
+   "springSeeds",
+   "springNews",
+   "apprenticesTable",
+   "fullGranary",
+   "dampFirewood",
+   "roofBeforeCold",
+   "harvestFeast",
+   "woundedStranger",
+   "refugeesAtGates",
+   "refugeesReturn",
+   "refugeesCraft",
+   "tavernBard",
+   "tornMap",
+   "itinerantMerchant",
+   "firstRecruit",
+   "veteranCaptain"
+  ],
+  "nextDrawAtMs": 230400000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 2,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
+  ]
+ },
+ "stats": {
+  "cardsDrawn:woundedStranger": 1,
+  "cardsDrawn:itinerantMerchant": 1,
+  "cardsDrawn:firstRecruit": 1,
+  "mastersArrived": 2
+ }
+}

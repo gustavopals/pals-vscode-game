@@ -14,6 +14,7 @@ import {
   MINUTE,
   YEAR,
 } from './test-helpers';
+import { wallHpPerWing } from './wall';
 import { palisadeAgainst, palisadeLevel } from './threat';
 import type { GameEvent, GameState, ScheduledRaid, ThreatView } from './types';
 import { deriveViewState } from './view';
@@ -37,6 +38,8 @@ function feud(
   return gameAt(atMs, (draft) => {
     draft.settlement.buildings.townHall = 3;
     draft.settlement.buildings.palisade = palisade;
+    const full = wallHpPerWing(palisade);
+    draft.settlement.wall.hp = { left: full, center: full, right: full };
     draft.settlement.buildings.watchtower = watchtower;
     draft.settlement.resources = {
       food: 400_000,
@@ -97,8 +100,12 @@ describe('o que cada nível da Paliçada segura (ADR 0014, decisão 11)', () => 
       const kinds = RAID_SIZE_IDS.map((size) => palisadeAgainst(level, size).kind);
       expect(kinds.join(',')).toMatch(/^(held,?)*(breached,?)*$/);
     }
-    // Um nível que o conteúdo não descreve não segura nada: não há Muralha nesta versão.
-    expect(palisadeAgainst(3, 'light')).toEqual({ kind: 'open' });
+    // Da Muralha de Pedra em diante a regra da v0.2 não muda (V4E-T1): o que cresce é a vida.
+    for (let level = 3; level <= buildings.palisade.maxLevel; level += 1) {
+      expect(palisadeAgainst(level, 'medium')).toEqual({ kind: 'held' });
+    }
+    // Um nível que o conteúdo não descreve não segura nada.
+    expect(palisadeAgainst(buildings.palisade.maxLevel + 1, 'light')).toEqual({ kind: 'open' });
   });
 
   it('o nível é o do edifício, e só muda quando a obra termina', () => {
@@ -125,16 +132,35 @@ describe('o que cada nível da Paliçada segura (ADR 0014, decisão 11)', () => 
 
 describe('o que protege o feudo, na visão (`threat.defense`)', () => {
   it('sem Paliçada: nada segura um ataque, e a frase seguinte diz o que a obra daria', () => {
-    expect(view(feud(10 * DAY, 0)).defense).toEqual({
+    const { defense } = view(feud(10 * DAY, 0));
+    expect(defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 0,
       text: 'Sem Paliçada, nada segura um ataque.',
       next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
     });
+    expect(defense.wall).toEqual({
+      levelLabel: 'Sem Paliçada',
+      hpText: {
+        left: 'Ala esquerda: sem muralha.',
+        center: 'Centro: sem muralha.',
+        right: 'Ala direita: sem muralha.',
+      },
+      repairOffer: {
+        canRepair: false,
+        stone: 0,
+        gold: 0,
+        seconds: 0,
+        text: 'Sem Paliçada, não há muralha para reparar.',
+        blockedText: 'Sem Paliçada não há muralha para reparar.',
+        repairingInSeconds: null,
+      },
+    });
+    expect(defense.tower).toEqual({ damageText: null, revealsComposition: 'none' });
   });
 
   it('nível 1: diz o que segura, o que ainda passa, e o que o nível 2 muda', () => {
-    expect(view(feud(10 * DAY, 1)).defense).toEqual({
+    expect(view(feud(10 * DAY, 1)).defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 1,
       text: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
@@ -142,15 +168,56 @@ describe('o que protege o feudo, na visão (`threat.defense`)', () => {
     });
   });
 
-  it('nível 2: segura os dois tamanhos e diz que a Muralha de Pedra fica para depois, sem prometer data', () => {
+  it('nível 2: segura os dois tamanhos, e a próxima obra é a Muralha de Pedra, com mais vida por ala', () => {
     const { defense } = view(feud(10 * DAY, 2));
-    expect(defense).toEqual({
+    expect(defense).toMatchObject({
       building: 'palisade',
       palisadeLevel: 2,
-      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido. A Muralha de Pedra chega em uma versão futura.',
+      text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido.',
+      next: 'Muralha de Pedra Nv3: cada ala da muralha passa a ter 200 de vida (em vez de 100).',
+    });
+    expect(defense.wall.levelLabel).toBe('Paliçada Nv2');
+    expect(defense.wall.hpText.left).toBe('Ala esquerda: 100 de 100 de vida.');
+    expect(defense.wall.repairOffer).toMatchObject({
+      canRepair: false,
+      text: 'A muralha está inteira.',
+      blockedText: 'A muralha está inteira: não há o que reparar.',
+    });
+  });
+
+  it('no nível 6: o Baluarte, sem próxima obra e sem promessa de versão futura', () => {
+    const { defense } = view(feud(10 * DAY, 6));
+    expect(defense).toMatchObject({
+      palisadeLevel: 6,
+      text: 'Baluarte Nv6: segura ataques leves e médios, sem perda nem ferido.',
       next: null,
     });
-    expect(defense.text).not.toMatch(/\d{2,}|v0|breve|semana|mês/);
+    expect(defense.wall.levelLabel).toBe('Baluarte Nv6');
+    expect(defense.text).not.toMatch(/vers[aã]o|breve|semana|mês/);
+  });
+
+  it('a muralha ferida: a vida de cada ala e o reparo, com o custo, o prazo em tempo real e as obras que esperam', () => {
+    const state = feud(10 * DAY, 3, 0, (draft) => {
+      draft.settlement.wall.hp = { left: 50, center: 200, right: 150 };
+    });
+    const { wall } = view(state, 3).defense;
+    expect(wall.levelLabel).toBe('Muralha de Pedra Nv3');
+    expect(wall.hpText).toEqual({
+      left: 'Ala esquerda: 50 de 200 de vida.',
+      center: 'Centro: 200 de 200 de vida.',
+      right: 'Ala direita: 150 de 200 de vida.',
+    });
+    // Faltam 200 de 600: um terço da metade de 450 de pedra (75), ouro igual; 15 min por 25%
+    // de uma ala (50 de vida): 60 min de jogo, 20 min reais no ritmo 3.
+    expect(wall.repairOffer).toEqual({
+      canRepair: true,
+      stone: 75,
+      gold: 75,
+      seconds: 20 * 60,
+      text: 'Reparar tudo custa 75 de pedra e 75 de ouro e leva 20 min; as obras em curso esperam o reparo.',
+      blockedText: null,
+      repairingInSeconds: null,
+    });
   });
 
   it('é a mesma frase com ou sem Torre de Vigia: a Paliçada é do feudo, e o jogador a conhece', () => {
@@ -163,7 +230,7 @@ describe('o que protege o feudo, na visão (`threat.defense`)', () => {
     }
   });
 
-  it('não depende do ritmo: a frase não tem prazo', () => {
+  it('não depende do ritmo: a frase não tem prazo (só o prazo do reparo, que é tempo real)', () => {
     for (const level of [0, 1, 2]) {
       const state = feud(10 * DAY, level, 1);
       expect(view(state, 3).defense).toEqual(view(state, 1).defense);
@@ -184,11 +251,11 @@ describe('o que protege o feudo, na visão (`threat.defense`)', () => {
     });
   });
 
-  it('não promete o que a versão não tem: nem inimigo humano, nem dano, nem reparo', () => {
+  it('não promete o que a versão não tem: nem inimigo humano, nem cerco', () => {
     for (const level of [0, 1, 2]) {
       const { defense } = view(feud(10 * DAY, level, 2));
       for (const text of [defense.text, defense.next ?? '']) {
-        expect(text).not.toMatch(/saqueador|bandido|homens|ex[ée]rcito|HP|dano|repar|cerco|Horda/i);
+        expect(text).not.toMatch(/saqueador|bandido|homens|ex[ée]rcito|HP|cerco|Horda/i);
       }
     }
   });

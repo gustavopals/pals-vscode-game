@@ -43,6 +43,7 @@ import {
   MORALE_BAND_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
+  WATCHTOWER_COMPOSITION_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
   TAVERN_CANDIDATE_IDS,
@@ -166,9 +167,18 @@ const threat = z
     mediumRaidAbove: positiveInt,
     raidDrop: positiveInt,
     raidLeadMs: positiveInt,
-    // Cada nível avisa mais cedo que o anterior, e o que já distingue o tamanho não o esquece.
+    // Cada nível avisa mais cedo que o anterior, o que já distingue o tamanho não o esquece, e
+    // cada um revela da composição ao menos o que o anterior revelava; o dano das torres nunca
+    // cai (V4E-T1; ADR 0020, decisão 16).
     watchtowerLevels: z
-      .array(z.strictObject({ warningRealMs: positiveInt, revealsRaidSize: z.boolean() }))
+      .array(
+        z.strictObject({
+          warningRealMs: positiveInt,
+          revealsRaidSize: z.boolean(),
+          composition: z.enum(WATCHTOWER_COMPOSITION_IDS),
+          towerDamage: z.number().int().nonnegative(),
+        }),
+      )
       .min(1)
       .refine(
         (levels) =>
@@ -177,12 +187,16 @@ const threat = z
             return (
               previous === undefined ||
               (level.warningRealMs > previous.warningRealMs &&
-                (level.revealsRaidSize || !previous.revealsRaidSize))
+                (level.revealsRaidSize || !previous.revealsRaidSize) &&
+                WATCHTOWER_COMPOSITION_IDS.indexOf(level.composition) >=
+                  WATCHTOWER_COMPOSITION_IDS.indexOf(previous.composition) &&
+                level.towerDamage >= previous.towerDamage)
             );
           }),
         'nível da Torre que avisa menos que o anterior',
       ),
-    // Cada nível da Paliçada segura um tamanho maior que o anterior.
+    // Cada nível da Paliçada segura ao menos o que o anterior segurava (da Muralha de Pedra em
+    // diante o que cresce é a vida de cada ala, em `wall`).
     palisadeLevels: z
       .array(z.strictObject({ absorbs: z.enum(RAID_SIZE_IDS) }))
       .min(1)
@@ -192,24 +206,11 @@ const threat = z
             const previous = levels[index - 1];
             return (
               previous === undefined ||
-              RAID_SIZE_IDS.indexOf(level.absorbs) > RAID_SIZE_IDS.indexOf(previous.absorbs)
+              RAID_SIZE_IDS.indexOf(level.absorbs) >= RAID_SIZE_IDS.indexOf(previous.absorbs)
             );
           }),
-        'nível da Paliçada que não segura mais que o anterior',
+        'nível da Paliçada que segura menos que o anterior',
       ),
-    // Os níveis 3 a 5 da Torre, ainda não ligados ao jogo (V4E-T1): cada um avisa mais cedo e
-    // revela mais da composição que o anterior; o dano por ala é o de `battle.towers`.
-    futureWatchtowerLevels: z
-      .array(
-        z.strictObject({
-          warningRealMs: positiveInt,
-          revealsRaidSize: z.literal(true),
-          composition: z.enum(['archetypes', 'approximate', 'exact']),
-          towerDamage: positiveInt,
-        }),
-      )
-      .min(1)
-      .optional(),
     // O que passa por uma Paliçada pequena demais é uma parte do estrago, nunca ele inteiro.
     palisadeBreach: ratio.refine(({ num, den }) => num < den, 'a Paliçada não segura nada'),
   })
@@ -820,10 +821,15 @@ const balanceFields = z.strictObject({
  * não foi sorteado.
  */
 export const BalanceSchema = balanceFields
+  // Até o nível 2 o aviso cabe no prazo da incursão sorteada em todo ritmo; do nível 3 em diante
+  // ele pode passar dele (3, 4 e 5 h reais, ADR 0020, decisão 16): a incursão sorteada é avisada
+  // na virada que a sorteia, e a antecedência a mais vale para as marcadas antes (as do roteiro).
   .refine(
     ({ paces, threat: { raidLeadMs, watchtowerLevels } }) =>
       paces.every(({ timeScale }) =>
-        watchtowerLevels.every((level) => level.warningRealMs * timeScale <= raidLeadMs),
+        watchtowerLevels
+          .slice(0, 2)
+          .every((level) => level.warningRealMs * timeScale <= raidLeadMs),
       ),
     'aviso da Torre maior que o prazo da incursão em um ritmo oferecido',
   )
@@ -851,12 +857,33 @@ export const BuildingSchema = z
     requires: z.partialRecord(buildingId, positiveInt),
     // Entra depois de "já está no nível máximo.": uma frase inteira.
     maxLevelNote: label.regex(/^\p{Lu}.*\.$/u).optional(),
-    futureLevels: z
-      .array(z.strictObject({ label, cost: resourceAmounts, durationMs: positiveInt }))
+    levelTable: z
+      .array(
+        z.strictObject({
+          level: positiveInt,
+          label,
+          cost: resourceAmounts,
+          durationMs: positiveInt,
+        }),
+      )
       .min(1)
+      .refine(
+        (levels) =>
+          levels.every(
+            (entry, index) => index === 0 || entry.level === (levels[index - 1]?.level ?? 0) + 1,
+          ),
+        'níveis da tabela fora de sequência',
+      )
       .optional(),
   })
-  .refine((def) => def.maxLevel > def.initialLevel, 'nível máximo abaixo do inicial');
+  .refine((def) => def.maxLevel > def.initialLevel, 'nível máximo abaixo do inicial')
+  .refine(
+    (def) =>
+      (def.levelTable ?? []).every(
+        (entry) => entry.level > def.initialLevel + 1 && entry.level <= def.maxLevel,
+      ),
+    'nível de tabela fora do intervalo do edifício',
+  );
 
 export const BuildingsSchema = z.strictObject({
   townHall: BuildingSchema,
@@ -1395,6 +1422,13 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
     heroId: z.enum(NAMED_HERO_IDS),
     afterDays: positiveInt.optional(),
   }),
+  z.strictObject({
+    type: z.literal('addMaster'),
+    masterId: z.enum(MASTER_IDS),
+    ifFlags: z.array(flag).min(1).optional(),
+  }),
+  z.strictObject({ type: z.literal('revealDestination') }),
+  z.strictObject({ type: z.literal('addSoldiers'), unit: z.enum(UNIT_IDS), amount: positiveInt }),
 ]);
 
 const effects = z
@@ -1418,11 +1452,16 @@ export const CouncilOptionSchema = z
     // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
     // dizendo o mesmo número.
     label: label.regex(
-      /^\p{Lu}\p{Ll}*(?:ar|er|ir|or|ôr)(?:\s[^\d.]*)?$/u,
+      /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la))(?:\s[^\d.]*)?$/u,
       'verbo no infinitivo, sem números',
     ),
     requires: z
-      .strictObject({ building: buildingId.optional(), resources: resourceAmounts.optional() })
+      .strictObject({
+        building: buildingId.optional(),
+        resources: resourceAmounts.optional(),
+        soldierRoom: positiveInt.optional(),
+        rosterRoom: z.literal(true).optional(),
+      })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
     cost: resourceAmounts.optional(),
@@ -1446,8 +1485,13 @@ export const CouncilOptionSchema = z
     if (known > 1) {
       context.addIssue({ code: 'custom', message: 'mais de um herói na mesma opção' });
     }
-    if (known > 0 && (option.cost !== undefined || option.requires !== undefined)) {
-      context.addIssue({ code: 'custom', message: 'herói de carta com custo ou requisito' });
+    // Um herói que o senhor contrata por um preço (docs/content-v0.4.md, 10.4) traz o custo e a
+    // vaga na lista de heróis; sem custo, a opção não exige nada, nem a vaga: o herói espera.
+    if (known > 0 && option.cost === undefined && option.requires !== undefined) {
+      context.addIssue({ code: 'custom', message: 'herói de carta sem custo com requisito' });
+    }
+    if ((option.hidden?.effects ?? []).some((effect) => effect.type === 'addMaster')) {
+      context.addIssue({ code: 'custom', message: 'Mestre de carta em efeito escondido' });
     }
     if (givesHero(option.hidden?.effects ?? []) > 0) {
       context.addIssue({ code: 'custom', message: 'herói de carta em efeito escondido' });
@@ -1477,10 +1521,16 @@ export const CouncilCardSchema = z
         flags: z.array(flag).min(1).optional(),
         notFlags: z.array(flag).min(1).optional(),
         moralRange: moralRange.optional(),
+        undiscovered: z.literal(true).optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
-    scripted: z.strictObject({ atGameDay: positiveInt }).optional(),
+    scripted: z
+      .union([
+        z.strictObject({ atGameDay: positiveInt }),
+        z.strictObject({ onHallLevel: positiveInt }),
+      ])
+      .optional(),
     autoResolve: z.strictObject(
       Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, identifier])) as Record<
         (typeof DIFFICULTY_IDS)[number],
@@ -1569,7 +1619,11 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
       ...(card.variants ?? []).map((variant) => variant.flag),
       ...card.options.flatMap((option) =>
         [...option.effects, ...(option.hidden?.effects ?? [])].flatMap((effect) =>
-          effect.type === 'clearFlag' ? [effect.flag] : [],
+          effect.type === 'clearFlag'
+            ? [effect.flag]
+            : effect.type === 'addMaster'
+              ? (effect.ifFlags ?? [])
+              : [],
         ),
       ),
     ];

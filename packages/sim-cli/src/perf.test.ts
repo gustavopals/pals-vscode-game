@@ -47,7 +47,8 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
       expect(measure.stateBytes).toBeGreaterThan(500);
       // O teto subiu com a Taverna (V3C-T2): os candidatos da rotação, o festival e os heróis
       // contratados. A linha de base por fase está em docs/balance-v0.3.md. Subiu de 5.500 para 5.600 com as formações salvas (V4C-T2).
-      expect(measure.stateBytes).toBeLessThan(5_600);
+      // De 5.600 para 6.100 com a muralha no estado (vida por ala e reparo, V4E-T1; medido: 5.971).
+      expect(measure.stateBytes).toBeLessThan(6_100);
       expect(measure.viewBytes).toBeGreaterThan(measure.stateBytes * 3);
       expect(measure.viewBytes).toBeLessThan(40_000);
     }

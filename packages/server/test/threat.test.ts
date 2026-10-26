@@ -160,6 +160,25 @@ const BLIND = {
     palisadeLevel: 0,
     text: 'Sem Paliçada, nada segura um ataque.',
     next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+    // A muralha e as torres (V4E-T1): sem Paliçada e sem Torre, nada.
+    wall: {
+      levelLabel: 'Sem Paliçada',
+      hpText: {
+        left: 'Ala esquerda: sem muralha.',
+        center: 'Centro: sem muralha.',
+        right: 'Ala direita: sem muralha.',
+      },
+      repairOffer: {
+        canRepair: false,
+        stone: 0,
+        gold: 0,
+        seconds: 0,
+        text: 'Sem Paliçada, não há muralha para reparar.',
+        blockedText: 'Sem Paliçada não há muralha para reparar.',
+        repairingInSeconds: null,
+      },
+    },
+    tower: { damageText: null, revealsComposition: 'none' },
   },
 };
 
@@ -298,7 +317,7 @@ describe('com a Torre de Vigia', () => {
         'Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho dela.',
     });
 
-    // O nível 2 é o teto desta versão: sai da lista, e a recusa diz que o resto vem depois.
+    // Desde a V4E-T1 o nível 2 não é o teto: a próxima obra é o nível 3.
     const second = await send<CommandAccepted>(
       fast,
       game.token,
@@ -308,24 +327,13 @@ describe('com a Torre de Vigia', () => {
     expect(second.status).toBe(200);
     await wait(fast, game, 6 * MINUTE);
     const top = await viewOf(fast, game, game.id);
-    expect(tower(top)).toBeUndefined();
+    expect(tower(top)?.targetLevel).toBe(3);
     expect(top.threat.watchtower).toEqual({
       building: 'watchtower',
       level: 2,
-      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
-      next: null,
+      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela.',
+      next: 'Torre de Vigia Nv3: avisa com 3 h de antecedência (em vez de 2 h), passa a dizer os tipos de inimigo e as torres passam a atirar 12 de dano em cada ala a cada rodada de batalha.',
     });
-    const refused = await send<GameRuleError>(
-      fast,
-      game.token,
-      game.id,
-      order('startConstruction', { building: 'watchtower' }),
-    );
-    expect(refused.status).toBe(422);
-    expect(refused.body.details.code).toBe('MAX_LEVEL');
-    expect(refused.body.message).toBe(
-      'A Torre de Vigia já está no nível máximo. Os níveis seguintes chegam em versões futuras do jogo.',
-    );
   });
 
   it('dois feudos no mesmo relógio: só o que tem a Torre vê o número', async () => {
@@ -383,8 +391,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(31);
-    expect(row.state.schemaVersion).toBe(31);
+    expect(row.schema_version).toBe(32);
+    expect(row.state.schemaVersion).toBe(32);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },

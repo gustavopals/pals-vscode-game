@@ -2,6 +2,7 @@ import { nextCaravanArrivalAt } from './caravans';
 import { nextDayBoundary } from './clock';
 import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
+import { nextWallRepairAt } from './wallRepair';
 import { nextExpeditionEventAt } from './expeditions';
 import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { nextHeroArrivalAt, nextHeroRecoveryAt } from './heroes';
@@ -45,6 +46,11 @@ export function nextEventAt(state: GameState): number | null {
     if (slot !== null) {
       candidates.push(slot.finishesAtMs);
     }
+  }
+  // O reparo da muralha termina em instante próprio, resolvido junto das obras.
+  const repairEnds = nextWallRepairAt(state);
+  if (repairEnds !== null) {
+    candidates.push(repairEnds);
   }
   // O lote da forja termina em instante próprio, resolvido junto das obras.
   const forgeEnds = nextForgeEndAt(state);

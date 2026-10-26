@@ -17,6 +17,10 @@ import {
   seatedCards,
 } from './council';
 import { decimal, durationText, plural, sentenceCase, thousands } from './format';
+import { troopText } from './army';
+import { nextHiddenDestination } from './outcomes';
+import { masterLabel } from './masters';
+import { masterCanArrive } from './masterTurn';
 import { classLabel, namedHeroOf, traitLabel, wagePerHourAt } from './heroes';
 import { storable, storagePlace } from './storage';
 import type {
@@ -108,6 +112,22 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
       parts.push(
         `${signed(effect.amount)} de moral por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${real})`,
       );
+    } else if (effect.type === 'revealDestination') {
+      if (nextHiddenDestination(state) !== null) {
+        parts.push('revela à Guilda um destino de expedição novo');
+      }
+    } else if (effect.type === 'addSoldiers') {
+      parts.push(`+${troopText(effect.unit, effect.amount)} no Quartel, já treinado`);
+    } else if (effect.type === 'addMaster') {
+      const flags = state.council.flags;
+      if (
+        (effect.ifFlags ?? []).every((name) => flags[name] === true) &&
+        masterCanArrive(state, effect.masterId)
+      ) {
+        parts.push(
+          `${masterLabel(effect.masterId)} entra para o feudo (se houver vaga nas casas; senão, espera à porta)`,
+        );
+      }
     } else if (effect.type === 'addHero') {
       const text = heroText(effect.heroId, effect.afterDays, timeScale);
       if (text !== '') {

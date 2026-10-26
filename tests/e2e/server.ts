@@ -1,4 +1,4 @@
-import { type ItemId, itemRarities, items } from '../../packages/content/src/index';
+import { balance, type ItemId, itemRarities, items } from '../../packages/content/src/index';
 import type { FastifyInstance } from 'fastify';
 
 import { buildApp } from '../../packages/server/src/app';
@@ -163,6 +163,18 @@ control.post('/__test/raise', async (request) => {
         set state = jsonb_set(state, array['settlement', 'buildings', $1::text], to_jsonb($2::int))`,
     [building, level],
   );
+  // A Paliçada posta assim tem a muralha cheia no nível pedido (V4E-T1): a guarda do estado
+  // recusa uma ala acima da vida do nível, e a muralha vazia seria uma muralha derrubada.
+  if (building === 'palisade') {
+    const hp = level > 0 ? (balance.wall.hpByLevel[Math.min(level, 6) - 1] ?? 0) : 0;
+    await pool.query(
+      `update games
+          set state = jsonb_set(state, array['settlement', 'wall'],
+                                jsonb_build_object('hp', jsonb_build_object(
+                                  'left', $1::int, 'center', $1::int, 'right', $1::int)))`,
+      [hp],
+    );
+  }
   return { ok: true };
 });
 

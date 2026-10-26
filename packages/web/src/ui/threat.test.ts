@@ -117,8 +117,8 @@ describe('a obra da Torre, pelo que a visão diz das construções', () => {
     expect(watchtowerWork(second).kind).toBe('underway');
   });
 
-  it('no teto desta versão não há obra a ordenar', () => {
-    expect(watchtowerWork(threatIncomingView)).toEqual({ kind: 'none' });
+  it('no nível 2 a obra do nível 3 se oferece (V4E-T1)', () => {
+    expect(watchtowerWork(threatIncomingView).kind).toBe('available');
   });
 
   it('planejada, a obra continua na lista e a espera vem do servidor', () => {
@@ -382,9 +382,8 @@ describe('a explicação da Ameaça, frase a frase', () => {
     ]);
     // O custo deste ataque toma o lugar da lista do que cada tamanho custa.
     expect(lines.join(' ')).not.toContain('Ataques leves');
-    // A Torre no teto não tem obra; a frase dela fecha a explicação.
-    expect(lines.at(-1)).toMatch(/Os níveis seguintes chegam em versões futuras do jogo\.$/);
-    expect(lines.join(' ')).not.toContain('ouro');
+    // A Torre no nível 2 tem a obra do nível 3, com o custo dela, no fim da explicação.
+    expect(lines.join(' ')).toContain('307 madeira, 307 pedra, 128 ouro');
     // Com a Paliçada no nível 1, a frase é a do que ela faz a este ataque, e a obra é a do nível 2.
     const raised = threatLines(palisadeRaisedView, 0);
     expect(raised).toContain(

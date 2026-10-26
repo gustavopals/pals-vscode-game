@@ -299,3 +299,46 @@ Motor 0.3.0 · estado v29 · conteúdo `df9daeb3a6f6b0f0`:
 - O `advanceTo` e o `deriveViewState` **no pior caso de 7.1**: o roteiro mediu só tamanhos.
 - O motor sem o Quartel, para isolar o custo da v0.4 no `advanceTo` (7.2).
 - O volume da tabela `commands` em produção.
+
+## 8. A Muralha, a Torre Nv3+ e as cartas do lote 2 (2026-10-23)
+
+**Pergunta:** o que mudou na economia dos bots quando a Paliçada passou a ir até o nível 6 (Muralha de Pedra e Baluarte, com ouro: 2.000, 6.000, 18.000 e 54.000), a Torre de Vigia passou do nível 2, e as oito cartas novas do lote 2 entraram no baralho (o que muda o sorteio de **toda** semente)? Rodadas: `pnpm -s sim -- --matrix` em Senhor, `--difficulty peasant` e `--difficulty ironKing`, 50 sementes, no branch `v4e-t1-estado` (estado 32). A linha de base `MEASURED` de `packages/sim-cli/src/bands.ts` foi trocada pela medida desta rodada; **o bot não foi mexido** (a regra do CLAUDE.md: faixa que mexe de propósito é remedida, nunca o bot ajustado para caber).
+
+**Duas mudanças misturadas.** As cartas e a Muralha entram juntas na mesma rodada; não há medida que as separe (as cartas mudam o sorteio de todas as sementes, e as obras novas mudam a fila). O que as tabelas mostram é o conjunto.
+
+| Dificuldade | Células que mudaram (de 24) | Salão: soma dos níveis finais | População máxima: soma | Ouro parado: soma (antes → depois) |
+| --- | ---: | ---: | ---: | ---: |
+| Camponês | 23 | 151 → 130 | 1.387 → 1.347 | 897.122 → 719.770 (−19,8%) |
+| Senhor | 23 | 151 → 126 | 1.393 → 1.342 | 854.190 → 730.493 (−14,5%) |
+| Rei de Ferro | 23 | 133 → 125 | 1.301 → 1.298 | 976.029 → 676.859 (−30,7%) |
+
+Fome e frio continuam em **zero** em toda célula, nas três dificuldades.
+
+**Em Senhor, as células que mais mexeram** (população mínima–máxima, Salão e ouro parado, antes → depois):
+
+| Célula | População | Salão | Ouro parado |
+| --- | --- | --- | --- |
+| semana, Normal 1×, Dedicado | 69–75 → 54–65 | 8 → 6 | 4.883 → 17.986 |
+| semana, Normal 1×, Regular | 56–69 → 46–68 | 7 → 6 | 22.019 → 15.767 |
+| semana, Normal 1×, Explorador | 56–70 → 45–70 | 7 → 5 | 15.410 → 15.375 |
+| semana, Normal 1×, Preguiçoso | 31–35 → 31–35 | 5 → 3 | 191 → 2.808 |
+| ano, Tranquilo 0,5×, Regular | 74–75 → 54–65 | 8 → 6 | 4.371 → 17.675 |
+| ano, Tranquilo 0,5×, Dedicado | 74–75 → 54–65 | 8 → 6 | 8.463 → 17.885 |
+| ano, Tranquilo 0,5×, Explorador | 66–75 → 54–68 | 8 → 6 | 4.710 → 17.765 |
+| semana, Rápido 3×, Regular | 66–76 → 64–78 | 8 → 7 | 174.894 → 108.904 |
+| semana, Rápido 3×, Dedicado | 75 → 74–75 | 8 → 8 | 317.417 → 254.077 |
+
+(As linhas "semana, Normal" e "ano, Normal" são a mesma medida: uma semana real a 1× é um ano de jogo no Normal.)
+
+**O que melhorou.**
+
+- **O ouro parado do Rápido caiu de 14% a 31%** (Rápido, Regular: 174.894 → 108.904 em Senhor): é a Muralha cara em ouro absorvendo a sobra, a resposta do autor à pendência C-9. **Não resolveu**: o Dedicado do Rápido ainda termina a semana com 254.077 de ouro parado, e o Explorador com 164.772.
+
+**O que piorou.**
+
+- **O Salão chega a um nível menos e a população máxima cai** nos ritmos Normal e Tranquilo (o Dedicado do Normal e do Tranquilo, 8 → 6; população máxima 75 → 65). A Paliçada e a Torre novas entram na fila de obras na frente do Salão; o bot as ergue segundo a lista de objetivos e a política da Paliçada, e cada nível custa madeira e pedra que antes iam ao Salão. É efeito de **regra de propósito**, e a faixa foi remedida, mas é a perda mais visível: o jogador que escolhe o Normal chega a menos população em um ano de jogo.
+- **O ouro parado do Normal e do Tranquilo subiu** onde o Salão parou mais cedo: o Dedicado do Normal, de 4.883 para 17.986, e o Preguiçoso, de 191 para 2.808. Com menos Salão há menos o que construir, e o ouro sobra de novo.
+- **A maior sequência desperdiçando** subiu um pouco (soma das células: Senhor 362 → 368,5; Rei de Ferro 357 → 388,5): o Preguiçoso do Rápido foi de 63 para 66 horas de jogo.
+- **Incursões em Senhor**, depois da rodada (não há "antes" guardado nesta sessão; a medida de referência é a desta tabela): Regular e Dedicado do Rápido sofrem 1 a 2 incursões em 18 a 20 anunciadas, e o Preguiçoso, 5 a 6; no Normal e no Tranquilo, 1.
+
+**O que não foi medido.** O que cada obra nova (Muralha, Torre Nv3+) entrega à parte da ordem na fila; o efeito isolado das oito cartas; a rodada do perfil `militar` (fora da rodada padrão); e as incursões sofridas antes da Muralha em Camponês e Rei de Ferro. As células de Camponês e de Rei de Ferro estão na tabela de `MEASURED`; os arquivos da rodada ficaram no scratchpad da sessão, não no repositório.

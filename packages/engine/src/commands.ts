@@ -21,6 +21,7 @@ import { cancelForge, forgeWeapons } from './smithyOrders';
 import { cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
 import { deleteFormation, saveFormation, setActiveFormation } from './formationOrders';
 import { simulateBattle } from './warCouncilOrders';
+import { repairWall } from './wallRepair';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
@@ -142,6 +143,8 @@ function dispatch(
       return setActiveFormation(draft, payload.id, nowMs, events);
     case 'simulateBattle':
       return simulateBattle(draft, payload.formationId, nowMs, events);
+    case 'repairWall':
+      return repairWall(draft, nowMs, events);
     case 'repairItem':
       return repairItem(draft, payload.itemId, nowMs, events);
     default:

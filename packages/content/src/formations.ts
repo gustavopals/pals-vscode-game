@@ -12,6 +12,13 @@ export const wingLabels: Record<WingId, string> = {
   right: 'Ala direita',
 };
 
+/** As alas no meio de uma frase, com artigo: "a ala esquerda", "o centro". */
+export const wingPhrases: Record<WingId, string> = {
+  left: 'a ala esquerda',
+  center: 'o centro',
+  right: 'a ala direita',
+};
+
 /** Os nomes das linhas de cada ala. */
 export const lineLabels: Record<LineId, string> = {
   front: 'Frente',

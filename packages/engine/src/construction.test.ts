@@ -65,6 +65,10 @@ describe('fórmulas de custo e tempo (GDD §6.2)', () => {
       const { initialLevel, maxLevel, baseCost } = buildings[building];
       for (let level = initialLevel; level < maxLevel; level += 1) {
         const cost = upgradeCost(building, level);
+        // As obras de tabela (a Muralha de Pedra e o Baluarte) têm custo próprio: ver abaixo.
+        if (buildings[building].levelTable?.some((entry) => entry.level === level + 1)) {
+          continue;
+        }
         for (const [resource, base] of Object.entries(baseCost)) {
           // O expoente conta as obras desde o nível com que o edifício nasce.
           const expected = Math.round(base * factor ** (level - initialLevel));
@@ -585,30 +589,58 @@ describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
     }
   });
 
-  it('no nível 2 sai da lista, e a recusa diz que a Muralha de Pedra fica para outra versão', () => {
+  it('do nível 2 em diante vem a Muralha de Pedra: a obra de tabela, com ouro, e a vida de cada ala ao lado do custo (V4E-T1)', () => {
     const state = feud(4, 2);
-    expect(buildings.palisade.maxLevel).toBe(2);
-    expect(palisade(state)).toBeUndefined();
-    const message =
-      'A Paliçada já está no nível máximo. A Muralha de Pedra chega em uma versão futura.';
-    expect(refuse(state, start)).toEqual({ code: 'MAX_LEVEL', message });
-    expect(refuse(state, command('planConstruction', { building: 'palisade' }))).toEqual({
-      code: 'MAX_LEVEL',
-      message,
+    expect(buildings.palisade.maxLevel).toBe(6);
+    expect(palisade(state)).toMatchObject({
+      fromLevel: 2,
+      targetLevel: 3,
+      durationSeconds: 60 * 60,
+      effect: 'Cada ala da muralha passa a ter 200 de vida (em vez de 100).',
     });
-    // Com a obra do nível 2 em curso, planejar o nível 3 recebe a mesma recusa.
-    const upgrading = accept(feud(3, 1), start).state;
-    expect(refuse(upgrading, command('planConstruction', { building: 'palisade' }))).toEqual({
-      code: 'MAX_LEVEL',
-      message,
+    // A lista de obras diz o nome do nível que sai da obra (resposta do autor, 2026-10-23, D-10).
+    expect(palisade(state)?.label).toBe('Muralha de Pedra');
+    expect(palisade(feud(4, 1))?.label).toBe('Paliçada');
+    expect(palisade(feud(8, 4))?.label).toBe('Baluarte');
+    expect(upgradeCost('palisade', 2)).toEqual({ wood: 300, stone: 450, gold: 2_000 });
+    expect(upgradeCost('palisade', 5)).toEqual({ wood: 1_229, stone: 1_843, gold: 54_000 });
+    expect(upgradeDurationMs('palisade', 5)).toBe(202.5 * MINUTE);
+    // No inverno, × 1,5, como toda obra: a de tabela também.
+    expect(upgradeDurationMs('palisade', 2, { num: 3, den: 2 })).toBe(90 * MINUTE);
+  });
+
+  it('a obra que sobe a Paliçada soma a cada ala a vida que o nível novo dá a mais, sem curar o dano', () => {
+    const state = gameAt(10 * DAY, (draft) => {
+      draft.settlement.buildings.townHall = 4;
+      draft.settlement.buildings.palisade = 2;
+      draft.settlement.wall.hp = { left: 40, center: 100, right: 100 };
+      draft.settlement.resources = {
+        food: 400_000,
+        wood: 450_000,
+        stone: 600_000,
+        gold: 2_100_000,
+        iron: 0,
+      };
+      draft.settlement.buildings.warehouse = 8;
+      draft.settlement.buildings.granary = 8;
     });
-    // E nem com o Salão no nível mais alto: o teto é o desta versão, não o do Salão.
+    const started = accept(state, start).state;
+    const after = advanceTo(started, 10 * DAY + 60 * MINUTE).state;
+    expect(after.settlement.buildings.palisade).toBe(3);
+    expect(after.settlement.wall.hp).toEqual({ left: 140, center: 200, right: 200 });
+  });
+
+  it('no nível 6 sai da lista, e a recusa não promete versão futura', () => {
     const high = gameWith((draft) => {
       draft.settlement.buildings.townHall = buildings.townHall.maxLevel;
-      draft.settlement.buildings.palisade = 2;
+      draft.settlement.buildings.palisade = 6;
       draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
     });
-    expect(refuse(high, start).code).toBe('MAX_LEVEL');
+    expect(palisade(high)).toBeUndefined();
+    expect(refuse(high, start)).toEqual({
+      code: 'MAX_LEVEL',
+      message: 'A Paliçada já está no nível máximo.',
+    });
   });
 
   it('cancelar a obra devolve 80%, com a frase de quem desiste de erguer, e a Paliçada continua sem existir', () => {

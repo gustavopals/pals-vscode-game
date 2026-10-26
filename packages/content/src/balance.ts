@@ -12,6 +12,7 @@ import type {
   MoraleBandId,
   ProductionBuildingId,
   RaidSizeId,
+  WatchtowerCompositionId,
   Ratio,
   ResourceAmounts,
   UnitId,
@@ -203,6 +204,17 @@ export type WatchtowerLevelDef = {
   readonly warningRealMs: number;
   /** Os vigias dizem o tamanho da incursão que avisam. */
   readonly revealsRaidSize: boolean;
+  /**
+   * O que a Torre diz da composição: nada, só os tipos ("muitas feras"), a quantidade por ala
+   * ("cerca de 30 lobos") ou a composição exata (GDD §8.3; ADR 0020, decisão 16).
+   */
+  readonly composition: WatchtowerCompositionId;
+  /**
+   * O dano fixo das torres em cada ala, por rodada de uma batalha de defesa: é o de
+   * `battle.towers` (`damagePerLevel × (nível − fromLevel + 1)`, a partir de `fromLevel`), escrito
+   * aqui para a visão e conferido por teste contra a regra da batalha.
+   */
+  readonly towerDamage: number;
 };
 
 /**
@@ -212,22 +224,6 @@ export type WatchtowerLevelDef = {
 export type PalisadeLevelDef = {
   /** O maior tamanho de incursão que este nível segura inteiro. */
   readonly absorbs: RaidSizeId;
-};
-
-/**
- * O que a Torre de Vigia dos níveis 3 a 5 vai dar (V4E-T1; ADR 0020, decisão 16). Ainda não
- * ligado ao jogo: `threat.watchtowerLevels` continua com os dois níveis de hoje.
- */
-export type FutureWatchtowerLevelDef = {
-  readonly warningRealMs: number;
-  readonly revealsRaidSize: true;
-  /**
-   * O que a Torre diz da composição: só os arquétipos ("muitas feras"), a ordem de grandeza por
-   * ala ("cerca de 30 lobos") ou a composição exata (GDD §8.3, presságios).
-   */
-  readonly composition: 'archetypes' | 'approximate' | 'exact';
-  /** O dano fixo por ala em cada rodada: `battle.towers.damagePerLevel × (nível − 2)`. */
-  readonly towerDamage: number;
 };
 
 /**
@@ -283,8 +279,6 @@ export type ThreatDef = {
   readonly watchtowerLevels: readonly WatchtowerLevelDef[];
   /** Um item por nível da Paliçada, a partir do nível 1. */
   readonly palisadeLevels: readonly PalisadeLevelDef[];
-  /** Os níveis 3 a 5 da Torre, ainda não ligados ao jogo (V4E-T1). */
-  readonly futureWatchtowerLevels?: readonly FutureWatchtowerLevelDef[];
   /**
    * A parte do estrago que passa quando a incursão é maior do que a Paliçada segura: a cerca
    * não a detém, mas ainda lhe tira a força. Vale para a perda de recursos e para os feridos.
@@ -1065,14 +1059,11 @@ export const balance: Balance = {
     mediumRaidAbove: 70,
     raidDrop: 35,
     raidLeadMs: 6 * HOUR_MS,
+    // Os níveis 3 a 5 (ADR 0020, "Números aprovados … D-7"): 3, 4 e 5 h reais, o dano de
+    // 12 × (nível − 2) das torres e a composição revelada por partes.
     watchtowerLevels: [
-      { warningRealMs: 1 * HOUR_MS, revealsRaidSize: false },
-      { warningRealMs: 2 * HOUR_MS, revealsRaidSize: true },
-    ],
-    palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'medium' }],
-    // Proposta do agente, por aprovar (D-7): 3, 4 e 5 h reais (ADR 0020, decisão 16); dano de
-    // 12 × (nível − 2), o de `battle.towers`.
-    futureWatchtowerLevels: [
+      { warningRealMs: 1 * HOUR_MS, revealsRaidSize: false, composition: 'none', towerDamage: 0 },
+      { warningRealMs: 2 * HOUR_MS, revealsRaidSize: true, composition: 'none', towerDamage: 0 },
       {
         warningRealMs: 3 * HOUR_MS,
         revealsRaidSize: true,
@@ -1086,6 +1077,17 @@ export const balance: Balance = {
         towerDamage: 24,
       },
       { warningRealMs: 5 * HOUR_MS, revealsRaidSize: true, composition: 'exact', towerDamage: 36 },
+    ],
+    // Da Muralha de Pedra em diante a regra da v0.2 não muda (as incursões de hoje são leves ou
+    // médias, e o nível 2 já segura as duas): o que cresce é a vida de cada ala (`wall`), que a
+    // batalha das incursões usa a partir da V4E-T2. Decisão do agente, por aprovar.
+    palisadeLevels: [
+      { absorbs: 'light' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
     ],
     palisadeBreach: { num: 1, den: 2 },
   },
@@ -1317,9 +1319,7 @@ export const balance: Balance = {
     // V4D-T3.2 (número do agente, por aprovar): grave com metade da ala perdida.
     commanderInjury: { severeAtLoss: { num: 1, den: 2 } },
   },
-  // A vida por ala é proposta do agente, por aprovar (D-7): 60 e 100 nos níveis da Paliçada (as
-  // premissas dos cenários de docs/content-v0.4.md, seção 2), depois cerca de × 1,6 por nível.
-  // Propostas do agente, por aprovar (D-21 a D-23): astúcia do ADR 0020 (3/10, 1/2, 4/5).
+  // Propostas do agente, D-21 a D-23, respondidas pelo autor: astúcia do ADR 0020 (3/10, 1/2, 4/5).
   horde: {
     cunning: {
       peasant: { num: 3, den: 10 },
@@ -1336,6 +1336,8 @@ export const balance: Balance = {
     kept: 6,
     roundTo: 5,
   },
+  // A vida por ala (aprovada pelo autor em 2026-10-23, D-7): 60 e 100 nos níveis da Paliçada (as
+  // premissas dos cenários de docs/content-v0.4.md, seção 2), depois 200, 320, 500 e 800.
   wall: {
     hpByLevel: [60, 100, 200, 320, 500, 800],
     repair: {

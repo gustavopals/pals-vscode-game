@@ -89,6 +89,9 @@ export const EVENT_TYPES = [
   'itemWorn',
   'repairStarted',
   'itemRepaired',
+  'wallRepairStarted',
+  'wallRepaired',
+  'wallDamaged',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -176,6 +179,9 @@ export const CHRONICLE_PLACEHOLDERS = [
   'pontos',
   // Os fatores decisivos de uma batalha, em uma frase: "a muralha, as torres e o flanco".
   'fatores',
+  // As alas da muralha de que a frase fala, com a vida que ficou: "a ala esquerda (40 de 200) e
+  // o centro (120 de 200)".
+  'alas',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -383,6 +389,11 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, {item}, de {heroi}, gastou-se de vez na estrada e já não serve de nada até o ferreiro de {feudo} o refazer.',
   repairStarted:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} pôs {item} na bancada: {pontos} a refazer.',
+  // A muralha (GDD §6.3; V4E-T1). {alas} é a lista das alas, com a vida de cada uma.
+  wallRepairStarted:
+    'No {dia}º dia {daEstacao}, os pedreiros de {feudo} largaram as outras obras e subiram à muralha para refazer {alas}.',
+  wallRepaired: 'No {dia}º dia {daEstacao}, a muralha de {feudo} voltou a ficar inteira.',
+  wallDamaged: 'No {dia}º dia {daEstacao}, a batalha deixou marcas na muralha de {feudo}: {alas}.',
   itemRepaired:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} devolveu {item} ao arsenal, inteiro outra vez.',
   masterWaiting:

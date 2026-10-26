@@ -53,6 +53,7 @@ import type {
   ProductionBuildingId,
 } from './types';
 import { MILLI } from './units';
+import { wallHpPerWing } from './wall';
 import { deriveViewState } from './view';
 
 export const HOUR = 3_600_000;
@@ -366,6 +367,27 @@ export function smithyStall(
     },
     rest,
   );
+}
+
+/**
+ * A muralha posta à mão (V4E-T1): o canteiro da Taverna com o Salão no nível 4, a Paliçada no
+ * nível `level` com a vida de cada ala de `hp` (cheia por padrão), pedra e ouro de sobra.
+ */
+export function wallSite(
+  level: number,
+  hp: Partial<Record<'left' | 'center' | 'right', number>> = {},
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+): GameState {
+  return tavernSite(atMs, (draft) => {
+    draft.settlement.buildings.townHall = Math.max(4, level - 1);
+    draft.settlement.buildings.palisade = level;
+    const full = wallHpPerWing(level);
+    draft.settlement.wall.hp = { left: full, center: full, right: full, ...hp };
+    draft.settlement.resources.stone = 900_000;
+    draft.settlement.resources.gold = 900_000;
+    edit(draft);
+  });
 }
 
 /**
@@ -1852,9 +1874,9 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [84, command('startConstruction', { building: 'quarry' })],
   // Com o Armazém cheio de madeira e de pedra, a Torre sobe ao nível 2 sem tirar nada de obra
   // nenhuma: o que ela leva o feudo repõe antes da visita seguinte.
+  // (Até a V4E-T1 o roteiro tentava o nível 3 às 97 h e recebia a recusa do teto; a Torre vai
+  // agora até o 5, e o roteiro para no 2.)
   [96, command('startConstruction', { building: 'watchtower' })],
-  // E não passa disso nesta versão: a recusa diz que os níveis seguintes ficam para depois.
-  [97, command('startConstruction', { building: 'watchtower' })],
   // O outono começa e a Ameaça sobe mais depressa: o senhor leva a Paliçada ao nível 2. Daí em
   // diante toda matilha recua.
   [97, command('startConstruction', { building: 'palisade' })],

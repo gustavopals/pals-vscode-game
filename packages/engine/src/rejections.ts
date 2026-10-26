@@ -251,6 +251,11 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   INVALID_FORMATION: ({ note = 'A formação não serve.' }) => note,
   FORMATION_ACTIVE: () =>
     'Essa é a Defesa ativa: marque outra formação, ou nenhuma, antes de apagá-la.',
+  // A muralha (V4E-T1): o reparo pede a Paliçada erguida, alguma ala ferida e nenhum reparo em
+  // curso.
+  WALL_REQUIRED: () => 'Sem Paliçada não há muralha para reparar.',
+  WALL_INTACT: ({ label = 'A muralha' }) => `${label} está inteira: não há o que reparar.`,
+  WALL_REPAIRING: () => 'Os pedreiros já estão na muralha: espere o reparo em curso terminar.',
   // O item já está inteiro: não há o que reparar.
   ITEM_INTACT: ({ label = 'Esse item' }) =>
     `${label} está inteiro: o ferreiro não tem o que reparar.`,

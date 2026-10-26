@@ -409,10 +409,10 @@ describe('edifícios', () => {
       ['housing', 10],
       ['granary', 8],
       ['warehouse', 8],
-      // 5 no GDD; 2 nesta versão (ADR 0014, decisão 11).
-      ['watchtower', 2],
-      // 6 no GDD, contando a Muralha de Pedra e o Baluarte; 2 nesta versão.
-      ['palisade', 2],
+      // 5 no GDD, desde a V4E-T1 (era 2: ADR 0014, decisão 11).
+      ['watchtower', 5],
+      // 6 no GDD, contando a Muralha de Pedra e o Baluarte, desde a V4E-T1 (era 2).
+      ['palisade', 6],
       ['tavern', 5],
       // 5 no GDD; 4 nesta versão (ADR 0018, decisão 12).
       ['guild', 4],
@@ -454,12 +454,12 @@ describe('edifícios', () => {
     expect([buildings.granary.label, buildings.warehouse.label]).toEqual(['Celeiro', 'Armazém']);
   });
 
-  it('a Torre de Vigia nasce no nível 0, pede o Salão no nível 2 e vai até o nível 2 (GDD §6.1 e §6.2)', () => {
+  it('a Torre de Vigia nasce no nível 0, pede o Salão no nível 2 e vai até o nível 5 (GDD §6.1 e §6.2)', () => {
     const tower = buildings.watchtower;
     expect(tower.label).toBe('Torre de Vigia');
     expect(tower.article).toBe('a');
     expect(tower.initialLevel).toBe(0);
-    expect(tower.maxLevel).toBe(2);
+    expect(tower.maxLevel).toBe(5);
     expect(tower.requires).toEqual({ townHall: 2 });
     expect(tower.baseCost).toEqual({ wood: 120, stone: 120, gold: 50 });
     expect(tower.baseDurationMs).toBe(12 * 60_000);
@@ -470,12 +470,12 @@ describe('edifícios', () => {
     }
   });
 
-  it('a Paliçada nasce no nível 0, pede o Salão no nível 3 e vai até o nível 2 (GDD §6.1 e §6.2)', () => {
+  it('a Paliçada nasce no nível 0, pede o Salão no nível 3 e vai até o nível 6 (GDD §6.1 e §6.2)', () => {
     const palisade = buildings.palisade;
     expect(palisade.label).toBe('Paliçada');
     expect(palisade.article).toBe('a');
     expect(palisade.initialLevel).toBe(0);
-    expect(palisade.maxLevel).toBe(2);
+    expect(palisade.maxLevel).toBe(6);
     expect(palisade.requires).toEqual({ townHall: 3 });
     expect(palisade.baseCost).toEqual({ wood: 200, stone: 50 });
     expect(palisade.baseDurationMs).toBe(20 * 60_000);
@@ -487,16 +487,12 @@ describe('edifícios', () => {
     }
   });
 
-  it('só a Torre, a Paliçada e a Guilda têm um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
+  it('só a Guilda tem um teto que é o desta versão, e a recusa diz isso sem prometer data (a Torre e a Paliçada chegaram ao do GDD na V4E-T1)', () => {
     const noted = BUILDING_IDS.filter((id) => buildings[id].maxLevelNote !== undefined);
-    expect(noted).toEqual(['watchtower', 'palisade', 'guild']);
+    expect(noted).toEqual(['guild']);
     expect(buildings.guild.maxLevelNote).toBe(
       'O nível seguinte chega em uma versão futura do jogo.',
     );
-    expect(buildings.watchtower.maxLevelNote).toBe(
-      'Os níveis seguintes chegam em versões futuras do jogo.',
-    );
-    expect(buildings.palisade.maxLevelNote).toBe('A Muralha de Pedra chega em uma versão futura.');
     for (const id of noted) {
       expect(buildings[id].maxLevelNote, id).not.toMatch(/\d|v0|breve|semana|mês/);
     }
@@ -560,17 +556,38 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
   });
 
-  it('a Torre avisa 1 h real antes no nível 1; no nível 2, 2 h reais antes e diz o tamanho', () => {
+  it('a Torre avisa 1 h real antes no nível 1; no nível 2, 2 h reais antes e diz o tamanho; do 3 ao 5, 3, 4 e 5 h, a composição e as torres', () => {
     expect(threat.watchtowerLevels).toEqual([
-      { warningRealMs: 1 * HOUR, revealsRaidSize: false },
-      { warningRealMs: 2 * HOUR, revealsRaidSize: true },
+      { warningRealMs: 1 * HOUR, revealsRaidSize: false, composition: 'none', towerDamage: 0 },
+      { warningRealMs: 2 * HOUR, revealsRaidSize: true, composition: 'none', towerDamage: 0 },
+      {
+        warningRealMs: 3 * HOUR,
+        revealsRaidSize: true,
+        composition: 'archetypes',
+        towerDamage: 12,
+      },
+      {
+        warningRealMs: 4 * HOUR,
+        revealsRaidSize: true,
+        composition: 'approximate',
+        towerDamage: 24,
+      },
+      { warningRealMs: 5 * HOUR, revealsRaidSize: true, composition: 'exact', towerDamage: 36 },
     ]);
     // Um item por nível que a Torre pode ter nesta versão.
     expect(threat.watchtowerLevels).toHaveLength(buildings.watchtower.maxLevel);
   });
 
   it('a Paliçada segura as incursões leves no nível 1 e também as médias no nível 2; maior que isso, passa a metade', () => {
-    expect(threat.palisadeLevels).toEqual([{ absorbs: 'light' }, { absorbs: 'medium' }]);
+    // Da Muralha de Pedra em diante a regra da v0.2 não muda: o que cresce é a vida das alas.
+    expect(threat.palisadeLevels).toEqual([
+      { absorbs: 'light' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+      { absorbs: 'medium' },
+    ]);
     // Um item por nível que a Paliçada pode ter nesta versão, e o último segura o maior tamanho.
     expect(threat.palisadeLevels).toHaveLength(buildings.palisade.maxLevel);
     expect(threat.palisadeLevels.at(-1)?.absorbs).toBe(RAID_SIZE_IDS.at(-1));
@@ -585,15 +602,19 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
 
   it('em todo ritmo oferecido o aviso da Torre vira um número inteiro de ms de jogo e cabe no prazo da incursão sorteada', () => {
     for (const pace of balance.paces) {
-      for (const level of threat.watchtowerLevels) {
+      for (const [index, level] of threat.watchtowerLevels.entries()) {
         const gameMs = level.warningRealMs * pace.timeScale;
         expect(Number.isInteger(gameMs), pace.label).toBe(true);
         // No Rápido o nível 2 avisa no instante do sorteio: 2 h reais são as 6 h de jogo do prazo.
-        expect(gameMs, pace.label).toBeLessThanOrEqual(threat.raidLeadMs);
+        // Do nível 3 em diante o aviso pode passar do prazo (ADR 0020, decisão 16): a incursão
+        // sorteada é avisada na virada que a sorteia, e o que sobra vale para as do roteiro.
+        if (index < 2) {
+          expect(gameMs, pace.label).toBeLessThanOrEqual(threat.raidLeadMs);
+        }
       }
     }
-    const longest = threat.watchtowerLevels.at(-1)?.warningRealMs ?? 0;
-    expect(longest * 3).toBe(threat.raidLeadMs);
+    const second = threat.watchtowerLevels[1]?.warningRealMs ?? 0;
+    expect(second * 3).toBe(threat.raidLeadMs);
   });
 
   it('a obra da Paliçada cabe no aviso do nível 1 da Torre em todo ritmo; no Tranquilo, no inverno, cabe sem folga nenhuma', () => {
@@ -670,16 +691,16 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(
       parse({
         watchtowerLevels: [
-          { warningRealMs: 2 * HOUR, revealsRaidSize: false },
-          { warningRealMs: 1 * HOUR, revealsRaidSize: true },
+          { warningRealMs: 2 * HOUR, revealsRaidSize: false, composition: 'none', towerDamage: 0 },
+          { warningRealMs: 1 * HOUR, revealsRaidSize: true, composition: 'none', towerDamage: 0 },
         ],
       }),
     ).toBe(false);
     expect(
       parse({
         watchtowerLevels: [
-          { warningRealMs: 1 * HOUR, revealsRaidSize: true },
-          { warningRealMs: 2 * HOUR, revealsRaidSize: false },
+          { warningRealMs: 1 * HOUR, revealsRaidSize: true, composition: 'none', towerDamage: 0 },
+          { warningRealMs: 2 * HOUR, revealsRaidSize: false, composition: 'none', towerDamage: 0 },
         ],
       }),
     ).toBe(false);
@@ -687,7 +708,8 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     // A Paliçada: cada nível segura mais que o anterior, e o que passa é sempre uma parte.
     expect(parse({ palisadeLevels: [] })).toBe(false);
     expect(parse({ palisadeLevels: [{ absorbs: 'medium' }, { absorbs: 'light' }] })).toBe(false);
-    expect(parse({ palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'light' }] })).toBe(false);
+    // Repetir o tamanho do nível anterior vale (da Muralha de Pedra em diante); segurar menos, não.
+    expect(parse({ palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'light' }] })).toBe(true);
     expect(parse({ palisadeLevels: [{ absorbs: 'heavy' }] })).toBe(false);
     expect(parse({ palisadeLevels: [{ absorbs: 'light', hp: 600 }] })).toBe(false);
     expect(parse({ palisadeBreach: { num: 1, den: 1 } })).toBe(false);

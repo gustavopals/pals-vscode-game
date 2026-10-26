@@ -8,10 +8,15 @@ import {
   raidSizes,
   tileTypes,
   type WatchtowerLevelDef,
+  WING_IDS,
+  wingLabels,
+  type WingId,
 } from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary } from './clock';
-import { constructionOf } from './construction';
+import { buildingLabelAt, constructionOf, missingResources } from './construction';
+import { reject } from './rejections';
+import { currentRepairQuote, wallMissingHp, wallRepairBlocked } from './wallRepair';
 import {
   decimal,
   durationText,
@@ -42,11 +47,14 @@ import type {
   GameState,
   ScheduledRaid,
   ThreatDefenseView,
+  ThreatTowerView,
+  ThreatWallView,
   ThreatIncomingView,
   ThreatView,
   ThreatWatchtowerView,
 } from './types';
 import { MILLI, realSecondsCeil, SECOND_MS } from './units';
+import { wallHpPerWing } from './wall';
 
 /**
  * A Ameaça na visão (GDD §8.2): o que os vigias da Torre veem, em frases prontas e em tempo
@@ -82,9 +90,80 @@ function perksText(level: number): string {
     return 'mostra a Ameaça com a explicação';
   }
   const warning = `avisa de uma incursão com ${warningText(perks)} de antecedência`;
+  const extras = [compositionText(perks), towerDamageText(perks)].filter(
+    (text): text is string => text !== null,
+  );
+  if (extras.length > 0) {
+    return `mostra a Ameaça com a explicação, ${warning}, ${joinList(extras)}`;
+  }
   return perks.revealsRaidSize
     ? `mostra a Ameaça com a explicação, ${warning} e diz o tamanho dela`
     : `mostra a Ameaça com a explicação e ${warning}`;
+}
+
+/** O que os vigias dizem da composição de uma incursão, para o meio de uma frase; `null` se nada. */
+function compositionText(perks: WatchtowerLevelDef): string | null {
+  switch (perks.composition) {
+    case 'none':
+      return null;
+    case 'archetypes':
+      return 'diz o tamanho dela e os tipos de inimigo';
+    case 'approximate':
+      return 'diz o tamanho dela e quantos inimigos vêm em cada ala';
+    case 'exact':
+      return 'diz a composição exata dela';
+  }
+}
+
+/** O que os vigias passam a dizer em um nível, para depois de "passa a dizer". */
+function compositionGainText(perks: WatchtowerLevelDef): string | null {
+  switch (perks.composition) {
+    case 'none':
+      return null;
+    case 'archetypes':
+      return 'os tipos de inimigo';
+    case 'approximate':
+      return 'quantos inimigos vêm em cada ala';
+    case 'exact':
+      return 'a composição exata da incursão';
+  }
+}
+
+/** "as torres atiram 12 de dano em cada ala a cada rodada de batalha"; `null` sem torres. */
+function towerDamageText(perks: WatchtowerLevelDef): string | null {
+  return perks.towerDamage > 0
+    ? `as torres atiram ${String(perks.towerDamage)} de dano em cada ala a cada rodada de batalha`
+    : null;
+}
+
+/**
+ * O que o nível `level` da Torre acrescenta ao anterior em composição e em dano, como frases
+ * inteiras: "Os vigias passam a dizer os tipos de inimigo. As torres atiram 12 de dano…".
+ */
+function towerGainSentences(level: number): string[] {
+  const perks = watchtowerPerks(level);
+  const before = watchtowerPerks(level - 1);
+  if (perks === null) {
+    return [];
+  }
+  const sentences: string[] = [];
+  if (perks.composition !== (before?.composition ?? 'none')) {
+    sentences.push(
+      perks.composition === 'archetypes'
+        ? 'Os vigias passam a dizer os tipos de inimigo.'
+        : perks.composition === 'approximate'
+          ? 'Os vigias passam a dizer quantos inimigos vêm em cada ala.'
+          : 'Os vigias passam a dizer a composição exata da incursão.',
+    );
+  }
+  if (perks.towerDamage !== (before?.towerDamage ?? 0)) {
+    sentences.push(
+      `As torres atiram ${String(perks.towerDamage)} de dano em cada ala a cada rodada de batalha${
+        (before?.towerDamage ?? 0) > 0 ? ` (em vez de ${String(before?.towerDamage ?? 0)})` : ''
+      }.`,
+    );
+  }
+  return sentences;
 }
 
 /**
@@ -105,6 +184,10 @@ export function watchtowerEffect(building: BuildingId, targetLevel: number): str
   const warning = `Aviso de incursão: de ${warningText(before)} para ${warningText(
     perks,
   )} de antecedência.`;
+  const gains = towerGainSentences(targetLevel);
+  if (gains.length > 0) {
+    return [warning, ...gains].join(' ');
+  }
   return perks.revealsRaidSize && !before.revealsRaidSize
     ? `${warning} Os vigias passam a dizer o tamanho dela.`
     : warning;
@@ -120,9 +203,7 @@ function watchtowerView(state: GameState): ThreatWatchtowerView {
     text:
       level === 0
         ? `Sem ${tower.label}, ninguém vê a Ameaça crescer nem avisa de um ataque.`
-        : atCeiling && tower.maxLevelNote !== undefined
-          ? `${built} ${tower.maxLevelNote}`
-          : built,
+        : built,
     next: atCeiling ? null : `${tower.label} Nv${level + 1}: ${gainText(level + 1)}.`,
   };
 }
@@ -141,6 +222,21 @@ function gainText(level: number): string {
   const warning = `avisa com ${warningText(perks)} de antecedência (em vez de ${warningText(
     before,
   )})`;
+  const extras: string[] = [];
+  const said = perks.composition !== before.composition ? compositionGainText(perks) : null;
+  if (said !== null) {
+    extras.push(`passa a dizer ${said}`);
+  }
+  if (perks.towerDamage !== before.towerDamage) {
+    extras.push(
+      before.towerDamage === 0
+        ? `as torres passam a atirar ${String(perks.towerDamage)} de dano em cada ala a cada rodada de batalha`
+        : `as torres atiram ${String(perks.towerDamage)} de dano em cada ala (em vez de ${String(before.towerDamage)})`,
+    );
+  }
+  if (extras.length > 0) {
+    return `${warning}, ${joinList(extras)}`;
+  }
   return perks.revealsRaidSize && !before.revealsRaidSize
     ? `${warning} e passa a dizer o tamanho da incursão`
     : warning;
@@ -184,6 +280,12 @@ function palisadeGainText(level: number): string | null {
   if (rules.palisadeLevels[level - 1] === undefined) {
     return null;
   }
+  const hp = wallHpPerWing(level);
+  const hpBefore = wallHpPerWing(level - 1);
+  if (level >= 3) {
+    // Da Muralha de Pedra em diante o que muda é a vida de cada ala.
+    return `cada ala da muralha passa a ter ${String(hp)} de vida (em vez de ${String(hpBefore)})`;
+  }
   const before = new Set(sizesBy(level - 1, 'held'));
   const gained = sizesBy(level, 'held').filter((size) => !before.has(size));
   return before.size === 0 || gained.length === 0
@@ -208,21 +310,75 @@ export function palisadeEffect(building: BuildingId, targetLevel: number): strin
  * tamanho, sem dizer de quem, e não promete o que esta versão não tem: nada danifica a
  * Paliçada, e o nível que segura hoje segura sempre.
  */
-function defenseView(state: GameState): ThreatDefenseView {
+function wallView(state: GameState, timeScale: number): ThreatWallView {
+  const level = palisadeLevel(state);
+  const full = wallHpPerWing(level);
+  const hpText = {} as Record<WingId, string>;
+  for (const wing of WING_IDS) {
+    hpText[wing] =
+      level === 0
+        ? `${wingLabels[wing]}: sem muralha.`
+        : `${wingLabels[wing]}: ${String(state.settlement.wall.hp[wing])} de ${String(full)} de vida.`;
+  }
+  const quote = currentRepairQuote(state);
+  const blocked = wallRepairBlocked(state);
+  const missing =
+    blocked === null ? missingResources(state, { stone: quote.stone, gold: quote.gold }) : null;
+  const repair = state.settlement.wallRepair;
+  const repairingInSeconds =
+    repair === null ? null : realSecondsCeil(repair.untilMs - state.lastProcessedAt, timeScale);
+  const seconds = realSecondsCeil(quote.durationMs, timeScale);
+  const text =
+    level === 0
+      ? `Sem ${fence.label}, não há muralha para reparar.`
+      : repairingInSeconds !== null
+        ? `Os pedreiros estão na muralha: o reparo termina em ${durationText(repairingInSeconds)}, e as obras esperam por ele.`
+        : quote.stone === 0 && quote.gold === 0 && wallMissingHp(state) === 0
+          ? 'A muralha está inteira.'
+          : `Reparar tudo custa ${String(quote.stone)} de pedra e ${String(quote.gold)} de ouro e leva ${durationText(seconds)}; as obras em curso esperam o reparo.`;
+  return {
+    levelLabel:
+      level === 0 ? `Sem ${fence.label}` : `${buildingLabelAt('palisade', level)} Nv${level}`,
+    hpText,
+    repairOffer: {
+      canRepair: blocked === null && missing === null,
+      stone: quote.stone,
+      gold: quote.gold,
+      seconds,
+      text,
+      blockedText:
+        blocked !== null
+          ? blocked.message
+          : missing !== null
+            ? reject('INSUFFICIENT_RESOURCES', { missing }).message
+            : null,
+      repairingInSeconds,
+    },
+  };
+}
+
+function towerView(state: GameState): ThreatTowerView {
+  const perks = watchtowerPerks(watchtowerLevel(state));
+  const damage = perks === null ? null : towerDamageText(perks);
+  return {
+    damageText: damage === null ? null : `${sentenceCase(damage)}.`,
+    revealsComposition: perks?.composition ?? 'none',
+  };
+}
+
+function defenseView(state: GameState, timeScale: number): ThreatDefenseView {
   const level = palisadeLevel(state);
   const atCeiling = level >= fence.maxLevel;
-  const built = () => `${fence.label} Nv${level}: ${holdsText(level)}.`;
+  const built = () => `${buildingLabelAt('palisade', level)} Nv${level}: ${holdsText(level)}.`;
   const gain = atCeiling ? null : palisadeGainText(level + 1);
   return {
     building: 'palisade',
     palisadeLevel: level,
-    text:
-      level === 0
-        ? `Sem ${fence.label}, nada segura um ataque.`
-        : atCeiling && fence.maxLevelNote !== undefined
-          ? `${built()} ${fence.maxLevelNote}`
-          : built(),
-    next: gain === null ? null : `${fence.label} Nv${level + 1}: ${gain}.`,
+    text: level === 0 ? `Sem ${fence.label}, nada segura um ataque.` : built(),
+    next:
+      gain === null ? null : `${buildingLabelAt('palisade', level + 1)} Nv${level + 1}: ${gain}.`,
+    wall: wallView(state, timeScale),
+    tower: towerView(state),
   };
 }
 
@@ -543,7 +699,7 @@ function clearedText(state: GameState): string | null {
 
 export function threatView(state: GameState, timeScale: number): ThreatView {
   const watchtower = watchtowerView(state);
-  const defense = defenseView(state);
+  const defense = defenseView(state, timeScale);
   if (!isThreatWatched(state)) {
     return {
       known: false,

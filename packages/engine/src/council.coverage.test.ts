@@ -50,8 +50,15 @@ function audiencesOf(season: SeasonId): number[] {
   return instants;
 }
 
+/**
+ * As 22 cartas das versões anteriores: o lote 2 e o lote 3 (V4H-T1) entram no fim do catálogo, com
+ * dia mínimo e edifícios, e a medida dele é a do simulador (`packages/sim-cli/src/coverage.test.ts`).
+ * Esta tabela é a do primeiro lote e não muda com elas.
+ */
+const EARLIER = CATALOG.slice(0, 22);
+
 const ids = (state: GameState, atMs: number, seen: readonly string[] = []) =>
-  eligibleCards(state, atMs, CATALOG, seen).map((card) => card.id);
+  eligibleCards(state, atMs, EARLIER, seen).map((card) => card.id);
 
 describe('cobertura do catálogo por estação e nível do Salão', () => {
   it('o ano tem 5 audiências na primavera, 6 no verão, 6 no outono e 3 no inverno', () => {
@@ -86,7 +93,10 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
   });
 
   it('nunca menos de 3, nem no pior caso: tudo o que sai uma vez por ano já saiu, e uma recorrente acabou de passar', () => {
-    const once = councilCards.filter((card) => card.recurring !== true).map((card) => card.id);
+    const once = councilCards
+      .slice(0, 22)
+      .filter((card) => card.recurring !== true)
+      .map((card) => card.id);
     const recurring = councilCards.filter((card) => card.recurring === true);
     expect(recurring).toHaveLength(4);
     for (const season of balance.calendar.seasons) {
@@ -170,7 +180,7 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
       'springNews',
     ]);
     // E todas elas têm uma opção paga que esse feudo alcança: há o que pesar desde a primeira.
-    for (const card of eligibleCards(state, DRAW_INTERVAL_MS, CATALOG)) {
+    for (const card of eligibleCards(state, DRAW_INTERVAL_MS, EARLIER)) {
       const has = (amounts: Partial<Record<string, number>> = {}) =>
         Object.entries(amounts).every(
           ([resource, amount]) =>

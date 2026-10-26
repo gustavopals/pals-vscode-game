@@ -133,8 +133,8 @@ describe('Conselho: o catálogo', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
     // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
     // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
-    expect(councilCards).toHaveLength(22);
-    expect(councilCards.map((entry) => [entry.id, entry.title])).toEqual([
+    expect(councilCards).toHaveLength(30);
+    expect(councilCards.slice(0, 22).map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
       ['commonGranaryOutcome', 'O que ficou da escolha'],
@@ -157,6 +157,17 @@ describe('Conselho: o catálogo', () => {
       ['roofBeforeCold', 'Um teto antes do frio'],
       ['harvestFeast', 'A colheita de todos'],
       ['woundedStranger', 'Estrangeira ferida'],
+    ]);
+    // O lote 2 e o lote 3 (V4H-T1), no fim: não mudam a ordem de quem já estava.
+    expect(councilCards.slice(22).map((entry) => [entry.id, entry.title])).toEqual([
+      ['refugeesAtGates', 'Refugiados nos portões'],
+      ['refugeesReturn', 'O retorno dos refugiados'],
+      ['refugeesCraft', 'O ofício que eles trouxeram'],
+      ['tavernBard', 'Um bardo na Taverna'],
+      ['tornMap', 'O mapa rasgado'],
+      ['itinerantMerchant', 'O mercador itinerante'],
+      ['firstRecruit', 'O primeiro recruta'],
+      ['veteranCaptain', 'O capitão veterano'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -204,8 +215,18 @@ describe('Conselho: o catálogo', () => {
       // V3C-T3. Além dos ids, o estado guarda o herói prometido (`guild.arriving`), pelo id de
       // `NAMED_HERO_IDS`: o motor trata o que o conteúdo já não tem como promessa que caiu.
       woundedStranger: ['shelter', 'tend'],
+      // V4H-T1: o lote 2 e o lote 3. Os heróis e os Mestres que elas prometem ficam no estado
+      // (`guild.arriving`, `settlement.masters`), pelos ids de `NAMED_HERO_IDS` e `MASTER_IDS`.
+      refugeesAtGates: ['shelter', 'provide', 'refuse'],
+      refugeesReturn: ['welcome', 'lodge', 'dismiss'],
+      refugeesCraft: ['workshop', 'thank', 'charge'],
+      tavernBard: ['pay', 'meal', 'dismiss'],
+      tornMap: ['buy', 'barter', 'refuse'],
+      itinerantMerchant: ['sellWood', 'sellStone', 'wait'],
+      firstRecruit: ['train', 'farm'],
+      veteranCaptain: ['hire', 'feast', 'refuse'],
     });
-    expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf']);
+    expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf', 'osbert']);
   });
 
   it('ids únicos, e toda opção com id único dentro da carta', () => {
@@ -310,6 +331,9 @@ describe('Conselho: o catálogo', () => {
       'clearFlag',
       'scheduleCard',
       'addHero',
+      'addMaster',
+      'revealDestination',
+      'addSoldiers',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -321,12 +345,18 @@ describe('Conselho: o catálogo', () => {
     }
   });
 
-  it('uma só carta roteirizada: a que entrega o primeiro herói, no 13º dia de jogo, sem peso nem requisito', () => {
+  it('as roteirizadas: a que entrega o primeiro herói, no 13º dia de jogo, sem peso nem requisito, e as do lote 2', () => {
     // ADR 0017, decisão 6: o começo do dia real 2 no ritmo Normal, antes dos lobos do roteiro.
     const scripted = councilCards.filter((entry) => entry.scripted !== undefined);
-    expect(scripted.map((entry) => [entry.id, entry.scripted?.atGameDay])).toEqual([
-      ['woundedStranger', 13],
+    expect(scripted.map((entry) => [entry.id, entry.scripted])).toEqual([
+      ['woundedStranger', { atGameDay: 13 }],
+      ['itinerantMerchant', { atGameDay: 20 }],
+      ['firstRecruit', { onHallLevel: 4 }],
     ]);
+    for (const entry of scripted) {
+      expect(entry.weight, entry.id).toBe(0);
+      expect(entry.requires, entry.id).toBeUndefined();
+    }
     const [stranger] = scripted as [CouncilCard];
     expect(stranger.weight).toBe(0);
     expect(stranger.requires).toBeUndefined();
@@ -343,7 +373,9 @@ describe('Conselho: o catálogo', () => {
   it('nenhum texto fala de ferro, exército, combate, presságio, relíquia ou edifício de versão futura', () => {
     const future =
       /\b(ferro|ferreiro|ex[ée]rcito|combate|batalha|soldado|press[áa]gio|rel[íi]quia|quartel|muralha|horda|cerco)/iu;
-    for (const entry of councilCards) {
+    // O lote 2 e o lote 3 (a partir do 23º) falam do Quartel, do Mercado e da Guilda porque eles
+    // existem na v0.4; a trava vale para as 22 cartas das versões anteriores.
+    for (const entry of councilCards.slice(0, 22)) {
       for (const text of textsOf(entry)) {
         expect(text, entry.id).not.toMatch(future);
       }
@@ -353,7 +385,7 @@ describe('Conselho: o catálogo', () => {
   it('o que a v0.3 ainda não entregou continua fora de todo texto: Mercado, mapa, expedição, Guilda e Taverna', () => {
     // Afrouxa de novo em V3F-T1, com o lote 2, para o que já estiver no jogo.
     const notYet = /\b(mercado|mercador|mapa|expedi[çc]|guilda|taverna)/iu;
-    for (const entry of councilCards) {
+    for (const entry of councilCards.slice(0, 22)) {
       for (const text of textsOf(entry)) {
         expect(text, entry.id).not.toMatch(notYet);
       }
@@ -363,7 +395,9 @@ describe('Conselho: o catálogo', () => {
   it('só a carta que entrega um herói fala de herói, de classe ou de arma', () => {
     const heroic =
       /\b(her[óo]i|her[óo]is|hero[íi]na|guerreir|arqueir|mago|maga|cl[ée]rig|espada|arco)/iu;
-    const speaks = councilCards.filter((entry) => textsOf(entry).some((text) => heroic.test(text)));
+    const speaks = councilCards
+      .slice(0, 22)
+      .filter((entry) => textsOf(entry).some((text) => heroic.test(text)));
     expect(speaks.map((entry) => entry.id)).toEqual(['woundedStranger']);
     for (const entry of speaks) {
       expect(
@@ -374,11 +408,14 @@ describe('Conselho: o catálogo', () => {
   });
 
   it('nome de flag não é texto de interface: nenhuma frase traz um identificador com ponto', () => {
+    // O lote 2 tem flags como `itinerant.heardOfMarket`, e o texto da carta diz "itinerante" de
+    // verdade: a trava, que existe para o nome da flag não vazar, vale para as 22 primeiras.
     const flags = councilCards
+      .slice(0, 22)
       .flatMap(effectsOf)
       .flatMap((effect) => (effect.type === 'setFlag' ? [effect.flag] : []));
     expect(flags.length).toBeGreaterThan(0);
-    for (const entry of councilCards) {
+    for (const entry of councilCards.slice(0, 22)) {
       for (const text of textsOf(entry)) {
         expect(text, entry.id).not.toMatch(/\p{L}\.\p{L}/u);
         for (const flag of flags) {
@@ -401,7 +438,9 @@ describe('Conselho: o catálogo', () => {
   it('as opções são verbos no infinitivo e não repetem o número do custo', () => {
     for (const entry of councilCards) {
       for (const option of entry.options) {
-        expect(option.label, entry.id).toMatch(/^\p{Lu}\p{Ll}*(ar|er|ir|or|ôr)(\s|$)/u);
+        expect(option.label, entry.id).toMatch(
+          /^\p{Lu}\p{Ll}*((ar|er|ir|or|ôr)(-lhe)?|[áêíô]-(lo|la))(\s|$)/u,
+        );
         expect(option.label, entry.id).not.toMatch(/\d/);
       }
     }
@@ -458,7 +497,8 @@ describe('Conselho: o catálogo', () => {
 /** O que uma lista de efeitos faz que o jogador vê antes de escolher: recursos e moral. */
 const known = (list: readonly CouncilEffect[]) => {
   // `hero` vale 2 para quem chega agora e 1 para quem só chega depois: a tela mostra a espera.
-  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0, hero: 0 };
+  // `extra` conta o que não é recurso nem moral: um Mestre, soldados ou um destino revelado.
+  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0, hero: 0, extra: 0 };
   for (const effect of list) {
     if (effect.type === 'resources') {
       for (const [resource, amount] of Object.entries(effect.amounts)) {
@@ -469,6 +509,12 @@ const known = (list: readonly CouncilEffect[]) => {
       total.morale += effect.amount * effect.durationDays;
     } else if (effect.type === 'addHero') {
       total.hero += effect.afterDays === undefined ? 2 : 1;
+    } else if (
+      effect.type === 'addMaster' ||
+      effect.type === 'addSoldiers' ||
+      effect.type === 'revealDestination'
+    ) {
+      total.extra += 1;
     }
   }
   return total;
@@ -667,6 +713,7 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
           gold: 0,
           morale: 0,
           hero: 0,
+          extra: 0,
         });
       }
     }
@@ -835,7 +882,10 @@ describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)',
 
   it('o ano tem 21 audiências e só 11 cartas de uma vez por ano: quem cobre o resto são as recorrentes', () => {
     expect(yearDays / balance.council.drawIntervalDays).toBe(21);
-    const once = councilCards.filter((entry) => entry.weight > 0 && entry.recurring !== true);
+    // As 22 cartas das versões anteriores; as do lote 2 e do lote 3 chegam depois.
+    const once = councilCards
+      .slice(0, 22)
+      .filter((entry) => entry.weight > 0 && entry.recurring !== true);
     expect(once.map((entry) => entry.id)).toEqual([
       'commonGranaryPlanks',
       'thawBridgePlea',
@@ -886,12 +936,14 @@ describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)',
 
   it('em cada estação um feudo recém-fundado tem ao menos 5 cartas ao alcance do sorteio, e as de peso maior são as da estação', () => {
     for (const season of balance.calendar.seasons) {
-      const eligible = councilCards.filter(
-        (entry) =>
-          entry.weight > 0 &&
-          (entry.requires?.seasons === undefined || entry.requires.seasons.includes(season.id)) &&
-          entry.requires?.buildings === undefined,
-      );
+      const eligible = councilCards
+        .slice(0, 22)
+        .filter(
+          (entry) =>
+            entry.weight > 0 &&
+            (entry.requires?.seasons === undefined || entry.requires.seasons.includes(season.id)) &&
+            entry.requires?.buildings === undefined,
+        );
       expect(eligible.length, season.id).toBeGreaterThanOrEqual(5);
       const seasonal = eligible.filter((entry) => entry.requires?.seasons !== undefined);
       for (const entry of seasonal) {
@@ -900,7 +952,9 @@ describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)',
     }
     // A primavera, o verão e o outono têm cartas só deles; o inverno vive das de sempre.
     const only = (season: string) =>
-      councilCards.filter((entry) => entry.requires?.seasons?.includes(season as never)).length;
+      councilCards
+        .slice(0, 22)
+        .filter((entry) => entry.requires?.seasons?.includes(season as never)).length;
     expect([only('spring'), only('summer'), only('autumn'), only('winter')]).toEqual([3, 3, 5, 0]);
   });
 });
@@ -1363,8 +1417,15 @@ describe('Conselho: o efeito que entrega um herói', () => {
     }
   });
 
-  it('nenhuma carta cria herói com custo, com requisito nem em efeito escondido', () => {
+  it('nenhuma carta cria herói com requisito sem custo nem em efeito escondido; só o capitão veterano o vende', () => {
     for (const { entry, option } of heroEffects) {
+      if (entry.id === 'veteranCaptain') {
+        // 10.4: o herói de casa pronta custa 240 de ouro (80% do preço da Taverna) e pede lugar
+        // na lista de heróis.
+        expect(option.cost, entry.id).toEqual({ gold: 240 });
+        expect(option.requires, entry.id).toEqual({ rosterRoom: true });
+        continue;
+      }
       expect(option.cost, `${entry.id}/${option.id}`).toBeUndefined();
       expect(option.requires, `${entry.id}/${option.id}`).toBeUndefined();
       expect(
@@ -1378,7 +1439,11 @@ describe('Conselho: o efeito que entrega um herói', () => {
     // Uma roteirizada sai uma vez por partida, e uma carta só aplica uma opção: é o que garante
     // que a lista dos prometidos nunca passa do teto e que não há dois heróis com o mesmo nome.
     for (const { entry } of heroEffects) {
-      expect(entry.scripted, entry.id).toBeDefined();
+      // O capitão veterano é sorteado, e o `promiseHero` e a flag `veteranCaptain.hired` o
+      // seguram em um só.
+      if (entry.id !== 'veteranCaptain') {
+        expect(entry.scripted, entry.id).toBeDefined();
+      }
     }
     const cards = new Set(heroEffects.map(({ entry }) => entry.id));
     expect(cards.size).toBeLessThanOrEqual(balance.heroes.arrivingCap);

@@ -5,16 +5,23 @@ import {
   type CouncilEffect,
   type CouncilOption,
   councilCards,
+  type MasterId,
+  type UnitId,
   type ResourceAmounts,
   RESOURCE_IDS,
 } from '@lotg/content';
 
+import { grantSoldiers } from './armyTurn';
+import { armyCap, soldierCount } from './army';
 import { promiseHero } from './arrivals';
 import { emit } from './chronicle';
 import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
 import { amountsData, constructionOf, missingResources, payResources } from './construction';
-import { thousands } from './format';
+import { plural, thousands } from './format';
+import { rosterHasRoom } from './heroes';
+import { deliverMaster, masterCanArrive } from './masterTurn';
 import { addMoraleEffect } from './morale';
+import { nextHiddenDestination, revealDestination } from './outcomes';
 import { reject } from './rejections';
 import { storeResource } from './storage';
 import type {
@@ -130,6 +137,9 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
   if ((requires.notFlags ?? []).some((flag) => council.flags[flag] === true)) {
     return false;
   }
+  if (requires.undiscovered === true && nextHiddenDestination(state) === null) {
+    return false;
+  }
   if (requires.moralRange !== undefined) {
     const [min, max] = requires.moralRange;
     if (settlement.morale < min || settlement.morale > max) {
@@ -182,11 +192,26 @@ export function scriptedCard(state: GameState, atMs: number, catalog: Catalog): 
     catalog.find(
       (card) =>
         card.scripted !== undefined &&
-        card.scripted.atGameDay <= gameDayAt(atMs) &&
+        scriptedDue(state, card.scripted, atMs) &&
         timesDrawn(state, card.id) === 0 &&
         meetsRequirements(state, card, atMs),
     ) ?? null
   );
+}
+
+/**
+ * O gatilho de uma carta roteirizada chegou: o dia marcado (`atGameDay`) ou o nível do Salão
+ * (`onHallLevel`), lido no instante do sorteio. Nenhum dos dois grava estado: a partida que já
+ * passou do gatilho recebe a carta na primeira audiência com lugar.
+ */
+function scriptedDue(
+  state: GameState,
+  scripted: NonNullable<CouncilCard['scripted']>,
+  atMs: number,
+): boolean {
+  return 'atGameDay' in scripted
+    ? scripted.atGameDay <= gameDayAt(atMs)
+    : state.settlement.buildings.townHall >= scripted.onHallLevel;
 }
 
 /** As continuações cujo prazo já chegou em `atMs` e cuja carta ainda existe no catálogo. */
@@ -284,6 +309,12 @@ type Outcome = {
   morale: { amount: number; durationDays: number } | null;
   /** O herói com nome que a opção trouxe ou prometeu, e em quantos dias de jogo ele chega. */
   hero: { namedHeroId: string; afterDays: number } | null;
+  /** Os Mestres que a opção traz, na ordem dos efeitos; entram depois da linha da carta. */
+  masters: MasterId[];
+  /** O destino que a opção revelou, se revelou. */
+  revealed: string | null;
+  /** Os soldados que a opção trouxe, por unidade. */
+  soldiers: Array<{ unit: UnitId; amount: number }>;
 };
 
 const noOutcome = (): Outcome => ({
@@ -292,6 +323,9 @@ const noOutcome = (): Outcome => ({
   lost: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
   morale: null,
   hero: null,
+  masters: [],
+  revealed: null,
+  soldiers: [],
 });
 
 const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
@@ -308,6 +342,13 @@ function outcomeData(outcome: Outcome): Record<string, string | number> {
     ...(outcome.hero === null
       ? {}
       : { hero: outcome.hero.namedHeroId, heroAfterDays: outcome.hero.afterDays }),
+    ...(outcome.masters.length === 0 ? {} : { master: outcome.masters.join(',') }),
+    ...(outcome.revealed === null ? {} : { revealed: outcome.revealed }),
+    ...(outcome.soldiers.length === 0
+      ? {}
+      : {
+          soldiers: outcome.soldiers.map((entry) => `${entry.unit}:${entry.amount}`).join(','),
+        }),
   };
 }
 
@@ -393,7 +434,48 @@ function applyEffects(
         }
         break;
       }
+      case 'revealDestination': {
+        const next = nextHiddenDestination(draft);
+        if (next !== null && revealDestination(draft, next)) {
+          outcome.revealed = next;
+        }
+        break;
+      }
+      case 'addSoldiers': {
+        const granted = grantSoldiers(draft, effect.unit, effect.amount);
+        if (granted > 0) {
+          outcome.soldiers.push({ unit: effect.unit, amount: granted });
+        }
+        break;
+      }
+      case 'addMaster':
+        // O Mestre chega depois da linha da carta (`deliverOutcomeMasters`); aqui só se confere
+        // que as flags pedidas estão gravadas **agora** e que ele ainda pode chegar.
+        if (
+          (effect.ifFlags ?? []).every((name) => council.flags[name] === true) &&
+          masterCanArrive(draft, effect.masterId) &&
+          !outcome.masters.includes(effect.masterId)
+        ) {
+          outcome.masters.push(effect.masterId);
+        }
+        break;
     }
+  }
+}
+
+/**
+ * Entrega os Mestres que a opção trouxe, depois de a linha da carta ter sido emitida: a Crônica
+ * conta a escolha e, em seguida, a chegada (ou a espera à porta). É a única porta do Mestre de
+ * carta; `deliverMaster` não sorteia.
+ */
+function deliverOutcomeMasters(
+  draft: GameState,
+  outcome: Outcome,
+  atMs: number,
+  events: GameEvent[],
+): void {
+  for (const masterId of outcome.masters) {
+    deliverMaster(draft, masterId, atMs, events);
   }
 }
 
@@ -470,6 +552,7 @@ export function expireCards(
       { carta: card.title, opcao: lowerFirst(option.label) },
       option.expiredChronicle,
     );
+    deliverOutcomeMasters(draft, outcome, atMs, events);
   }
 }
 
@@ -605,12 +688,39 @@ export function optionLock(state: GameState, option: CouncilOption): string | nu
       ? `requer ${def.article} ${def.label}`
       : `requer ${def.article} ${def.label}, que ainda está em obras`;
   }
+  if (requires.soldierRoom !== undefined) {
+    const room = soldierRoomText(state, requires.soldierRoom);
+    if (room !== null) {
+      return room;
+    }
+  }
+  if (requires.rosterRoom === true && !rosterHasRoom(state)) {
+    return 'requer lugar na lista de heróis';
+  }
   const short = positiveEntries(requires.resources ?? {}).find(
     ([resource, amount]) => settlement.resources[resource] < amount * MILLI,
   );
   if (short !== undefined) {
     const [resource, amount] = short;
     return `requer ${thousands(amount)} de ${balance.resources[resource].label.toLowerCase()} em estoque`;
+  }
+  return null;
+}
+
+/**
+ * Por que não cabem `amount` soldados novos, em um pedaço de frase; `null` quando cabem. O teto
+ * do Quartel conta o lote em treino, e os aldeões que o piso protege não saem.
+ */
+function soldierRoomText(state: GameState, amount: number): string | null {
+  if (state.settlement.buildings.barracks < 1) {
+    return `requer ${buildings.barracks.article} ${buildings.barracks.label}`;
+  }
+  const training = state.army.training?.amount ?? 0;
+  if (soldierCount(state) + training + amount > armyCap(state)) {
+    return `requer vaga para ${plural(amount, 'soldado', 'soldados')} no Quartel`;
+  }
+  if (state.settlement.population.villagers - balance.morale.populationFloor < amount) {
+    return 'requer aldeões sobrando para virar soldado';
   }
   return null;
 }
@@ -679,6 +789,7 @@ export function answerCard(
     { carta: card.title, opcao: lowerFirst(option.label) },
     option.chronicle,
   );
+  deliverOutcomeMasters(draft, outcome, nowMs, events);
   // O lugar que a carta deixou pode ser de uma continuação que já esperava.
   deliverContinuations(draft, nowMs, events, catalog);
   return null;

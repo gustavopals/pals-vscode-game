@@ -6,9 +6,11 @@ import {
   type Ratio,
   RESOURCE_IDS,
   type ResourceAmounts,
+  type BuildingLevelDef,
 } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { raiseWall, repairDelayMs } from './wallRepair';
 import { seasonAt } from './clock';
 import { sentenceCase } from './format';
 import { reject } from './rejections';
@@ -71,8 +73,33 @@ export function isFounding(fromLevel: number): boolean {
   return fromLevel === 0;
 }
 
+/** A obra de tabela que leva o edifício ao nível `level` (`levelTable`), se houver. */
+function tableLevel(building: BuildingId, level: number): BuildingLevelDef | undefined {
+  return buildings[building].levelTable?.find((entry) => entry.level === level);
+}
+
+/**
+ * O nome do edifício no nível `level`: o da obra de tabela daquele nível ou do último nível da
+ * tabela abaixo dele (a Muralha de Pedra nos níveis 3 e 4, o Baluarte nos 5 e 6) e, sem tabela,
+ * o nome de sempre.
+ */
+export function buildingLabelAt(building: BuildingId, level: number): string {
+  const table = buildings[building].levelTable ?? [];
+  let label = buildings[building].label;
+  for (const entry of table) {
+    if (entry.level <= level) {
+      label = entry.label;
+    }
+  }
+  return label;
+}
+
 /** Custo, em unidades, de levar um edifício de `fromLevel` para o nível seguinte (GDD §6.2). */
 export function upgradeCost(building: BuildingId, fromLevel: number): ResourceAmounts {
+  const table = tableLevel(building, fromLevel + 1);
+  if (table !== undefined) {
+    return { ...table.cost };
+  }
   const { costFactor, costFactorByBuilding } = balance.construction;
   const factor = costFactorByBuilding[building] ?? costFactor;
   const cost: ResourceAmounts = {};
@@ -94,6 +121,13 @@ export function upgradeDurationMs(
   seasonFactor: Ratio = { num: 1, den: 1 },
 ): number {
   const { timeFactor, maxDurationMs } = balance.construction;
+  const table = tableLevel(building, fromLevel + 1);
+  if (table !== undefined) {
+    return Math.min(
+      maxDurationMs,
+      Math.floor((table.durationMs * seasonFactor.num) / seasonFactor.den),
+    );
+  }
   const steps = upgradeSteps(building, fromLevel);
   const duration = Math.floor(
     (buildings[building].baseDurationMs * timeFactor.num ** steps * seasonFactor.num) /
@@ -362,7 +396,8 @@ export function startConstruction(
     building,
     targetLevel: quote.targetLevel,
     startedAtMs: nowMs,
-    finishesAtMs: nowMs + quote.durationMs,
+    // Com a muralha em reparo, a obra só corre depois dele (o reparo vem na frente da fila).
+    finishesAtMs: nowMs + repairDelayMs(draft, nowMs) + quote.durationMs,
   };
   unplan(draft, building, quote.targetLevel);
   const stat = `constructionsStarted:${building}`;
@@ -410,6 +445,9 @@ export function finishConstructions(draft: GameState, atMs: number, events: Game
       return;
     }
     const founded = isFounding(settlement.buildings[slot.building]);
+    if (slot.building === 'palisade') {
+      raiseWall(draft, settlement.buildings.palisade, slot.targetLevel);
+    }
     settlement.buildings[slot.building] = slot.targetLevel;
     settlement.constructionQueues[index] = null;
     emit(

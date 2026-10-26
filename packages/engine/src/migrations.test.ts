@@ -110,7 +110,7 @@ import {
   HERO_CLASS_IDS_V30,
   HORDE_UNIT_IDS_V30,
 } from './migrations/v30';
-import { PREVIEW_RUNS_V31 } from './migrations/v31';
+import { PREVIEW_RUNS_V31, WALL_HP_BY_LEVEL_V32 } from './migrations/v31';
 import { BATTLE_FACTOR_IDS, buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
 import {
@@ -140,6 +140,8 @@ import {
   accept,
   addHero,
   barracksYard,
+  palisadeScenario,
+  wallSite,
   saveFormationOrder,
   caravanEscortScenario,
   caravanScenario,
@@ -218,6 +220,9 @@ function stripArmy(copy: Draft): void {
   delete copy.army;
   if (copy.settlement !== undefined) {
     delete copy.settlement.buildings?.barracks;
+    // E a muralha, do passo 31 → 32 (V4E-T1.2).
+    delete copy.settlement.wall;
+    delete copy.settlement.wallRepair;
   }
 }
 
@@ -315,6 +320,8 @@ function stripMasters(copy: Draft): void {
 function asVersion22(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 22;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripMasters(old);
   return old;
 }
@@ -335,6 +342,8 @@ function stripMarket(copy: Draft): void {
 function asVersion20(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 20;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripMarket(old);
   return old;
 }
@@ -361,6 +370,8 @@ function stripFreed(copy: Draft): void {
 function asVersion19(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 19;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripFreed(old);
   return old;
 }
@@ -399,6 +410,8 @@ function stripReport(copy: Draft): void {
 function asVersion18(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 18;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripReport(old);
   return old;
 }
@@ -449,6 +462,8 @@ function stripOutcomes(copy: Draft): void {
 function asVersion17(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 17;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripOutcomes(old);
   return old;
 }
@@ -471,6 +486,8 @@ function withoutOutcomes<T extends Partial<GameState>>(state: T): T {
 function asVersion16(state: GameState): Draft {
   const old = asVersion17(state);
   old.schemaVersion = 16;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.settlement.buildings.guild;
   delete old.guild.expeditions;
   delete old.guild.reports;
@@ -500,6 +517,8 @@ function withoutGuildHall<T extends Partial<GameState>>(state: T): T {
 function asVersion15(state: GameState): Draft {
   const old = asVersion16(state);
   old.schemaVersion = 15;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.settlement.buildings.tavern;
   delete old.guild.tavernOffers;
   delete old.guild.tavern;
@@ -529,6 +548,8 @@ function withoutTavern<T extends Partial<GameState>>(state: T): T {
 function asVersion14(state: GameState): Draft {
   const old = asVersion15(state);
   old.schemaVersion = 14;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.guild.arriving;
   for (const hero of old.guild.heroes as Draft[]) {
     delete hero.gender;
@@ -543,6 +564,8 @@ function asVersion14(state: GameState): Draft {
 function asVersion13(state: GameState): Draft {
   const old = asVersion15(state);
   old.schemaVersion = 13;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.guild;
   return old;
 }
@@ -551,6 +574,8 @@ function asVersion13(state: GameState): Draft {
 function asVersion12(state: GameState): Draft {
   const old = asVersion13(state);
   old.schemaVersion = 12;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.ids;
   return old;
 }
@@ -562,6 +587,8 @@ function asVersion12(state: GameState): Draft {
 function asVersion11(state: GameState): Draft {
   const old = asVersion12(state);
   old.schemaVersion = 11;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   if (old.settlement.famine !== null) {
     old.settlement.famine = { sinceMs: old.settlement.famine.sinceMs };
   }
@@ -1501,6 +1528,55 @@ const FROZEN: Record<string, string> = {
   'state-v30-wage-arrears.json': 'f389285c',
   'state-v30-warehouse-full.json': 'fb401f81',
   'state-v30-week-scripted.json': '54d069f3',
+  'state-v31-caravan-escort.json': 'd55862ea',
+  'state-v31-caravan.json': '8372958e',
+  'state-v31-cold.json': '4546a086',
+  'state-v31-construction.json': 'f55c0539',
+  'state-v31-council-hidden.json': '0fd8df46',
+  'state-v31-council.json': '7c2c4b90',
+  'state-v31-crafts.json': '3ce45d91',
+  'state-v31-den-cleared.json': 'ad1cca3b',
+  'state-v31-expedition-crossroads.json': '0382660a',
+  'state-v31-expedition-returning.json': 'a607f839',
+  'state-v31-expedition.json': 'e612955c',
+  'state-v31-famine-3x.json': '26f27f69',
+  'state-v31-famine-ended.json': '980427dd',
+  'state-v31-famine-half.json': 'fe4feabc',
+  'state-v31-famine-resumed.json': '6cc5bedb',
+  'state-v31-famine-smithy.json': '73e2ff82',
+  'state-v31-famine.json': 'dfa82937',
+  'state-v31-fresh.json': '731fad32',
+  'state-v31-guild.json': '06eeafaf',
+  'state-v31-hero-captured.json': 'e317416d',
+  'state-v31-hero-injured.json': '164f41ec',
+  'state-v31-hero-promised.json': '772cef73',
+  'state-v31-housing-full.json': '36da49a3',
+  'state-v31-iron-king-half.json': '21a2d2a0',
+  'state-v31-market-opening.json': 'cf6cb2c9',
+  'state-v31-market.json': '8783aa83',
+  'state-v31-master-waiting.json': 'b66bda14',
+  'state-v31-masters.json': 'cde5383f',
+  'state-v31-migrated-3x.json': '3a5c744f',
+  'state-v31-migrated-iron-king-caravan.json': 'e304bcea',
+  'state-v31-migrated-iron-king-half.json': '0355ce6b',
+  'state-v31-migrated-peasant-3x.json': '2b8f6e26',
+  'state-v31-morale.json': 'f16949d5',
+  'state-v31-objectives.json': '9547ed25',
+  'state-v31-palisade.json': '9350d247',
+  'state-v31-peasant-3x.json': 'dd99f077',
+  'state-v31-queues.json': '88eb050d',
+  'state-v31-raid-announced.json': 'f0ccbe66',
+  'state-v31-raid.json': '9b7ac249',
+  'state-v31-smithy-forging.json': '3db308ea',
+  'state-v31-storage.json': 'ee24d4fb',
+  'state-v31-tavern-busy.json': '5404d5f5',
+  'state-v31-tavern.json': '63f579d4',
+  'state-v31-threat.json': '967097ae',
+  'state-v31-wage-arrears-ended.json': '75682201',
+  'state-v31-wage-arrears-resumed.json': '5bcc718d',
+  'state-v31-wage-arrears.json': 'b60c36be',
+  'state-v31-warehouse-full.json': '65e832ff',
+  'state-v31-week-scripted.json': '23e171ff',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -3652,7 +3728,7 @@ describe('versão 9 → 10', () => {
       expect(atBoundary.state.rng).toEqual(state.rng);
       expect(atBoundary.state.council).toEqual(state.council);
       const { defense } = deriveViewState(state, state.lastProcessedAt).threat;
-      expect(defense).toEqual({
+      expect(defense).toMatchObject({
         building: 'palisade',
         palisadeLevel: 0,
         text: 'Sem Paliçada, nada segura um ataque.',
@@ -3736,6 +3812,8 @@ describe('versão 10 → 11', () => {
   function asVersion10(state: GameState): Draft {
     const old = asVersion11(state);
     old.schemaVersion = 10;
+    delete old.settlement.wall;
+    delete old.settlement.wallRepair;
     delete old.settlement.injured;
     old.horde.scheduledRaids = [];
     return old;
@@ -5715,6 +5793,8 @@ describe('versão 21 → 22', () => {
   const asVersion21 = (state: GameState): Draft => {
     const old = JSON.parse(JSON.stringify(state)) as Draft;
     old.schemaVersion = 21;
+    delete old.settlement.wall;
+    delete old.settlement.wallRepair;
     stripMasters(old);
     delete old.market.caravans;
     return old;
@@ -6154,6 +6234,8 @@ describe('versão 23 → 24', () => {
   const asVersion23 = (state: GameState): Draft => {
     const old = JSON.parse(JSON.stringify(state)) as Draft;
     old.schemaVersion = 23;
+    delete old.settlement.wall;
+    delete old.settlement.wallRepair;
     stripIron(old);
     for (const entry of old.settlement.masters as Draft[]) {
       delete entry.worked;
@@ -6359,6 +6441,8 @@ describe('os limites do Mercado e das caravanas na guarda da versão 24 (revisã
 function asVersion24(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 24;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripIron(old);
   return old;
 }
@@ -6466,6 +6550,8 @@ describe('versão 24 → 25 (V4B-T1: o ferro)', () => {
 function asVersion25(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 25;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripSmithy(old);
   return old;
 }
@@ -6599,6 +6685,8 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
 function asVersion26(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 26;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripRepair(old);
   return old;
 }
@@ -6762,6 +6850,8 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
 function asVersion27(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 27;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   stripArmy(old);
   return old;
 }
@@ -6910,6 +7000,8 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
 function asVersion28(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 28;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.army.formations;
   delete old.army.activeFormationId;
   delete old.army.reports;
@@ -7049,6 +7141,8 @@ function withFormation(): GameState {
 function asVersion29(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 29;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.army.reports;
   delete old.army.preview;
   return old;
@@ -7163,6 +7257,8 @@ describe('versão 29 → 30 (V4D-T1.6: os relatórios de batalha)', () => {
 function asVersion30(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
   old.schemaVersion = 30;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
   delete old.army.preview;
   return old;
 }
@@ -7244,5 +7340,91 @@ describe('versão 30 → 31 (V4D-T2.2: a prévia do Conselho de Guerra)', () => 
     expect(
       broken((state) => (state.army.preview.risk = { factor: 'luck', wing: null, amount: 1 })),
     ).not.toBeNull();
+  });
+});
+
+/** O estado da versão 31: o de hoje sem a muralha. */
+function asVersion31(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 31;
+  delete old.settlement.wall;
+  delete old.settlement.wallRepair;
+  return old;
+}
+
+describe('versão 31 → 32 (V4E-T1.2: a muralha)', () => {
+  const version31 = fixtures.filter((fixture) => fixture.version === 31);
+
+  it('os números escritos na forma são os do conteúdo de hoje', () => {
+    expect(WALL_HP_BY_LEVEL_V32).toEqual(balance.wall.hpByLevel);
+  });
+
+  it('há retratos da versão 31, com e sem Paliçada', () => {
+    expect(version31.length).toBeGreaterThan(40);
+    const levels = new Set(
+      version31.map((fixture) => (read(fixture) as Draft).settlement.buildings.palisade),
+    );
+    expect(levels.has(0)).toBe(true);
+    expect([...levels].some((level) => level > 0)).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v31-fresh.json'));
+    expect(fresh.settlement.wall.hp).toEqual({ left: 0, center: 0, right: 0 });
+    expect(fresh.settlement.wallRepair).toBeNull();
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version31)(
+    '$name: a muralha entra cheia pelo nível da Paliçada, sem reparo; o resto fica como estava',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      const full = balance.wall.hpByLevel[before.settlement.buildings.palisade - 1] ?? 0;
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.wall.hp).toEqual({ left: full, center: full, right: full });
+      expect(after.settlement.wallRepair).toBeNull();
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect(asVersion31(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('wall'))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo', () => {
+    const old = asVersion31(palisadeScenario());
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toStrictEqual(copy);
+    expect(slow).toStrictEqual(fast);
+  });
+
+  it('a guarda recusa a ala acima do nível, a muralha sem Paliçada e o reparo fora do intervalo', () => {
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(wallSite(2, { left: 40 }))) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.settlement.wall)).not.toBeNull();
+    expect(broken((state) => (state.settlement.wall.hp.left = 101))).toBe(
+      'settlement.wall.hp.left: acima da vida da Paliçada no nível dela',
+    );
+    expect(broken((state) => (state.settlement.buildings.palisade = 0))).not.toBeNull();
+    expect(broken((state) => (state.settlement.wall.hp.center = 1.5))).not.toBeNull();
+    const repairing = (edit: (repair: Draft) => void) =>
+      broken((state) => {
+        state.settlement.wallRepair = {
+          untilMs: state.lastProcessedAt + 60_000,
+          toHp: { left: 100, center: 100, right: 100 },
+        };
+        edit(state.settlement.wallRepair);
+      });
+    expect(repairing(() => undefined)).toBeNull();
+    expect(repairing((repair) => (repair.toHp.left = 30))).not.toBeNull();
+    expect(repairing((repair) => (repair.toHp.right = 120))).not.toBeNull();
+    expect(repairing((repair) => (repair.untilMs = 0))).not.toBeNull();
   });
 });

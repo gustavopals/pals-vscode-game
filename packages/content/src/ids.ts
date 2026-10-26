@@ -117,6 +117,14 @@ export type EnemyId = (typeof ENEMY_IDS)[number];
 export const RAID_SIZE_IDS = ['light', 'medium'] as const;
 export type RaidSizeId = (typeof RAID_SIZE_IDS)[number];
 
+/**
+ * O que a Torre de Vigia diz da composição de uma incursão, do menos ao mais (GDD §8.3; ADR
+ * 0020, decisão 16): nada (Nv1 e Nv2), os tipos (Nv3), a quantidade por ala (Nv4) e a
+ * composição exata (Nv5).
+ */
+export const WATCHTOWER_COMPOSITION_IDS = ['none', 'archetypes', 'approximate', 'exact'] as const;
+export type WatchtowerCompositionId = (typeof WATCHTOWER_COMPOSITION_IDS)[number];
+
 /** As classes de herói da v0.3 (GDD §9.1). Os atributos-base estão em `heroClasses`. */
 export const HERO_CLASS_IDS = ['warrior', 'archer', 'mage', 'cleric'] as const;
 export type HeroClassId = (typeof HERO_CLASS_IDS)[number];
@@ -163,7 +171,7 @@ export type HeroGenderId = (typeof HERO_GENDER_IDS)[number];
  * Os heróis com nome próprio, que uma carta do Conselho entrega (GDD §9.1 e Apêndice B; ADR
  * 0017, decisão 6). Não são modelos da Taverna. A ficha de cada um está em `namedHeroes`.
  */
-export const NAMED_HERO_IDS = ['edda', 'rolf'] as const;
+export const NAMED_HERO_IDS = ['edda', 'rolf', 'osbert'] as const;
 export type NamedHeroId = (typeof NAMED_HERO_IDS)[number];
 
 /**
