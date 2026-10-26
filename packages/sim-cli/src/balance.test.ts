@@ -167,8 +167,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         // volta mesmo com a casa cheia (resposta do autor à D-17). Com a Mina Abandonada
         // (V4B-T1), que captura no veio fundo, o Explorador passou a ver a captura e o Resgate.
         expect(guild.heroes, where).toBeLessThanOrEqual(
-          // + 1: o herói do capitão veterano (lote 2 de cartas, V4E-T1) não passa pela Taverna.
-          2 + guild.tavernLevel + run.summary.expeditions.fates.rescued,
+          // A contratação para em 1 + nível da Taverna heróis no feudo, e os dois heróis de
+          // carta (a estrangeira e o capitão veterano do lote 2, V4E-T1) não passam pela
+          // Taverna: cada um pode chegar com a casa já cheia (lord year/0.5/explorador
+          // pedra-alta-005 termina com 8 heróis e a Taverna Nv5).
+          3 + guild.tavernLevel + run.summary.expeditions.fates.rescued,
         );
         if (run.profile.id === 'explorador') {
           // Quem contrata não atrasa o soldo: a política guarda um dia de soldo no cofre.
