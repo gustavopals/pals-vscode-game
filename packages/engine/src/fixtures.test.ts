@@ -753,7 +753,9 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       },
     ]);
     expect(of('fresh').horde).toEqual(threat.horde);
-    expect(of('week-scripted').map.threat).toBe(35); // 70 até o estado 32: a composição sorteada no fluxo `horde` mudou a semana.
+    // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
+    // (V4E-T2.4) mudaram a semana.
+    expect(of('week-scripted').map.threat).toBe(63);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
@@ -784,13 +786,14 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const sighted = of('raid-announced');
     expect(sighted.horde.scheduledRaids).toHaveLength(1);
     const [incoming] = sighted.horde.scheduledRaids;
-    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'wolves', size: 'medium' });
+    // O tamanho mudou com as incursões-batalha do roteiro (V4E-T2.4); o que importa é a sorteada.
+    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'wolves' });
     expect(incoming?.id).toMatch(/^threat-\d+$/);
     expect(incoming?.announcedAtMs).not.toBeNull();
     expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
     expect(incoming?.atMs).toBeGreaterThan(sighted.lastProcessedAt);
     expect(sighted.rng.horde).toHaveLength(4);
-    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 1, raids_repelled: 5 });
+    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 3, raids_repelled: 3 });
     expect(of('week-scripted').rng.horde).toHaveLength(4);
     // Todo cenário tem a lista de feridos, vazia ou não.
     for (const state of all0()) {

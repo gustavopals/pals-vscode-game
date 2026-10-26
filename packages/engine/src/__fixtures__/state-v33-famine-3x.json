@@ -161,7 +161,17 @@
   "discovered": []
  },
  "horde": {
-  "scheduledRaids": []
+  "scheduledRaids": [
+   {
+    "id": "raidersYear1Weak",
+    "atMs": 172800000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ]
  },
  "guild": {
   "heroes": [],

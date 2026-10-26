@@ -22,6 +22,7 @@ import type {
   PostureId,
   ProductionBuildingId,
   RaidSizeId,
+  WarRaidSizeId,
   Ratio,
   ResourceId,
   SeasonId,
@@ -214,7 +215,8 @@ export type ScheduledRaid = {
   /** `scripted`: a do roteiro do ano 1. `threat`: sorteada pela Ameaça. */
   kind: 'scripted' | 'threat';
   enemy: EnemyId;
-  size: RaidSizeId;
+  /** Leve, média ou forte (a forte desde o estado 33: `warRaids`). */
+  size: WarRaidSizeId;
   /**
    * O exército da incursão, sorteado no fluxo `horde` **quando ela é marcada** (estado 33,
    * V4E-T2.2), na estação do instante em que chega. `null` na incursão que já estava marcada

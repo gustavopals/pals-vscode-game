@@ -23,10 +23,10 @@
    1719671309
   ],
   "horde": [
-   3207359222,
-   1969065861,
-   3918101263,
-   861833721
+   3531964136,
+   1543883830,
+   3189517424,
+   4122949419
   ]
  },
  "ids": {
@@ -36,14 +36,14 @@
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 384035,
+   "food": 451493,
    "wood": 0,
    "stone": 65000,
    "gold": 59365,
    "iron": 0
   },
   "accumulators": {
-   "food": 1064776,
+   "food": 2577960,
    "wood": 0,
    "stone": 0,
    "gold": -2642000,
@@ -53,7 +53,7 @@
    "villagers": 5
   },
   "workers": {
-   "farm": 3,
+   "farm": 5,
    "lumberMill": 0,
    "quarry": 0,
    "goldMine": 0
@@ -99,7 +99,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 370,
+   "food": 18470,
    "wood": 0,
    "stone": 0,
    "gold": 0,
@@ -119,24 +119,8 @@
   },
   "adaptation": [],
   "morale": 40,
-  "moraleEffects": [
-   {
-    "id": "raid",
-    "label": "Incursão sofrida",
-    "amount": -10,
-    "untilMs": 547200000
-   }
-  ],
-  "injured": [
-   {
-    "untilMs": 540000000,
-    "building": "farm"
-   },
-   {
-    "untilMs": 540000000,
-    "building": "farm"
-   }
-  ],
+  "moraleEffects": [],
+  "injured": [],
   "masters": [],
   "mastersWaiting": [],
   "weapons": 0,
@@ -194,7 +178,7 @@
     "threatActive": true
    }
   },
-  "threat": 50,
+  "threat": 78,
   "discovered": []
  },
  "horde": {
@@ -274,7 +258,7 @@
   "reports": [
    {
     "id": "battle-3",
-    "foughtAtMs": 417600000,
+    "foughtAtMs": 259200000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -287,7 +271,62 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
       "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-4",
+    "foughtAtMs": 410400000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "start": 3,
       "lost": 0
      },
      {
@@ -302,7 +341,7 @@
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 3,
       "lost": 0
      },
@@ -310,71 +349,16 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "ogre",
-      "start": 1,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 1,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
-   },
-   {
-    "id": "battle-4",
-    "foughtAtMs": 489600000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "ogre",
-      "start": 2,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
       "unit": "raider",
-      "start": 12,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
-      "line": "front",
-      "unit": "ogre",
-      "start": 2,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -384,7 +368,7 @@
    },
    {
     "id": "battle-5",
-    "foughtAtMs": 532800000,
+    "foughtAtMs": 475200000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -396,40 +380,40 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "ogre",
-      "start": 2,
+      "unit": "blackKnight",
+      "start": 3,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "raider",
-      "start": 12,
+      "unit": "blackKnight",
+      "start": 3,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "banditArcher",
+      "unit": "shaman",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
-      "line": "front",
-      "unit": "ogre",
-      "start": 2,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
       "line": "back",
-      "unit": "shaman",
-      "start": 2,
+      "unit": "banditArcher",
+      "start": 1,
       "lost": 0
      }
     ],
@@ -452,7 +436,7 @@
  },
  "stats": {
   "constructionsStarted:quarry": 1,
-  "wasted_food": 9482370,
+  "wasted_food": 9418470,
   "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:springSeeds": 1,
@@ -461,12 +445,12 @@
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 1,
   "cardsDrawn:neighborsWatch": 1,
-  "threatCrossed:40": 2,
   "cardsDrawn:moreMouths": 2,
   "cardsDrawn:masonsMeal": 1,
   "seasonsSurvived:summer": 1,
   "cardsDrawn:roofBeforeCold": 1,
-  "threatCrossed:70": 3,
+  "threatCrossed:40": 2,
+  "threatCrossed:70": 2,
   "cardsDrawn:dampFirewood": 1,
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:sawmillRest": 1

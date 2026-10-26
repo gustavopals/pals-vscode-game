@@ -104,6 +104,19 @@ export const stateV32: Shape = (value, path) =>
   wallWithinState(value, path);
 
 /**
+ * As incursões-batalha do roteiro do ano 1 (`warRaids.scripted`), escritas aqui como na versão
+ * 11: o id, o instante (o início do dia de jogo, em ms de jogo, sem ritmo) e o tamanho.
+ */
+/** A antecedência com que a incursão é marcada (`threat.raidLeadMs`): 6 h de jogo. */
+export const RAID_LEAD_MS_V33 = 21_600_000;
+
+export const WAR_SCRIPTED_RAIDS_V33: ReadonlyArray<{ id: string; atMs: number; size: string }> = [
+  { id: 'raidersYear1Weak', atMs: 24 * 7_200_000, size: 'light' },
+  { id: 'raidersYear1Medium', atMs: 36 * 7_200_000, size: 'medium' },
+  { id: 'raidersYear1Rehearsal', atMs: 60 * 7_200_000, size: 'strong' },
+];
+
+/**
  * 32 → 33: a composição das incursões e a formação no relatório (V4E-T2.2; GDD §8.2; ADR 0019,
  * decisão 14; ADR 0020).
  *
@@ -111,14 +124,39 @@ export const stateV32: Shape = (value, path) =>
  *   usa a composição-base da estação em que chega (`baseRaidComposition`), sem gastar o fluxo.
  * - Cada relatório de batalha ganha `formationId: null` (não há relatório antes desta versão:
  *   nenhuma incursão lutava).
- * - `ids` e `rng` não mudam. O passo não cria prazo nem emite evento.
+ * - As incursões-batalha do roteiro do ano 1 (V4E-T2.4) são marcadas pela virada que fica 6 h de
+ *   jogo antes de cada uma; o passo só marca a que a fronteira encontra **dentro** dessa
+ *   antecedência (essa virada já passou e a incursão não), sem composição e em ordem de chegada.
+ *   A partida que já passou do instante não a recebe (o molde dos lobos, versão 11).
+ * - `ids` e `rng` não mudam. O passo não emite evento.
  */
 export const v32ToV33: MigrationStep = {
   from: 32,
-  summary: 'as incursões marcadas ficam sem composição sorteada e os relatórios, sem formação',
+  summary:
+    'as incursões marcadas ficam sem composição, as do roteiro da guerra entram para quem não passou delas, e os relatórios ficam sem formação',
   shape: stateV32,
-  migrate(state) {
+  migrate(state, { boundaryMs }) {
     const horde = state.horde as { scheduledRaids: Array<Record<string, unknown>> };
+    const marked: Array<Record<string, unknown>> = horde.scheduledRaids.map((raid) => ({
+      ...raid,
+      composition: null,
+    }));
+    for (const raid of WAR_SCRIPTED_RAIDS_V33) {
+      // Só a que a virada da antecedência (6 h de jogo antes) já não vai marcar.
+      const pending = raid.atMs > boundaryMs && raid.atMs - RAID_LEAD_MS_V33 < boundaryMs;
+      if (pending && marked.length === 0) {
+        marked.push({
+          id: raid.id,
+          atMs: raid.atMs,
+          kind: 'scripted',
+          enemy: 'wolves',
+          size: raid.size,
+          announcedAtMs: null,
+          composition: null,
+        });
+      }
+    }
+    marked.sort((a, b) => (a.atMs as number) - (b.atMs as number));
     const army = state.army as Record<string, unknown> & {
       reports: Array<Record<string, unknown>>;
     };
@@ -127,7 +165,7 @@ export const v32ToV33: MigrationStep = {
       schemaVersion: 33,
       horde: {
         ...horde,
-        scheduledRaids: horde.scheduledRaids.map((raid) => ({ ...raid, composition: null })),
+        scheduledRaids: marked,
       },
       army: {
         ...army,

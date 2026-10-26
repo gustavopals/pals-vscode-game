@@ -21,16 +21,10 @@
    2594894172,
    1435123593,
    3043442846
-  ],
-  "horde": [
-   186925846,
-   2899199892,
-   3575299120,
-   831101259
   ]
  },
  "ids": {
-  "battle": 2
+  "battle": 3
  },
  "settlement": {
   "name": "Pedra Alta",
@@ -38,7 +32,7 @@
    "food": 1000000,
    "wood": 500000,
    "stone": 85000,
-   "gold": 730153,
+   "gold": 729113,
    "iron": 0
   },
   "accumulators": {
@@ -92,8 +86,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 18853,
-   "wood": 7044,
+   "food": 18705,
+   "wood": 6681,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -162,7 +156,7 @@
     "threatActive": true
    }
   },
-  "threat": 29,
+  "threat": 22,
   "discovered": []
  },
  "horde": {
@@ -258,7 +252,7 @@
    },
    {
     "id": "battle-2",
-    "foughtAtMs": 280800000,
+    "foughtAtMs": 172800000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -310,6 +304,61 @@
     "wall": [],
     "commanders": [],
     "log": []
+   },
+   {
+    "id": "battle-3",
+    "foughtAtMs": 259200000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
    }
   ],
   "preview": null
@@ -341,12 +390,11 @@
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
-  "wasted_food": 2392853,
+  "wasted_food": 2180705,
   "cardsDrawn:woundedStranger": 1,
-  "raids_suffered": 2,
+  "raids_suffered": 3,
   "coldSpellsThisSeason": 0,
-  "wasted_wood": 531044,
-  "threatCrossed:40": 1,
+  "wasted_wood": 453681,
   "cardsExpired": 1
  }
 }

@@ -1284,7 +1284,8 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
     // 67 + 2 = 69: ainda leve. 68 + 2 = 70: média.
     expect([...sizes(67)]).toEqual(['light']);
     expect([...sizes(68)]).toEqual(['medium']);
-    expect([...sizes(95)]).toEqual(['medium']);
+    // Desde a V4E-T2.4 a Ameaça alta traz a forte, conforme a estação (`warRaids.thresholds`).
+    expect([...sizes(95)]).not.toContain('light');
     expect(rules.mediumRaidAbove).toBe(70);
   });
 
@@ -1295,7 +1296,8 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
       atMs: TURN + rules.raidLeadMs,
       kind: 'threat',
       enemy: 'wolves',
-      size: 'medium',
+      // Com a Ameaça em 100 a forte (V4E-T2.4) vem em qualquer estação que a traga.
+      size: marked?.size === 'strong' ? 'strong' : 'medium',
       announcedAtMs: null,
     });
     // A composição é sorteada na marcação (estado 33, V4E-T2.2): seis postos ou menos, na
@@ -1779,8 +1781,14 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
       expect(raidsSeen[0]?.atMs).toBe(15 * DAY);
       // As seguintes vêm da Ameaça, numeradas na ordem da partida, e nunca em menos de 4 dias
       // de jogo da anterior: o sorteio só volta na virada seguinte à chegada, e a marcada leva 3.
-      raidsSeen.slice(1).forEach((event, index) => {
+      // Desde a V4E-T2.4 as do roteiro da guerra (dias 25, 37 e 61) entram na fila também.
+      const drawn = raidsSeen
+        .slice(1)
+        .filter((event) => String(event.data.raidId).startsWith('threat-'));
+      drawn.forEach((event, index) => {
         expect(event.data.raidId).toBe(`threat-${index + 2}`);
+      });
+      raidsSeen.slice(1).forEach((event, index) => {
         const previous = raidsSeen[index];
         expect(event.atMs - (previous?.atMs ?? 0)).toBeGreaterThanOrEqual(rules.raidLeadMs + DAY);
       });
@@ -1902,7 +1910,8 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
           expect(stock).toBeGreaterThanOrEqual(0);
         }
         expect(assignedWorkers(state)).toBeLessThanOrEqual(ableVillagers(state));
-        expect(settlement.injured.length).toBeLessThanOrEqual(2);
+        // A forte (V4E-T2.4) fere até 3.
+        expect(settlement.injured.length).toBeLessThanOrEqual(3);
         expect(state.horde.scheduledRaids.length).toBeLessThanOrEqual(1);
         expect(state.map.threat).toBeGreaterThanOrEqual(0);
         expect(state.map.threat).toBeLessThanOrEqual(rules.max);

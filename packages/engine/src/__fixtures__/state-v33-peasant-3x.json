@@ -23,14 +23,14 @@
    1951322805
   ],
   "horde": [
-   652590211,
-   2534454690,
-   1355047837,
-   1971050759
+   1927819310,
+   4212907376,
+   268880693,
+   3719610487
   ]
  },
  "ids": {
-  "battle": 13,
+  "battle": 14,
   "hero": 1
  },
  "settlement": {
@@ -99,8 +99,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 10316,
-   "wood": 5712,
+   "food": 9630,
+   "wood": 5248,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -159,7 +159,7 @@
     "threatActive": true
    }
   },
-  "threat": 34,
+  "threat": 33,
   "discovered": []
  },
  "horde": {
@@ -242,8 +242,8 @@
   "activeFormationId": null,
   "reports": [
    {
-    "id": "battle-11",
-    "foughtAtMs": 1087200000,
+    "id": "battle-12",
+    "foughtAtMs": 1116000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -256,15 +256,15 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 6,
+      "start": 10,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "raider",
-      "start": 7,
+      "unit": "ogre",
+      "start": 3,
       "lost": 0
      },
      {
@@ -272,23 +272,23 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 3,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
       "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
+      "line": "front",
+      "unit": "blackKnight",
+      "start": 5,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
       "line": "back",
-      "unit": "shaman",
-      "start": 1,
+      "unit": "banditArcher",
+      "start": 2,
       "lost": 0
      }
     ],
@@ -297,8 +297,63 @@
     "log": []
    },
    {
-    "id": "battle-12",
-    "foughtAtMs": 1116000000,
+    "id": "battle-13",
+    "foughtAtMs": 1173600000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "start": 2,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-14",
+    "foughtAtMs": 1202400000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -350,45 +405,6 @@
     "wall": [],
     "commanders": [],
     "log": []
-   },
-   {
-    "id": "battle-13",
-    "foughtAtMs": 1224000000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "wolf",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "wolf",
-      "start": 7,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
    }
   ],
   "preview": null
@@ -408,17 +424,17 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 2,
-  "wasted_food": 10985316,
+  "wasted_food": 10867630,
   "cardsDrawn:thawBridgePlea": 3,
-  "raids_suffered": 13,
-  "wasted_wood": 5857712,
+  "raids_suffered": 14,
+  "wasted_wood": 5710248,
   "coldSpellsThisSeason": 0,
-  "threatCrossed:40": 6,
   "cardsExpired": 8,
   "cardsDrawn:woundedStranger": 1,
   "seasonsSurvived:summer": 2,
   "cardsDrawn:roofBeforeCold": 1,
-  "threatCrossed:70": 7,
+  "threatCrossed:40": 6,
+  "threatCrossed:70": 6,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
   "seasonsSurvived:spring": 1,

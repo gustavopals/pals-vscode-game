@@ -224,6 +224,11 @@ function stripArmy(copy: Draft): void {
     delete copy.settlement.wall;
     delete copy.settlement.wallRepair;
   }
+  // E a composição de cada incursão marcada, do passo 32 → 33 (V4E-T2.2).
+  const horde = (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde;
+  for (const raid of horde?.scheduledRaids ?? []) {
+    delete raid.composition;
+  }
 }
 
 /**
@@ -3850,6 +3855,8 @@ describe('versão 10 → 11', () => {
     enemy: 'wolves',
     size: 'light',
     announcedAtMs: null,
+    // A composição entra no passo 32 → 33 (V4E-T2.2): a partida migrada chega sem ela.
+    composition: null,
   };
   const raidEvents = (events: GameEvent[]) =>
     events.filter((event) => /^(raid|wolves|villager(Injured|Recovered))/.test(event.type));

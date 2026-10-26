@@ -57,6 +57,10 @@ describe('advanceTo', () => {
       'dayStarted',
       'villagerDeserted',
       'cardDrawn',
+      // A incursão-batalha do 25º dia (V4E-T2.4), depois do Conselho.
+      'battleFought',
+      'raidSuffered',
+      'villagerInjured',
     ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');
@@ -68,12 +72,14 @@ describe('advanceTo', () => {
     expect(state.clock).toEqual({ gameTimeMs: YEAR_MS, yearStartMs: YEAR_MS, year: 2 });
     const atBoundary = events.filter((event) => event.atMs === YEAR_MS);
     // Depois do amanhecer vem o Conselho: a virada do ano é também uma audiência.
-    expect(atBoundary.map((event) => event.type).slice(0, 3)).toEqual([
+    // Quem se feriu numa incursão do ano 1 pode sarar no mesmo instante (V4E-T2.4).
+    const turn = atBoundary.filter((event) => event.type !== 'villagerRecovered');
+    expect(turn.map((event) => event.type).slice(0, 3)).toEqual([
       'yearStarted',
       'seasonChanged',
       'dayStarted',
     ]);
-    expect(atBoundary[0]?.text).toBe('Começa o ano 2 da Casa de Pedra Alta.');
+    expect(turn[0]?.text).toBe('Começa o ano 2 da Casa de Pedra Alta.');
     expect(eventsOfType(events, 'dayStarted')).toHaveLength(84);
     expect(eventsOfType(events, 'seasonChanged')).toHaveLength(4);
   });

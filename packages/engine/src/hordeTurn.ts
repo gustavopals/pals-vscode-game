@@ -1,10 +1,10 @@
 import { balance } from '@lotg/content';
 
 import { seasonAt } from './clock';
-import { buildRaidComposition } from './raidArmy';
-import { soundHowls } from './raids';
+import { buildRaidComposition, raidSizeFor } from './raidArmy';
+import { markScriptedWarRaids, soundHowls } from './raids';
 import { chance, nextInt } from './random';
-import { raidChancePercent, raidingEnemy, raidSizeAt, turnThreat } from './threat';
+import { raidChancePercent, raidingEnemy, turnThreat } from './threat';
 import type { GameEvent, GameState } from './types';
 
 /**
@@ -32,6 +32,7 @@ import type { GameEvent, GameState } from './types';
 export function turnHorde(draft: GameState, atMs: number, events: GameEvent[]): void {
   turnThreat(draft, atMs, events);
   soundHowls(draft, atMs, events);
+  markScriptedWarRaids(draft, atMs);
   drawRaid(draft, atMs);
 }
 
@@ -42,13 +43,14 @@ function drawRaid(draft: GameState, atMs: number): void {
   if (horde.scheduledRaids.length > 0 || percent <= 0 || enemy === null) {
     return;
   }
+  const arrivesAtMs = atMs + balance.threat.raidLeadMs;
   if (!chance(draft, 'horde', { num: percent, den: 100 })) {
     return;
   }
   // Uma incursão por vez: a ordem dela na partida é o que já foi resolvido, mais um.
   const order = (stats.raids_suffered ?? 0) + (stats.raids_repelled ?? 0) + 1;
-  const arrivesAtMs = atMs + balance.threat.raidLeadMs;
-  const size = raidSizeAt(draft.map.threat);
+  // O tamanho, com o forte (V4E-T2.4; D-11): os limiares da estação em que ela chega.
+  const size = raidSizeFor(draft.map.threat, seasonAt(arrivesAtMs).id);
   // A composição sai do mesmo fluxo, logo depois do sorteio da incursão (V4E-T2.2): um sorteio
   // por posto, na estação em que ela chega. Fica gravada; a névoa decide o que a visão mostra.
   const composition = buildRaidComposition(size, seasonAt(arrivesAtMs).id, (max) =>

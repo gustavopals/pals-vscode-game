@@ -1,8 +1,9 @@
-import { balance } from '@lotg/content';
+import { balance, warRaids } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { DAY_MS } from './clock';
+import { WAR_SCRIPTED_RAIDS_V33 } from './migrations/v32';
 import { newGame } from './test-helpers';
 import { deriveViewState } from './view';
 import type { GameEvent, GameState } from './types';
@@ -152,5 +153,66 @@ describe('a névoa da composição (V4E-T2.5)', () => {
       'Os vigias contam cerca de 10 contra a ala esquerda, cerca de 20 contra o centro e cerca de 10 contra a ala direita.',
     );
     expect(text(5)).toMatch(/^Os vigias contam 9 lobos na frente contra a ala esquerda, 12 /);
+  });
+});
+
+describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
+  it('são marcadas na virada 6 h de jogo antes de cada uma (dias 25, 37 e 61), sem composição', () => {
+    expect(newGame().horde.scheduledRaids.map((raid) => raid.id)).toEqual(['wolvesYear1']);
+    const lead = balance.threat.raidLeadMs;
+    const marked: Array<[string, number, string]> = [];
+    let state = newGame();
+    for (const def of warRaids.scripted) {
+      const atMs = (def.atGameDay - 1) * DAY_MS;
+      const justBefore = advanceTo(state, atMs - lead - 1).state;
+      expect(justBefore.horde.scheduledRaids.some((raid) => raid.id === def.id)).toBe(false);
+      state = advanceTo(justBefore, atMs - lead).state;
+      const raid = state.horde.scheduledRaids.find((entry) => entry.id === def.id);
+      expect(raid).toMatchObject({ kind: 'scripted', composition: null });
+      marked.push([def.id, (raid?.atMs ?? 0) / DAY_MS + 1, raid?.size ?? '']);
+      // A lista continua em ordem de chegada.
+      const times = state.horde.scheduledRaids.map((entry) => entry.atMs);
+      expect(times).toEqual([...times].sort((a, b) => a - b));
+    }
+    expect(marked).toEqual([
+      ['raidersYear1Weak', 25, 'light'],
+      ['raidersYear1Medium', 37, 'medium'],
+      ['raidersYear1Rehearsal', 61, 'strong'],
+    ]);
+  });
+
+  it('o passo 32 → 33 escreve os mesmos ids, dias e tamanhos do conteúdo', () => {
+    expect(WAR_SCRIPTED_RAIDS_V33).toEqual(
+      warRaids.scripted.map((def) => ({
+        id: def.id,
+        atMs: (def.atGameDay - 1) * DAY_MS,
+        size: def.size,
+      })),
+    );
+  });
+
+  it('a do 25º dia chega como batalha', () => {
+    const before = advanceTo(newGame(), 24 * DAY_MS - 1).state;
+    expect(before.horde.scheduledRaids[0]?.id).toBe('raidersYear1Weak');
+    const { state, events } = advanceTo(before, 24 * DAY_MS);
+    const here = at(events, 24 * DAY_MS);
+    expect(here.some((event) => event.type === 'battleFought')).toBe(true);
+    expect(
+      here.some((event) => event.type === 'raidSuffered' || event.type === 'raidRepelled'),
+    ).toBe(true);
+    expect(state.horde.scheduledRaids.some((raid) => raid.id === 'raidersYear1Weak')).toBe(false);
+  });
+
+  it('a forte do 61º dia (o ensaio), sem defesa, leva no máximo a perda de `warRaids.losses.strong`', () => {
+    const before = advanceTo(newGame(), 60 * DAY_MS - 1).state;
+    before.horde.scheduledRaids = before.horde.scheduledRaids.filter(
+      (raid) => raid.id === 'raidersYear1Rehearsal',
+    );
+    before.settlement.buildings.palisade = 0;
+    before.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+    const { events } = advanceTo(before, 60 * DAY_MS);
+    const suffered = at(events, 60 * DAY_MS).find((event) => event.type === 'raidSuffered');
+    expect(suffered?.data).toMatchObject({ size: 'strong' });
+    expect(Number(suffered?.data.injured)).toBeLessThanOrEqual(warRaids.losses.strong.injuries);
   });
 });

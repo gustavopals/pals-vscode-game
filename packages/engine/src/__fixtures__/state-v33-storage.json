@@ -24,7 +24,7 @@
   ]
  },
  "ids": {
-  "battle": 1,
+  "battle": 2,
   "hero": 1
  },
  "settlement": {
@@ -32,7 +32,7 @@
   "resources": {
    "food": 800000,
    "wood": 241264,
-   "stone": 279887,
+   "stone": 278395,
    "gold": 249900,
    "iron": 0
   },
@@ -92,8 +92,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 23521,
-   "wood": 25194,
+   "food": 23917,
+   "wood": 25410,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -154,11 +154,21 @@
     "threatActive": true
    }
   },
-  "threat": 40,
+  "threat": 22,
   "discovered": []
  },
  "horde": {
-  "scheduledRaids": []
+  "scheduledRaids": [
+   {
+    "id": "raidersYear1Medium",
+    "atMs": 259200000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "medium",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ]
  },
  "guild": {
   "heroes": [
@@ -270,6 +280,61 @@
     "wall": [],
     "commanders": [],
     "log": []
+   },
+   {
+    "id": "battle-2",
+    "foughtAtMs": 172800000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
    }
   ],
   "preview": null
@@ -288,17 +353,16 @@
  "stats": {
   "cardsDrawn": 4,
   "cardsDrawn:thawBridgePlea": 1,
-  "wasted_food": 909521,
+  "wasted_food": 797917,
   "cardsDrawn:masonsMeal": 1,
-  "wasted_wood": 852194,
+  "wasted_wood": 807410,
   "constructionsStarted:townHall": 1,
   "constructionsStarted:granary": 1,
-  "raids_suffered": 1,
+  "raids_suffered": 2,
   "cardsExpired": 3,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
   "cardsDrawn:collapsedWell": 1,
-  "threatCrossed:40": 1,
   "constructionsStarted:warehouse": 1
  }
 }

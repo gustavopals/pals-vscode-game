@@ -31,6 +31,7 @@ import {
 } from './format';
 import { clearedTiles, tileWithArticle } from './outcomes';
 import { baseRaidComposition } from './raidArmy';
+import { bandText, legacySize } from './raids';
 import {
   isThreatWatched,
   palisadeAgainst,
@@ -597,10 +598,12 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   const now = state.lastProcessedAt;
   const enemy = enemies[raid.enemy];
   const enemyLabel = sentenceCase(enemy.label);
-  const sizeText = perks.revealsRaidSize ? enemy.sizes[raid.size] : null;
+  const sizeText = perks.revealsRaidSize ? bandText(raid.enemy, raid.size) : null;
   // Os tamanhos que a incursão pode ter, para quem olha da Torre: o que os vigias contaram, ou
   // todos, enquanto ela não distingue.
-  const sizes: readonly RaidSizeId[] = perks.revealsRaidSize ? [raid.size] : RAID_SIZE_IDS;
+  const sizes: readonly RaidSizeId[] = perks.revealsRaidSize
+    ? [legacySize(raid.size)]
+    : RAID_SIZE_IDS;
   return {
     enemy: raid.enemy,
     enemyLabel,
