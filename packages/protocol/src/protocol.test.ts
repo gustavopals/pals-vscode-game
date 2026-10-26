@@ -31,6 +31,7 @@ import {
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
+  warRaids,
   ITEM_SLOT_IDS,
 } from '@lotg/content';
 import type {
@@ -2689,6 +2690,7 @@ describe('contentHash', () => {
         startingTiles,
         enemies,
         raidSizes,
+        warRaids,
         threatMarkTemplates,
         raidTemplates,
         injuryTemplates,
@@ -2747,6 +2749,7 @@ describe('contentHash', () => {
       'threatMarkTemplates',
       'tileTypes',
       'wageArrearsReliefs',
+      'warRaids',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
