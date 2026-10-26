@@ -1547,6 +1547,7 @@ describe('política "erguer a Paliçada"', () => {
     text: 'Lobos a caminho.',
     costText: 'O que custa.',
     defenseText: 'Sem Paliçada, nada segura este ataque.',
+    compositionText: null,
   };
   const decide = async (view: ViewState) => {
     const { act, orders } = recorder(view);

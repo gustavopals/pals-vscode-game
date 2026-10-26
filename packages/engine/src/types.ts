@@ -1575,6 +1575,13 @@ export type ThreatIncomingView = {
    * avisa que não dá tempo ("A obra em curso só termina depois dele.").
    */
   defenseText: string;
+  /**
+   * O que os vigias dizem do exército da incursão (V4E-T2.5), conforme o nível da Torre
+   * (`watchtowerLevels[].composition`): `null` nos níveis 1 e 2; os tipos de inimigo no 3;
+   * quantos vêm por ala, arredondado, no 4; a composição exata no 5. A composição sorteada
+   * nunca sai além disto.
+   */
+  compositionText: string | null;
 };
 
 /**

@@ -863,6 +863,7 @@ describe('ViewStateSchema', () => {
       costText:
         'Sem defesa, uma matilha pequena leva 10% do estoque de comida e madeira (hoje, 18 de comida e 12 de madeira) e fere 1 aldeão, que fica 40 min sem trabalhar.',
       defenseText: 'Sem Paliçada, nada segura este ataque.',
+      compositionText: null,
     };
     expect(parses({ ...view.threat, incoming })).toBe(true);
     expect(parses({ ...view.threat, incoming: null })).toBe(true);

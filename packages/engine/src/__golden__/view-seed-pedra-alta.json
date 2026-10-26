@@ -18230,7 +18230,8 @@
         "sizeText": "uma matilha grande",
         "text": "Lobos a caminho. Os vigias contam uma matilha grande.",
         "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
-        "defenseText": "Sem Paliçada, nada segura este ataque."
+        "defenseText": "Sem Paliçada, nada segura este ataque.",
+        "compositionText": null
       },
       "clearedText": null,
       "watchtower": {
@@ -21246,7 +21247,8 @@
         "sizeText": "uma matilha grande",
         "text": "Lobos a caminho. Os vigias contam uma matilha grande.",
         "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 63 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
-        "defenseText": "A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago."
+        "defenseText": "A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago.",
+        "compositionText": null
       },
       "clearedText": null,
       "watchtower": {
