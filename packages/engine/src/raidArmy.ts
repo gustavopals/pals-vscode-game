@@ -22,7 +22,7 @@ import type { Formation } from './types';
  * O exército de uma incursão e o de quem a enfrenta (V4E-T2.1 e a parte pura da T2.3; GDD §8.2;
  * ADR 0019, decisão 14). **Funções puras**: não leem o estado, não gravam nada e não sorteiam
  * por conta própria. O sorteio entra por `Roll`, que a V4E-T2.2 ligará ao fluxo `horde` quando a
- * incursão é marcada. Nenhuma incursão chama este módulo ainda.
+ * incursão é marcada. Desde a V4E-T2.2 e a T2.3, a marcação e a incursão o chamam.
  */
 
 /** Um sorteio injetado: um inteiro em `[0, maxExclusive)`. */

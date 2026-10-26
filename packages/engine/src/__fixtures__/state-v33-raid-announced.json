@@ -36,6 +36,7 @@
   ]
  },
  "ids": {
+  "battle": 1,
   "hero": 1
  },
  "settlement": {
@@ -290,7 +291,47 @@
   "training": null,
   "formations": [],
   "activeFormationId": null,
-  "reports": [],
+  "reports": [
+   {
+    "id": "battle-1",
+    "foughtAtMs": 108000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "wolf",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 7,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
   "preview": null
  },
  "objectives": {

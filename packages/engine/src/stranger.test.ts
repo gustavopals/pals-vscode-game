@@ -357,7 +357,8 @@ describe('a carta que expira também entrega um herói', () => {
       expect(end.state.guild.heroes.map((hero) => [hero.name, hero.joinedAtMs])).toEqual([
         ['Edda', deadline],
       ]);
-      expect(end.state.ids).toEqual({ hero: 1 });
+      // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte.
+      expect({ ...end.state.ids, battle: undefined }).toEqual({ hero: 1 });
       expect(end.state.stats.cardsExpired).toBeGreaterThanOrEqual(1);
     },
   );
@@ -524,7 +525,7 @@ describe('partidas que já passaram do 13º dia (ADR 0017, decisão 6: "Sim, a t
     expect(scriptedCard(years.state, years.state.lastProcessedAt, CATALOG)).toBeNull();
     // A virada do ano zera a lista das cartas vistas, e a estrangeira não depende dela.
     expect(years.state.council.seenThisYear).not.toContain(STRANGER);
-    expect(years.state.ids).toEqual({ hero: 1 });
+    expect({ ...years.state.ids, battle: undefined }).toEqual({ hero: 1 });
   });
 });
 

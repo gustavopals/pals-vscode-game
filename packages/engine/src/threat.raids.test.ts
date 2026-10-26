@@ -599,7 +599,13 @@ describe('a resolução no instante marcado', () => {
     const { state, events } = advanceTo(feud({ tower: 1, edit: at30 }), RAID_AT);
     const at = events.filter((event) => event.atMs === RAID_AT).map((event) => event.type);
     // O fecho do desperdício do dia que acabou abre a virada (a despensa do cenário enche).
-    expect(at).toEqual(['storageWasted', 'dayStarted', 'raidSuffered', 'villagerInjured']);
+    expect(at).toEqual([
+      'storageWasted',
+      'dayStarted',
+      'battleFought',
+      'raidSuffered',
+      'villagerInjured',
+    ]);
     // A Ameaça subiu na virada (30 + 3 × 2) e caiu com a incursão, nessa ordem: ao contrário,
     // daria 34 − 35 = 0, e a virada a levaria a 2.
     expect(only(events, 'raidSuffered').data).toMatchObject({ previousThreat: 36, threat: 1 });

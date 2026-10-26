@@ -20105,7 +20105,66 @@
         "heroes": []
       },
       "preview": null,
-      "reports": []
+      "reports": [
+        {
+          "id": "battle-1",
+          "mode": "defense",
+          "modeLabel": "Defesa do feudo",
+          "outcome": "defeat",
+          "outcomeLabel": "Derrota",
+          "ending": "annihilation",
+          "endingText": "Um dos lados ficou sem esquadrões.",
+          "roundsCount": 0,
+          "factors": [],
+          "noFactorText": "Nenhum fator se destacou: pesou a força dos braços.",
+          "rounds": [],
+          "casualties": [
+            {
+              "owner": "horde",
+              "wing": "left",
+              "line": "front",
+              "start": 10,
+              "lost": 0,
+              "text": "A Horda, ala esquerda, frente: saqueadores, 0 de 10."
+            },
+            {
+              "owner": "horde",
+              "wing": "center",
+              "line": "front",
+              "start": 12,
+              "lost": 0,
+              "text": "A Horda, centro, frente: saqueadores, 0 de 12."
+            },
+            {
+              "owner": "horde",
+              "wing": "center",
+              "line": "back",
+              "start": 6,
+              "lost": 0,
+              "text": "A Horda, centro, retaguarda: bandoleiros arqueiros, 0 de 6."
+            },
+            {
+              "owner": "horde",
+              "wing": "right",
+              "line": "front",
+              "start": 10,
+              "lost": 0,
+              "text": "A Horda, ala direita, frente: saqueadores, 0 de 10."
+            },
+            {
+              "owner": "horde",
+              "wing": "right",
+              "line": "back",
+              "start": 2,
+              "lost": 0,
+              "text": "A Horda, ala direita, retaguarda: bandoleiros arqueiros, 0 de 2."
+            }
+          ],
+          "wall": [],
+          "commanders": [],
+          "adjustFormationId": null
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -25978,7 +26037,50 @@
         ]
       },
       "preview": null,
-      "reports": []
+      "reports": [
+        {
+          "id": "battle-1",
+          "mode": "defense",
+          "modeLabel": "Defesa do feudo",
+          "outcome": "defeat",
+          "outcomeLabel": "Derrota",
+          "ending": "annihilation",
+          "endingText": "Um dos lados ficou sem esquadrões.",
+          "roundsCount": 0,
+          "factors": [],
+          "noFactorText": "Nenhum fator se destacou: pesou a força dos braços.",
+          "rounds": [],
+          "casualties": [
+            {
+              "owner": "horde",
+              "wing": "left",
+              "line": "front",
+              "start": 6,
+              "lost": 0,
+              "text": "A Horda, ala esquerda, frente: lobos, 0 de 6."
+            },
+            {
+              "owner": "horde",
+              "wing": "center",
+              "line": "front",
+              "start": 10,
+              "lost": 0,
+              "text": "A Horda, centro, frente: lobos, 0 de 10."
+            },
+            {
+              "owner": "horde",
+              "wing": "right",
+              "line": "front",
+              "start": 7,
+              "lost": 0,
+              "text": "A Horda, ala direita, frente: lobos, 0 de 7."
+            }
+          ],
+          "wall": [],
+          "commanders": [],
+          "adjustFormationId": null
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {

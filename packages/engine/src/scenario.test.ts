@@ -103,6 +103,13 @@ describe('cenário golden de 7 dias', () => {
         70,
         'No 9º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
       ],
+      // Desde o estado 33 a composição sai do fluxo `horde`, e a semana muda: uma incursão a
+      // mais chega às 112 h e derruba a Ameaça, que torna aos 40 às 114 h.
+      [
+        114,
+        40,
+        'No 10º dia do Outono, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 41.',
+      ],
       [
         126,
         70,
@@ -133,8 +140,8 @@ describe('cenário golden de 7 dias', () => {
     // Os lobos (GDD §8.2). Os uivos às 18 h, sem vigia nenhum. A incursão do roteiro às 30 h,
     // leve, já com a Torre: os vigias avisam uma hora antes, e sem Paliçada ela custa 10% da
     // comida e da madeira e um ferido. Depois a Ameaça leva um verão inteiro para voltar aos 40,
-    // e as que ela sorteia no outono são leves: as quatro recuam diante da Paliçada, já no nível
-    // 2 desde as 97 h 30. A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
+    // e as que ela sorteia no outono recuam diante da Paliçada, já no nível 2 desde as 97 h 30
+    // (desde o estado 33 são cinco, uma delas média). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
     // com o tamanho; as outras, duas horas antes.
     const raidStory = events
       .filter((event) => /^(wolvesHowl|raidSuffered|raidRepelled)$/.test(event.type))
@@ -149,18 +156,21 @@ describe('cenário golden de 7 dias', () => {
       [18, 'wolvesHowl', null, null, null],
       [30, 'raidSuffered', 'light', 0, 1],
       [98, 'raidRepelled', 'light', 2, null],
-      [114, 'raidRepelled', 'light', 2, null],
-      [128, 'raidRepelled', 'light', 2, null],
+      // Desde o estado 33 (a composição no fluxo `horde`), as sorteadas caem em outros dias.
+      [112, 'raidRepelled', 'light', 2, null],
+      [136, 'raidRepelled', 'medium', 2, null],
       [144, 'raidRepelled', 'light', 2, null],
+      [168, 'raidRepelled', 'light', 2, null],
     ]);
     // Cada uma foi anunciada pelos vigias, com a antecedência do nível da Torre daquela hora.
     const announced = events.filter((event) => event.type === 'raidAnnounced');
     expect(announced.map((event) => [event.atMs / HOUR, event.data.warning])).toEqual([
       [29, 'warned'],
       [96 + 18 / 60, 'sized'],
-      [112, 'sized'],
-      [126, 'sized'],
+      [110, 'sized'],
+      [134, 'sized'],
       [142, 'sized'],
+      [166, 'sized'],
     ]);
     // Entre uma incursão e a seguinte passam ao menos quatro dias de jogo (8 h).
     const resolvedAt = raidStory.slice(1).map(([hour]) => hour as number);
@@ -188,17 +198,17 @@ describe('cenário golden de 7 dias', () => {
       [32, null],
     ]);
     expect(state.settlement.injured).toEqual([]);
-    expect(state.stats).toMatchObject({ raids_suffered: 1, raids_repelled: 4 });
+    expect(state.stats).toMatchObject({ raids_suffered: 1, raids_repelled: 5 });
     expect(state.rng.horde).toHaveLength(4);
     // A última incursão do ano já passou, e a seguinte ainda não foi sorteada.
     expect(state.horde.scheduledRaids).toEqual([]);
-    expect(state.map.threat).toBe(70);
+    expect(state.map.threat).toBe(35);
     const lastView = deriveViewState(state, state.lastProcessedAt).threat;
     expect(lastView).toMatchObject({
       known: true,
-      level: 70,
+      level: 35,
       risePerDay: 2,
-      raidChancePercent: 32,
+      raidChancePercent: 0,
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no
@@ -346,7 +356,8 @@ describe('cenário golden de 7 dias', () => {
       // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
       inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
-    expect(state.ids).toEqual({ hero: 1, item: 1 });
+    // As seis incursões da semana viraram batalha (V4E-T2.3).
+    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 6 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a

@@ -30,6 +30,7 @@
   ]
  },
  "ids": {
+  "battle": 13,
   "hero": 1
  },
  "settlement": {
@@ -239,7 +240,157 @@
   "training": null,
   "formations": [],
   "activeFormationId": null,
-  "reports": [],
+  "reports": [
+   {
+    "id": "battle-11",
+    "foughtAtMs": 1087200000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-12",
+    "foughtAtMs": 1116000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "blackKnight",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-13",
+    "foughtAtMs": 1224000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 7,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
   "preview": null
  },
  "objectives": {

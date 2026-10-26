@@ -829,7 +829,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       ['Edda', false],
       ['Rolf', true],
     ]);
-    expect(of('wage-arrears').ids).toEqual({ hero: 3 });
+    // A incursão dos lobos virou batalha (V4E-T2.3): a batalha conta em `ids`.
+    expect(of('wage-arrears').ids).toEqual({ hero: 3, battle: 1 });
     expect(of('wage-arrears').settlement.resources.gold).toBe(0);
     const paidAt = of('wage-arrears').lastProcessedAt;
     const settled = of('wage-arrears-ended').guild;
