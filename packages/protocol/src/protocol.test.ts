@@ -32,6 +32,7 @@ import {
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
+  warRaids,
   ITEM_SLOT_IDS,
 } from '@lotg/content';
 import type {

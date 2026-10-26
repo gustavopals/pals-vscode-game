@@ -292,18 +292,24 @@ describe('index.html', () => {
         line: text(/<p class="sheet-class">([^<]*)<\/p>/.exec(sheet)?.[1] ?? '').trim(),
         trait: paragraphs(sheet).at(-1),
       }));
-      const expected = Object.values(namedHeroes).map((hero) => {
-        const heroClass = heroClasses[hero.classId];
-        const trait = heroTraits[hero.traits[0] ?? 'loyal'];
-        const feminine = hero.gender === 'f';
-        return {
-          name: hero.name,
-          line: `${feminine ? heroClass.labelFeminine : heroClass.label} · ${
-            feminine ? trait.labelFeminine : trait.label
-          }`,
-          trait: trait.text,
-        };
-      });
+      // A página mostra os dois heróis da carta da estrangeira; os heróis com nome que vieram
+      // depois (o capitão veterano do lote 2, v0.4) não precisam estar nela, mas quem estiver
+      // tem de dizer o que o jogo diz.
+      expect(shown.map((sheet) => sheet.name)).toEqual(['Edda', 'Rolf']);
+      const expected = Object.values(namedHeroes)
+        .filter((hero) => shown.some((sheet) => sheet.name === hero.name))
+        .map((hero) => {
+          const heroClass = heroClasses[hero.classId];
+          const trait = heroTraits[hero.traits[0] ?? 'loyal'];
+          const feminine = hero.gender === 'f';
+          return {
+            name: hero.name,
+            line: `${feminine ? heroClass.labelFeminine : heroClass.label} · ${
+              feminine ? trait.labelFeminine : trait.label
+            }`,
+            trait: trait.text,
+          };
+        });
       expect(shown).toEqual(expected);
     });
 
