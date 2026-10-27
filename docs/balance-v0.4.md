@@ -566,3 +566,77 @@ deles, e mais incursões são repelidas.
 **O que não foi medido.** A finta do militar (seção 11.4) não foi refeita: a correção D-45c
 muda o que ela pode fazer (a finta "sem Defesa" deixa de apagar a memória). Os arquivos da
 rodada ficaram no scratchpad da sessão.
+
+## 13. Resposta do autor: a Fortaleza sem Ameaça até o Cerco (2026-10-27)
+
+Branch `v4e-t3-correcoes`, a partir de `a4e94b3` (estado 34, protocolo 3); Node 22.22.3;
+conteúdo **`005039daa65b3902`**. Sem publicação.
+
+**A resposta.** Na pendência D-43 o autor respondeu "Fortaleza sem +2 até o Cerco": a
+Fortaleza da Horda aparece na virada que abre o outono e manda presságios como antes, mas
+**não soma Ameaça** até o Cerco existir (Fase G), que é o que a descarregaria. O Acampamento
+continua com +2. No conteúdo, `tileTypes[].threatPerDay` (opcional; sem ele vale
+`balance.threat.perActiveTilePerDay`), com `hordeFortress` em 0; o motor não lista o termo de
+0 entre as origens da visão ("+2/dia: Fortaleza da Horda" sumiu). A forma do estado não mudou.
+Nenhum bot foi mexido.
+
+**Rodadas.** `pnpm -s sim -- --matrix` em Senhor, Camponês e Rei de Ferro, 50 sementes cada
+(3.600 partidas), contra as da seção 12. Zero horas de fome, zero de frio e zero recusas.
+`MEASURED` foi trocada pelas três rodadas (59 das 72 linhas mudaram); a regra de folga não mudou.
+
+### 13.1 A Ameaça de um ano
+
+Senhor, as 1.000 partidas de um ano de jogo ou mais (`balance.test.ts`):
+
+| | Antes da V4E-T3 (seção 10) | V4E-T3 com a revisão (seção 12) | Agora |
+| --- | --- | --- | --- |
+| Ameaça final máxima | 92 | 100 | 100 (uma partida) |
+| Finais em 80 ou mais | até 2 | 330 | **76** (31 em 90 ou mais) |
+| Regular, Normal, um ano: Ameaça no fim | 28–63 | 49–100 | 22–99 |
+| Regular, Normal, um ano: repelidas | 4–5 | — | 5–8 |
+
+A Ameaça cai bastante, mas **não volta à seção 10**: o Acampamento soma +2 do 25º dia até a
+virada do ano, e no inverno o Covil e ele somam +4 por dia sem o outono para descarregar. Nos
+goldens do motor (`horde-pressure.json`, `horde-raids-per-year.json`) os cinco feudos sem
+intervenção passam de 10,5–11,5 para 9,5–10,5 incursões por ano, e as leves sobem de 35 para
+48 (as médias e fortes descem de 69 para 47; 30 delas do outono em diante, eram 44).
+
+### 13.2 O jogador de uma visita por dia
+
+Extremos nas 50 sementes, Preguiçoso, ritmo Rápido (seção 12 → agora):
+
+| Dificuldade e janela | População | Salão | Objetivos | Sofridas | Repelidas | Feridos |
+| --- | --- | --- | --- | --- | --- | --- |
+| Camponês, 1 ano | 16 → 16 | 2–3 → 2–3 | 9–11 → 9–11 | 8–11 → 7–9 | 0–1 → 0–1 | 12–17 → 7–14 |
+| Camponês, 7 dias reais | 36–56 → 36–51 | 6–7 → 5–7 | 12 → 12 | 9–17 → 7–15 | 16–25 → 15–24 | 13–25 → 7–21 |
+| Senhor, 1 ano | 16 → 16 | 2–3 → 2–3 | 9–11 → 9–11 | 8–11 → 7–9 | 0–1 → 0–1 | 12–18 → 7–14 |
+| Senhor, 7 dias reais | 36–52 → 36–51 | 6–7 → 5–7 | 12 → 12 | 9–17 → 7–15 | 16–25 → 15–24 | 13–25 → 7–21 |
+| Rei de Ferro, 1 ano | 16 → 16 | 2–3 → 2–3 | 9–10 → 9–10 | 8–11 → 8–10 | 0 → 0 | 12–19 → 8–16 |
+| Rei de Ferro, 7 dias reais | 36–54 → 36–54 | 6–7 → 6–7 | 12 → 12 | 9–17 → 9–15 | 16–25 → 15–23 | 14–25 → 9–21 |
+
+Os feridos caem (Senhor, semana: de 13–25 para 7–21), mas **não voltam** aos 4–11 da seção 10.
+A população e os objetivos não melhoram; em Camponês e em Senhor duas ou três sementes fecham
+a semana com o Salão no nível 5 (era 6 no pior caso), o que pôs essas células fora da faixa
+antiga até `MEASURED` ser trocada (a causa exata não foi investigada: a fila de obras muda
+quando as incursões mudam de dia).
+
+### 13.3 O que mais mudou
+
+- **Meta de desperdício** (Regular, Senhor): o Normal volta a caber nela (pior caso de 7 h, era
+  9 h na semana e no ano); só a semana do Rápido passa (33 h).
+- **Heróis do Explorador**, semana do Normal: de seis a sete (eram quatro a sete).
+- **Regular da semana do Normal**: de 54 a 68 aldeões na medida (faixa 48–75).
+- **Faixas que saíram por uma ou duas sementes** antes de trocar `MEASURED`: em Senhor, o
+  Salão do Preguiçoso da semana do Rápido (5, 2 de 50), a sequência desperdiçando madeira do
+  Regular da mesma célula (33 h), e excedentes parados do Explorador e do Regular; em Camponês e
+  em Rei de Ferro, excedentes parados e sequências de uma semente. Nenhuma em fome, frio ou recusa.
+- Testes de três sementes (`matrix.test.ts`, `simulate.test.ts`, `coverage.test.ts`): o Regular
+  da semana do Rápido repele 25 a 29 e termina com a Ameaça entre 57 e 74 (eram 27 a 31 e 67 a
+  89); o Preguiçoso do ano do Rápido volta ao Salão Nv3 na hora 53 e a onze objetivos na
+  semente 001; a cadeia do Celeiro Comum volta a ser aberta em quatro das 50 sementes no
+  Rápido (eram três).
+
+**O que não foi medido.** A finta do militar (seção 11.4) e a pressão por estação da seção 11.2
+(`scripts/measure-v4e-t3.ts`) não foram refeitas. Os arquivos das rodadas ficaram no
+scratchpad da sessão. **Fica para o autor**: se o Acampamento também precisa de ajuste até o
+Cerco (a Ameaça de fim de ano e os feridos do Preguiçoso continuam acima da seção 10).

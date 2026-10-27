@@ -279,11 +279,13 @@ describe('relatório da matriz', () => {
       // no Normal a madeira, por 4 a 8 h; no ano do Rápido só a madeira, por 6 h.
       // D-39 (docs/balance-v0.4.md, seção 10): na semana do Rápido a madeira, por 27 a 30 h, e a
       // pedra por 18 a 24; no Normal a pedra por até 1 h; o ano do Rápido não perde nada.
-      '| 7 dias reais | Rápido 3× | Regular | 15 a 21 | 0 a 27 | 3 a 24 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 | 3 a 5 | 0 | ≤ 8 | dentro |',
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a semana do Rápido volta à madeira de 27 a 30 h e à pedra de 18 a 24, e
+      // no Normal a comida vai ao chão por até 1 h.
+      '| 7 dias reais | Rápido 3× | Regular | 15 a 21 | 27 a 30 | 18 a 24 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 a 1 | 3 a 5 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 a 3 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 | 3 a 5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 a 1 | 3 a 5 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0 a 2 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
@@ -295,8 +297,9 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      // Remedida na resposta do autor à D-39 (docs/balance-v0.4.md, seção 10).
-      "  'week/3/regular': measured([73, 82], 8, 0, 0, 5200, 4550, 92933, 27),",
+      // Remedida na resposta do autor à D-39 (docs/balance-v0.4.md, seção 10) e com a
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13).
+      "  'week/3/regular': measured([73, 83], 8, 0, 0, 5200, 4900, 92931, 30),",
     );
   });
 
@@ -328,7 +331,9 @@ describe('relatório da matriz', () => {
       // esgotam as obras entre as horas 156 e 165.
       // D-39 (as do roteiro dos dias 25 e 37 leves e sem ferido; docs/balance-v0.4.md, seção 10):
       // o Salão Nv4 volta à hora 35, uma semente esgota as obras na 154 e as outras não.
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 26 a 27 | 150 a — | 66 a 70 | 7 | 12 | — |',
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): uma semente esgota as obras na hora 142, e uma
+      // conclui treze objetivos.
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 26 a 27 | 142 a — | 66 a 71 | 7 | 12 a 13 | — |',
     );
     expect(year).toContain(
       '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 26 a 27 | — | 34 | 7 | 12 | — |',
@@ -350,9 +355,10 @@ describe('relatório da matriz', () => {
     // Com a política mínima de guerra (V4C-T1.8) uma das três sementes esgota as obras uma
     // hora depois.
     // Desde a D-39 só uma das três esgota as obras (na hora 154).
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 150, max: null });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 142, max: null });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
-    expect(cell?.measure.objectivesDone).toEqual({ min: 12, max: 12 });
+    // Uma semente conclui treze com a Fortaleza sem Ameaça até o Cerco (seção 13).
+    expect(cell?.measure.objectivesDone).toEqual({ min: 12, max: 13 });
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
@@ -380,13 +386,14 @@ describe('relatório da matriz', () => {
       // Revisão da V4E-T3 (D-45a; docs/balance-v0.4.md, seção 12): com o Covil ativo as
       // sorteadas voltam a ser de lobos; o Acampamento e a Fortaleza somam Ameaça, e cada
       // incursão a baixa: repelidas 27 a 31, Ameaça no fim 67 a 89.
-      '| Rápido 3× | Regular | 3 a 5 | 27 a 31 | 31 a 32 | 1 a 3 | 139 a 287 | 43 a 69 | 67 a 89 |',
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): repelidas 25 a 29, Ameaça no fim 57 a 74.
+      '| Rápido 3× | Regular | 3 a 5 | 25 a 29 | 29 a 30 | 1 a 3 | 139 a 287 | 43 a 69 | 57 a 74 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
       suffered: { min: 3, max: 5 },
-      repelled: { min: 27, max: 31 },
-      threatFinal: { min: 67, max: 89 },
+      repelled: { min: 25, max: 29 },
+      threatFinal: { min: 57, max: 74 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
     // a Paliçada sai nas últimas horas do ano.
@@ -415,7 +422,8 @@ describe('relatório da matriz', () => {
     expect(week).toContain(
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a madeira passa a ir ao chão pela metade, com sequências de até 123 h.
       // D-39 (docs/balance-v0.4.md, seção 10): as sequências encurtam (até 63 h).
-      '| Rápido 3× | Preguiçoso | 47% a 49% | 29% a 42% | 34% a 47% | 60 a 63 | 48 | 42 a 57 |',
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a pedra, de 32% a 49%, com sequências de 36 a 51 h.
+      '| Rápido 3× | Preguiçoso | 47% a 51% | 29% a 40% | 32% a 49% | 60 a 63 | 48 | 36 a 51 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
@@ -428,7 +436,8 @@ describe('relatório da matriz', () => {
       // V4E-T1 (docs/balance-v0.4.md, seção 8): a pedra volta a ir ao chão e a comida passa a 14%-16%.
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a comida vai menos ao chão (5% a 10%) e a madeira, até 18%.
       // D-39 (docs/balance-v0.4.md, seção 10): a comida de 2% a 14%, a madeira de 13% a 22%.
-      '| Rápido 3× | Regular | 3% a 14% | 0% a 22% | 2% a 18% | 15 a 21 | 0 a 27 | 3 a 24 |',
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a madeira de 11% a 21%, a pedra de 10% a 18%.
+      '| Rápido 3× | Regular | 3% a 14% | 11% a 21% | 10% a 18% | 15 a 21 | 27 a 30 | 18 a 24 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
   });
@@ -566,14 +575,17 @@ describe('CSV da matriz', () => {
     }
     const lazyYear = lines.find((line) => line.startsWith('year,3,preguicoso,'))?.split(',') ?? [];
     // Na V4E-T2 o Preguiçoso do ano do Rápido não chegava ao Salão Nv3; com a resposta do autor
-    // à D-39 chega de novo, na hora 53, nesta semente.
-    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('');
+    // à D-39 chega de novo, na hora 53, nesta semente; com o Acampamento e a Fortaleza somando
+    // Ameaça (V4E-T3) deixou de chegar, e com a Fortaleza sem Ameaça até o Cerco (resposta do
+    // autor de 2026-10-27; docs/balance-v0.4.md, seção 13) volta à hora 53.
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('53');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
     // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum. O
     // Preguiçoso do ano do Rápido cumpre os dez da v0.2 e o primeiro herói, e a lista de
-    // dezesseis (V3F-T2) não fecha.
-    expect(lazyYear[header.indexOf('objectives_done')]).toBe('9');
+    // dezesseis (V3F-T2) não fecha. Com o Salão Nv3 de volta (Fortaleza sem Ameaça até o Cerco;
+    // docs/balance-v0.4.md, seção 13), onze nesta semente (eram nove).
+    expect(lazyYear[header.indexOf('objectives_done')]).toBe('11');
     expect(lazyYear[header.indexOf('objectives_done_hour')]).toBe('');
     // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 falta um, e o
     // primeiro herói e a Guilda já caíram.

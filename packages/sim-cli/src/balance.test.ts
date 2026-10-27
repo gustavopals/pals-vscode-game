@@ -231,7 +231,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // encher os seis lugares nas 50 sementes (a causa exata não foi investigada).
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): na pior semente do Normal o
     // cofre paga dois contratos a menos: de quatro a sete.
-    expect(heroes('week/1/explorador')).toEqual({ min: 4, max: 7 });
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de seis a sete.
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 7 });
     // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
     // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a cinco.
@@ -452,9 +453,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Na revisão da Fase D (docs/balance-v0.3.md, seção 9.6) a mesma partida passou a terminar
     // em **92** (eram 90), com o bot e o catálogo da revisão; por que dois pontos a mais não
     // foi investigado. Continua sendo uma só, a mesma semente, com o Covil limpo no ano.
-    expect(Math.max(...finals)).toBeLessThanOrEqual(92);
     // V4E-T1 (Muralha, Torre Nv3+ e cartas do lote 2): duas partidas terminam em 80 ou mais (era uma).
-    expect(finals.filter((value) => value >= 80).length).toBeLessThanOrEqual(2);
+    // REGRESSÃO MEDIDA na V4E-T3 (Acampamento e Fortaleza, +2 cada): 330 das 1.000 partidas de
+    // um ano ou mais terminavam em 80 ou mais, e a máxima era 100.
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): 76 das 1.000 em 80 ou mais (31 em 90 ou mais, uma em 100). O que sobra é do
+    // Acampamento, que soma +2 do 25º dia até a virada do ano (o Covil e ele, +4 por dia no
+    // inverno): fica à espera do autor (pendência D-43).
+    expect(Math.max(...finals)).toBeLessThanOrEqual(100);
+    expect(finals.filter((value) => value >= 80).length).toBeLessThanOrEqual(76);
     expect(Math.min(...finals)).toBeLessThan(balance.threat.raidChanceAbove);
   });
 
@@ -503,9 +509,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): três sofridas (a dos lobos e as duas primeiras do roteiro da guerra, antes da
     // Paliçada e dos soldados), três ou quatro repelidas, a Ameaça no fim entre 28 e 63.
     // D-39 (seção 10): duas sofridas, de quatro a cinco repelidas.
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de cinco a oito repelidas, e a Ameaça no fim entre 22 e 99 (com os dois tiles da
+    // V4E-T3 ela ia de 49 a 100; antes deles, de 28 a 63).
     expect(year?.suffered).toEqual({ min: 2, max: 2 });
-    expect(year?.repelled).toEqual({ min: 4, max: 5 });
-    expect(year?.threatFinal).toEqual({ min: 28, max: 63 });
+    expect(year?.repelled).toEqual({ min: 5, max: 8 });
+    expect(year?.threatFinal).toEqual({ min: 22, max: 99 });
   });
 
   it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo e em nenhuma dificuldade', () => {
@@ -554,7 +562,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // seção 8): de 46 a 68 aldeões na medida, faixa de 41 a 75, e o Salão no nível 6.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de 57 a 71 na medida, faixa de 51 a 79, e o Salão no nível 7.
     // D-39 (seção 10): de 54 a 70 na medida, faixa de 48 a 77, e o Salão no nível 6.
-    expect(band?.villagers).toEqual({ min: 48, max: 77 });
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de 54 a 68 na medida, faixa de 48 a 75.
+    expect(band?.villagers).toEqual({ min: 48, max: 75 });
     expect(band?.townHallMin).toBe(6);
     expect(band?.famineHoursMax).toBe(0);
   });
@@ -631,14 +640,15 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // ano do Rápido também (15 h); a semana do Rápido cai de 36 para 33 h. Só o Tranquilo cabe.
     // D-39 (as do roteiro dos dias 25 e 37 leves e sem ferido; seção 10): o ano do Rápido volta
     // a caber na meta, e o Normal fica em 9 h.
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): o Normal volta a caber na meta (pior caso de 7 h); só a semana do Rápido passa.
     expect(over).toEqual({
       'week/3/regular': 33,
-      'week/1/regular': 9,
-      'year/1/regular': 9,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
+      'week/1/regular',
       'week/0.5/regular',
       'year/3/regular',
+      'year/1/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -658,7 +668,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Muralha e as cartas do lote 2 (V4E-T1) nenhuma das 50 sementes passa da meta no Normal.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): cinco das 50 sementes do Normal voltam a passar da meta.
     // D-39 (seção 10): duas, outras.
-    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-032', 'pedra-alta-050']);
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): nenhuma.
+    expect(beyond.map((run) => run.seed)).toEqual([]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

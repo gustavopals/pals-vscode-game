@@ -370,9 +370,12 @@ describe('CSV de uma partida', () => {
     // derruba a Ameaça nos dias 25, 37 e 61) o ano termina em 63, com a máxima em 89, e o bot
     // leva a Torre ao nível 4. Com as do roteiro dos dias 25 e 37 leves e sem ferido (D-39) a
     // Ameaça termina igual, e o ouro vai para outras obras: a Torre fica no nível 3.
-    expect(summary.threat).toEqual({ final: 77, max: 100, watchtower: 4 });
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md,
+    // seção 13) o ano termina em 85 (era 77): com a Ameaça mais baixa no outono os sorteios de
+    // incursão caem em outras viradas, e a última do ano sai em outro dia (não investigado além disso).
+    expect(summary.threat).toEqual({ final: 85, max: 100, watchtower: 4 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 77 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 85 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(

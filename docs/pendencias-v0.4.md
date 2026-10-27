@@ -393,6 +393,15 @@ próxima de 78 no outono/inverno. O Preguiçoso do Rápido sofre mais ferimentos
 A isca do militar foi vista em uma batalha de dez sementes em Senhor e uma em
 Rei de Ferro, sem reduzir as incursões sofridas. Não se afirma benefício no cerco.
 
+**Resposta do autor (2026-10-27): "Fortaleza sem +2 até o Cerco".** A Fortaleza aparece no
+outono e manda presságios como antes, mas não soma Ameaça até o Cerco existir (Fase G);
+o Acampamento continua com +2. Aplicada no conteúdo (`tileTypes.hordeFortress.threatPerDay`
+= 0; o motor não lista o termo de 0 na explicação), sem mudar a forma do estado (34). A
+medição está em [balance-v0.4.md](balance-v0.4.md), seção 13: os feridos do Preguiçoso do
+Rápido caem (Senhor, semana: de 13–25 para 7–21), mas **não voltam** aos 4–11 da seção 10, e
+a Ameaça de fim de ano continua alta (o Covil e o Acampamento somam +4 por dia o ano todo
+desde o 25º dia). Fica para o autor decidir se o Acampamento também precisa de ajuste.
+
 **D-44. Ligação às próximas fases.** A V4E-T3 prepara e congela ondas; a Fase G
 vai agendá-las, aplicar sabotagem e encerrar a Fortaleza com o cerco. Até essa
 ligação, ela fica ativa no inverno e é desativada no ano novo. Isso não significa

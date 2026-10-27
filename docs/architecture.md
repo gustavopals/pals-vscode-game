@@ -522,8 +522,9 @@ não consome sorteios, cria eventos ou recalcula o passado.
 `hordePlan.ts` observa os soldados que realmente entraram em batalha, antes das
 baixas, e guarda somente contagens por unidade. A próxima incursão usa os pesos
 por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). A memória zera no ano novo.
-O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; cada tile ativo
-soma +2 por dia. A subida fecha o dia anterior, portanto o tile recém-nascido
+O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; o Covil e o
+Acampamento ativos somam +2 por dia, e a Fortaleza não soma até o Cerco
+(`tileTypes[].threatPerDay` = 0, resposta do autor de 2026-10-27; seção 13 do balanceamento). A subida fecha o dia anterior, portanto o tile recém-nascido
 começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
 
 As ondas são preparadas no outono e renovadas quando a formação vista muda,

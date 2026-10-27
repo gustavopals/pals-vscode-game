@@ -15,6 +15,10 @@
 | 23 | Os lotes 2 e 3 | 38 cartas (23 + 15), com "A Filha do Ferreiro", cartas de guerra e quatro roteirizadas; apresentadas em lotes de cinco antes da transcrição; o teste de palavras proibidas afrouxado carta a carta | V4H-T1, V4H-T2 |
 | 24 | Objetivos 17 a 21 | (os do GDD §12.2 `[v0.4]`) e os sazonais ("Estoque 1.000 comida", "Sabote a Horda uma vez"): os cinco entram; os sazonais **não** (seriam os primeiros objetivos que se repetem por ano) | V4H-T3 |
 
+### Resposta de 2026-10-27: a Fortaleza sem Ameaça até o Cerco
+
+Na decisão 16, "soma +2 por dia" **não vale até a Fase G**: sem o Cerco, que é o que descarregaria a Fortaleza, o +2 dela o inverno inteiro levava a Ameaça ao teto (330 partidas de um ano terminavam com ela em 80 ou mais) e dobrava os feridos do Preguiçoso do Rápido ([pendências](../pendencias-v0.4.md), D-43). O autor respondeu "Fortaleza sem +2 até o Cerco": ela aparece no outono e manda presságios como antes, mas não soma Ameaça (`tileTypes.hordeFortress.threatPerDay` = 0). O Acampamento continua com +2. A Fase G decide de novo quando o Cerco existir. A medição está em [balance-v0.4.md](../balance-v0.4.md), seção 13.
+
 ## Consequências
 
 - A Fase E começa quando o motor de batalha (V4D-T1) estiver no `main`: a Muralha (V4E-T1) é dado da batalha.

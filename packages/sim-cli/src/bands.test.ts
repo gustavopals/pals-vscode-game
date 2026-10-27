@@ -217,14 +217,17 @@ describe('faixas a partir da linha de base medida', () => {
     // perde menos gente e fecha a semana com 72 a 84 aldeões; o ouro parado sobe para 132 mil.
     // E com a resposta do autor à D-39 (seção 10: as do roteiro dos dias 25 e 37 leves e sem
     // ferido): de 70 a 84 aldeões, e o ouro parado cai para 111 mil.
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, seção 13): de 70 a 84
+    // aldeões, o ouro parado cai para 107.745, a pedra para 5.097, e a maior sequência
+    // desperdiçando sobe de 30 para 33 h de jogo.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 65, max: 93 },
+      villagers: { min: 63, max: 93 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      // Revisão da V4E-T3 (seção 12): o ouro parado sobe a 111.974 e a pedra a 5.200.
-      surplusMax: { wood: 5_460, stone: 5_460, gold: 117_573 },
-      wasteStreakMax: 32,
+      // Revisão da V4E-T3 (seção 12): o ouro parado subia a 111.974 e a pedra a 5.200.
+      surplusMax: { wood: 5_460, stone: 5_352, gold: 113_133 },
+      wasteStreakMax: 35,
     });
   });
 

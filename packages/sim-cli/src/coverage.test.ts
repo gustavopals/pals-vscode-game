@@ -136,7 +136,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // D-39 (as incursões do roteiro dos dias 25 e 37 leves e sem ferido): 4 das 50. Piso 4,
     // registrado em docs/balance-v0.4.md, seção 10.
     // V4E-T3: Acampamento e Fortaleza pressionam a reserva: três cadeias nas mesmas 50 sementes.
-    expect(runsOf(fast, 'commonGranaryShare')).toBe(3);
+    // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27;
+    // docs/balance-v0.4.md, seção 13): quatro, como depois da D-39.
+    expect(runsOf(fast, 'commonGranaryShare')).toBe(4);
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {
