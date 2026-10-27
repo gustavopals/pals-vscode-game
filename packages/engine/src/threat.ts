@@ -142,7 +142,7 @@ export type ThreatSource =
 
 /**
  * Os termos da subida na virada de dia de `turnMs`, na ordem em que a explicação os mostra: os
- * tiles ativos, pela chave (a ordem das chaves de um objeto não sobrevive ao banco), e depois a
+ * tiles ativos que somam alguma coisa, pela chave (a ordem das chaves de um objeto não sobrevive ao banco), e depois a
  * estação.
  *
  * A estação é a **do dia que acabou**: cada dia de outono que passa soma, do primeiro ao
@@ -154,7 +154,12 @@ export function threatSources(state: GameState, turnMs: number): ThreatSource[] 
   for (const tileId of Object.keys(tiles).sort()) {
     const tile = tiles[tileId];
     if (tile !== undefined && tile.threatActive) {
-      sources.push({ kind: 'tile', tileId, type: tile.type, amount: rules.perActiveTilePerDay });
+      // Cada tipo pode ter o próprio número (`tileTypes[].threatPerDay`); o que soma 0 (a
+      // Fortaleza, até o Cerco) não é termo da subida nem da explicação.
+      const amount = tileTypes[tile.type].threatPerDay ?? rules.perActiveTilePerDay;
+      if (amount > 0) {
+        sources.push({ kind: 'tile', tileId, type: tile.type, amount });
+      }
     }
   }
   const season = seasonAt(Math.max(0, turnMs - 1));

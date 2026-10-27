@@ -11,13 +11,22 @@ export type TileTypeDef = {
   readonly article: 'o' | 'a';
   /** Quem sai do tile para rondar o feudo. */
   readonly enemy: EnemyId;
+  /**
+   * Quanto o tile ativo soma à Ameaça a cada dia de jogo. Sem o campo, vale o número comum
+   * (`balance.threat.perActiveTilePerDay`); com 0, o tile não soma nada e não aparece entre os
+   * termos da subida.
+   */
+  readonly threatPerDay?: number;
 };
 
 // GDD §8.2: na v0.2 o único tile de ameaça é o Covil de Lobos.
 export const tileTypes: Record<TileTypeId, TileTypeDef> = {
   wolfDen: { label: 'Covil de Lobos', article: 'o', enemy: 'wolves' },
   raiderCamp: { label: 'Acampamento de Saqueadores', article: 'o', enemy: 'raiders' },
-  hordeFortress: { label: 'Fortaleza da Horda', article: 'a', enemy: 'horde' },
+  // A Fortaleza não soma Ameaça até o Cerco existir (Fase G da v0.4), que é o que a descarregaria:
+  // aparece no outono e manda presságios, mas sem o +2 por dia (resposta do autor de 2026-10-27,
+  // pendência D-43; docs/balance-v0.4.md, seção 13).
+  hordeFortress: { label: 'Fortaleza da Horda', article: 'a', enemy: 'horde', threatPerDay: 0 },
 };
 
 /**

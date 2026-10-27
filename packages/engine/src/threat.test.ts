@@ -3,6 +3,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { nextDayBoundary } from './clock';
 import {
   accept,
   AUTUMN,
@@ -114,14 +115,15 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     // A virada que abre o outono fecha um dia de verão: soma só o covil.
     const lastOfSummer = feud(AUTUMN - DAY, 0);
     expect(threatAt(lastOfSummer, AUTUMN)).toBe(2);
-    // Depois da primeira virada surgem os tiles faltantes: covil + acampamento + fortaleza + outono.
-    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(11);
-    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(20);
+    // Depois da primeira virada surgem os tiles faltantes: covil + acampamento + outono; a
+    // Fortaleza não soma até o Cerco (resposta do autor de 2026-10-27).
+    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(9);
+    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(16);
     // A virada que abre o inverno fecha o último dia de outono: ainda soma 5.
     const lastOfAutumn = feud(WINTER - DAY, 0);
     expect(threatAt(lastOfAutumn, WINTER)).toBe(5);
-    // No inverno, só o covil.
-    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(11);
+    // No inverno, sem o outono: o covil e o acampamento (a Fortaleza não soma).
+    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(9);
     // E no verão e na primavera também.
     expect(threatAt(feud(SUMMER, 0), SUMMER + DAY)).toBe(2);
   });
@@ -143,7 +145,9 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     const autumn = feud(AUTUMN, 10, 0, (draft) => {
       draft.map.tiles = { wolfDen: { type: 'wolfDen', threatActive: false } };
     });
-    expect(threatAt(autumn, AUTUMN + 2 * DAY)).toBe(20);
+    // A primeira virada soma só o outono (+3) e faz surgir o Acampamento e a Fortaleza; a segunda,
+    // o outono e o Acampamento (+2): a Fortaleza não soma até o Cerco.
+    expect(threatAt(autumn, AUTUMN + 2 * DAY)).toBe(18);
     const two = feud(3 * DAY, 10, 0, (draft) => {
       draft.map.tiles = {
         wolfDen: { type: 'wolfDen', threatActive: true },
@@ -214,8 +218,11 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
 });
 
 describe('quem ronda o feudo com mais de um tile ativo (revisão da V4E-T3, pendência D-45a)', () => {
-  const withTiles = (active: Record<'wolfDen' | 'raiderCamp' | 'hordeFortress', boolean>) =>
-    feud(SUMMER + 2 * HOUR, 30, 0, (draft) => {
+  const withTiles = (
+    active: Record<'wolfDen' | 'raiderCamp' | 'hordeFortress', boolean>,
+    watchtower = 0,
+  ) =>
+    feud(SUMMER + 2 * HOUR, 30, watchtower, (draft) => {
       draft.map.tiles = {
         wolfDen: { type: 'wolfDen', threatActive: active.wolfDen },
         raiderCamp: { type: 'raiderCamp', threatActive: active.raiderCamp },
@@ -244,6 +251,23 @@ describe('quem ronda o feudo com mais de um tile ativo (revisão da V4E-T3, pend
     expect(
       prowlingEnemy(withTiles({ wolfDen: false, raiderCamp: false, hordeFortress: false })),
     ).toBeNull();
+  });
+
+  it('a Fortaleza ativa não soma Ameaça até o Cerco; o Acampamento soma 2 (resposta de 2026-10-27)', () => {
+    // Pendência D-43: sem o Cerco (Fase G) nada descarrega a Fortaleza, e o +2 dela o inverno
+    // inteiro levava a Ameaça ao teto (docs/balance-v0.4.md, seção 13).
+    const fortress = withTiles({ wolfDen: false, raiderCamp: false, hordeFortress: true }, 1);
+    const turn = nextDayBoundary(fortress.lastProcessedAt);
+    expect(threatSources(fortress, turn).filter((source) => source.kind === 'tile')).toEqual([]);
+    expect(threatAfterTurn(fortress, turn)).toBe(30);
+    expect(known(fortress).sources.some((text) => text.includes('Fortaleza'))).toBe(false);
+
+    const camp = withTiles({ wolfDen: false, raiderCamp: true, hordeFortress: true }, 1);
+    expect(threatSources(camp, turn).filter((source) => source.kind === 'tile')).toEqual([
+      { kind: 'tile', tileId: 'raiderCamp', type: 'raiderCamp', amount: 2 },
+    ]);
+    expect(threatAfterTurn(camp, turn)).toBe(32);
+    expect(known(camp).sources).toEqual(['+2/dia: Acampamento de Saqueadores']);
   });
 
   it('a ordem não depende das chaves: um tile de chave qualquer vale pelo tipo', () => {
@@ -496,7 +520,6 @@ describe('a divisão de intervalo continua exata com a Ameaça', () => {
           const firstTurn = (Math.floor(startMs / DAY) + 1) * DAY;
           let expected = threat;
           let camp = false;
-          let fortress = false;
           for (let turn = firstTurn; turn < firstTurn + days * DAY; turn += DAY) {
             // Referência independente: os tiles nascem após a subida, e a memória anual zera.
             const dayOfYear = Math.floor(((turn - 1) % YEAR) / DAY);
@@ -504,14 +527,12 @@ describe('a divisão de intervalo continua exata com a Ameaça', () => {
               100,
               expected +
                 2 +
+                // A Fortaleza não soma até o Cerco (resposta do autor de 2026-10-27).
                 (camp ? 2 : 0) +
-                (fortress ? 2 : 0) +
                 (dayOfYear >= 48 && dayOfYear < 72 ? 3 : 0),
             );
-            if (turn % YEAR === 0) fortress = false;
             const day = Math.floor((turn % YEAR) / DAY);
             if (day >= 24) camp = true;
-            if (day >= 48) fortress = true;
           }
           expect(threatAt(start, firstTurn + (days - 1) * DAY)).toBe(expected);
         },

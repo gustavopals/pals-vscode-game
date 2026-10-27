@@ -769,8 +769,9 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ]);
     expect(of('fresh').horde).toEqual(threat.horde);
     // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
-    // (V4E-T2.4) mudaram a semana.
-    expect(of('week-scripted').map.threat).toBe(67);
+    // (V4E-T2.4) mudaram a semana; 67 até a Fortaleza deixar de somar Ameaça (resposta do autor
+    // de 2026-10-27).
+    expect(of('week-scripted').map.threat).toBe(43);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;

@@ -23,10 +23,10 @@
    936507135
   ],
   "horde": [
-   1019401662,
-   157847704,
-   2604251578,
-   797501813
+   1753419424,
+   2185865298,
+   3863045321,
+   2136524674
   ],
   "morale": [
    3881588205,
@@ -185,7 +185,7 @@
     "threatActive": false
    }
   },
-  "threat": 67,
+  "threat": 43,
   "discovered": []
  },
  "horde": {
@@ -358,7 +358,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -366,7 +366,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 7,
       "lost": 0
      },
      {
@@ -374,7 +374,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 6,
+      "start": 3,
       "lost": 0
      },
      {
@@ -382,7 +382,7 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -390,7 +390,7 @@
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "start": 2,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -534,14 +534,14 @@
   "wasted_wood": 1946430,
   "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:masonsMeal": 1,
-  "threatCrossed:40": 2,
+  "threatCrossed:40": 3,
   "wasted_stone": 2249874,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:collapsedWell": 1,
   "seasonsSurvived:summer": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 6,
-  "omens": 16,
+  "omens": 15,
+  "threatCrossed:70": 5,
   "raids_repelled": 6,
   "cardsDrawn:commonGranaryPlanks": 2,
   "cardsDrawn:commonGranaryShare": 1,

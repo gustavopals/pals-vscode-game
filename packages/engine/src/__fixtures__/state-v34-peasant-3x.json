@@ -30,14 +30,14 @@
   ]
  },
  "ids": {
-  "battle": 22,
+  "battle": 20,
   "hero": 1
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
    "food": 625000,
-   "wood": 621041,
+   "wood": 625000,
    "stone": 45000,
    "gold": 0,
    "iron": 0
@@ -99,8 +99,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 10061,
-   "wood": 866,
+   "food": 9859,
+   "wood": 5372,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -177,13 +177,13 @@
     "threatActive": false
    }
   },
-  "threat": 68,
+  "threat": 47,
   "discovered": []
  },
  "horde": {
   "scheduledRaids": [
    {
-    "id": "threat-23",
+    "id": "threat-21",
     "atMs": 1267200000,
     "kind": "threat",
     "enemy": "wolves",
@@ -292,8 +292,8 @@
   "activeFormationId": null,
   "reports": [
    {
-    "id": "battle-20",
-    "foughtAtMs": 1137600000,
+    "id": "battle-18",
+    "foughtAtMs": 1152000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -305,23 +305,23 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "raider",
-      "start": 16,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "raider",
-      "start": 19,
+      "unit": "blackKnight",
+      "start": 9,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 9,
       "lost": 0
      },
@@ -347,8 +347,8 @@
     "log": []
    },
    {
-    "id": "battle-21",
-    "foughtAtMs": 1188000000,
+    "id": "battle-19",
+    "foughtAtMs": 1202400000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -360,23 +360,23 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "raider",
-      "start": 16,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 9,
+      "unit": "raider",
+      "start": 19,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 9,
       "lost": 0
      },
@@ -384,8 +384,8 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "raider",
-      "start": 16,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
@@ -402,7 +402,7 @@
     "log": []
    },
    {
-    "id": "battle-22",
+    "id": "battle-20",
     "foughtAtMs": 1231200000,
     "formationId": null,
     "mode": "defense",
@@ -416,7 +416,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -424,7 +424,7 @@
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "start": 18,
+      "start": 10,
       "lost": 0
      },
      {
@@ -432,7 +432,7 @@
       "wing": "right",
       "line": "front",
       "unit": "wolf",
-      "start": 12,
+      "start": 7,
       "lost": 0
      }
     ],
@@ -458,10 +458,10 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 9314061,
+  "wasted_food": 9697859,
   "cardsDrawn:thawBridgePlea": 1,
-  "raids_suffered": 22,
-  "wasted_wood": 4558866,
+  "raids_suffered": 20,
+  "wasted_wood": 4784372,
   "coldSpellsThisSeason": 0,
   "campAppearedAtDay": 25,
   "threatCrossed:40": 4,
@@ -470,7 +470,7 @@
   "seasonsSurvived:summer": 2,
   "cardsDrawn:itinerantMerchant": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 18,
+  "threatCrossed:70": 17,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
   "cardsDrawn:springSeeds": 2,

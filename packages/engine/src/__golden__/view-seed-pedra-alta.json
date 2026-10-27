@@ -16740,15 +16740,14 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 50 de 100.",
-      "level": 50,
+      "text": "Ameaça 48 de 100.",
+      "level": 48,
       "max": 100,
-      "risePerDay": 9,
-      "nextLevel": 59,
+      "risePerDay": 7,
+      "nextLevel": 55,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 50 para 59.",
+      "trend": "Sobe 7 a cada dia de jogo (40 min): na próxima virada, vai de 48 para 55.",
       "sources": [
-        "+2/dia: Fortaleza da Horda",
         "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
@@ -16770,8 +16769,8 @@
           "active": true
         }
       ],
-      "raidChancePercent": 19,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 19% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
+      "raidChancePercent": 15,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 15% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -18227,15 +18226,14 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 50 de 100.",
-      "level": 50,
+      "text": "Ameaça 48 de 100.",
+      "level": 48,
       "max": 100,
-      "risePerDay": 9,
-      "nextLevel": 24,
+      "risePerDay": 7,
+      "nextLevel": 20,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 9 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 50 para 24.",
+      "trend": "Sobe 7 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 48 para 20.",
       "sources": [
-        "+2/dia: Fortaleza da Horda",
         "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
@@ -19735,15 +19733,14 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 45 de 100.",
-      "level": 45,
+      "text": "Ameaça 43 de 100.",
+      "level": 43,
       "max": 100,
-      "risePerDay": 9,
-      "nextLevel": 54,
+      "risePerDay": 7,
+      "nextLevel": 50,
       "nextRiseInSeconds": 1200,
-      "trend": "Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 45 para 54.",
+      "trend": "Sobe 7 a cada dia de jogo (40 min): na próxima virada, vai de 43 para 50.",
       "sources": [
-        "+2/dia: Fortaleza da Horda",
         "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
@@ -19765,8 +19762,8 @@
           "active": true
         }
       ],
-      "raidChancePercent": 14,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 14% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
+      "raidChancePercent": 10,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 10% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -21281,15 +21278,14 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 50 de 100.",
-      "level": 50,
+      "text": "Ameaça 48 de 100.",
+      "level": 48,
       "max": 100,
-      "risePerDay": 9,
-      "nextLevel": 24,
+      "risePerDay": 7,
+      "nextLevel": 20,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 9 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 50 para 24.",
+      "trend": "Sobe 7 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 48 para 20.",
       "sources": [
-        "+2/dia: Fortaleza da Horda",
         "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"

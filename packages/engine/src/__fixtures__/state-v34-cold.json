@@ -23,10 +23,10 @@
    3839636383
   ],
   "horde": [
-   2948714260,
-   2140607624,
-   2371782848,
-   3486367429
+   2983145971,
+   3810182171,
+   3312072369,
+   3685014022
   ]
  },
  "ids": {
@@ -188,47 +188,47 @@
     "threatActive": true
    }
   },
-  "threat": 86,
+  "threat": 80,
   "discovered": []
  },
  "horde": {
   "scheduledRaids": [
    {
     "id": "threat-8",
-    "atMs": 540000000,
+    "atMs": 554400000,
     "kind": "threat",
     "enemy": "wolves",
-    "size": "medium",
+    "size": "strong",
     "composition": [
      {
       "wing": "left",
       "line": "front",
       "unit": "ogre",
-      "count": 2
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
-      "unit": "blackKnight",
-      "count": 6
+      "unit": "raider",
+      "count": 19
      },
      {
       "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "count": 6
-     },
-     {
-      "wing": "right",
-      "line": "front",
-      "unit": "blackKnight",
-      "count": 5
-     },
-     {
-      "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 2
+      "count": 9
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 16
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 3
      }
     ],
     "announcedAtMs": null
@@ -411,7 +411,7 @@
   "reports": [
    {
     "id": "battle-5",
-    "foughtAtMs": 424800000,
+    "foughtAtMs": 432000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -423,23 +423,23 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 16,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "ogre",
-      "start": 4,
+      "unit": "raider",
+      "start": 19,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 9,
       "lost": 0
      },
@@ -466,7 +466,7 @@
    },
    {
     "id": "battle-6",
-    "foughtAtMs": 460800000,
+    "foughtAtMs": 475200000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -478,8 +478,8 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "raider",
-      "start": 10,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
@@ -487,7 +487,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 19,
       "lost": 0
      },
      {
@@ -495,7 +495,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 6,
+      "start": 9,
       "lost": 0
      },
      {
@@ -503,7 +503,7 @@
       "wing": "right",
       "line": "front",
       "unit": "ogre",
-      "start": 2,
+      "start": 4,
       "lost": 0
      },
      {
@@ -511,7 +511,7 @@
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
+      "start": 3,
       "lost": 0
      }
     ],
@@ -533,8 +533,8 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 10,
       "lost": 0
      },
      {
@@ -542,7 +542,7 @@
       "wing": "center",
       "line": "front",
       "unit": "ogre",
-      "start": 4,
+      "start": 3,
       "lost": 0
      },
      {
@@ -550,7 +550,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 9,
+      "start": 6,
       "lost": 0
      },
      {
@@ -558,15 +558,15 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 16,
+      "start": 10,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
+      "unit": "shaman",
+      "start": 2,
       "lost": 0
      }
     ],

@@ -135,7 +135,7 @@
     "threatActive": true
    }
   },
-  "threat": 74,
+  "threat": 58,
   "discovered": []
  },
  "horde": {
@@ -384,7 +384,6 @@
   "campAppearedAtDay": 49,
   "fortressAppearedAtDay": 49,
   "omens": 6,
-  "threatCrossed:40": 1,
-  "threatCrossed:70": 1
+  "threatCrossed:40": 1
  }
 }

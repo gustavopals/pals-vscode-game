@@ -2706,7 +2706,7 @@
          "wing": "left",
          "line": "front",
          "unit": "blackKnight",
-         "start": 8,
+         "start": 5,
          "lost": 0
         },
         {
@@ -2714,7 +2714,7 @@
          "wing": "center",
          "line": "front",
          "unit": "blackKnight",
-         "start": 9,
+         "start": 6,
          "lost": 0
         },
         {
@@ -2722,7 +2722,7 @@
          "wing": "center",
          "line": "back",
          "unit": "shaman",
-         "start": 9,
+         "start": 6,
          "lost": 0
         },
         {
@@ -2730,7 +2730,7 @@
          "wing": "right",
          "line": "front",
          "unit": "raider",
-         "start": 16,
+         "start": 10,
          "lost": 0
         },
         {
@@ -2738,7 +2738,7 @@
          "wing": "right",
          "line": "back",
          "unit": "banditArcher",
-         "start": 3,
+         "start": 2,
          "lost": 0
         }
        ],
@@ -2888,8 +2888,8 @@
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
      "fortressAppearedAtDay": 49,
-     "threatCrossed:70": 2,
      "omens": 4,
+     "threatCrossed:70": 2,
      "raids_repelled": 2,
      "cardsDrawn:commonGranaryPlanks": 1
     }
@@ -3602,8 +3602,8 @@
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
      "fortressAppearedAtDay": 49,
-     "threatCrossed:70": 4,
      "omens": 10,
+     "threatCrossed:70": 4,
      "raids_repelled": 4,
      "cardsDrawn:commonGranaryPlanks": 1,
      "cardsDrawn:commonGranaryShare": 1,
@@ -3615,7 +3615,7 @@
   },
   {
    "day": 7,
-   "eventsSoFar": 357,
+   "eventsSoFar": 356,
    "state": {
     "schemaVersion": 34,
     "seed": "pedra-alta-golden",
@@ -3641,10 +3641,10 @@
       936507135
      ],
      "horde": [
-      1019401662,
-      157847704,
-      2604251578,
-      797501813
+      1753419424,
+      2185865298,
+      3863045321,
+      2136524674
      ],
      "morale": [
       3881588205,
@@ -3803,7 +3803,7 @@
        "threatActive": false
       }
      },
-     "threat": 67,
+     "threat": 43,
      "discovered": []
     },
     "horde": {
@@ -3976,7 +3976,7 @@
          "wing": "left",
          "line": "front",
          "unit": "raider",
-         "start": 10,
+         "start": 6,
          "lost": 0
         },
         {
@@ -3984,7 +3984,7 @@
          "wing": "center",
          "line": "front",
          "unit": "raider",
-         "start": 12,
+         "start": 7,
          "lost": 0
         },
         {
@@ -3992,7 +3992,7 @@
          "wing": "center",
          "line": "back",
          "unit": "banditArcher",
-         "start": 6,
+         "start": 3,
          "lost": 0
         },
         {
@@ -4000,7 +4000,7 @@
          "wing": "right",
          "line": "front",
          "unit": "raider",
-         "start": 10,
+         "start": 6,
          "lost": 0
         },
         {
@@ -4008,7 +4008,7 @@
          "wing": "right",
          "line": "back",
          "unit": "shaman",
-         "start": 2,
+         "start": 1,
          "lost": 0
         }
        ],
@@ -4152,14 +4152,14 @@
      "wasted_wood": 1946430,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:masonsMeal": 1,
-     "threatCrossed:40": 2,
+     "threatCrossed:40": 3,
      "wasted_stone": 2249874,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
      "fortressAppearedAtDay": 49,
-     "threatCrossed:70": 6,
-     "omens": 16,
+     "omens": 15,
+     "threatCrossed:70": 5,
      "raids_repelled": 6,
      "cardsDrawn:commonGranaryPlanks": 2,
      "cardsDrawn:commonGranaryShare": 1,
@@ -5984,16 +5984,6 @@
    }
   },
   {
-   "type": "threatRose",
-   "atMs": 352800000,
-   "text": "No 2º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.",
-   "data": {
-    "threat": 70,
-    "previousThreat": 61,
-    "mark": 70
-   }
-  },
-  {
    "type": "omenSeen",
    "atMs": 352800000,
    "text": "No 2º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
@@ -6007,6 +5997,16 @@
    "text": "Amanhece o 3º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 51
+   }
+  },
+  {
+   "type": "threatRose",
+   "atMs": 360000000,
+   "text": "No 3º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 75.",
+   "data": {
+    "threat": 75,
+    "previousThreat": 68,
+    "mark": 70
    }
   },
   {
@@ -6055,12 +6055,12 @@
   {
    "type": "raidAnnounced",
    "atMs": 381600000,
-   "text": "No 6º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
+   "text": "No 6º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha grande.",
    "data": {
     "raidId": "threat-4",
     "enemy": "wolves",
     "warning": "sized",
-    "size": "strong"
+    "size": "medium"
    }
   },
   {
@@ -6116,11 +6116,11 @@
   {
    "type": "raidRepelled",
    "atMs": 388800000,
-   "text": "No 7º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
+   "text": "No 7º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-4",
     "enemy": "wolves",
-    "size": "strong",
+    "size": "medium",
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 65,
@@ -6206,9 +6206,9 @@
   {
    "type": "threatRose",
    "atMs": 396000000,
-   "text": "No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.",
    "data": {
-    "threat": 74,
+    "threat": 72,
     "previousThreat": 65,
     "mark": 70
    }
@@ -6463,9 +6463,9 @@
   {
    "type": "threatRose",
    "atMs": 439200000,
-   "text": "No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.",
    "data": {
-    "threat": 74,
+    "threat": 72,
     "previousThreat": 65,
     "mark": 70
    }
@@ -6746,9 +6746,9 @@
   {
    "type": "threatRose",
    "atMs": 482400000,
-   "text": "No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.",
    "data": {
-    "threat": 74,
+    "threat": 72,
     "previousThreat": 65,
     "mark": 70
    }
@@ -6996,16 +6996,6 @@
    }
   },
   {
-   "type": "threatRose",
-   "atMs": 525600000,
-   "text": "No 2º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.",
-   "data": {
-    "threat": 71,
-    "previousThreat": 65,
-    "mark": 70
-   }
-  },
-  {
    "type": "omenSeen",
    "atMs": 525600000,
    "text": "No 2º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
@@ -7027,6 +7017,16 @@
    "text": "Amanhece o 3º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 75
+   }
+  },
+  {
+   "type": "threatRose",
+   "atMs": 532800000,
+   "text": "No 3º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 73.",
+   "data": {
+    "threat": 73,
+    "previousThreat": 69,
+    "mark": 70
    }
   },
   {
@@ -7056,12 +7056,12 @@
   {
    "type": "raidAnnounced",
    "atMs": 540000000,
-   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha grande.",
+   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha pequena.",
    "data": {
     "raidId": "threat-8",
     "enemy": "wolves",
     "warning": "sized",
-    "size": "medium"
+    "size": "light"
    }
   },
   {
@@ -7166,15 +7166,15 @@
   {
    "type": "raidRepelled",
    "atMs": 547200000,
-   "text": "No 5º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
+   "text": "No 5º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha pequena, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-8",
     "enemy": "wolves",
-    "size": "medium",
+    "size": "light",
     "warning": "sized",
     "palisadeLevel": 2,
-    "threat": 54,
-    "previousThreat": 89,
+    "threat": 46,
+    "previousThreat": 81,
     "battleId": "battle-8"
    }
   },
@@ -7269,16 +7269,6 @@
    "text": "Amanhece o 8º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 80
-   }
-  },
-  {
-   "type": "threatRose",
-   "atMs": 568800000,
-   "text": "No 8º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.",
-   "data": {
-    "threat": 72,
-    "previousThreat": 66,
-    "mark": 70
    }
   },
   {
@@ -7395,8 +7385,8 @@
     "size": "light",
     "warning": "sized",
     "palisadeLevel": 2,
-    "threat": 49,
-    "previousThreat": 84,
+    "threat": 31,
+    "previousThreat": 66,
     "battleId": "battle-9"
    }
   },
@@ -7450,14 +7440,6 @@
    }
   },
   {
-   "type": "omenSeen",
-   "atMs": 590400000,
-   "text": "No 11º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
-   "data": {
-    "clarity": "vague"
-   }
-  },
-  {
    "type": "storageWasted",
    "atMs": 597600000,
    "text": "No 11º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida e 77 de pedra.",
@@ -7477,7 +7459,7 @@
   {
    "type": "omenSeen",
    "atMs": 597600000,
-   "text": "No 12º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+   "text": "No 12º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
     "clarity": "vague"
    }
@@ -7543,6 +7525,16 @@
     "cardId": "commonGranaryPlanks",
     "instanceId": "commonGranaryPlanks-16",
     "source": "draw"
+   }
+  },
+  {
+   "type": "threatRose",
+   "atMs": 604800000,
+   "text": "No 1º dia da Primavera, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 43.",
+   "data": {
+    "threat": 43,
+    "previousThreat": 39,
+    "mark": 40
    }
   }
  ]

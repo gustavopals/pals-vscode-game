@@ -1249,7 +1249,12 @@ export const TileTypesSchema = z.strictObject(
   Object.fromEntries(
     TILE_TYPE_IDS.map((id) => [
       id,
-      z.strictObject({ label, article: z.enum(['o', 'a']), enemy: z.enum(ENEMY_IDS) }),
+      z.strictObject({
+        label,
+        article: z.enum(['o', 'a']),
+        enemy: z.enum(ENEMY_IDS),
+        threatPerDay: z.number().int().nonnegative().optional(),
+      }),
     ]),
   ),
 );

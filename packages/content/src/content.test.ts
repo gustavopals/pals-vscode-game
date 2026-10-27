@@ -647,6 +647,19 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(startingTiles).toEqual([{ id: 'wolfDen', type: 'wolfDen', threatActive: true }]);
   });
 
+  it('a Fortaleza não soma Ameaça até o Cerco; o Covil e o Acampamento somam o número comum', () => {
+    // Resposta do autor de 2026-10-27 (pendência D-43; balance-v0.4.md, seção 13).
+    expect(tileTypes.hordeFortress.threatPerDay).toBe(0);
+    expect(tileTypes.wolfDen.threatPerDay).toBeUndefined();
+    expect(tileTypes.raiderCamp.threatPerDay).toBeUndefined();
+    expect(
+      TileTypesSchema.safeParse({
+        ...tileTypes,
+        hordeFortress: { ...tileTypes.hordeFortress, threatPerDay: -1 },
+      }).success,
+    ).toBe(false);
+  });
+
   it('os lobos têm nome e um jeito de dizer cada tamanho de incursão, para o meio da frase', () => {
     expect(EnemiesSchema.safeParse(enemies).error).toBeUndefined();
     expect(Object.keys(enemies)).toEqual([...ENEMY_IDS]);

@@ -72,8 +72,9 @@ describe('cenário golden de 7 dias', () => {
       starts.some((event, index) => starts[index + 1]?.atMs === event.atMs && event.atMs > 0),
     ).toBe(true);
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
-    // O Acampamento soma desde o verão e a Fortaleza desde o outono: +2 por tile ativo,
-    // além dos +3 do outono. As marcas e suas frases abaixo congelam o roteiro do estado 34.
+    // O Acampamento soma desde o verão (+2 por dia), além dos +3 do outono; a Fortaleza surge no
+    // outono e não soma até o Cerco (resposta do autor de 2026-10-27). As marcas e suas frases
+    // abaixo congelam o roteiro do estado 34.
     expect(
       events
         .filter((event) => event.type === 'threatRose')
@@ -90,34 +91,34 @@ describe('cenário golden de 7 dias', () => {
         'No 20º dia do Verão, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 41.',
       ],
       [
-        98.0,
+        100.0,
         70,
-        'No 2º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+        'No 3º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 75.',
       ],
       [
         110.0,
         70,
-        'No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        'No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
         122.0,
         70,
-        'No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        'No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
         134.0,
         70,
-        'No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        'No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
-        146.0,
+        148.0,
         70,
-        'No 2º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
+        'No 3º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 73.',
       ],
       [
-        158.0,
-        70,
-        'No 8º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
+        168.0,
+        40,
+        'No 1º dia da Primavera, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 43.',
       ],
     ]);
     expect(
@@ -135,7 +136,8 @@ describe('cenário golden de 7 dias', () => {
     // leve, já com a Torre: os vigias avisam uma hora antes, e sem Paliçada ela custa 10% da
     // comida e da madeira e um ferido. Depois a Ameaça leva um verão inteiro para voltar aos 40,
     // e as que ela sorteia no outono recuam diante da Paliçada, já no nível 2 desde as 97 h 30
-    // (desde o estado 33 são cinco, uma delas média). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
+    // (desde o estado 33 são cinco; sem o +2 da Fortaleza, resposta do autor de 2026-10-27, a
+    // primeira do outono é média e a de 152 h, leve). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
     // com o tamanho; as outras, duas horas antes.
     const raidStory = events
       .filter((event) => /^(wolvesHowl|raidSuffered|raidRepelled)$/.test(event.type))
@@ -151,11 +153,11 @@ describe('cenário golden de 7 dias', () => {
       [30.0, 'raidSuffered', 'light', 0, 1],
       [48.0, 'raidSuffered', 'light', 0, 0],
       [72.0, 'raidSuffered', 'light', 0, 0],
-      [108.0, 'raidRepelled', 'strong', 2, null],
+      [108.0, 'raidRepelled', 'medium', 2, null],
       [120.0, 'raidRepelled', 'strong', 2, null],
       [132.0, 'raidRepelled', 'strong', 2, null],
       [144.0, 'raidRepelled', 'strong', 2, null],
-      [152.0, 'raidRepelled', 'medium', 2, null],
+      [152.0, 'raidRepelled', 'light', 2, null],
       [162.0, 'raidRepelled', 'light', 2, null],
     ]);
     // Cada uma foi anunciada pelos vigias, com a antecedência do nível da Torre daquela hora.
@@ -204,13 +206,14 @@ describe('cenário golden de 7 dias', () => {
     expect(state.rng.horde).toHaveLength(4);
     // A última incursão do ano já passou, e a seguinte ainda não foi sorteada.
     expect(state.horde.scheduledRaids).toEqual([]);
-    expect(state.map.threat).toBe(67);
+    // 67 até a Fortaleza deixar de somar Ameaça (resposta do autor de 2026-10-27).
+    expect(state.map.threat).toBe(43);
     const lastView = deriveViewState(state, state.lastProcessedAt).threat;
     expect(lastView).toMatchObject({
       known: true,
-      level: 67,
+      level: 43,
       risePerDay: 4,
-      raidChancePercent: 31,
+      raidChancePercent: 7,
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no
