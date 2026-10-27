@@ -17,7 +17,6 @@ import {
   newGame,
   quietHorde,
   refuse,
-  settings,
   SUMMER,
   WINTER,
   YEAR,

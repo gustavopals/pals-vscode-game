@@ -394,3 +394,9 @@ O cache também guarda, enquanto a aba está fora de vista, a ausência em curso
 ## A muralha, os presságios e a incursão (V4E-T4)
 
 O painel da Ameaça (aba Feudo) tem, logo abaixo da defesa, a caixa da muralha (`components/WallPanel.tsx`, só com Paliçada de pé): o nível, a vida de cada ala (`threat.defense.wall.hpText`, em frase), o que a Torre dispara (`tower.damageText`) e o reparo **em duas etapas**: "Reparar a muralha…" mostra o custo e o prazo da visão (`repairOffer.text`) e "Confirmar o reparo" manda `lords.repairWall { confirmed: true }`. A conferência vale para o custo e o prazo que o jogador viu: se qualquer um muda, ela fecha e pede nova conferência; com o reparo em curso, a contagem toma o lugar do botão. Pela paleta, `lords.repairWall` confirma com a mesma frase e lê a oferta de novo depois do diálogo (`controller.repairWall`, trava `wall`). O aviso da incursão traz `compositionText` quando os vigias leem o exército. A aba Exército lista os presságios (`components/OmensPanel.tsx`, `army.omens`; a onda pode ser `null` quando o presságio é vago). O Retorno tem `wallDamaged` (preço, com "Reparar…" quando a visão ainda tem vida a refazer), `wallRepaired` e `omenSeen`; "Antes de partir" tem o item "Reparar…" e, com uma incursão à vista e soldados sem Defesa ativa, o aviso de perigo com "Ativar uma formação". Presságio, batalha e muralha avisam só em "Todas".
+
+A Hora da Vigília e o fuso IANA das Preferências também são enviados ao feudo
+aberto pela ordem `setVigilHour`; sem feudo, ficam como padrão de criação. A
+tela exibe a hora confirmada e a explicação/aviso de fuso do `ViewState`. Uma
+mudança só vale para acontecimentos ainda não marcados, sem ajuste automático
+de horário de verão.

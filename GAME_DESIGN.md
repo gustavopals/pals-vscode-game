@@ -1183,7 +1183,8 @@ type GameState = {
   seed: string;
   settings: { settlementName: string; timezone: string; vigilHourLocal: number;
               difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 3 | 1 | 0.5 };  // não mudam durante o ano (a hora e o fuso da Vigília podem mudar, só para o que ainda não foi marcado)
-  // [v0.4, ainda não implementado, ADR 0019 decisão 13]: settings.realOriginMs (de games.created_at) e settings.vigil.utcOffsetMinutes
+  // [v0.4, V4G-T1, estado 35]: settings.realOriginMs (de games.created_at) e
+  // settings.vigil: { hourLocal; utcOffsetMinutes; timezoneResolved }; offset fixo sem DST.
   migratedAtMs: number | null;                               // fronteira da atualização mais recente (§15.4); null em partida nova
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo

@@ -21,6 +21,7 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
   'INVALID_WORKERS',

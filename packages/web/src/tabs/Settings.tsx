@@ -22,7 +22,7 @@ export type GameSettings = {
 };
 
 /**
- * Preferências deste navegador (nenhuma delas vai para o servidor) e, no fim, a dificuldade e o
+ * Preferências deste navegador (a Vigília também vai para o feudo aberto) e, no fim, a dificuldade e o
  * ritmo do feudo aberto, só para leitura: foram escolhidos ao fundá-lo.
  */
 export function SettingsTab(props: {
@@ -42,7 +42,9 @@ export function SettingsTab(props: {
   return (
     <form class="settings" onSubmit={(event) => event.preventDefault()}>
       <h1>Preferências</h1>
-      <p class="lead">Valem só neste navegador.</p>
+      <p class="lead">
+        Tema e avisos valem neste navegador. A Vigília também fica no feudo aberto.
+      </p>
 
       <fieldset>
         <legend>Tema</legend>
@@ -115,7 +117,7 @@ export function SettingsTab(props: {
           Hora local em que você costuma jogar
           <select
             name="vigilHour"
-            value={String(preferences.vigilHour)}
+            value={String(props.game?.vigil?.hourLocal ?? preferences.vigilHour)}
             onChange={(event) =>
               props.onChange({ vigilHour: Number((event.target as HTMLSelectElement).value) })
             }
@@ -126,6 +128,20 @@ export function SettingsTab(props: {
               </option>
             ))}
           </select>
+        </label>
+        <label>
+          Fuso horário IANA
+          <input
+            name="vigilTimezone"
+            type="text"
+            value={preferences.vigilTimezone ?? props.game?.vigil?.timezone ?? ''}
+            placeholder="America/Sao_Paulo"
+            onBlur={(event) => {
+              const vigilTimezone = (event.target as HTMLInputElement).value.trim();
+              if (vigilTimezone.length > 0 && vigilTimezone !== props.game?.vigil?.timezone)
+                props.onChange({ vigilTimezone });
+            }}
+          />
         </label>
         {props.game?.vigil === undefined ? null : (
           <>

@@ -11,7 +11,8 @@ import { and, eq } from 'drizzle-orm';
 
 import { ApiError } from '../api-error';
 import type { AppContext } from '../context';
-import { commands } from '../db/schema';
+import { commands, games } from '../db/schema';
+import { resolveVigilTimezone } from './vigil';
 import { gameTimeAt, lockGame, nextCommandSeq, persistState } from './repository';
 import { assertActive } from './service';
 
@@ -80,11 +81,21 @@ export async function executeCommand(
     const gameNowMs = gameTimeAt(game, now);
 
     const advanced = advanceTo(game.state, gameNowMs);
-    const result = applyCommand(advanced.state, command, gameNowMs);
+    const context =
+      command.type === 'setVigilHour'
+        ? { vigil: resolveVigilTimezone(command.payload.timezone, now) }
+        : {};
+    const result = applyCommand(advanced.state, command, gameNowMs, context);
     const state = result.ok ? result.state : advanced.state;
     const engineEvents = result.ok ? [...advanced.events, ...result.events] : advanced.events;
 
     const persisted = await persistState(tx, game, state, engineEvents, now);
+    if (result.ok && command.type === 'setVigilHour') {
+      await tx
+        .update(games)
+        .set({ timezone: state.settings.timezone, vigilHour: state.settings.vigil.hourLocal })
+        .where(eq(games.id, game.id));
+    }
     const accepted: CommandAccepted = {
       view: deriveViewState(state, gameNowMs, { timeScale: Number(game.timeScale) }),
       events: persisted.events,
@@ -110,7 +121,10 @@ export async function executeCommand(
       accountId,
       seq: await nextCommandSeq(tx, game.id),
       type: command.type,
-      payload: command.payload,
+      payload:
+        context.vigil === undefined
+          ? command.payload
+          : { ...command.payload, resolvedVigil: context.vigil },
       requestHash: hash,
       serverTime: now,
       result: result.ok ? 'accepted' : 'rejected',

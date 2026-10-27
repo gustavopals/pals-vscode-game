@@ -156,3 +156,16 @@ O app web obtém o token do GitHub por *device flow* (GDD §14.7). O GitHub não
 Não há segredo de OAuth, nada é guardado e nada vai para o log. Sem `GITHUB_CLIENT_ID` as duas respondem `404 NOT_FOUND` e `GET /v1/version` informa `features.githubDevice: false`, para o app esconder os botões ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)). Limite por IP: `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP` (padrão 20) para começar e 30 por minuto para consultar. O endereço que o GitHub devolve só é aceito se for do próprio `GITHUB_OAUTH_URL`, porque vira um link na tela do jogador.
 
 Na v0.1 o vínculo GitHub fica desligado em produção (sem `GITHUB_CLIENT_ID`). O código continua no repositório, testado só com um GitHub simulado (`test/helpers/github.ts`, `test/githubDevice.test.ts`); nunca foi exercitado contra o GitHub real.
+
+### Preferência da Vigília (V4G-T1)
+
+A ordem idempotente `setVigilHour { hourLocal, timezone }` usa o caminho de comandos.
+Depois de travar e avançar a partida, o servidor resolve o offset com `Intl` no
+instante da ordem e passa `CommandContext.vigil` ao motor. O cliente nunca fornece
+esse contexto (campos extras são recusados pelo schema). O offset resolvido fica
+em `commands.payload.resolvedVigil`, junto da intenção original, para replay sem
+depender de outra versão de ICU; o hash e o recibo continuam sendo da intenção
+do cliente. O replay entrega esse dado como quarto argumento de `applyCommand`.
+A linha (`timezone`, `vigil_hour`) e o estado são atualizados na mesma transação.
+Ordens recusadas preservam o avanço; reenvios devolvem o recibo antes de resolver
+o fuso outra vez. Nenhum agendamento já marcado é refeito.

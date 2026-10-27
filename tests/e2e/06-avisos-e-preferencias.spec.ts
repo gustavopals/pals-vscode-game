@@ -404,6 +404,39 @@ test.describe('modo discreto', () => {
 });
 
 test.describe('preferências, sobre e privacidade', () => {
+  test('muda hora e fuso da Vigília no feudo aberto e conserva ao recarregar', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    await openSettings(page);
+    const changed = () =>
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' &&
+          response.url().endsWith('/commands') &&
+          (response.request().postDataJSON() as { type: string }).type === 'setVigilHour',
+      );
+    const hourReply = changed();
+    await settings(page).getByLabel('Hora local em que você costuma jogar').selectOption('7');
+    expect((await hourReply).status()).toBe(200);
+    await expect(settings(page).getByLabel('Hora local em que você costuma jogar')).toHaveValue(
+      '7',
+    );
+    const zoneReply = changed();
+    await settings(page).getByLabel('Fuso horário IANA').fill('Asia/Tokyo');
+    await settings(page).getByLabel('Fuso horário IANA').press('Tab');
+    expect((await zoneReply).status()).toBe(200);
+    await expect(settings(page)).toContainText('Fuso do feudo: Asia/Tokyo');
+    await page.reload();
+    await openSettings(page);
+    await expect(settings(page).getByLabel('Hora local em que você costuma jogar')).toHaveValue(
+      '7',
+    );
+    await expect(settings(page)).toContainText('Fuso do feudo: Asia/Tokyo');
+  });
+
   test('a Hora da Vigília escolhida vai junto ao fundar o feudo, com o fuso do navegador', async ({
     context,
     world,
@@ -428,7 +461,7 @@ test.describe('preferências, sobre e privacidade', () => {
       difficulty: 'lord',
       timeScale: 1,
     });
-    // As preferências não vão para o servidor: ficam só neste navegador.
+    // A preferência também fica no navegador como padrão das próximas partidas.
     const saved = await page.evaluate(() => localStorage.getItem('lords.preferences'));
     expect(JSON.parse(saved ?? '{}')).toMatchObject({ vigilHour: 7 });
   });

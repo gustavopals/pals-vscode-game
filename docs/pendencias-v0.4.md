@@ -455,3 +455,15 @@ Mantida a antecedência de 6 h de jogo, agora como instante próprio da linha do
 quando não há vaga (D-33), impede repetir por mudar a preferência. Incursões antigas
 já marcadas mantêm seu prazo. Quem migra depois do início do 61º dia não recebe um
 ensaio novo: a versão antiga já o cumpriu ou o perdeu. Nenhum prazo nasce no passo.
+
+**G-4. Alteração e replay.** _(Proposta do agente; não lida pelo autor.)_
+Escolhida a ordem `setVigilHour { hourLocal, timezone }`, pelo caminho idempotente
+das demais ordens. O servidor resolve o offset no instante da ordem, entrega
+`CommandContext.vigil` ao motor e guarda o dado em `commands.payload.resolvedVigil`
+para replay independente de ICU. Nenhum offset enviado pelo cliente é aceito.
+Preferências permitem editar o fuso IANA; a hora confirmada vem da visão.
+
+**G-5. Preferência alterada dentro da antecedência.** _(Proposta do agente; não lida pelo autor.)_
+Se o ensaio ainda não foi marcado e o novo horário ainda é futuro, mas a
+antecedência de 6 h já começou, a ordem marca agora (sujeita à vaga única).
+Horário que já passou não cria cobrança retroativa. A tentativa continua única.

@@ -920,6 +920,7 @@ export type GameEvent = {
 };
 
 export type Command =
+  | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {
       commandId: string;
       type: 'setWorkers';
@@ -1078,6 +1079,7 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
   'INVALID_WORKERS',

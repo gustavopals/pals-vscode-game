@@ -30,6 +30,12 @@ import { announceFilled, fullStores } from './storage';
 import { hireHero, holdFestival } from './tavernOrders';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 import { dismissHero } from './wages';
+import { markScriptedWarRaids } from './raids';
+
+/** Contexto resolvido pelo servidor e guardado com a ordem para replay. */
+export type CommandContext = {
+  vigil?: { utcOffsetMinutes: number; timezoneResolved: boolean };
+};
 
 function renameSettlement(
   draft: GameState,
@@ -52,10 +58,34 @@ function dispatch(
   command: Command,
   nowMs: number,
   events: GameEvent[],
+  context: CommandContext,
 ): Rejection | null {
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
+    case 'setVigilHour': {
+      const { hourLocal, timezone } = payload;
+      const civil = context.vigil;
+      if (
+        !Number.isSafeInteger(hourLocal) ||
+        (hourLocal as number) < 0 ||
+        (hourLocal as number) > 23 ||
+        typeof timezone !== 'string' ||
+        timezone.length === 0 ||
+        timezone.length > 64 ||
+        civil === undefined ||
+        !civil.timezoneResolved ||
+        !Number.isSafeInteger(civil.utcOffsetMinutes) ||
+        Math.abs(civil.utcOffsetMinutes) > 840
+      )
+        return reject('INVALID_VIGIL');
+      draft.settings.timezone = timezone;
+      draft.settings.vigilHourLocal = hourLocal as number;
+      draft.settings.vigil = { hourLocal: hourLocal as number, ...civil };
+      markScriptedWarRaids(draft, nowMs);
+      emit(events, draft, nowMs, 'vigilChanged', { hourLocal: hourLocal as number, timezone });
+      return null;
+    }
     case 'setWorkers':
       return setWorkers(draft, payload.building, payload.count, nowMs);
     case 'startConstruction':
@@ -159,7 +189,12 @@ function dispatch(
  * Uma recusa de regra nunca lança exceção nem altera o estado recebido: o chamador continua
  * com o resultado de `advanceTo` e pode persisti-lo mesmo quando a ação é recusada.
  */
-export function applyCommand(state: GameState, command: Command, nowMs: number): CommandResult {
+export function applyCommand(
+  state: GameState,
+  command: Command,
+  nowMs: number,
+  context: CommandContext = {},
+): CommandResult {
   if (state.lastProcessedAt !== nowMs) {
     throw new Error(
       `applyCommand exige o estado avançado até ${nowMs}, mas ele está em ${state.lastProcessedAt}.`,
@@ -168,7 +203,7 @@ export function applyCommand(state: GameState, command: Command, nowMs: number):
   const draft = cloneState(state);
   const events: GameEvent[] = [];
   const wasFull = fullStores(draft);
-  const rejection = dispatch(draft, command, nowMs, events);
+  const rejection = dispatch(draft, command, nowMs, events, context);
   if (rejection !== null) {
     return { ok: false, code: rejection.code, message: rejection.message };
   }

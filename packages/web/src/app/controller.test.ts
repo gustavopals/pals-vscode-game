@@ -2462,6 +2462,16 @@ describe('outras abas do navegador', () => {
 });
 
 describe('preferências', () => {
+  it('envia a mudança de hora e fuso ao feudo aberto, sem novo endpoint', async () => {
+    const { controller, api, store } = await opened();
+    await controller.setPreferences({ vigilHour: 3, vigilTimezone: 'Asia/Tokyo' });
+    expect(api.state.commands.at(-1)).toMatchObject({
+      type: 'setVigilHour',
+      payload: { hourLocal: 3, timezone: 'Asia/Tokyo' },
+    });
+    expect(controller.gameDefaults()).toEqual({ timezone: 'Asia/Tokyo', vigilHourLocal: 3 });
+    expect(store.get(PREFERENCES_KEY)).toEqual(controller.preferences);
+  });
   it('começam no padrão e são guardadas neste navegador', async () => {
     const { controller, store } = make();
     expect(controller.preferences).toEqual(DEFAULT_PREFERENCES);

@@ -36,6 +36,8 @@ import {
   tileTypes,
   wageArrearsReliefs,
   warRaids,
+  vigilRules,
+  vigilTexts,
   ITEM_SLOT_IDS,
 } from '@lotg/content';
 import type {
@@ -2700,6 +2702,8 @@ describe('contentHash', () => {
         enemies,
         raidSizes,
         warRaids,
+        vigilRules,
+        vigilTexts,
         hordeTiles,
         hordeWaves,
         omenTexts,
@@ -2764,6 +2768,8 @@ describe('contentHash', () => {
       'tavernCandidates',
       'threatMarkTemplates',
       'tileTypes',
+      'vigilRules',
+      'vigilTexts',
       'wageArrearsReliefs',
       'warRaids',
     ]);

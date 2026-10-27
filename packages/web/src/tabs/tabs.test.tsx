@@ -383,8 +383,8 @@ describe('aba Preferências', () => {
       .filter((tag) => hasAttribute(tag, 'checked'))
       .map((tag) => attribute(tag, 'value'));
 
-  it('diz que as preferências valem só neste navegador', () => {
-    expect(render()).toContain('Valem só neste navegador.');
+  it('diz quais preferências também vão ao feudo', () => {
+    expect(render()).toContain('A Vigília também fica no feudo aberto.');
   });
 
   it('três temas em botões de rádio, com o tema em uso marcado', () => {
@@ -549,7 +549,7 @@ describe('aba Preferências', () => {
     it('fica depois das preferências do navegador, que continuam com os mesmos campos', () => {
       const markup = render({ game });
       expect(markup.indexOf('Esta partida')).toBeGreaterThan(markup.indexOf('Hora da Vigília'));
-      expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1);
+      expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1 + 1);
     });
   });
 
@@ -557,7 +557,8 @@ describe('aba Preferências', () => {
     const markup = render();
     const labelled = tags(markup, /<label>.*?<\/label>/g).join('');
     const fields = tags(markup, /<(input|select)[^>]*>/g);
-    expect(fields.length).toBe(3 + 3 + 1 + 1 + 1);
+    // V4G-T1: há também o campo de fuso IANA, com rótulo como os demais.
+    expect(fields.length).toBe(3 + 3 + 1 + 1 + 1 + 1);
     for (const field of fields) {
       expect(labelled).toContain(field);
     }
