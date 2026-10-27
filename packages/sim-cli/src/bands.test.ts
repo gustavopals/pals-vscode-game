@@ -222,7 +222,8 @@ describe('faixas a partir da linha de base medida', () => {
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_341, gold: 111_759 },
+      // Revisão da V4E-T3 (seção 12): o ouro parado sobe a 111.974 e a pedra a 5.200.
+      surplusMax: { wood: 5_460, stone: 5_460, gold: 117_573 },
       wasteStreakMax: 32,
     });
   });

@@ -400,3 +400,36 @@ que o cerco foi implementado. A antiga premissa D-34 (limpar o Covil impede os
 roteiros humanos) foi superada pelo Acampamento com data própria da decisão 16:
 saqueadores não dependem dos lobos. Os roteiros continuam limitados a uma
 incursão marcada por vez (D-33).
+
+### V4E-T3 — correções da revisão independente (2026-10-27)
+
+**D-45a. Quem ronda com vários tiles ativos.** _(Decisão provisória do agente, por aprovar.)_
+`prowlingEnemy` escolhia o inimigo do primeiro tile ativo pela ordem alfabética da chave:
+com o Acampamento e a Fortaleza, as incursões sorteadas depois do 25º dia se anunciavam como
+de saqueadores ou da Horda, com a composição dos lobos (`hordeBaseMix`). **Escolhido:** uma
+prioridade fixa no conteúdo, `prowlingTileOrder` = Covil de Lobos → Acampamento → Fortaleza:
+com o Covil ativo as incursões comuns voltam a ser de lobos, como antes da V4E-T3; o
+Acampamento só manda as dele com o Covil limpo. **Alternativa:** cada tile ativo marca as
+próprias incursões, com composição do próprio inimigo (saqueadores e Horda com mistura
+própria em `hordeBaseMix`), o que pede números novos e muda a pressão medida.
+
+**D-45b. A prévia de uma incursão não lê presságio.** _(Decisão provisória do agente, por
+aprovar.)_ Sem incursão à vista, a prévia de defesa usava o último presságio (de uma onda do
+Cerco, até 105 inimigos) como inimigo conhecido da próxima incursão comum, e o parcial
+misturava um posto da onda com a estimativa. **Escolhido:** a prévia de incursão usa só a
+incursão à vista e o último relatório; os presságios ficam para a prévia de uma onda, na
+Fase G. **Alternativa:** uma prévia "contra a onda N" à parte, já na Fase E, escolhida pelo
+jogador no Conselho de Guerra.
+
+**D-45c. Incursão sem formação vista não mexe na memória.** _(Decisão provisória do agente,
+por aprovar.)_ Sem Defesa ativa, a batalha via um defensor sem posto; a memória virava `null`
+e, no outono, as ondas eram regeradas sem memória: uma finta de graça (desligar a Defesa
+antes de uma incursão). **Escolhido:** sem formação vista, a memória e as ondas ficam como
+estavam. **Alternativa:** a Horda "lembrar" a milícia (uma formação vazia que conta como
+vista e regera as ondas), o que mantém a finta mas a torna cara (o feudo sem defesa sofre a
+incursão).
+
+Também corrigidos, sem decisão: o presságio vago não diz mais a onda (`wave: null` na visão;
+sem a chave `wave` no evento `omenSeen`); a guarda da forma 34 exige o Acampamento e a
+Fortaleza na chave do próprio tipo (um de cada); e os números congelados da guarda têm teste
+contra o conteúdo de hoje.

@@ -2714,7 +2714,11 @@ describe('a forma da versão atual', () => {
   it('conhece os mesmos tiles, inimigos e tamanhos de incursão que o conteúdo', () => {
     for (const type of TILE_TYPE_IDS) {
       const state = JSON.parse(JSON.stringify(newGame())) as Draft;
-      state.map.tiles = { a: { type, threatActive: true }, b: { type, threatActive: false } };
+      // O Acampamento e a Fortaleza são únicos, na chave do próprio tipo; o Covil pode repetir.
+      state.map.tiles =
+        type === 'wolfDen'
+          ? { a: { type, threatActive: true }, b: { type, threatActive: false } }
+          : { [type]: { type, threatActive: true } };
       state.map.threat = 100;
       expect(currentShape(state, ''), type).toBeNull();
     }

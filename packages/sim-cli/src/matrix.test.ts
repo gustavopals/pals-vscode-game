@@ -244,7 +244,8 @@ describe('relatório da matriz', () => {
       // docs/balance-v0.4.md, seção 8): o Salão fecha a semana no 7 e o ouro parado cai.
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a população sobe e o ouro parado também.
       // D-39 (docs/balance-v0.4.md, seção 10): a faixa do ouro parado desce.
-      '| Rápido 3× | Regular | 65 a 93 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.341 | ≤ 111.759 | ≤ 32 | 0 |',
+      // Revisão da V4E-T3 (seção 12): a pedra e o ouro parados sobem um pouco.
+      '| Rápido 3× | Regular | 65 a 93 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 117.573 | ≤ 32 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -376,13 +377,16 @@ describe('relatório da matriz', () => {
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Regular sofre três (a dos lobos e as duas primeiras do roteiro da guerra,
       // antes da Defesa ativa e da Paliçada) e repele 17.
       // D-39: as duas do roteiro não ferem, e o único ferido é o dos lobos.
-      '| Rápido 3× | Regular | 3 a 5 | 28 a 30 | 31 a 32 | 1 a 3 | 139 a 287 | 43 a 69 | 89 a 100 |',
+      // Revisão da V4E-T3 (D-45a; docs/balance-v0.4.md, seção 12): com o Covil ativo as
+      // sorteadas voltam a ser de lobos; o Acampamento e a Fortaleza somam Ameaça, e cada
+      // incursão a baixa: repelidas 27 a 31, Ameaça no fim 67 a 89.
+      '| Rápido 3× | Regular | 3 a 5 | 27 a 31 | 31 a 32 | 1 a 3 | 139 a 287 | 43 a 69 | 67 a 89 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
       suffered: { min: 3, max: 5 },
-      repelled: { min: 28, max: 30 },
-      threatFinal: { min: 89, max: 100 },
+      repelled: { min: 27, max: 31 },
+      threatFinal: { min: 67, max: 89 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
     // os vigias anunciam no máximo uma incursão, e nenhuma é repelida (a Paliçada sai nas

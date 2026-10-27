@@ -526,3 +526,43 @@ não se afirma benefício tático. Ainda **não existe resolução do cerco**, p
 não há medição de vitória das três ondas nem do alvo de 65–80% do Regular.
 Os pesos iniciais das ondas estão inventariados como rascunho na seção 12 de
 [content-v0.4.md](content-v0.4.md), para medir novamente na Fase G.
+
+## 12. Correções da revisão da V4E-T3 (2026-10-27)
+
+Branch `v4e-t3-correcoes`, a partir de `1043e48` (estado 34, protocolo 3); Node 22.22.3.
+Rodadas: `pnpm -s sim -- --matrix` em Senhor, Camponês e Rei de Ferro, 50 sementes, com as
+seis correções da revisão independente (pendências D-45a a D-45c). Nenhum bot foi mexido.
+
+**O que mudou na regra.** Com o Covil ativo, as incursões sorteadas voltam a ser de lobos
+(antes da correção, depois do 25º dia elas se anunciavam como de saqueadores ou da Horda,
+pela ordem alfabética das chaves, com a composição dos lobos); a prévia de incursão não lê
+mais os presságios; e uma incursão sem Defesa ativa não apaga a memória da Horda nem
+regera as ondas no outono.
+
+**O Preguiçoso do Rápido, em Senhor** (seção 11.3 → agora): **nada mudou**.
+
+| Janela | População | Salão | Objetivos | Sofridas | Repelidas | Feridos |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 ano | 16 → 16 | 2–3 → 2–3 | 9–11 → 9–11 | 8–11 → 8–11 | 0–1 → 0–1 | 12–18 → 12–18 |
+| 7 dias reais | 36–52 → 36–52 | 6–7 → 6–7 | 12 → 12 | 9–17 → 9–17 | 16–25 → 16–25 | 13–25 → 13–25 |
+
+Camponês e Rei de Ferro também repetem a seção 11.3 para o Preguiçoso. Leitura: a
+composição das incursões sorteadas já era a dos lobos antes da correção; o que estava
+errado era o inimigo anunciado (o nome, as frases e a régua de Paliçada e defesa que vale
+para cada um), e o Preguiçoso não tem defesa que mude o desfecho. **Os feridos a mais do
+Preguiçoso (D-43) vêm da pressão dos tiles novos, não do defeito corrigido.**
+
+**Faixas.** Saíram por uma semente cada, e `MEASURED` foi trocada pela medida desta rodada
+nas três dificuldades: em Senhor, o ouro parado do Regular da semana do Rápido (106.437 →
+111.974) e a sequência desperdiçando do Dedicado da mesma célula (21 → 24 h de jogo); em
+Camponês, a madeira e a pedra paradas do Explorador do Normal (4.533 → 4.801 e 3.262 →
+3.437); em Rei de Ferro, a madeira parada do Regular e a sequência do Dedicado da semana do
+Rápido. As outras diferenças são de uma unidade. Fome, frio e recusas continuam em zero.
+O teste da matriz de três sementes (`matrix.test.ts`, "cada janela traz os lobos") passou a
+medir, no Regular da semana do Rápido, 27 a 31 repelidas e a Ameaça no fim entre 67 e 89
+(eram 28 a 30 e 89 a 100): com os lobos de volta nas sorteadas, a régua da Paliçada é a
+deles, e mais incursões são repelidas.
+
+**O que não foi medido.** A finta do militar (seção 11.4) não foi refeita: a correção D-45c
+muda o que ela pode fazer (a finta "sem Defesa" deixa de apagar a memória). Os arquivos da
+rodada ficaram no scratchpad da sessão.
