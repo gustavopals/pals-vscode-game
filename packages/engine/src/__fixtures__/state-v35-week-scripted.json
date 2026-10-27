@@ -191,7 +191,7 @@
     "threatActive": false
    }
   },
-  "threat": 67,
+  "threat": 83,
   "discovered": []
  },
  "horde": {
@@ -280,7 +280,7 @@
   "reports": [
    {
     "id": "battle-7",
-    "foughtAtMs": 518400000,
+    "foughtAtMs": 504000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -292,16 +292,16 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 16,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "ogre",
-      "start": 4,
+      "unit": "raider",
+      "start": 19,
       "lost": 0
      },
      {
@@ -316,15 +316,15 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 16,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 3,
       "lost": 0
      }
@@ -351,7 +351,7 @@
    },
    {
     "id": "battle-8",
-    "foughtAtMs": 547200000,
+    "foughtAtMs": 540000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -363,8 +363,8 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "raider",
-      "start": 10,
+      "unit": "blackKnight",
+      "start": 8,
       "lost": 0
      },
      {
@@ -372,7 +372,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 19,
       "lost": 0
      },
      {
@@ -380,7 +380,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 6,
+      "start": 9,
       "lost": 0
      },
      {
@@ -388,15 +388,15 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 16,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
-      "unit": "shaman",
-      "start": 2,
+      "unit": "banditArcher",
+      "start": 3,
       "lost": 0
      }
     ],
@@ -435,7 +435,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 6,
+      "start": 16,
       "lost": 0
      },
      {
@@ -443,7 +443,7 @@
       "wing": "center",
       "line": "front",
       "unit": "ogre",
-      "start": 1,
+      "start": 4,
       "lost": 0
      },
      {
@@ -451,7 +451,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 3,
+      "start": 9,
       "lost": 0
      },
      {
@@ -459,7 +459,7 @@
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "start": 3,
+      "start": 8,
       "lost": 0
      },
      {
@@ -467,7 +467,7 @@
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "start": 1,
+      "start": 3,
       "lost": 0
      }
     ],
@@ -546,12 +546,13 @@
   "cardsDrawn:collapsedWell": 1,
   "seasonsSurvived:summer": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 6,
+  "threatCrossed:70": 7,
   "omens": 16,
   "raids_repelled": 6,
   "cardsDrawn:commonGranaryPlanks": 2,
   "cardsDrawn:commonGranaryShare": 1,
   "cardsDrawn:harvestFeast": 1,
+  "vigilRehearsalMarked": 1,
   "cardsDrawn:commonGranaryOutcome": 1,
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:firstRecruit": 1,

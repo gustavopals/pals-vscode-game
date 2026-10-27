@@ -7,7 +7,7 @@ import { nextExpeditionEventAt } from './expeditions';
 import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { nextHeroArrivalAt, nextHeroRecoveryAt } from './heroes';
 import { autoStartsIn } from './planned';
-import { nextRaidEventAt, nextRecoveryAt } from './raids';
+import { nextRaidEventAt, nextRecoveryAt, nextRehearsalMarkAt } from './raids';
 import { nextForgeEndAt } from './smithy';
 import { nextTrainingEndAt } from './army';
 import { storageFillsIn } from './storage';
@@ -41,6 +41,8 @@ export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
   const { constructionQueues, recruitmentQueue, famine } = state.settlement;
   const candidates = [nextDayBoundary(now)];
+  const rehearsalMark = nextRehearsalMarkAt(state);
+  if (rehearsalMark !== null) candidates.push(rehearsalMark);
 
   for (const slot of constructionQueues) {
     if (slot !== null) {

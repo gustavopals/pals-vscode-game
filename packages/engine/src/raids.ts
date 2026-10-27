@@ -43,6 +43,7 @@ import type {
   ScheduledRaid,
 } from './types';
 import { MILLI } from './units';
+import { vigilAt } from './vigil';
 
 /**
  * As incursões (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20): a do roteiro do ano 1, o
@@ -84,10 +85,10 @@ export function scriptedRaidsAfter(boundaryMs: number): ScheduledRaid[] {
 }
 
 /** Uma incursão-batalha do roteiro do ano 1, marcada (sem composição: a da estação, sem sorteio). */
-function warScriptedRaid(def: (typeof warRaids.scripted)[number]): ScheduledRaid {
+function warScriptedRaid(def: (typeof warRaids.scripted)[number], state: GameState): ScheduledRaid {
   return {
     id: def.id,
-    atMs: scriptedAtMs(def),
+    atMs: def.rehearsal ? vigilAt(state.settings, scriptedAtMs(def)) : scriptedAtMs(def),
     kind: 'scripted',
     enemy: def.rehearsal ? 'horde' : 'raiders',
     size: def.size,
@@ -107,10 +108,13 @@ function warScriptedRaid(def: (typeof warRaids.scripted)[number]): ScheduledRaid
 export function markScriptedWarRaids(draft: GameState, atMs: number): void {
   const { scheduledRaids } = draft.horde;
   for (const def of warRaids.scripted) {
-    const raid = warScriptedRaid(def);
+    if (def.rehearsal && !rehearsalUnmarked(draft, def)) continue;
+    const raid = warScriptedRaid(def, draft);
     if (raid.atMs - threatRules.raidLeadMs !== atMs) {
       continue;
     }
+    // A tentativa é única, inclusive sem vaga (D-33). Mudar a preferência não repete o ensaio.
+    if (def.rehearsal) draft.stats.vigilRehearsalMarked = 1;
     // Uma marcada por vez, como as sorteadas (D-33): com outra incursão marcada, a do roteiro
     // não é marcada e não volta (a partida segue com a que já vinha).
     // O Acampamento tem data própria (V4E-T3): limpar o Covil não impede saqueadores.
@@ -119,6 +123,23 @@ export function markScriptedWarRaids(draft: GameState, atMs: number): void {
     }
   }
   scheduledRaids.sort((a, b) => a.atMs - b.atMs);
+}
+
+function rehearsalUnmarked(state: GameState, def: (typeof warRaids.scripted)[number]): boolean {
+  return (
+    state.stats.vigilRehearsalMarked !== 1 &&
+    !state.horde.scheduledRaids.some((raid) => raid.id === def.id) &&
+    // Quem migrou depois da data antiga já teve ou perdeu o ensaio. Não se cobra o passado.
+    (state.migratedAtMs === null || state.migratedAtMs < scriptedAtMs(def))
+  );
+}
+
+/** A marcação do ensaio pode cair entre viradas de dia; é um instante próprio da linha. */
+export function nextRehearsalMarkAt(state: GameState): number | null {
+  const def = warRaids.scripted.find((entry) => entry.rehearsal);
+  if (def === undefined || !rehearsalUnmarked(state, def)) return null;
+  const at = vigilAt(state.settings, scriptedAtMs(def)) - threatRules.raidLeadMs;
+  return at > state.lastProcessedAt ? at : null;
 }
 
 /**
@@ -567,6 +588,8 @@ function resolveRaid(
  * chegaram, em ordem. Cada incursão é resolvida uma vez e sai da lista.
  */
 export function settleRaids(draft: GameState, atMs: number, events: GameEvent[]): void {
+  // Depois das obras e da virada do dia, antes do aviso da Torre: a recém-marcada já é visível.
+  markScriptedWarRaids(draft, atMs);
   announceRaids(draft, atMs, events);
   const { scheduledRaids } = draft.horde;
   for (;;) {
@@ -575,6 +598,8 @@ export function settleRaids(draft: GameState, atMs: number, events: GameEvent[])
       return;
     }
     scheduledRaids.shift();
+    if (warRaids.scripted.some((def) => def.rehearsal && def.id === raid.id))
+      draft.stats.vigilRehearsalMarked = 1;
     resolveRaid(draft, raid, atMs, events);
   }
 }

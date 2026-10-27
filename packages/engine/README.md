@@ -685,3 +685,10 @@ pendência G-1. O offset fica fixo, sem horário de verão; só o servidor consu
 Chamadas offline sem contexto civil usam origem 0 e UTC não resolvido, com aviso na
 visão; o servidor sempre fornece origem e offset. O passo 34 → 35 só acrescenta esses
 dados e nunca recalcula uma incursão marcada. O Cerco continua fora desta tarefa.
+
+O ensaio usa a janela do 61º dia de jogo (120 a 144 h), e a marcação fica
+6 h de jogo antes da chegada, em instante próprio de `nextEventAt`. Resolve em
+`settleRaids`, depois das obras e da virada do dia e antes do aviso da Torre.
+`stats.vigilRehearsalMarked` registra a tentativa única, inclusive sem vaga; a
+preferência não repete um ensaio já marcado ou resolvido. O passo de migração
+não marca nada, e o ensaio antigo em curso mantém seu prazo.

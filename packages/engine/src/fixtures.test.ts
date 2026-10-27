@@ -770,7 +770,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('fresh').horde).toEqual(threat.horde);
     // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
     // (V4E-T2.4) mudaram a semana.
-    expect(of('week-scripted').map.threat).toBe(67);
+    // V4G-T1: o ensaio na Vigília muda os sorteios depois dele (balance-v0.4.md §13).
+    expect(of('week-scripted').map.threat).toBe(83);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;

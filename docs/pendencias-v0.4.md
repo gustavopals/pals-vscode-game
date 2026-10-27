@@ -448,3 +448,10 @@ A criação e a migração sem contexto civil explícito usam origem 0, offset 0
 `timezoneResolved: false`, de forma determinística. O servidor sempre passa `created_at`
 e resolve o offset IANA na criação da linha; uma preferência posterior resolve no
 instante da ordem. O offset só muda por essa ordem, sem atualização automática por DST.
+
+**G-3. Marcação do ensaio.** _(Proposta do agente; não lida pelo autor.)_
+Mantida a antecedência de 6 h de jogo, agora como instante próprio da linha do tempo
+(pode não ser virada de dia). A tentativa é única: `stats.vigilRehearsalMarked`, também
+quando não há vaga (D-33), impede repetir por mudar a preferência. Incursões antigas
+já marcadas mantêm seu prazo. Quem migra depois do início do 61º dia não recebe um
+ensaio novo: a versão antiga já o cumpriu ou o perdeu. Nenhum prazo nasce no passo.

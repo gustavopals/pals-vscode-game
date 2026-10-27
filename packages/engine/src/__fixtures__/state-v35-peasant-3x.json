@@ -42,15 +42,15 @@
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 625000,
-   "wood": 621041,
+   "food": 533718,
+   "wood": 535986,
    "stone": 45000,
    "gold": 0,
    "iron": 0
   },
   "accumulators": {
-   "food": 2478600,
-   "wood": 561600,
+   "food": 442260,
+   "wood": 2569680,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -59,7 +59,7 @@
    "villagers": 5
   },
   "workers": {
-   "farm": 3,
+   "farm": 1,
    "lumberMill": 2,
    "quarry": 0,
    "goldMine": 0
@@ -105,8 +105,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 10061,
-   "wood": 866,
+   "food": 822,
+   "wood": 268,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -124,16 +124,25 @@
    "goldMine": 0
   },
   "adaptation": [],
-  "morale": 50,
+  "morale": 60,
   "moraleEffects": [
    {
     "id": "raid",
     "label": "Incursão sofrida",
     "amount": -10,
-    "untilMs": 1245600000
+    "untilMs": 1260000000
    }
   ],
-  "injured": [],
+  "injured": [
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   },
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   }
+  ],
   "masters": [],
   "mastersWaiting": [],
   "weapons": 0,
@@ -183,40 +192,11 @@
     "threatActive": false
    }
   },
-  "threat": 68,
+  "threat": 50,
   "discovered": []
  },
  "horde": {
-  "scheduledRaids": [
-   {
-    "id": "threat-23",
-    "atMs": 1267200000,
-    "kind": "threat",
-    "enemy": "wolves",
-    "size": "light",
-    "composition": [
-     {
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "count": 6
-     },
-     {
-      "wing": "center",
-      "line": "front",
-      "unit": "wolf",
-      "count": 10
-     },
-     {
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "count": 7
-     }
-    ],
-    "announcedAtMs": null
-   }
-  ],
+  "scheduledRaids": [],
   "lastFormationSeen": null,
   "wavePlan": null,
   "omens": []
@@ -299,7 +279,7 @@
   "reports": [
    {
     "id": "battle-20",
-    "foughtAtMs": 1137600000,
+    "foughtAtMs": 1166400000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -319,8 +299,8 @@
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "raider",
-      "start": 19,
+      "unit": "blackKnight",
+      "start": 9,
       "lost": 0
      },
      {
@@ -335,8 +315,8 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 16,
       "lost": 0
      },
      {
@@ -354,62 +334,7 @@
    },
    {
     "id": "battle-21",
-    "foughtAtMs": 1188000000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 16,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "blackKnight",
-      "start": 9,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "shaman",
-      "start": 9,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 16,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
-   },
-   {
-    "id": "battle-22",
-    "foughtAtMs": 1231200000,
+    "foughtAtMs": 1209600000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -445,6 +370,45 @@
     "wall": [],
     "commanders": [],
     "log": []
+   },
+   {
+    "id": "battle-22",
+    "foughtAtMs": 1245600000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 18,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
    }
   ],
   "preview": null
@@ -464,19 +428,20 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 9314061,
+  "wasted_food": 9508822,
   "cardsDrawn:thawBridgePlea": 1,
   "raids_suffered": 22,
-  "wasted_wood": 4558866,
+  "wasted_wood": 4677268,
   "coldSpellsThisSeason": 0,
   "campAppearedAtDay": 25,
-  "threatCrossed:40": 4,
+  "threatCrossed:40": 5,
   "cardsExpired": 8,
   "cardsDrawn:woundedStranger": 1,
   "seasonsSurvived:summer": 2,
   "cardsDrawn:itinerantMerchant": 1,
   "fortressAppearedAtDay": 49,
   "threatCrossed:70": 18,
+  "vigilRehearsalMarked": 1,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
   "cardsDrawn:springSeeds": 2,

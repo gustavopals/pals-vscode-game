@@ -29,10 +29,10 @@
    3839636383
   ],
   "horde": [
-   2948714260,
-   2140607624,
-   2371782848,
-   3486367429
+   2983145971,
+   3810182171,
+   3312072369,
+   3685014022
   ]
  },
  "ids": {
@@ -105,7 +105,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 18628,
+   "food": 18258,
    "wood": 0,
    "stone": 0,
    "gold": 0,
@@ -194,47 +194,47 @@
     "threatActive": true
    }
   },
-  "threat": 86,
+  "threat": 95,
   "discovered": []
  },
  "horde": {
   "scheduledRaids": [
    {
     "id": "threat-8",
-    "atMs": 540000000,
+    "atMs": 547200000,
     "kind": "threat",
     "enemy": "wolves",
-    "size": "medium",
+    "size": "strong",
     "composition": [
      {
       "wing": "left",
       "line": "front",
       "unit": "ogre",
-      "count": 2
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
-      "unit": "blackKnight",
-      "count": 6
+      "unit": "raider",
+      "count": 19
      },
      {
       "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "count": 6
-     },
-     {
-      "wing": "right",
-      "line": "front",
-      "unit": "blackKnight",
-      "count": 5
-     },
-     {
-      "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 2
+      "count": 9
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 16
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 3
      }
     ],
     "announcedAtMs": null
@@ -527,7 +527,7 @@
    },
    {
     "id": "battle-7",
-    "foughtAtMs": 511200000,
+    "foughtAtMs": 504000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -539,16 +539,16 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 16,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "ogre",
-      "start": 4,
+      "unit": "raider",
+      "start": 19,
       "lost": 0
      },
      {
@@ -595,7 +595,7 @@
  },
  "stats": {
   "constructionsStarted:quarry": 1,
-  "wasted_food": 9030628,
+  "wasted_food": 9024258,
   "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:springSeeds": 1,
@@ -613,6 +613,7 @@
   "cardsDrawn:dampFirewood": 1,
   "threatCrossed:70": 4,
   "cardsDrawn:refugeesAtGates": 1,
+  "vigilRehearsalMarked": 1,
   "cardsDrawn:harvestFeast": 1,
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:neighborsWatch": 1
