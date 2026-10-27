@@ -1,8 +1,17 @@
+import { balance, ENEMY_IDS, hordeWaves, TILE_TYPE_IDS, WING_IDS, LINE_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { currentShape, migrateState } from './migrations';
 import { v33ToV34 } from './migrations/v33';
+import {
+  ENEMIES_V34,
+  MEMORY_MAX_V34,
+  OMEN_ROUND_TO_V34,
+  OMENS_KEPT_V34,
+  TILE_TYPES_V34,
+  WAVE_MAX_V34,
+} from './migrations/v34';
 import { AUTUMN, DAY, WINTER } from './test-helpers';
 import type { GameState } from './types';
 
@@ -13,6 +22,29 @@ const fixtures = import.meta.glob<string>('./__fixtures__/state-v33-*.json', {
 });
 
 describe('33 → 34: memória, presságios e fronteira da Horda (V4E-T3)', () => {
+  it('os números escritos na forma são os do conteúdo de hoje', () => {
+    // Mudar um deles no conteúdo pede versão nova do estado (a forma 34 é congelada).
+    expect(TILE_TYPES_V34).toEqual([...TILE_TYPE_IDS]);
+    expect(ENEMIES_V34).toEqual([...ENEMY_IDS]);
+    expect(OMENS_KEPT_V34).toBe(balance.omens.kept);
+    expect(OMEN_ROUND_TO_V34).toBe(balance.omens.roundTo);
+    const posts = WING_IDS.length * LINE_IDS.length;
+    expect(MEMORY_MAX_V34).toBe(
+      posts * Math.max(balance.army.postMax, balance.army.postMaxFromLevel.max),
+    );
+    const factors = Object.values(balance.difficulties).map((d) => d.siegeFactor);
+    const largest = Math.max(
+      ...hordeWaves.flatMap((wave) =>
+        factors.map(
+          ({ num, den }) =>
+            Math.floor((wave.baseCount * num) / den) +
+            wave.fixed.filter((post) => post.extra).reduce((sum, post) => sum + post.count, 0),
+        ),
+      ),
+    );
+    expect(WAVE_MAX_V34).toBe(largest);
+  });
+
   it.each(Object.entries(fixtures))(
     '%s: só acrescenta a memória vazia, sem alterar a entrada, os recursos ou o sorteio',
     (_, raw) => {
