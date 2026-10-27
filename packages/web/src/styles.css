@@ -1866,3 +1866,30 @@ table.army-units td.num {
   padding-left: 18px;
   margin: 4px 0;
 }
+
+/* A muralha: a vida por ala em lista, sob a frase do nível, com o reparo ao lado. */
+.threat-wall {
+  margin-top: 8px;
+}
+
+.threat-wall > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.threat-wall p + p,
+.threat-wall ul + p {
+  margin-top: 2px;
+}
+
+.threat-wall-hp {
+  margin: 2px 0 6px;
+  padding-left: 20px;
+  font-size: 0.92em;
+}
+
+/* Os presságios da Horda, na aba Exército: uma frase do servidor por linha. */
+.omens-list {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}

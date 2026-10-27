@@ -74,7 +74,18 @@ function click(node: unknown, label: string): void {
   }
   const { type, props } = node as VNodeLike;
   if (typeof type === 'function') {
-    click((type as (props: unknown) => unknown)(props), label);
+    let rendered: unknown;
+    try {
+      rendered = (type as (props: unknown) => unknown)(props);
+    } catch (error) {
+      // Um componente com estado (os ganchos pedem um DOM) fica de fora desta varredura: o
+      // reparo da muralha tem os testes dele em `wall.test.tsx`.
+      if (error instanceof TypeError && error.message.includes('__H')) {
+        return;
+      }
+      throw error;
+    }
+    click(rendered, label);
     return;
   }
   if (type === 'button' && labelOf(props?.children) === label && props?.disabled !== true) {

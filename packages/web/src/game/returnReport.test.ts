@@ -1253,4 +1253,43 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       });
     });
   });
+
+  describe('a muralha e os presságios (V4E-T4)', () => {
+    it('wallDamaged é preço, com o botão do reparo quando há vida a refazer', () => {
+      const text = 'A batalha deixou marcas na muralha: a ala esquerda (0 de 60).';
+      // A visão de depois tem a muralha por refazer (o custo do reparo é não nulo).
+      const blocks = blocksOf(palisadeRaisedView, palisadeRaisedView, [event('wallDamaged', text)]);
+      expect(texts(blocks.cost)).toEqual([text]);
+      expect(blocks.cost[0]?.action).toMatchObject({
+        command: 'lords.repairWall',
+        label: 'Reparar…',
+      });
+    });
+
+    it('wallDamaged sem nada a refazer na visão leva ao painel da muralha', () => {
+      const blocks = blocksOf(guildView, guildView, [event('wallDamaged', 'Marcas na muralha.')]);
+      expect(blocks.cost[0]?.action).toMatchObject({
+        command: 'lords.openPanel',
+        arg: 'threat',
+        label: 'Ver a muralha',
+      });
+    });
+
+    it('wallRepaired é o feudo se recompondo', () => {
+      const blocks = blocksOf(guildView, guildView, [event('wallRepaired', 'Muralha inteira.')]);
+      expect(texts(blocks.prospered)).toEqual(['Muralha inteira.']);
+      expect(blocks.cost).toEqual([]);
+    });
+
+    it('omenSeen entra em "O que exigiu um preço", com o caminho para o Exército', () => {
+      const text = 'Os vigias leram um presságio: a terra treme ao anoitecer.';
+      const blocks = blocksOf(guildView, guildView, [event('omenSeen', text, { wave: 2 })]);
+      expect(texts(blocks.cost)).toEqual([text]);
+      expect(blocks.cost[0]?.action).toMatchObject({
+        command: 'lords.openPanel',
+        arg: 'army',
+        label: 'Ver os presságios',
+      });
+    });
+  });
 });

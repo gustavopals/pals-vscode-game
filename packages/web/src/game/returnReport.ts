@@ -10,6 +10,7 @@ import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '.
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
 import { ARMY_SECTION } from '../ui/army';
+import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
@@ -144,6 +145,14 @@ export function costAction(
   if (topic === 'battle') {
     // A batalha já foi travada: o que se faz é ajustar a formação para a próxima.
     return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ajustar formação' };
+  }
+  if (topic === 'wall') {
+    // A muralha que o item "Antes de partir" já oferece reparar tem o botão acima; sem ele (já
+    // refeita, ou o reparo em curso), o painel da Ameaça mostra a vida de cada ala.
+    return { command: 'lords.openPanel', arg: THREAT_SECTION, label: 'Ver a muralha' };
+  }
+  if (topic === 'omen') {
+    return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver os presságios' };
   }
   if (topic === 'worn') {
     return { command: 'lords.repairItem', label: 'Reparar…' };
@@ -375,6 +384,14 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // batalha é preço, mesmo a vencida: o exército pagou com baixas, e a próxima ação é a formação.
     case 'battleFought':
       return { block: 'cost', topic: 'battle' };
+    // A muralha (V4E-T4): a vida que a batalha tirou é preço, com o botão do reparo; a que voltou
+    // inteira é o feudo se recompondo. O presságio da Horda é aviso do que vem: pede o Exército.
+    case 'wallDamaged':
+      return { block: 'cost', topic: 'wall' };
+    case 'wallRepaired':
+      return { block: 'prospered', topic: 'wall' };
+    case 'omenSeen':
+      return { block: 'cost', topic: 'omen' };
     default:
       // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.

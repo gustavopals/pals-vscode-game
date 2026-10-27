@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   activeConstruction,
+  armyIdleView,
   autumnView,
   caravanView,
   coldView,
@@ -1185,5 +1186,44 @@ describe('antes de partir: a equipe, o ouro e o Mercado (roadmap da v0.3, V3F-T3
       // A informação da Taverna é a primeira a cair.
       expect(kept.map((x) => x.id)).not.toContain('tavern');
     });
+  });
+});
+
+describe('a guerra em "Antes de partir" (V4E-T4)', () => {
+  it('a muralha danificada vira o item "Reparar…", com a frase do servidor', () => {
+    const items = leavingItems(palisadeRaisedView);
+    const wall = items.find((item) => item.id === 'wall');
+    expect(wall?.command).toEqual({ id: 'lords.repairWall', label: 'Reparar…' });
+    expect(wall?.text).toContain(palisadeRaisedView.threat.defense.wall.repairOffer.text);
+  });
+
+  it('a muralha inteira, o reparo em curso e a falta de Paliçada não geram o item', () => {
+    const offer = palisadeRaisedView.threat.defense.wall.repairOffer;
+    const patch = (repairOffer: typeof offer): ViewState => ({
+      ...palisadeRaisedView,
+      threat: {
+        ...palisadeRaisedView.threat,
+        defense: {
+          ...palisadeRaisedView.threat.defense,
+          wall: { ...palisadeRaisedView.threat.defense.wall, repairOffer },
+        },
+      },
+    });
+    const ids = (view: ViewState) => leavingItems(view).map((item) => item.id);
+    expect(ids(patch({ ...offer, stone: 0, gold: 0 }))).not.toContain('wall');
+    expect(ids(patch({ ...offer, repairingInSeconds: 60 }))).not.toContain('wall');
+    expect(ids(threatIncomingView)).not.toContain('wall');
+  });
+
+  it('a incursão à vista com soldados e sem Defesa ativa pede para ativar uma formação', () => {
+    const view: ViewState = {
+      ...armyIdleView,
+      threat: palisadeRaisedView.threat,
+      army: { ...armyIdleView.army, built: true, total: 5, formations: [] },
+    };
+    const raid = leavingItems(view).find((item) => item.id === 'raid');
+    expect(raid?.severity).toBe('danger');
+    expect(raid?.text).toContain('Nenhuma formação guarda o feudo');
+    expect(raid?.command).toMatchObject({ id: 'lords.openPanel', arg: 'army' });
   });
 });
