@@ -389,13 +389,14 @@ describe('relatório da matriz', () => {
       threatFinal: { min: 67, max: 89 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
-    // os vigias anunciam no máximo uma incursão, e nenhuma é repelida (a Paliçada sai nas
-    // últimas horas do ano).
+    // a Paliçada sai nas últimas horas do ano.
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     // Na V4E-T2 ele nem chegava à Torre; desde a resposta do autor à D-39 chega em duas das
-    // três sementes, e os vigias anunciam no máximo uma.
-    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 1 });
-    expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 0 });
+    // três sementes. Com o Acampamento e a Fortaleza (V4E-T3) há mais incursões no fim do
+    // ano, e os vigias anunciam no máximo duas (docs/balance-v0.4.md, seção 12).
+    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 2 });
+    // E a Paliçada, nas últimas horas do ano, já repele uma delas em alguma semente.
+    expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 1 });
     expect(lazy?.measure.raids.suffered.min).toBeGreaterThan(0);
   });
 
