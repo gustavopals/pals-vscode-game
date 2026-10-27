@@ -1911,6 +1911,25 @@ describe('a forma da versão atual', () => {
       (state) => (state.map.tiles.camp = { type: 'ironVein', threatActive: true }),
     ],
     [
+      'o Acampamento fora da chave do próprio tipo',
+      (state) => (state.map.tiles.camp = { type: 'raiderCamp', threatActive: true }),
+    ],
+    [
+      'duas Fortalezas da Horda',
+      (state) => {
+        state.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
+        state.map.tiles.fortress2 = { type: 'hordeFortress', threatActive: true };
+      },
+    ],
+    [
+      'o Covil de Lobos com o tipo da Fortaleza',
+      (state) => (state.map.tiles.wolfDen = { type: 'hordeFortress', threatActive: true }),
+    ],
+    [
+      'a chave do Acampamento com outro tipo',
+      (state) => (state.map.tiles.raiderCamp = { type: 'wolfDen', threatActive: true }),
+    ],
+    [
       'um tile sem dizer se a ameaça está ativa',
       (state) => (state.map.tiles.wolfDen = { type: 'wolfDen' }),
     ],

@@ -19,6 +19,15 @@ import type { StoredState } from './step';
 
 export const TILE_TYPES_V34 = ['wolfDen', 'raiderCamp', 'hordeFortress'];
 export const ENEMIES_V34 = ['wolves', 'raiders', 'horde'];
+/** Seis postos com o teto de soldados por posto do Quartel mais alto (6 × 30). */
+export const MEMORY_MAX_V34 = 180;
+/** A maior onda: o Senhor da Guerra a mais sobre 80 × 13/10 do Rei de Ferro. */
+export const WAVE_MAX_V34 = 105;
+/** Quantos presságios ficam e a contagem do parcial, em múltiplos de 5. */
+export const OMENS_KEPT_V34 = 6;
+export const OMEN_ROUND_TO_V34 = 5;
+/** Os tiles da guerra: um de cada, na chave igual ao tipo (`settleHordeTiles`). */
+const UNIQUE_TILES_V34 = ['raiderCamp', 'hordeFortress'];
 const waveNumber: Shape = (value, path) =>
   [1, 2, 3].includes(value as number) ? null : `${path}: onda fora de 1 a 3`;
 const memory = nullable(
@@ -95,6 +104,12 @@ const form = exactObject({
     const map = value as StoredState;
     const error = tiles(map.tiles, `${path}.tiles`);
     if (error !== null) return error;
+    // O Acampamento e a Fortaleza são únicos e moram na chave do próprio tipo.
+    for (const [id, tile] of Object.entries(map.tiles as Record<string, StoredState>)) {
+      const type = tile.type as string;
+      if ((UNIQUE_TILES_V34.includes(type) || UNIQUE_TILES_V34.includes(id)) && id !== type)
+        return `${path}.tiles.${id}: o tile ${type} só pode estar na chave ${type}`;
+    }
     return stateV33Fields.map!(
       {
         ...map,
@@ -139,10 +154,11 @@ export const hordeWithinStateV34: Shape = (value, path) => {
   const { horde, lastProcessedAt, clock } = value as HordeState;
   const fail = (message: string) => `${path ? `${path}.` : ''}horde: ${message}`;
   const seen = horde.lastFormationSeen;
-  if (seen !== null && seen.total > 180) return fail('memória acima dos seis postos da formação');
+  if (seen !== null && seen.total > MEMORY_MAX_V34)
+    return fail('memória acima dos seis postos da formação');
   if (seen !== null && Object.values(seen.byUnit).reduce((a, b) => a + b, 0) !== seen.total)
     return fail('a soma da memória difere do total');
-  if (horde.omens.length > 6) return fail('mais de seis presságios');
+  if (horde.omens.length > OMENS_KEPT_V34) return fail('mais de seis presságios');
   const plan = horde.wavePlan;
   if (plan === null) return horde.omens.length === 0 ? null : fail('presságio sem preparação');
   if (plan.year !== clock.year || plan.generatedAtMs > lastProcessedAt)
@@ -155,7 +171,7 @@ export const hordeWithinStateV34: Shape = (value, path) => {
   )
     return fail('ondas fora de ordem ou sem composição');
   for (const wave of plan.waves) {
-    if (wave.composition.reduce((sum, post) => sum + post.count, 0) > 105)
+    if (wave.composition.reduce((sum, post) => sum + post.count, 0) > WAVE_MAX_V34)
       return fail('onda acima do tamanho máximo desta versão');
     const keys = wave.composition.map((post) => `${post.wing}/${post.line}`);
     if (new Set(keys).size !== keys.length) return fail('dois esquadrões no mesmo posto');
@@ -178,7 +194,14 @@ export const hordeWithinStateV34: Shape = (value, path) => {
             (entry) =>
               entry.wing === post.wing && entry.line === post.line && entry.unit === post.unit,
           );
-          return real === undefined || post.count !== Math.max(5, Math.round(real.count / 5) * 5);
+          return (
+            real === undefined ||
+            post.count !==
+              Math.max(
+                OMEN_ROUND_TO_V34,
+                Math.round(real.count / OMEN_ROUND_TO_V34) * OMEN_ROUND_TO_V34,
+              )
+          );
         }))
     )
       return fail('presságio parcial difere do posto observado');
