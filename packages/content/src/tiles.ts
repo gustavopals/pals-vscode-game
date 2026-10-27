@@ -21,6 +21,15 @@ export const tileTypes: Record<TileTypeId, TileTypeDef> = {
 };
 
 /**
+ * Quem ronda o feudo quando há mais de um tile de ameaça ativo: o inimigo do primeiro tipo desta
+ * lista que estiver ativo. Com o Covil de Lobos ativo são sempre os lobos (a composição das
+ * incursões comuns é a da matilha, `balance.raids.hordeBaseMix`); sem ele, os saqueadores do
+ * Acampamento e, por último, as tropas da Fortaleza. Decisão provisória da revisão da V4E-T3
+ * (pendência D-45a): antes dela a escolha seguia a ordem alfabética da chave do tile.
+ */
+export const prowlingTileOrder: readonly TileTypeId[] = ['wolfDen', 'raiderCamp', 'hordeFortress'];
+
+/**
  * Os tiles com que todo feudo nasce: o Covil de Lobos, ativo desde o dia 1 (ADR 0014, decisão
  * 11). `id` é a chave do tile no estado. Uma expedição pode limpar um tile de ameaça
  * (`rewards.clearsTile`), e na virada do ano os que nascem ativos voltam a ficar (ADR 0018,

@@ -1,6 +1,7 @@
 import {
   balance,
   type EnemyId,
+  prowlingTileOrder,
   RAID_SIZE_IDS,
   type RaidSizeId,
   type Ratio,
@@ -104,15 +105,20 @@ export function raidSizeAt(threat: number): RaidSizeId {
 }
 
 /**
- * Quem ronda o feudo: o inimigo do primeiro tile de ameaça ativo, pela chave (a ordem das
- * chaves de um objeto não sobrevive ao banco). `null` sem tile ativo: não há quem ataque.
+ * Quem ronda o feudo: o inimigo do primeiro tile de ameaça ativo na ordem fixa de
+ * `prowlingTileOrder` (o Covil antes do Acampamento, este antes da Fortaleza); entre tiles do
+ * mesmo tipo, pela chave (a ordem das chaves de um objeto não sobrevive ao banco). `null` sem
+ * tile ativo: não há quem ataque.
  */
 export function prowlingEnemy(state: GameState): EnemyId | null {
   const { tiles } = state.map;
-  for (const tileId of Object.keys(tiles).sort()) {
-    const tile = tiles[tileId];
-    if (tile !== undefined && tile.threatActive) {
-      return tileTypes[tile.type].enemy;
+  const keys = Object.keys(tiles).sort();
+  for (const type of prowlingTileOrder) {
+    for (const tileId of keys) {
+      const tile = tiles[tileId];
+      if (tile !== undefined && tile.type === type && tile.threatActive) {
+        return tileTypes[tile.type].enemy;
+      }
     }
   }
   return null;

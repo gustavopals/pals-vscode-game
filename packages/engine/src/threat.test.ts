@@ -22,7 +22,13 @@ import {
   WINTER,
   YEAR,
 } from './test-helpers';
-import { threatAfterTurn, threatSources, watchtowerPerks } from './threat';
+import {
+  prowlingEnemy,
+  raidingEnemy,
+  threatAfterTurn,
+  threatSources,
+  watchtowerPerks,
+} from './threat';
 import type { GameState, ScheduledRaid, ThreatView } from './types';
 import { deriveViewState } from './view';
 
@@ -204,6 +210,50 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     expect(types.indexOf('dayStarted')).toBeLessThan(types.indexOf('cardDrawn'));
     expect(types.indexOf('cardDrawn')).toBeLessThan(types.indexOf('threatRose'));
     expect(types[types.length - 1]).toBe('threatRose');
+  });
+});
+
+describe('quem ronda o feudo com mais de um tile ativo (revisão da V4E-T3, pendência D-45a)', () => {
+  const withTiles = (active: Record<'wolfDen' | 'raiderCamp' | 'hordeFortress', boolean>) =>
+    feud(SUMMER + 2 * HOUR, 30, 0, (draft) => {
+      draft.map.tiles = {
+        wolfDen: { type: 'wolfDen', threatActive: active.wolfDen },
+        raiderCamp: { type: 'raiderCamp', threatActive: active.raiderCamp },
+        hordeFortress: { type: 'hordeFortress', threatActive: active.hordeFortress },
+      };
+    });
+
+  it('com o Covil ativo são os lobos, com o Acampamento e a Fortaleza ativos ou não', () => {
+    // A ordem alfabética das chaves punha a Fortaleza e o Acampamento na frente do Covil: a
+    // incursão comum se anunciava como da Horda ou dos saqueadores com a composição dos lobos.
+    const all = withTiles({ wolfDen: true, raiderCamp: true, hordeFortress: true });
+    expect(prowlingEnemy(all)).toBe('wolves');
+    expect(raidingEnemy(all, all.lastProcessedAt)).toBe('wolves');
+    expect(
+      prowlingEnemy(withTiles({ wolfDen: true, raiderCamp: true, hordeFortress: false })),
+    ).toBe('wolves');
+  });
+
+  it('sem o Covil, os saqueadores antes da Horda; só a Fortaleza, a Horda', () => {
+    expect(
+      prowlingEnemy(withTiles({ wolfDen: false, raiderCamp: true, hordeFortress: true })),
+    ).toBe('raiders');
+    expect(
+      prowlingEnemy(withTiles({ wolfDen: false, raiderCamp: false, hordeFortress: true })),
+    ).toBe('horde');
+    expect(
+      prowlingEnemy(withTiles({ wolfDen: false, raiderCamp: false, hordeFortress: false })),
+    ).toBeNull();
+  });
+
+  it('a ordem não depende das chaves: um tile de chave qualquer vale pelo tipo', () => {
+    const state = feud(SUMMER + 2 * HOUR, 30, 0, (draft) => {
+      draft.map.tiles = {
+        aaa: { type: 'hordeFortress', threatActive: true },
+        zzz: { type: 'wolfDen', threatActive: true },
+      };
+    });
+    expect(prowlingEnemy(state)).toBe('wolves');
   });
 });
 
