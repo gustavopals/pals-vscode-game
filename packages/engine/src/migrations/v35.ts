@@ -25,11 +25,13 @@ export const stateV35: Shape = (value, path) => {
   if (versionError !== null) return versionError;
   const settings = state.settings;
   if (settings === null || typeof settings !== 'object' || Array.isArray(settings))
-    return stateV34(value, path);
+    return stateV34({ ...state, schemaVersion: 34 }, path);
   const { realOriginMs, vigil, ...oldSettings } = settings as StoredState;
   const settingsPath = path ? `${path}.settings` : 'settings';
   const error = civil({ realOriginMs, vigil }, settingsPath);
   if (error !== null) return error;
+  const inheritedError = stateV34({ ...state, schemaVersion: 34, settings: oldSettings }, path);
+  if (inheritedError !== null) return inheritedError;
   const resolved = vigil as {
     hourLocal: number;
     utcOffsetMinutes: number;
@@ -39,5 +41,5 @@ export const stateV35: Shape = (value, path) => {
     return `${settingsPath}.vigil.hourLocal: difere de vigilHourLocal`;
   if (!resolved.timezoneResolved && resolved.utcOffsetMinutes !== 0)
     return `${settingsPath}.vigil.utcOffsetMinutes: fuso não resolvido exige zero`;
-  return stateV34({ ...state, schemaVersion: 34, settings: oldSettings }, path);
+  return null;
 };

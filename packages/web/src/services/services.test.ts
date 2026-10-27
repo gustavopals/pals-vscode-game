@@ -221,6 +221,7 @@ describe('preferências', () => {
       notifications: 'all' as const,
       theme: 'light' as const,
       vigilHour: 7,
+      vigilTimezone: 'Asia/Tokyo',
       mutedUntil: 123,
     };
     await savePreferences(store, chosen);

@@ -47,8 +47,15 @@ describe('mudar a Vigília (V4G-T1.4)', () => {
   it('marca agora se a nova preferência ainda é futura, mas a antecedência já começou', () => {
     const before = gameAt(130 * HOUR, (draft) => {
       draft.horde.scheduledRaids = [];
+      draft.settlement.buildings.watchtower = 3;
     });
-    const after = change(before, 12, 'UTC', 0).state;
+    const result = change(before, 12, 'UTC', 0);
+    const after = result.state;
+    expect(
+      result.events.some(
+        (event) => event.type === 'raidAnnounced' && event.atMs === before.lastProcessedAt,
+      ),
+    ).toBe(true);
     expect(
       after.horde.scheduledRaids.find((raid) => raid.id === 'raidersYear1Rehearsal')?.atMs,
     ).toBe(132 * HOUR);

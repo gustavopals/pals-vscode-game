@@ -30,7 +30,7 @@ import { announceFilled, fullStores } from './storage';
 import { hireHero, holdFestival } from './tavernOrders';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 import { dismissHero } from './wages';
-import { markScriptedWarRaids } from './raids';
+import { announceRaids, markScriptedWarRaids } from './raids';
 
 /** Contexto resolvido pelo servidor e guardado com a ordem para replay. */
 export type CommandContext = {
@@ -84,6 +84,7 @@ function dispatch(
       draft.settings.vigil = { hourLocal: hourLocal as number, ...civil };
       markScriptedWarRaids(draft, nowMs);
       emit(events, draft, nowMs, 'vigilChanged', { hourLocal: hourLocal as number, timezone });
+      announceRaids(draft, nowMs, events);
       return null;
     }
     case 'setWorkers':
