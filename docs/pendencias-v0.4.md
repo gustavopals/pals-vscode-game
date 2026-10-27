@@ -467,3 +467,19 @@ herói. O número está no conteúdo. Os textos dos cinco objetivos são rascunh
 
 Nenhum dos cinco objetivos de §12.2 depende de Cerco ou sabotagem: **nenhuma substituição**
 foi necessária. Os sazonais continuam fora, conforme a decisão 24 do ADR 0020.
+
+**H-4. Pioras medidas com os objetivos novos.** _(Proposta do agente; não lida pelo autor.)_
+A matriz de 50 sementes nas três dificuldades (balance-v0.4.md, seção 13) mantém fome,
+frio e recusas em zero, mas o Explorador de **Camponês no ano do Tranquilo** cai do Salão
+mínimo 7 ao **6** (`pedra-alta-047`, 1/50), e sua população passa de 62–74 a 58–72.
+Em **Rei de Ferro no Normal**, a pedra parada máxima sobe de 2.602 a **2.761**, acima do
+limite de 2.733 (`pedra-alta-015`, 1/50; a mesma partida na semana e no ano). No ano do
+Tranquilo de Rei de Ferro, a população mínima cai de 55 a 54, ainda dentro da faixa.
+Senhor fica dentro das faixas. A conferência pontual sem os cinco objetivos novos, com
+as visitas extras da matriz, recupera os dois extremos: Camponês/047 volta ao Salão Nv7
+(com Paliçada Nv4 em vez de Nv5) e Rei de Ferro/015 volta a 876 de pedra parada. Não se
+isolou qual recompensa muda o caminho. A proposta conservadora é manter os cinco objetivos
+aprovados e **remedir na junção** com a Ameaça da Fortaleza em zero até o Cerco, antes de
+decidir ajuste de custo, recompensa ou progressão. `MEASURED` ficou intacta; os desvios
+continuam visíveis na matriz completa. O portão só amostra as três primeiras sementes
+nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 015 e 047.
