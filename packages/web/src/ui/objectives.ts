@@ -1,5 +1,6 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
+import { ARMY_SECTION } from './army';
 import { EXPEDITIONS_SECTION } from './expeditions';
 import { cardDecisions, isNewBuilding } from './format';
 import { TAVERN_SECTION } from './guild';
@@ -114,6 +115,13 @@ export function objectiveAction(
   }
   const { target } = objective;
   switch (target.kind) {
+    case 'army':
+      return {
+        command: 'lords.openPanel',
+        arg: ARMY_SECTION,
+        label: 'Ver o Exército',
+        text: 'Ver',
+      };
     case 'workers': {
       const row = view.workers.find((entry) => entry.building === target.building);
       return row === undefined

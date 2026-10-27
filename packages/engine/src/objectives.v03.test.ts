@@ -25,7 +25,7 @@ import { deriveViewState } from './view';
 
 const ids = objectives.map((objective) => objective.id);
 const v02 = ids.slice(0, 10);
-const v03 = ids.slice(10);
+const v03 = ids.slice(10, 16);
 
 const completedIn = (events: GameEvent[]) =>
   eventsOfType(events, 'objectiveCompleted').map((event) => event.data.objective);
@@ -109,8 +109,8 @@ describe('objetivos da v0.3 (V3F-T2)', () => {
     state = take(advanceTo(middle.state, middle.state.lastProcessedAt + 3 * DAY));
     expect(state.stats['expeditionsReturned:ruins']).toBe(1);
     expect(completedIn(events)).toEqual(v03);
-    expect(state.objectives.completed).toEqual(ids);
-    expect(state.objectives.active).toEqual([]);
+    expect(state.objectives.completed).toEqual(ids.slice(0, 16));
+    expect(state.objectives.active).toEqual(ids.slice(16, 19));
     expect(state.guild.inventory.some((item) => item.defId === 'ashBow')).toBe(true);
   });
 
@@ -131,7 +131,8 @@ describe('objetivos da v0.3 (V3F-T2)', () => {
     const gold = start.settlement.resources.gold;
     const { state, events } = accept(start, command('renameSettlement', { name: 'Vau Alto' }));
     expect(completedIn(events)).toEqual(v03);
-    expect(state.objectives).toEqual({ active: [], completed: ids });
+    expect(state.objectives.completed).toEqual(ids.slice(0, 16));
+    expect(state.objectives.active).toEqual(ids.slice(16, 19));
     expect(hasUnsettledObjectives(state)).toBe(false);
     expect(state.settlement.resources.gold - gold).toBe(50 * MILLI);
     expect(state.guild.inventory.map((item) => item.defId)).toEqual(['huntingSpear', 'ashBow']);

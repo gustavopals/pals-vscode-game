@@ -447,7 +447,7 @@ O núcleo da v0.3 (Fase D). O detalhe está no [README do motor](../packages/eng
 
 ## 18. Os objetivos 11 a 16
 
-Os objetivos (`packages/content/src/objectives.ts`, `objectives.ts` e `objectivesView.ts` do motor) são uma lista; a v0.3 acrescentou seis ao fim dos dez da v0.2 ([ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 20). Cada um aparece quando a ferramenta nova resolve um problema já sentido; os de exército continuam fora.
+Os objetivos (`packages/content/src/objectives.ts`, `objectives.ts` e `objectivesView.ts` do motor) são uma lista; a v0.3 acrescentou seis ao fim dos dez da v0.2 ([ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 20). Cada um aparece quando a ferramenta nova resolve um problema já sentido. A v0.4 acrescentou os cinco de guerra (V4H-T3), com o mesmo limite de três ativos e sem mudar a forma do estado 34; os detalhes estão no README do motor, “Objetivos 17 a 21”, e nas pendências H-1 a H-3.
 
 | # | Objetivo | Condição | Recompensa |
 |---|---|---|---|

@@ -220,6 +220,7 @@ const ObjectiveTargetSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('season'), season: z.enum(SEASON_IDS) }),
   z.strictObject({ kind: z.literal('tavern') }),
   z.strictObject({ kind: z.literal('expeditions') }),
+  z.strictObject({ kind: z.literal('army') }),
   z.strictObject({ kind: z.literal('market') }),
 ]);
 

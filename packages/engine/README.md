@@ -673,3 +673,18 @@ Das incursões existem os lobos (o único inimigo de tile) em três tamanhos, ca
 Da dificuldade, quatro linhas mudam uma regra: o que acontece ao herói onde um nó marca captura (`heroCapture`, desde V3D-T2), o fator de armazenamento (`storageCapacity`, desde V2C-T2), a deserção por fome (`famineDesertion`, desde V2C-T4) e a opção que o Conselho aplica quando uma carta expira, marcada em cada carta (`autoResolve`, desde V2D-T1).
 
 `UpgradeView.effect` é preenchido para os depósitos, a Torre de Vigia, a Paliçada, a Taverna, a Guilda dos Aventureiros e o Mercado; nos outros edifícios é `null`.
+
+### Objetivos 17 a 21 (V4H-T3)
+
+O catálogo de `objectives.ts` chega a 21 objetivos, com os primeiros dezesseis preservados.
+O Salão Nv4, o total de treino concluído, uma formação salva, uma prévia e uma incursão
+repelida são avaliados pelo mesmo `settlePlanned`, no máximo três ativos. A visão aponta
+`target.kind: 'army'` para os objetivos de guerra; o cliente só navega até o Exército.
+
+A forma continua na versão 34: `stats.soldiersTrained` registra treino concluído (os soldados
+presentes são o piso para partidas antigas); `ids.formation` comprova a formação salva mesmo
+apagada. O presságio gratuito usa `revealOmen`, sem sorteio: espera em
+`stats.objectiveOmenPending` até existir preparação real e revela sua primeira onda com a
+clareza da Torre. A incursão repelida registra `stats.lastRaidRepelledBattle` para o prêmio
+achar os comandantes que lutaram. Valores e limites estão no conteúdo; as escolhas e os
+limites do histórico antigo estão em `docs/pendencias-v0.4.md`, H-1 a H-3.

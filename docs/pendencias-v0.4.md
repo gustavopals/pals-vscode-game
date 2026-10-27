@@ -433,3 +433,37 @@ Também corrigidos, sem decisão: o presságio vago não diz mais a onda (`wave:
 sem a chave `wave` no evento `omenSeen`); a guarda da forma 34 exige o Acampamento e a
 Fortaleza na chave do próprio tipo (um de cada); e os números congelados da guarda têm teste
 contra o conteúdo de hoje.
+
+### V4H-T3 — objetivos 17 a 21 (2026-10-27)
+
+**H-1. O treino anterior e a formação salva.** _(Proposta do agente; não lida pelo autor.)_
+O objetivo 18 conta soldados que terminaram o treino, somados, mesmo depois de baixas ou
+dispensa. O estado 34 não tinha esse total: os soldados presentes são o piso comprovável do
+histórico anterior; baixas e dispensas anteriores à mudança não podem ser reconstruídas.
+Os soldados entregues por carta também entram nesse piso, mas não somam ao contador novo de
+treino. O objetivo 19 conta salvar uma formação, sem exigir ativá-la (é a ação do GDD): o
+contador de identidades comprova a ação mesmo depois de apagar a formação. Os demais usam o
+Salão e os contadores já existentes de simulações e incursões repelidas. O que foi feito
+antes de revelar o objetivo vale, e cada prêmio sai uma vez. Nenhuma forma de estado mudou:
+continuam estado 34 e protocolo 3; os contadores novos cabem em `stats`, já de chaves livres.
+
+**H-2. O presságio gratuito antes do outono.** _(Proposta do agente; não lida pelo autor.)_
+O GDD não diz como dar presságio quando as ondas ainda não foram preparadas. A recompensa
+fica devida em `stats.objectiveOmenPending` e sai no primeiro `settlePlanned` com preparação
+real: lê a primeira onda da revisão atual, com a clareza da Torre (vaga sem Torre), sem
+sortear nem mudar o plano. A visão avisa que a entrega espera a preparação. Depois vale a
+regra normal: uma nova revisão substitui os presságios do painel. Não se inventa onda nem
+se antecipa o Cerco. Com preparação já existente, a entrega é imediata.
+
+**H-3. Quanto XP e a quem.** _(Proposta do agente; não lida pelo autor.)_
+O GDD promete XP ao comandante sem fixar valor: a proposta é **20 XP por comandante
+sobrevivente da última incursão repelida ainda identificável nos relatórios guardados**.
+`stats.lastRaidRepelledBattle` registra o número da batalha ao repelir: a Paliçada pode
+repelir mesmo quando a conta da batalha perdeu (D-36). Trocar a Defesa depois não transfere
+o prêmio. Para um estado anterior sem esse identificador, usa-se a última defesa com
+vitória ou resistência ainda registrada. Sem relatório ou comandante sobrevivente no
+feudo, não se inventa destinatário; o objetivo continua cumprido, sem XP adiado para outro
+herói. O número está no conteúdo. Os textos dos cinco objetivos são rascunhos do agente.
+
+Nenhum dos cinco objetivos de §12.2 depende de Cerco ou sabotagem: **nenhuma substituição**
+foi necessária. Os sazonais continuam fora, conforme a decisão 24 do ADR 0020.

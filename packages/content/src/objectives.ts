@@ -14,6 +14,10 @@ export const OBJECTIVE_CONDITION_TYPES = [
   'tradeDone',
   'crossroadsChosen',
   'expeditionCompleted',
+  'soldiersTrained',
+  'formationSaved',
+  'battleSimulated',
+  'raidRepelled',
 ] as const;
 
 export type ObjectiveCondition =
@@ -50,7 +54,11 @@ export type ObjectiveCondition =
   /** Escolhas feitas pelo **jogador** em encruzilhadas: a decidida pela Postura não conta. */
   | { readonly type: 'crossroadsChosen'; readonly count: number }
   /** Expedições ao modelo que voltaram para casa (a recolhida antes do fim não conta). */
-  | { readonly type: 'expeditionCompleted'; readonly model: string; readonly count: number };
+  | { readonly type: 'expeditionCompleted'; readonly model: string; readonly count: number }
+  | { readonly type: 'soldiersTrained'; readonly count: number }
+  | { readonly type: 'formationSaved' }
+  | { readonly type: 'battleSimulated'; readonly count: number }
+  | { readonly type: 'raidRepelled'; readonly count: number };
 
 /**
  * Recompensa em moral: um efeito temporário, que entra na conta da moral nas próximas
@@ -68,12 +76,18 @@ export type ObjectiveDef = {
   /** O "porquê" do objetivo: é ele que ensina (GDD §12.2). */
   readonly hint: string;
   readonly condition: ObjectiveCondition;
-  /** Recursos creditados na conclusão; vazio quando a recompensa é moral ou só o que `rewardText` diz. */
+  /** Recursos creditados na conclusão; vazio quando o prêmio está nos demais campos. */
   readonly reward: ResourceAmounts;
   /** Moral dada na conclusão, por alguns dias de jogo. */
   readonly morale?: ObjectiveMoraleReward;
   /** Item dado ao arsenal na conclusão (v0.3); com o arsenal cheio, vira ouro (decisão 15). */
   readonly item?: ItemId;
+  /** Armas sem limite no depósito, como as que saem da forja. */
+  readonly weapons?: number;
+  /** Um presságio sem sorteio; espera a preparação real das ondas quando necessário. */
+  readonly omen?: true;
+  /** Experiência por comandante sobrevivente da última incursão repelida ainda registrada. */
+  readonly commanderXp?: number;
   /**
    * Recompensa que não é recurso, pronta para entrar depois de "Recompensa:" e ao lado de
    * "+20 ouro": começa em minúscula e não tem ponto final.
@@ -163,7 +177,7 @@ export const objectives: readonly ObjectiveDef[] = [
     morale: { amount: 15, durationDays: 1, label: 'Inverno sem frio' },
   },
   // Os da v0.3 (ADR 0018, decisão 20): cada um aparece quando a ferramenta nova resolve um problema
-  // já sentido. Os de exército continuam fora, sem buraco na sequência.
+  // já sentido.
   {
     id: 'welcomeFirstHero',
     title: 'Acolha ou contrate o primeiro herói',
@@ -208,5 +222,45 @@ export const objectives: readonly ObjectiveDef[] = [
     condition: { type: 'expeditionCompleted', model: 'ruins', count: 1 },
     reward: {},
     item: 'ashBow',
+  },
+  // GDD §12.2; ADR 0020, decisão 24. Sem objetivos sazonais nem mecânicas das Fases F/G.
+  {
+    id: 'townHallLevel4',
+    title: 'Alcance o Salão do Senhor Nv4',
+    hint: 'O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.',
+    condition: { type: 'buildingLevel', building: 'townHall', level: 4 },
+    reward: {},
+    rewardText: 'desbloqueia o Quartel e o Ferreiro',
+  },
+  {
+    id: 'trainTenSoldiers',
+    title: 'Treine 10 soldados',
+    hint: 'Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.',
+    condition: { type: 'soldiersTrained', count: 10 },
+    reward: {},
+    weapons: 1,
+  },
+  {
+    id: 'saveDefenseFormation',
+    title: 'Salve uma Formação de Defesa',
+    hint: 'Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.',
+    condition: { type: 'formationSaved' },
+    reward: {},
+    omen: true,
+  },
+  {
+    id: 'simulateFirstBattle',
+    title: 'Simule uma batalha no Conselho de Guerra',
+    hint: 'A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.',
+    condition: { type: 'battleSimulated', count: 1 },
+    reward: { gold: 20 },
+  },
+  {
+    id: 'repelFirstRaid',
+    title: 'Repila uma incursão',
+    hint: 'A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.',
+    condition: { type: 'raidRepelled', count: 1 },
+    reward: {},
+    commanderXp: 20,
   },
 ];

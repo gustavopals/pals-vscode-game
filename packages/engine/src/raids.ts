@@ -457,6 +457,9 @@ function resolveRaid(
   data.battleId = draft.army.reports[draft.army.reports.length - 1]?.id ?? '';
   if (outcome.kind === 'held' || passed.num === 0) {
     stats.raids_repelled = (stats.raids_repelled ?? 0) + 1;
+    // A Paliçada pode repelir mesmo quando a conta da batalha termina em derrota (D-36).
+    // Guarda a identidade já existente para o prêmio do objetivo achar quem de fato comandou.
+    stats.lastRaidRepelledBattle = draft.ids.battle ?? 0;
     emit(
       events,
       draft,

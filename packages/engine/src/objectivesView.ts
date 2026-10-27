@@ -9,6 +9,8 @@ import {
   objectives,
 } from '@lotg/content';
 
+import { barracksRequiresText } from './army';
+import { trainingBlock } from './armyOrders';
 import { seasonAt, seasonWithArticle } from './clock';
 import { constructionOf, ofBuilding, upgradeQuote } from './construction';
 import { destinationBlock, teamOutlook } from './expeditions';
@@ -153,6 +155,18 @@ function missingText(state: GameState, condition: ObjectiveCondition): string | 
       return MARKET_RESOURCE_IDS.some((resource) => surplusSellable(state, resource) > 0)
         ? null
         : 'Nada sobra acima do que o feudo guarda: espere o estoque passar da reserva.';
+    case 'soldiersTrained':
+      if (state.army.training !== null)
+        return 'Há soldados em treino: o objetivo conta quem terminar, mesmo que depois caia em batalha.';
+      return trainingBlock(state, 'spearman', 1)?.message ?? null;
+    case 'formationSaved':
+      return settlement.buildings.barracks < 1 ? barracksRequiresText(state) : null;
+    case 'battleSimulated':
+      return state.army.formations.length === 0
+        ? 'Salve uma formação antes de pedir a prévia no Conselho de Guerra.'
+        : null;
+    case 'raidRepelled':
+      return 'Ative uma Formação de Defesa e cuide da muralha: o objetivo se cumpre quando uma incursão for repelida.';
     case 'seasonSurvived': {
       const season = balance.calendar.seasons.find((entry) => entry.id === condition.season);
       if (season === undefined) {
@@ -205,6 +219,11 @@ function targetOf(state: GameState, condition: ObjectiveCondition): ObjectiveTar
       return { kind: 'expeditions' };
     case 'tradeDone':
       return { kind: 'market' };
+    case 'soldiersTrained':
+    case 'formationSaved':
+    case 'battleSimulated':
+    case 'raidRepelled':
+      return { kind: 'army' };
   }
 }
 

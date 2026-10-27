@@ -543,6 +543,7 @@
   "threatCrossed:70": 6,
   "omens": 16,
   "raids_repelled": 6,
+  "lastRaidRepelledBattle": 9,
   "cardsDrawn:commonGranaryPlanks": 2,
   "cardsDrawn:commonGranaryShare": 1,
   "cardsDrawn:harvestFeast": 1,

@@ -1257,7 +1257,7 @@ describe('objetivos', () => {
 
   it('os dez da v0.2 saem nesta ordem, e os ids de 1 a 4 são os da v0.1', () => {
     // O id fica gravado em cada partida (`objectives.active` e `completed`): nunca se troca.
-    expect(objectives.map((objective) => objective.id)).toEqual([
+    expect(objectives.slice(0, 16).map((objective) => objective.id)).toEqual([
       'allocateFarmers',
       'upgradeHousing',
       'recruitVillagers',
@@ -1277,8 +1277,8 @@ describe('objetivos', () => {
     ]);
   });
 
-  it('são 16, e os dez primeiros têm os ids de antes (v0.3, V3F-T2)', () => {
-    expect(objectives).toHaveLength(16);
+  it('são 21, e os dez primeiros têm os ids de antes (v0.3, V3F-T2)', () => {
+    expect(objectives).toHaveLength(21);
     expect(objectives.slice(0, 10).map((objective) => objective.id)).toEqual([
       'allocateFarmers',
       'upgradeHousing',
@@ -1291,7 +1291,7 @@ describe('objetivos', () => {
       'buildPalisade',
       'surviveWinterWithoutCold',
     ]);
-    expect(new Set(objectives.map((objective) => objective.id)).size).toBe(16);
+    expect(new Set(objectives.map((objective) => objective.id)).size).toBe(21);
   });
 
   it('os da v0.3: condições, prêmios em item e destinos que o conteúdo conhece', () => {
@@ -1331,8 +1331,41 @@ describe('objetivos', () => {
     }
   });
 
-  it('as recompensas são as do GDD §12.2: recurso, o desbloqueio do Salão com 50 de ouro ou moral por um dia', () => {
-    expect(objectives.map((objective) => objective.reward)).toEqual([
+  it('os cinco da v0.4 seguem o GDD §12.2 e não incluem sazonais (ADR 0020, decisão 24)', () => {
+    expect(objectives.slice(16)).toMatchObject([
+      {
+        id: 'townHallLevel4',
+        condition: { type: 'buildingLevel', building: 'townHall', level: 4 },
+        reward: {},
+      },
+      {
+        id: 'trainTenSoldiers',
+        condition: { type: 'soldiersTrained', count: 10 },
+        reward: {},
+        weapons: 1,
+      },
+      { id: 'saveDefenseFormation', condition: { type: 'formationSaved' }, reward: {}, omen: true },
+      {
+        id: 'simulateFirstBattle',
+        condition: { type: 'battleSimulated', count: 1 },
+        reward: { gold: 20 },
+      },
+      {
+        id: 'repelFirstRaid',
+        condition: { type: 'raidRepelled', count: 1 },
+        reward: {},
+        commanderXp: 20,
+      },
+    ]);
+    const unlock = objectives[16]!;
+    for (const id of ['barracks', 'smithy'] as const) {
+      expect(buildings[id].requires.townHall).toBe(4);
+      expect(unlock.rewardText).toContain(buildings[id].label);
+    }
+  });
+
+  it('as recompensas dos primeiros dezesseis continuam as do GDD §12.2', () => {
+    expect(objectives.slice(0, 16).map((objective) => objective.reward)).toEqual([
       { gold: 20 },
       { wood: 30 },
       { food: 40 },
@@ -1350,7 +1383,7 @@ describe('objetivos', () => {
       {},
       {},
     ]);
-    expect(objectives.map((objective) => objective.rewardText)).toEqual([
+    expect(objectives.slice(0, 16).map((objective) => objective.rewardText)).toEqual([
       undefined,
       undefined,
       undefined,
@@ -1533,9 +1566,10 @@ describe('objetivos', () => {
     expect(parse({ type: 'seasonSurvived', season: 'winter', count: 1 })).toBe(true);
     expect(parse({ type: 'seasonSurvived', season: 'monsoon', count: 1 })).toBe(false);
     expect(parse({ type: 'seasonSurvived', season: 'winter' })).toBe(false);
-    // Herói, patrulha e soldado ficam para as versões deles: não há condição que os peça.
+    // A condição antiga de contratação não existe; treino entra com os objetivos da v0.4.
     expect(parse({ type: 'heroHired' })).toBe(false);
-    expect(parse({ type: 'soldiersTrained', count: 10 })).toBe(false);
+    expect(parse({ type: 'soldiersTrained', count: 10 })).toBe(true);
+    expect(parse({ type: 'soldiersTrained', count: 0 })).toBe(false);
   });
 });
 

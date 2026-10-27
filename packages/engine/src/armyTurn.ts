@@ -1,6 +1,6 @@
 import { balance, type UnitId } from '@lotg/content';
 
-import { troopText } from './army';
+import { soldierCount, troopText } from './army';
 import { emit } from './chronicle';
 import { releaseExcessWorkers } from './population';
 import type { GameEvent, GameState } from './types';
@@ -27,6 +27,10 @@ export function finishTraining(draft: GameState, atMs: number, events: GameEvent
   const trained = Math.min(batch.amount, spare);
   const lost = batch.amount - trained;
   if (trained > 0) {
+    // Quem chega do estado 34 ainda não tinha contador: os soldados presentes são o piso
+    // comprovável do treino anterior (pendência H-1). Daqui em diante, baixas não apagam treino.
+    draft.stats.soldiersTrained =
+      Math.max(draft.stats.soldiersTrained ?? 0, soldierCount(draft)) + trained;
     settlement.population.villagers -= trained;
     draft.army.units[batch.unit] += trained;
     releaseExcessWorkers(draft);

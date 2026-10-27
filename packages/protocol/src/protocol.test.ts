@@ -572,6 +572,18 @@ describe('CommandSchema', () => {
 });
 
 describe('ViewStateSchema', () => {
+  it('aceita o destino Exército dos objetivos de guerra sem expor regras no cliente (V4H-T3)', () => {
+    const state = createInitialState('objetivos-v04', {
+      settlementName: 'Pedra Alta',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 1,
+    });
+    const view = deriveViewState(state, 0);
+    view.objectives[0]!.target = { kind: 'army' };
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+  });
   const settings = {
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
