@@ -666,7 +666,10 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
       expect(event.data).toMatchObject({ palisadeLevel: 1, injured: 1 });
       if (event.data.enemy === 'wolves') {
         expect(event.text).toContain('A paliçada lhes quebrou o ímpeto, mas não os deteve');
-        expect(event.text).toContain('Uma paliçada no nível 2 os teria detido.');
+        // Com a Fortaleza (V4E-T3) a Ameaça do outono chega à incursão forte, que a Paliçada
+        // no nível 2 não detém: a frase do que os teria detido só vale para a média.
+        if (event.data.size === 'medium')
+          expect(event.text).toContain('Uma paliçada no nível 2 os teria detido.');
       } else {
         expect(event.text).toContain('A defesa lhes quebrou o ímpeto, mas não os deteve');
         if (event.data.size === 'medium')
