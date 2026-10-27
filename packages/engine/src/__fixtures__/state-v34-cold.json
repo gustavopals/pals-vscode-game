@@ -197,7 +197,7 @@
     "id": "threat-8",
     "atMs": 540000000,
     "kind": "threat",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "medium",
     "composition": [
      {

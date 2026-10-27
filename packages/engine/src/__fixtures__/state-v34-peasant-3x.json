@@ -186,7 +186,7 @@
     "id": "threat-23",
     "atMs": 1267200000,
     "kind": "threat",
-    "enemy": "raiders",
+    "enemy": "wolves",
     "size": "light",
     "composition": [
      {

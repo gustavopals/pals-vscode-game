@@ -5998,7 +5998,6 @@
    "atMs": 352800000,
    "text": "No 2º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -6056,10 +6055,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 381600000,
-   "text": "No 6º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "text": "No 6º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
    "data": {
     "raidId": "threat-4",
-    "enemy": "horde",
+    "enemy": "wolves",
     "warning": "sized",
     "size": "strong"
    }
@@ -6097,7 +6096,6 @@
    "atMs": 388800000,
    "text": "No 7º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
    "data": {
-    "wave": 3,
     "clarity": "vague"
    }
   },
@@ -6118,10 +6116,10 @@
   {
    "type": "raidRepelled",
    "atMs": 388800000,
-   "text": "No 7º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "text": "No 7º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-4",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "strong",
     "warning": "sized",
     "palisadeLevel": 2,
@@ -6305,7 +6303,6 @@
    "atMs": 417600000,
    "text": "No 11º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
    "data": {
-    "wave": 3,
     "clarity": "vague"
    }
   },
@@ -6331,7 +6328,6 @@
    "atMs": 424800000,
    "text": "No 12º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -6506,7 +6502,6 @@
    "atMs": 446400000,
    "text": "No 15º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
    "data": {
-    "wave": 1,
     "clarity": "vague"
    }
   },
@@ -6583,7 +6578,6 @@
    "atMs": 460800000,
    "text": "No 17º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
    "data": {
-    "wave": 1,
     "clarity": "vague"
    }
   },
@@ -6621,17 +6615,16 @@
    "atMs": 468000000,
    "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
   {
    "type": "raidAnnounced",
    "atMs": 468000000,
-   "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
    "data": {
     "raidId": "threat-6",
-    "enemy": "horde",
+    "enemy": "wolves",
     "warning": "sized",
     "size": "strong"
    }
@@ -6671,10 +6664,10 @@
   {
    "type": "raidRepelled",
    "atMs": 475200000,
-   "text": "No 19º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "text": "No 19º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-6",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "strong",
     "warning": "sized",
     "palisadeLevel": 2,
@@ -6765,7 +6758,6 @@
    "atMs": 482400000,
    "text": "No 20º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
    "data": {
-    "wave": 3,
     "clarity": "vague"
    }
   },
@@ -6866,17 +6858,16 @@
    "atMs": 511200000,
    "text": "No 24º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
   {
    "type": "raidAnnounced",
    "atMs": 511200000,
-   "text": "No 24º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "text": "No 24º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
    "data": {
     "raidId": "threat-7",
-    "enemy": "horde",
+    "enemy": "wolves",
     "warning": "sized",
     "size": "strong"
    }
@@ -6923,7 +6914,6 @@
    "atMs": 518400000,
    "text": "No 1º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -6944,10 +6934,10 @@
   {
    "type": "raidRepelled",
    "atMs": 518400000,
-   "text": "No 1º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "text": "No 1º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-7",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "strong",
     "warning": "sized",
     "palisadeLevel": 2,
@@ -7020,7 +7010,6 @@
    "atMs": 525600000,
    "text": "No 2º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
    "data": {
-    "wave": 1,
     "clarity": "vague"
    }
   },
@@ -7045,7 +7034,6 @@
    "atMs": 532800000,
    "text": "No 3º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -7068,10 +7056,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 540000000,
-   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma tropa numerosa, de armas variadas.",
+   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha grande.",
    "data": {
     "raidId": "threat-8",
-    "enemy": "horde",
+    "enemy": "wolves",
     "warning": "sized",
     "size": "medium"
    }
@@ -7147,7 +7135,6 @@
    "atMs": 547200000,
    "text": "No 5º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
    "data": {
-    "wave": 3,
     "clarity": "vague"
    }
   },
@@ -7179,10 +7166,10 @@
   {
    "type": "raidRepelled",
    "atMs": 547200000,
-   "text": "No 5º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma tropa numerosa, de armas variadas, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "text": "No 5º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-8",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "medium",
     "warning": "sized",
     "palisadeLevel": 2,
@@ -7323,10 +7310,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 576000000,
-   "text": "No 9º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma pequena tropa de saqueadores.",
+   "text": "No 9º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha pequena.",
    "data": {
     "raidId": "threat-9",
-    "enemy": "horde",
+    "enemy": "wolves",
     "warning": "sized",
     "size": "light"
    }
@@ -7381,7 +7368,6 @@
    "atMs": 583200000,
    "text": "No 10º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -7402,10 +7388,10 @@
   {
    "type": "raidRepelled",
    "atMs": 583200000,
-   "text": "No 10º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma pequena tropa de saqueadores, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "text": "No 10º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha pequena, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "threat-9",
-    "enemy": "horde",
+    "enemy": "wolves",
     "size": "light",
     "warning": "sized",
     "palisadeLevel": 2,
@@ -7468,7 +7454,6 @@
    "atMs": 590400000,
    "text": "No 11º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "wave": 2,
     "clarity": "vague"
    }
   },
@@ -7494,7 +7479,6 @@
    "atMs": 597600000,
    "text": "No 12º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
    "data": {
-    "wave": 1,
     "clarity": "vague"
    }
   },

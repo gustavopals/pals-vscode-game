@@ -177,7 +177,7 @@
     "id": "threat-4",
     "atMs": 360000000,
     "kind": "threat",
-    "enemy": "raiders",
+    "enemy": "wolves",
     "size": "light",
     "composition": [
      {

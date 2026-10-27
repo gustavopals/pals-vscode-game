@@ -802,7 +802,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(sighted.horde.scheduledRaids).toHaveLength(1);
     const [incoming] = sighted.horde.scheduledRaids;
     // O tamanho mudou com as incursões-batalha do roteiro (V4E-T2.4); o que importa é a sorteada.
-    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'raiders' });
+    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'wolves' });
     expect(incoming?.id).toMatch(/^threat-\d+$/);
     expect(incoming?.announcedAtMs).not.toBeNull();
     expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
