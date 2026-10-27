@@ -1298,6 +1298,12 @@ export const ViewStateSchema = z.strictObject({
     difficultyLabel: z.string(),
     /** O ritmo da partida, pronto para exibir: "Rápido: um ano em 56 horas". */
     paceLabel: z.string(),
+    vigil: z.strictObject({
+      hourLocal: z.number().int(),
+      timezone: z.string(),
+      text: z.string(),
+      warning: z.string().nullable(),
+    }),
   }),
   calendar: z.strictObject({
     year: z.number(),

@@ -10,6 +10,7 @@ import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
 import { accounts, games } from '../db/schema';
 import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
+import { resolveVigilTimezone } from './vigil';
 
 export async function listGames(ctx: AppContext, accountId: string): Promise<GameSummary[]> {
   const rows = await ctx.db
@@ -77,6 +78,11 @@ export async function createGame(
       vigilHourLocal: input.vigilHourLocal,
       difficulty,
       timeScale,
+      realOriginMs: now.getTime(),
+      vigil: {
+        hourLocal: input.vigilHourLocal,
+        ...resolveVigilTimezone(input.timezone, now),
+      },
     });
     const [row] = await tx
       .insert(games)

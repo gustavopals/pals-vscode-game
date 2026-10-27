@@ -442,3 +442,9 @@ Escolhida a janela de 24 h de jogo do evento: inverno [144 h, 168 h) e ensaio
 [120 h, 144 h), buscando a partir de +6 h, inclusive. Se não couber, +12 h.
 É a leitura que mantém o evento na data e torna útil o fallback no Rápido.
 Prazos são arredondados para cima em milissegundos de jogo. Nenhum Cerco é criado.
+
+**G-2. Chamadas offline e compatibilidade.** _(Proposta do agente; não lida pelo autor.)_
+A criação e a migração sem contexto civil explícito usam origem 0, offset 0 e
+`timezoneResolved: false`, de forma determinística. O servidor sempre passa `created_at`
+e resolve o offset IANA na criação da linha; uma preferência posterior resolve no
+instante da ordem. O offset só muda por essa ordem, sem atualização automática por DST.

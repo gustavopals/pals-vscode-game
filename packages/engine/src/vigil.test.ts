@@ -29,7 +29,7 @@ describe('a conta pura da Vigília', () => {
       for (let hour = 0; hour < 24; hour += 1) {
         for (const start of [120 * HOUR, 144 * HOUR, 312 * HOUR]) {
           const settings = clock(pace, offset, hour);
-          const before = structuredClone(settings);
+          const before = JSON.parse(JSON.stringify(settings)) as VigilClock;
           expect(vigilAt(settings, start)).toBe(independent(settings, start));
           expect(settings).toEqual(before);
           expect(Number.isSafeInteger(vigilAt(settings, start))).toBe(true);

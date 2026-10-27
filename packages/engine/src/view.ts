@@ -3,6 +3,7 @@ import {
   BUILDING_IDS,
   buildings,
   marketTexts,
+  vigilTexts,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
 } from '@lotg/content';
@@ -378,6 +379,12 @@ export function deriveViewState(
       difficultyLabel: balance.difficulties[state.settings.difficulty].label,
       // O rótulo é o do ritmo em que os prazos desta visão foram escritos.
       paceLabel: paceLabel(timeScale),
+      vigil: {
+        hourLocal: state.settings.vigil.hourLocal,
+        timezone: state.settings.timezone,
+        text: vigilTexts.about,
+        warning: state.settings.vigil.timezoneResolved ? null : vigilTexts.unresolved,
+      },
     },
     calendar: {
       year: date.year,

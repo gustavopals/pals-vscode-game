@@ -7,6 +7,11 @@ export type StoredState = Record<string, unknown>;
 export type MigrationContext = {
   /** Ritmo da partida (`games.time_scale`): horas de jogo por hora real. */
   timeScale: number;
+  /** `games.created_at`; chamadas offline sem contexto usam a época UTC. */
+  realOriginMs?: number;
+  /** Deslocamento resolvido no servidor, nunca calculado pelo motor. */
+  utcOffsetMinutes?: number;
+  timezoneResolved?: boolean;
 };
 
 /** O que cada passo recebe: o contexto de quem chamou e a fronteira que é só dele. */

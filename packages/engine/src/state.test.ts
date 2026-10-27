@@ -22,6 +22,8 @@ describe('createInitialState', () => {
       vigilHourLocal: 20,
       difficulty: 'ironKing',
       timeScale: 3,
+      realOriginMs: 0,
+      vigil: { hourLocal: 20, utcOffsetMinutes: 0, timezoneResolved: false },
     });
     expect(state.settlement.name).toBe('Pedra Alta');
   });
@@ -42,9 +44,11 @@ describe('createInitialState', () => {
     const noisy = { ...settings, capsEnabled: false, vows: ['ferro'] } as GameSettings;
     expect(Object.keys(createInitialState('s', noisy).settings).sort()).toEqual([
       'difficulty',
+      'realOriginMs',
       'settlementName',
       'timeScale',
       'timezone',
+      'vigil',
       'vigilHourLocal',
     ]);
   });

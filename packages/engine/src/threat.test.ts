@@ -746,7 +746,7 @@ describe('a visão com a Torre de Vigia', () => {
       watchtower,
     });
     // O que a visão usa por padrão é o ritmo gravado na partida.
-    const fast = { ...state, settings: { ...settings, timeScale: 3 } };
+    const fast = { ...state, settings: { ...state.settings, timeScale: 3 } };
     expect(deriveViewState(fast, fast.lastProcessedAt).threat).toEqual(view(state, 3));
     // Sem Torre, a frase do que ela daria diz a mesma hora real.
     for (const timeScale of [3, 1, 0.5]) {

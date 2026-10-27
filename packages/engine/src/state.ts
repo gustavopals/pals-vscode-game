@@ -9,7 +9,7 @@ import {
 } from '@lotg/content';
 
 import { scriptedRaidsAfter } from './raids';
-import type { BuildingId, GameSettings, GameState, UnitId } from './types';
+import type { BuildingId, GameCreationSettings, GameState, UnitId } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
 import { wallFullHp } from './wall';
 
@@ -19,7 +19,7 @@ export function cloneState(state: GameState): GameState {
 }
 
 /** Estado inicial reproduzível de um feudo: mesma semente e mesmas escolhas, mesmo estado. */
-export function createInitialState(seed: string, settings: GameSettings): GameState {
+export function createInitialState(seed: string, settings: GameCreationSettings): GameState {
   assertTimeScale(settings.timeScale);
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 34,
+    schemaVersion: 35,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -39,6 +39,12 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       vigilHourLocal: settings.vigilHourLocal,
       difficulty: settings.difficulty,
       timeScale: settings.timeScale,
+      realOriginMs: settings.realOriginMs ?? 0,
+      vigil: {
+        hourLocal: settings.vigilHourLocal,
+        utcOffsetMinutes: settings.vigil?.utcOffsetMinutes ?? 0,
+        timezoneResolved: settings.vigil?.timezoneResolved ?? false,
+      },
     },
     migratedAtMs: null,
     clock: { gameTimeMs: 0, yearStartMs: 0, year: 1 },

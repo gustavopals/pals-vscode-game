@@ -10,6 +10,7 @@ import { and, desc, eq, gt, gte, lt, notInArray, sql } from 'drizzle-orm';
 import { notFound } from '../api-error';
 import type { Tx } from '../db/client';
 import { commands, type GameEventRow, gameEvents, type GameRow, games } from '../db/schema';
+import { resolveVigilTimezone } from './vigil';
 
 /** Uma partida travada, com o estado já na versão que o motor desta imagem simula. */
 export type LoadedGame = Omit<GameRow, 'state'> & {
@@ -36,7 +37,11 @@ export type LoadedGame = Omit<GameRow, 'state'> & {
  */
 export function loadGame(row: GameRow): LoadedGame {
   const timeScale = Number(row.timeScale);
-  const state = migrateState(row.state, { timeScale });
+  const state = migrateState(row.state, {
+    timeScale,
+    realOriginMs: row.createdAt.getTime(),
+    ...resolveVigilTimezone(row.timezone, row.createdAt),
+  });
   if (state.settings.timeScale !== timeScale) {
     throw new StateMigrationError(
       'invalid',

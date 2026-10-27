@@ -218,6 +218,8 @@ const LOG_FIELDS_V18 = [
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  delete copy.settings.realOriginMs;
+  delete copy.settings.vigil;
   delete copy.horde?.lastFormationSeen;
   delete copy.horde?.wavePlan;
   delete copy.horde?.omens;
@@ -675,6 +677,58 @@ function fingerprint(text: string): string {
  * de ficar para trás (o teste abaixo diz quais faltam e qual é a impressão de cada um).
  */
 const FROZEN: Record<string, string> = {
+  'state-v34-caravan-escort.json': '610b158e',
+  'state-v34-caravan.json': 'f601ac47',
+  'state-v34-cold.json': '8936d5a6',
+  'state-v34-construction.json': 'a3e3c303',
+  'state-v34-council-hidden.json': '22d8e61a',
+  'state-v34-council.json': 'fdc47090',
+  'state-v34-crafts.json': 'ce7e0ce1',
+  'state-v34-den-cleared.json': '8bfcdd57',
+  'state-v34-expedition-crossroads.json': 'ec945e96',
+  'state-v34-expedition-returning.json': '27ccee5a',
+  'state-v34-expedition.json': 'b3fdbf40',
+  'state-v34-famine-3x.json': 'cd226ae9',
+  'state-v34-famine-ended.json': '1ead11f3',
+  'state-v34-famine-half.json': '3e5f3720',
+  'state-v34-famine-resumed.json': 'eec07421',
+  'state-v34-famine-smithy.json': 'e153d307',
+  'state-v34-famine.json': '2c502612',
+  'state-v34-fresh.json': 'c3c59e5a',
+  'state-v34-guild.json': '9060ac81',
+  'state-v34-hero-captured.json': 'a85103fa',
+  'state-v34-hero-injured.json': '9f812975',
+  'state-v34-hero-promised.json': '15232d6b',
+  'state-v34-horde-omens-exact.json': '3cd9c01d',
+  'state-v34-horde-omens-partial.json': '8c1042d5',
+  'state-v34-horde-omens-vague.json': '3a49011d',
+  'state-v34-housing-full.json': '9c22495d',
+  'state-v34-iron-king-half.json': '38d0b020',
+  'state-v34-market-opening.json': 'cb8024e3',
+  'state-v34-market.json': '02644275',
+  'state-v34-master-waiting.json': '284e8dd8',
+  'state-v34-masters.json': '561bda6c',
+  'state-v34-migrated-3x.json': '2d8264b2',
+  'state-v34-migrated-iron-king-caravan.json': '2cc2fed0',
+  'state-v34-migrated-iron-king-half.json': '2e8c45d3',
+  'state-v34-migrated-peasant-3x.json': '8385d9c9',
+  'state-v34-morale.json': '10450e19',
+  'state-v34-objectives.json': 'c8d4064f',
+  'state-v34-palisade.json': '0a099cfd',
+  'state-v34-peasant-3x.json': '0fb07053',
+  'state-v34-queues.json': '582eeadf',
+  'state-v34-raid-announced.json': 'a2a24ea1',
+  'state-v34-raid.json': '282350b8',
+  'state-v34-smithy-forging.json': 'a411df7c',
+  'state-v34-storage.json': '0f2acaac',
+  'state-v34-tavern-busy.json': '2bed6580',
+  'state-v34-tavern.json': '11d7f9b6',
+  'state-v34-threat.json': '5adcdc1a',
+  'state-v34-wage-arrears-ended.json': 'cabc322a',
+  'state-v34-wage-arrears-resumed.json': '07e5f2a2',
+  'state-v34-wage-arrears.json': 'a7082f4d',
+  'state-v34-warehouse-full.json': '5ba0cdc1',
+  'state-v34-week-scripted.json': '63b70973',
   'state-v33-caravan-escort.json': '4309aecd',
   'state-v33-caravan.json': '9cadfb33',
   'state-v33-cold.json': 'ebcc05c3',

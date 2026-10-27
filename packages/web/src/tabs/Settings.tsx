@@ -18,6 +18,7 @@ export type GameSettings = {
   paceLabel: string;
   /** O que a dificuldade muda, em uma frase; `null` se o servidor ainda não a mandou. */
   difficultyAbout: string | null;
+  vigil?: { hourLocal: number; timezone: string; text: string; warning: string | null };
 };
 
 /**
@@ -126,10 +127,15 @@ export function SettingsTab(props: {
             ))}
           </select>
         </label>
-        <p class="muted hint">
-          Fica guardada com cada feudo fundado a partir de agora. Ainda não muda nada no jogo: é
-          nessa hora que os grandes acontecimentos das próximas versões vão chegar.
-        </p>
+        {props.game?.vigil === undefined ? null : (
+          <>
+            <p class="muted hint">{props.game.vigil.text}</p>
+            <p>Fuso do feudo: {props.game.vigil.timezone}</p>
+            {props.game.vigil.warning === null ? null : (
+              <p role="status">{props.game.vigil.warning}</p>
+            )}
+          </>
+        )}
       </fieldset>
 
       {props.game === null ? null : (

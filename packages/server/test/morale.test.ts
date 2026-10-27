@@ -550,7 +550,7 @@ describe('uma partida gravada antes da moral (versão 6 do estado)', () => {
     }
     const row = await rowOf(normal, game.id);
     expect(row.schema_version).toBe(34);
-    expect(row.state.schemaVersion).toBe(34);
+    expect(row.state.schemaVersion).toBe(35);
     expect(row.state.settlement).toMatchObject({ morale: 50, moraleEffects: [] });
     expect(row.state.settlement.population).toEqual(before.settlement.population);
     expect(moraleOnly(await eventsOf(normal, game, game.id))).toEqual([]);
