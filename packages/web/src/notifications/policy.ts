@@ -43,9 +43,10 @@ const ALARMS: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
   'heroDiscontent',
   'heroLeft',
-  // O herói que ficou em cativeiro e o que não volta mais (GDD §9.1): a equipe perdeu alguém.
+  // O herói que ficou em cativeiro e o que não volta mais (GDD §9.1 e §10.4): a equipe perdeu alguém.
   'heroCaptured',
   'heroDied',
+  'commanderDied',
   // A caravana sem escolta que foi emboscada (GDD §5.9): a carga perdeu metade, e o aviso diz
   // quanto, com a frase da Crônica. É a perda do Mercado que o jogador pode evitar da próxima
   // vez, com a escolta ou a Torre de Vigia.
@@ -114,6 +115,8 @@ const GUILD: ReadonlyArray<GameEvent['type']> = [
   'expeditionLost',
   'heroCaptured',
   'heroDied',
+  'commanderDied',
+  'commanderInjured',
   'heroLeveledUp',
   'itemFound',
 ];
@@ -201,6 +204,7 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   // alarme em `raidAnnounced`, acima, em "Essenciais".
   'omenSeen',
   'battleFought',
+  'commanderInjured',
   'wallDamaged',
   'wallRepaired',
   'campAppeared',
@@ -255,6 +259,8 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   expeditionLost: 'error',
   heroCaptured: 'lock',
   heroDied: 'error',
+  commanderDied: 'error',
+  commanderInjured: HERO_ICON,
   heroLeveledUp: 'star-full',
   itemFound: ITEM_ICON,
   // O Mercado e a estrada levam os ícones da aba; a emboscada, o da perda.

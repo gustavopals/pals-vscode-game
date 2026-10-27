@@ -1122,4 +1122,19 @@ describe('a guerra nos avisos (V4E-T4)', () => {
       ),
     ).toEqual(['raidAnnounced']);
   });
+
+  it('commanderDied é alarme essencial e commanderInjured avisa em "Todas", ambos levando à Guilda', () => {
+    const died = event('commanderDied', 7);
+    expect(isEssential(died)).toBe(true);
+    expect(isGuildEvent(died)).toBe(true);
+    expect(eventIcon(died)).toBe('error');
+    expect(decideNotifications(input({ level: 'essential', events: [died] })).show).toEqual([died]);
+
+    const injured = event('commanderInjured', 8);
+    expect(isEssential(injured)).toBe(false);
+    expect(isGuildEvent(injured)).toBe(true);
+    expect(eventIcon(injured)).toBeDefined();
+    expect(decideNotifications(input({ level: 'essential', events: [injured] })).show).toEqual([]);
+    expect(decideNotifications(input({ level: 'all', events: [injured] })).show).toEqual([injured]);
+  });
 });
