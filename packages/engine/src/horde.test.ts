@@ -57,8 +57,15 @@ describe('a Horda ligada à partida (V4E-T3)', () => {
     observeFormation(state, [{ unit: 'spearman', count: 3 }], AUTUMN + 2);
     expect(state.horde.lastFormationSeen).toEqual({ total: 3, byUnit: { spearman: 3 } });
     expect(state.horde.wavePlan?.revision).toBe((revision ?? 0) + 1);
+    // Sem formação vista (a incursão contra um feudo sem Defesa ativa) a memória e as ondas
+    // ficam: apagar a memória regerava as ondas no outono, uma finta de graça (D-45c).
+    const plan = state.horde.wavePlan;
     observeFormation(state, [], AUTUMN + 3);
-    expect(state.horde.lastFormationSeen).toBeNull();
+    expect(state.horde.lastFormationSeen).toEqual({ total: 3, byUnit: { spearman: 3 } });
+    expect(state.horde.wavePlan).toEqual(plan);
+    observeFormation(state, [{ unit: 'spearman', count: 0 }], AUTUMN + 4);
+    expect(state.horde.lastFormationSeen).toEqual({ total: 3, byUnit: { spearman: 3 } });
+    expect(state.horde.wavePlan?.revision).toBe((revision ?? 0) + 1);
   });
 
   it('a mesma memória e semente geram a mesma incursão adaptada, com mais cavalaria contra arqueiros', () => {

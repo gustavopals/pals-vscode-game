@@ -113,10 +113,11 @@ function prepareWaves(draft: GameState, atMs: number): void {
 /** Observa os efetivos que entraram na batalha, antes de baixas, sem nomes ou comandantes. */
 export function observeFormation(draft: GameState, posts: readonly SeenPost[], atMs: number): void {
   const seen = summarizeFormation(posts);
+  // Nada visto (sem Defesa ativa, só a milícia sem posto): a Horda não aprende nem esquece, e as
+  // ondas ficam como estavam (revisão da V4E-T3, pendência D-45c).
+  if (seen === null) return;
   const before = draft.horde.lastFormationSeen;
-  const changed = UNIT_IDS.some(
-    (unit) => (seen?.byUnit[unit] ?? 0) !== (before?.byUnit[unit] ?? 0),
-  );
+  const changed = UNIT_IDS.some((unit) => (seen.byUnit[unit] ?? 0) !== (before?.byUnit[unit] ?? 0));
   draft.horde.lastFormationSeen = seen;
   if (changed && draft.horde.wavePlan !== null && seasonAt(atMs).id === hordeTiles.fortressSeason)
     prepareWaves(draft, atMs);
