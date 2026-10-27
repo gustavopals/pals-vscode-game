@@ -1,6 +1,16 @@
 import type { Page } from '@playwright/test';
 
-import { expect, fief, MINUTE, playNow, serverView, test, type World } from './helpers';
+import {
+  expect,
+  fief,
+  HOUR,
+  MINUTE,
+  playNow,
+  serverView,
+  statusBar,
+  test,
+  type World,
+} from './helpers';
 
 // V4E-T4.4 (GDD §6.3, §8.2 e §10.6): a muralha danificada e o reparo em duas etapas no painel da
 // Ameaça, e o presságio da Horda na aba Exército. A muralha danificada e o presságio são postos
@@ -50,9 +60,19 @@ test.describe('a muralha (V4E-T4)', () => {
     await page.getByTestId('wall-review-open').click();
     await expect(page.getByTestId('wall-review')).toContainText(wall.repairOffer.text);
     expect(posts).toEqual([]);
-    // "Voltar" fecha a conferência sem ordem.
+    // "Voltar" fecha a conferência sem ordem e devolve o foco ao botão de abrir.
     await page.getByTestId('wall-back').click();
     await expect(page.getByTestId('wall-review')).toHaveCount(0);
+    await expect(page.getByTestId('wall-review-open')).toBeFocused();
+    expect(posts).toEqual([]);
+
+    // Se o custo muda durante a conferência, aparece wall-changed e a ordem exige nova revisão.
+    await page.getByTestId('wall-review-open').click();
+    await expect(page.getByTestId('wall-review')).toBeVisible();
+    await world.control('wall', { percent: 20 });
+    await world.passTime(MINUTE, page);
+    await expect(page.getByTestId('wall-review')).toHaveCount(0);
+    await expect(page.getByTestId('wall-changed')).toBeVisible();
     expect(posts).toEqual([]);
 
     // Segunda etapa, pelo teclado: o foco vai ao "Confirmar o reparo" e o Enter manda a ordem.
@@ -102,5 +122,44 @@ test.describe('os presságios (V4E-T4)', () => {
     for (const omen of view.army.omens) {
       await expect(omens).toContainText(omen.text);
     }
+  });
+
+  test('a incursão com world.wolvesRoam() e Defesa ativa mostra a barra de status e deixa relatório de batalha', async ({
+    context,
+    request,
+    world,
+  }) => {
+    world.wolvesRoam();
+    const page = await world.open(context);
+    await playNow(page);
+    await world.raise('watchtower', 1);
+    await world.raise('barracks', 4);
+    await world.soldiers({ spearman: 10, archer: 6 });
+    await world.passTime(MINUTE, page);
+
+    await page.getByRole('tab', { name: 'Exército' }).click();
+    await page.getByTestId('formation-name').fill('Guarda do Feudo');
+    await page.getByTestId('post-center-front').focus();
+    await page.keyboard.press('Enter');
+    await page.getByTestId('post-unit').selectOption('spearman');
+    await page.getByTestId('post-amount').fill('6');
+    await page.keyboard.press('Enter');
+    await page.getByTestId('formation-save').click();
+    await expect(page.getByTestId('formation-activate')).toBeVisible();
+    await page.getByTestId('formation-activate').click();
+    await expect(page.getByTestId('formation-active')).toBeVisible();
+
+    // Na hora 29 os vigias anunciam os lobos: a barra de status mostra a incursão a caminho.
+    await world.passTime(29 * HOUR, page);
+    await expect(statusBar(page)).toContainText(/Lobos em \d+ min/);
+
+    // Na hora 30 a incursão luta contra a Defesa ativa e gera o relatório de batalha.
+    await world.passTime(HOUR + MINUTE, page);
+    await expect(statusBar(page)).not.toContainText('Lobos');
+    const after = await serverView(page, request);
+    expect(after.army.reports.length).toBeGreaterThan(0);
+    const report = page.getByTestId('battle-report').first();
+    await expect(report).toBeVisible();
+    await expect(report).toContainText(after.army.reports[0]?.outcomeLabel ?? '?');
   });
 });

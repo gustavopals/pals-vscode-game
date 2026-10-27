@@ -1102,9 +1102,16 @@ describe('os níveis dos avisos da Guilda e do Mercado (roadmap da v0.3, V3F-T3.
 });
 
 describe('a guerra nos avisos (V4E-T4)', () => {
-  const types = ['omenSeen', 'battleFought', 'wallDamaged', 'wallRepaired'] as const;
+  const types = [
+    'omenSeen',
+    'battleFought',
+    'wallDamaged',
+    'wallRepaired',
+    'campAppeared',
+    'fortressAppeared',
+  ] as const;
 
-  it('presságio, batalha e muralha só chegam em "Todas"', () => {
+  it('presságio, batalha, muralha e tiles de guerra só chegam em "Todas"', () => {
     for (const type of types) {
       const events = [event(type, 5)];
       expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
