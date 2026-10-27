@@ -7,6 +7,7 @@ import { armyIdleView, palisadeRaisedView, threatIncomingView } from '../test-he
 import type { Actions } from './actions';
 import { OmensPanel } from './OmensPanel';
 import { ThreatPanel } from './ThreatPanel';
+import { WallPanel, wallSignature } from './WallPanel';
 
 /**
  * A muralha no painel da Ameaça e os presságios na aba Exército (V4E-T4). As frases, os custos e
@@ -82,6 +83,58 @@ describe('a muralha', () => {
     const markup = panel(view);
     expect(markup).toContain('wall-repairing');
     expect(markup).not.toContain('Reparar a muralha…');
+  });
+
+  it('invalida a conferência se canRepair cai (com mesmo custo ou custo alterado)', () => {
+    const initialOffer = palisadeRaisedView.threat.defense.wall.repairOffer;
+    const reviewed = wallSignature(initialOffer);
+
+    // 1. Mesmo custo, mas faltou recurso durante a conferência: fecha a revisão, sem Confirmar.
+    const sameCostBlocked = withDefense(palisadeRaisedView, {
+      wall: {
+        repairOffer: {
+          ...initialOffer,
+          canRepair: false,
+          blockedText: 'Faltam 10 de pedra.',
+        },
+      },
+    });
+    const markupSame = html(
+      <WallPanel
+        defense={sameCostBlocked.threat.defense}
+        elapsed={0}
+        disabled={false}
+        reviewed={reviewed}
+        actions={actions}
+      />,
+    );
+    expect(markupSame).toContain('wall-blocked');
+    expect(markupSame).not.toContain('wall-review');
+    expect(markupSame).not.toContain('wall-confirm');
+
+    // 2. Custo mudou e também faltou estoque: não prende wall-changed nem botão desabilitado na tela.
+    const changedCostBlocked = withDefense(palisadeRaisedView, {
+      wall: {
+        repairOffer: {
+          ...initialOffer,
+          stone: initialOffer.stone + 20,
+          canRepair: false,
+          blockedText: 'Faltam 30 de pedra.',
+        },
+      },
+    });
+    const markupChanged = html(
+      <WallPanel
+        defense={changedCostBlocked.threat.defense}
+        elapsed={0}
+        disabled={false}
+        reviewed={reviewed}
+        actions={actions}
+      />,
+    );
+    expect(markupChanged).toContain('wall-blocked');
+    expect(markupChanged).not.toContain('wall-changed');
+    expect(markupChanged).not.toContain('wall-review-open');
   });
 
   it('a Torre que dispara e a composição que os vigias leem vêm da visão', () => {

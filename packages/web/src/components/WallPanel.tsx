@@ -10,7 +10,8 @@ type Defense = ViewState['threat']['defense'];
 type Offer = Defense['wall']['repairOffer'];
 
 /** O que a conferência viu: se qualquer um muda, a conferência deixa de valer. */
-const signature = (offer: Offer): string => `${offer.stone}:${offer.gold}:${offer.seconds}`;
+export const wallSignature = (offer: Offer): string =>
+  `${offer.stone}:${offer.gold}:${offer.seconds}`;
 
 /**
  * A muralha (GDD §6.3; V4E-T4): o nível, a vida de cada ala na frase do servidor, o reparo em
@@ -22,20 +23,23 @@ export function WallPanel(props: {
   defense: Defense;
   elapsed: number;
   disabled: boolean;
+  reviewed?: string | null;
   actions: Actions;
 }) {
   const { defense, elapsed, actions } = props;
   const { wall, tower } = defense;
   const offer = wall.repairOffer;
-  const [reviewed, setReviewed] = useState<string | null>(null);
+  const [reviewed, setReviewed] = useState<string | null>(props.reviewed ?? null);
   const confirm = useRef<HTMLButtonElement>(null);
   useLayoutEffect(() => {
-    // O reparo começou (aqui ou em outro navegador): a conferência aberta já não vale.
-    if (reviewed !== null && offer.repairingInSeconds !== null) {
+    // O reparo começou ou deixou de caber (aqui ou em outro navegador): a conferência aberta já não vale.
+    if (reviewed !== null && (offer.repairingInSeconds !== null || !offer.canRepair)) {
       setReviewed(null);
     }
-  }, [reviewed, offer.repairingInSeconds]);
-  const open = reviewed !== null && reviewed === signature(offer);
+  }, [reviewed, offer.repairingInSeconds, offer.canRepair]);
+  const repairing = offer.repairingInSeconds;
+  const valid = repairing === null && offer.canRepair;
+  const open = valid && reviewed !== null && reviewed === wallSignature(offer);
   useLayoutEffect(() => {
     if (open) {
       confirm.current?.focus();
@@ -44,8 +48,7 @@ export function WallPanel(props: {
   if (defense.palisadeLevel === 0) {
     return null;
   }
-  const changed = reviewed !== null && !open;
-  const repairing = offer.repairingInSeconds;
+  const changed = valid && reviewed !== null && !open;
   return (
     <div class="banner threat-wall" data-testid="wall-panel">
       <div id="threat-wall-terms">
@@ -88,7 +91,7 @@ export function WallPanel(props: {
           </p>
         )}
       </div>
-      {repairing === null && (offer.canRepair || open || changed) ? (
+      {valid ? (
         <div class="trade-review-actions">
           {open ? (
             <>
@@ -114,7 +117,7 @@ export function WallPanel(props: {
               data-testid="wall-review-open"
               disabled={props.disabled || !offer.canRepair}
               aria-describedby="threat-wall-terms"
-              onClick={() => setReviewed(signature(offer))}
+              onClick={() => setReviewed(wallSignature(offer))}
             >
               Reparar a muralha…
             </button>
