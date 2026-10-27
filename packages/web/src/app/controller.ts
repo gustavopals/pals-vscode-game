@@ -1919,7 +1919,7 @@ export class Controller {
       this.session.gameId !== null
     ) {
       const accepted = await this.order('setVigilHour', {
-        hourLocal: next.vigilHour,
+        hourLocal: patch.vigilHour ?? this.view?.settlement.vigil.hourLocal ?? next.vigilHour,
         timezone:
           patch.vigilTimezone ??
           this.view?.settlement.vigil.timezone ??

@@ -2471,6 +2471,13 @@ describe('preferências', () => {
     });
     expect(controller.gameDefaults()).toEqual({ timezone: 'Asia/Tokyo', vigilHourLocal: 3 });
     expect(store.get(PREFERENCES_KEY)).toEqual(controller.preferences);
+    // Outra aba pode ter confirmado outra hora: mudar só o fuso preserva a hora do feudo.
+    controller.view!.settlement.vigil.hourLocal = 7;
+    await controller.setPreferences({ vigilTimezone: 'UTC' });
+    expect(api.state.commands.at(-1)).toMatchObject({
+      type: 'setVigilHour',
+      payload: { hourLocal: 7, timezone: 'UTC' },
+    });
   });
   it('começam no padrão e são guardadas neste navegador', async () => {
     const { controller, store } = make();
