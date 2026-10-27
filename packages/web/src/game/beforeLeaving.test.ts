@@ -1221,9 +1221,12 @@ describe('a guerra em "Antes de partir" (V4E-T4)', () => {
       threat: palisadeRaisedView.threat,
       army: { ...armyIdleView.army, built: true, total: 5, formations: [] },
     };
-    const raid = leavingItems(view).find((item) => item.id === 'raid');
+    const items = leavingItems(view);
+    const raid = items.find((item) => item.id === 'raid');
     expect(raid?.severity).toBe('danger');
     expect(raid?.text).toContain('Nenhuma formação guarda o feudo');
     expect(raid?.command).toMatchObject({ id: 'lords.openPanel', arg: 'army' });
+    // O item da incursão já absorve a falta de Defesa ativa: não repete 'army-defense'.
+    expect(items.find((item) => item.id === 'army-defense')).toBeUndefined();
   });
 });
