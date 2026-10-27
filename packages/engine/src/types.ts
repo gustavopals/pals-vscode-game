@@ -2318,7 +2318,8 @@ export type SmithyView = {
  */
 export type ArmyView = {
   /** Frases públicas dos presságios atuais; sem a composição escondida ou a memória. */
-  omens: Array<{ text: string; wave: 1 | 2 | 3 }>;
+  /** A onda de que o presságio fala; `null` no vago, que não diz qual é. */
+  omens: Array<{ text: string; wave: 1 | 2 | 3 | null }>;
   /** O edifício do Quartel: é o que `startConstruction` recebe. */
   building: BuildingId;
   built: boolean;

@@ -100,6 +100,31 @@ describe('a Horda ligada à partida (V4E-T3)', () => {
     expect(next.map.tiles.raiderCamp?.threatActive).toBe(true);
   });
 
+  it('o presságio vago não diz de qual onda fala, nem na visão nem no evento (névoa, revisão da V4E-T3)', () => {
+    // Torre Nv1: todo presságio é vago.
+    const start = gameAt(AUTUMN - 1, (state) => {
+      state.settlement.buildings.watchtower = 1;
+    });
+    const { state, events } = advanceTo(start, AUTUMN + 20 * DAY);
+    const vague = state.horde.omens.filter((omen) => omen.clarity === 'vague');
+    expect(vague.length).toBeGreaterThan(0);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    state.horde.omens.forEach((omen, index) => {
+      expect(view.army.omens[index]?.wave).toBe(omen.clarity === 'vague' ? null : omen.wave);
+    });
+    const seen = events.filter((event) => event.type === 'omenSeen');
+    expect(seen.length).toBeGreaterThan(0);
+    for (const event of seen) {
+      if (event.data.clarity === 'vague') expect(event.data).not.toHaveProperty('wave');
+    }
+    // Duas partidas que só diferem na onda dos presságios vagos dão a mesma visão.
+    const other = cloneState(state);
+    for (const omen of other.horde.omens) {
+      if (omen.clarity === 'vague') omen.wave = omen.wave === 1 ? 2 : 1;
+    }
+    expect(deriveViewState(other, other.lastProcessedAt)).toEqual(view);
+  });
+
   it('presságios leem ondas reais e a visão nunca leva memória nem a preparação escondida', () => {
     const start = gameAt(AUTUMN - 1, (state) => {
       state.settlement.buildings.watchtower = 5;

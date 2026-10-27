@@ -808,7 +808,10 @@ const ArmySchema = z.strictObject({
   text: z.string(),
   total: z.number(),
   omens: z.array(
-    z.strictObject({ text: z.string(), wave: z.union([z.literal(1), z.literal(2), z.literal(3)]) }),
+    z.strictObject({
+      text: z.string(),
+      wave: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
+    }),
   ),
   cap: z.number(),
   foodText: z.string(),

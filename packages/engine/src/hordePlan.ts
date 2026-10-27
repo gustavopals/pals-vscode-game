@@ -204,5 +204,14 @@ export function turnOmens(draft: GameState, atMs: number, events: GameEvent[]): 
   });
   draft.horde.omens = draft.horde.omens.slice(-balance.omens.kept);
   draft.stats.omens = (draft.stats.omens ?? 0) + 1;
-  emit(events, draft, atMs, 'omenSeen', { wave: wave.number, clarity }, { pressagio: text });
+  // O evento sai em `GET /events`: o vago não diz a onda, como na visão (os dados de evento não
+  // levam `null`; a chave fica de fora).
+  emit(
+    events,
+    draft,
+    atMs,
+    'omenSeen',
+    clarity === 'vague' ? { clarity } : { wave: wave.number, clarity },
+    { pressagio: text },
+  );
 }

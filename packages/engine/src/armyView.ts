@@ -102,7 +102,11 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
   const perSoldier = rules.foodPerSoldierPerHour;
   return {
     building: 'barracks',
-    omens: state.horde.omens.map(({ text, wave }) => ({ text, wave })),
+    // O presságio vago não diz de qual onda fala (névoa: revisão da V4E-T3).
+    omens: state.horde.omens.map(({ text, wave, clarity }) => ({
+      text,
+      wave: clarity === 'vague' ? null : wave,
+    })),
     built: level > 0,
     level,
     text: armyText(state),
