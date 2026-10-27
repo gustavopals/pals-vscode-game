@@ -382,7 +382,7 @@ que os vigias viram naquele instante. No inverno as ondas congelam. O parcial
 revela um posto, com a contagem em múltiplos de cinco, sem revelar outros postos.
 
 **D-42. O tile nasce depois de fechar a Ameaça do dia anterior.** _(Leitura da
-ordem da virada.)_ A aparição ocorre no instante aprovado (dia 25/outono); o
+ordem da virada.)_ A aparição ocorre no instante aprovado (o Acampamento no 25º dia de jogo, no verão; a Fortaleza na virada que abre o outono); o
 primeiro +2 desse tile vem na virada seguinte. Isso mantém verdadeira a previsão
 da Torre feita antes do surgimento. Sem Torre, a aparição não vira evento público.
 
