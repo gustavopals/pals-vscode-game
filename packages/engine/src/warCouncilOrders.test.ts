@@ -175,42 +175,42 @@ describe('informação pública da Horda na prévia (V4E-T3)', () => {
     );
   });
 
-  it('o parcial só conhece o posto revelado e continua uma aproximação', () => {
+  it('um presságio de onda não muda a prévia da incursão comum, de clareza nenhuma (D-45b)', () => {
+    // Antes da revisão o último presságio (de uma onda do Cerco, até 105 inimigos) virava o
+    // inimigo conhecido da próxima incursão comum, e o parcial misturava um posto da onda com a
+    // estimativa.
     const state = yard();
     const initial = previewInputFor(state, formationOf(state));
-    state.horde.omens = [
+    const omens = [
       {
         atMs: state.lastProcessedAt,
         revision: 1,
-        clarity: 'partial',
-        wave: 2,
+        clarity: 'partial' as const,
+        wave: 2 as const,
         text: 'Cerca de 15 lobos à esquerda.',
-        reveals: [{ wing: 'left', line: 'front', unit: 'wolf', count: 15 }],
+        reveals: [
+          { wing: 'left' as const, line: 'front' as const, unit: 'wolf' as const, count: 15 },
+        ],
       },
-    ];
-    const input = previewInputFor(state, formationOf(state));
-    expect(input.enemy.left.front).toEqual({ kind: 'approximate', unit: 'wolf', count: 15 });
-    expect(input.enemy.center).toEqual(initial.enemy.center);
-    expect(input.enemy.right).toEqual(initial.enemy.right);
-  });
-
-  it('o exato conhece somente os postos revelados, inclusive os vazios', () => {
-    const state = yard();
-    state.horde.omens = [
       {
         atMs: state.lastProcessedAt,
         revision: 1,
-        clarity: 'exact',
-        wave: 3,
+        clarity: 'exact' as const,
+        wave: 3 as const,
         text: 'Um Senhor da Guerra no centro.',
-        reveals: [{ wing: 'center', line: 'front', unit: 'warlord', count: 1 }],
+        reveals: [
+          { wing: 'center' as const, line: 'front' as const, unit: 'warlord' as const, count: 1 },
+        ],
       },
     ];
-    const input = previewInputFor(state, formationOf(state));
-    expect(input.enemy.center.front).toEqual({ kind: 'known', unit: 'warlord', count: 1 });
-    expect(input.enemy.center.back).toBeNull();
-    expect(input.enemy.left).toEqual({ front: null, back: null });
-    expect(input.enemy.right).toEqual({ front: null, back: null });
+    for (const omen of omens) {
+      const seen = cloneState(state);
+      seen.horde.omens = [omen];
+      expect(previewInputFor(seen, formationOf(seen))).toEqual(initial);
+      expect(formationSignature(seen, formationOf(seen))).toBe(
+        formationSignature(state, formationOf(state)),
+      );
+    }
   });
 
   it('no Nv3, tipos iguais em postos e contagens escondidas diferentes não mudam a prévia', () => {

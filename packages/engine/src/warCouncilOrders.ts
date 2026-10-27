@@ -170,18 +170,9 @@ function publicEnemyKnowledge(state: GameState): {
     }
     return { enemy, mix };
   }
-  const omen = state.horde.omens[state.horde.omens.length - 1];
-  if (omen?.clarity === 'exact') {
-    for (const wing of WING_IDS) for (const line of LINE_IDS) enemy[wing][line] = null;
-    for (const post of omen.reveals)
-      enemy[post.wing][post.line] = { kind: 'known', unit: post.unit, count: post.count };
-    return { enemy };
-  }
-  if (omen?.clarity === 'partial') {
-    for (const post of omen.reveals)
-      enemy[post.wing][post.line] = { kind: 'approximate', unit: post.unit, count: post.count };
-    return { enemy };
-  }
+  // Os presságios falam das ondas do Cerco, não da próxima incursão comum: a prévia de uma
+  // incursão não os usa (revisão da V4E-T3, pendência D-45b). Eles valerão para a prévia de uma
+  // onda, na Fase G.
   // O relatório é história conhecida, não uma promessa de que a próxima tropa será igual.
   const report = state.army.reports[state.army.reports.length - 1];
   const mix: Partial<Record<HordeUnitId, number>> = {};
