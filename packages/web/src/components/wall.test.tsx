@@ -4,6 +4,7 @@ import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
 
 import { armyIdleView, palisadeRaisedView, threatIncomingView } from '../test-helpers';
+import { FiefTab } from '../tabs/Fief';
 import type { Actions } from './actions';
 import { OmensPanel } from './OmensPanel';
 import { ThreatPanel } from './ThreatPanel';
@@ -135,6 +136,38 @@ describe('a muralha', () => {
     expect(markupChanged).toContain('wall-blocked');
     expect(markupChanged).not.toContain('wall-changed');
     expect(markupChanged).not.toContain('wall-review-open');
+  });
+
+  it('liga Confirmar o reparo ao texto da conferência via aria-describedby e trava com busy', () => {
+    const initialOffer = palisadeRaisedView.threat.defense.wall.repairOffer;
+    const reviewed = wallSignature(initialOffer);
+    const reviewMarkup = html(
+      <WallPanel
+        defense={palisadeRaisedView.threat.defense}
+        elapsed={0}
+        disabled={false}
+        reviewed={reviewed}
+        actions={actions}
+      />,
+    );
+    expect(reviewMarkup).toMatch(/<p[^>]*id="threat-wall-review"[^>]*data-testid="wall-review"/);
+    expect(reviewMarkup).toMatch(
+      /<button[^>]*data-testid="wall-confirm"[^>]*aria-describedby="threat-wall-review"/,
+    );
+
+    const fiefBusy = html(
+      <FiefTab
+        view={palisadeRaisedView}
+        elapsed={0}
+        online
+        retryInSeconds={null}
+        chronicle={[]}
+        busy={new Set(['wall'])}
+        actions={actions}
+      />,
+    );
+    expect(fiefBusy).toMatch(/<button[^>]*data-testid="wall-review-open"[^>]*disabled/);
+    expect(fiefBusy).toMatch(/<button[^>]*data-testid="wall-review-open"[^>]*aria-busy="true"/);
   });
 
   it('a Torre que dispara e a composição que os vigias leem vêm da visão', () => {

@@ -23,14 +23,18 @@ export function WallPanel(props: {
   defense: Defense;
   elapsed: number;
   disabled: boolean;
+  busy?: boolean;
   reviewed?: string | null;
   actions: Actions;
 }) {
   const { defense, elapsed, actions } = props;
+  const busy = props.busy === true;
   const { wall, tower } = defense;
   const offer = wall.repairOffer;
   const [reviewed, setReviewed] = useState<string | null>(props.reviewed ?? null);
   const confirm = useRef<HTMLButtonElement>(null);
+  const reviewOpen = useRef<HTMLButtonElement>(null);
+  const returning = useRef(false);
   useLayoutEffect(() => {
     // O reparo começou ou deixou de caber (aqui ou em outro navegador): a conferência aberta já não vale.
     if (reviewed !== null && (offer.repairingInSeconds !== null || !offer.canRepair)) {
@@ -43,6 +47,9 @@ export function WallPanel(props: {
   useLayoutEffect(() => {
     if (open) {
       confirm.current?.focus();
+    } else if (returning.current) {
+      returning.current = false;
+      reviewOpen.current?.focus();
     }
   }, [open]);
   if (defense.palisadeLevel === 0) {
@@ -76,7 +83,7 @@ export function WallPanel(props: {
           </p>
         ) : null}
         {open ? (
-          <p data-testid="wall-review">
+          <p id="threat-wall-review" data-testid="wall-review">
             Conferir: {offer.text} A ordem só vai quando você confirmar.
           </p>
         ) : null}
@@ -99,7 +106,9 @@ export function WallPanel(props: {
                 type="button"
                 ref={confirm}
                 data-testid="wall-confirm"
-                disabled={props.disabled || !offer.canRepair}
+                aria-describedby="threat-wall-review"
+                disabled={props.disabled || busy || !offer.canRepair}
+                aria-busy={busy}
                 onClick={() => {
                   setReviewed(null);
                   actions.run('lords.repairWall', { confirmed: true });
@@ -107,15 +116,24 @@ export function WallPanel(props: {
               >
                 Confirmar o reparo
               </button>
-              <button type="button" data-testid="wall-back" onClick={() => setReviewed(null)}>
+              <button
+                type="button"
+                data-testid="wall-back"
+                onClick={() => {
+                  returning.current = true;
+                  setReviewed(null);
+                }}
+              >
                 Voltar
               </button>
             </>
           ) : (
             <button
               type="button"
+              ref={reviewOpen}
               data-testid="wall-review-open"
-              disabled={props.disabled || !offer.canRepair}
+              disabled={props.disabled || busy || !offer.canRepair}
+              aria-busy={busy}
               aria-describedby="threat-wall-terms"
               onClick={() => setReviewed(wallSignature(offer))}
             >
