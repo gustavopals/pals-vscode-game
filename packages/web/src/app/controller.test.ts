@@ -17,6 +17,7 @@ import {
   gameEvent,
   goldenView,
   makeController,
+  palisadeRaisedView,
   queuesView,
   raidAftermathView,
   settle,
@@ -1397,6 +1398,29 @@ describe('avisos de acontecimentos', () => {
         );
         const before = views(made);
         await vi.advanceTimersByTimeAsync(5_000);
+        expect(views(made)).toBe(before);
+        await vi.advanceTimersByTimeAsync(1_500);
+        expect(views(made)).toBe(before + 1);
+      });
+
+      it('o fim do reparo da muralha: a contagem não fica parada em 00:00', async () => {
+        const { defense } = palisadeRaisedView.threat;
+        const repairing: ViewState = {
+          ...palisadeRaisedView,
+          threat: {
+            ...palisadeRaisedView.threat,
+            defense: {
+              ...defense,
+              wall: {
+                ...defense.wall,
+                repairOffer: { ...defense.wall.repairOffer, repairingInSeconds: 6 },
+              },
+            },
+          },
+        };
+        const made = await watching(far(repairing));
+        const before = views(made);
+        await vi.advanceTimersByTimeAsync(6_000);
         expect(views(made)).toBe(before);
         await vi.advanceTimersByTimeAsync(1_500);
         expect(views(made)).toBe(before + 1);
