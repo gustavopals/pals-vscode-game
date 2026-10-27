@@ -165,9 +165,9 @@ describe('o instante exato de cada deserção, nos três ritmos', () => {
     ]);
     expect(deserters(events).map(dayOf)).toEqual(days);
     expect(state.settlement.population.villagers).toBe(40 - days.length);
-    // A conta fecha no que era devido, e não houve sorteio nenhum: a deserção é certa.
+    // A deserção é certa: não usa o fluxo morale; a preparação da Horda pode usar horde.
     expect(state.settlement.famine).toEqual(famineSince(SUMMER + 30 * MINUTE, days.length));
-    expect(state.rng).toEqual({});
+    expect(state.rng.morale).toBeUndefined();
     // Um milissegundo antes da primeira, ninguém saiu.
     const first = SUMMER + (days[0] ?? 0) * DAY;
     const before = advanceTo(start, first - 1);

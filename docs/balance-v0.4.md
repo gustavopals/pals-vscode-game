@@ -435,3 +435,94 @@ Na semente `pedra-alta-001`, um ano de jogo no Rápido (`pnpm -s sim -- --seed p
 - Em testes de uma semente só (não na matriz): o econômico do ritmo 1 já não chega à venda no Mercado no ano da semente de `bots.test.ts`, a `pedra-alta-001` deixou de mandar caravana na semana do Rápido (o teste passou para a `pedra-alta-005`), o explorador da `pedra-alta-017` termina com sete heróis (o herói da carta entra acima do limite da Taverna, como a regra deixa), e a cadeia do Celeiro Comum abre em 4 das 50 sementes do Rápido (eram 6; o piso do teste desceu para 4).
 
 **O que não foi medido.** A rodada da seção 9 não foi refeita: as linhas "seção 9" acima são as da tabela daquela seção e de `MEASURED`. O `militar` e o `especulador` (fora da rodada padrão). Os arquivos desta rodada ficaram no scratchpad da sessão.
+
+## 11. Horda adaptativa, Acampamento e Fortaleza (V4E-T3, 2026-10-27)
+
+Base `de76fb7`, alterações locais da V4E-T3; Node 22.22.3, estado **34**,
+protocolo **3**, conteúdo **`4b45a62e503eb335`**. Sem publicação.
+
+### 11.1 Método e reprodução
+
+Três matrizes completas: 50 sementes × 24 células × três dificuldades =
+**3.600 partidas medidas** (as janelas Normal repetem a mesma duração).
+
+```bash
+pnpm -s sim -- --matrix > /tmp/lotg-v4e-t3-lord.csv 2> /tmp/lotg-v4e-t3-lord.md
+pnpm -s sim -- --matrix --difficulty peasant > /tmp/lotg-v4e-t3-peasant.csv 2> /tmp/lotg-v4e-t3-peasant.md
+pnpm -s sim -- --matrix --difficulty ironKing > /tmp/lotg-v4e-t3-ironKing.csv 2> /tmp/lotg-v4e-t3-ironKing.md
+pnpm --filter @lotg/sim-cli exec tsx ../../scripts/measure-v4e-t3.ts
+```
+
+As primeiras matrizes saíram com código 1 porque conferiram as faixas da seção 10;
+a mudança de pressão é intencional (ADR 0020, decisão 16: +2 de cada tile ativo).
+As **72 linhas de `MEASURED`** foram substituídas pelas medidas dessas rodadas,
+sem mudar as margens de tolerância. Não são metas de diversão nem aprovação do
+novo resultado. Nenhuma política dos bots econômico, preguiçoso ou explorador
+foi alterada para caber nas faixas. A política nova de finta é exclusiva do militar.
+
+Nas 3.600 partidas: **zero horas de fome, zero horas de frio e zero ordens
+recusadas**. A Fortaleza aparece no dia **49** nos mundos que chegam ao outono;
+a semana no Tranquilo termina antes e deixa `fortress_day` vazio. As duas novas
+colunas (`omens`, `fortress_day`) ficam no fim do CSV, preservando as antigas.
+
+### 11.2 Pressão por estação
+
+Regular, 2 visitas/dia, ritmo Normal, primeiro ano, **50 sementes por dificuldade**.
+Média da Ameaça lida ao fim de cada hora real (inclui a hora 168 já na primavera
+seguinte); numeradores, amostras e resultados por partida estão em
+[measurements/v4e-t3-horde.json](measurements/v4e-t3-horde.json).
+
+| Dificuldade | Primavera | Verão | Outono | Inverno | Presságios no ano |
+| --- | --- | --- | --- | --- | --- |
+| Camponês | 13.31 | 28.30 | 78.52 | 78.49 | 10–24 |
+| Senhor | 13.34 | 28.30 | 78.83 | 77.56 | 10–26 |
+| Rei de Ferro | 13.31 | 28.30 | 78.43 | 76.76 | 10–24 |
+
+O patamar próximo de 78 no outono/inverno é mais alto que o retrato só com o
+Covil da v0.2 (§8.2 do GDD). Nos cinco feudos sem intervenção de
+`threat.raids.test.ts`, duas voltas completas dão **10,5–11,5 incursões por ano**;
+a antiga expectativa de 4–9 descrevia o mapa anterior. Os goldens
+`horde-pressure.json` e `horde-raids-per-year.json` congelam as medidas exatas.
+A fração de incursões leves também cai: 35 leves e 69 médias ou fortes nessa amostra;
+44 das médias/fortes chegam a partir do outono. Isso fica como impacto de balanceamento,
+sem reduzir os +2 aprovados para esconder a mudança.
+
+### 11.3 O jogador de uma visita por dia
+
+Extremos nas 50 sementes, perfil Preguiçoso, ritmo Rápido. A alteração D-39
+continua aplicada: os roteiros dos dias 25 e 37 não ferem aldeões.
+
+| Dificuldade e janela | População final | Salão | Objetivos | Sofridas | Repelidas | Feridos |
+| --- | --- | --- | --- | --- | --- | --- |
+| Camponês, 1 ano | 16 | 2–3 | 9–11 | 8–11 | 0–1 | 12–17 |
+| Camponês, 7 dias reais | 36–56 | 6–7 | 12 | 9–17 | 16–25 | 13–25 |
+| Senhor, 1 ano | 16 | 2–3 | 9–11 | 8–11 | 0–1 | 12–18 |
+| Senhor, 7 dias reais | 36–52 | 6–7 | 12 | 9–17 | 16–25 | 13–25 |
+| Rei de Ferro, 1 ano | 16 | 2–3 | 9–10 | 8–11 | 0 | 12–19 |
+| Rei de Ferro, 7 dias reais | 36–54 | 6–7 | 12 | 9–17 | 16–25 | 14–25 |
+
+Na seção 10, Senhor terminava a semana com população 36–54 e 4–11 feridos;
+agora são **36–52 e 13–25**. Os objetivos do primeiro ano permanecem 9–11 em
+Senhor, mas em Rei de Ferro ficam 9–10. A pressão futura pode exigir decisão de
+balanceamento; a remedição não representa aceitação humana desses resultados.
+
+### 11.4 Finta: o que foi medido e o que falta
+
+Dez sementes por dificuldade, militar com 2 visitas/dia, ritmo Normal, primeiro
+ano, com controle idêntico que usa `montarFormacao` no lugar da finta. O bot lê
+somente a visão pública. A contagem usa o relatório da formação que realmente
+lutou, corrigido nesta tarefa; não presume que a Defesa ativa atual foi a usada.
+
+- Camponês, controle: 0 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+- Camponês, finta: 0 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+- Senhor, controle: 0 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+- Senhor, finta: 1 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+- Rei de Ferro, controle: 0 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+- Rei de Ferro, finta: 1 batalhas com isca, 20 incursões sofridas e 73 repelidas nas dez partidas.
+
+Há pouco espaço para a isca nessas visitas: só uma batalha em Senhor e uma em
+Rei de Ferro. Não houve melhora na contagem de incursões sofridas/repelidas;
+não se afirma benefício tático. Ainda **não existe resolução do cerco**, portanto
+não há medição de vitória das três ondas nem do alvo de 65–80% do Regular.
+Os pesos iniciais das ondas estão inventariados como rascunho na seção 12 de
+[content-v0.4.md](content-v0.4.md), para medir novamente na Fase G.

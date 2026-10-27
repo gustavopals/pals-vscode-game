@@ -12,7 +12,7 @@ import {
 } from './test-helpers';
 import { cloneState } from './state';
 import { riskText } from './warCouncilView';
-import { previewInputFor } from './warCouncilOrders';
+import { formationSignature, previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
 import type { GameState } from './types';
 
@@ -147,6 +147,110 @@ describe('a prévia não vaza a Ameaça (V4D-T5)', () => {
 
   it('com Torre, a Ameaça alta dá a incursão média', () => {
     expect(enemyAt(100, 1)).not.toEqual(enemyAt(0, 1));
+  });
+});
+
+describe('informação pública da Horda na prévia (V4E-T3)', () => {
+  const formationOf = (state: GameState) => state.army.formations[0]!;
+
+  it('memória, sorteios e ondas escondidas diferentes dão a mesma entrada e assinatura', () => {
+    const before = yard();
+    const hidden = cloneState(before);
+    hidden.horde.lastFormationSeen = { total: 20, byUnit: { archer: 20 } };
+    hidden.horde.wavePlan = {
+      year: 1,
+      revision: 3,
+      generatedAtMs: before.lastProcessedAt,
+      waves: [1, 2, 3].map((number) => ({
+        number: number as 1 | 2 | 3,
+        composition: [{ wing: 'left', line: 'front', unit: 'wolf', count: 30 }],
+      })),
+    };
+    hidden.rng.horde = [1, 2, 3, 4];
+    expect(previewInputFor(hidden, formationOf(hidden))).toEqual(
+      previewInputFor(before, formationOf(before)),
+    );
+    expect(formationSignature(hidden, formationOf(hidden))).toBe(
+      formationSignature(before, formationOf(before)),
+    );
+  });
+
+  it('o parcial só conhece o posto revelado e continua uma aproximação', () => {
+    const state = yard();
+    const initial = previewInputFor(state, formationOf(state));
+    state.horde.omens = [
+      {
+        atMs: state.lastProcessedAt,
+        revision: 1,
+        clarity: 'partial',
+        wave: 2,
+        text: 'Cerca de 15 lobos à esquerda.',
+        reveals: [{ wing: 'left', line: 'front', unit: 'wolf', count: 15 }],
+      },
+    ];
+    const input = previewInputFor(state, formationOf(state));
+    expect(input.enemy.left.front).toEqual({ kind: 'approximate', unit: 'wolf', count: 15 });
+    expect(input.enemy.center).toEqual(initial.enemy.center);
+    expect(input.enemy.right).toEqual(initial.enemy.right);
+  });
+
+  it('o exato conhece somente os postos revelados, inclusive os vazios', () => {
+    const state = yard();
+    state.horde.omens = [
+      {
+        atMs: state.lastProcessedAt,
+        revision: 1,
+        clarity: 'exact',
+        wave: 3,
+        text: 'Um Senhor da Guerra no centro.',
+        reveals: [{ wing: 'center', line: 'front', unit: 'warlord', count: 1 }],
+      },
+    ];
+    const input = previewInputFor(state, formationOf(state));
+    expect(input.enemy.center.front).toEqual({ kind: 'known', unit: 'warlord', count: 1 });
+    expect(input.enemy.center.back).toBeNull();
+    expect(input.enemy.left).toEqual({ front: null, back: null });
+    expect(input.enemy.right).toEqual({ front: null, back: null });
+  });
+
+  it('no Nv3, tipos iguais em postos e contagens escondidas diferentes não mudam a prévia', () => {
+    const state = yard();
+    state.settlement.buildings.watchtower = 3;
+    state.horde.scheduledRaids = [
+      {
+        id: 'threat-1',
+        kind: 'threat',
+        enemy: 'horde',
+        size: 'strong',
+        atMs: state.lastProcessedAt + 1,
+        announcedAtMs: state.lastProcessedAt,
+        composition: [
+          { wing: 'left', line: 'front', unit: 'wolf', count: 10 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 20 },
+        ],
+      },
+    ];
+    const hidden = cloneState(state);
+    hidden.horde.scheduledRaids[0]!.composition = [
+      { wing: 'center', line: 'front', unit: 'raider', count: 1 },
+      { wing: 'right', line: 'front', unit: 'wolf', count: 40 },
+    ];
+    expect(previewInputFor(state, formationOf(state))).toEqual(
+      previewInputFor(hidden, formationOf(hidden)),
+    );
+  });
+
+  it('a ordem das chaves de JSONB não envelhece a assinatura da formação', () => {
+    const state = yard();
+    const formation = formationOf(state);
+    const original = formationSignature(state, formation);
+    for (const wing of ['left', 'center', 'right'] as const) {
+      for (const line of ['front', 'back'] as const) {
+        const post = formation.posts[wing][line];
+        if (post !== null) formation.posts[wing][line] = { count: post.count, unit: post.unit };
+      }
+    }
+    expect(formationSignature(state, formation)).toBe(original);
   });
 });
 

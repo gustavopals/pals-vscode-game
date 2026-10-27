@@ -859,7 +859,8 @@ describe('incursões (GDD §8.2 e §5.7; ADR 0014, decisões 10 e 20)', () => {
 
     const wolvesPhrases = raidTemplates.wolves;
     const phrases = (changed: object) =>
-      RaidTemplatesSchema.safeParse({ wolves: { ...wolvesPhrases, ...changed } }).success;
+      RaidTemplatesSchema.safeParse({ ...raidTemplates, wolves: { ...wolvesPhrases, ...changed } })
+        .success;
     expect(phrases({})).toBe(true);
     expect(
       phrases({

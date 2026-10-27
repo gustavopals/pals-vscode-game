@@ -16,6 +16,8 @@ export type TileTypeDef = {
 // GDD §8.2: na v0.2 o único tile de ameaça é o Covil de Lobos.
 export const tileTypes: Record<TileTypeId, TileTypeDef> = {
   wolfDen: { label: 'Covil de Lobos', article: 'o', enemy: 'wolves' },
+  raiderCamp: { label: 'Acampamento de Saqueadores', article: 'o', enemy: 'raiders' },
+  hordeFortress: { label: 'Fortaleza da Horda', article: 'a', enemy: 'horde' },
 };
 
 /**
@@ -42,6 +44,17 @@ export const enemies: Record<EnemyId, EnemyDef> = {
   wolves: {
     label: 'lobos',
     sizes: { light: 'uma matilha pequena', medium: 'uma matilha grande' },
+  },
+  raiders: {
+    label: 'saqueadores',
+    sizes: { light: 'um punhado de saqueadores', medium: 'um bando de saqueadores' },
+  },
+  horde: {
+    label: 'tropas da Horda',
+    sizes: {
+      light: 'uma pequena tropa de saqueadores',
+      medium: 'uma tropa numerosa, de armas variadas',
+    },
   },
 };
 

@@ -537,7 +537,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 33;
+  schemaVersion: 34;
   seed: string;
   settings: GameSettings;
   /**
@@ -724,7 +724,26 @@ export type GameState = {
     discovered: string[];
   };
   /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
-  horde: { scheduledRaids: ScheduledRaid[] };
+  horde: {
+    scheduledRaids: ScheduledRaid[];
+    lastFormationSeen: { total: number; byUnit: Partial<Record<UnitId, number>> } | null;
+    /** Ondas reais que os presságios observam; o agendamento do Cerco é da Fase G. */
+    wavePlan: {
+      year: number;
+      revision: number;
+      generatedAtMs: number;
+      waves: Array<{ number: 1 | 2 | 3; composition: NonNullable<ScheduledRaid['composition']> }>;
+    } | null;
+    omens: Array<{
+      atMs: number;
+      revision: number;
+      clarity: 'vague' | 'partial' | 'exact';
+      wave: 1 | 2 | 3;
+      text: string;
+      /** Postos revelados; o parcial guarda apenas o posto e a contagem aproximada da frase. */
+      reveals: NonNullable<ScheduledRaid['composition']>;
+    }>;
+  };
   /**
    * Os heróis, o soldo deles e as expedições (GDD §9.1 e §9.2; ADR 0017 e 0018). O edifício da
    * Guilda dos Aventureiros está em `settlement.buildings.guild`.
@@ -1553,6 +1572,8 @@ export type ThreatTowerView = {
 /** Uma incursão que os vigias já avistaram. Só existe para quem tem a Torre de Vigia. */
 export type ThreatIncomingView = {
   enemy: EnemyId;
+  /** O tamanho contado pelos vigias; `null` antes de a Torre o distinguir. */
+  size: ScheduledRaid['size'] | null;
   /** "Lobos". */
   enemyLabel: string;
   /** Segundos reais até a incursão chegar. */
@@ -2296,6 +2317,8 @@ export type SmithyView = {
  * prontos: o app não calcula nada. `foodPerHour` é o consumo de cada soldado por hora real.
  */
 export type ArmyView = {
+  /** Frases públicas dos presságios atuais; sem a composição escondida ou a memória. */
+  omens: Array<{ text: string; wave: 1 | 2 | 3 }>;
   /** O edifício do Quartel: é o que `startConstruction` recebe. */
   building: BuildingId;
   built: boolean;

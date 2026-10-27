@@ -108,6 +108,12 @@ export function emitBattleFought(
 ): void {
   const data: Record<string, string | number> = {
     battleId: report.id,
+    playerLost: report.casualties
+      .filter((entry) => entry.owner === 'player')
+      .reduce((sum, entry) => sum + entry.lost, 0),
+    hordeLost: report.casualties
+      .filter((entry) => entry.owner === 'horde')
+      .reduce((sum, entry) => sum + entry.lost, 0),
     mode: report.mode,
     outcome: report.outcome,
     ending: report.ending,

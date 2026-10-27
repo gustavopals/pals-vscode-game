@@ -31,6 +31,7 @@ import {
 } from './v30';
 import { armyPreviewV31, previewWithinState } from './v31';
 import { stateV32Fields, wallWithinState } from './v32';
+import type { MigrationStep, StoredState } from './step';
 
 // Como nas outras versões, os identificadores ficam escritos aqui; o teste confere que hoje
 // coincidem com o conteúdo (`ENEMY_IDS`, `WAR_RAID_SIZE_IDS`).
@@ -124,3 +125,22 @@ export const stateV33: Shape = (value, path) =>
   battleReportsWithinState(value, path) ??
   previewWithinState(value, path) ??
   wallWithinState(value, path);
+
+/** 33 → 34: a Horda começa sem memória, ondas ou presságios; tiles nascem na próxima virada. */
+export const v33ToV34: MigrationStep = {
+  from: 33,
+  summary: 'Memória da Horda, preparação das ondas e presságios',
+  shape: stateV33,
+  migrate(state) {
+    return {
+      ...state,
+      schemaVersion: 34,
+      horde: {
+        ...(state.horde as StoredState),
+        lastFormationSeen: null,
+        wavePlan: null,
+        omens: [],
+      },
+    };
+  },
+};

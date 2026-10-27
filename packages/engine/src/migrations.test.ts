@@ -218,6 +218,11 @@ const LOG_FIELDS_V18 = [
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  delete copy.horde?.lastFormationSeen;
+  delete copy.horde?.wavePlan;
+  delete copy.horde?.omens;
+  delete copy.map?.tiles?.raiderCamp;
+  delete copy.map?.tiles?.hordeFortress;
   const horde = (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde;
   if (horde?.scheduledRaids === undefined) {
     return;
@@ -670,6 +675,55 @@ function fingerprint(text: string): string {
  * de ficar para trás (o teste abaixo diz quais faltam e qual é a impressão de cada um).
  */
 const FROZEN: Record<string, string> = {
+  'state-v33-caravan-escort.json': '4309aecd',
+  'state-v33-caravan.json': '9cadfb33',
+  'state-v33-cold.json': 'ebcc05c3',
+  'state-v33-construction.json': '3963e0e2',
+  'state-v33-council-hidden.json': '3b41493f',
+  'state-v33-council.json': 'b21214ec',
+  'state-v33-crafts.json': '3a4d50e0',
+  'state-v33-den-cleared.json': 'ceccbf52',
+  'state-v33-expedition-crossroads.json': '02aca4b5',
+  'state-v33-expedition-returning.json': '3d21b3be',
+  'state-v33-expedition.json': 'b544d52b',
+  'state-v33-famine-3x.json': '75d043a6',
+  'state-v33-famine-ended.json': '6ae1d69a',
+  'state-v33-famine-half.json': 'cceb2507',
+  'state-v33-famine-resumed.json': 'd705aa08',
+  'state-v33-famine-smithy.json': '6ee67c68',
+  'state-v33-famine.json': '6365dc3d',
+  'state-v33-fresh.json': '03efc8c1',
+  'state-v33-guild.json': '9de8af54',
+  'state-v33-hero-captured.json': '3d601c86',
+  'state-v33-hero-injured.json': '089c7fd9',
+  'state-v33-hero-promised.json': 'b59deb36',
+  'state-v33-housing-full.json': 'd5aab812',
+  'state-v33-iron-king-half.json': 'eb5c6115',
+  'state-v33-market-opening.json': '2bafff80',
+  'state-v33-market.json': '1e58bdf6',
+  'state-v33-master-waiting.json': 'df3e885b',
+  'state-v33-masters.json': 'a041f518',
+  'state-v33-migrated-3x.json': '3079a631',
+  'state-v33-migrated-iron-king-caravan.json': 'a6aae751',
+  'state-v33-migrated-iron-king-half.json': 'cb425d9e',
+  'state-v33-migrated-peasant-3x.json': '18535424',
+  'state-v33-morale.json': 'b44ec8ea',
+  'state-v33-objectives.json': '141a6738',
+  'state-v33-palisade.json': '006bc134',
+  'state-v33-peasant-3x.json': '9ae988bd',
+  'state-v33-queues.json': 'de482b88',
+  'state-v33-raid-announced.json': '843f1cbb',
+  'state-v33-raid.json': 'ba54ebdf',
+  'state-v33-smithy-forging.json': '512c2fa5',
+  'state-v33-storage.json': '4f641e40',
+  'state-v33-tavern-busy.json': 'ba0fc8a8',
+  'state-v33-tavern.json': '3a74e3bb',
+  'state-v33-threat.json': 'eff52a2f',
+  'state-v33-wage-arrears-ended.json': 'ab81ec11',
+  'state-v33-wage-arrears-resumed.json': 'b2dc63e7',
+  'state-v33-wage-arrears.json': '242b80ec',
+  'state-v33-warehouse-full.json': '742325a2',
+  'state-v33-week-scripted.json': '25ee4834',
   'state-v1-construction.json': '78563339',
   'state-v1-famine.json': '564cd9b6',
   'state-v1-fresh.json': 'abde2cf3',
@@ -1854,7 +1908,7 @@ describe('a forma da versão atual', () => {
     ['o mapa com um campo a mais', (state) => (state.map.radius = 3)],
     [
       'um tile de um tipo que o motor não conhece',
-      (state) => (state.map.tiles.camp = { type: 'raiderCamp', threatActive: true }),
+      (state) => (state.map.tiles.camp = { type: 'ironVein', threatActive: true }),
     ],
     [
       'um tile sem dizer se a ameaça está ativa',
@@ -3704,6 +3758,7 @@ describe('versão 8 → 9', () => {
       const state: GameState = {
         ...whole,
         horde: {
+          ...whole.horde,
           scheduledRaids: whole.horde.scheduledRaids.filter((raid) => raid.atMs > turn + DAY),
         },
       };
@@ -6429,7 +6484,10 @@ describe('versão 23 → 24', () => {
     const fast = migrateState(old, { timeScale: 3 });
     expect(old).toEqual(copy);
     expect(slow).toEqual(fast);
-    expect(slow).toEqual({ ...start, migratedAtMs: start.lastProcessedAt });
+    const expected = JSON.parse(JSON.stringify(start)) as GameState;
+    delete expected.map.tiles.raiderCamp;
+    delete expected.map.tiles.hordeFortress;
+    expect(slow).toEqual({ ...expected, migratedAtMs: start.lastProcessedAt });
   });
 
   it('um estado da versão 23 que já traz `worked` é recusado, e a 24 recusa o Mestre sem ele, com ele fora da forma e com edifício sem nunca ter trabalhado', () => {

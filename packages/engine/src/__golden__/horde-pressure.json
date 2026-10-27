@@ -1,0 +1,42 @@
+{
+  "crossings": [
+    {
+      "seed": "pedra-alta",
+      "down": 4,
+      "up": 5,
+      "calm": 96,
+      "turns": 153
+    },
+    {
+      "seed": "vau-do-lobo",
+      "down": 3,
+      "up": 4,
+      "calm": 92,
+      "turns": 153
+    },
+    {
+      "seed": "monte-claro",
+      "down": 5,
+      "up": 6,
+      "calm": 93,
+      "turns": 153
+    },
+    {
+      "seed": "ribeira",
+      "down": 4,
+      "up": 5,
+      "calm": 86,
+      "turns": 153
+    },
+    {
+      "seed": "cerro-velho",
+      "down": 3,
+      "up": 4,
+      "calm": 83,
+      "turns": 153
+    }
+  ],
+  "light": 35,
+  "medium": 69,
+  "mediumFromAutumn": 44
+}

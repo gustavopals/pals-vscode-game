@@ -577,7 +577,7 @@ describe('sorteios da moral (fluxo morale)', () => {
     });
   });
 
-  it('piso de 3 aldeões: no piso ninguém parte, e o gerador nem anda', () => {
+  it('piso de 3 aldeões: no piso ninguém parte, e o fluxo da moral nem anda', () => {
     const floor = withEffect(-50, (draft) => {
       draft.settlement.population.villagers = 3;
     });
@@ -585,7 +585,7 @@ describe('sorteios da moral (fluxo morale)', () => {
     // Três lavradores para três bocas: a comida sobra e a reserva vem. 50 + 10 − 50.
     expect(state.settlement.morale).toBe(10);
     expect(state.settlement.population.villagers).toBe(3);
-    expect(state.rng).toEqual({});
+    expect(state.rng.morale).toBeUndefined();
     expect(eventsOfType(events, 'villagerLeft')).toEqual([]);
     // Com gente acima do piso, 120 dias de moral baixa levam até ele e param.
     const crowd = withEffect(-50, (draft) => {

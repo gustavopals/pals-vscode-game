@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 33,
+    schemaVersion: 34,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -96,7 +96,12 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       discovered: [],
     },
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
-    horde: { scheduledRaids: scriptedRaidsAfter(0) },
+    horde: {
+      scheduledRaids: scriptedRaidsAfter(0),
+      lastFormationSeen: null,
+      wavePlan: null,
+      omens: [],
+    },
     // Nenhum herói no começo: o primeiro chega por uma carta do Conselho (GDD §9.1).
     // A Taverna ainda não existe: nenhum candidato, nenhuma rotação marcada, nenhum festival.
     guild: {

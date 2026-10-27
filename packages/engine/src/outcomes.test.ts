@@ -32,6 +32,7 @@ import {
   addHero,
   command,
   AUTUMN,
+  SUMMER,
   DAY,
   expeditionAtNode,
   throughCrossroads,
@@ -1227,7 +1228,7 @@ describe('o Covil de Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () =
     ).toBe('EXPEDITION_LOCKED');
   });
 
-  it('a incursão já marcada continua marcada; com o Covil limpo nenhuma outra é sorteada até o outono, quando os lobos descem a serra; e na virada do ano eles voltam ao Covil', () => {
+  it('limpar o Covil mantém a incursão marcada, silencia os lobos antes do outono e não impede o Acampamento nem a Fortaleza; o Covil volta no ano novo', () => {
     const marked = {
       id: 'threat-1',
       atMs: 3 * DAY,
@@ -1245,24 +1246,23 @@ describe('o Covil de Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () =
     expect(cleared.horde.scheduledRaids).toEqual([marked]);
     const raidsIn = (events: GameEvent[]) =>
       events.filter((event) => event.type === 'raidSuffered' || event.type === 'raidRepelled');
-    // A incursão marcada chega. Depois dela, a primavera e o verão inteiros sem nenhuma: a
-    // Ameaça fica onde estava (100 − 30 do Covil − 35 da incursão), porque nada a faz subir.
-    const summerEnd = advanceTo(cleared, AUTUMN);
-    expect(raidsIn(summerEnd.events)).toHaveLength(1);
-    expect(summerEnd.state.horde.scheduledRaids).toEqual([]);
-    expect(summerEnd.state.map.threat).toBe(35);
-    // No outono os lobos descem a serra, com o Covil limpo ou não: a Ameaça sobe 3 por dia, e
-    // acima de 40 as incursões voltam a ser sorteadas (e cada uma a derruba em 35).
+    // O Covil limpo não gera incursões. A marcada anteriormente continua e custa 35.
+    const beforeCamp = advanceTo(cleared, SUMMER - 1);
+    expect(raidsIn(beforeCamp.events)).toHaveLength(1);
+    expect(beforeCamp.state.map.threat).toBe(35);
+    expect(beforeCamp.state.map.tiles.raiderCamp).toBeUndefined();
+    // O novo Acampamento não depende do Covil: nasce no dia 25 e traz saqueadores no verão.
+    const summerEnd = advanceTo(beforeCamp.state, AUTUMN);
+    expect(summerEnd.state.map.tiles.raiderCamp?.threatActive).toBe(true);
+    expect(raidsIn(summerEnd.events).some((event) => event.data.enemy === 'raiders')).toBe(true);
+    expect(summerEnd.state.map.tiles.wolfDen?.threatActive).toBe(false);
+    expect(summerEnd.state.map.tiles.hordeFortress?.threatActive).toBe(true);
     const autumnEnd = advanceTo(summerEnd.state, WINTER);
     expect(raidsIn(autumnEnd.events).length).toBeGreaterThan(0);
     expect(autumnEnd.state.map.tiles.wolfDen?.threatActive).toBe(false);
-    // No inverno, de novo ninguém: passada a última incursão marcada no outono (chega em três
-    // dias de jogo), nenhuma outra, e a Ameaça não muda mais até a virada do ano.
-    const settled = advanceTo(autumnEnd.state, WINTER + 4 * DAY);
-    const winterEnd = advanceTo(settled.state, YEAR - 1);
-    expect(raidsIn(winterEnd.events)).toEqual([]);
-    expect(winterEnd.state.map.threat).toBe(settled.state.map.threat);
-    const autumn = winterEnd;
+    // A Fortaleza continua ativa no inverno, mesmo com o Covil limpo.
+    const autumn = advanceTo(autumnEnd.state, YEAR - 1);
+    expect(autumn.state.map.tiles.hordeFortress?.threatActive).toBe(true);
     const turned = advanceTo(autumn.state, YEAR);
     expect(turned.state.map.tiles.wolfDen?.threatActive).toBe(true);
     expect(ofType(turned.events, 'threatTileRestored')).toMatchObject([

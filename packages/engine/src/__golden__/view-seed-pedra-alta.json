@@ -1053,6 +1053,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -2307,6 +2308,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -3598,6 +3600,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -5043,6 +5046,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -6487,6 +6491,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -8103,6 +8108,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "Erga o Quartel: treina soldados, que saem da população.",
@@ -9558,6 +9564,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -11009,6 +11016,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -12451,6 +12459,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -13991,6 +14000,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -15514,6 +15524,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -16729,26 +16740,38 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 46 de 100.",
-      "level": 46,
+      "text": "Ameaça 50 de 100.",
+      "level": 50,
       "max": 100,
-      "risePerDay": 5,
-      "nextLevel": 51,
+      "risePerDay": 9,
+      "nextLevel": 59,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51.",
+      "trend": "Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 50 para 59.",
       "sources": [
+        "+2/dia: Fortaleza da Horda",
+        "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
+        {
+          "id": "hordeFortress",
+          "label": "Fortaleza da Horda",
+          "active": true
+        },
+        {
+          "id": "raiderCamp",
+          "label": "Acampamento de Saqueadores",
+          "active": true
+        },
         {
           "id": "wolfDen",
           "label": "Covil de Lobos",
           "active": true
         }
       ],
-      "raidChancePercent": 11,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 11% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
+      "raidChancePercent": 19,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 19% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -16983,6 +17006,12 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [
+        {
+          "text": "A terra treme ao anoitecer: a Horda trará muitos cavaleiros.",
+          "wave": 3
+        }
+      ],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -18198,18 +18227,30 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 46 de 100.",
-      "level": 46,
+      "text": "Ameaça 50 de 100.",
+      "level": 50,
       "max": 100,
-      "risePerDay": 5,
-      "nextLevel": 16,
+      "risePerDay": 9,
+      "nextLevel": 24,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 5 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 46 para 16.",
+      "trend": "Sobe 9 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 50 para 24.",
       "sources": [
+        "+2/dia: Fortaleza da Horda",
+        "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
+        {
+          "id": "hordeFortress",
+          "label": "Fortaleza da Horda",
+          "active": true
+        },
+        {
+          "id": "raiderCamp",
+          "label": "Acampamento de Saqueadores",
+          "active": true
+        },
         {
           "id": "wolfDen",
           "label": "Covil de Lobos",
@@ -18225,6 +18266,7 @@
       ],
       "incoming": {
         "enemy": "wolves",
+        "size": "medium",
         "enemyLabel": "Lobos",
         "inSeconds": 940,
         "sizeText": "uma matilha grande",
@@ -18461,6 +18503,12 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [
+        {
+          "text": "A terra treme ao anoitecer: a Horda trará muitos cavaleiros.",
+          "wave": 3
+        }
+      ],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -19687,26 +19735,38 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 41 de 100.",
-      "level": 41,
+      "text": "Ameaça 45 de 100.",
+      "level": 45,
       "max": 100,
-      "risePerDay": 5,
-      "nextLevel": 46,
+      "risePerDay": 9,
+      "nextLevel": 54,
       "nextRiseInSeconds": 1200,
-      "trend": "Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 41 para 46.",
+      "trend": "Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 45 para 54.",
       "sources": [
+        "+2/dia: Fortaleza da Horda",
+        "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
+        {
+          "id": "hordeFortress",
+          "label": "Fortaleza da Horda",
+          "active": true
+        },
+        {
+          "id": "raiderCamp",
+          "label": "Acampamento de Saqueadores",
+          "active": true
+        },
         {
           "id": "wolfDen",
           "label": "Covil de Lobos",
           "active": true
         }
       ],
-      "raidChancePercent": 6,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 6% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
+      "raidChancePercent": 14,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 14% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -19941,6 +20001,12 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [
+        {
+          "text": "A terra treme ao anoitecer: a Horda trará muitos cavaleiros.",
+          "wave": 3
+        }
+      ],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -21215,18 +21281,30 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 46 de 100.",
-      "level": 46,
+      "text": "Ameaça 50 de 100.",
+      "level": 50,
       "max": 100,
-      "risePerDay": 5,
-      "nextLevel": 16,
+      "risePerDay": 9,
+      "nextLevel": 24,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 5 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 46 para 16.",
+      "trend": "Sobe 9 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 50 para 24.",
       "sources": [
+        "+2/dia: Fortaleza da Horda",
+        "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
+        {
+          "id": "hordeFortress",
+          "label": "Fortaleza da Horda",
+          "active": true
+        },
+        {
+          "id": "raiderCamp",
+          "label": "Acampamento de Saqueadores",
+          "active": true
+        },
         {
           "id": "wolfDen",
           "label": "Covil de Lobos",
@@ -21242,6 +21320,7 @@
       ],
       "incoming": {
         "enemy": "wolves",
+        "size": "medium",
         "enemyLabel": "Lobos",
         "inSeconds": 940,
         "sizeText": "uma matilha grande",
@@ -21478,6 +21557,12 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [
+        {
+          "text": "A terra treme ao anoitecer: a Horda trará muitos cavaleiros.",
+          "wave": 3
+        }
+      ],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -22966,6 +23051,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -24418,6 +24504,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -25861,6 +25948,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -27177,6 +27265,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -28699,6 +28788,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -30286,6 +30376,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -31938,6 +32029,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -33680,6 +33772,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -35425,6 +35518,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -37158,6 +37252,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -39030,6 +39125,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -40769,6 +40865,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -42318,6 +42415,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -43844,6 +43942,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -45048,17 +45147,23 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 4 de 100.",
-      "level": 4,
+      "text": "Ameaça 6 de 100.",
+      "level": 6,
       "max": 100,
-      "risePerDay": 2,
-      "nextLevel": 6,
+      "risePerDay": 4,
+      "nextLevel": 10,
       "nextRiseInSeconds": 7198,
-      "trend": "Sobe 2 a cada dia de jogo (2 h): na próxima virada, vai de 4 para 6.",
+      "trend": "Sobe 4 a cada dia de jogo (2 h): na próxima virada, vai de 6 para 10.",
       "sources": [
+        "+2/dia: Acampamento de Saqueadores",
         "+2/dia: Covil de Lobos"
       ],
       "tiles": [
+        {
+          "id": "raiderCamp",
+          "label": "Acampamento de Saqueadores",
+          "active": true
+        },
         {
           "id": "wolfDen",
           "label": "Covil de Lobos",
@@ -45430,6 +45535,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -47114,6 +47220,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -48517,6 +48624,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -50021,6 +50129,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "O Quartel abre com o Salão Nv4: treina soldados, que saem da população.",
@@ -51513,6 +51622,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "Erga o Quartel: treina soldados, que saem da população.",
@@ -52957,6 +53067,7 @@
     },
     "army": {
       "building": "barracks",
+      "omens": [],
       "built": false,
       "level": 0,
       "text": "Erga o Quartel: treina soldados, que saem da população.",

@@ -131,12 +131,11 @@ function reportView(state: GameState, report: BattleReport): ArmyReportView {
         }),
       };
     }),
-    // A batalha ainda não guarda a formação que lutou (a Fase E a cria): a Defesa ativa é a que
-    // luta nas defesas, e é para ela que "Ajustar formação" leva (pendência D-10).
+    // A formação do relatório pode já não ser a Defesa ativa. Só oferece a que realmente lutou.
     adjustFormationId:
-      report.mode === 'defense' &&
-      state.army.formations.some((formation) => formation.id === state.army.activeFormationId)
-        ? state.army.activeFormationId
+      report.formationId !== null &&
+      state.army.formations.some((formation) => formation.id === report.formationId)
+        ? report.formationId
         : null,
   };
 }

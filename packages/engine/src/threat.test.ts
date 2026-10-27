@@ -93,7 +93,8 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     // Na virada que abre o 21º dia de jogo chega a 40; sem incursão nenhuma, chega ao máximo na
     // que fecha o primeiro dia de outono (96 + 5).
     expect(threatAt(state, 20 * DAY)).toBe(40);
-    expect(threatAt(state, AUTUMN)).toBe(96);
+    // O Acampamento nasce no dia 25 e passa a somar +2 nas viradas seguintes.
+    expect(threatAt(state, AUTUMN)).toBe(100);
     expect(threatAt(state, AUTUMN + DAY)).toBe(100);
   });
 
@@ -107,14 +108,14 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     // A virada que abre o outono fecha um dia de verão: soma só o covil.
     const lastOfSummer = feud(AUTUMN - DAY, 0);
     expect(threatAt(lastOfSummer, AUTUMN)).toBe(2);
-    // O primeiro dia de outono inteiro soma 2 + 3.
-    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(7);
-    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(12);
+    // Depois da primeira virada surgem os tiles faltantes: covil + acampamento + fortaleza + outono.
+    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(11);
+    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(20);
     // A virada que abre o inverno fecha o último dia de outono: ainda soma 5.
     const lastOfAutumn = feud(WINTER - DAY, 0);
     expect(threatAt(lastOfAutumn, WINTER)).toBe(5);
     // No inverno, só o covil.
-    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(7);
+    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(11);
     // E no verão e na primavera também.
     expect(threatAt(feud(SUMMER, 0), SUMMER + DAY)).toBe(2);
   });
@@ -136,7 +137,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     const autumn = feud(AUTUMN, 10, 0, (draft) => {
       draft.map.tiles = { wolfDen: { type: 'wolfDen', threatActive: false } };
     });
-    expect(threatAt(autumn, AUTUMN + 2 * DAY)).toBe(16);
+    expect(threatAt(autumn, AUTUMN + 2 * DAY)).toBe(20);
     const two = feud(3 * DAY, 10, 0, (draft) => {
       draft.map.tiles = {
         wolfDen: { type: 'wolfDen', threatActive: true },
@@ -242,11 +243,11 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
     const events = rose(state, 40 * DAY);
     expect(events.map((event) => [event.atMs / DAY, event.data])).toEqual([
       [20, { threat: 40, previousThreat: 38, mark: 40 }],
-      [35, { threat: 70, previousThreat: 68, mark: 70 }],
+      [30, { threat: 72, previousThreat: 68, mark: 70 }],
     ]);
     expect(events.map((event) => event.text)).toEqual([
       'No 21º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
-      'No 12º dia do Verão, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+      'No 7º dia do Verão, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 72.',
     ]);
     expect(rules.chronicleMarks).toEqual([40, 70]);
   });
@@ -444,10 +445,23 @@ describe('a divisão de intervalo continua exata com a Ameaça', () => {
           const start = feud(startMs, threat);
           const firstTurn = (Math.floor(startMs / DAY) + 1) * DAY;
           let expected = threat;
+          let camp = false;
+          let fortress = false;
           for (let turn = firstTurn; turn < firstTurn + days * DAY; turn += DAY) {
-            // O dia que a virada fecha: de outono, +5; de qualquer outra estação, +2.
+            // Referência independente: os tiles nascem após a subida, e a memória anual zera.
             const dayOfYear = Math.floor(((turn - 1) % YEAR) / DAY);
-            expected = Math.min(100, expected + (dayOfYear >= 48 && dayOfYear < 72 ? 5 : 2));
+            expected = Math.min(
+              100,
+              expected +
+                2 +
+                (camp ? 2 : 0) +
+                (fortress ? 2 : 0) +
+                (dayOfYear >= 48 && dayOfYear < 72 ? 3 : 0),
+            );
+            if (turn % YEAR === 0) fortress = false;
+            const day = Math.floor((turn % YEAR) / DAY);
+            if (day >= 24) camp = true;
+            if (day >= 48) fortress = true;
           }
           expect(threatAt(start, firstTurn + (days - 1) * DAY)).toBe(expected);
         },
@@ -737,6 +751,7 @@ describe('a incursão marcada, vista da Torre', () => {
     expect(known(hunted(arrival - HOUR - 1, 1)).incoming).toBeNull();
     expect(known(hunted(arrival - HOUR, 1)).incoming).toEqual({
       enemy: 'wolves',
+      size: null,
       enemyLabel: 'Lobos',
       inSeconds: 3600,
       sizeText: null,
@@ -758,6 +773,7 @@ describe('a incursão marcada, vista da Torre', () => {
     expect(known(hunted(arrival - 2 * HOUR - 1, 2)).incoming).toBeNull();
     expect(known(hunted(arrival - 2 * HOUR, 2)).incoming).toEqual({
       enemy: 'wolves',
+      size: 'light',
       enemyLabel: 'Lobos',
       inSeconds: 7200,
       sizeText: 'uma matilha pequena',

@@ -22,6 +22,8 @@ export const omenTexts = {
     'Os vigias contam cerca de {contagem} {inimigo} rumando para o vale, {ala}, na {onda} noite.',
   /** Nível 5: `{onda}` e `{composicao}`. */
   exact: 'Um desertor desenha no chão, para a {onda} onda: {composicao}.',
+  post: '{contagem} {inimigo} {linha} {ala}',
+  lines: { front: 'na frente', back: 'na retaguarda' },
   /** Os ordinais das ondas, no feminino. */
   waves: { 1: 'primeira', 2: 'segunda', 3: 'terceira' },
   /** Por onde a onda entra. */

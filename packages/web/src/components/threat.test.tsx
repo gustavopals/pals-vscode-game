@@ -277,14 +277,16 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     expect(text(markup)).toBe(
       [
         'Ameaça',
-        'Ameaça 46 de 100.',
-        'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51. Faltam 35:40.',
+        'Ameaça 50 de 100.',
+        'Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 50 para 59. Faltam 35:40.',
+        '+2/dia: Fortaleza da Horda',
+        '+2/dia: Acampamento de Saqueadores',
         '+2/dia: Covil de Lobos',
         '+3/dia: outono',
-        'O que ronda o feudo: Covil de Lobos (ativo).',
+        'O que ronda o feudo: Fortaleza da Horda (ativo); Acampamento de Saqueadores (ativo); Covil de Lobos (ativo).',
         'Os vigias não avistam nenhuma incursão agora.',
         // A regra das incursões, na frase do servidor: a chance, o prazo, o tamanho, a queda.
-        'Se não houver outra a caminho, a próxima virada do dia tem 11% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
+        'Se não houver outra a caminho, a próxima virada do dia tem 19% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
         // A defesa vem antes da Torre: é o que muda o desfecho de um ataque. O preço de não a
         // ter fica ao lado do preço da obra.
         'Sem Paliçada, nada segura um ataque.',
@@ -305,7 +307,7 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     expect(text(markup)).toContain(threat.raidRisk);
     expect(threat.raidCosts.every((line) => text(markup).includes(line))).toBe(true);
     // A barra é a da visão, do zero ao máximo que o servidor mandou, com nome para quem não a vê.
-    expect(markup).toContain('<progress max="100" value="46" aria-label="Ameaça: 46 de 100">');
+    expect(markup).toContain('<progress max="100" value="50" aria-label="Ameaça: 50 de 100">');
     expect(markup).toContain('aria-label="De onde vem a subida da Ameaça"');
     expect(markup).toContain('aria-label="O que um ataque custa a um feudo sem defesa"');
     // A subida tem seta e verbo; a cor só reforça.
@@ -425,7 +427,7 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     ]);
     const markup = panel(upgrading);
     expect(buttons(box(markup, 'tower'))).toEqual([]);
-    expect(text(markup)).toContain('Ameaça 46 de 100.');
+    expect(text(markup)).toContain('Ameaça 50 de 100.');
     expect(text(markup)).toContain('Torre de Vigia → Nv2 em obras: termina em 01:30.');
     expect(text(markup)).not.toContain('ninguém vê');
   });

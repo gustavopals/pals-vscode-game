@@ -276,6 +276,12 @@ const MECHANIC_COLUMNS = [
     task: 'V3E-T3',
     meaning: 'Mestres no feudo naquela hora; na matriz, os do fim da partida',
   },
+  { name: 'omens', task: 'V4E-T3', meaning: 'Presságios recebidos, acumulados' },
+  {
+    name: 'fortress_day',
+    task: 'V4E-T3',
+    meaning: 'Dia de jogo em que a Fortaleza da Horda apareceu; vazio antes',
+  },
 ] as const;
 
 /** Quantas das colunas das mecânicas são da v0.2: as primeiras, que não mudam de lugar. */
@@ -306,6 +312,11 @@ const MEASURED_COLUMNS: Partial<
   // A Ameaça, lida do estado (a visão só a mostra com a Torre de Vigia): a daquela hora e, na
   // matriz, a maior da partida.
   threat: { hour: (row) => row.threat, run: (summary) => summary.threat.max },
+  omens: { hour: (row) => row.omens, run: (summary) => summary.omens },
+  fortress_day: {
+    hour: (row) => row.fortressDay ?? '',
+    run: (summary) => summary.fortressDay ?? '',
+  },
   // As incursões, contadas dos eventos: acumuladas até a hora, e o total da partida na matriz.
   wolf_losses: {
     hour: (row) => raidLosses(row.raids),
@@ -500,6 +511,8 @@ export function toCsv(rows: HourRow[]): string {
 
 /** O que uma partida simulada mediu. As horas são reais, uma amostra ao fim de cada hora. */
 export type Summary = {
+  omens: number;
+  fortressDay: number | null;
   hours: number;
   villagers: number;
   /** A menor população que o feudo teve, entre as amostras de cada hora. */
@@ -758,6 +771,8 @@ export function summarize(result: SimulationResult): Summary {
       max: rows.reduce((highest, row) => Math.max(highest, row.threat), 0),
       watchtower: last?.levels.watchtower ?? 0,
     },
+    omens: last?.omens ?? 0,
+    fortressDay: last?.fortressDay ?? null,
     raids: {
       suffered: last?.raids.suffered ?? 0,
       repelled: last?.raids.repelled ?? 0,

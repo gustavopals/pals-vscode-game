@@ -662,9 +662,16 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     const breached = resolved.filter((event) => event.type === 'raidSuffered');
     expect(breached.length).toBeGreaterThan(0);
     for (const event of breached) {
-      expect(event.data).toMatchObject({ size: 'medium', palisadeLevel: 1, injured: 1 });
-      expect(event.text).toContain('A paliçada lhes quebrou o ímpeto, mas não os deteve');
-      expect(event.text).toContain('Uma paliçada no nível 2 os teria detido.');
+      expect(['medium', 'strong']).toContain(event.data.size);
+      expect(event.data).toMatchObject({ palisadeLevel: 1, injured: 1 });
+      if (event.data.enemy === 'wolves') {
+        expect(event.text).toContain('A paliçada lhes quebrou o ímpeto, mas não os deteve');
+        expect(event.text).toContain('Uma paliçada no nível 2 os teria detido.');
+      } else {
+        expect(event.text).toContain('A defesa lhes quebrou o ímpeto, mas não os deteve');
+        if (event.data.size === 'medium')
+          expect(event.text).toContain('Uma paliçada no nível 2 e uma formação preparada');
+      }
     }
     // Com a Torre no nível 2, toda incursão foi anunciada antes, com o tamanho.
     expect(ofType(all, 'raidAnnounced')).toHaveLength(resolved.length);
@@ -704,7 +711,8 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     const view = await viewOf(normal, game, game.id);
     expect(view.threat.known).toBe(true);
     if (view.threat.known) {
-      expect(view.threat.level).toBeLessThan(70);
+      // V4E-T3: os dois tiles novos mantêm pressão também no inverno.
+      expect(view.threat.level).toBe(89);
       expect(view.threat.raidRisk).toContain(
         'Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
       );
@@ -728,8 +736,8 @@ describe('uma partida gravada antes das incursões (estado na versão 10)', () =
     const view = await viewOf(normal, game, game.id);
     expect(view.population).toMatchObject({ injured: 0, injuredNote: null });
     const row = await storedState(normal, game.id);
-    expect(row.schema_version).toBe(33);
-    expect(row.state.schemaVersion).toBe(33);
+    expect(row.schema_version).toBe(34);
+    expect(row.state.schemaVersion).toBe(34);
     expect(row.state.settlement.injured).toEqual([]);
     expect(row.state.horde.scheduledRaids).toEqual([
       {

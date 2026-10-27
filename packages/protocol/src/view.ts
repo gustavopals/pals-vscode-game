@@ -807,6 +807,9 @@ const ArmySchema = z.strictObject({
   level: z.number(),
   text: z.string(),
   total: z.number(),
+  omens: z.array(
+    z.strictObject({ text: z.string(), wave: z.union([z.literal(1), z.literal(2), z.literal(3)]) }),
+  ),
   cap: z.number(),
   foodText: z.string(),
   units: z.array(
@@ -1194,6 +1197,7 @@ const ThreatDefenseSchema = z.strictObject({
 /** Uma incursão que os vigias já avistaram. */
 const ThreatIncomingSchema = z.strictObject({
   enemy: z.enum(ENEMY_IDS),
+  size: z.enum(['light', 'medium', 'strong']).nullable(),
   /** "Lobos". */
   enemyLabel: z.string(),
   /** Segundos reais até a incursão chegar. */

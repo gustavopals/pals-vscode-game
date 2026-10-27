@@ -17,6 +17,7 @@ import {
 import type { BattleCommanderInput, BattlePosts } from './battle';
 import { postEntries } from './formations';
 import type { Formation } from './types';
+import type { HordeWeights } from './hordeMind';
 
 /**
  * O exército de uma incursão e o de quem a enfrenta (V4E-T2.1 e a parte pura da T2.3; GDD §8.2;
@@ -52,8 +53,9 @@ export function raidSizeFor(threat: number, season: SeasonId): WarRaidSizeId {
 function candidatesFor(
   season: SeasonId,
   line: LineId,
+  weights?: HordeWeights,
 ): Array<{ unit: HordeUnitId; weight: number }> {
-  const mix = hordeBaseMix[season];
+  const mix = weights?.weights ?? hordeBaseMix[season];
   const candidates: Array<{ unit: HordeUnitId; weight: number }> = [];
   for (const unit of Object.keys(hordeUnits) as HordeUnitId[]) {
     const weight = mix[unit] ?? 0;
@@ -100,10 +102,11 @@ export function buildRaidComposition(
   size: WarRaidSizeId,
   season: SeasonId,
   roll: Roll,
+  weights?: HordeWeights,
 ): RaidPost[] {
   const posts: RaidPost[] = [];
   for (const { wing, line, share } of effectiveShares(season)) {
-    const candidates = candidatesFor(season, line);
+    const candidates = candidatesFor(season, line, weights);
     const total = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
     let pick = roll(total);
     let chosen = candidates[candidates.length - 1]!.unit;

@@ -562,7 +562,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -728,7 +728,10 @@
        "announcedAtMs": null,
        "composition": null
       }
-     ]
+     ],
+     "lastFormationSeen": null,
+     "wavePlan": null,
+     "omens": []
     },
     "guild": {
      "heroes": [],
@@ -807,9 +810,9 @@
   },
   {
    "day": 2,
-   "eventsSoFar": 84,
+   "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -976,13 +979,20 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
       }
      },
      "threat": 0,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": null,
+     "omens": []
     },
     "guild": {
      "heroes": [],
@@ -1167,15 +1177,16 @@
      "cardsDrawn:woundedStranger": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 292706,
-     "coldSpellsThisSeason": 0
+     "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25
     }
    }
   },
   {
    "day": 3,
-   "eventsSoFar": 130,
+   "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1340,13 +1351,20 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
       }
      },
-     "threat": 0,
+     "threat": 13,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": null,
+     "omens": []
     },
     "guild": {
      "heroes": [
@@ -1617,19 +1635,21 @@
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 292706,
      "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "wasted_wood": 720155,
      "cardsDrawn:itinerantMerchant": 1,
-     "cardsDrawn:masonsMeal": 1
+     "cardsDrawn:masonsMeal": 1,
+     "threatCrossed:40": 1
     }
    }
   },
   {
    "day": 4,
-   "eventsSoFar": 182,
+   "eventsSoFar": 186,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1651,6 +1671,12 @@
       2683357386,
       2089125457,
       4056628392
+     ],
+     "horde": [
+      1173057308,
+      795122869,
+      3157535476,
+      2851889344
      ],
      "morale": [
       1963695365,
@@ -1801,13 +1827,123 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
+      },
+      "hordeFortress": {
+       "type": "hordeFortress",
+       "threatActive": true
       }
      },
-     "threat": 24,
+     "threat": 61,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": {
+      "year": 1,
+      "revision": 1,
+      "generatedAtMs": 345600000,
+      "waves": [
+       {
+        "number": 1,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 12
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "raider",
+          "count": 14
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 1
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "raider",
+          "count": 11
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "banditArcher",
+          "count": 2
+         }
+        ]
+       },
+       {
+        "number": 2,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 15
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "wolf",
+          "count": 27
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "wolf",
+          "count": 18
+         }
+        ]
+       },
+       {
+        "number": 3,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "skeleton",
+          "count": 29
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "warlord",
+          "count": 1
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 17
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "blackKnight",
+          "count": 28
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "shaman",
+          "count": 6
+         }
+        ]
+       }
+      ]
+     },
+     "omens": []
     },
     "guild": {
      "heroes": [
@@ -2079,23 +2215,26 @@
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 292706,
      "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "wasted_wood": 1828013,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:masonsMeal": 1,
+     "threatCrossed:40": 2,
      "wasted_stone": 670226,
      "constructionsStarted:palisade": 1,
      "cardsDrawn:collapsedWell": 1,
-     "seasonsSurvived:summer": 1
+     "seasonsSurvived:summer": 1,
+     "fortressAppearedAtDay": 49
     }
    }
   },
   {
    "day": 5,
-   "eventsSoFar": 227,
+   "eventsSoFar": 238,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2118,21 +2257,21 @@
       2943765869,
       3752006513
      ],
+     "horde": [
+      3702148543,
+      1540546035,
+      601375185,
+      639111429
+     ],
      "morale": [
       1963695365,
       762819907,
       1839371436,
       3869336588
-     ],
-     "horde": [
-      2691704474,
-      705716095,
-      1590068097,
-      793845824
      ]
     },
     "ids": {
-     "battle": 4,
+     "battle": 5,
      "hero": 1,
      "item": 1
     },
@@ -2268,13 +2407,156 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
+      },
+      "hordeFortress": {
+       "type": "hordeFortress",
+       "threatActive": true
       }
      },
-     "threat": 49,
+     "threat": 65,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": {
+      "year": 1,
+      "revision": 1,
+      "generatedAtMs": 345600000,
+      "waves": [
+       {
+        "number": 1,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 12
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "raider",
+          "count": 14
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 1
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "raider",
+          "count": 11
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "banditArcher",
+          "count": 2
+         }
+        ]
+       },
+       {
+        "number": 2,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 15
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "wolf",
+          "count": 27
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "wolf",
+          "count": 18
+         }
+        ]
+       },
+       {
+        "number": 3,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "skeleton",
+          "count": 29
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "warlord",
+          "count": 1
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 17
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "blackKnight",
+          "count": 28
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "shaman",
+          "count": 6
+         }
+        ]
+       }
+      ]
+     },
+     "omens": [
+      {
+       "atMs": 352800000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 2,
+       "text": "Corvos voam do norte em bandos: a Horda trará muitas feras.",
+       "reveals": []
+      },
+      {
+       "atMs": 388800000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 3,
+       "text": "Os cães uivam para o cemitério: a Horda trará os mortos.",
+       "reveals": []
+      },
+      {
+       "atMs": 417600000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 3,
+       "text": "Os cães uivam para o cemitério: a Horda trará os mortos.",
+       "reveals": []
+      },
+      {
+       "atMs": 424800000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 2,
+       "text": "Corvos voam do norte em bandos: a Horda trará muitas feras.",
+       "reveals": []
+      }
+     ]
     },
     "guild": {
      "heroes": [
@@ -2355,61 +2637,6 @@
      "activeFormationId": null,
      "reports": [
       {
-       "id": "battle-2",
-       "foughtAtMs": 172800000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "raider",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 7,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 3,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 1,
-         "lost": 0
-        }
-       ],
-       "wall": [],
-       "commanders": [],
-       "log": []
-      },
-      {
        "id": "battle-3",
        "foughtAtMs": 259200000,
        "formationId": null,
@@ -2466,6 +2693,77 @@
       },
       {
        "id": "battle-4",
+       "foughtAtMs": 388800000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "blackKnight",
+         "start": 8,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "blackKnight",
+         "start": 9,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "start": 9,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "start": 16,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 3,
+         "lost": 0
+        }
+       ],
+       "wall": [
+        {
+         "wing": "left",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "center",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "right",
+         "start": 100,
+         "end": 100
+        }
+       ],
+       "commanders": [],
+       "log": []
+      },
+      {
+       "id": "battle-5",
        "foughtAtMs": 432000000,
        "formationId": null,
        "mode": "defense",
@@ -2578,27 +2876,30 @@
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 1780679,
      "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "wasted_wood": 1837187,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:masonsMeal": 1,
+     "threatCrossed:40": 2,
      "wasted_stone": 1211371,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
-     "threatCrossed:40": 1,
-     "cardsDrawn:commonGranaryPlanks": 1,
-     "threatCrossed:70": 1,
-     "raids_repelled": 1
+     "fortressAppearedAtDay": 49,
+     "threatCrossed:70": 2,
+     "omens": 4,
+     "raids_repelled": 2,
+     "cardsDrawn:commonGranaryPlanks": 1
     }
    }
   },
   {
    "day": 6,
-   "eventsSoFar": 273,
+   "eventsSoFar": 293,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2621,21 +2922,21 @@
       3708594227,
       2685841525
      ],
+     "horde": [
+      2529622763,
+      1319267474,
+      3222072498,
+      1329271376
+     ],
      "morale": [
       1963695365,
       762819907,
       1839371436,
       3869336588
-     ],
-     "horde": [
-      3279131497,
-      3602635101,
-      820391912,
-      3353586740
      ]
     },
     "ids": {
-     "battle": 5,
+     "battle": 7,
      "hero": 1,
      "item": 1
     },
@@ -2788,13 +3089,172 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
+      },
+      "hordeFortress": {
+       "type": "hordeFortress",
+       "threatActive": true
       }
      },
-     "threat": 74,
+     "threat": 65,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": {
+      "year": 1,
+      "revision": 1,
+      "generatedAtMs": 345600000,
+      "waves": [
+       {
+        "number": 1,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 12
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "raider",
+          "count": 14
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 1
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "raider",
+          "count": 11
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "banditArcher",
+          "count": 2
+         }
+        ]
+       },
+       {
+        "number": 2,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "count": 15
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "wolf",
+          "count": 27
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "wolf",
+          "count": 18
+         }
+        ]
+       },
+       {
+        "number": 3,
+        "composition": [
+         {
+          "wing": "left",
+          "line": "front",
+          "unit": "skeleton",
+          "count": 29
+         },
+         {
+          "wing": "center",
+          "line": "front",
+          "unit": "warlord",
+          "count": 1
+         },
+         {
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "count": 17
+         },
+         {
+          "wing": "right",
+          "line": "front",
+          "unit": "blackKnight",
+          "count": 28
+         },
+         {
+          "wing": "right",
+          "line": "back",
+          "unit": "shaman",
+          "count": 6
+         }
+        ]
+       }
+      ]
+     },
+     "omens": [
+      {
+       "atMs": 446400000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 1,
+       "text": "Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+       "reveals": []
+      },
+      {
+       "atMs": 460800000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 1,
+       "text": "Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+       "reveals": []
+      },
+      {
+       "atMs": 468000000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 2,
+       "text": "Corvos voam do norte em bandos: a Horda trará muitas feras.",
+       "reveals": []
+      },
+      {
+       "atMs": 482400000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 3,
+       "text": "Os cães uivam para o cemitério: a Horda trará os mortos.",
+       "reveals": []
+      },
+      {
+       "atMs": 511200000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 2,
+       "text": "Corvos voam do norte em bandos: a Horda trará muitas feras.",
+       "reveals": []
+      },
+      {
+       "atMs": 518400000,
+       "revision": 1,
+       "clarity": "vague",
+       "wave": 2,
+       "text": "Corvos voam do norte em bandos: a Horda trará muitas feras.",
+       "reveals": []
+      }
+     ]
     },
     "guild": {
      "heroes": [
@@ -2875,62 +3335,7 @@
      "activeFormationId": null,
      "reports": [
       {
-       "id": "battle-3",
-       "foughtAtMs": 259200000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "raider",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 7,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 3,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 1,
-         "lost": 0
-        }
-       ],
-       "wall": [],
-       "commanders": [],
-       "log": []
-      },
-      {
-       "id": "battle-4",
+       "id": "battle-5",
        "foughtAtMs": 432000000,
        "formationId": null,
        "mode": "defense",
@@ -3001,8 +3406,8 @@
        "log": []
       },
       {
-       "id": "battle-5",
-       "foughtAtMs": 496800000,
+       "id": "battle-6",
+       "foughtAtMs": 475200000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -3014,16 +3419,16 @@
          "owner": "horde",
          "wing": "left",
          "line": "front",
-         "unit": "ogre",
-         "start": 2,
+         "unit": "raider",
+         "start": 16,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "center",
          "line": "front",
-         "unit": "raider",
-         "start": 12,
+         "unit": "ogre",
+         "start": 4,
          "lost": 0
         },
         {
@@ -3031,15 +3436,86 @@
          "wing": "center",
          "line": "back",
          "unit": "banditArcher",
-         "start": 6,
+         "start": 9,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "right",
          "line": "front",
-         "unit": "raider",
-         "start": 10,
+         "unit": "ogre",
+         "start": 4,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 3,
+         "lost": 0
+        }
+       ],
+       "wall": [
+        {
+         "wing": "left",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "center",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "right",
+         "start": 100,
+         "end": 100
+        }
+       ],
+       "commanders": [],
+       "log": []
+      },
+      {
+       "id": "battle-7",
+       "foughtAtMs": 518400000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "blackKnight",
+         "start": 8,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "ogre",
+         "start": 4,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 9,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "start": 8,
          "lost": 0
         },
         {
@@ -3047,7 +3523,7 @@
          "wing": "right",
          "line": "back",
          "unit": "shaman",
-         "start": 2,
+         "start": 3,
          "lost": 0
         }
        ],
@@ -3114,19 +3590,22 @@
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 4844240,
      "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 2,
      "wasted_wood": 1946430,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:masonsMeal": 1,
+     "threatCrossed:40": 2,
      "wasted_stone": 1878111,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
-     "threatCrossed:40": 1,
+     "fortressAppearedAtDay": 49,
+     "threatCrossed:70": 4,
+     "omens": 10,
+     "raids_repelled": 4,
      "cardsDrawn:commonGranaryPlanks": 1,
-     "threatCrossed:70": 3,
-     "raids_repelled": 2,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:harvestFeast": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
@@ -3136,9 +3615,9 @@
   },
   {
    "day": 7,
-   "eventsSoFar": 326,
+   "eventsSoFar": 357,
    "state": {
-    "schemaVersion": 33,
+    "schemaVersion": 34,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3161,21 +3640,21 @@
       2636224978,
       936507135
      ],
+     "horde": [
+      1019401662,
+      157847704,
+      2604251578,
+      797501813
+     ],
      "morale": [
       3881588205,
       3039749652,
       1225820957,
       2933432022
-     ],
-     "horde": [
-      1703112334,
-      1202733287,
-      2297772422,
-      1519622472
      ]
     },
     "ids": {
-     "battle": 6,
+     "battle": 9,
      "hero": 1,
      "item": 1
     },
@@ -3314,13 +3793,24 @@
       "wolfDen": {
        "type": "wolfDen",
        "threatActive": true
+      },
+      "raiderCamp": {
+       "type": "raiderCamp",
+       "threatActive": true
+      },
+      "hordeFortress": {
+       "type": "hordeFortress",
+       "threatActive": false
       }
      },
-     "threat": 63,
+     "threat": 67,
      "discovered": []
     },
     "horde": {
-     "scheduledRaids": []
+     "scheduledRaids": [],
+     "lastFormationSeen": null,
+     "wavePlan": null,
+     "omens": []
     },
     "guild": {
      "heroes": [
@@ -3401,8 +3891,8 @@
      "activeFormationId": null,
      "reports": [
       {
-       "id": "battle-4",
-       "foughtAtMs": 432000000,
+       "id": "battle-7",
+       "foughtAtMs": 518400000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -3414,16 +3904,16 @@
          "owner": "horde",
          "wing": "left",
          "line": "front",
-         "unit": "raider",
-         "start": 16,
+         "unit": "blackKnight",
+         "start": 8,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "center",
          "line": "front",
-         "unit": "raider",
-         "start": 19,
+         "unit": "ogre",
+         "start": 4,
          "lost": 0
         },
         {
@@ -3438,15 +3928,15 @@
          "owner": "horde",
          "wing": "right",
          "line": "front",
-         "unit": "raider",
-         "start": 16,
+         "unit": "blackKnight",
+         "start": 8,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "right",
          "line": "back",
-         "unit": "banditArcher",
+         "unit": "shaman",
          "start": 3,
          "lost": 0
         }
@@ -3472,8 +3962,8 @@
        "log": []
       },
       {
-       "id": "battle-5",
-       "foughtAtMs": 496800000,
+       "id": "battle-8",
+       "foughtAtMs": 547200000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -3485,8 +3975,8 @@
          "owner": "horde",
          "wing": "left",
          "line": "front",
-         "unit": "ogre",
-         "start": 2,
+         "unit": "raider",
+         "start": 10,
          "lost": 0
         },
         {
@@ -3543,8 +4033,8 @@
        "log": []
       },
       {
-       "id": "battle-6",
-       "foughtAtMs": 547200000,
+       "id": "battle-9",
+       "foughtAtMs": 583200000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -3556,40 +4046,40 @@
          "owner": "horde",
          "wing": "left",
          "line": "front",
-         "unit": "blackKnight",
-         "start": 5,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
          "unit": "raider",
-         "start": 12,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
          "start": 6,
          "lost": 0
         },
         {
          "owner": "horde",
-         "wing": "right",
+         "wing": "center",
          "line": "front",
          "unit": "ogre",
-         "start": 2,
+         "start": 1,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 3,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "start": 3,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "right",
          "line": "back",
-         "unit": "banditArcher",
-         "start": 2,
+         "unit": "shaman",
+         "start": 1,
          "lost": 0
         }
        ],
@@ -3656,19 +4146,22 @@
      "cardsDrawn:thawBridgeCrossing": 1,
      "wasted_food": 5609285,
      "coldSpellsThisSeason": 0,
+     "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 2,
      "constructionsStarted:granary": 2,
      "wasted_wood": 1946430,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:masonsMeal": 1,
+     "threatCrossed:40": 2,
      "wasted_stone": 2249874,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:collapsedWell": 1,
      "seasonsSurvived:summer": 1,
-     "threatCrossed:40": 1,
+     "fortressAppearedAtDay": 49,
+     "threatCrossed:70": 6,
+     "omens": 16,
+     "raids_repelled": 6,
      "cardsDrawn:commonGranaryPlanks": 2,
-     "threatCrossed:70": 3,
-     "raids_repelled": 3,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:harvestFeast": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
@@ -4141,6 +4634,8 @@
    "text": "No 16º dia da Primavera, o exército de Pedra Alta travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
     "battleId": "battle-1",
+    "playerLost": 0,
+    "hordeLost": 0,
     "mode": "defense",
     "outcome": "defeat",
     "ending": "annihilation",
@@ -4414,10 +4909,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 169200000,
-   "text": "No 24º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Da torre ainda não se distingue quantos são.",
+   "text": "No 24º dia da Primavera, os vigias de Pedra Alta deram o alarme: saqueadores a caminho. Ainda não se distingue quantos são.",
    "data": {
     "raidId": "raidersYear1Weak",
-    "enemy": "wolves",
+    "enemy": "raiders",
     "warning": "warned"
    }
   },
@@ -4446,11 +4941,19 @@
    }
   },
   {
+   "type": "campAppeared",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, viajantes avistaram um Acampamento de Saqueadores nas colinas de Pedra Alta.",
+   "data": {}
+  },
+  {
    "type": "battleFought",
    "atMs": 172800000,
    "text": "No 1º dia do Verão, o exército de Pedra Alta travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
     "battleId": "battle-2",
+    "playerLost": 0,
+    "hordeLost": 0,
     "mode": "defense",
     "outcome": "defeat",
     "ending": "annihilation",
@@ -4460,10 +4963,10 @@
   {
    "type": "raidSuffered",
    "atMs": 172800000,
-   "text": "No 1º dia do Verão, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 50 de comida e 93,9 de madeira. Uma paliçada os teria detido.",
+   "text": "No 1º dia do Verão, saqueadores que os vigias avistaram chegaram a Pedra Alta. O ataque atravessou a defesa e custou 50 de comida e 93,9 de madeira. Uma formação preparada e uma paliçada teriam ajudado.",
    "data": {
     "raidId": "raidersYear1Weak",
-    "enemy": "wolves",
+    "enemy": "raiders",
     "size": "light",
     "warning": "warned",
     "palisadeLevel": 0,
@@ -4829,6 +5332,16 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 244800000,
+   "text": "No 11º dia do Verão, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 40.",
+   "data": {
+    "threat": 40,
+    "previousThreat": 36,
+    "mark": 40
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 252000000,
    "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
@@ -4847,10 +5360,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 255600000,
-   "text": "No 12º dia do Verão, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Da torre ainda não se distingue quantos são.",
+   "text": "No 12º dia do Verão, os vigias de Pedra Alta do Norte deram o alarme: saqueadores a caminho. Ainda não se distingue quantos são.",
    "data": {
     "raidId": "raidersYear1Medium",
-    "enemy": "wolves",
+    "enemy": "raiders",
     "warning": "warned"
    }
   },
@@ -4876,6 +5389,8 @@
    "text": "No 13º dia do Verão, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
     "battleId": "battle-3",
+    "playerLost": 0,
+    "hordeLost": 0,
     "mode": "defense",
     "outcome": "defeat",
     "ending": "annihilation",
@@ -4885,15 +5400,15 @@
   {
    "type": "raidSuffered",
    "atMs": 259200000,
-   "text": "No 13º dia do Verão, os lobos que os vigias tinham avistado chegaram a Pedra Alta do Norte. Nada os deteve: o ataque custou 58 de comida e 100 de madeira. Uma paliçada os teria detido.",
+   "text": "No 13º dia do Verão, saqueadores que os vigias avistaram chegaram a Pedra Alta do Norte. O ataque atravessou a defesa e custou 58 de comida e 100 de madeira. Uma formação preparada e uma paliçada teriam ajudado.",
    "data": {
     "raidId": "raidersYear1Medium",
-    "enemy": "wolves",
+    "enemy": "raiders",
     "size": "light",
     "warning": "warned",
     "palisadeLevel": 0,
-    "threat": 0,
-    "previousThreat": 24,
+    "threat": 13,
+    "previousThreat": 48,
     "battleId": "battle-3",
     "raided_food": 58.004,
     "raided_wood": 100,
@@ -5232,6 +5747,16 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 309600000,
+   "text": "No 20º dia do Verão, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 41.",
+   "data": {
+    "threat": 41,
+    "previousThreat": 37,
+    "mark": 40
+   }
+  },
+  {
    "type": "storageFilled",
    "atMs": 312700946,
    "text": "No 20º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
@@ -5378,6 +5903,12 @@
    }
   },
   {
+   "type": "fortressAppeared",
+   "atMs": 345600000,
+   "text": "No 1º dia do Outono, estandartes surgiram ao norte de Pedra Alta do Norte: a Fortaleza da Horda se prepara para o inverno.",
+   "data": {}
+  },
+  {
    "type": "constructionStarted",
    "atMs": 345600000,
    "text": "No 1º dia do Outono, os pedreiros começaram a erguer a Torre de Vigia ao 2º nível.",
@@ -5453,6 +5984,25 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 352800000,
+   "text": "No 2º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.",
+   "data": {
+    "threat": 70,
+    "previousThreat": 61,
+    "mark": 70
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 352800000,
+   "text": "No 2º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 360000000,
    "text": "Amanhece o 3º dia do Outono em Pedra Alta do Norte.",
@@ -5488,16 +6038,6 @@
    }
   },
   {
-   "type": "threatRose",
-   "atMs": 374400000,
-   "text": "No 5º dia do Outono, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 44.",
-   "data": {
-    "threat": 44,
-    "previousThreat": 39,
-    "mark": 40
-   }
-  },
-  {
    "type": "storageWasted",
    "atMs": 381600000,
    "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 77 de pedra.",
@@ -5511,6 +6051,17 @@
    "text": "Amanhece o 6º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 54
+   }
+  },
+  {
+   "type": "raidAnnounced",
+   "atMs": 381600000,
+   "text": "No 6º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "data": {
+    "raidId": "threat-4",
+    "enemy": "horde",
+    "warning": "sized",
+    "size": "strong"
    }
   },
   {
@@ -5539,6 +6090,44 @@
    "text": "Amanhece o 7º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 55
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 388800000,
+   "text": "No 7º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
+   "data": {
+    "wave": 3,
+    "clarity": "vague"
+   }
+  },
+  {
+   "type": "battleFought",
+   "atMs": 388800000,
+   "text": "No 7º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
+   "data": {
+    "battleId": "battle-4",
+    "playerLost": 0,
+    "hordeLost": 0,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0
+   }
+  },
+  {
+   "type": "raidRepelled",
+   "atMs": 388800000,
+   "text": "No 7º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "data": {
+    "raidId": "threat-4",
+    "enemy": "horde",
+    "size": "strong",
+    "warning": "sized",
+    "palisadeLevel": 2,
+    "threat": 65,
+    "previousThreat": 100,
+    "battleId": "battle-4"
    }
   },
   {
@@ -5614,6 +6203,16 @@
    "text": "Amanhece o 8º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 56
+   }
+  },
+  {
+   "type": "threatRose",
+   "atMs": 396000000,
+   "text": "No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "data": {
+    "threat": 74,
+    "previousThreat": 65,
+    "mark": 70
    }
   },
   {
@@ -5702,13 +6301,12 @@
    }
   },
   {
-   "type": "threatRose",
+   "type": "omenSeen",
    "atMs": 417600000,
-   "text": "No 11º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 11º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
    "data": {
-    "threat": 74,
-    "previousThreat": 69,
-    "mark": 70
+    "wave": 3,
+    "clarity": "vague"
    }
   },
   {
@@ -5729,12 +6327,21 @@
    }
   },
   {
+   "type": "omenSeen",
+   "atMs": 424800000,
+   "text": "No 12º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "raidAnnounced",
    "atMs": 424800000,
-   "text": "No 12º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
+   "text": "No 12º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
    "data": {
     "raidId": "raidersYear1Rehearsal",
-    "enemy": "wolves",
+    "enemy": "horde",
     "warning": "sized",
     "size": "strong"
    }
@@ -5784,7 +6391,9 @@
    "atMs": 432000000,
    "text": "No 13º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
-    "battleId": "battle-4",
+    "battleId": "battle-5",
+    "playerLost": 0,
+    "hordeLost": 0,
     "mode": "defense",
     "outcome": "defeat",
     "ending": "annihilation",
@@ -5794,16 +6403,16 @@
   {
    "type": "raidRepelled",
    "atMs": 432000000,
-   "text": "No 13º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
+   "text": "No 13º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
    "data": {
     "raidId": "raidersYear1Rehearsal",
-    "enemy": "wolves",
+    "enemy": "horde",
     "size": "strong",
     "warning": "sized",
     "palisadeLevel": 2,
-    "threat": 49,
-    "previousThreat": 84,
-    "battleId": "battle-4"
+    "threat": 65,
+    "previousThreat": 100,
+    "battleId": "battle-5"
    }
   },
   {
@@ -5856,6 +6465,16 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 439200000,
+   "text": "No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "data": {
+    "threat": 74,
+    "previousThreat": 65,
+    "mark": 70
+   }
+  },
+  {
    "type": "storageFilled",
    "atMs": 443943554,
    "text": "No 14º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
@@ -5880,6 +6499,15 @@
    "text": "Amanhece o 15º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 63
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 446400000,
+   "text": "No 15º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+   "data": {
+    "wave": 1,
+    "clarity": "vague"
    }
   },
   {
@@ -5951,6 +6579,15 @@
    }
   },
   {
+   "type": "omenSeen",
+   "atMs": 460800000,
+   "text": "No 17º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+   "data": {
+    "wave": 1,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "storageFilled",
    "atMs": 466336502,
    "text": "No 17º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
@@ -5980,13 +6617,23 @@
    }
   },
   {
-   "type": "threatRose",
+   "type": "omenSeen",
    "atMs": 468000000,
-   "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "threat": 74,
-    "previousThreat": 69,
-    "mark": 70
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
+   "type": "raidAnnounced",
+   "atMs": 468000000,
+   "text": "No 18º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "data": {
+    "raidId": "threat-6",
+    "enemy": "horde",
+    "warning": "sized",
+    "size": "strong"
    }
   },
   {
@@ -6005,6 +6652,35 @@
    "text": "Amanhece o 19º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 67
+   }
+  },
+  {
+   "type": "battleFought",
+   "atMs": 475200000,
+   "text": "No 19º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
+   "data": {
+    "battleId": "battle-6",
+    "playerLost": 0,
+    "hordeLost": 0,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0
+   }
+  },
+  {
+   "type": "raidRepelled",
+   "atMs": 475200000,
+   "text": "No 19º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "data": {
+    "raidId": "threat-6",
+    "enemy": "horde",
+    "size": "strong",
+    "warning": "sized",
+    "palisadeLevel": 2,
+    "threat": 65,
+    "previousThreat": 100,
+    "battleId": "battle-6"
    }
   },
   {
@@ -6075,6 +6751,25 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 482400000,
+   "text": "No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "data": {
+    "threat": 74,
+    "previousThreat": 65,
+    "mark": 70
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 482400000,
+   "text": "No 20º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
+   "data": {
+    "wave": 3,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "storageFilled",
    "atMs": 487706449,
    "text": "No 20º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
@@ -6116,17 +6811,6 @@
    }
   },
   {
-   "type": "raidAnnounced",
-   "atMs": 489600000,
-   "text": "No 21º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha grande.",
-   "data": {
-    "raidId": "threat-5",
-    "enemy": "wolves",
-    "warning": "sized",
-    "size": "medium"
-   }
-  },
-  {
    "type": "storageWasted",
    "atMs": 496800000,
    "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 339 de comida e 76 de pedra.",
@@ -6141,33 +6825,6 @@
    "text": "Amanhece o 22º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 70
-   }
-  },
-  {
-   "type": "battleFought",
-   "atMs": 496800000,
-   "text": "No 22º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-5",
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
-   "type": "raidRepelled",
-   "atMs": 496800000,
-   "text": "No 22º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
-   "data": {
-    "raidId": "threat-5",
-    "enemy": "wolves",
-    "size": "medium",
-    "warning": "sized",
-    "palisadeLevel": 2,
-    "threat": 59,
-    "previousThreat": 94,
-    "battleId": "battle-5"
    }
   },
   {
@@ -6202,6 +6859,26 @@
    "text": "Amanhece o 24º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 72
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 511200000,
+   "text": "No 24º dia do Outono, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
+   "type": "raidAnnounced",
+   "atMs": 511200000,
+   "text": "No 24º dia do Outono, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma hoste de guerra.",
+   "data": {
+    "raidId": "threat-7",
+    "enemy": "horde",
+    "warning": "sized",
+    "size": "strong"
    }
   },
   {
@@ -6242,13 +6919,41 @@
    }
   },
   {
-   "type": "threatRose",
+   "type": "omenSeen",
    "atMs": 518400000,
-   "text": "No 1º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
+   "text": "No 1º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
    "data": {
-    "threat": 74,
-    "previousThreat": 69,
-    "mark": 70
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
+   "type": "battleFought",
+   "atMs": 518400000,
+   "text": "No 1º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
+   "data": {
+    "battleId": "battle-7",
+    "playerLost": 0,
+    "hordeLost": 0,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0
+   }
+  },
+  {
+   "type": "raidRepelled",
+   "atMs": 518400000,
+   "text": "No 1º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "data": {
+    "raidId": "threat-7",
+    "enemy": "horde",
+    "size": "strong",
+    "warning": "sized",
+    "palisadeLevel": 2,
+    "threat": 65,
+    "previousThreat": 100,
+    "battleId": "battle-7"
    }
   },
   {
@@ -6301,6 +7006,25 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 525600000,
+   "text": "No 2º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.",
+   "data": {
+    "threat": 71,
+    "previousThreat": 65,
+    "mark": 70
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 525600000,
+   "text": "No 2º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+   "data": {
+    "wave": 1,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 532800000,
    "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
@@ -6314,6 +7038,15 @@
    "text": "Amanhece o 3º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 75
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 532800000,
+   "text": "No 3º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
    }
   },
   {
@@ -6335,10 +7068,10 @@
   {
    "type": "raidAnnounced",
    "atMs": 540000000,
-   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma matilha grande.",
+   "text": "No 4º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma tropa numerosa, de armas variadas.",
    "data": {
-    "raidId": "threat-6",
-    "enemy": "wolves",
+    "raidId": "threat-8",
+    "enemy": "horde",
     "warning": "sized",
     "size": "medium"
    }
@@ -6410,6 +7143,15 @@
    }
   },
   {
+   "type": "omenSeen",
+   "atMs": 547200000,
+   "text": "No 5º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Os cães uivam para o cemitério: a Horda trará os mortos.",
+   "data": {
+    "wave": 3,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "cardExpired",
    "atMs": 547200000,
    "text": "No 5º dia do Inverno, sem palavra do senhor, o conselho de Pedra Alta do Norte mandou guardar a colheita inteira. Não houve festa; trabalhou-se em silêncio.",
@@ -6425,7 +7167,9 @@
    "atMs": 547200000,
    "text": "No 5º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
-    "battleId": "battle-6",
+    "battleId": "battle-8",
+    "playerLost": 0,
+    "hordeLost": 0,
     "mode": "defense",
     "outcome": "defeat",
     "ending": "annihilation",
@@ -6435,16 +7179,16 @@
   {
    "type": "raidRepelled",
    "atMs": 547200000,
-   "text": "No 5º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
+   "text": "No 5º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma tropa numerosa, de armas variadas, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
    "data": {
-    "raidId": "threat-6",
-    "enemy": "wolves",
+    "raidId": "threat-8",
+    "enemy": "horde",
     "size": "medium",
     "warning": "sized",
     "palisadeLevel": 2,
-    "threat": 47,
-    "previousThreat": 82,
-    "battleId": "battle-6"
+    "threat": 54,
+    "previousThreat": 89,
+    "battleId": "battle-8"
    }
   },
   {
@@ -6541,6 +7285,16 @@
    }
   },
   {
+   "type": "threatRose",
+   "atMs": 568800000,
+   "text": "No 8º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.",
+   "data": {
+    "threat": 72,
+    "previousThreat": 66,
+    "mark": 70
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 576000000,
    "text": "No 8º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 70 de pedra.",
@@ -6564,6 +7318,17 @@
     "cardId": "palisadePromisePlea",
     "instanceId": "palisadePromisePlea-15",
     "source": "draw"
+   }
+  },
+  {
+   "type": "raidAnnounced",
+   "atMs": 576000000,
+   "text": "No 9º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: tropas da Horda a caminho. Contam uma pequena tropa de saqueadores.",
+   "data": {
+    "raidId": "threat-9",
+    "enemy": "horde",
+    "warning": "sized",
+    "size": "light"
    }
   },
   {
@@ -6609,6 +7374,44 @@
     "band": "restless",
     "previousMorale": 60,
     "previousBand": "content"
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 583200000,
+   "text": "No 10º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
+   "type": "battleFought",
+   "atMs": 583200000,
+   "text": "No 10º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
+   "data": {
+    "battleId": "battle-9",
+    "playerLost": 0,
+    "hordeLost": 0,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0
+   }
+  },
+  {
+   "type": "raidRepelled",
+   "atMs": 583200000,
+   "text": "No 10º dia do Inverno, tropas da Horda chegaram a Pedra Alta do Norte: uma pequena tropa de saqueadores, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
+   "data": {
+    "raidId": "threat-9",
+    "enemy": "horde",
+    "size": "light",
+    "warning": "sized",
+    "palisadeLevel": 2,
+    "threat": 49,
+    "previousThreat": 84,
+    "battleId": "battle-9"
    }
   },
   {
@@ -6661,6 +7464,15 @@
    }
   },
   {
+   "type": "omenSeen",
+   "atMs": 590400000,
+   "text": "No 11º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Corvos voam do norte em bandos: a Horda trará muitas feras.",
+   "data": {
+    "wave": 2,
+    "clarity": "vague"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 597600000,
    "text": "No 11º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida e 77 de pedra.",
@@ -6675,6 +7487,15 @@
    "text": "Amanhece o 12º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 84
+   }
+  },
+  {
+   "type": "omenSeen",
+   "atMs": 597600000,
+   "text": "No 12º dia do Inverno, os vigias de Pedra Alta do Norte trouxeram um presságio: Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
+   "data": {
+    "wave": 1,
+    "clarity": "vague"
    }
   },
   {

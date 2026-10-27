@@ -53,12 +53,62 @@ import {
   LINE_IDS,
   WING_IDS,
 } from './ids';
-import { ARCHETYPES } from './enemies';
+import { ARCHETYPES, hordeUnits } from './enemies';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
 const positiveInt = z.number().int().positive();
 const nonNegInt = z.number().int().nonnegative();
 const label = z.string().trim().min(1);
+
+export const HordeWavesSchema = z
+  .array(
+    z.strictObject({
+      number: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+      baseCount: positiveInt,
+      mix: z.partialRecord(z.enum(HORDE_UNIT_IDS), positiveInt),
+      fixed: z.array(
+        z.strictObject({
+          wing: z.enum(WING_IDS),
+          line: z.enum(LINE_IDS),
+          unit: z.enum(HORDE_UNIT_IDS),
+          count: positiveInt,
+          extra: z.boolean(),
+        }),
+      ),
+    }),
+  )
+  .length(3)
+  .superRefine((waves, context) => {
+    for (const [index, wave] of waves.entries()) {
+      if (wave.number !== index + 1)
+        context.addIssue({
+          code: 'custom',
+          message: 'ondas fora de ordem',
+          path: [index, 'number'],
+        });
+      const keys = wave.fixed.map((post) => `${post.wing}/${post.line}`);
+      if (new Set(keys).size !== keys.length)
+        context.addIssue({
+          code: 'custom',
+          message: 'posto fixo repetido',
+          path: [index, 'fixed'],
+        });
+      for (const post of wave.fixed) {
+        if (hordeUnits[post.unit].line !== post.line)
+          context.addIssue({
+            code: 'custom',
+            message: 'inimigo na linha errada',
+            path: [index, 'fixed'],
+          });
+      }
+      if (Object.values(wave.mix).reduce((sum, weight) => sum + weight, 0) !== 100)
+        context.addIssue({
+          code: 'custom',
+          message: 'pesos-base não somam 100',
+          path: [index, 'mix'],
+        });
+    }
+  });
 
 const resourceId = z.enum(RESOURCE_IDS);
 const buildingId = z.enum(BUILDING_IDS);
@@ -94,6 +144,8 @@ const difficulty = z.strictObject({
   storageCapacity: ratio,
   famineDesertion: z.boolean(),
   heroCapture: z.enum(HERO_CAPTURE_RULE_IDS),
+  cunning: ratio,
+  siegeFactor: ratio,
 });
 
 const storageBuilding = z.strictObject({
@@ -723,12 +775,6 @@ const balanceFields = z.strictObject({
   }),
   // A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18).
   horde: z.strictObject({
-    cunning: z.strictObject(
-      Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, ratio])) as Record<
-        (typeof DIFFICULTY_IDS)[number],
-        typeof ratio
-      >,
-    ),
     counterWeights: z.strictObject(
       Object.fromEntries(UNIT_IDS.map((id) => [id, nonNegInt])) as Record<
         (typeof UNIT_IDS)[number],

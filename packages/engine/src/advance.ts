@@ -20,6 +20,7 @@ import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { recallStranded, settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
+import { resetHordeYear } from './hordePlan';
 import { turnMarket } from './marketTurn';
 import { settleMasterArrivals } from './masterTurn';
 import { turnMorale } from './moraleTurn';
@@ -55,6 +56,7 @@ function processCalendar(
     emit(events, draft, atMs, 'yearStarted', { year: date.year });
     // O Conselho esquece as cartas vistas no ano que acabou; o resto da história continua.
     turnCouncilYear(draft, atMs);
+    resetHordeYear(draft);
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);

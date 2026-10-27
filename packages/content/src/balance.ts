@@ -75,6 +75,10 @@ export type DifficultyDef = {
    * decisão 8): ferimento grave no lugar dela, a captura, ou a morte.
    */
   readonly heroCapture: HeroCaptureRuleId;
+  /** Astúcia da Horda (ADR 0020, decisão 15), em fração. Não sai no catálogo. */
+  readonly cunning: Ratio;
+  /** Tamanho das ondas preparadas para o Cerco (ADR 0020, decisão 19). */
+  readonly siegeFactor: Ratio;
 };
 
 /**
@@ -764,8 +768,6 @@ export type Balance = {
  * `peso(tipo) = peso_base(estação) + astúcia × contra(tipo, última formação)`, em frações.
  */
 export type HordeMindDef = {
-  /** A astúcia por dificuldade (fração). Mora aqui, e não em `difficulties[]`, para não mudar o catálogo. */
-  readonly cunning: Record<DifficultyId, Ratio>;
   /**
    * Quanto peso um inimigo ganha, na unidade dos pesos-base (soma 100), por cada formação do
    * jogador **inteira** de uma unidade que o arquétipo dele vence. Escalado pela parte da
@@ -987,6 +989,8 @@ export const balance: Balance = {
       storageCapacity: { num: 5, den: 4 },
       famineDesertion: false,
       heroCapture: 'injury',
+      cunning: { num: 3, den: 10 },
+      siegeFactor: { num: 7, den: 10 },
     },
     lord: {
       label: 'Senhor',
@@ -996,6 +1000,8 @@ export const balance: Balance = {
       storageCapacity: { num: 1, den: 1 },
       famineDesertion: true,
       heroCapture: 'capture',
+      cunning: { num: 1, den: 2 },
+      siegeFactor: { num: 1, den: 1 },
     },
     ironKing: {
       label: 'Rei de Ferro',
@@ -1005,6 +1011,8 @@ export const balance: Balance = {
       storageCapacity: { num: 4, den: 5 },
       famineDesertion: true,
       heroCapture: 'death',
+      cunning: { num: 4, den: 5 },
+      siegeFactor: { num: 13, den: 10 },
     },
   },
   // GDD §4.2 (ADR 0013, decisão 2). A descrição é a conta "ano de jogo ÷ ritmo", conferida pelo
@@ -1100,6 +1108,14 @@ export const balance: Balance = {
     ],
     damage: {
       wolves: {
+        light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
+        medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
+      },
+      raiders: {
+        light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
+        medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
+      },
+      horde: {
         light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
         medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
       },
@@ -1321,11 +1337,6 @@ export const balance: Balance = {
   },
   // Propostas do agente, D-21 a D-23, respondidas pelo autor: astúcia do ADR 0020 (3/10, 1/2, 4/5).
   horde: {
-    cunning: {
-      peasant: { num: 3, den: 10 },
-      lord: { num: 1, den: 2 },
-      ironKing: { num: 4, den: 5 },
-    },
     counterWeights: { spearman: 100, swordsman: 100, archer: 100, knight: 100, shieldbearer: 0 },
   },
   omens: {

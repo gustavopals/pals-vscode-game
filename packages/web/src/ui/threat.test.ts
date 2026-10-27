@@ -271,18 +271,20 @@ describe('a obra da Paliçada, pelo que a visão diz das construções (GDD §8.
 
 describe('a linha "Ameaça" da árvore (GDD §13.2)', () => {
   it('com a Torre: o número e os tiles ativos', () => {
-    expect(threatTreeLine(threatWatchedView, 0)).toBe('46 · Covil de Lobos');
+    expect(threatTreeLine(threatWatchedView, 0)).toBe(
+      '50 · Fortaleza da Horda, Acampamento de Saqueadores, Covil de Lobos',
+    );
   });
 
   it('sem tile ativo, só o número; com dois, os dois', () => {
-    const [den] = watched(threatWatchedView).tiles;
+    const den = watched(threatWatchedView).tiles.find((tile) => tile.id === 'wolfDen');
     if (den === undefined) {
       throw new Error('O golden deixou de trazer o Covil de Lobos.');
     }
-    expect(threatTreeLine(withThreat(threatWatchedView, { tiles: [] }), 0)).toBe('46');
+    expect(threatTreeLine(withThreat(threatWatchedView, { tiles: [] }), 0)).toBe('50');
     expect(
       threatTreeLine(withThreat(threatWatchedView, { tiles: [{ ...den, active: false }] }), 0),
-    ).toBe('46');
+    ).toBe('50');
     expect(
       threatTreeLine(
         withThreat(threatWatchedView, {
@@ -290,13 +292,13 @@ describe('a linha "Ameaça" da árvore (GDD §13.2)', () => {
         }),
         0,
       ),
-    ).toBe('46 · Covil de Lobos, Acampamento');
+    ).toBe('50 · Covil de Lobos, Acampamento');
   });
 
   it('com uma incursão à vista, o aviso toma o lugar dos tiles, com sinal e texto', () => {
-    expect(threatTreeLine(threatIncomingView, 0)).toBe('46 · ⚠ Lobos em 16 min');
+    expect(threatTreeLine(threatIncomingView, 0)).toBe('50 · ⚠ Lobos em 16 min');
     // O prazo desconta o tempo desde a leitura.
-    expect(threatTreeLine(threatIncomingView, 600)).toBe('46 · ⚠ Lobos em 6 min');
+    expect(threatTreeLine(threatIncomingView, 600)).toBe('50 · ⚠ Lobos em 6 min');
   });
 
   it('sem a Torre não há número: a linha diz que ninguém sabe, e o que falta', () => {
@@ -352,8 +354,10 @@ describe('a explicação da Ameaça, frase a frase', () => {
   it('com a Torre: o número, a tendência, as origens, a chance e o custo de um ataque, a defesa e a Torre', () => {
     const threat = watched(threatWatchedView);
     expect(threatLines(threatWatchedView, 0)).toEqual([
-      'Ameaça 46 de 100.',
-      'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51. Faltam 36 min.',
+      'Ameaça 50 de 100.',
+      'Sobe 9 a cada dia de jogo (40 min): na próxima virada, vai de 50 para 59. Faltam 36 min.',
+      '+2/dia: Fortaleza da Horda',
+      '+2/dia: Acampamento de Saqueadores',
       '+2/dia: Covil de Lobos',
       '+3/dia: outono',
       // A regra das incursões e o que cada tamanho custa: as frases do servidor, como vieram.
@@ -366,7 +370,7 @@ describe('a explicação da Ameaça, frase a frase', () => {
       'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
       '192 madeira, 192 pedra, 80 ouro · 6 min.',
     ]);
-    expect(threat.raidRisk).toContain('11% de chance');
+    expect(threat.raidRisk).toContain('19% de chance');
     expect(threat.raidCosts).toHaveLength(3);
   });
 
@@ -450,14 +454,14 @@ describe('a Ameaça na árvore', () => {
     expect(node(threatWatchedView)).toEqual({
       id: 'threat',
       label: 'Ameaça',
-      description: '46 · Covil de Lobos',
+      description: '50 · Fortaleza da Horda, Acampamento de Saqueadores, Covil de Lobos',
       tooltip: threatLines(threatWatchedView, 0).join('\n'),
       icon: 'eye',
       // O clique só navega. Com a Paliçada ainda travada não há ordem na linha, e a melhoria
       // da Torre fica em "Construções".
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
-    expect(node(threatIncomingView).description).toBe('46 · ⚠ Lobos em 16 min');
+    expect(node(threatIncomingView).description).toBe('50 · ⚠ Lobos em 16 min');
   });
 
   it('sem a Torre e com a obra travada: a névoa, o motivo na explicação e nenhum botão', () => {
@@ -486,7 +490,7 @@ describe('a Ameaça na árvore', () => {
 
   it('com a Torre e a obra da Paliçada liberada: o botão da linha ordena a defesa, com o custo na dica', () => {
     expect(node(palisadeRaisedView)).toMatchObject({
-      description: '46 · ⚠ Lobos em 16 min',
+      description: '50 · ⚠ Lobos em 16 min',
       icon: 'eye',
       contextValue: 'lords.threatUpgrade',
       actionLabels: { 'lords.build': 'Melhorar: Paliçada Nv1 → Nv2' },

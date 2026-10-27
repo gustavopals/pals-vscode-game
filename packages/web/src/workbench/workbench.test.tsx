@@ -606,7 +606,7 @@ describe('Tree', () => {
   it('com a Torre, a linha da Ameaça traz o número e o que ronda, com o olho aberto, e só navega', () => {
     const watched = tree({ view: threatWatchedView });
     const markup = render(watched);
-    expect(markup).toContain('46 · Covil de Lobos');
+    expect(markup).toContain('50 · Fortaleza da Horda, Acampamento de Saqueadores, Covil de Lobos');
     expect(markup).toContain('codicon codicon-eye"');
     expect(markup).not.toContain('codicon codicon-eye-closed');
     expect(rowActions(nodeById(watched, 'threat'))).toEqual([]);
@@ -622,7 +622,7 @@ describe('Tree', () => {
     ]);
     const markup = render(raised);
     // A linha diz o ataque que vem, com sinal e texto.
-    expect(markup).toContain('46 · ⚠ Lobos em 16 min');
+    expect(markup).toContain('50 · ⚠ Lobos em 16 min');
     const button = buttons(markup).find(
       (tag) => attribute(tag, 'aria-label') === 'Melhorar: Paliçada Nv1 → Nv2',
     );

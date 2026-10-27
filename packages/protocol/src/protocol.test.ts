@@ -13,6 +13,9 @@ import {
   heroNames,
   heroStatuses,
   heroTraits,
+  hordeTiles,
+  hordeWaves,
+  omenTexts,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -763,6 +766,7 @@ describe('ViewStateSchema', () => {
     expect(parses({ ...view.threat, raidCosts: [] })).toBe(false);
     const incoming = {
       enemy: 'wolves',
+      size: null,
       enemyLabel: 'Lobos',
       inSeconds: 60,
       sizeText: null,
@@ -856,6 +860,7 @@ describe('ViewStateSchema', () => {
     const parses = (threat: object) => ViewStateSchema.safeParse({ ...view, threat }).success;
     const incoming = {
       enemy: 'wolves',
+      size: 'light',
       enemyLabel: 'Lobos',
       inSeconds: 1200,
       sizeText: 'uma matilha pequena',
@@ -880,9 +885,9 @@ describe('ViewStateSchema', () => {
       expect(parses(missing), field).toBe(false);
     }
     expect(parses({ ...view.threat, incoming: { ...incoming, sizeText: null } })).toBe(true);
-    // O tamanho só sai em texto, e só quando a Torre o distingue: nunca o id.
-    expect(parses({ ...view.threat, incoming: { ...incoming, size: 'light' } })).toBe(false);
-    expect(parses({ ...view.threat, incoming: { ...incoming, enemy: 'raiders' } })).toBe(false);
+    // O tamanho tem chave pública desde a V4E-T3; ids desconhecidos continuam recusados.
+    expect(parses({ ...view.threat, incoming: { ...incoming, size: 'huge' } })).toBe(false);
+    expect(parses({ ...view.threat, incoming: { ...incoming, enemy: 'dragons' } })).toBe(false);
     expect(parses({ ...view.threat, incoming: { ...incoming, atMs: 1 } })).toBe(false);
     // Com a Torre, a forma é a completa: faltar o número é erro.
     const noLevel: Record<string, unknown> = { ...view.threat };
@@ -2693,6 +2698,9 @@ describe('contentHash', () => {
         enemies,
         raidSizes,
         warRaids,
+        hordeTiles,
+        hordeWaves,
+        omenTexts,
         threatMarkTemplates,
         raidTemplates,
         injuryTemplates,
@@ -2735,6 +2743,8 @@ describe('contentHash', () => {
       'heroNames',
       'heroStatuses',
       'heroTraits',
+      'hordeTiles',
+      'hordeWaves',
       'idleVillager',
       'injuredLoss',
       'injuryTemplates',
@@ -2744,6 +2754,7 @@ describe('contentHash', () => {
       'moraleBandTemplates',
       'namedHeroes',
       'objectives',
+      'omenTexts',
       'raidSizes',
       'raidTemplates',
       'startingTiles',

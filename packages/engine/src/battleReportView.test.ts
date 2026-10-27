@@ -44,7 +44,7 @@ describe('os relatórios de batalha na visão (V4D-T4.3)', () => {
     expect(first?.wall.length).toBeGreaterThan(0);
   });
 
-  it('o comandante sem herói na lista não quebra, e a Defesa ativa vira "Ajustar formação"', () => {
+  it('o comandante sem herói na lista não quebra, e "Ajustar formação" leva à formação que lutou', () => {
     const state = stateWith([5]);
     const view = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 }).army.reports[0];
     expect(view?.adjustFormationId).toBeNull();
@@ -59,6 +59,13 @@ describe('os relatórios de batalha na visão (V4D-T4.3)', () => {
       commanders: { left: null, center: null, right: null },
     });
     state.army.activeFormationId = 'formation-1';
+    // Uma batalha sem formação não passa a ter usado a que o jogador ativou depois.
+    expect(
+      deriveViewState(state, state.lastProcessedAt).army.reports[0]?.adjustFormationId,
+    ).toBeNull();
+    state.army.reports[0] = { ...state.army.reports[0]!, formationId: 'formation-1' };
+    // Trocar a Defesa ativa depois não muda a formação que o relatório aponta.
+    state.army.activeFormationId = null;
     const again = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 }).army.reports[0];
     expect(again?.adjustFormationId).toBe('formation-1');
     for (const commander of again?.commanders ?? []) {

@@ -102,6 +102,7 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
   const perSoldier = rules.foodPerSoldierPerHour;
   return {
     building: 'barracks',
+    omens: state.horde.omens.map(({ text, wave }) => ({ text, wave })),
     built: level > 0,
     level,
     text: armyText(state),

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import {
+  API,
   applyTheme,
   expect,
   lowContrast,
@@ -235,6 +236,55 @@ test.describe('a aba Exército nos temas e em janela estreita (V4C-T3.5)', () =>
 });
 
 test.describe('o Conselho de Guerra no editor (V4D-T4)', () => {
+  test('ler o relatório e ajustar a formação que lutou, pelo teclado e nos temas', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openEditor(world, page);
+    await page.getByTestId('formation-name').fill('Defesa do relatório');
+    await fillPost(page, 'center', 'front', 'spearman', '5');
+    await fillPost(page, 'left', 'front', 'shieldbearer', '4');
+    await fillPost(page, 'center', 'back', 'archer', '3');
+    await saveButton(page).click();
+    await page.getByTestId('formation-activate').click();
+    await expect(page.getByTestId('formation-active')).toBeVisible();
+    const response = await request.post(`${API}/__test/battle`);
+    expect(response.ok()).toBe(true);
+    await world.passTime(MINUTE, page);
+    await armyTab(page).click();
+    const report = page.getByTestId('battle-report').first();
+    await expect(report).toBeVisible();
+    const view = await serverView(page, request);
+    const actual = view.army.reports[0]!;
+    await expect(report.getByRole('heading', { level: 4 })).toContainText(actual.outcomeLabel);
+    for (const factor of actual.factors)
+      await expect(report.getByTestId('battle-factors')).toContainText(factor.text);
+    for (const casualty of actual.casualties)
+      await expect(report.getByTestId('battle-casualties')).toContainText(casualty.text);
+    const round = report.getByTestId('battle-round').first();
+    await expect(round).toBeVisible();
+    await round.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(round).toHaveAttribute('open', '');
+    await expect(round).toContainText(actual.rounds[0]!.moraleText);
+    await page.keyboard.press('Space');
+    await expect(round).not.toHaveAttribute('open');
+    // Tirar a Defesa ativa depois não muda a formação guardada no relatório.
+    await page.getByTestId('formation-unset-active').click();
+    await expect(page.getByTestId('formation-active')).toHaveCount(0);
+    await report.getByTestId('battle-adjust').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('formation-name')).toHaveValue('Defesa do relatório');
+    for (const theme of THEMES) {
+      await applyTheme(page, theme);
+      await expect(report).toBeVisible();
+      expect(await lowContrast(page), theme).toEqual([]);
+      expect(await overflow(page), theme).toEqual({ page: 0, content: 0 });
+    }
+  });
+
   test('simular pelo teclado mostra a prévia e a linha inimiga; mudar a formação a desatualiza', async ({
     context,
     request,

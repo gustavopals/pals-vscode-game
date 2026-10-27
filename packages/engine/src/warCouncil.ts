@@ -45,6 +45,7 @@ import { nextUint32, seedStream, type StreamWords } from './random';
 /** O que se sabe de um posto do inimigo. */
 export type EnemyGuess =
   | { readonly kind: 'known'; readonly unit: HordeUnitId; readonly count: number }
+  | { readonly kind: 'approximate'; readonly unit: HordeUnitId; readonly count: number }
   | { readonly kind: 'unknown'; readonly count: number };
 
 export type EnemyGuessPosts = Record<WingId, Record<LineId, EnemyGuess | null>>;
@@ -61,6 +62,8 @@ export type PreviewInput = {
     readonly commanders: Record<WingId, BattleCommanderInput | null>;
   };
   readonly enemy: EnemyGuessPosts;
+  /** Distribuição inferida só de relatos e tipos públicos; nunca da memória da Horda. */
+  readonly mix?: Partial<Record<HordeUnitId, number>>;
   readonly wall: Partial<Record<WingId, number>>;
   readonly watchtowerLevel: number;
   readonly heroCapture: HeroCaptureRuleId;
@@ -120,8 +123,8 @@ function sampleKeyOf(enemy: EnemyGuessPosts, season: SeasonId): string {
       parts.push(
         guess === null
           ? '-'
-          : guess.kind === 'known'
-            ? `${guess.unit}x${String(guess.count)}`
+          : guess.kind !== 'unknown'
+            ? `${guess.kind === 'approximate' ? '~' : ''}${guess.unit}x${String(guess.count)}`
             : `?x${String(guess.count)}`,
       );
     }
@@ -141,8 +144,7 @@ function drawInt(words: StreamWords, max: number): number {
 }
 
 /** O que entra na amostra de um posto desconhecido: os pesos da estação nas unidades da linha. */
-function candidatesFor(season: SeasonId, line: LineId) {
-  const mix = hordeBaseMix[season];
+function candidatesFor(season: SeasonId, line: LineId, mix = hordeBaseMix[season]) {
   const weighted = HORDE_UNIT_IDS.flatMap((unit) => {
     const weight = mix[unit] ?? 0;
     return weight > 0 && hordeUnits[unit].line === line ? [{ unit, weight }] : [];
@@ -183,10 +185,10 @@ function runOnce(input: PreviewInput, words: StreamWords, sampled: Map<string, H
         continue;
       }
       let unit: HordeUnitId;
-      if (guess.kind === 'known') {
+      if (guess.kind !== 'unknown') {
         unit = guess.unit;
       } else {
-        unit = sampleUnit(words, candidatesFor(input.season, line));
+        unit = sampleUnit(words, candidatesFor(input.season, line, input.mix));
         const key = `${wing}/${line}/${unit}`;
         sampled.set(key, unit);
       }
@@ -210,7 +212,11 @@ function streamNameFor(input: PreviewInput, run: number): string {
     return input.streamNameOf(run);
   }
   const sampleKey = sampleKeyOf(input.enemy, input.season);
-  return `preview:${input.formationId}:${String(hashText(sampleKey))}:${String(run)}`;
+  const mixKey =
+    input.mix === undefined
+      ? ''
+      : HORDE_UNIT_IDS.map((unit) => `${unit}:${input.mix?.[unit] ?? 0}`).join(',');
+  return `preview:${input.formationId}:${String(hashText(sampleKey + mixKey))}:${String(run)}`;
 }
 
 /** Uma simulação da prévia, com o relatório da batalha: a que `previewBattle` repete 200 vezes. */
@@ -302,11 +308,17 @@ export function previewBattle(input: PreviewInput): PreviewResult {
       if (guess === null) {
         continue;
       }
-      if (guess.kind === 'known') {
-        enemy.push({ wing, line, known: true, unit: guess.unit, count: guess.count });
+      if (guess.kind !== 'unknown') {
+        enemy.push({
+          wing,
+          line,
+          known: guess.kind === 'known',
+          unit: guess.unit,
+          count: guess.count,
+        });
         continue;
       }
-      let best: HordeUnitId = candidatesFor(input.season, line)[0]?.unit ?? 'raider';
+      let best: HordeUnitId = candidatesFor(input.season, line, input.mix)[0]?.unit ?? 'raider';
       let bestCount = -1;
       for (const [unit, count] of unitTally.get(`${wing}/${line}`) ?? []) {
         if (count > bestCount) {

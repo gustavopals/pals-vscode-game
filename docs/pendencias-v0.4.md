@@ -367,3 +367,36 @@ Decisões do agente na V4E-T2 (estado 33), todas por aprovar. Os números são o
 **D-38. Os bots com Defesa ativa e a coluna das perdidas (V4E-T2.7).** _(Decisão do agente, por aprovar.)_ Pela decisão 25, o `economico` (Regular e Dedicado) e o `preguicoso` passaram a montar e ativar a formação com os soldados do treino mínimo (`montarFormacao`, logo depois de `treinarMinimo`; antes só o `militar` a tinha); o Explorador e o Especulador herdam do econômico. A coluna `raids_lost` do roadmap **não foi criada**: a incursão perdida é a sofrida (`raids_suffered`, que já existe), e criar outra quebraria o CSV sem dizer nada novo; `wall_breaches` também não foi criada. A remedição está em [balance-v0.4.md](balance-v0.4.md), seção 9.
 
 **D-39. O Preguiçoso do Rápido perde mais do que antes (V4E-T2.7, 2026-10-26).** _(**Respondida pelo autor em 2026-10-26: opção (b).** As incursões do roteiro da guerra dos dias 25 e 37 são **leves e não ferem ninguém** (levam do estoque como qualquer outra); a do dia 61, o ensaio, fica como está. Aplicada no branch `v4e-d39`: `warRaids.scripted[].injures` no conteúdo, lido pelo motor pelo id da incursão marcada (`raidInjures`, sem campo novo no estado); a do dia 37 mantém o id `raidersYear1Medium`, que fica gravado no estado; o passo 32 → 33 escreve o tamanho leve (a v0.4 não foi publicada); a visão da incursão à vista diz "não fere ninguém". A remedição está em [balance-v0.4.md](balance-v0.4.md), seção 10: em Senhor, o Preguiçoso do ano do Rápido volta a 9 a 11 objetivos (eram 4) e ao Salão Nv3 na hora 53 em parte das sementes (o menor nível final é 2; era 1), e o da semana do Rápido volta à população 36–54 (era 29–33), com 4 a 11 feridos (eram 12 a 21); fome e frio seguem em zero. O teste dos objetivos do Preguiçoso do Rápido voltou a `bots.test.ts`.)_ _(Era a pergunta de validação da decisão 14, "o Preguiçoso perde mais do que hoje?", e a resposta medida foi **sim**.)_ As incursões-batalha do roteiro da guerra caem nos dias 25 e 37 de jogo; no Rápido isso é por volta das horas reais 16 e 25, e a Paliçada pede o Salão no nível 3: o jogador de uma visita por dia não tem como se defender delas. Na semente `pedra-alta-001`, um ano de jogo no Rápido, o Preguiçoso sofre **7 incursões** (eram 5 no `main` de 2026-10-26, `1fac3e1`), **10 feridos** (eram 6), e os feridos e a moral o deixam sem ninguém na Pedreira de 25 h a 46 h reais: termina o ano com o **Salão no nível 1** (era 3) e **4 objetivos** (eram 11). A matriz (balance-v0.4.md, seção 9) mostra o mesmo nas 50 sementes. Fome e frio continuam em zero. A faixa foi remedida (é o jogo como está), e o teste que pedia ao Preguiçoso do Rápido os dez objetivos da v0.2 saiu da lista, com o porquê escrito (`bots.test.ts`). Opções, todas do autor: (a) as incursões do roteiro da guerra só para quem tem o Quartel ou a Paliçada; (b) as dos dias 25 e 37 leves e sem ferido; (c) o roteiro em dias de jogo contados do ritmo Normal, isto é, mais tarde no Rápido; (d) aceitar.
+
+### V4E-T3 — decisões de implementação e limites (2026-10-27)
+
+**D-40. Pesos iniciais das ondas.** _(Proposta do agente; não lida pelo autor.)_
+A seção 12 de [content-v0.4.md](content-v0.4.md) inventaria as misturas e os postos
+fixos. Os tamanhos 40/60/80 e a astúcia por dificuldade seguem o ADR 0020.
+Não foi validada a taxa de Vitória do cerco, que ainda não existe.
+
+**D-41. Revisão dos presságios.** _(Decisão de implementação.)_ A preparação tem
+revisão; observar uma formação diferente no outono renova as ondas e limpa os
+presságios correntes. As linhas anteriores da Crônica não mudam: registram o
+que os vigias viram naquele instante. No inverno as ondas congelam. O parcial
+revela um posto, com a contagem em múltiplos de cinco, sem revelar outros postos.
+
+**D-42. O tile nasce depois de fechar a Ameaça do dia anterior.** _(Leitura da
+ordem da virada.)_ A aparição ocorre no instante aprovado (dia 25/outono); o
+primeiro +2 desse tile vem na virada seguinte. Isso mantém verdadeira a previsão
+da Torre feita antes do surgimento. Sem Torre, a aparição não vira evento público.
+
+**D-43. Pressão maior e finta limitada nas visitas.** _(Impacto medido; sem
+aceitação humana.)_ [balance-v0.4.md](balance-v0.4.md), seção 11: 3.600 partidas;
+zero fome/frio/recusas. O primeiro ano do Regular no Normal tem Ameaça média
+próxima de 78 no outono/inverno. O Preguiçoso do Rápido sofre mais ferimentos.
+A isca do militar foi vista em uma batalha de dez sementes em Senhor e uma em
+Rei de Ferro, sem reduzir as incursões sofridas. Não se afirma benefício no cerco.
+
+**D-44. Ligação às próximas fases.** A V4E-T3 prepara e congela ondas; a Fase G
+vai agendá-las, aplicar sabotagem e encerrar a Fortaleza com o cerco. Até essa
+ligação, ela fica ativa no inverno e é desativada no ano novo. Isso não significa
+que o cerco foi implementado. A antiga premissa D-34 (limpar o Covil impede os
+roteiros humanos) foi superada pelo Acampamento com data própria da decisão 16:
+saqueadores não dependem dos lobos. Os roteiros continuam limitados a uma
+incursão marcada por vez (D-33).

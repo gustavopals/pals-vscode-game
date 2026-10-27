@@ -2,6 +2,42 @@
 
 O motor de Lords of the Guild: funções puras e determinísticas que decidem tudo o que acontece no feudo. Roda igual no servidor (a verdade), no `sim-cli` (balanceamento) e nos testes. Não conhece banco, rede, relógio do sistema nem navegador.
 
+## A Horda aprende (v0.4, V4E-T3)
+
+Estado **34**, protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
+as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
+não consome sorteios, cria eventos ou recalcula o passado.
+
+`hordePlan.ts` observa os soldados que realmente entraram em batalha, antes das
+baixas, e guarda somente contagens por unidade. A próxima incursão usa os pesos
+por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). A memória zera no ano novo.
+O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; cada tile ativo
+soma +2 por dia. A subida fecha o dia anterior, portanto o tile recém-nascido
+começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
+
+As ondas são preparadas no outono e renovadas quando a formação vista muda,
+até o inverno. Cada preparação tem uma revisão: renovar retira do painel os
+presságios da revisão anterior; suas linhas permanecem como história na Crônica.
+No inverno a composição fica congelada. Presságios usam o fluxo `horde`, teto
+90% e seis registros; parcial revela um posto arredondado em múltiplos de cinco,
+exato revela todos os postos da onda, inclusive a ausência nos outros.
+
+A visão não contém memória, preparação nem sorteios. A prévia usa apenas vigias,
+presságios e a composição histórica do último relatório; aproximações continuam
+marcadas como incertas. O relatório aponta a formação que lutou, mesmo depois de
+mudar a Defesa ativa. `battleFought` inclui `playerLost` e `hordeLost`, para conferir
+o saldo de soldados nos eventos sem depender dos três relatórios retidos.
+
+O militar prepara uma isca de arqueiros perante uma incursão forte visível do
+outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentadas
+ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
+[balance-v0.4.md](../../docs/balance-v0.4.md), seção 11.
+
+**Integração ainda por fazer:** ataques e sabotagem são da Fase F; o relógio,
+a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
+permanece durante o inverno e é desativada na virada anual; isso é um estado
+intermediário da implementação, não o encerramento do cerco do GDD.
+
 ## API pública
 
 ```ts

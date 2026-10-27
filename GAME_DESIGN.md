@@ -720,6 +720,13 @@ peso(tipo_inimigo) = peso_base(estação, ano) + astúcia × peso_de_contra(tipo
 astúcia: Camponês 3/10 · Senhor 1/2 · Rei de Ferro 4/5   (em `difficulties[]`, no conteúdo)
 ```
 
+Implementação V4E-T3 (estado 34): a memória resume os efetivos que entraram na
+batalha antes das baixas. O presságio parcial identifica um posto, e sua contagem
+é aproximada em múltiplos de cinco; o exato identifica todos os postos da onda.
+Se uma formação diferente renovar as ondas no outono, os presságios anteriores
+saem do painel corrente, mantendo suas linhas históricas na Crônica. A prévia
+consulta somente o que foi revelado, nunca a memória nem as ondas escondidas.
+
 Consequências de design:
 
 - Repetir a mesma formação é punido progressivamente. O jogador precisa **ler o relatório e adaptar**.

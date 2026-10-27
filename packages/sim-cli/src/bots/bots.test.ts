@@ -1545,6 +1545,7 @@ describe('política "erguer a Paliçada"', () => {
   };
   const wolves = {
     enemy: 'wolves' as const,
+    size: null,
     enemyLabel: 'Lobos',
     inSeconds: 1200,
     sizeText: null,
@@ -2758,6 +2759,7 @@ describe('bot honesto', () => {
       'economico.ts',
       'especulador.ts',
       'explorador.ts',
+      'finta.ts',
       'index.ts',
       'militar.ts',
       'ousado.ts',

@@ -42,7 +42,45 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 33;
+const CURRENT = 34;
+
+describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
+  it.each(['fresh', 'crafts', 'cold', 'caravan', 'raid-announced', 'week-scripted'])(
+    '%s: a primeira leitura migra uma vez, preserva os bens e mantém as ondas escondidas',
+    async (name) => {
+      const before = JSON.parse(
+        readFileSync(
+          new URL(`../../engine/src/__fixtures__/state-v33-${name}.json`, import.meta.url),
+          'utf8',
+        ),
+      ) as StoredState & {
+        horde: { scheduledRaids: unknown[] };
+        rng: unknown;
+        ids: unknown;
+      };
+      const game = await insertGame(server, before, {
+        timeScale: before.settings.timeScale as number,
+        stateVersion: 7,
+      });
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      const row = await rowOf(server, game.id);
+      expect(row).toMatchObject({ schemaVersion: 34, stateVersion: 8 });
+      expect(row.state).toMatchObject({
+        settlement: before.settlement,
+        rng: before.rng,
+        ids: before.ids,
+        horde: { ...before.horde, lastFormationSeen: null, wavePlan: null, omens: [] },
+      });
+      expect(reply.body.view.army.omens).toEqual([]);
+      expect(JSON.stringify(reply.body.view)).not.toMatch(/lastFormationSeen|wavePlan/);
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+});
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -126,6 +164,12 @@ function beforeMasters<T>(state: T): T {
   // E a muralha, da versão 32 (V4E-T1.2): entra cheia pelo nível da Paliçada, sem reparo.
   delete copy.settlement?.wall;
   delete copy.settlement?.wallRepair;
+  const horde = (copy as { horde?: Record<string, unknown> }).horde;
+  if (horde !== undefined) {
+    delete horde.lastFormationSeen;
+    delete horde.wavePlan;
+    delete horde.omens;
+  }
   // E a composição da incursão marcada, da versão 33 (V4E-T2.2): a que já estava marcada entra
   // com `null` (luta com a composição-base da estação).
   for (const raid of (copy as { horde?: { scheduledRaids?: Array<Record<string, unknown>> } }).horde
@@ -1263,16 +1307,15 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
       expect(beforeOutcomes(row.state).guild).toEqual(EMPTY_GUILD);
-      // Nenhum herói nem item. A batalha é a da incursão deste dia: desde a V4E-T2 (estado 33)
-      // toda incursão é uma batalha, com identificador próprio.
-      expect(row.state.ids).toEqual({ battle: 1 });
+      // Nenhum herói nem item. Com o Acampamento e a Fortaleza a janela tem duas incursões.
+      expect(row.state.ids).toEqual({ battle: 2 });
       expect(
         await countRows(
           app.pool,
           'game_events',
           `game_id = '${game.id}' and kind = 'battleFought'`,
         ),
-      ).toBe(1);
+      ).toBe(2);
       expect(
         await countRows(
           app.pool,

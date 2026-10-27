@@ -1,4 +1,16 @@
-import { balance, WING_IDS, type LineId, type UnitId, type WingId } from '@lotg/content';
+import {
+  balance,
+  hordeBaseMix,
+  hordeUnits,
+  HORDE_UNIT_IDS,
+  LINE_IDS,
+  WING_IDS,
+  warRaids,
+  type HordeUnitId,
+  type LineId,
+  type UnitId,
+  type WingId,
+} from '@lotg/content';
 
 import { barracksLevel, barracksRequiresText } from './army';
 import type { BattleCommanderInput, BattlePosts } from './battle';
@@ -8,6 +20,8 @@ import { findFormation, nominationReason, postEntries } from './formations';
 import { hashText } from './hash';
 import { reject } from './rejections';
 import { raidSizeAt, watchtowerLevel } from './threat';
+import { watchtowerPerks, watchtowerWarningMs } from './threat';
+import { baseRaidComposition } from './raidArmy';
 import { wallForBattle } from './wallRepair';
 import type { Formation, GameEvent, GameState, Rejection } from './types';
 import { previewBattle, type EnemyGuessPosts, type PreviewInput } from './warCouncil';
@@ -30,10 +44,17 @@ export function formationSignature(state: GameState, formation: Formation): numb
   ].sort();
   return hashText(
     JSON.stringify([
-      formation.posts,
-      formation.commanders,
+      WING_IDS.map((wing) =>
+        LINE_IDS.map((line) => {
+          const post = formation.posts[wing][line];
+          return post === null ? null : [post.unit, post.count];
+        }),
+      ),
+      WING_IDS.map((wing) => formation.commanders[wing]),
       used.map((unit) => [unit, state.army.units[unit]]),
       watchtowerLevel(state),
+      WING_IDS.map((wing) => state.settlement.wall.hp[wing]),
+      publicEnemyKnowledge(state),
     ]),
   );
 }
@@ -83,6 +104,96 @@ function estimatedEnemy(state: GameState): EnemyGuessPosts {
   };
 }
 
+/** Informação pública para a prévia; não lê a memória nem a preparação escondida da Horda. */
+function publicEnemyKnowledge(state: GameState): {
+  enemy: EnemyGuessPosts;
+  mix?: Partial<Record<HordeUnitId, number>>;
+} {
+  const enemy = estimatedEnemy(state);
+  const perks = watchtowerPerks(watchtowerLevel(state));
+  const now = state.lastProcessedAt;
+  const sighted =
+    perks === null
+      ? undefined
+      : state.horde.scheduledRaids
+          .filter(
+            (raid) =>
+              raid.atMs >= now &&
+              (raid.announcedAtMs !== null || raid.atMs - watchtowerWarningMs(state, perks) <= now),
+          )
+          .sort((a, b) => a.atMs - b.atMs)[0];
+  if (sighted !== undefined && perks !== null && perks.composition !== 'none') {
+    const posts =
+      sighted.composition ?? baseRaidComposition(sighted.size, seasonAt(sighted.atMs).id);
+    if (perks.composition === 'exact') {
+      for (const wing of WING_IDS) for (const line of LINE_IDS) enemy[wing][line] = null;
+      for (const post of posts)
+        enemy[post.wing][post.line] = { kind: 'known', unit: post.unit, count: post.count };
+      return { enemy };
+    }
+    // No Nv3 os tipos são públicos, mas o posto e a contagem de cada tipo continuam escondidos.
+    const mix = Object.fromEntries(
+      HORDE_UNIT_IDS.filter((unit) => posts.some((post) => post.unit === unit)).map((unit) => [
+        unit,
+        hordeBaseMix[seasonAt(now).id][unit] ?? 1,
+      ]),
+    );
+    if (!Object.keys(mix).some((unit) => hordeUnits[unit as HordeUnitId].line === 'back')) {
+      for (const wing of WING_IDS) {
+        const count = (enemy[wing].front?.count ?? 0) + (enemy[wing].back?.count ?? 0);
+        enemy[wing].front = count > 0 ? { kind: 'unknown', count } : null;
+        enemy[wing].back = null;
+      }
+    }
+    if (perks.composition === 'approximate') {
+      for (const wing of WING_IDS) {
+        const total = posts
+          .filter((post) => post.wing === wing)
+          .reduce((sum, post) => sum + post.count, 0);
+        const rounded =
+          total === 0
+            ? 0
+            : Math.max(
+                balance.omens.roundTo,
+                Math.round(total / balance.omens.roundTo) * balance.omens.roundTo,
+              );
+        const shares = warRaids.postShares[wing];
+        const hasBack = Object.keys(mix).some(
+          (unit) => hordeUnits[unit as HordeUnitId].line === 'back',
+        );
+        const back = hasBack
+          ? Math.floor((rounded * shares.back) / (shares.front + shares.back))
+          : 0;
+        enemy[wing].front = rounded - back > 0 ? { kind: 'unknown', count: rounded - back } : null;
+        enemy[wing].back = back > 0 ? { kind: 'unknown', count: back } : null;
+      }
+    }
+    return { enemy, mix };
+  }
+  const omen = state.horde.omens[state.horde.omens.length - 1];
+  if (omen?.clarity === 'exact') {
+    for (const wing of WING_IDS) for (const line of LINE_IDS) enemy[wing][line] = null;
+    for (const post of omen.reveals)
+      enemy[post.wing][post.line] = { kind: 'known', unit: post.unit, count: post.count };
+    return { enemy };
+  }
+  if (omen?.clarity === 'partial') {
+    for (const post of omen.reveals)
+      enemy[post.wing][post.line] = { kind: 'approximate', unit: post.unit, count: post.count };
+    return { enemy };
+  }
+  // O relatório é história conhecida, não uma promessa de que a próxima tropa será igual.
+  const report = state.army.reports[state.army.reports.length - 1];
+  const mix: Partial<Record<HordeUnitId, number>> = {};
+  for (const post of report?.casualties ?? []) {
+    if (post.owner === 'horde') {
+      const unit = post.unit as HordeUnitId;
+      mix[unit] = (mix[unit] ?? 0) + post.start;
+    }
+  }
+  return Object.keys(mix).length > 0 ? { enemy, mix } : { enemy };
+}
+
 /** O que `previewBattle` recebe para uma formação do feudo, no estado de agora. */
 export function previewInputFor(state: GameState, formation: Formation): PreviewInput {
   const commanders = {} as Record<WingId, BattleCommanderInput | null>;
@@ -99,7 +210,7 @@ export function previewInputFor(state: GameState, formation: Formation): Preview
     season: seasonAt(state.lastProcessedAt).id,
     mode: 'defense',
     player: { posts: filledPosts(state, formation), commanders },
-    enemy: estimatedEnemy(state),
+    ...publicEnemyKnowledge(state),
     // A muralha como está agora, ala por ala (V4E-T1): a ala derrubada entra sem muralha.
     wall: wallForBattle(state),
     watchtowerLevel: watchtowerLevel(state),

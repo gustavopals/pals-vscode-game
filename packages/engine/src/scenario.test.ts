@@ -72,36 +72,52 @@ describe('cenário golden de 7 dias', () => {
       starts.some((event, index) => starts[index + 1]?.atMs === event.atMs && event.atMs > 0),
     ).toBe(true);
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
-    // A Ameaça: sobe 2 a cada dia de jogo (5 no outono). A Torre de Vigia fica pronta às 25 h
-    // 12 min, com a Ameaça em 24. Os lobos do roteiro a encontram em 30, às 30 h, e a derrubam
-    // a zero; ela só volta aos 40 às 70 h. No outono passa dos 70 (98 h), e a incursão que chega
-    // na mesma virada a derruba; a volta aos 40 (100 h) e aos 70 (112 h, 126 h, 140 h e na virada
-    // do ano) sai com a frase da volta, e não com a da primeira vez. A Torre sobe ao nível 2 às
-    // 96 h, e a ordem seguinte para ela é recusada.
+    // O Acampamento soma desde o verão e a Fortaleza desde o outono: +2 por tile ativo,
+    // além dos +3 do outono. As marcas e suas frases abaixo congelam o roteiro do estado 34.
     expect(
       events
         .filter((event) => event.type === 'threatRose')
         .map((event) => [event.atMs / HOUR, event.data.mark, event.text]),
     ).toEqual([
       [
-        104,
+        68.0,
         40,
-        'No 5º dia do Outono, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 44.',
+        'No 11º dia do Verão, os vigias de Pedra Alta do Norte contam mais uivos a cada noite. A Ameaça chegou a 40.',
       ],
       [
-        116,
-        70,
-        'No 11º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        86.0,
+        40,
+        'No 20º dia do Verão, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 41.',
       ],
       [
-        130,
+        98.0,
         70,
-        'No 18º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        'No 2º dia do Outono, os vigias de Pedra Alta do Norte já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
       ],
       [
-        144,
+        110.0,
         70,
-        'No 1º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+        'No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+      ],
+      [
+        122.0,
+        70,
+        'No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+      ],
+      [
+        134.0,
+        70,
+        'No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.',
+      ],
+      [
+        146.0,
+        70,
+        'No 2º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 71.',
+      ],
+      [
+        158.0,
+        70,
+        'No 8º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
     ]);
     expect(
@@ -131,26 +147,29 @@ describe('cenário golden de 7 dias', () => {
         event.data.injured ?? null,
       ]);
     expect(raidStory).toEqual([
-      // Desde o estado 33 as incursões-batalha do roteiro (25º e 37º dias) chegam antes da
-      // Paliçada, e as sorteadas caem em outros dias (a forte é segura pela Paliçada Nv2).
-      // Desde a resposta do autor à D-39 as duas do roteiro são leves e não ferem.
-      [18, 'wolvesHowl', null, null, null],
-      [30, 'raidSuffered', 'light', 0, 1],
-      [48, 'raidSuffered', 'light', 0, 0],
-      [72, 'raidSuffered', 'light', 0, 0],
-      [120, 'raidRepelled', 'strong', 2, null],
-      [138, 'raidRepelled', 'medium', 2, null],
-      [152, 'raidRepelled', 'medium', 2, null],
+      [18.0, 'wolvesHowl', null, null, null],
+      [30.0, 'raidSuffered', 'light', 0, 1],
+      [48.0, 'raidSuffered', 'light', 0, 0],
+      [72.0, 'raidSuffered', 'light', 0, 0],
+      [108.0, 'raidRepelled', 'strong', 2, null],
+      [120.0, 'raidRepelled', 'strong', 2, null],
+      [132.0, 'raidRepelled', 'strong', 2, null],
+      [144.0, 'raidRepelled', 'strong', 2, null],
+      [152.0, 'raidRepelled', 'medium', 2, null],
+      [162.0, 'raidRepelled', 'light', 2, null],
     ]);
     // Cada uma foi anunciada pelos vigias, com a antecedência do nível da Torre daquela hora.
     const announced = events.filter((event) => event.type === 'raidAnnounced');
     expect(announced.map((event) => [event.atMs / HOUR, event.data.warning])).toEqual([
-      [29, 'warned'],
-      [47, 'warned'],
-      [71, 'warned'],
-      [118, 'sized'],
-      [136, 'sized'],
-      [150, 'sized'],
+      [29.0, 'warned'],
+      [47.0, 'warned'],
+      [71.0, 'warned'],
+      [106.0, 'sized'],
+      [118.0, 'sized'],
+      [130.0, 'sized'],
+      [142.0, 'sized'],
+      [150.0, 'sized'],
+      [160.0, 'sized'],
     ]);
     // Entre uma incursão e a seguinte passam ao menos quatro dias de jogo (8 h).
     const resolvedAt = raidStory.slice(1).map(([hour]) => hour as number);
@@ -167,7 +186,7 @@ describe('cenário golden de 7 dias', () => {
     );
     // A forte do 13º dia do Outono (V4E-T2.4) é segura pela Paliçada Nv2, como a média (D-35).
     expect(told(120)).toBe(
-      'No 13º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
+      'No 13º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.',
     );
     // O ferido do roteiro estava sem ofício: fica de cama um dia de jogo e sara.
     const hurt = events.filter((event) => event.type === 'villagerInjured');
@@ -181,17 +200,17 @@ describe('cenário golden de 7 dias', () => {
       [32, null],
     ]);
     expect(state.settlement.injured).toEqual([]);
-    expect(state.stats).toMatchObject({ raids_suffered: 3, raids_repelled: 3 });
+    expect(state.stats).toMatchObject({ raids_suffered: 3, raids_repelled: 6 });
     expect(state.rng.horde).toHaveLength(4);
     // A última incursão do ano já passou, e a seguinte ainda não foi sorteada.
     expect(state.horde.scheduledRaids).toEqual([]);
-    expect(state.map.threat).toBe(63);
+    expect(state.map.threat).toBe(67);
     const lastView = deriveViewState(state, state.lastProcessedAt).threat;
     expect(lastView).toMatchObject({
       known: true,
-      level: 63,
-      risePerDay: 2,
-      raidChancePercent: 25,
+      level: 67,
+      risePerDay: 4,
+      raidChancePercent: 31,
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no
@@ -347,8 +366,8 @@ describe('cenário golden de 7 dias', () => {
       // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
       inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
-    // As seis incursões da semana viraram batalha (V4E-T2.3).
-    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 6 });
+    // Os tiles novos levam o roteiro a nove batalhas (V4E-T3).
+    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 9 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a

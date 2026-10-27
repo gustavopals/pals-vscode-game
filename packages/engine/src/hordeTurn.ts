@@ -1,6 +1,8 @@
 import { balance } from '@lotg/content';
 
-import { seasonAt } from './clock';
+import { isYearBoundary, seasonAt } from './clock';
+import { compositionWeights } from './hordeMind';
+import { settleHordeTiles, turnOmens } from './hordePlan';
 import { buildRaidComposition, raidSizeFor } from './raidArmy';
 import { markScriptedWarRaids, soundHowls } from './raids';
 import { chance, nextInt } from './random';
@@ -31,9 +33,15 @@ import type { GameEvent, GameState } from './types';
  */
 export function turnHorde(draft: GameState, atMs: number, events: GameEvent[]): void {
   turnThreat(draft, atMs, events);
+  if (isYearBoundary(atMs) && draft.map.tiles.hordeFortress !== undefined) {
+    draft.map.tiles.hordeFortress.threatActive = false;
+  }
+  // A subida fecha o dia que acabou. O tile que nasce agora começa a somar no dia seguinte.
+  settleHordeTiles(draft, atMs, events);
   soundHowls(draft, atMs, events);
   markScriptedWarRaids(draft, atMs);
   drawRaid(draft, atMs);
+  turnOmens(draft, atMs, events);
 }
 
 function drawRaid(draft: GameState, atMs: number): void {
@@ -53,8 +61,15 @@ function drawRaid(draft: GameState, atMs: number): void {
   const size = raidSizeFor(draft.map.threat, seasonAt(arrivesAtMs).id);
   // A composição sai do mesmo fluxo, logo depois do sorteio da incursão (V4E-T2.2): um sorteio
   // por posto, na estação em que ela chega. Fica gravada; a névoa decide o que a visão mostra.
-  const composition = buildRaidComposition(size, seasonAt(arrivesAtMs).id, (max) =>
-    nextInt(draft, 'horde', max),
+  const composition = buildRaidComposition(
+    size,
+    seasonAt(arrivesAtMs).id,
+    (max) => nextInt(draft, 'horde', max),
+    compositionWeights(
+      seasonAt(arrivesAtMs).id,
+      draft.settings.difficulty,
+      horde.lastFormationSeen,
+    ),
   ).map((post) => ({ ...post }));
   horde.scheduledRaids.push({
     id: `threat-${order}`,

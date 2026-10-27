@@ -1,0 +1,564 @@
+{
+ "schemaVersion": 34,
+ "seed": "fixture-horde-omens-5",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 403200000,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 403200000,
+ "rng": {
+  "horde": [
+   868331043,
+   4090025866,
+   3016850779,
+   500295242
+  ]
+ },
+ "ids": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 100000,
+   "wood": 120000,
+   "stone": 65000,
+   "gold": 250000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": -5000,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 5,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 50,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   },
+   "raiderCamp": {
+    "type": "raiderCamp",
+    "threatActive": true
+   },
+   "hordeFortress": {
+    "type": "hordeFortress",
+    "threatActive": true
+   }
+  },
+  "threat": 74,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ],
+  "lastFormationSeen": {
+   "total": 20,
+   "byUnit": {
+    "archer": 20
+   }
+  },
+  "wavePlan": {
+   "year": 1,
+   "revision": 1,
+   "generatedAtMs": 345600000,
+   "waves": [
+    {
+     "number": 1,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "raider",
+       "count": 12
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "raider",
+       "count": 14
+      },
+      {
+       "wing": "center",
+       "line": "back",
+       "unit": "shaman",
+       "count": 1
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "raider",
+       "count": 11
+      },
+      {
+       "wing": "right",
+       "line": "back",
+       "unit": "banditArcher",
+       "count": 2
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "ogre",
+       "count": 15
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "wolf",
+       "count": 27
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "wolf",
+       "count": 18
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "blackKnight",
+       "count": 29
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "warlord",
+       "count": 1
+      },
+      {
+       "wing": "center",
+       "line": "back",
+       "unit": "shaman",
+       "count": 17
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "blackKnight",
+       "count": 28
+      },
+      {
+       "wing": "right",
+       "line": "back",
+       "unit": "shaman",
+       "count": 6
+      }
+     ]
+    }
+   ]
+  },
+  "omens": [
+   {
+    "atMs": 345600000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 3,
+    "text": "Um desertor desenha no chão, para a terceira onda: 29 cavaleiros negros na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 17 xamãs na retaguarda pelo centro; 28 cavaleiros negros na frente pela ala direita; 6 xamãs na retaguarda pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 29
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "warlord",
+      "count": 1
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 17
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 28
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "count": 6
+     }
+    ]
+   },
+   {
+    "atMs": 360000000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 1,
+    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "atMs": 367200000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 1,
+    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "atMs": 381600000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 2,
+    "text": "Um desertor desenha no chão, para a segunda onda: 15 ogros na frente pela ala esquerda; 27 lobos na frente pelo centro; 18 lobos na frente pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "ogre",
+      "count": 15
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "count": 27
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "count": 18
+     }
+    ]
+   },
+   {
+    "atMs": 388800000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 1,
+    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "atMs": 403200000,
+    "revision": 1,
+    "clarity": "exact",
+    "wave": 1,
+    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "reveals": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins"
+  ]
+ },
+ "stats": {
+  "coldSpellsThisSeason": 0,
+  "campAppearedAtDay": 49,
+  "fortressAppearedAtDay": 49,
+  "omens": 6,
+  "threatCrossed:40": 1,
+  "threatCrossed:70": 1
+ }
+}

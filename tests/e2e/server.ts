@@ -1,4 +1,5 @@
 import { balance, type ItemId, itemRarities, items } from '../../packages/content/src/index';
+import { advanceTo, type GameState } from '../../packages/engine/src/index';
 import type { FastifyInstance } from 'fastify';
 
 import { buildApp } from '../../packages/server/src/app';
@@ -131,6 +132,35 @@ control.post('/__test/council-deal', async (request) => {
  * que `quietHorde` faz nos testes de integração do servidor.
  */
 const NEVER_GAME_MS = 1000 * 84 * 2 * 3_600_000;
+/** Relatório de uma batalha real, com a Defesa ativa do cenário; nunca existe em produção. */
+control.post('/__test/battle', async () => {
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const atMs = game.state.lastProcessedAt + 1;
+    game.state.horde.scheduledRaids = [
+      {
+        id: 'threat-1',
+        kind: 'threat',
+        enemy: 'raiders',
+        size: 'medium',
+        atMs,
+        announcedAtMs: null,
+        composition: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 6 },
+          { wing: 'center', line: 'front', unit: 'wolf', count: 10 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 4 },
+        ],
+      },
+    ];
+    const result = advanceTo(game.state, atMs);
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(result.state),
+    ]);
+  }
+  return { ok: true };
+});
+
 control.post('/__test/horde-quiet', async () => {
   const never = {
     id: 'never',

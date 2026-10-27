@@ -622,6 +622,7 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
     : RAID_SIZE_IDS;
   return {
     enemy: raid.enemy,
+    size: perks.revealsRaidSize ? raid.size : null,
     enemyLabel,
     inSeconds: realSecondsCeil(raid.atMs - now, timeScale),
     sizeText,

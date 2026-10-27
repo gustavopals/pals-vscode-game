@@ -20,6 +20,7 @@ import { fightBattle } from './battleTurn';
 import { emit } from './chronicle';
 import { DAY_MS, seasonAt } from './clock';
 import { nominationReason } from './formations';
+import { observeFormation } from './hordePlan';
 import { baseRaidComposition, buildDefender, scaledLoss, toHordePosts } from './raidArmy';
 import { applyWallDamage, wallForBattle } from './wallRepair';
 import { decimal, joinList } from './format';
@@ -29,7 +30,6 @@ import {
   isThreatWatched,
   palisadeAgainst,
   palisadeLevel,
-  raidingEnemy,
   watchtowerLevel,
   watchtowerPerks,
   watchtowerWarningMs,
@@ -89,7 +89,7 @@ function warScriptedRaid(def: (typeof warRaids.scripted)[number]): ScheduledRaid
     id: def.id,
     atMs: scriptedAtMs(def),
     kind: 'scripted',
-    enemy: 'wolves',
+    enemy: def.rehearsal ? 'horde' : 'raiders',
     size: def.size,
     announcedAtMs: null,
     composition: null,
@@ -101,7 +101,7 @@ function warScriptedRaid(def: (typeof warRaids.scripted)[number]): ScheduledRaid
  * marcadas **na virada do dia que fica `threat.raidLeadMs` antes delas**, como uma sorteada, e
  * não na criação: até lá a Ameaça sorteia como sempre. Assim só as recebe a partida que ainda não
  * passou daquele instante (a que a migração encontra dentro da antecedência, o passo 32 → 33
- * marca). O inimigo é o que o feudo conhece hoje; o exército é a composição-base da estação.
+ * marca). As primeiras vêm do Acampamento; o ensaio vem da Horda. O exército é a composição-base da estação.
  * Nada aqui sorteia. A lista fica em ordem de chegada.
  */
 export function markScriptedWarRaids(draft: GameState, atMs: number): void {
@@ -113,10 +113,9 @@ export function markScriptedWarRaids(draft: GameState, atMs: number): void {
     }
     // Uma marcada por vez, como as sorteadas (D-33): com outra incursão marcada, a do roteiro
     // não é marcada e não volta (a partida segue com a que já vinha).
-    // E só com quem ataque (D-34): com o Covil limpo, fora do outono, ninguém vem.
-    const enemy = raidingEnemy(draft, atMs);
-    if (scheduledRaids.length === 0 && enemy !== null) {
-      scheduledRaids.push({ ...raid, enemy });
+    // O Acampamento tem data própria (V4E-T3): limpar o Covil não impede saqueadores.
+    if (scheduledRaids.length === 0) {
+      scheduledRaids.push(raid);
     }
   }
   scheduledRaids.sort((a, b) => a.atMs - b.atMs);
@@ -144,7 +143,9 @@ export function legacySize(size: WarRaidSizeId): RaidSizeId {
 
 /** Como os vigias contam um bando deste tamanho. */
 export function bandText(enemy: EnemyId, size: WarRaidSizeId): string {
-  return size === 'strong' ? warRaids.bandSizes.wolf.strong : enemies[enemy].sizes[size];
+  return size === 'strong'
+    ? warRaids.bandSizes[enemy === 'wolves' ? 'wolf' : 'mixed'].strong
+    : enemies[enemy].sizes[size];
 }
 
 /**
@@ -391,6 +392,13 @@ function fightRaid(
   }
   applyBattleOutcome(draft, report, atMs, events);
   army.reports = [...army.reports, report].slice(-balance.army.reportsKept);
+  observeFormation(
+    draft,
+    Object.values(defender.posts).flatMap((lines) =>
+      Object.values(lines).filter((post) => post !== null),
+    ),
+    atMs,
+  );
   if (report.outcome !== 'defeat' || start <= 0 || left <= 0) {
     return { num: 0, den: 1 };
   }

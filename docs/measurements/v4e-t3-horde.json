@@ -1,0 +1,1568 @@
+[
+  {
+    "identity": {
+      "engine": "0.3.0",
+      "schemaVersion": 34,
+      "contentHash": "4b45a62e503eb335"
+    },
+    "regularSeeds": 50,
+    "militarySeeds": 10
+  },
+  {
+    "difficulty": "peasant",
+    "regular": [
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 11,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 24,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 11,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 11,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 10,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      }
+    ],
+    "threatBySeason": {
+      "spring": {
+        "total": 31937,
+        "hours": 2400,
+        "mean": 13.307083333333333
+      },
+      "summer": {
+        "total": 67910,
+        "hours": 2400,
+        "mean": 28.295833333333334
+      },
+      "autumn": {
+        "total": 188456,
+        "hours": 2400,
+        "mean": 78.52333333333333
+      },
+      "winter": {
+        "total": 94190,
+        "hours": 1200,
+        "mean": 78.49166666666666
+      }
+    }
+  },
+  {
+    "difficulty": "peasant",
+    "feint": false,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 9
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 24
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 17
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 11
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 17
+      }
+    ]
+  },
+  {
+    "difficulty": "peasant",
+    "feint": true,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 9
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 24
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 17
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 11
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 17
+      }
+    ]
+  },
+  {
+    "difficulty": "lord",
+    "regular": [
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 10,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 24,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 25,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 26,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 24,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 11,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 23,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      }
+    ],
+    "threatBySeason": {
+      "spring": {
+        "total": 32026,
+        "hours": 2400,
+        "mean": 13.344166666666666
+      },
+      "summer": {
+        "total": 67910,
+        "hours": 2400,
+        "mean": 28.295833333333334
+      },
+      "autumn": {
+        "total": 189188,
+        "hours": 2400,
+        "mean": 78.82833333333333
+      },
+      "winter": {
+        "total": 93072,
+        "hours": 1200,
+        "mean": 77.56
+      }
+    }
+  },
+  {
+    "difficulty": "lord",
+    "feint": false,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 19
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 10
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 19
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 22
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 18
+      }
+    ]
+  },
+  {
+    "difficulty": "lord",
+    "feint": true,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 1,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 19
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 10
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 19
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 22
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 15
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 18
+      }
+    ]
+  },
+  {
+    "difficulty": "ironKing",
+    "regular": [
+      {
+        "omens": 10,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 19,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 10,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 24,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 11,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 21,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 10,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 9
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 24,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 22,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 13,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 6
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 14,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 18,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 17,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 8
+      },
+      {
+        "omens": 12,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 15,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 20,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      },
+      {
+        "omens": 16,
+        "fortress": 49,
+        "suffered": 2,
+        "repelled": 7
+      }
+    ],
+    "threatBySeason": {
+      "spring": {
+        "total": 31933,
+        "hours": 2400,
+        "mean": 13.305416666666666
+      },
+      "summer": {
+        "total": 67910,
+        "hours": 2400,
+        "mean": 28.295833333333334
+      },
+      "autumn": {
+        "total": 188236,
+        "hours": 2400,
+        "mean": 78.43166666666667
+      },
+      "winter": {
+        "total": 92110,
+        "hours": 1200,
+        "mean": 76.75833333333334
+      }
+    }
+  },
+  {
+    "difficulty": "ironKing",
+    "feint": false,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 12
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 24
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 10
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 12
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 11
+      }
+    ]
+  },
+  {
+    "difficulty": "ironKing",
+    "feint": true,
+    "military": [
+      {
+        "seed": "pedra-alta-001",
+        "baitBattles": 1,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 12
+      },
+      {
+        "seed": "pedra-alta-002",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 6,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-003",
+        "baitBattles": 0,
+        "soldiers": 1,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 13
+      },
+      {
+        "seed": "pedra-alta-004",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-005",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 14
+      },
+      {
+        "seed": "pedra-alta-006",
+        "baitBattles": 0,
+        "soldiers": 4,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 24
+      },
+      {
+        "seed": "pedra-alta-007",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 10
+      },
+      {
+        "seed": "pedra-alta-008",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 8,
+        "injured": 1,
+        "omens": 16
+      },
+      {
+        "seed": "pedra-alta-009",
+        "baitBattles": 0,
+        "soldiers": 0,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 12
+      },
+      {
+        "seed": "pedra-alta-010",
+        "baitBattles": 0,
+        "soldiers": 2,
+        "suffered": 2,
+        "repelled": 7,
+        "injured": 1,
+        "omens": 11
+      }
+    ]
+  }
+]

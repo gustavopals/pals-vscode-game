@@ -32,6 +32,9 @@ import {
   wageArrearsReliefs,
   tavernCandidates,
   warRaids,
+  hordeTiles,
+  hordeWaves,
+  omenTexts,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -80,7 +83,7 @@ const HEADER =
   'outcomes_full_success,outcomes_success,outcomes_setback,outcomes_disaster,' +
   'crossroads_by_player,crossroads_by_stance,hero_idle_hours,' +
   'traded_food,traded_wood,traded_stone,market_volume_used_percent,' +
-  'caravans_sent,caravans_ambushed,masters';
+  'caravans_sent,caravans_ambushed,masters,omens,fortress_day';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -165,6 +168,8 @@ describe('CSV de uma partida', () => {
       'caravans_ambushed',
       // A dos Mestres, medida desde V3E-T3.
       'masters',
+      'omens',
+      'fortress_day',
     ]);
     // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
     // dos objetivos (V2E-T4) já nasceu medida. As da Guilda (roadmap da v0.3, V3B-T2.2) vêm
@@ -364,9 +369,9 @@ describe('CSV de uma partida', () => {
     // derruba a Ameaça nos dias 25, 37 e 61) o ano termina em 63, com a máxima em 89, e o bot
     // leva a Torre ao nível 4. Com as do roteiro dos dias 25 e 37 leves e sem ferido (D-39) a
     // Ameaça termina igual, e o ouro vai para outras obras: a Torre fica no nível 3.
-    expect(summary.threat).toEqual({ final: 63, max: 89, watchtower: 3 });
+    expect(summary.threat).toEqual({ final: 77, max: 100, watchtower: 4 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 63 no fim (máxima 89) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 77 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -632,7 +637,10 @@ describe('resumo de uma partida', () => {
             startingTiles,
             enemies,
             raidSizes,
-            warRaids, // entrou no hash com os incursores da Fase D (V4E-T2)
+            warRaids,
+            hordeTiles,
+            hordeWaves,
+            omenTexts,
             threatMarkTemplates,
             raidTemplates,
             injuryTemplates,
@@ -734,7 +742,7 @@ describe('resumo de uma partida', () => {
       losses: Math.round(sum('raided_food') + sum('raided_wood')),
       // Paliçada Nv3 (era 4 na V4E-T1, 2 antes dela): com as incursões-batalha o bot chega ao
       // primeiro nível da Muralha de Pedra.
-      palisade: 3,
+      palisade: 4,
     });
     // A do roteiro e as da Ameaça: o bot sofre as primeiras e, com a Paliçada, repele o resto.
     expect(summary.raids.suffered).toBeGreaterThan(0);
@@ -749,7 +757,7 @@ describe('resumo de uma partida', () => {
     expect(formatSummary(twoSessions)).toContain(
       `Lobos: ${summary.raids.suffered} incursões sofridas, ${summary.raids.repelled} repelidas (${summary.raids.announced} anunciadas pela Torre) · ` +
         `levaram food ${summary.raids.lost.food}, wood ${summary.raids.lost.wood} · ${summary.raids.injured} feridos · ` +
-        `Paliçada Nv3, erguida na hora ${summary.milestones.palisade}\n`,
+        `Paliçada Nv4, erguida na hora ${summary.milestones.palisade}\n`,
     );
     // As colunas do CSV são as mesmas contas, acumuladas hora a hora: nunca diminuem.
     const last = twoSessions.rows[167];

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { DAY_MS } from './clock';
 import { WAR_SCRIPTED_RAIDS_V33 } from './migrations/v32';
-import { newGame } from './test-helpers';
+import { gameAt, newGame } from './test-helpers';
 import { deriveViewState } from './view';
 import type { GameEvent, GameState } from './types';
 
@@ -96,6 +96,11 @@ describe('os lobos do dia 16 como batalha', () => {
       .filter((entry) => entry.owner === 'player')
       .reduce((sum, entry) => sum + entry.lost, 0);
     expect(state.army.units.spearman + state.army.units.archer).toBe(60 - lost);
+    // A Horda viu a tropa do começo da batalha, sem nomes, comandantes ou reserva.
+    expect(state.horde.lastFormationSeen).toEqual({
+      total: 60,
+      byUnit: { spearman: 30, archer: 30 },
+    });
   });
 
   it('avançar de uma vez ou aos pedaços dá a mesma batalha', () => {
@@ -161,9 +166,11 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
     expect(newGame().horde.scheduledRaids.map((raid) => raid.id)).toEqual(['wolvesYear1']);
     const lead = balance.threat.raidLeadMs;
     const marked: Array<[string, number, string]> = [];
-    let state = newGame();
     for (const def of warRaids.scripted) {
       const atMs = (def.atGameDay - 1) * DAY_MS;
+      let state = gameAt(atMs - lead - 1, (draft) => {
+        draft.horde.scheduledRaids = [];
+      });
       const justBefore = advanceTo(state, atMs - lead - 1).state;
       expect(justBefore.horde.scheduledRaids.some((raid) => raid.id === def.id)).toBe(false);
       state = advanceTo(justBefore, atMs - lead).state;
@@ -260,7 +267,10 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
   });
 
   it('a forte do 61º dia (o ensaio), sem defesa, leva no máximo a perda de `warRaids.losses.strong`', () => {
-    const before = advanceTo(newGame(), 60 * DAY_MS - 1).state;
+    const start = gameAt(57 * DAY_MS - 1, (draft) => {
+      draft.horde.scheduledRaids = [];
+    });
+    const before = advanceTo(start, 60 * DAY_MS - 1).state;
     before.horde.scheduledRaids = before.horde.scheduledRaids.filter(
       (raid) => raid.id === 'raidersYear1Rehearsal',
     );

@@ -244,7 +244,7 @@ describe('erguer o Mercado (V3E-T1.7)', () => {
 describe('o Mercado em uma partida inteira', () => {
   it('o econômico ergue o Mercado, negocia sem recusa e o resumo mede o que foi vendido; o preguiçoso não o ergue', async () => {
     const economico = await simulate({
-      seed: 'pedra-alta-003',
+      seed: 'pedra-alta-001',
       days: 7,
       strategy: 'economico',
       sessionsPerDay: 4,
@@ -271,7 +271,7 @@ describe('o Mercado em uma partida inteira', () => {
     }
 
     const preguicoso = await simulate({
-      seed: 'pedra-alta-003',
+      seed: 'pedra-alta-001',
       days: 7,
       strategy: 'preguicoso',
       sessionsPerDay: 1,

@@ -391,15 +391,20 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(33);
-    expect(row.state.schemaVersion).toBe(33);
+    expect(row.schema_version).toBe(34);
+    expect(row.state.schemaVersion).toBe(34);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
       discovered: [],
     });
-    expect(row.state.horde).toEqual({ scheduledRaids: [] });
+    expect(row.state.horde).toEqual({
+      scheduledRaids: [],
+      lastFormationSeen: null,
+      wavePlan: null,
+      omens: [],
+    });
     expect(row.state.settlement.buildings.watchtower).toBe(0);
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
 

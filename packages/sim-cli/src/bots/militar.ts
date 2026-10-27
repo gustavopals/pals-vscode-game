@@ -1,5 +1,7 @@
 import { economicoPolicies, preparedFor } from './economico';
 import { erguerFerreiro, forjarArmas, treinarMinimo, treinarSoldados } from './policies';
+import { montarFormacao } from './policies';
+import { prepararFinta } from './finta';
 import { botOf, type Bot, type Policy } from './types';
 
 /**
@@ -11,8 +13,8 @@ import { botOf, type Bot, type Policy } from './types';
  *
  * **Monta uma formação com o que tem e a ativa** (V4C-T2; `montarFormacao`), sem comandante: desde
  * a V4E-T2.7 a política vem do econômico, logo depois do treino.
- * Ainda não há Plano, finta, sabotagem nem milícia: entram nas fases seguintes, e este bot as
- * ganha então. **Não tem faixa de balanceamento** (a rodada padrão
+ * Na V4E-T3, usa uma isca de arqueiros em incursão forte visível do outono e volta à
+ * defesa no inverno. Plano, sabotagem e milícia entram nas fases seguintes. **Não tem faixa de balanceamento** (a rodada padrão
  * continua com os três perfis do econômico); roda a pedido (`--strategy militar`,
  * `--matrix --profile militar`), como o `ousado`. Como todo bot, só lê o `ViewState`.
  */
@@ -20,7 +22,11 @@ export const militarPolicies: readonly Policy[] = [
   erguerFerreiro,
   forjarArmas,
   ...economicoPolicies.map((policy) =>
-    policy === treinarMinimo ? treinarSoldados(['swordsman', 'spearman', 'archer']) : policy,
+    policy === treinarMinimo
+      ? treinarSoldados(['swordsman', 'spearman', 'archer'])
+      : policy === montarFormacao
+        ? prepararFinta
+        : policy,
   ),
 ];
 

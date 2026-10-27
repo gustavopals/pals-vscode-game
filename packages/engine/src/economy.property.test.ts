@@ -539,8 +539,12 @@ describe('invariante de divisão de intervalo', { timeout: 120_000 }, () => {
         expect(events).toStrictEqual(direct.events);
         expect(JSON.stringify(start)).toBe(frozen);
 
-        // Só o fluxo da moral anda, e quem chega, parte ou deserta o faz em uma virada de dia.
-        expect(Object.keys(direct.state.rng).filter((stream) => stream !== 'morale')).toEqual([]);
+        // Moral e preparação anual da Horda usam fluxos separados; a população só muda nas viradas.
+        expect(
+          Object.keys(direct.state.rng).filter(
+            (stream) => stream !== 'morale' && stream !== 'horde',
+          ),
+        ).toEqual([]);
         for (const event of direct.events) {
           if (population.includes(event.type) || event.type === 'moraleBandChanged') {
             expect(event.atMs % DAY).toBe(0);

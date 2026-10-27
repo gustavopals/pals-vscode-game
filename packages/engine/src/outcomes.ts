@@ -296,6 +296,18 @@ export function clearTile(
  * conta o tile. A linha só sai para o tile que estava limpo: é o jogador que o limpou quem lê.
  */
 export function restoreTiles(draft: GameState, atMs: number, events: GameEvent[]): void {
+  const camp = draft.map.tiles.raiderCamp;
+  if (camp !== undefined && !camp.threatActive) {
+    camp.threatActive = true;
+    emit(
+      events,
+      draft,
+      atMs,
+      'threatTileRestored',
+      { tileId: 'raiderCamp' },
+      { lugar: tileWithArticle(draft, 'raiderCamp') ?? '' },
+    );
+  }
   for (const start of startingTiles) {
     const tile = Object.hasOwn(draft.map.tiles, start.id) ? draft.map.tiles[start.id] : undefined;
     if (tile === undefined || !start.threatActive || tile.threatActive) {

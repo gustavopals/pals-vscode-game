@@ -1,9 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
 import { toCsv } from '../report';
-import { simulate } from '../simulate';
+import { simulate, type SimulationResult } from '../simulate';
 import { economicoPolicies } from './economico';
 import { militarPolicies } from './militar';
+
+/** O fim da semana pode não ter sobreviventes: cada baixa tem de estar nos eventos da batalha. */
+function expectArmyLedger(result: SimulationResult): void {
+  const trained = result.events
+    .filter((event) => event.type === 'soldiersTrained')
+    .reduce((sum, event) => sum + Number(event.data.amount), 0);
+  const lost = result.events
+    .filter((event) => event.type === 'battleFought')
+    .reduce((sum, event) => sum + Number(event.data.playerLost), 0);
+  const disbanded = result.events
+    .filter((event) => event.type === 'soldiersDisbanded')
+    .reduce((sum, event) => sum + Number(event.data.amount), 0);
+  expect(trained).toBeGreaterThan(0);
+  expect(result.rows.some((row) => row.soldiers > 0 && row.armyFood > 0)).toBe(true);
+  expect(result.rows.at(-1)?.soldiers).toBe(trained - lost - disbanded);
+}
 
 /**
  * A guerra no simulador (V4C-T1.8; decisão 25 do ADR 0019): a política mínima do econômico e o
@@ -20,10 +36,9 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     });
     const last = result.rows.at(-1);
     expect(result.finalState.settlement.buildings.barracks).toBe(1);
-    expect(last?.soldiers).toBeGreaterThan(0);
+    expectArmyLedger(result);
     expect(last?.soldiersByUnit.swordsman).toBeUndefined();
     expect(last?.trainingBatches).toBeGreaterThan(0);
-    expect(last?.armyFood).toBeGreaterThan(0);
     expect(result.rows.some((row) => row.famine)).toBe(false);
     // Nem o Ferreiro, que é do militar.
     expect(result.finalState.settlement.buildings.smithy).toBe(0);
@@ -48,7 +63,7 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     expect(names.slice(0, 2)).toEqual(['erguer o Ferreiro', 'forjar armas']);
     // Desde a V4E-T2.7 (decisão 25) a formação é do econômico, logo depois do treino; o militar
     // a herda dele e só acrescenta o Ferreiro e a forja.
-    expect(names).toContain('montar a formação');
+    expect(names).toContain('fintar a Horda');
     expect(names).toHaveLength(economicoPolicies.length + 2);
     const result = await simulate({
       seed: 'pedra-alta-001',
@@ -58,12 +73,12 @@ describe('os bots na guerra (V4C-T1.8)', () => {
       sessionsPerDay: 2,
     });
     expect(result.finalState.settlement.buildings.smithy).toBeGreaterThan(0);
-    expect(result.rows.at(-1)?.soldiers).toBeGreaterThan(0);
+    expectArmyLedger(result);
     // A formação do bot: monta com o que tem e a ativa, sem comandante (V4C-T2).
     const { formations, activeFormationId } = result.finalState.army;
     // Uma, ou duas se a prévia da primeira deu menos de 50% e o bot tentou a outra (V4D-T2.5).
     expect(formations.length).toBeGreaterThanOrEqual(1);
-    expect(formations.length).toBeLessThanOrEqual(2);
+    expect(formations.length).toBeLessThanOrEqual(3);
     expect(formations.map((entry) => entry.id)).toContain(activeFormationId);
     expect(
       formations.every((entry) => Object.values(entry.commanders).every((id) => id === null)),

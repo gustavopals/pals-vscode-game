@@ -1340,3 +1340,32 @@ Crônica (`rest`): "Na véspera do cerco, o senhor de {feudo} mandou o povo desc
 ### 11.6 Cobertura do lote 3 e as 60
 
 Com as seções 9, 10 e 11, as 15 do lote 3 estão escritas: 9.1 a 9.5, 10.1 a 10.5 e 11.1 a 11.5. **Quatro roteirizadas**: 10.1, 10.2, 10.3 e 11.5. **Cadeia**: 9.1 a 9.3. **Fase de que cada uma depende:** sem fase futura, 9.1 a 9.5, 10.1 e 10.4; Fase E, 10.2, 10.3, 10.5, 11.1, 11.2 e 11.3; Fase G, 11.4 e 11.5. **Traços e mecânicas da v0.4 que o lote usa:** Veterano e Leal (10.4), Prudente (11.3), Torre Nv3 (10.2), Fortaleza e presságios (10.2, 10.3, 10.5), Acampamento (11.1), Muralha (11.2), formações (11.3), Rescaldo (11.4), Cerco e milícia (11.5). A sabotagem (Fase F) não entra em carta nenhuma do lote 3.
+
+## 12. Ondas e presságios da Horda (V4E-T3)
+
+**Rascunho do agente, não lido pelo autor.** Datas, tamanhos e astúcia vêm do
+ADR 0020 e do GDD; os pesos abaixo são a distribuição inicial proposta para
+viabilizar ondas persistidas e presságios verdadeiros. Ainda falta medir o cerco
+completo na Fase G. Alterar os pesos é alterar conteúdo, hash e goldens.
+
+| Onda | Base | Mistura proposta | Posto fixo |
+| --- | --- | --- | --- |
+| 1 | 40 | 70 saqueadores, 30 arqueiros bandidos | Um Xamã na retaguarda central, incluído no total |
+| 2 | 60 | 50 lobos, 20 ogros, 30 saqueadores | Nenhum |
+| 3 | 80 | 45 cavaleiros negros, 40 esqueletos, 15 xamãs | Um Senhor da Guerra na frente central, além do total |
+
+Os pesos somam 100 por onda, antes da adaptação à última formação. O tamanho
+recebe o fator da dificuldade (7/10, 1, 13/10), com piso inteiro e distribuição do
+resto pelos postos. Arquivo: `packages/content/src/horde.ts`.
+
+Os textos em `omens.ts` continuam rascunho. Exemplos de estrutura:
+
+- Vago: “Corvos voam do norte em bandos: a Horda trará muitas feras.”
+- Parcial: “Os vigias contam cerca de 15 lobos rumando para o vale, pela ala esquerda, na segunda noite.” A contagem descreve o posto revelado, nunca a soma de outras alas.
+- Exato: “Um desertor desenha no chão, para a terceira onda: …”, seguido de cada posto com contagem, unidade, linha e ala.
+
+As frases de chegada e desfecho de saqueadores e tropas da Horda, em
+`chronicle.ts`, distinguem tropas de matilhas. Novas linhas: `campAppeared`,
+`fortressAppeared` e `omenSeen`. A aparição de um tile só é narrada a quem tem
+Torre. O presságio da revisão anterior permanece como observação histórica na
+Crônica; a lista corrente é limpa quando a Horda altera as ondas no outono.

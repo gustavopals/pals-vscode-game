@@ -106,11 +106,11 @@ export const MORALE_TERM_IDS = [
 export type MoraleTermId = (typeof MORALE_TERM_IDS)[number];
 
 /** Os tipos de tile do mapa (GDD §8.1). Na v0.2 só existe o tile de ameaça, em lista: `tiles.ts`. */
-export const TILE_TYPE_IDS = ['wolfDen'] as const;
+export const TILE_TYPE_IDS = ['wolfDen', 'raiderCamp', 'hordeFortress'] as const;
 export type TileTypeId = (typeof TILE_TYPE_IDS)[number];
 
 /** Quem ataca o feudo em uma incursão (GDD §8.2). Na v0.2, só os lobos. */
-export const ENEMY_IDS = ['wolves'] as const;
+export const ENEMY_IDS = ['wolves', 'raiders', 'horde'] as const;
 export type EnemyId = (typeof ENEMY_IDS)[number];
 
 /** Os tamanhos de uma incursão (GDD §8.2), da menor à maior. */

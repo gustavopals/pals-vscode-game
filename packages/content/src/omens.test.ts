@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { balance, DIFFICULTY_IDS, HORDE_UNIT_IDS, omenTexts, UNIT_IDS } from './index';
-import { BalanceSchema } from './schemas';
+import { balance, DIFFICULTY_IDS, hordeWaves, HORDE_UNIT_IDS, omenTexts, UNIT_IDS } from './index';
+import { BalanceSchema, HordeWavesSchema } from './schemas';
 
 describe('A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18)', () => {
   it('o conteúdo passa no schema', () => {
@@ -9,13 +9,36 @@ describe('A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18)', (
     expect(result.error).toBeUndefined();
   });
 
+  it('as três ondas preparam os tamanhos do GDD, o Xamã e o chefe', () => {
+    expect(HordeWavesSchema.safeParse(hordeWaves).error).toBeUndefined();
+    expect(hordeWaves.map((wave) => wave.baseCount)).toEqual([40, 60, 80]);
+    expect(hordeWaves[0]?.fixed).toContainEqual({
+      wing: 'center',
+      line: 'back',
+      unit: 'shaman',
+      count: 1,
+      extra: false,
+    });
+    expect(hordeWaves[2]?.fixed).toContainEqual({
+      wing: 'center',
+      line: 'front',
+      unit: 'warlord',
+      count: 1,
+      extra: true,
+    });
+    expect(HordeWavesSchema.safeParse([...hordeWaves].reverse()).success).toBe(false);
+  });
+
   it('a astúcia é a do ADR 0020: 3/10, 1/2 e 4/5', () => {
-    expect(balance.horde.cunning).toEqual({
+    const cunning = Object.fromEntries(
+      DIFFICULTY_IDS.map((id) => [id, balance.difficulties[id].cunning]),
+    );
+    expect(cunning).toEqual({
       peasant: { num: 3, den: 10 },
       lord: { num: 1, den: 2 },
       ironKing: { num: 4, den: 5 },
     });
-    expect(Object.keys(balance.horde.cunning)).toEqual([...DIFFICULTY_IDS]);
+    expect(Object.keys(cunning)).toEqual([...DIFFICULTY_IDS]);
     expect(Object.keys(balance.horde.counterWeights)).toEqual([...UNIT_IDS]);
     expect(balance.horde.counterWeights.shieldbearer).toBe(0);
   });

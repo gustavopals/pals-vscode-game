@@ -135,7 +135,8 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // sementes abrem a cadeia (eram 19). Piso novo: 5. Registrado em docs/balance-v0.4.md, seção 8.
     // D-39 (as incursões do roteiro dos dias 25 e 37 leves e sem ferido): 4 das 50. Piso 4,
     // registrado em docs/balance-v0.4.md, seção 10.
-    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(4);
+    // V4E-T3: Acampamento e Fortaleza pressionam a reserva: três cadeias nas mesmas 50 sementes.
+    expect(runsOf(fast, 'commonGranaryShare')).toBe(3);
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {

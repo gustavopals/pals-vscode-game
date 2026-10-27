@@ -51,6 +51,8 @@ export {
   wingLocatives,
 } from './formations';
 export { omenTexts } from './omens';
+export { hordeTiles, hordeWaves } from './horde';
+export type { HordeWaveDef } from './horde';
 export { COUNTER_CYCLE, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';
 export { ARCHETYPES, ARCHETYPE_COUNTERS, hordeBaseMix, hordeUnits } from './enemies';

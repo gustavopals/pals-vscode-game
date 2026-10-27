@@ -124,6 +124,9 @@ export type HourRow = {
    * visão só a mostra a quem tem a Torre de Vigia. O bot continua sem vê-la.
    */
   threat: number;
+  /** Presságios recebidos, acumulados, e o dia de jogo da aparição mais recente da Fortaleza. */
+  omens: number;
+  fortressDay: number | null;
   /**
    * O Conselho até aqui, contado dos eventos: as cartas que chegaram (por sorteio ou como
    * continuação), as que o bot respondeu e as que expiraram sem resposta.
@@ -577,6 +580,8 @@ function rowAt(
     exhausted: nothingLeftToBuild(view),
     ...idleQueue(view),
     threat: state.map.threat,
+    omens: state.stats.omens ?? 0,
+    fortressDay: state.stats.fortressAppearedAtDay ?? null,
     cards: { ...cards },
     raids: { ...raids, lost: { ...raids.lost } },
     objectives: view.objectives.filter((objective) => objective.status === 'completed').length,

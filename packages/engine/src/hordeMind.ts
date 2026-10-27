@@ -15,8 +15,8 @@ import {
 
 /**
  * A Horda que aprende (GDD §10.6, §11.1; ADR 0020, decisões 15 e 18): contas puras, sem estado
- * nem sorteio próprio. **Nada aqui é chamado pelo jogo ainda** (V4E-T3.2 e T3.3, parte pura): a
- * ligação ao estado 33 vem depois. O gerador é injetado: `draw(n)` devolve um inteiro em
+ * nem sorteio próprio. `hordeTurn` e `hordePlan` ligam estas contas ao estado 34
+ * (V4E-T3). O gerador é injetado: `draw(n)` devolve um inteiro em
  * `[0, n)`, como `nextInt` de `random.ts` sobre o fluxo `horde`.
  */
 export type Draw = (maxExclusive: number) => number;
@@ -66,9 +66,9 @@ export function compositionWeights(
   season: SeasonId,
   difficulty: DifficultyId,
   memory: HordeMemory | null,
+  base = hordeBaseMix[season],
 ): HordeWeights {
-  const base = hordeBaseMix[season];
-  const cunning = balance.horde.cunning[difficulty];
+  const cunning = balance.difficulties[difficulty].cunning;
   const total = memory?.total ?? 0;
   const scale = total > 0 ? cunning.den * total : 1;
   const weights: Partial<Record<HordeUnitId, number>> = {};

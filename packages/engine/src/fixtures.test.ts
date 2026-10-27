@@ -7,6 +7,8 @@ import { housingCapacity } from './population';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
+  AUTUMN,
+  gameAt,
   caravanEscortScenario,
   caravanOrder,
   caravanScenario,
@@ -70,7 +72,20 @@ function frozenState(name: string): unknown {
  * como entrada do passo de migração novo (`migrations.test.ts`). Assim toda versão do estado
  * que já existiu tem retratos feitos pelo motor da época, sem ninguém ter de lembrar de gerá-los.
  */
+function omensScenario(tower: number): GameState {
+  const start = gameAt(AUTUMN - 1, (state) => {
+    state.seed = `fixture-horde-omens-${tower}`;
+    state.settlement.buildings.watchtower = tower;
+    // Uma formação observada antes de seus soldados morrerem: só o resumo continua guardado.
+    state.horde.lastFormationSeen = { total: 20, byUnit: { archer: 20 } };
+  });
+  return advanceTo(start, AUTUMN + 8 * DAY).state;
+}
+
 const scenarios: Record<string, () => GameState> = {
+  'horde-omens-vague': () => omensScenario(1),
+  'horde-omens-partial': () => omensScenario(3),
+  'horde-omens-exact': () => omensScenario(5),
   // Feudo recém-criado: ninguém deu ordem nenhuma.
   fresh: () => newGame('fixture-fresh'),
 
@@ -755,7 +770,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('fresh').horde).toEqual(threat.horde);
     // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
     // (V4E-T2.4) mudaram a semana.
-    expect(of('week-scripted').map.threat).toBe(63);
+    expect(of('week-scripted').map.threat).toBe(67);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
@@ -787,13 +802,13 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(sighted.horde.scheduledRaids).toHaveLength(1);
     const [incoming] = sighted.horde.scheduledRaids;
     // O tamanho mudou com as incursões-batalha do roteiro (V4E-T2.4); o que importa é a sorteada.
-    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'wolves' });
+    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'raiders' });
     expect(incoming?.id).toMatch(/^threat-\d+$/);
     expect(incoming?.announcedAtMs).not.toBeNull();
     expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
     expect(incoming?.atMs).toBeGreaterThan(sighted.lastProcessedAt);
     expect(sighted.rng.horde).toHaveLength(4);
-    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 3, raids_repelled: 3 });
+    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 3, raids_repelled: 6 });
     expect(of('week-scripted').rng.horde).toHaveLength(4);
     // Todo cenário tem a lista de feridos, vazia ou não.
     for (const state of all0()) {

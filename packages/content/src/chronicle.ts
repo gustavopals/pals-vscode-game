@@ -92,6 +92,9 @@ export const EVENT_TYPES = [
   'wallRepairStarted',
   'wallRepaired',
   'wallDamaged',
+  'omenSeen',
+  'fortressAppeared',
+  'campAppeared',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -133,6 +136,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {aldeao}, quem se feriu.
  */
 export const CHRONICLE_PLACEHOLDERS = [
+  'pressagio',
   'dia',
   'estacao',
   'aEstacao',
@@ -394,6 +398,11 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, os pedreiros de {feudo} largaram as outras obras e subiram à muralha para refazer {alas}.',
   wallRepaired: 'No {dia}º dia {daEstacao}, a muralha de {feudo} voltou a ficar inteira.',
   wallDamaged: 'No {dia}º dia {daEstacao}, a batalha deixou marcas na muralha de {feudo}: {alas}.',
+  omenSeen: 'No {dia}º dia {daEstacao}, os vigias de {feudo} trouxeram um presságio: {pressagio}',
+  fortressAppeared:
+    'No {dia}º dia {daEstacao}, estandartes surgiram ao norte de {feudo}: a Fortaleza da Horda se prepara para o inverno.',
+  campAppeared:
+    'No {dia}º dia {daEstacao}, viajantes avistaram um Acampamento de Saqueadores nas colinas de {feudo}.',
   itemRepaired:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} devolveu {item} ao arsenal, inteiro outra vez.',
   masterWaiting:
@@ -605,6 +614,38 @@ export type RaidTemplates = {
   readonly advice: { readonly build: string; readonly upgrade: string };
 };
 
+const humanRaidTemplates: RaidTemplates = {
+  howl: {
+    unwatched:
+      'No {dia}º dia {daEstacao}, viajantes viram tropas nas colinas de {feudo}. Sem vigias, ninguém sabe quantas são.',
+    watched:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} dobraram a ronda: há tropas nas colinas.',
+  },
+  announced: {
+    warned:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} deram o alarme: {inimigo} a caminho. Ainda não se distingue quantos são.',
+    sized:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} deram o alarme: {inimigo} a caminho. Contam {bando}.',
+  },
+  arrival: {
+    unwarned:
+      'No {dia}º dia {daEstacao}, {inimigo} chegaram a {feudo} sem que ninguém os visse vir.',
+    warned: 'No {dia}º dia {daEstacao}, {inimigo} que os vigias avistaram chegaram a {feudo}.',
+    sized:
+      'No {dia}º dia {daEstacao}, {inimigo} chegaram a {feudo}: {bando}, como os vigias contaram.',
+  },
+  outcome: {
+    held: 'A defesa resistiu: nada se perdeu e ninguém se feriu.',
+    breached: 'A defesa lhes quebrou o ímpeto, mas não os deteve: o ataque custou {perda}.',
+    open: 'O ataque atravessou a defesa e custou {perda}.',
+    emptyHanded: 'Não acharam o que levar nem a quem ferir.',
+  },
+  advice: {
+    build: 'Uma formação preparada e uma paliçada teriam ajudado.',
+    upgrade: 'Uma paliçada no nível {nivel} e uma formação preparada teriam ajudado.',
+  },
+};
+
 export const raidTemplates: Record<EnemyId, RaidTemplates> = {
   wolves: {
     howl: {
@@ -638,6 +679,8 @@ export const raidTemplates: Record<EnemyId, RaidTemplates> = {
       upgrade: 'Uma paliçada no nível {nivel} os teria detido.',
     },
   },
+  raiders: humanRaidTemplates,
+  horde: humanRaidTemplates,
 };
 
 /**
