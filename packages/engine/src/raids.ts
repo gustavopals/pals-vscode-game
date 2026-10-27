@@ -105,14 +105,14 @@ function warScriptedRaid(def: (typeof warRaids.scripted)[number], state: GameSta
  * marca). As primeiras vêm do Acampamento; o ensaio vem da Horda. O exército é a composição-base da estação.
  * Nada aqui sorteia. A lista fica em ordem de chegada.
  */
-export function markScriptedWarRaids(draft: GameState, atMs: number): void {
+export function markScriptedWarRaids(draft: GameState, atMs: number, allowLate = false): void {
   const { scheduledRaids } = draft.horde;
   for (const def of warRaids.scripted) {
     if (def.rehearsal && !rehearsalUnmarked(draft, def)) continue;
     const raid = warScriptedRaid(def, draft);
     const markAt = raid.atMs - threatRules.raidLeadMs;
     // A preferência pode mudar já dentro da antecedência: marca agora, sem voltar o relógio.
-    if (def.rehearsal ? atMs < markAt || atMs >= raid.atMs : markAt !== atMs) continue;
+    if (def.rehearsal && allowLate ? atMs < markAt || atMs >= raid.atMs : markAt !== atMs) continue;
     // A tentativa é única, inclusive sem vaga (D-33). Mudar a preferência não repete o ensaio.
     if (def.rehearsal) draft.stats.vigilRehearsalMarked = 1;
     // Uma marcada por vez, como as sorteadas (D-33): com outra incursão marcada, a do roteiro

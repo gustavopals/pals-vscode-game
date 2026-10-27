@@ -82,7 +82,7 @@ function dispatch(
       draft.settings.timezone = timezone;
       draft.settings.vigilHourLocal = hourLocal as number;
       draft.settings.vigil = { hourLocal: hourLocal as number, ...civil };
-      markScriptedWarRaids(draft, nowMs);
+      markScriptedWarRaids(draft, nowMs, true);
       emit(events, draft, nowMs, 'vigilChanged', { hourLocal: hourLocal as number, timezone });
       announceRaids(draft, nowMs, events);
       return null;

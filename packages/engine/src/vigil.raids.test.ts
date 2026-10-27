@@ -46,6 +46,19 @@ describe('o ensaio na Vigília (V4G-T1.3)', () => {
     }
   });
 
+  it('um estado que começa dentro da antecedência não depende do primeiro corte', () => {
+    // Regressão da propriedade: um corte de observação nunca marca tardiamente o ensaio.
+    // A marcação tardia é exclusiva da ordem que acabou de mudar a preferência.
+    const start = gameAt(135 * HOUR, (draft) => {
+      draft.horde.scheduledRaids = [];
+    });
+    const direct = advanceTo(start, 139 * HOUR);
+    const first = advanceTo(start, 135 * HOUR + 1);
+    const second = advanceTo(first.state, 139 * HOUR);
+    expect(second.state).toEqual(direct.state);
+    expect([...first.events, ...second.events]).toEqual(direct.events);
+  });
+
   it('uma incursão antiga marcada mantém o prazo, mesmo com a nova conta', () => {
     const state = gameAt(start - HOUR, (draft) => {
       draft.horde.scheduledRaids = [

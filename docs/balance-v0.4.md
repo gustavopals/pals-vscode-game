@@ -584,3 +584,8 @@ Vigília 20 h); a Ameaça final passa de 67 para 83, com 6 repelidas e 3 sofrida
 como antes. As asserções do cenário e do retrato foram atualizadas para esses
 valores exatos, sem tolerância ou remoção de cobertura. Os goldens da pressão
 e da contagem anual também mudam pelos novos instantes e pelo fluxo `horde`.
+
+A primeira rodada do portão detectou divergência da divisão de intervalo em
+estados postos diretamente dentro da antecedência, sem ensaio marcado. Corrigido
+no motor: marcação tardia só na ordem que muda a preferência; leituras não a
+fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
