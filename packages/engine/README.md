@@ -692,7 +692,16 @@ O ensaio usa a janela do 61º dia de jogo (120 a 144 h), e a marcação fica
 `settleRaids`, depois das obras e da virada do dia e antes do aviso da Torre.
 `stats.vigilRehearsalMarked` registra a tentativa única, inclusive sem vaga; a
 preferência não repete um ensaio já marcado ou resolvido. O passo de migração
-não marca nada, e o ensaio antigo em curso mantém seu prazo.
+não marca nada, e o ensaio antigo em curso mantém seu prazo; quando a fronteira já
+passou de 114 h de jogo (o instante em que o estado 34 marcava o ensaio), o passo
+grava `stats.vigilRehearsalMarked`, porque a versão antiga já fez a tentativa. O
+registro fica no estado, e não em `migratedAtMs`, que a próxima migração troca.
+
+Mudar a Vigília (`setVigilHour`) chama `markRehearsalAfterVigilChange`, que só
+olha o ensaio: se a nova marcação já ficou para trás e a janela do evento não
+acabou, ele é marcado na hora; se a nova Vigília já passou, chega `raidLeadMs`
+depois da ordem (a mudança de hora não apaga o ensaio). As outras incursões do
+roteiro não são remarcadas pela ordem.
 
 `applyCommand` aceita um quarto argumento opcional, `CommandContext`, só para
 a Vigília: `vigil: { utcOffsetMinutes, timezoneResolved }`, resolvido pelo servidor

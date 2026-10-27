@@ -100,4 +100,35 @@ describe('mudar a Vigília (V4G-T1.4)', () => {
       ).toMatchObject({ ok: false, code: 'INVALID_VIGIL' });
     }
   });
+
+  it('uma Vigília que já passou não apaga o ensaio: ele chega com a antecedência de sempre', () => {
+    // Defeito da revisão: a ordem que punha a Vigília numa hora já passada deixava o ensaio sem
+    // marcação para sempre (uma esquiva da incursão forte do dia 6).
+    const before = gameAt(127 * HOUR, (draft) => {
+      draft.horde.scheduledRaids = [];
+    });
+    expect(nextRehearsalMarkAt(before)).toBe(134 * HOUR);
+    const after = change(before, 6, 'UTC', 0).state;
+    expect(
+      after.horde.scheduledRaids.find((raid) => raid.id === 'raidersYear1Rehearsal')?.atMs,
+    ).toBe(133 * HOUR);
+    expect(after.stats.vigilRehearsalMarked).toBe(1);
+    expect(nextRehearsalMarkAt(after)).toBeNull();
+  });
+
+  it('a ordem não remarca as outras incursões do roteiro, que não dependem da Vigília', () => {
+    // Defeito da revisão: no instante de marcação do dia 25 a ordem marcava o Acampamento que a
+    // virada do dia tinha deixado de fora (D-33), o que a mesma partida sem a ordem não faz.
+    const before = gameAt(42 * HOUR, (draft) => {
+      draft.horde.scheduledRaids = [];
+    });
+    expect(change(before, 3).state.horde.scheduledRaids).toEqual([]);
+  });
+
+  it('fora da janela do ensaio a ordem não o cria', () => {
+    const before = gameAt(150 * HOUR, (draft) => {
+      draft.horde.scheduledRaids = [];
+    });
+    expect(change(before, 3, 'UTC', 0).state.horde.scheduledRaids).toEqual([]);
+  });
 });

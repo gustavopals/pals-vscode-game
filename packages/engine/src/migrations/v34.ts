@@ -261,9 +261,7 @@ export const v34ToV35: MigrationStep = {
         },
       },
       stats:
-        context.boundaryMs >= REHEARSAL_MARK_V34_MS
-          ? { ...stats, vigilRehearsalMarked: 1 }
-          : stats,
+        context.boundaryMs >= REHEARSAL_MARK_V34_MS ? { ...stats, vigilRehearsalMarked: 1 } : stats,
     };
   },
 };

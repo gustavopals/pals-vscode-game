@@ -12,6 +12,7 @@ import {
   raidTemplates,
   type Ratio,
   type ScriptedRaidDef,
+  vigilRules,
 } from '@lotg/content';
 
 import { applyBattleOutcome } from './battleOutcome';
@@ -105,14 +106,12 @@ function warScriptedRaid(def: (typeof warRaids.scripted)[number], state: GameSta
  * marca). As primeiras vêm do Acampamento; o ensaio vem da Horda. O exército é a composição-base da estação.
  * Nada aqui sorteia. A lista fica em ordem de chegada.
  */
-export function markScriptedWarRaids(draft: GameState, atMs: number, allowLate = false): void {
+export function markScriptedWarRaids(draft: GameState, atMs: number): void {
   const { scheduledRaids } = draft.horde;
   for (const def of warRaids.scripted) {
     if (def.rehearsal && !rehearsalUnmarked(draft, def)) continue;
     const raid = warScriptedRaid(def, draft);
-    const markAt = raid.atMs - threatRules.raidLeadMs;
-    // A preferência pode mudar já dentro da antecedência: marca agora, sem voltar o relógio.
-    if (def.rehearsal && allowLate ? atMs < markAt || atMs >= raid.atMs : markAt !== atMs) continue;
+    if (raid.atMs - threatRules.raidLeadMs !== atMs) continue;
     // A tentativa é única, inclusive sem vaga (D-33). Mudar a preferência não repete o ensaio.
     if (def.rehearsal) draft.stats.vigilRehearsalMarked = 1;
     // Uma marcada por vez, como as sorteadas (D-33): com outra incursão marcada, a do roteiro
@@ -123,6 +122,26 @@ export function markScriptedWarRaids(draft: GameState, atMs: number, allowLate =
     }
   }
   scheduledRaids.sort((a, b) => a.atMs - b.atMs);
+}
+
+/**
+ * A ordem `setVigilHour` (V4G-T1.4; pendência G-5): se o ensaio ainda não foi marcado e a nova
+ * Vigília já deixou a marcação para trás, ele é marcado agora. Uma Vigília que já passou não
+ * apaga o ensaio: ele chega com a antecedência de sempre, `raidLeadMs` depois da ordem. Só o
+ * ensaio: as outras incursões do roteiro não dependem da Vigília e não são remarcadas aqui.
+ */
+export function markRehearsalAfterVigilChange(draft: GameState, atMs: number): void {
+  const def = warRaids.scripted.find((entry) => entry.rehearsal);
+  if (def === undefined || !rehearsalUnmarked(draft, def)) return;
+  if (atMs >= scriptedAtMs(def) + vigilRules.windowMs) return;
+  const raid = warScriptedRaid(def, draft);
+  if (atMs < raid.atMs - threatRules.raidLeadMs) return;
+  if (raid.atMs <= atMs) raid.atMs = atMs + threatRules.raidLeadMs;
+  draft.stats.vigilRehearsalMarked = 1;
+  if (draft.horde.scheduledRaids.length === 0) {
+    draft.horde.scheduledRaids.push(raid);
+    draft.horde.scheduledRaids.sort((a, b) => a.atMs - b.atMs);
+  }
 }
 
 /**
