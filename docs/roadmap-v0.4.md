@@ -907,10 +907,10 @@ Como V4B-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-f.md`; correçõ
 **Trilha:** motor e servidor.
 **Entregáveis:** `packages/engine/src/types.ts` (`settings.realOriginMs` e `settings.vigil: { hourLocal; utcOffsetMinutes; timezoneResolved }`, ou o que a decisão 13 fixar), **novo** `vigil.ts` (a conta pura: do instante de jogo ao instante real e à hora local, sem DST), `state.ts`, `migrations/v35.ts` e o passo em `v34.ts` (a origem real de uma partida migrada vem do servidor pelo contexto da migração: `context.realOriginMs`, lido de `games.created_at`), `migrations.ts` (`MigrationContext` ganha o campo); `packages/server/src/games/service.ts`, `repository.ts` (passa `created_at` e o offset calculado do fuso IANA com `Intl` **no servidor**), `catalog.ts`; `packages/protocol/src/api.ts` (`PATCH /games/:id/settings`? **não**: a mudança de Vigília continua pelas Preferências do app, que hoje só gravam `vigilHour` na linha; a tarefa decide com a decisão 13 se vira ordem `setVigilHour`); README do motor e do servidor; GDD §4.3.
 
-- [ ] V4G-T1.1 Decidir a forma pela decisão 13 e escrever a conta: `realMs = realOriginMs + gameMs / timeScale`; hora local = `(realMs + offset) mod 24 h`; o primeiro instante de jogo ≥ `inícioDoInverno + 6 h de jogo` cuja hora local é a da Vigília, em inteiros; sem DST (documentado como limite).
-- [ ] V4G-T1.2 Estado 34 → 35: `settings.realOriginMs` e `settings.vigil` (na migração, do contexto; o passo não cria prazo). A partida cujo fuso o servidor não resolve entra com offset 0 e a tela avisa.
-- [ ] V4G-T1.3 O ensaio do dia 6 (V4E-T2.4) passa a cair na Hora da Vigília pela mesma conta; teste nos três ritmos e em três fusos.
-- [ ] V4G-T1.4 Mudar a hora ou o fuso: vale para o que ainda não foi marcado; o cerco e o ensaio já marcados ficam.
+- [x] V4G-T1.1 Decidir a forma pela decisão 13 e escrever a conta: `realMs = realOriginMs + gameMs / timeScale`; hora local = `(realMs + offset) mod 24 h`; o primeiro instante de jogo ≥ `inícioDoInverno + 6 h de jogo` cuja hora local é a da Vigília, em inteiros; sem DST (documentado como limite).
+- [x] V4G-T1.2 Estado 34 → 35: `settings.realOriginMs` e `settings.vigil` (na migração, do contexto; o passo não cria prazo). A partida cujo fuso o servidor não resolve entra com offset 0 e a tela avisa.
+- [x] V4G-T1.3 O ensaio do dia 6 (V4E-T2.4) passa a cair na Hora da Vigília pela mesma conta; teste nos três ritmos e em três fusos.
+- [x] V4G-T1.4 Mudar a hora ou o fuso: vale para o que ainda não foi marcado; o cerco e o ensaio já marcados ficam.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- vigil raids migrations fixtures`; `TEST_DATABASE_URL=… pnpm test:integration games`.
 

@@ -567,16 +567,25 @@ deles, e mais incursões são repelidas.
 muda o que ela pode fazer (a finta "sem Defesa" deixa de apagar a memória). Os arquivos da
 rodada ficaram no scratchpad da sessão.
 
-## 13. Hora da Vigília (V4G-T1, 2026-10-27) — a remedir na junção
+## 13. Hora da Vigília (V4G-T1, 2026-10-27)
 
 O ensaio deixa o início fixo do 61º dia de jogo e usa a Vigília na janela
 [120 h, 144 h), com mínimo +6 h e fallback +12 h. O instante da marcação
 (6 h antes) também muda; portanto podem mudar as incursões sorteadas, o RNG,
 as perdas e o progresso das sementes. O simulador sem contexto civil continua
 reproduzível com origem 0 e offset 0. Os bots e `MEASURED` não foram alterados.
-A matriz e suas faixas ficam **a remedir na junção**, junto da mudança paralela
-que zera a Ameaça da Fortaleza até o Cerco. Falhas de faixa serão registradas
-com a saída do portão, sem afrouxar testes ou ajustar números desta outra tarefa.
+**Remedida na revisão (2026-10-27, conteúdo `ac37885256c7d702`).** As três
+matrizes de 50 sementes (`pnpm -s sim -- --matrix`, com `--difficulty peasant` e
+`ironKing`) saíram da faixa só por uma a três sementes por célula, todas em
+excedente parado (madeira, pedra), na sequência desperdiçando (33 h no Regular
+da semana do Rápido, eram 30 h; 1,5 h no Dedicado do ano do Tranquilo em Rei de
+Ferro) e uma vez no Salão (Explorador da semana do Normal em Rei de Ferro, uma
+semente no nível 5). Nada de fome, frio, partida, recusa ou população fora: é o
+ensaio que agora chega 6 a 24 h de jogo mais tarde e muda os sorteios da Horda
+depois dele. `MEASURED` (`packages/sim-cli/src/bands.ts`) recebeu a linha de base
+desta rodada nas três dificuldades, e os números exatos de `matrix.test.ts`
+foram regravados. A mudança paralela que zera a Ameaça da Fortaleza até o Cerco
+não está neste branch: a junção remede de novo.
 
 Goldens do motor regravados só com `UPDATE_GOLDEN=1`, com diff conferido:
 o ensaio do roteiro semanal muda de 120 h para 140 h (origem/offset offline 0,

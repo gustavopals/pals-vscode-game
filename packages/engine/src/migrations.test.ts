@@ -220,6 +220,8 @@ const LOG_FIELDS_V18 = [
 function stripComposition(copy: Draft): void {
   delete copy.settings.realOriginMs;
   delete copy.settings.vigil;
+  // O passo 34 → 35 registra a tentativa do ensaio que a versão antiga já fez (V4G-T1).
+  delete (copy as { stats?: Record<string, unknown> }).stats?.vigilRehearsalMarked;
   delete copy.horde?.lastFormationSeen;
   delete copy.horde?.wavePlan;
   delete copy.horde?.omens;
