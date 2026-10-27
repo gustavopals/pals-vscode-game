@@ -137,6 +137,7 @@
  },
  "stats": {
   "constructionsStarted:housing": 1,
+  "vigilRehearsalMarked": 1,
   "wasted_food": 553265,
   "wasted_wood": 140887,
   "cardsDrawn": 1,

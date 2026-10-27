@@ -228,13 +228,26 @@ export const stateV34: Shape = (value, path) =>
   stateV33(predecessor(value as StoredState), path) ??
   hordeWithinStateV34(value, path);
 
-/** Só acrescenta contexto civil. Não marca prazos, não sorteia e preserva incursões. */
+/**
+ * O instante em que o estado 34 marcava o ensaio do dia 6 (`raidersYear1Rehearsal`): o início do
+ * 61º dia de jogo (120 h de jogo) menos a antecedência de 6 h de jogo. Escrito aqui, sem
+ * importar o conteúdo: é a regra da versão de que o passo parte.
+ */
+const REHEARSAL_MARK_V34_MS = 114 * 3_600_000;
+
+/**
+ * Só acrescenta contexto civil. Não marca prazos, não sorteia e preserva incursões. A partida
+ * cuja fronteira já passou do instante em que a versão 34 marcava o ensaio já teve a tentativa
+ * (marcado, sem vaga ou resolvido): o passo a registra em `stats.vigilRehearsalMarked`, para a
+ * Vigília não dar um segundo ensaio. Não depende de `migratedAtMs`, que a próxima migração troca.
+ */
 export const v34ToV35: MigrationStep = {
   from: 34,
   summary: 'Acrescenta a origem real e o deslocamento fixo da Hora da Vigília.',
   shape: stateV34,
   migrate: (state, context) => {
     const settings = state.settings as StoredState;
+    const stats = state.stats as StoredState;
     return {
       ...state,
       schemaVersion: 35,
@@ -247,6 +260,10 @@ export const v34ToV35: MigrationStep = {
           timezoneResolved: context.timezoneResolved ?? false,
         },
       },
+      stats:
+        context.boundaryMs >= REHEARSAL_MARK_V34_MS
+          ? { ...stats, vigilRehearsalMarked: 1 }
+          : stats,
     };
   },
 };

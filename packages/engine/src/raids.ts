@@ -125,12 +125,14 @@ export function markScriptedWarRaids(draft: GameState, atMs: number, allowLate =
   scheduledRaids.sort((a, b) => a.atMs - b.atMs);
 }
 
+/**
+ * O ensaio ainda espera a marcação. Quem migrou do estado 34 depois do instante em que a versão
+ * antiga o marcaria já teve a tentativa (o passo 34 → 35 grava `stats.vigilRehearsalMarked`).
+ */
 function rehearsalUnmarked(state: GameState, def: (typeof warRaids.scripted)[number]): boolean {
   return (
     state.stats.vigilRehearsalMarked !== 1 &&
-    !state.horde.scheduledRaids.some((raid) => raid.id === def.id) &&
-    // Quem migrou depois da data antiga já teve ou perdeu o ensaio. Não se cobra o passado.
-    (state.migratedAtMs === null || state.migratedAtMs < scriptedAtMs(def))
+    !state.horde.scheduledRaids.some((raid) => raid.id === def.id)
   );
 }
 

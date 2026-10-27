@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { currentShape, migrateState } from './migrations';
 import { stateV34, v34ToV35 } from './migrations/v34';
-import { DAY, WINTER } from './test-helpers';
+import { nextRehearsalMarkAt } from './raids';
+import { DAY, HOUR, WINTER } from './test-helpers';
 import { deriveViewState } from './view';
 
 const fixtures = import.meta.glob<string>('./__fixtures__/state-v34-*.json', {
@@ -42,6 +43,10 @@ describe('34 → 35: origem real e Vigília', () => {
             timezoneResolved: true,
           },
         },
+        stats:
+          (before.lastProcessedAt as number) >= 114 * HOUR
+            ? { ...(before.stats as object), vigilRehearsalMarked: 1 }
+            : before.stats,
       });
       expect(JSON.stringify(before)).toBe(input);
       expect(migrateState(after, context)).toBe(after);
@@ -96,4 +101,31 @@ describe('34 → 35: origem real e Vigília', () => {
         currentShape({ ...state, settings: { ...state.settings, ...edit } }, ''),
       ).not.toBeNull();
   });
+
+  it.each([
+    [100 * HOUR, false],
+    [113 * HOUR, false],
+    [114 * HOUR, true],
+    [116 * HOUR, true],
+  ])(
+    'a fronteira em %s: a tentativa do ensaio na versão 34 já aconteceu? %s',
+    (boundary, attempted) => {
+      // Defeito da revisão: o critério era `migratedAtMs < início do 61º dia`, que dava um segundo
+      // ensaio a quem migrou dentro da antecedência sem vaga (D-33) e que a próxima migração
+      // apagaria (ela troca `migratedAtMs`).
+      const before = JSON.parse(fixtures['./__fixtures__/state-v34-fresh.json']!) as Record<
+        string,
+        unknown
+      >;
+      before.lastProcessedAt = boundary;
+      before.clock = { gameTimeMs: boundary, year: 1, yearStartMs: 0 };
+      (before.horde as { scheduledRaids: unknown[] }).scheduledRaids = [];
+      const after = migrateState(before, { timeScale: 1 });
+      expect(after.stats.vigilRehearsalMarked === 1).toBe(attempted);
+      expect(after.horde.scheduledRaids).toEqual([]);
+      expect(nextRehearsalMarkAt(after) === null).toBe(attempted);
+      // Uma migração seguinte não devolve o ensaio: o registro fica no estado.
+      expect(nextRehearsalMarkAt({ ...after, migratedAtMs: 130 * HOUR }) === null).toBe(attempted);
+    },
+  );
 });
