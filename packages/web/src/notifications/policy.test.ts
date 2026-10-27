@@ -1100,3 +1100,26 @@ describe('os níveis dos avisos da Guilda e do Mercado (roadmap da v0.3, V3F-T3.
     expect(nearlyFull.show.map((entry) => entry.type)).toEqual(['heroCaptured']);
   });
 });
+
+describe('a guerra nos avisos (V4E-T4)', () => {
+  const types = ['omenSeen', 'battleFought', 'wallDamaged', 'wallRepaired'] as const;
+
+  it('presságio, batalha e muralha só chegam em "Todas"', () => {
+    for (const type of types) {
+      const events = [event(type, 5)];
+      expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+      expect(
+        decideNotifications(input({ level: 'all', events })).show.map((entry) => entry.type),
+      ).toEqual([type]);
+    }
+  });
+
+  it('o alarme de uma incursão (forte ou não) continua essencial', () => {
+    const strong = { ...event('raidAnnounced', 6), data: { raidId: 'r1', size: 'strong' } };
+    expect(
+      decideNotifications(input({ level: 'essential', events: [strong] })).show.map(
+        (entry) => entry.type,
+      ),
+    ).toEqual(['raidAnnounced']);
+  });
+});

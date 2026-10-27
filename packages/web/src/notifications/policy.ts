@@ -87,7 +87,19 @@ const MARKET: ReadonlyArray<GameEvent['type']> = [
 /** O que é do Ferreiro: o aviso do lote pronto leva ao painel dele, na aba Feudo. */
 const SMITHY: ReadonlyArray<GameEvent['type']> = ['weaponsForged', 'itemRepaired', 'itemWorn'];
 /** O que é do Quartel: o aviso do lote pronto leva à aba Exército. */
-const ARMY: ReadonlyArray<GameEvent['type']> = ['soldiersTrained', 'trainingShortfall'];
+const ARMY: ReadonlyArray<GameEvent['type']> = [
+  'soldiersTrained',
+  'trainingShortfall',
+  'omenSeen',
+  'battleFought',
+];
+/** O que é da muralha e dos tiles de guerra: o aviso leva ao painel da Ameaça. */
+const WALL: ReadonlyArray<GameEvent['type']> = [
+  'wallDamaged',
+  'wallRepaired',
+  'campAppeared',
+  'fortressAppeared',
+];
 /** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
 const GUILD: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
@@ -183,6 +195,16 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   // próxima ação): só em "Todas". O início do reparo é ordem do jogador e não avisa.
   'itemRepaired',
   'itemWorn',
+  // A guerra (V4E-T4): o presságio da Horda (o que os vigias leem antes do ataque) e a batalha
+  // travada não pedem ação imediata e vão a "Todas"; a muralha que a batalha marcou e a que ficou
+  // inteira, o acampamento e a fortaleza que a Torre avistou, também. A incursão forte já é
+  // alarme em `raidAnnounced`, acima, em "Essenciais".
+  'omenSeen',
+  'battleFought',
+  'wallDamaged',
+  'wallRepaired',
+  'campAppeared',
+  'fortressAppeared',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -211,6 +233,11 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   raidAnnounced: RAID_ICON,
   raidSuffered: RAID_ICON,
   raidRepelled: DEFENSE_ICON,
+  wallDamaged: DEFENSE_ICON,
+  wallRepaired: DEFENSE_ICON,
+  omenSeen: THREAT_ICON,
+  campAppeared: THREAT_ICON,
+  fortressAppeared: THREAT_ICON,
   // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
   objectiveCompleted: OBJECTIVE_DONE_ICON,
   // O soldo e a equipe levam a bússola da Guilda; quem chega e quem parte, a pessoa.
@@ -401,6 +428,11 @@ export function isMarketEvent(event: GameEvent): boolean {
 /** O evento é do Quartel: o aviso dele leva à aba Exército. */
 export function isArmyEvent(event: GameEvent): boolean {
   return ARMY.includes(event.type);
+}
+
+/** O evento é da muralha ou de um tile de guerra: o aviso leva ao painel da Ameaça. */
+export function isWallEvent(event: GameEvent): boolean {
+  return WALL.includes(event.type);
 }
 
 /** O evento é do Ferreiro: o aviso dele leva ao painel do Ferreiro. */

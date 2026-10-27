@@ -56,6 +56,7 @@ import {
   isMarketEvent,
   isArmyEvent,
   isSmithyEvent,
+  isWallEvent,
   MUTE_DURATION_MS,
   raidAftermath,
   raidAhead,
@@ -971,7 +972,9 @@ export class Controller {
                 : isArmyEvent(event)
                   ? 'army'
                   : 'fief',
-            ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
+            ...(isWatchReport(event) || isRaidOutcome(event) || isWallEvent(event)
+              ? { section: THREAT_SECTION }
+              : {}),
             ...(isSmithyEvent(event) ? { section: SMITHY_SECTION } : {}),
           },
     });
@@ -1787,6 +1790,14 @@ export class Controller {
    */
   repairItem(itemId: string): Promise<boolean> {
     return this.guildOrder('forge', 'repairItem', { itemId }, 'ao Ferreiro');
+  }
+
+  /**
+   * Manda os pedreiros refazerem a muralha inteira (GDD §6.3): o custo e o prazo são os que a
+   * visão mostrou na conferência. A trava é uma só, e o reparo não se cancela.
+   */
+  repairWall(): Promise<boolean> {
+    return this.guildOrder('wall', 'repairWall', {}, 'aos pedreiros');
   }
 
   /**

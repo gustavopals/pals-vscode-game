@@ -212,6 +212,64 @@ control.post('/__test/raise', async (request) => {
 });
 
 /**
+ * Põe a vida de cada ala da muralha de todos os feudos em uma porcentagem da vida cheia do nível
+ * da Paliçada (`{ percent }`), sem passar por uma batalha: é como um cenário do reparo tem a
+ * muralha danificada sem depender do desfecho de um combate. O reparo, o custo e o prazo daí em
+ * diante são os do motor.
+ */
+control.post('/__test/wall', async (request) => {
+  const { percent } = request.body as { percent: number };
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const level = game.state.settlement.buildings.palisade;
+    const full = level > 0 ? (balance.wall.hpByLevel[Math.min(level, 6) - 1] ?? 0) : 0;
+    const hp = Math.floor((full * percent) / 100);
+    game.state.settlement.wall.hp = { left: hp, center: hp, right: hp };
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(game.state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
+ * Põe um presságio vago (a onda 2) na mente da Horda de todos os feudos, com a preparação do ano
+ * que o guarda exige (V4E-T3): é como um cenário da aba Exército tem o que ler sem esperar o
+ * sorteio dos vigias. O texto é o que a visão devolverá; o presságio nunca revela posto.
+ */
+control.post('/__test/omen', async () => {
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    state.horde.wavePlan = {
+      year: state.clock.year,
+      revision: 1,
+      generatedAtMs: state.lastProcessedAt,
+      waves: ([1, 2, 3] as const).map((number) => ({
+        number,
+        composition: [{ wing: 'center', line: 'front', unit: 'wolf', count: 10 }],
+      })),
+    };
+    state.horde.omens = [
+      {
+        atMs: state.lastProcessedAt,
+        revision: 1,
+        clarity: 'vague',
+        wave: 2,
+        text: 'A terra treme ao anoitecer: algo grande se move na serra.',
+        reveals: [],
+      },
+    ];
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
  * Põe soldados no exército de todos os feudos (`{ units: { spearman: 6, ... } }`), sem passar
  * pelo treino: é como um cenário do editor de formação tem tropa sem esperar os lotes. Só a
  * contagem de `army.units` muda; daí em diante a fome, o limite e as formações são as do motor.

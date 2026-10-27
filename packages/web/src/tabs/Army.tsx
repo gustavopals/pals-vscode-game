@@ -9,6 +9,7 @@ import { FormationEditor } from '../components/FormationEditor';
 import { FormationList } from '../components/FormationList';
 import { Header } from '../components/Header';
 import { WarCouncilPanel } from '../components/WarCouncilPanel';
+import { OmensPanel } from '../components/OmensPanel';
 import { Icon } from '../components/shared';
 import { type Draft, draftOf, emptyDraft } from '../ui/formation';
 
@@ -143,6 +144,7 @@ export function ArmyTab(props: {
       </div>
       {view.army.built ? (
         <div class="army-formations">
+          <OmensPanel army={view.army} />
           <Formations view={view} disabled={disabled} busy={props.busy} actions={actions} />
         </div>
       ) : null}

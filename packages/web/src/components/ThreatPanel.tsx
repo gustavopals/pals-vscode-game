@@ -20,6 +20,7 @@ import {
 import type { Actions } from './actions';
 import { formatCountdown, formatNumber, remaining } from './format';
 import { Icon } from './shared';
+import { WallPanel } from './WallPanel';
 
 type Upgrade = Extract<DefenseWork, { kind: 'available' }>['upgrade'];
 
@@ -260,6 +261,9 @@ function Watched(props: { threat: WatchedThreat; elapsed: number }) {
             </p>
             {/* O que o ataque custa ao lado do que a defesa faz a ele; a obra vem logo abaixo. */}
             <p>{incoming.costText}</p>
+            {incoming.compositionText === null ? null : (
+              <p data-testid="raid-composition">{incoming.compositionText}</p>
+            )}
             <p class="threat-holds">
               <Icon name={DEFENSE_ICON} /> {incoming.defenseText}
             </p>
@@ -289,7 +293,12 @@ export function ThreatPanel(props: {
   const { view, elapsed, disabled, actions } = props;
   const { threat } = view;
   const tower = <Watchtower view={view} elapsed={elapsed} disabled={disabled} actions={actions} />;
-  const defense = <Defense view={view} elapsed={elapsed} disabled={disabled} actions={actions} />;
+  const defense = (
+    <>
+      <Defense view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
+      <WallPanel defense={threat.defense} elapsed={elapsed} disabled={disabled} actions={actions} />
+    </>
+  );
   return (
     <section aria-labelledby={THREAT_ANCHOR}>
       {/* O título recebe o foco quando um botão "Ver a defesa" traz o jogador até aqui. */}

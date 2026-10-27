@@ -1360,6 +1360,71 @@ export function createCommands(
     await controller.cancelForge();
   });
 
+  // --- Muralha ----------------------------------------------------------------------
+
+  const seeWall = {
+    label: 'Ver a muralha',
+    run: () => controller.runCommand('lords.openPanel', THREAT_SECTION),
+  };
+
+  /**
+   * "Reparar a muralha": o painel da Ameaça já mostrou o custo e o prazo e manda a ordem conferida
+   * (`confirmed`); a árvore e a paleta confirmam com a frase da visão (`repairOffer.text`).
+   * **Depois do diálogo a oferta é lida de novo**: se o custo ou o prazo mudaram, ou o reparo já
+   * começou, nada é enviado.
+   */
+  const repairWall = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    if ((arg as { confirmed?: unknown } | undefined)?.confirmed === true) {
+      await controller.repairWall();
+      return;
+    }
+    const offer = view.threat.defense.wall.repairOffer;
+    if (!offer.canRepair) {
+      controller.toast({
+        kind: 'info',
+        text: offer.blockedText ?? offer.text,
+        actions: [seeWall],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const confirmed = await dialogs.confirm({
+      title: 'Reparar a muralha?',
+      detail: [offer.text],
+      confirmLabel: 'Reparar a muralha',
+      cancelLabel: 'Deixar como está',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('o reparo');
+      return;
+    }
+    const now = controller.view?.threat.defense.wall.repairOffer;
+    if (now === undefined || !now.canRepair) {
+      controller.toast({
+        kind: 'info',
+        text: now?.blockedText ?? 'O reparo não pode mais começar: nada foi enviado.',
+        actions: [seeWall],
+      });
+      return;
+    }
+    if (now.stone !== offer.stone || now.gold !== offer.gold || now.seconds !== offer.seconds) {
+      controller.toast({
+        kind: 'info',
+        text: 'O custo do reparo mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
+        actions: [seeWall],
+      });
+      return;
+    }
+    await controller.repairWall();
+  });
+
   // --- Quartel ----------------------------------------------------------------------
 
   const seeArmy = {
@@ -3629,6 +3694,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: cancelForge,
+    },
+    {
+      id: 'lords.repairWall',
+      title: 'Reparar a muralha…',
+      palette: true,
+      when: hasGame,
+      run: repairWall,
     },
     {
       id: 'lords.repairItem',

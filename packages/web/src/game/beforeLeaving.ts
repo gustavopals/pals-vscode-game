@@ -477,11 +477,43 @@ function raidItem(view: ViewState): LeavingItem | null {
   if (incoming === null) {
     return null;
   }
+  // Com soldados e sem formação ativa, a incursão chega a um exército que não guarda o feudo: o
+  // botão leva a ativar uma, que é o que muda o desfecho (V4E-T4.2).
+  const unguarded = lacksDefense(view.army);
+  const composition = incoming.compositionText === null ? '' : ` ${incoming.compositionText}`;
   return {
     id: 'raid',
-    severity: 'warning',
-    text: `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}. ${incoming.defenseText}`,
-    command: defenseCommand(view),
+    severity: unguarded ? 'danger' : 'warning',
+    text:
+      `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}.${composition} ` +
+      `${incoming.defenseText}${unguarded ? ' Nenhuma formação guarda o feudo: os soldados não lutam.' : ''}`,
+    command: unguarded
+      ? { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ativar uma formação' }
+      : defenseCommand(view),
+  };
+}
+
+/**
+ * A muralha com a vida abaixo da cheia (GDD §6.3): o reparo custa pedra e ouro e leva um tempo,
+ * tudo na frase do servidor; o botão abre a conferência. O reparo em curso e a muralha inteira
+ * não entram. Com uma incursão à vista, é aviso; sem ela, informação. Presença de custo é o que
+ * diz que há vida a refazer: o app não conta pontos de vida.
+ */
+function wallItem(view: ViewState): LeavingItem | null {
+  const { defense } = view.threat;
+  const offer = defense.wall.repairOffer;
+  if (
+    defense.palisadeLevel === 0 ||
+    offer.repairingInSeconds !== null ||
+    (offer.stone <= 0 && offer.gold <= 0)
+  ) {
+    return null;
+  }
+  return {
+    id: 'wall',
+    severity: view.threat.incoming === null ? 'info' : 'warning',
+    text: `A muralha está danificada. ${offer.text}${offer.blockedText === null ? '' : ` ${offer.blockedText}`}`,
+    command: { id: 'lords.repairWall', label: 'Reparar…' },
   };
 }
 
@@ -840,6 +872,7 @@ function idleItem(view: ViewState): LeavingItem | null {
 export function leavingItems(view: ViewState): LeavingItem[] {
   return [
     raidItem(view),
+    wallItem(view),
     threatItem(view),
     foodItem(view),
     firewoodItem(view),
