@@ -433,3 +433,12 @@ Também corrigidos, sem decisão: o presságio vago não diz mais a onda (`wave:
 sem a chave `wave` no evento `omenSeen`); a guarda da forma 34 exige o Acampamento e a
 Fortaleza na chave do próprio tipo (um de cada); e os números congelados da guarda têm teste
 contra o conteúdo de hoje.
+
+### V4G-T1 — Hora da Vigília (2026-10-27)
+
+**G-1. Janela da Vigília e fallback.** _(Proposta do agente; não lida pelo autor.)_
+O GDD §4.3 prevê +12 h de jogo se não houver Vigília, sem delimitar a busca.
+Escolhida a janela de 24 h de jogo do evento: inverno [144 h, 168 h) e ensaio
+[120 h, 144 h), buscando a partir de +6 h, inclusive. Se não couber, +12 h.
+É a leitura que mantém o evento na data e torna útil o fallback no Rápido.
+Prazos são arredondados para cima em milissegundos de jogo. Nenhum Cerco é criado.
