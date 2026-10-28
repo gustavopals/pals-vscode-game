@@ -158,3 +158,5 @@ export { vigilRules, vigilTexts } from './vigil';
 export type { WarRaidLossDef, WarRaidSizeId, WarRaidsDef, WarScriptedRaidDef } from './raidWar';
 export { enemies, prowlingTileOrder, raidSizes, startingTiles, tileTypes } from './tiles';
 export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';
+
+export { campaignTexts } from './campaign';

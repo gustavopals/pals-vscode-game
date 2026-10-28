@@ -1,6 +1,9 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'armyMarched',
+  'campAssaulted',
+  'armyReturned',
   'vigilChanged',
   'dayStarted',
   'seasonChanged',
@@ -173,6 +176,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'herois',
   'no',
   'desfecho',
+  'retorno',
   'postura',
   'saque',
   'item',
@@ -198,6 +202,13 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  armyMarched:
+    'No {dia}º dia {daEstacao}, os estandartes de {feudo} partiram contra o Acampamento de Saqueadores. Os postos deixados para trás aguardam a volta.',
+  campAssaulted:
+    'No {dia}º dia {daEstacao}, o exército de {feudo} enfrentou a paliçada dos saqueadores: {desfecho}.',
+  armyReturned:
+    'No {dia}º dia {daEstacao}, os estandartes de {feudo} voltaram do Acampamento. {retorno}',
+
   vigilChanged:
     'No {dia}º dia {daEstacao}, o senhor de {feudo} mudou a Hora da Vigília. Os acontecimentos já marcados mantiveram sua hora.',
   dayStarted: 'Amanhece o {dia}º dia {daEstacao} em {feudo}.',

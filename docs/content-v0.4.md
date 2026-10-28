@@ -1391,3 +1391,20 @@ Pede exatamente 3 heróis, dura 5 h de jogo (300 min), até 3 vezes no mesmo ano
 | 1 | `ravineTrail` | O desfiladeiro das sentinelas (Dif 90, Arqueiro) | Os canis de guerra (Dif 102, Guerreiro) | `innerRavine` (A bifurcação das ravinas) | `fallBackToPass` (Cautelosa) / `poisonCisterns` (Equilibrada) / `assaultSanctum` (Ousada, Mago) | `waterSupply` (Dif 114, Clérigo) / `skullTrophyHall` (Dif 128, Mago) | `boneCircle` (Dif 136, Mago) | `home` |
 | 2 | `fallenParapet` | O parapeito ruído da muralha (Dif 94, Arqueiro) | Os estábulos da matilha (Dif 106, Clérigo) | `dungeonPassage` (A galeria das masmorras) | `withdrawInSecret` (Cautelosa) / `drainOilVats` (Equilibrada) / `breachChamber` (Ousada, Corajoso) | `oilDepot` (Dif 118, Guerreiro) / `dreadArmory` (Dif 130, Arqueiro) | `totemSanctuary` (Dif 138, Mago) | `home` |
 
+
+
+## 14. Ataque ao Acampamento (V4F-T2)
+
+**Rascunho que o autor não leu.**
+
+Dados em `balance.army.campaign`; pendências F-3 e F-4. A campanha percorre 90 min por trecho, leva um comandante e os postos disponíveis, enfrenta 60 HP de paliçada por ala e uma guarnição de saqueadores com arqueiros no centro. Na vitória, o saque chega ao feudo com a tropa (40 comida, 30 madeira, 50 ouro). O relatório usa as frases e fatores do catálogo de batalha; o estado do herói se chama “Em campanha”.
+
+Frases novas em `campaign.ts` e `chronicle.ts`:
+
+- Marcha: “No {dia}º dia {daEstacao}, os estandartes de {feudo} partiram contra o Acampamento de Saqueadores. Os postos deixados para trás aguardam a volta.”
+- Batalha: “No {dia}º dia {daEstacao}, o exército de {feudo} enfrentou a paliçada dos saqueadores: {desfecho}.”
+- Retorno: “No {dia}º dia {daEstacao}, os estandartes de {feudo} voltaram do Acampamento. {retorno}”
+- Situação: “O exército segue para o Acampamento de Saqueadores.” / “O exército tomou o caminho de volta ao feudo.”
+- Aviso: “Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.”
+- Saque: “Os sobreviventes trouxeram o saque.” / “Os sobreviventes voltaram sem saque.”
+- Recusas: “O exército já está em campanha: espere o retorno antes de ordenar outro ataque.”; “Não há Acampamento de Saqueadores ativo à vista para atacar.”; “A formação não tem soldados disponíveis para marchar.”; “O ataque pede ao menos um comandante livre numa ala com soldados.”

@@ -4,6 +4,7 @@ import type {
   EnemyId,
   ExpeditionOutcomeId,
   HeroAttributeId,
+  HordeUnitId,
   HeroCaptureRuleId,
   InjurySeverityId,
   LineId,
@@ -570,6 +571,22 @@ export type SmithyDef = {
  * estão em `units.ts`.
  */
 export type ArmyDef = {
+  /** Campanha ofensiva (V4F-T2): tempo de cada trecho, vida por ala e guarnição da chegada. */
+  readonly campaign: {
+    readonly travelMs: number;
+    readonly campWall: number;
+    readonly minCommanders: number;
+    readonly campGarrison: Record<
+      SeasonId,
+      ReadonlyArray<{
+        readonly wing: WingId;
+        readonly line: LineId;
+        readonly unit: HordeUnitId;
+        readonly count: number;
+      }>
+    >;
+    readonly loot: ResourceAmounts;
+  };
   /** O limite de soldados por nível do Quartel (`10 × nível`). */
   readonly capPerLevel: number;
   /**
@@ -1295,6 +1312,39 @@ export const balance: Balance = {
   // ADR 0019, decisão 7: limite de 10 por nível do Quartel, treino 5% mais rápido por nível,
   // lotes de até 10 e 1,5 de comida por soldado por hora de jogo.
   army: {
+    // Proposta F-3: 3 h ao todo (ida e volta), paliçada Nv1 por ala, saque fixo sem sorteio.
+    campaign: {
+      travelMs: 90 * 60_000,
+      campWall: 60,
+      minCommanders: 1,
+      campGarrison: {
+        spring: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 4 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 6 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 2 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 4 },
+        ],
+        summer: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 6 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 8 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 3 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 6 },
+        ],
+        autumn: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 8 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 10 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 4 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 8 },
+        ],
+        winter: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 10 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 12 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 5 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 10 },
+        ],
+      },
+      loot: { food: 40, wood: 30, gold: 50 },
+    },
     capPerLevel: 10,
     trainingSpeedPerLevel: { num: 1, den: 20 },
     batchMax: 10,

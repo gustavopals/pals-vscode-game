@@ -48,7 +48,7 @@ export type BattleInput = {
     readonly commanders: Record<WingId, BattleCommanderInput | null>;
   };
   readonly horde: { readonly posts: BattlePosts<HordeUnitId> };
-  /** A vida da muralha em cada ala (só em defesa; a ala ausente não tem muralha). */
+  /** A vida da muralha do defensor em cada ala (do Acampamento em ataque). */
   readonly wall: Partial<Record<WingId, number>>;
   /** O nível da Torre de Vigia (as torres atiram a partir de `balance.battle.towers.fromLevel`). */
   readonly watchtowerLevel: number;
@@ -343,7 +343,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
 
   const defense = input.mode === 'defense';
   const wall: Partial<Record<WingId, number>> = {};
-  if (defense) {
+  {
     for (const wing of WING_IDS) {
       const hp = input.wall[wing];
       if (hp !== undefined) {
@@ -549,9 +549,9 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     if (aim.flank) {
       factors.push({ kind: 'flank', value: rules.flank });
     }
-    const wallHp = defense ? wall[aim.wing] : undefined;
-    if (defense && isRanged(squad)) {
-      if (squad.owner === 'player') {
+    const wallHp = wall[aim.wing];
+    if (isRanged(squad)) {
+      if (squad.side === 'D') {
         const own = wall[squad.wing];
         if (own !== undefined && own > 0) {
           factors.push({ kind: 'cover', value: rules.wall.coverFactor });
@@ -570,13 +570,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     const hits: BattleHit[] = [];
     let wallHit: Extract<BattleAction, { kind: 'attack' }>['wall'] = null;
     let toTroops = raw;
-    if (
-      defense &&
-      squad.owner === 'horde' &&
-      !isRanged(squad) &&
-      wallHp !== undefined &&
-      wallHp > 0
-    ) {
+    if (squad.side === 'A' && !isRanged(squad) && wallHp !== undefined && wallHp > 0) {
       const share = squad.stats.horde?.ignoresWallHalf === true ? rules.wall.ignoresHalfShare : ONE;
       const damage = floorOf(mul(raw, share));
       const after = Math.max(0, wallHp - damage);

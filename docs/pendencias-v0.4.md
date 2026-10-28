@@ -531,3 +531,12 @@ O roadmap (§§V4F-T1, 16.2) e o GDD §9.5 mencionam informalmente "6 h de jogo"
 **F-2. Versão do esquema de estado (37 → 38).** _(Proposta do agente; não lida pelo autor.)_
 O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
 
+
+
+## V4F-T2 — Ataque ao Acampamento (2026-10-28)
+
+**F-3. Viagem, guarnição e saque.** _(Proposta do agente; não lida pelo autor.)_
+As 3 h do catálogo (§9.3) são a campanha inteira: 90 min de jogo por trecho, sem bônus sazonal de expedição. A guarnição é a da estação da chegada, sem sorteio e sem astúcia: saqueadores nas três frentes (4/6/4 na primavera, 6/8/6 no verão, 8/10/8 no outono, 10/12/10 no inverno), com 2/3/4/5 arqueiros bandidos no centro. A paliçada tem 60 HP por ala (Nv1). A vitória traz 40 comida, 30 madeira e 50 ouro no retorno, respeitando depósito e desperdício. Os números estão em `balance.army.campaign` e ainda pedem medição pelo coordenador. O requisito de um herói do catálogo é um comandante livre em ala preenchida; a falta usa `HERO_UNAVAILABLE` com frase própria.
+
+**F-4. Reserva e calendário.** _(Proposta do agente; não lida pelo autor.)_
+A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comandantes. Editar/apagar uma formação não muda a campanha. Soldados enviados continuam no total do Quartel, habitação e consumo até o retorno; as baixas são descontadas nesse retorno. Reservas não podem ser dispensadas, não defendem incursões e não entram na prévia defensiva. Comandantes usam o estado `campaign`, continuam recebendo soldo, não podem partir/equipar/ser dispensados; ferimento, experiência e desgaste são aplicados na chegada. A batalha e a volta resolvem depois das expedições e antes das caravanas; uma incursão no mesmo instante da volta ainda enfrenta o feudo sem os que chegam. O estado efetivo passa de 38 para 39 (a referência antiga a 35 no roadmap não vale nesta base).

@@ -762,6 +762,29 @@ const balanceFields = z.strictObject({
     batchMax: positiveInt,
   }),
   army: z.strictObject({
+    campaign: z.strictObject({
+      travelMs: positiveInt,
+      campWall: positiveInt,
+      minCommanders: positiveInt,
+      campGarrison: z.strictObject(
+        Object.fromEntries(
+          SEASON_IDS.map((season) => [
+            season,
+            z
+              .array(
+                z.strictObject({
+                  wing: z.enum(WING_IDS),
+                  line: z.enum(LINE_IDS),
+                  unit: z.enum(HORDE_UNIT_IDS),
+                  count: positiveInt,
+                }),
+              )
+              .min(1),
+          ]),
+        ),
+      ),
+      loot: resourceAmounts,
+    }),
     capPerLevel: positiveInt,
     trainingSpeedPerLevel: ratio,
     batchMax: positiveInt,

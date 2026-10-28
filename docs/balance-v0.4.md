@@ -680,3 +680,8 @@ Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
 - Os 55 retratos `state-v36-*.json` foram congelados em `FROZEN` e 56 retratos `state-v37-*.json`
   foram gravados (incluindo `council-encounters` com `extraOffer: true`, risco pendente com
   participante e duelo na mesa).
+
+
+### V4F-T2 — suporte à paliçada inimiga (2026-10-28)
+
+`resolveBattle` passa a tratar `wall` como muralha do defensor nos dois modos. Em ataque a paliçada protege a Horda; a Torre do feudo continua ausente. O teste antigo de recuo após 12 rodadas fornecia uma muralha que era ignorada: agora usa campo aberto para conservar a prova exata do limite; `battle.camp.test.ts` prova separadamente a absorção pela paliçada e a atribuição à Horda. Nenhuma faixa do simulador foi alterada. Viagem, guarnição e saque são propostas F-3; medição, simulador e verify inteiro ficam para o coordenador nesta divisão de trabalho.
