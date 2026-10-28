@@ -1375,9 +1375,13 @@ Crônica; a lista corrente é limpa quando a Horda altera as ondas no outono.
 **Rascunho que o autor não leu.**
 
 Modelo de expedição especial do outono, só com a Fortaleza da Horda de pé (ADR 0020, decisão 17; GDD §9.5).
-Pede exatamente 3 heróis, dura 5 h de jogo (300 min), até 3 vezes no mesmo ano.
+Pede exatamente 3 heróis, dura 6 h de jogo (360 min), até 3 vezes no mesmo ano.
 
 ### 13.1 Regras editoriais e mecânicas
+
+A jornada completa atravessa quatro provas, um trecho de saída e o retorno,
+uma hora de jogo cada. O recuo na encruzilhada permite voltar antes.
+
 - **Enfraquecimento:** cada nó com prova bem-sucedido reduz em 15% a onda correspondente (Nó 1 enfraquece onda 1; Nó 2 enfraquece onda 2; Nó 3 enfraquece onda 3). Até 3 tentativas reduzem em até 45% cada onda.
 - **Xamã:** o último nó com prova é o Xamã. Derrotado, revela a composição exata da onda 3 no painel de presságios (`revealsWave: 3`).
 - **Desastre:** captura um herói (conforme `heroCapture` da dificuldade) e alerta a Horda (`alertsHorde: true`, marcando `horde.sabotages.alerted = true`), acrescentando +10% de efetivo à onda 1.
@@ -1387,7 +1391,7 @@ Pede exatamente 3 heróis, dura 5 h de jogo (300 min), até 3 vezes no mesmo ano
 
 | Variante | Início | Nó 1 (Onda 1) | Nó 2 (Onda 2) | Encruzilhada | Opções da Encruzilhada | Nó 3 (Onda 3) | Chefe (Onda 3) | Retorno |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | `trenches` | As trincheiras da vanguarda (Dif 92, Guerreiro) | Os cercados das feras (Dif 104, Clérigo) | `campCrossroads` (O pátio interno) | `retreatToWoods` (Cautelosa) / `burnSiegeWorks` (Equilibrada) / `infiltrateKeep` (Ousada, Guerreiro) | `siegeTowers` (Dif 116, Arqueiro) / `warriorBastion` (Dif 126, Guerreiro) | `shamanAltar` (Dif 134, Mago) | `home` |
-| 1 | `ravineTrail` | O desfiladeiro das sentinelas (Dif 90, Arqueiro) | Os canis de guerra (Dif 102, Guerreiro) | `innerRavine` (A bifurcação das ravinas) | `fallBackToPass` (Cautelosa) / `poisonCisterns` (Equilibrada) / `assaultSanctum` (Ousada, Mago) | `waterSupply` (Dif 114, Clérigo) / `skullTrophyHall` (Dif 128, Mago) | `boneCircle` (Dif 136, Mago) | `home` |
-| 2 | `fallenParapet` | O parapeito ruído da muralha (Dif 94, Arqueiro) | Os estábulos da matilha (Dif 106, Clérigo) | `dungeonPassage` (A galeria das masmorras) | `withdrawInSecret` (Cautelosa) / `drainOilVats` (Equilibrada) / `breachChamber` (Ousada, Corajoso) | `oilDepot` (Dif 118, Guerreiro) / `dreadArmory` (Dif 130, Arqueiro) | `totemSanctuary` (Dif 138, Mago) | `home` |
+| 0 | `trenches` | As trincheiras da vanguarda (Dif 110, Guerreiro) | Os cercados das feras (Dif 124, Clérigo) | `campCrossroads` (O pátio interno) | `retreatToWoods` (Cautelosa) / `burnSiegeWorks` (Equilibrada) / `infiltrateKeep` (Ousada, Guerreiro) | `siegeTowers` (Dif 124, Arqueiro) / `warriorBastion` (Dif 158, Guerreiro) | `shamanAltar` (Dif 112, Mago) | `home` |
+| 1 | `ravineTrail` | O desfiladeiro das sentinelas (Dif 110, Arqueiro) | Os canis de guerra (Dif 122, Guerreiro) | `innerRavine` (A bifurcação das ravinas) | `fallBackToPass` (Cautelosa) / `poisonCisterns` (Equilibrada) / `assaultSanctum` (Ousada, Mago) | `waterSupply` (Dif 122, Clérigo) / `skullTrophyHall` (Dif 150, Mago) | `boneCircle` (Dif 110, Mago) | `home` |
+| 2 | `fallenParapet` | O parapeito ruído da muralha (Dif 110, Arqueiro) | Os estábulos da matilha (Dif 136, Clérigo) | `dungeonPassage` (A galeria das masmorras) | `withdrawInSecret` (Cautelosa) / `drainOilVats` (Equilibrada) / `breachChamber` (Ousada, Corajoso) | `oilDepot` (Dif 122, Guerreiro) / `dreadArmory` (Dif 152, Arqueiro) | `totemSanctuary` (Dif 110, Mago) | `home` |
 

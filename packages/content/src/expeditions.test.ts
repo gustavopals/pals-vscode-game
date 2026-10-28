@@ -214,6 +214,7 @@ const STABLE_IDS: Record<
         'siegeTowers',
         'warriorBastion',
         'shamanAltar',
+        'escape',
         'home',
       ],
       options: { campCrossroads: ['burnSiegeWorks', 'infiltrateKeep', 'retreatToWoods'] },
@@ -227,6 +228,7 @@ const STABLE_IDS: Record<
         'waterSupply',
         'skullTrophyHall',
         'boneCircle',
+        'escape',
         'home',
       ],
       options: { innerRavine: ['poisonCisterns', 'assaultSanctum', 'fallBackToPass'] },
@@ -240,6 +242,7 @@ const STABLE_IDS: Record<
         'oilDepot',
         'dreadArmory',
         'totemSanctuary',
+        'escape',
         'home',
       ],
       options: { dungeonPassage: ['drainOilVats', 'breachChamber', 'withdrawInSecret'] },
@@ -358,10 +361,11 @@ describe('os números das expedições (ADR 0017, decisões 1 e 7; ADR 0018, dec
     ]);
   });
 
-  it('os limites do grafo: de 2 a 5 nós em um caminho, de 5 a 60 minutos de jogo cada um (pendência D-5)', () => {
+  it('os limites do grafo: de 2 a 6 nós em um caminho (seis horas da sabotagem), de 5 a 60 minutos de jogo cada um (pendência D-5)', () => {
     expect(rules.graph).toEqual({
       minDepth: 2,
-      maxDepth: 5,
+      // ADR 0020/17: a sabotagem acrescenta a saída antes do retorno, sem alongar os nós.
+      maxDepth: 6,
       maxSteps: 8,
       minNodeMs: 5 * MINUTE,
       maxNodeMs: 60 * MINUTE,
@@ -427,7 +431,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
   });
 
   it.each(everyVariant())(
-    '%s: todo caminho chega a um retorno, com 2 a 5 nós de 5 a 60 minutos, e cabe na duração anunciada',
+    '%s: todo caminho chega a um retorno, com 2 a 6 nós de 5 a 60 minutos, e cabe na duração anunciada',
     (_name, model, variant) => {
       const paths = pathsOf(variant);
       expect(paths.length).toBeGreaterThan(0);
@@ -842,7 +846,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       ['Mina Abandonada', 240, 4, '2-2', 1, 'warrior', 'Médio', 2, 'discovered'],
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
       // V4F-T1 (ADR 0020, decisão 17; GDD §9.5).
-      ['Sabotagem da Fortaleza', 300, 5, '3-3', 1, '', 'Alto', 1, 'tile'],
+      ['Sabotagem da Fortaleza', 360, 6, '3-3', 1, '', 'Alto', 1, 'tile'],
     ]);
   });
 
@@ -1011,14 +1015,14 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(broken((models) => (start(models).durationMs = 61 * MINUTE))).toBe(true);
     expect(broken((models) => ((models[0] as Loose).durationMs = 16 * MINUTE))).toBe(true);
     expect(broken((models) => ((models[0] as Loose).variants as Loose[]).pop())).toBe(true);
-    // Seis nós em fila: mais fundo do que o limite.
+    // Sete nós em fila: excede o limite de seis necessário à sabotagem (ADR 0020/17).
     expect(
       broken((models) => {
         const variant = firstVariant(models[0] as Loose);
         const nodes = nodesOf(variant);
         const first = nodes[variant.start as string] as Loose;
         let previous = first;
-        for (let index = 0; index < 4; index += 1) {
+        for (let index = 0; index < 5; index += 1) {
           const key = `extra${index}`;
           nodes[key] = {
             kind: 'travel',
@@ -1030,7 +1034,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
           previous.next = key;
           previous = nodes[key] as Loose;
         }
-        (models[0] as Loose).durationMs = 35 * MINUTE;
+        (models[0] as Loose).durationMs = 40 * MINUTE;
       }),
     ).toBe(true);
   });

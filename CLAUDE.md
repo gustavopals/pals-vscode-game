@@ -303,9 +303,13 @@ V4H-T1 continuam pendentes. As treze são `fieldBlight`, `mysteriousMerchant`,
 regravados nesta junção e congelados em `FROZEN`; v38 é a versão atual.
 
 **V4F-T1, sabotagem da Fortaleza (37 → 38).** O modelo `sabotage` tem três variantes,
-exige outono, Fortaleza ativa e exatamente três heróis, até três tentativas por ano.
+exige outono, Fortaleza ativa e exatamente três heróis, até três tentativas por ano, com
+jornada completa de seis horas de jogo (a saída da Fortaleza é um trecho de viagem).
 `horde.sabotages` registra tentativas, sucessos e alerta; cada Sucesso reduz a onda
-marcada, até 45%, o Xamã revela a terceira e o Desastre alerta a primeira. Captura e
-morte seguem a dificuldade. Os contadores zeram no ano novo; a oferta e os relatos
-saem pelo `ViewState`. O Cerco continua pendente. A duração conservada de cinco horas
-de jogo, em vez das seis da ficha, está registrada como proposta F-1 nas pendências.
+marcada, até 45%, o Xamã revela a terceira e o Desastre alerta a primeira. Reduções e
+alerta usam o total da onda com restos determinísticos e conservam a conta na
+regeneração; presságios afetados são descartados, sem reescrever a Crônica; a régua
+acompanha os reforços da guarda. Captura e morte seguem a dificuldade em todas as
+provas. Os contadores zeram no ano novo; a oferta e os relatos saem pelo `ViewState`.
+A revisão da trilha (`v4f-t1-sabotagem`) corrigiu nove achados e confirmou/corrigiu a
+exceção por descoberta; as correções entraram nesta junção. O Cerco não foi implementado.

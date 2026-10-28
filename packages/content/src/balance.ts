@@ -1204,7 +1204,8 @@ export const balance: Balance = {
     teamMax: 4,
     graph: {
       minDepth: 2,
-      maxDepth: 5,
+      // V4F-T1: quatro provas, saída da Fortaleza e retorno cumprem as seis horas do ADR 0020/17.
+      maxDepth: 6,
       maxSteps: 8,
       minNodeMs: 5 * MINUTE_MS,
       maxNodeMs: 60 * MINUTE_MS,

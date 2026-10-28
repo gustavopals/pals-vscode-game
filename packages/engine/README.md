@@ -38,6 +38,27 @@ das ondas e o fim do cerco são da G. A sabotagem já existe no estado 38. Até 
 permanece durante o inverno e é desativada na virada anual; isso é um estado
 intermediário da implementação, não o encerramento do cerco do GDD.
 
+## Sabotagem da Fortaleza (v0.4, V4F-T1)
+
+Estado **38**, passo 37 → 38 com contadores zerados e sem sorteio. A sabotagem
+exige outono, Fortaleza ativa e exatamente três heróis; até três envios por ano,
+mesmo que o destino apareça em `map.discovered`. A jornada completa dura seis
+horas de jogo: quatro provas, a saída e o retorno. A encruzilhada pode abreviar
+a jornada. Toda prova consulta a captura da dificuldade no Desastre: ferimento
+grave em Camponês, captura em Senhor e morte em Rei de Ferro.
+
+Cada sucesso tira 15% da base total da onda correspondente, acumulando até 45%.
+O total é truncado uma vez e repartido pelos postos com restos em ordem fixa;
+o Xamã e o Senhor da Guerra conservam seus postos fixos. O alerta acrescenta
+10% ao total da primeira onda, uma vez. A regeneração usa as mesmas contas.
+Redução e alerta descartam os presságios da onda afetada; regenerar limpa a
+preparação anterior. As frases já emitidas na Crônica permanecem históricas.
+
+A régua e o texto do trecho anterior à encruzilhada usam a dificuldade da
+próxima tentativa, com a mesma função da resolução (+10% por tentativa após
+a primeira). A visão continua sem conteúdo além da encruzilhada não decidida.
+O Cerco permanece fora desta tarefa.
+
 ## API pública
 
 ```ts

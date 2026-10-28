@@ -22,6 +22,7 @@ import { cloneState } from './state';
 import {
   accept,
   addHero,
+  AUTUMN,
   command,
   everyDestinationOpen,
   guildHall,
@@ -128,6 +129,14 @@ function teamFor(
       classes.push(requires.heroClass);
     }
   }
+  // Duas capturas antes da encruzilhada não podem retirar o único herói que abre
+  // o ramo sob teste. A sabotagem parte com três; todos carregam o requisito do ramo.
+  if (model.id === 'sabotage' && (classes.length > 0 || traits.length > 0)) {
+    return Array.from({ length: model.requires.teamMax }, () => ({
+      classId: classes[0] ?? 'warrior',
+      traits: [...traits],
+    }));
+  }
   for (const classId of HERO_CLASS_IDS) {
     if (classes.length < model.requires.teamMax && !classes.includes(classId)) {
       classes.push(classId);
@@ -142,13 +151,14 @@ const NAMES = ['Edda', 'Rolf', 'Isolda', 'Brann'];
 
 /** A Guilda no nível mais alto, sem ninguém: feita uma vez por semente, e copiada por teste. */
 const BASES = new Map<string, GameState>();
-function baseOf(seed: string): GameState {
-  const known = BASES.get(seed);
+function baseOf(seed: string, atMs = 0): GameState {
+  const key = `${seed}/${atMs}`;
+  const known = BASES.get(key);
   if (known !== undefined) {
     return known;
   }
   const base = guildHall(
-    0,
+    atMs,
     (draft) => {
       quietCouncil(draft);
       quietHorde(draft);
@@ -157,13 +167,14 @@ function baseOf(seed: string): GameState {
     },
     { level: 4, seed },
   );
-  BASES.set(seed, base);
+  BASES.set(key, base);
   return base;
 }
 
 /** A Guilda no nível mais alto, com a equipe pronta, todo destino aberto e o resto do feudo calado. */
 function ready(graph: Graph, choices: Record<string, string>, seed = 'catalogo'): GameState {
-  const draft = cloneState(baseOf(seed));
+  // A sabotagem usa as condições reais de envio; descoberta não ignora estação ou limite.
+  const draft = cloneState(baseOf(seed, graph.model.id === 'sabotage' ? AUTUMN : 0));
   for (const [index, spec] of teamFor(graph, choices).entries()) {
     addHero(draft, {
       name: NAMES[index] ?? `Herói ${index}`,
@@ -519,7 +530,9 @@ describe('a névoa em todo grafo com encruzilhada (ADR 0018, decisão 13)', () =
       const ids = teamIds(graph, choices);
       // Recém-enviada: a expedição em curso não diz nada do que há além da encruzilhada.
       const sent = send(start, graph.model.id, ids, 'bold', graph.index);
-      const offered = JSON.stringify(deriveViewState(sent.state, 0).guild.expeditions);
+      const offered = JSON.stringify(
+        deriveViewState(sent.state, sent.state.lastProcessedAt).guild.expeditions,
+      );
       for (const secret of secrets) {
         expect(offered).not.toContain(secret.slice(0, 60));
       }
@@ -564,7 +577,7 @@ describe('a névoa em todo grafo com encruzilhada (ADR 0018, decisão 13)', () =
       const draft = cloneState(ready(graph, {}));
       // A variante que sairia agora é a deste grafo.
       nextVariantIs(draft, graph.model.id, graph.index);
-      const offer = deriveViewState(draft, 0).guild.available.find(
+      const offer = deriveViewState(draft, draft.lastProcessedAt).guild.available.find(
         (entry) => entry.modelId === graph.model.id,
       );
       if (offer === undefined) {

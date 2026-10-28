@@ -1705,7 +1705,7 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
     for (const model of expeditionModels) {
       for (const [index, variant] of model.variants.entries()) {
         const start = guildHall(
-          0,
+          model.id === 'sabotage' ? AUTUMN : 0,
           (draft) => {
             for (let count = 0; count < model.requires.teamMin; count += 1) {
               // As classes que o modelo exige primeiro (o Pântano pede um Mago).

@@ -596,9 +596,16 @@ Como as fichas aprovadas pelo autor em `docs/content-v0.4.md` (§§5.4 e 6.1) n�
 
 ## V4F-T1 — Sabotagem da Fortaleza (2026-10-28)
 
-**F-1. Duração da expedição de sabotagem e profundidade do grafo.** _(Proposta do agente; não lida pelo autor.)_
-O roadmap (§§V4F-T1, 16.2) e o GDD §9.5 mencionam informalmente "6 h de jogo", enquanto os esquemas do motor (`ExpeditionVariantSchema`, `expeditions.ts`) fixam `maxDepth: 5` nós por caminho e `maxNodeMs: 60 min` (3.600.000 ms), resultando em duração total de 300 min (5 h de jogo) em todos os ramos das três variantes. Manteve-se conservadoramente a restrição existente da engine (5 nós de 60 min = 300 min) para total conformidade estrutural com os validadores e os limites de calibragem.
+**F-1. Duração da expedição de sabotagem e profundidade do grafo.** **Resolvida na revisão de 2026-10-28.**
+O coordenador confirmou as **6 h de jogo** do ADR 0020/17. A proposta anterior de
+encurtar a jornada para 300 min foi retirada; não constituía aprovação para mudar o ADR.
 
 **F-2. Versão do esquema de estado (37 → 38).** _(Proposta do agente; não lida pelo autor.)_
 O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
 
+
+**F-3. Trecho de saída da Fortaleza para completar as seis horas.** _(Proposta do agente; não lida pelo autor.)_
+A jornada completa mantém as quatro provas de uma hora e o retorno de uma hora,
+acrescentando um trecho sem prova (`escape`) de uma hora entre o Xamã e o retorno.
+O teto estrutural passa de cinco para seis nós temporizados; cada nó continua
+limitado a 60 min. O recuo antecipado mantém o caminho curto existente.

@@ -40422,7 +40422,7 @@
           "modelId": "sabotage",
           "label": "Sabotagem da Fortaleza",
           "riskText": "Alto",
-          "durationSeconds": 18000,
+          "durationSeconds": 21600,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
           "requirementsText": "Equipe: 3 heróis.",
           "teamMin": 3,
