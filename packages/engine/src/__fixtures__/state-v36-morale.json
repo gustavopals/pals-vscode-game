@@ -174,7 +174,11 @@
    "royalCaravan",
    "kingsTax",
    "kingsCollector",
-   "kingsAnswer"
+   "kingsAnswer",
+   "passingRecruiter",
+   "gamblingDebt",
+   "squareDuel",
+   "wanderingHealer"
   ],
   "nextDrawAtMs": 230400000,
   "scheduled": [],
@@ -281,7 +285,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {

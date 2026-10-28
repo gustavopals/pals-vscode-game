@@ -173,7 +173,7 @@
     "threatActive": true
    }
   },
-  "threat": 70,
+  "threat": 68,
   "discovered": []
  },
  "horde": {
@@ -581,6 +581,7 @@
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_wood": 1771396,
   "raids_repelled": 3,
+  "lastRaidRepelledBattle": 3,
   "cardsExpired": 5,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
@@ -591,7 +592,6 @@
   "cardsDrawn:sawmillRest": 1,
   "seasonsSurvived:summer": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 1,
   "omens": 1
  }
 }

@@ -122,8 +122,8 @@
  "council": {
   "pending": [
    {
-    "instanceId": "thawBridgePlea-1",
-    "cardId": "thawBridgePlea",
+    "instanceId": "collapsedWell-1",
+    "cardId": "collapsedWell",
     "drawnAtMs": 28800000,
     "expiresAtMs": 288000000,
     "origin": null
@@ -131,7 +131,7 @@
   ],
   "flags": {},
   "seenThisYear": [
-   "thawBridgePlea"
+   "collapsedWell"
   ],
   "nextDrawAtMs": 57600000,
   "scheduled": [],
@@ -296,6 +296,6 @@
  },
  "stats": {
   "cardsDrawn": 1,
-  "cardsDrawn:thawBridgePlea": 1
+  "cardsDrawn:collapsedWell": 1
  }
 }

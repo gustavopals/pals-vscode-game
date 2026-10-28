@@ -191,7 +191,7 @@
     "threatActive": false
    }
   },
-  "threat": 83,
+  "threat": 50,
   "discovered": []
  },
  "horde": {
@@ -353,7 +353,7 @@
    },
    {
     "id": "battle-8",
-    "foughtAtMs": 540000000,
+    "foughtAtMs": 547200000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -365,8 +365,8 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 8,
+      "unit": "raider",
+      "start": 10,
       "lost": 0
      },
      {
@@ -374,7 +374,7 @@
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 19,
+      "start": 12,
       "lost": 0
      },
      {
@@ -382,7 +382,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 9,
+      "start": 6,
       "lost": 0
      },
      {
@@ -390,15 +390,15 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 16,
+      "start": 10,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
+      "unit": "shaman",
+      "start": 2,
       "lost": 0
      }
     ],
@@ -437,7 +437,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 16,
+      "start": 6,
       "lost": 0
      },
      {
@@ -445,7 +445,7 @@
       "wing": "center",
       "line": "front",
       "unit": "ogre",
-      "start": 4,
+      "start": 1,
       "lost": 0
      },
      {
@@ -453,7 +453,7 @@
       "wing": "center",
       "line": "back",
       "unit": "banditArcher",
-      "start": 9,
+      "start": 3,
       "lost": 0
      },
      {
@@ -461,7 +461,7 @@
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "start": 8,
+      "start": 3,
       "lost": 0
      },
      {
@@ -469,7 +469,7 @@
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "start": 3,
+      "start": 1,
       "lost": 0
      }
     ],
@@ -542,16 +542,17 @@
   "wasted_wood": 1972638,
   "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:fullGranary": 1,
-  "threatCrossed:40": 2,
+  "threatCrossed:40": 3,
   "wasted_stone": 2282554,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:moreMouths": 1,
   "seasonsSurvived:summer": 1,
   "cardsDrawn:palisadePromisePlea": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 7,
   "omens": 16,
+  "threatCrossed:70": 6,
   "raids_repelled": 6,
+  "lastRaidRepelledBattle": 9,
   "cardsDrawn:commonGranaryPlanks": 2,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:commonGranaryShare": 1,

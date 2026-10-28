@@ -293,7 +293,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {

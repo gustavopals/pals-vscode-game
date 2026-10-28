@@ -156,7 +156,7 @@
     "threatActive": true
    }
   },
-  "threat": 28,
+  "threat": 24,
   "discovered": []
  },
  "horde": {
@@ -297,7 +297,7 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    },
    {
@@ -306,7 +306,7 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    },
    {
@@ -315,7 +315,7 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    }
   ],
@@ -372,7 +372,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {

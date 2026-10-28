@@ -193,14 +193,14 @@
     "threatActive": true
    }
   },
-  "threat": 95,
+  "threat": 87,
   "discovered": []
  },
  "horde": {
   "scheduledRaids": [
    {
     "id": "threat-8",
-    "atMs": 547200000,
+    "atMs": 554400000,
     "kind": "threat",
     "enemy": "wolves",
     "size": "strong",
@@ -417,7 +417,7 @@
   "reports": [
    {
     "id": "battle-5",
-    "foughtAtMs": 424800000,
+    "foughtAtMs": 432000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -472,7 +472,7 @@
    },
    {
     "id": "battle-6",
-    "foughtAtMs": 460800000,
+    "foughtAtMs": 468000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",

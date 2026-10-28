@@ -130,25 +130,23 @@
  "council": {
   "pending": [
    {
-    "instanceId": "springSeeds-2",
-    "cardId": "springSeeds",
+    "instanceId": "masonsMeal-2",
+    "cardId": "masonsMeal",
     "drawnAtMs": 57600000,
     "expiresAtMs": 144000000,
     "origin": null
    }
   ],
-  "flags": {
-   "routine.masonsMeal": true
-  },
+  "flags": {},
   "seenThisYear": [
-   "masonsMeal",
-   "springSeeds"
+   "thawBridgePlea",
+   "masonsMeal"
   ],
   "nextDrawAtMs": 144000000,
   "scheduled": [],
   "delayed": [],
   "expired": [
-   "masonsMeal-1"
+   "thawBridgePlea-1"
   ]
  },
  "map": {
@@ -320,9 +318,9 @@
  },
  "stats": {
   "cardsDrawn": 2,
-  "cardsDrawn:masonsMeal": 1,
+  "cardsDrawn:thawBridgePlea": 1,
   "wasted_food": 795002,
-  "cardsDrawn:springSeeds": 1,
+  "cardsDrawn:masonsMeal": 1,
   "raids_suffered": 1,
   "cardsExpired": 1
  }

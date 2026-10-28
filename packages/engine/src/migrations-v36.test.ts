@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { currentShape, migrateState, StateMigrationError } from './migrations';
 import { stateV36 } from './migrations/v36';
 import { stateV35, v35ToV36 } from './migrations/v35';
+import { stateV37 } from './migrations/v37';
 import { DAY } from './test-helpers';
 
 const fixtures = import.meta.glob<string>('./__fixtures__/state-v35-*.json', {
@@ -143,7 +144,7 @@ describe('35 → 36: fatores de carta no Mercado', () => {
         ],
       },
     };
-    expect(currentShape(v37State, '')).toContain('efeito que já devia ter terminado');
+    expect(stateV37(v37State, '')).toContain('efeito que já devia ter terminado');
     expect(() => migrateState(v37State, { timeScale: 1 })).toThrow(StateMigrationError);
   });
 });

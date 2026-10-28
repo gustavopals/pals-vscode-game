@@ -141,7 +141,7 @@
     "threatActive": true
    }
   },
-  "threat": 74,
+  "threat": 58,
   "discovered": []
  },
  "horde": {
@@ -558,7 +558,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
@@ -566,7 +571,6 @@
   "campAppearedAtDay": 49,
   "fortressAppearedAtDay": 49,
   "omens": 6,
-  "threatCrossed:40": 1,
-  "threatCrossed:70": 1
+  "threatCrossed:40": 1
  }
 }

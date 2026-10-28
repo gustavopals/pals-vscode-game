@@ -36,20 +36,20 @@
   ]
  },
  "ids": {
-  "battle": 22,
+  "battle": 20,
   "hero": 1
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 533718,
-   "wood": 535986,
+   "food": 568520,
+   "wood": 567236,
    "stone": 45000,
    "gold": 0,
    "iron": 0
   },
   "accumulators": {
-   "food": 442260,
+   "food": 2369520,
    "wood": 2569680,
    "stone": 0,
    "gold": 0,
@@ -59,7 +59,7 @@
    "villagers": 5
   },
   "workers": {
-   "farm": 1,
+   "farm": 2,
    "lumberMill": 2,
    "quarry": 0,
    "goldMine": 0
@@ -105,8 +105,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 911,
-   "wood": 268,
+   "food": 473,
+   "wood": 120,
    "stone": 0,
    "gold": 0,
    "iron": 0
@@ -134,10 +134,6 @@
    }
   ],
   "injured": [
-   {
-    "untilMs": 1252800000,
-    "building": "farm"
-   },
    {
     "untilMs": 1252800000,
     "building": "farm"
@@ -192,7 +188,7 @@
     "threatActive": false
    }
   },
-  "threat": 50,
+  "threat": 24,
   "discovered": []
  },
  "horde": {
@@ -279,8 +275,8 @@
   "activeFormationId": null,
   "reports": [
    {
-    "id": "battle-20",
-    "foughtAtMs": 1166400000,
+    "id": "battle-18",
+    "foughtAtMs": 1180800000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -292,23 +288,23 @@
       "owner": "horde",
       "wing": "left",
       "line": "front",
-      "unit": "raider",
-      "start": 16,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 9,
+      "unit": "raider",
+      "start": 19,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 9,
       "lost": 0
      },
@@ -316,8 +312,8 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "raider",
-      "start": 16,
+      "unit": "ogre",
+      "start": 4,
       "lost": 0
      },
      {
@@ -334,7 +330,7 @@
     "log": []
    },
    {
-    "id": "battle-21",
+    "id": "battle-19",
     "foughtAtMs": 1209600000,
     "formationId": null,
     "mode": "defense",
@@ -348,7 +344,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -356,7 +352,7 @@
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "start": 18,
+      "start": 10,
       "lost": 0
      },
      {
@@ -364,7 +360,7 @@
       "wing": "right",
       "line": "front",
       "unit": "wolf",
-      "start": 12,
+      "start": 7,
       "lost": 0
      }
     ],
@@ -373,7 +369,7 @@
     "log": []
    },
    {
-    "id": "battle-22",
+    "id": "battle-20",
     "foughtAtMs": 1245600000,
     "formationId": null,
     "mode": "defense",
@@ -387,7 +383,7 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 10,
+      "start": 6,
       "lost": 0
      },
      {
@@ -395,7 +391,7 @@
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "start": 18,
+      "start": 10,
       "lost": 0
      },
      {
@@ -403,7 +399,7 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 12,
+      "start": 7,
       "lost": 0
      }
     ],
@@ -429,10 +425,10 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 9277911,
+  "wasted_food": 9689473,
   "cardsDrawn:thawBridgePlea": 2,
-  "raids_suffered": 22,
-  "wasted_wood": 4677268,
+  "raids_suffered": 20,
+  "wasted_wood": 4927120,
   "coldSpellsThisSeason": 0,
   "campAppearedAtDay": 25,
   "threatCrossed:40": 5,
@@ -441,7 +437,7 @@
   "seasonsSurvived:summer": 2,
   "cardsDrawn:itinerantMerchant": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 18,
+  "threatCrossed:70": 14,
   "vigilRehearsalMarked": 1,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
