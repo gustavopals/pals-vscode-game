@@ -337,9 +337,11 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // (`itemSold` é o item que não coube no arsenal e foi vendido: a frase diz que ele virou
     // ouro; sem ela, "achou um item" ficaria sozinho, e o item não está em lugar nenhum. O ouro
     // entra na tabela como recebido, pelo total do evento.)
-    // O lugar limpo que voltou a ser ocupado na virada do ano: é da Ameaça, e a próxima ação é
-    // a da defesa.
+    // O lugar limpo que voltou a ser ocupado na virada do ano e o acampamento ou fortaleza que a
+    // Torre avistou: são da Ameaça, e a próxima ação é a da defesa.
     case 'threatTileRestored':
+    case 'campAppeared':
+    case 'fortressAppeared':
       return { block: 'cost', topic: 'threat' };
     // O Mercado e a estrada (GDD §5.9; o tratamento completo é da V3F-T3). A caravana que chegou
     // é o feudo vendendo longe sem o senhor; a emboscada é o preço, e a próxima ação é a estrada
@@ -373,10 +375,12 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // Venda feita no balcão (só pode ter saído de uma ordem dada em outro navegador): somada em
     // uma linha, em `buildBlocks`; a compra não é desfecho e fica na Crônica.
     case 'heroInjured':
+    case 'commanderInjured':
       return { block: 'cost', topic: 'hero:injured' };
     case 'heroCaptured':
       return { block: 'cost', topic: 'hero:captured' };
     case 'heroDied':
+    case 'commanderDied':
       return { block: 'cost', topic: 'hero:died' };
     case 'expeditionLost':
       return { block: 'cost', topic: 'expedition:lost' };

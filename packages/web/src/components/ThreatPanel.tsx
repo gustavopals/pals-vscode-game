@@ -288,6 +288,8 @@ export function ThreatPanel(props: {
   /** Segundos desde que a visão chegou, para as contagens regressivas locais. */
   elapsed: number;
   disabled: boolean;
+  /** As ordens a caminho do servidor (`controller.guildOrders`). */
+  busy?: ReadonlySet<string>;
   actions: Actions;
 }) {
   const { view, elapsed, disabled, actions } = props;
@@ -296,7 +298,13 @@ export function ThreatPanel(props: {
   const defense = (
     <>
       <Defense view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
-      <WallPanel defense={threat.defense} elapsed={elapsed} disabled={disabled} actions={actions} />
+      <WallPanel
+        defense={threat.defense}
+        elapsed={elapsed}
+        disabled={disabled}
+        busy={props.busy?.has('wall') === true}
+        actions={actions}
+      />
     </>
   );
   return (

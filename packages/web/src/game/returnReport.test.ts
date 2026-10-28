@@ -1291,5 +1291,29 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
         label: 'Ver os presságios',
       });
     });
+
+    it('commanderInjured, commanderDied, campAppeared e fortressAppeared entram em "O que exigiu um preço"', () => {
+      const blocks = blocksOf(guildView, guildView, [
+        event('commanderInjured', 'Rolf se feriu na ala esquerda.', { heroId: 'hero-2' }),
+        event('commanderDied', 'Edda caiu na ala direita.', { heroId: 'hero-1' }),
+        event('campAppeared', 'Os vigias avistaram o Acampamento Batedor.'),
+        event('fortressAppeared', 'Os vigias avistaram a Fortaleza de Ferro.'),
+      ]);
+      expect(blocks.cost.map((item) => [item.text, item.topic, item.action?.label])).toEqual([
+        ['Rolf se feriu na ala esquerda.', 'hero:injured', 'Ver a Guilda'],
+        ['Edda caiu na ala direita.', 'hero:died', 'Ver a Taverna'],
+        [
+          'Os vigias avistaram o Acampamento Batedor.',
+          'threat',
+          costAction(guildView, 'threat').label,
+        ],
+        [
+          'Os vigias avistaram a Fortaleza de Ferro.',
+          'threat',
+          costAction(guildView, 'threat').label,
+        ],
+      ]);
+      expect(blocks.prospered).toEqual([]);
+    });
   });
 });

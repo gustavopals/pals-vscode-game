@@ -1102,9 +1102,16 @@ describe('os níveis dos avisos da Guilda e do Mercado (roadmap da v0.3, V3F-T3.
 });
 
 describe('a guerra nos avisos (V4E-T4)', () => {
-  const types = ['omenSeen', 'battleFought', 'wallDamaged', 'wallRepaired'] as const;
+  const types = [
+    'omenSeen',
+    'battleFought',
+    'wallDamaged',
+    'wallRepaired',
+    'campAppeared',
+    'fortressAppeared',
+  ] as const;
 
-  it('presságio, batalha e muralha só chegam em "Todas"', () => {
+  it('presságio, batalha, muralha e tiles de guerra só chegam em "Todas"', () => {
     for (const type of types) {
       const events = [event(type, 5)];
       expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
@@ -1121,5 +1128,20 @@ describe('a guerra nos avisos (V4E-T4)', () => {
         (entry) => entry.type,
       ),
     ).toEqual(['raidAnnounced']);
+  });
+
+  it('commanderDied é alarme essencial e commanderInjured avisa em "Todas", ambos levando à Guilda', () => {
+    const died = event('commanderDied', 7);
+    expect(isEssential(died)).toBe(true);
+    expect(isGuildEvent(died)).toBe(true);
+    expect(eventIcon(died)).toBe('error');
+    expect(decideNotifications(input({ level: 'essential', events: [died] })).show).toEqual([died]);
+
+    const injured = event('commanderInjured', 8);
+    expect(isEssential(injured)).toBe(false);
+    expect(isGuildEvent(injured)).toBe(true);
+    expect(eventIcon(injured)).toBeDefined();
+    expect(decideNotifications(input({ level: 'essential', events: [injured] })).show).toEqual([]);
+    expect(decideNotifications(input({ level: 'all', events: [injured] })).show).toEqual([injured]);
   });
 });

@@ -451,10 +451,11 @@ export function defenseCommand(view: ViewState): LeavingItem['command'] {
 
 /**
  * Soldados sem Defesa ativa: o exército não guarda o feudo (GDD §10.2). É um aviso, sem prazo.
- * O botão leva à aba Exército, onde se monta ou ativa a formação.
+ * O botão leva à aba Exército, onde se monta ou ativa a formação. Quando há incursão à vista,
+ * `raidItem` já toma a falta de Defesa ativa para si.
  */
 function armyDefenseItem(view: ViewState): LeavingItem | null {
-  if (!lacksDefense(view.army)) {
+  if (!lacksDefense(view.army) || view.threat.incoming !== null) {
     return null;
   }
   const { total } = view.army;

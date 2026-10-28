@@ -97,4 +97,60 @@ describe('reparar a muralha', () => {
     expect(none.toasts()).toEqual([threatIncomingView.threat.defense.wall.repairOffer.blockedText]);
     expect(none.orders()).toEqual([]);
   });
+
+  it('se o custo muda ou deixa de caber com a pergunta aberta, não envia a ordem', async () => {
+    const initialOffer = palisadeRaisedView.threat.defense.wall.repairOffer;
+
+    const changed = await setup(palisadeRaisedView);
+    changed.answers.push(async () => {
+      changed.api.state.view = {
+        ...palisadeRaisedView,
+        threat: {
+          ...palisadeRaisedView.threat,
+          defense: {
+            ...palisadeRaisedView.threat.defense,
+            wall: {
+              ...palisadeRaisedView.threat.defense.wall,
+              repairOffer: { ...initialOffer, stone: initialOffer.stone + 10 },
+            },
+          },
+        },
+      };
+      changed.api.state.stateVersion += 1;
+      await changed.controller.session.syncNow();
+      return true;
+    });
+    await changed.run('lords.repairWall');
+    expect(changed.orders()).toEqual([]);
+    expect(changed.toasts()).toContain(
+      'O custo do reparo mudou com a pergunta aberta: nada foi enviado. Confira de novo.',
+    );
+
+    const blocked = await setup(palisadeRaisedView);
+    blocked.answers.push(async () => {
+      blocked.api.state.view = {
+        ...palisadeRaisedView,
+        threat: {
+          ...palisadeRaisedView.threat,
+          defense: {
+            ...palisadeRaisedView.threat.defense,
+            wall: {
+              ...palisadeRaisedView.threat.defense.wall,
+              repairOffer: {
+                ...initialOffer,
+                canRepair: false,
+                blockedText: 'Faltam 10 de pedra.',
+              },
+            },
+          },
+        },
+      };
+      blocked.api.state.stateVersion += 1;
+      await blocked.controller.session.syncNow();
+      return true;
+    });
+    await blocked.run('lords.repairWall');
+    expect(blocked.orders()).toEqual([]);
+    expect(blocked.toasts()).toContain('Faltam 10 de pedra.');
+  });
 });
