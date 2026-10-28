@@ -204,6 +204,47 @@ const STABLE_IDS: Record<
       options: { hangingTree: ['liftCurse', 'takeCanal', 'retreat'] },
     },
   ],
+  sabotage: [
+    {
+      start: 'trenches',
+      nodes: [
+        'trenches',
+        'beastPens',
+        'campCrossroads',
+        'siegeTowers',
+        'warriorBastion',
+        'shamanAltar',
+        'home',
+      ],
+      options: { campCrossroads: ['burnSiegeWorks', 'infiltrateKeep', 'retreatToWoods'] },
+    },
+    {
+      start: 'ravineTrail',
+      nodes: [
+        'ravineTrail',
+        'wolfKennels',
+        'innerRavine',
+        'waterSupply',
+        'skullTrophyHall',
+        'boneCircle',
+        'home',
+      ],
+      options: { innerRavine: ['poisonCisterns', 'assaultSanctum', 'fallBackToPass'] },
+    },
+    {
+      start: 'fallenParapet',
+      nodes: [
+        'fallenParapet',
+        'beastStables',
+        'dungeonPassage',
+        'oilDepot',
+        'dreadArmory',
+        'totemSanctuary',
+        'home',
+      ],
+      options: { dungeonPassage: ['drainOilVats', 'breachChamber', 'withdrawInSecret'] },
+    },
+  ],
 };
 
 describe('a Guilda dos Aventureiros (GDD §6.1; ADR 0018, decisão 12)', () => {
@@ -376,6 +417,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       'ruins',
       'abandonedMine',
       'swamp',
+      'sabotage',
     ]);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
@@ -702,7 +744,17 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
         }
         // V3D-T2: além dos recursos, um item, um destino revelado, um tile limpo e um cativo solto.
         // V3E-T3: um Mestre com nome.
-        const known = ['resources', 'item', 'reveals', 'clearsTile', 'rescues', 'master'];
+        // V4F-T1: enfraquecimento e revelação das ondas da Horda na sabotagem.
+        const known = [
+          'resources',
+          'item',
+          'reveals',
+          'clearsTile',
+          'rescues',
+          'master',
+          'weakensWave',
+          'revealsWave',
+        ];
         expect(Object.keys(node.rewards).filter((key) => !known.includes(key))).toEqual([]);
       }
     }
@@ -789,6 +841,8 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       // V4B-T1 (ADR 0019, decisão 3; GDD §9.3).
       ['Mina Abandonada', 240, 4, '2-2', 1, 'warrior', 'Médio', 2, 'discovered'],
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
+      // V4F-T1 (ADR 0020, decisão 17; GDD §9.5).
+      ['Sabotagem da Fortaleza', 300, 5, '3-3', 1, '', 'Alto', 1, 'tile'],
     ]);
   });
 
@@ -1092,8 +1146,8 @@ describe('as frases das expedições', () => {
         expect(bold, name).toBeGreaterThan(worth.get(node.posture.cautious) ?? Infinity);
       }
     }
-    // Com as três da Mina Abandonada (V4B-T1).
-    expect(crossroads).toBe(18);
+    // Com as três da Mina Abandonada (V4B-T1), as três do Pântano e as três da Sabotagem (V4F-T1).
+    expect(crossroads).toBe(21);
     for (const id of ['balanced', 'bold'] as const) {
       expect(expeditionPostures[id].text).toMatch(/pede o que ela não tem, vale o seguro\.$/);
     }

@@ -872,6 +872,9 @@ export function everyDestinationOpen(draft: GameState): void {
   const captive = addHero(draft, { name: 'Cativo' });
   captive.status = 'captured';
   captive.captivity = { sinceMs: draft.lastProcessedAt, modelId: 'ruins' };
+  if (draft.map.tiles.hordeFortress === undefined) {
+    draft.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
+  }
 }
 
 /**

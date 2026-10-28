@@ -96,6 +96,8 @@ export const EVENT_TYPES = [
   'omenSeen',
   'fortressAppeared',
   'campAppeared',
+  'hordeSabotaged',
+  'hordeAlerted',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -189,6 +191,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   // As alas da muralha de que a frase fala, com a vida que ficou: "a ala esquerda (40 de 200) e
   // o centro (120 de 200)".
   'alas',
+  // A onda da Horda de que a frase de sabotagem fala ("a primeira onda", "a segunda onda").
+  'onda',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -408,6 +412,10 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, estandartes surgiram ao norte de {feudo}: a Fortaleza da Horda se prepara para o inverno.',
   campAppeared:
     'No {dia}º dia {daEstacao}, viajantes avistaram um Acampamento de Saqueadores nas colinas de {feudo}.',
+  hordeSabotaged:
+    'No {dia}º dia {daEstacao}, a expedição de {feudo} sabotou as defesas da Fortaleza: {onda} da Horda foi enfraquecida.',
+  hordeAlerted:
+    'No {dia}º dia {daEstacao}, a Horda foi alertada por intrusos na Fortaleza: a primeira onda virá reforçada.',
   itemRepaired:
     'No {dia}º dia {daEstacao}, o ferreiro de {feudo} devolveu {item} ao arsenal, inteiro outra vez.',
   masterWaiting:

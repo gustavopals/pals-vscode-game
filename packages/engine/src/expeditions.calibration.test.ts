@@ -255,6 +255,8 @@ const WORTH = {
   clears: 150,
   rescues: 250,
   reveals: 60,
+  weakensWave: 150,
+  revealsWave: 100,
   // O Mestre (V3E-T3): vale muito, pesado pela chance de a equipe o encontrar. Só chega uma vez
   // por partida; a régua conta a jornada em que ele ainda está lá.
   master: 300,
@@ -288,6 +290,8 @@ function expectedWorth(
     worth += succeeded * (rewards?.clearsTile === undefined ? 0 : WORTH.clears);
     worth += succeeded * (rewards?.rescues === true ? WORTH.rescues : 0);
     worth += succeeded * (rewards?.reveals === undefined ? 0 : WORTH.reveals);
+    worth += succeeded * (rewards?.weakensWave === undefined ? 0 : WORTH.weakensWave);
+    worth += succeeded * (rewards?.revealsWave === undefined ? 0 : WORTH.revealsWave);
     if (rewards?.master !== undefined) {
       const { chance } = rewards.master;
       worth += (succeeded * chance.num * WORTH.master) / chance.den;
@@ -544,8 +548,8 @@ describe('a calibragem do catálogo (roadmap da v0.3, V3D-T3.6)', () => {
     for (const kind of ['min', 'ample'] as const) {
       const base = yieldPerHeroHour(patrol, kind, 'balanced');
       for (const model of expeditionModels) {
-        // O Resgate não vai atrás de saque: o que ele rende é quem volta.
-        if (model.id === 'patrol' || model.access.kind === 'captive') {
+        // O Resgate e a Sabotagem não vão atrás de saque: o que rendem é quem volta e o cerco enfraquecido.
+        if (model.id === 'patrol' || model.access.kind === 'captive' || model.id === 'sabotage') {
           continue;
         }
         const other = yieldPerHeroHour(model, kind, 'balanced');

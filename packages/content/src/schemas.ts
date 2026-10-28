@@ -781,6 +781,12 @@ const balanceFields = z.strictObject({
         typeof nonNegInt
       >,
     ),
+    sabotage: z.strictObject({
+      maxPerYear: positiveInt,
+      waveReduction: ratio,
+      alertIncrease: ratio,
+      guardIncreasePerAttempt: ratio,
+    }),
   }),
   omens: z
     .strictObject({
@@ -1817,6 +1823,8 @@ const expeditionReward = z
         chance: ratio.refine(({ num, den }) => num <= den, 'chance acima de 1'),
       })
       .optional(),
+    weakensWave: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+    revealsWave: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   })
   .refine((reward) => Object.keys(reward).length > 0, 'recompensa sem nada');
 
@@ -1830,6 +1838,7 @@ const expeditionTrial = z.strictObject({
   onDisaster: z.enum(EXPEDITION_DISASTER_IDS),
   helps: z.enum(HERO_CLASS_IDS),
   lesson: expeditionProse.optional(),
+  alertsHorde: z.literal(true).optional(),
   // A frase de cada desfecho diz quem se destacou: `{heroi}` é obrigatório.
   outcomes: z.strictObject(
     Object.fromEntries(
@@ -2010,6 +2019,9 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
           classes: z
             .array(z.enum(HERO_CLASS_IDS))
             .refine((list) => new Set(list).size === list.length, 'classe repetida'),
+          season: z.enum(SEASON_IDS).optional(),
+          tile: identifier.optional(),
+          teamSize: positiveInt.optional(),
         })
         .refine(({ teamMin, teamMax }) => teamMin <= teamMax, 'equipe mínima acima da máxima')
         .refine(
