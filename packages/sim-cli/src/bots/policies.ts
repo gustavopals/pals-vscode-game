@@ -447,11 +447,16 @@ function withinReach(card: PendingCardView): CardOption[] {
 }
 
 /**
- * A primeira opção sem custo da carta: a que não gasta nem arrisca. No conteúdo as opções sem
- * custo vêm depois das pagas, e a mais dura vem por último.
+ * A primeira opção sem custo da carta: prefere a que não traz perda imediata (nem de recursos
+ * nem de moral), alinhada com a escolha padrão do conselho (`defaultOptionId`).
  */
 function firstFree(card: PendingCardView): CardOption | undefined {
-  return withinReach(card).find((option) => option.cost.length === 0);
+  const free = withinReach(card).filter((option) => option.cost.length === 0);
+  const isLossFree = (option: CardOption) => {
+    const immediateText = option.effectsText.replace(/Na próxima virada de dia:.*/, '');
+    return !immediateText.includes('−') && !immediateText.includes('-');
+  };
+  return free.find(isLossFree) ?? free[0];
 }
 
 /**

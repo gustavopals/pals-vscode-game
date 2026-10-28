@@ -527,3 +527,9 @@ sem mudar limite de contratação ou número das listas seguintes. O teto persis
 ofertas passa de três para quatro; as guardas antigas e os retratos v36 ficam congelados.
 A escolha paga na hora exata de uma rotação vale para a seguinte: o instante vence
 antes da ordem, como no restante do motor.
+
+**H-5. Travas sugeridas na revisão para `kingsTax` e `merchantBoycott`.** _(Proposta do agente; não lida pelo autor.)_
+A revisão independente das cartas levantou a suspeita de faltarem travas de narrativa:
+1. Em `kingsTax` (§6.1, imposto do rei, recorrente): responder `pay` ou `negotiate` não grava flag, permitindo em tese que o sorteio tire a carta novamente no mesmo ano ou estação.
+2. Em `merchantBoycott` (§5.4): a carta requer apenas `flags: ['merchant.hostile']`, podendo sair no início do outono em paralelo à continuação `merchantFinalOffer` (§5.3) antes de uma possível trégua (`peace`).
+Como as fichas aprovadas pelo autor em `docs/content-v0.4.md` (§§5.4 e 6.1) não preveem trava sazonal em `kingsTax` nem `notFlags: ['merchant.lead', 'merchant.sold']` em `merchantBoycott`, as cartas foram mantidas exatamente como aprovadas, sem alterações de conteúdo pelo agente. A decisão sobre acrescentar essas travas fica para o autor.
