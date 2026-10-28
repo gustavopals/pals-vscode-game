@@ -32,8 +32,17 @@ const card = (id: string): CouncilCard => {
   return found;
 };
 
+const flattenEffects = (effects: readonly CouncilEffect[]): CouncilEffect[] =>
+  effects.flatMap((effect) =>
+    effect.type === 'rollEffect'
+      ? [effect, ...flattenEffects(effect.onHit.effects), ...flattenEffects(effect.onMiss.effects)]
+      : [effect],
+  );
+
 const effectsOf = (entry: CouncilCard): CouncilEffect[] =>
-  entry.options.flatMap((option) => [...option.effects, ...(option.hidden?.effects ?? [])]);
+  entry.options.flatMap((option) =>
+    flattenEffects([...option.effects, ...(option.hidden?.effects ?? [])]),
+  );
 
 /** Todas as frases que uma carta põe na tela ou na Crônica. */
 const textsOf = (entry: CouncilCard): string[] => [
@@ -47,6 +56,12 @@ const textsOf = (entry: CouncilCard): string[] => [
     option.chronicle,
     option.expiredChronicle ?? '',
     option.hidden?.chronicle ?? '',
+    ...option.effects.flatMap((effect) =>
+      effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+    ),
+    ...(option.hidden?.effects ?? []).flatMap((effect) =>
+      effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+    ),
   ]),
 ];
 
@@ -318,6 +333,7 @@ describe('Conselho: o catálogo', () => {
       const read = [
         ...(entry.requires?.flags ?? []),
         ...(entry.requires?.notFlags ?? []),
+        ...entry.options.flatMap((option) => option.requires?.flags ?? []),
         ...(entry.variants ?? []).map((variant) => variant.flag),
         ...effectsOf(entry).flatMap((effect) => (effect.type === 'clearFlag' ? [effect.flag] : [])),
       ];
@@ -483,20 +499,37 @@ describe('Conselho: o catálogo', () => {
     for (const entry of councilCards) {
       for (const option of entry.options) {
         expect(option.hint.trim(), `${entry.id}/${option.id}`).not.toBe('');
+        const rollPhrases = [...option.effects, ...(option.hidden?.effects ?? [])].flatMap(
+          (effect) =>
+            effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+        );
         const phrases = [
           option.chronicle,
           option.expiredChronicle,
           option.hidden?.chronicle,
+          ...rollPhrases,
           entry.arrival,
           ...(entry.variants ?? []).map((variant) => variant.arrival),
         ].filter((phrase): phrase is string => phrase !== undefined);
         for (const phrase of phrases) {
           // Datada, no lugar certo, e só com marcadores que o motor sabe preencher.
           expect(phrase, `${entry.id}/${option.id}`).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
-          // §6.1 aprovado usa o interlocutor no lugar do feudo; frase exata no teste das fichas.
-          if (entry.id === 'kingsTax' && option.id === 'negotiate')
-            expect(phrase).toContain('{heroi}');
-          else expect(phrase).toContain('{feudo}');
+          // §6.1 aprovado usa o interlocutor no lugar do feudo; frases de risco em 7.4 e 7.5
+          // citam o herói ou heróis do duelo.
+          if (
+            (entry.id === 'kingsTax' && option.id === 'negotiate') ||
+            entry.id === 'gamblingDebt' ||
+            entry.id === 'squareDuel'
+          ) {
+            expect(
+              phrase.includes('{feudo}') ||
+                phrase.includes('{heroi}') ||
+                phrase.includes('{heroiFerido}'),
+              `${entry.id}/${option.id}: ${phrase}`,
+            ).toBe(true);
+          } else {
+            expect(phrase, `${entry.id}/${option.id}`).toContain('{feudo}');
+          }
           for (const [, name] of phrase.matchAll(/\{([^}]*)\}/g)) {
             expect(placeholders).toContain(name);
           }
@@ -510,8 +543,14 @@ describe('Conselho: o catálogo', () => {
       const applied = [...Object.values(entry.autoResolve), entry.autoResolveIfUnlocked];
       for (const id of new Set(applied.filter((value) => value !== undefined))) {
         const option = entry.options.find((candidate) => candidate.id === id);
-        const changes = (option?.effects ?? []).some(
-          (effect) => effect.type === 'resources' || effect.type === 'morale',
+        const optionEffects = flattenEffects(option?.effects ?? []);
+        const changes = optionEffects.some(
+          (effect) =>
+            effect.type === 'resources' ||
+            effect.type === 'resourcesPercent' ||
+            effect.type === 'morale' ||
+            effect.type === 'marketPrice' ||
+            effect.type === 'rollEffect',
         );
         if (changes) {
           expect(option?.expiredChronicle, `${entry.id}/${id}`).toBeDefined();
@@ -702,17 +741,37 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
 
 describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
   it('em Camponês e em Senhor, a opção que o conselho aplica sozinho nunca tira recurso, nem depois', () => {
+    // Exceções com fichas aprovadas em docs/content-v0.4.md que preveem perda de recursos
+    // na resolução automática em Camponês e Senhor:
+    // - kingsTax (§6.1): imposto real de 15% de ouro em `pay`
+    // - kingsCollector (§6.2): multa real de 30% de ouro em `fine`
+    // - kingsAnswer (§6.3): tributo real de 10% de recursos em `tribute`
+    // - fieldBlight (§4.4): risco de praga (rollEffect com -50% de comida) em `pray`
+    const RESOURCE_LOSS_EXCEPTIONS = new Set([
+      'kingsTax',
+      'kingsCollector',
+      'kingsAnswer',
+      'fieldBlight',
+    ]);
     for (const entry of councilCards) {
+      if (RESOURCE_LOSS_EXCEPTIONS.has(entry.id)) {
+        continue;
+      }
       for (const difficulty of ['peasant', 'lord'] as const) {
         const option = entry.options.find(
           (candidate) => candidate.id === entry.autoResolve[difficulty],
         );
-        const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
+        const all = flattenEffects([
+          ...(option?.effects ?? []),
+          ...(option?.hidden?.effects ?? []),
+        ]);
         for (const effect of all) {
           if (effect.type === 'resources') {
             for (const amount of Object.values(effect.amounts)) {
               expect(amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
             }
+          } else if (effect.type === 'resourcesPercent') {
+            expect(effect.ratio.num, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
           }
         }
       }
@@ -807,9 +866,26 @@ describe('Conselho: a ordem das opções na carta', () => {
     // É a ordem em que a tela mostra: quem lê de cima para baixo vê o que custa (ou pede um
     // edifício), depois o que não custa nem arrisca, e por fim o que não custa e cobra de outro
     // jeito.
-    // As nove fichas de §§4.4, 5 e 6.1–6.3 foram aprovadas na ordem das tabelas; seus ids e
-    // sua ordem ficam fixados acima e no golden das fichas. Ver balance-v0.4.md §14.
-    for (const entry of councilCards.slice(0, 30)) {
+    // As fichas de §§4.4, 5.1–5.5, 6.1–6.3 e 7.5 foram aprovadas na ordem das tabelas em
+    // docs/content-v0.4.md (balance-v0.4.md §14). A exceção fica restrita a esses IDs aprovados;
+    // todas as outras cartas do catálogo (inclusive passingRecruiter, gamblingDebt e
+    // wanderingHealer) seguem a convenção.
+    const ORDER_EXCEPTIONS = new Set([
+      'fieldBlight',
+      'mysteriousMerchant',
+      'merchantLead',
+      'merchantFinalOffer',
+      'merchantBoycott',
+      'royalCaravan',
+      'kingsTax',
+      'kingsCollector',
+      'kingsAnswer',
+      'squareDuel',
+    ]);
+    for (const entry of councilCards) {
+      if (ORDER_EXCEPTIONS.has(entry.id)) {
+        continue;
+      }
       const kinds = entry.options.map((option) => (isFree(option) ? 'free' : 'paid'));
       expect(kinds.join(','), entry.id).toMatch(/^(paid,)*free(,free)*$/);
       const free = entry.options.filter(isFree);
@@ -1688,6 +1764,17 @@ describe('Conselho: o schema do catálogo', () => {
   it('recusa flag exigida, proibida, lembrada ou apagada que ninguém grava', () => {
     expect(catalog([{ ...sample, requires: { flags: ['chain.done'] } }])).toBe(false);
     expect(catalog([{ ...sample, requires: { notFlags: ['chain.done'] } }])).toBe(false);
+    expect(
+      catalog([
+        {
+          ...sample,
+          options: [
+            sample.options[0],
+            { ...sample.options[1], requires: { flags: ['chain.done'] } },
+          ],
+        },
+      ]),
+    ).toBe(false);
     expect(
       catalog([
         { ...sample, variants: [{ flag: 'chain.done', text: 'Alguém voltou. O conselho ri.' }] },
