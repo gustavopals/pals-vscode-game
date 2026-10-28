@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-import { createInitialState, type GameState } from '@lotg/engine';
+import { createInitialState, CURRENT_SCHEMA_VERSION, type GameState } from '@lotg/engine';
 import type {
   ChronicleResponse,
   CommandAccepted,
@@ -648,14 +648,20 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     expect(resolved.filter((event) => event.type === 'raidRepelled').length).toBeGreaterThan(1);
     const ids = resolved.map((event) => event.data.raidId);
     expect(new Set(ids).size).toBe(ids.length);
-    // Desde a V4E-T2, o roteiro do ano 1 traz também as incursões-batalha dos dias 25 e 37 (a do
-    // 61º, o ensaio, não é marcada neste ano: a Ameaça já tinha uma incursão marcada, D-33). As da
-    // Ameaça contam todas as resolvidas antes delas: a ordem na partida é o número do id.
-    expect(ids.slice(0, 3)).toEqual(['wolvesYear1', 'raidersYear1Weak', 'raidersYear1Medium']);
+    // Desde a V4E-T2, o roteiro do ano 1 traz também as incursões-batalha dos dias 25 e 37.
+    // Com a Hora da Vigília (V4G-T1), o ensaio do 61º dia é marcado na janela da Vigília.
+    expect(ids).toEqual([
+      'wolvesYear1',
+      'raidersYear1Weak',
+      'raidersYear1Medium',
+      'threat-4',
+      'threat-5',
+      'threat-6',
+      'raidersYear1Rehearsal',
+      'threat-8',
+      'threat-9',
+    ]);
     resolved.slice(1).forEach((event, index) => {
-      if (index >= 2) {
-        expect(event.data.raidId).toBe(`threat-${index + 2}`);
-      }
       // Entre duas incursões passam ao menos quatro dias de jogo.
       expect(event.atMs - (resolved[index]?.atMs ?? 0)).toBeGreaterThanOrEqual(4 * GAME_DAY);
     });
@@ -715,7 +721,7 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     expect(view.threat.known).toBe(true);
     if (view.threat.known) {
       // V4E-T3: os dois tiles novos mantêm pressão também no inverno.
-      expect(view.threat.level).toBe(89);
+      expect(view.threat.level).toBe(57);
       expect(view.threat.raidRisk).toContain(
         'Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
       );
@@ -739,8 +745,8 @@ describe('uma partida gravada antes das incursões (estado na versão 10)', () =
     const view = await viewOf(normal, game, game.id);
     expect(view.population).toMatchObject({ injured: 0, injuredNote: null });
     const row = await storedState(normal, game.id);
-    expect(row.schema_version).toBe(34);
-    expect(row.state.schemaVersion).toBe(35);
+    expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
+    expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(row.state.settlement.injured).toEqual([]);
     expect(row.state.horde.scheduledRaids).toEqual([
       {

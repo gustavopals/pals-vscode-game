@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-import { createInitialState, type GameState } from '@lotg/engine';
+import { createInitialState, CURRENT_SCHEMA_VERSION, type GameState } from '@lotg/engine';
 import type {
   ChronicleResponse,
   CommandAccepted,
@@ -391,8 +391,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(34);
-    expect(row.state.schemaVersion).toBe(35);
+    expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
+    expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },

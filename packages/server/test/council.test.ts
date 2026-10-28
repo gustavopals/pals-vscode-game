@@ -12,6 +12,7 @@ import type {
   ViewState,
 } from '@lotg/protocol';
 import { PROTOCOL_VERSION, ViewResponseSchema } from '@lotg/protocol';
+import { CURRENT_SCHEMA_VERSION } from '@lotg/engine';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { runJobsOnce } from '../src/jobs/scheduler';
@@ -761,7 +762,7 @@ describe('uma partida gravada antes do Conselho (versão 7 do estado)', () => {
       'select schema_version, state from games where id = $1',
       [game.id],
     );
-    expect(rows[0]?.schema_version).toBe(34);
+    expect(rows[0]?.schema_version).toBe(CURRENT_SCHEMA_VERSION);
     const nextDrawAtMs = rows[0]?.state.council?.nextDrawAtMs ?? 0;
     // A primeira virada de dia a partir de um intervalo inteiro depois da fronteira.
     expect(nextDrawAtMs % DAY).toBe(0);

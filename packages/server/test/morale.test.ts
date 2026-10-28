@@ -10,6 +10,7 @@ import type {
   ViewState,
 } from '@lotg/protocol';
 import { ViewResponseSchema } from '@lotg/protocol';
+import { CURRENT_SCHEMA_VERSION } from '@lotg/engine';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { runJobsOnce } from '../src/jobs/scheduler';
@@ -549,8 +550,8 @@ describe('uma partida gravada antes da moral (versão 6 do estado)', () => {
       expect(row.breakdown).not.toContain('moral');
     }
     const row = await rowOf(normal, game.id);
-    expect(row.schema_version).toBe(34);
-    expect(row.state.schemaVersion).toBe(35);
+    expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
+    expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(row.state.settlement).toMatchObject({ morale: 50, moraleEffects: [] });
     expect(row.state.settlement.population).toEqual(before.settlement.population);
     expect(moraleOnly(await eventsOf(normal, game, game.id))).toEqual([]);
