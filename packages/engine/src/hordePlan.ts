@@ -112,13 +112,18 @@ function reduceWave(draft: GameState, wave: Wave): void {
     const index = slots.findIndex((entry) => entry.wing === post.wing && entry.line === post.line);
     return { count: fixed?.count ?? amounts[index] ?? 0, minimum: fixed?.count ?? 0 };
   });
-  const percent = wave.reductionPercent ?? 0;
-  const target = Math.floor(
-    (base.reduce((sum, post) => sum + post.count, 0) * (100 - percent)) / 100,
-  );
-  const counts = base.map((post) =>
-    Math.max(post.minimum, Math.floor((post.count * (100 - percent)) / 100)),
-  );
+  distributeWave(wave, base, 100 - (wave.reductionPercent ?? 0), 100);
+}
+
+/** Calcula o total uma vez, preserva os postos fixos e reparte o resto sem sorteio. */
+function distributeWave(
+  wave: Wave,
+  base: readonly { count: number; minimum: number }[],
+  num: number,
+  den: number,
+): void {
+  const target = Math.floor((base.reduce((sum, post) => sum + post.count, 0) * num) / den);
+  const counts = base.map((post) => Math.max(post.minimum, Math.floor((post.count * num) / den)));
   let rest = target - counts.reduce((sum, count) => sum + count, 0);
   // Os postos fixos (Xamã e Senhor da Guerra) conservam o efetivo exigido pelo conteúdo.
   for (const [index, post] of base.entries()) {
@@ -128,6 +133,18 @@ function reduceWave(draft: GameState, wave: Wave): void {
     rest -= 1;
   }
   for (const [index, post] of wave.composition.entries()) post.count = counts[index]!;
+}
+
+/** O alerta soma 10% sobre o total atual, também na regeneração. */
+function increaseAlertedWave(wave: Wave): void {
+  const def = hordeWaves.find((entry) => entry.number === wave.number)!;
+  const base = wave.composition.map((post) => ({
+    count: post.count,
+    minimum:
+      def.fixed.find((entry) => entry.wing === post.wing && entry.line === post.line)?.count ?? 0,
+  }));
+  const { num, den } = balance.horde.sabotage.alertIncrease;
+  distributeWave(wave, base, den + num, den);
 }
 
 /** Só é chamada na linha do tempo: as ondas reais, ainda sem agendar o Cerco. */
@@ -151,10 +168,7 @@ function prepareWaves(draft: GameState, atMs: number): void {
   if (draft.horde.sabotages?.alerted) {
     const wave1 = waves.find((w) => w.number === 1);
     if (wave1 !== undefined) {
-      const { num, den } = balance.horde.sabotage.alertIncrease;
-      for (const post of wave1.composition) {
-        post.count = Math.floor((post.count * (den + num)) / den);
-      }
+      increaseAlertedWave(wave1);
     }
   }
 
@@ -201,10 +215,7 @@ export function alertHordeFortress(
   if (draft.horde.wavePlan !== null) {
     const wave1 = draft.horde.wavePlan.waves.find((w) => w.number === 1);
     if (wave1 !== undefined) {
-      const { num, den } = balance.horde.sabotage.alertIncrease;
-      for (const post of wave1.composition) {
-        post.count = Math.floor((post.count * (den + num)) / den);
-      }
+      increaseAlertedWave(wave1);
     }
   }
   // A informação da visão acompanha a composição; a frase já emitida continua histórica.
@@ -238,9 +249,7 @@ export function applyWaveSabotage(
       );
       reduceWave(draft, wave);
       if (waveNumber === 1 && draft.horde.sabotages.alerted) {
-        const increase = balance.horde.sabotage.alertIncrease;
-        for (const post of wave.composition)
-          post.count = Math.floor((post.count * (increase.den + increase.num)) / increase.den);
+        increaseAlertedWave(wave);
       }
     }
   }

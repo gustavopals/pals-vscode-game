@@ -692,3 +692,8 @@ Em Senhor, três sucessos levam os totais 40/60/81 a 22/33/44. Testes focados
 provam as três reduções, o teto e a distribuição idêntica após regenerar.
 Nenhuma faixa do simulador foi alterada ou remedida; matriz e suítes pesadas
 ficam com o coordenador, conforme a divisão desta revisão.
+
+O alerta também trunca uma vez sobre o total da onda atual e distribui os
+restos na ordem fixa: Camponês 28 → 30, Senhor 40 → 44. Não acumula novos
+alertas. Após três reduções em Senhor, 22 → 24 com alerta, tanto ao reduzir
+uma onda alertada quanto ao alertar uma onda reduzida ou regenerá-la.

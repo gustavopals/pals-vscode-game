@@ -107,4 +107,42 @@ describe('as ondas após sabotagem', () => {
     expect(state.horde.omens).toEqual([]);
     expect(currentShape(state, '')).toBeNull();
   });
+  it.each([
+    ['peasant', 28, 30],
+    ['lord', 40, 44],
+  ] as const)(
+    'o alerta aumenta o total uma vez em %s (%i → %i), com restos fixos',
+    (difficulty, before, after) => {
+      const state = preparedHorde(difficulty);
+      const wave = state.horde.wavePlan!.waves[0]!;
+      expect(total(wave.composition)).toBe(before);
+      const rng = structuredClone(state.rng);
+      alertHordeFortress(state, AUTUMN, [], 'expedition-1');
+      expect(total(wave.composition)).toBe(after);
+      const counts = wave.composition.map((post) => post.count);
+      alertHordeFortress(state, AUTUMN, [], 'expedition-2');
+      expect(wave.composition.map((post) => post.count)).toEqual(counts);
+      expect(state.rng).toEqual(rng);
+      observeFormation(state, [{ unit: 'knight', count: 8 }], AUTUMN);
+      expect(state.horde.wavePlan!.waves[0]!.composition.map((post) => post.count)).toEqual(counts);
+      expect(currentShape(state, '')).toBeNull();
+    },
+  );
+
+  it('alerta e redução dão o mesmo efetivo e distribuição em qualquer ordem e após regenerar', () => {
+    const first = preparedHorde();
+    const second = preparedHorde();
+    alertHordeFortress(first, AUTUMN, [], 'expedition-1');
+    for (const state of [first, second])
+      for (let success = 0; success < 3; success += 1)
+        applyWaveSabotage(state, 1, AUTUMN, [], 'expedition-1');
+    alertHordeFortress(second, AUTUMN, [], 'expedition-2');
+    const expected = first.horde.wavePlan!.waves[0]!.composition.map((post) => post.count);
+    expect(total(first.horde.wavePlan!.waves[0]!.composition)).toBe(24);
+    expect(second.horde.wavePlan!.waves[0]!.composition.map((post) => post.count)).toEqual(
+      expected,
+    );
+    observeFormation(first, [{ unit: 'archer', count: 8 }], AUTUMN);
+    expect(first.horde.wavePlan!.waves[0]!.composition.map((post) => post.count)).toEqual(expected);
+  });
 });
