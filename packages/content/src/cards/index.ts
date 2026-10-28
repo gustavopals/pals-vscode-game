@@ -5,7 +5,18 @@ import {
   palisadePromisePlea,
   palisadePromiseReckoning,
 } from './palisadePromise';
-import { firstRecruit, itinerantMerchant, tavernBard, tornMap, veteranCaptain } from './lote2';
+import {
+  firstRecruit,
+  itinerantMerchant,
+  tavernBard,
+  tornMap,
+  veteranCaptain,
+  fieldBlight,
+  merchantBoycott,
+  royalCaravan,
+} from './lote2';
+import { mysteriousMerchant, merchantLead, merchantFinalOffer } from './mysteriousMerchant';
+import { kingsTax, kingsCollector, kingsAnswer } from './kingsCollector';
 import { refugeesAtGates, refugeesCraft, refugeesReturn } from './refugees';
 import { woundedStranger } from './scripted';
 import {
@@ -77,4 +88,13 @@ export const councilCards: readonly CouncilCard[] = [
   itinerantMerchant,
   firstRecruit,
   veteranCaptain,
+  fieldBlight,
+  mysteriousMerchant,
+  merchantLead,
+  merchantFinalOffer,
+  merchantBoycott,
+  royalCaravan,
+  kingsTax,
+  kingsCollector,
+  kingsAnswer,
 ];

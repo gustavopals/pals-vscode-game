@@ -3,9 +3,9 @@ import type { CouncilCard } from '../council';
 /**
  * Cartas avulsas e roteirizadas do lote 2 e do lote 3 do Conselho (docs/content-v0.4.md, seções
  * 7, 8 e 10; roadmap da v0.4, V4H-T1), lidas e aprovadas pelo autor em 2026-10-23. Entram aqui
- * só as que não pedem estado novo: as que dependem do preço do Mercado, de um risco sorteado
- * depois, de bônus por prazo, de uma expedição especial ou de uma mecânica de fase futura
- * esperam as tarefas delas.
+ * as avulsas já implementadas. A praga e os choques de preço usam o estado 36 (Mercado e
+ * risco na virada, V4H-T1); bônus por prazo, expedição especial e mecânicas de fase futura
+ * continuam esperando as tarefas delas.
  *
  * Cada carta é uma constante exportada, escrita por extenso (sem espalhamento), como as demais.
  */
@@ -216,6 +216,279 @@ export const veteranCaptain: CouncilCard = {
         'No {dia}º dia {daEstacao}, o senhor de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes.',
       expiredChronicle:
         'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou o capitão veterano seguir viagem. Ele tomou a estrada sem olhar para trás, que é o hábito de quem já se despediu muitas vezes.',
+    },
+  ],
+};
+
+/** Ficha aprovada: docs/content-v0.4.md, §4.4. */
+export const fieldBlight: CouncilCard = {
+  id: 'fieldBlight',
+  title: 'Praga nos campos',
+  text: 'As folhas do trigo amarelam de ponta a ponta, e o cheiro de mofo chega até o portão. Os velhos dizem que a praga se espalha rápido e que a hora de decidir é agora. A despensa depende da colheita.',
+  weight: 2,
+  requires: {
+    seasons: ['summer'],
+    resourcesAbove: {
+      food: 200,
+    },
+  },
+  autoResolve: {
+    peasant: 'pray',
+    lord: 'pray',
+    ironKing: 'burn',
+  },
+  options: [
+    {
+      id: 'burn',
+      label: 'Queimar a plantação',
+      effects: [
+        {
+          type: 'resourcesPercent',
+          resource: 'food',
+          ratio: {
+            num: -30,
+            den: 100,
+          },
+        },
+        {
+          type: 'morale',
+          amount: -5,
+          durationDays: 2,
+        },
+      ],
+      hint: 'A fumaça sobe cedo. O que resta fica a salvo.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou queimar o trigo doente. A fumaça cobriu o vale até o meio-dia.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou queimar o trigo doente. A fumaça cobriu o vale até o meio-dia.',
+    },
+    {
+      id: 'pray',
+      label: 'Rezar e esperar',
+      effects: [
+        {
+          type: 'rollEffect',
+          chance: {
+            num: 1,
+            den: 2,
+          },
+          withHeroClass: {
+            heroClass: 'cleric',
+            chance: {
+              num: 1,
+              den: 5,
+            },
+          },
+          onHit: {
+            effects: [
+              {
+                type: 'resourcesPercent',
+                resource: 'food',
+                ratio: {
+                  num: -50,
+                  den: 100,
+                },
+              },
+            ],
+            chronicle:
+              'No {dia}º dia {daEstacao}, a praga levou metade do que {feudo} guardava nos celeiros.',
+          },
+          onMiss: {
+            effects: [
+              {
+                type: 'morale',
+                amount: 5,
+                durationDays: 2,
+              },
+            ],
+            chronicle:
+              'No {dia}º dia {daEstacao}, a praga cedeu sozinha. O povo de {feudo} diz que foi a reza.',
+          },
+        },
+      ],
+      hint: 'Fé não se mede em sacos. Uma Clériga costuma acalmar o campo.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou rezar nos campos e esperar.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou rezar nos campos e esperar.',
+    },
+    {
+      id: 'alchemist',
+      label: 'Pagar o alquimista',
+      cost: {
+        gold: 120,
+      },
+      effects: [],
+      hint: 'Ouro rende pó de cal e fé, nessa ordem.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou ao alquimista para tratar os campos. O homem espalhou cal e disse palavras demoradas.',
+    },
+  ],
+};
+
+/** Ficha aprovada: docs/content-v0.4.md, §5.4. */
+export const merchantBoycott: CouncilCard = {
+  id: 'merchantBoycott',
+  title: 'Boicote dos mercadores',
+  text: 'Os mercadores da estrada não esqueceram o homem que o feudo prendeu. Mandaram dizer que as carroças deles passarão por outro caminho, e que o que ficar na praça será vendido mais caro. O Mercado de {feudo} começa a sentir o vazio das bancas.',
+  weight: 2,
+  requires: {
+    seasons: ['autumn', 'winter'],
+    buildings: {
+      market: 1,
+    },
+    flags: ['merchant.hostile'],
+  },
+  autoResolve: {
+    peasant: 'resist',
+    lord: 'resist',
+    ironKing: 'resist',
+  },
+  options: [
+    {
+      id: 'yield',
+      label: 'Ceder às exigências',
+      cost: {
+        gold: 100,
+      },
+      effects: [
+        {
+          type: 'clearFlag',
+          flag: 'merchant.hostile',
+        },
+      ],
+      hint: 'O ouro compra a paz, e a memória dura mais que ele.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou aos mercadores o preço da paz. As carroças voltaram à praça antes do fim da semana.',
+    },
+    {
+      id: 'resist',
+      label: 'Resistir ao boicote',
+      effects: [
+        {
+          type: 'marketPrice',
+          resources: ['food', 'wood', 'stone', 'iron'],
+          factor: {
+            num: 6,
+            den: 5,
+          },
+          durationDays: 3,
+        },
+        {
+          type: 'morale',
+          amount: 5,
+          durationDays: 2,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'merchant.hostile',
+        },
+      ],
+      hint: 'Os preços sobem uns dias, e o feudo mostra de que lado está.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} recusou-se a ceder ao boicote dos mercadores. As bancas ficaram vazias, e o povo cantou na praça.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} recusou-se a ceder ao boicote dos mercadores. As bancas ficaram vazias, e o povo cantou na praça.',
+    },
+    {
+      id: 'route',
+      label: 'Buscar outra rota',
+      cost: {
+        wood: 60,
+      },
+      effects: [
+        {
+          type: 'marketPrice',
+          resources: ['food', 'wood', 'stone', 'iron'],
+          factor: {
+            num: 11,
+            den: 10,
+          },
+          durationDays: 2,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'merchant.hostile',
+        },
+      ],
+      hint: 'A estrada nova custa madeira e cura o rancor.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou abrir uma estrada nova para as carroças. Os mercadores a percorreram a contragosto.',
+    },
+  ],
+};
+
+/** Ficha aprovada: docs/content-v0.4.md, §5.5. */
+export const royalCaravan: CouncilCard = {
+  id: 'royalCaravan',
+  title: 'A caravana real',
+  text: 'Uma caravana com o estandarte do rei parou à porta do Mercado. Os cavalariços comem como lobos, e o intendente diz que a coroa compra o que o feudo tiver de sobra, e a bom preço, mas só enquanto a caravana estiver na praça. O inverno vem depois, e a despensa depende de quanto o senhor guardar.',
+  weight: 2,
+  requires: {
+    seasons: ['summer', 'autumn'],
+    buildings: {
+      market: 1,
+    },
+  },
+  autoResolve: {
+    peasant: 'winter',
+    lord: 'winter',
+    ironKing: 'winter',
+  },
+  options: [
+    {
+      id: 'sellNow',
+      label: 'Vender à caravana agora',
+      effects: [
+        {
+          type: 'marketPrice',
+          resources: ['food', 'wood', 'stone'],
+          factor: {
+            num: 5,
+            den: 4,
+          },
+          durationDays: 1,
+        },
+      ],
+      hint: 'Um dia de preço alto, e só um dia.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} abriu o Mercado à caravana do rei. As bancas esvaziaram antes do pôr do sol.',
+    },
+    {
+      id: 'hospitality',
+      label: 'Dar hospitalidade à caravana',
+      cost: {
+        food: 40,
+      },
+      effects: [
+        {
+          type: 'marketPrice',
+          resources: ['food', 'wood', 'stone'],
+          factor: {
+            num: 11,
+            den: 10,
+          },
+          durationDays: 3,
+        },
+        {
+          type: 'morale',
+          amount: 5,
+          durationDays: 2,
+        },
+      ],
+      hint: 'A coroa lembra quem a recebeu à mesa: a alta dura mais, só que menor.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} deu mesa à caravana do rei. O intendente elogiou o caldo e a sela dos cavalos.',
+    },
+    {
+      id: 'winter',
+      label: 'Guardar o excedente para o inverno',
+      effects: [],
+      hint: 'O celeiro cheio vale mais quando a neve cai e a comida custa 30% a mais.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a caravana do rei seguir viagem e guardou o excedente nos celeiros.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou a caravana do rei seguir viagem e guardou o excedente nos celeiros.',
     },
   ],
 };

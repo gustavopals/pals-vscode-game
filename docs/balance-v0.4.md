@@ -598,3 +598,29 @@ A primeira rodada do portão detectou divergência da divisão de intervalo em
 estados postos diretamente dentro da antecedência, sem ensaio marcado. Corrigido
 no motor: marcação tardia só na ordem que muda a preferência; leituras não a
 fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
+
+
+## 16. V4H-T1 — cartas do Mercado e da Coroa (2026-10-28)
+
+Entram nove fichas aprovadas pelo autor em 2026-10-23: §4.4, §§5.1–5.5 e §§6.1–6.3 de
+`content-v0.4.md`. Texto, ordem das opções, números, condições, variantes e crônicas foram
+preservados. O catálogo passa de 30 para 39 cartas; a mudança de sorteio é intencional.
+O estado passa de 35 para 36 (a previsão 36 → 37 do roadmap estava defasada).
+
+Os testes editoriais do lote 1 foram ajustados só onde a ficha aprovada exige:
+
+- A ordem das nove fichas é a das tabelas aprovadas, fixada nos ids e no retrato de conteúdo,
+  em vez de mover automaticamente as opções pagas para o início.
+- `kingsTax/negotiate` usa `{heroi}` e não `{feudo}` na crônica aprovada.
+- O risco da praga não é um ganho garantido; o preço favorece quem vende e pesa sobre quem
+  compra. A comparação escalar de dominância não os ordena. Pagar o alquimista evita o risco;
+  pagar o Boicote evita ou reduz a alta. Os testes específicos conferem as chances e os fatores.
+- A multa de `kingsCollector/fine` e o tributo de `kingsAnswer/tribute` têm −5 de moral por
+  2 dias mesmo sem resposta, conforme a aprovação. As asserções exigem esses valores exatos.
+- O imposto recorrente perde 15% do ouro em Camponês/Senhor e usa flags da própria cadeia;
+  não integra a ronda neutra das quatro recorrentes do lote 1, cujos testes continuam intactos.
+
+As fórmulas de preço mantêm o passeio entre 60% e 160%, aplicam estação e todos os fatores
+vivos antes de arredondar, e conservam a venda a 85%. Não se alterou número de carta aprovado,
+regra de bot ou faixa do simulador. Matriz do simulador, cobertura em 50 sementes e verify
+inteiro ficam para o coordenador, por divisão explícita de trabalho nesta sessão.
