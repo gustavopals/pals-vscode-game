@@ -233,7 +233,7 @@ describe('cenário golden de 7 dias', () => {
     // moral cai às 74 h e às 86 h (às 84 h até a D-39, quando elas ainda feriam), e a fome leva
     // um aldeão às 98 h (às 96 h até a D-39).
     // V4H-T1: a Paliçada é mostrada às 108 h; o poço cobra −10 às 166 h.
-    // Valores exatos do novo sorteio, conferidos no golden (balance-v0.4.md §16).
+    // Valores exatos do novo sorteio, conferidos no golden (balance-v0.4.md §14).
     expect(bands).toEqual([
       [74, 'restless'],
       [78, 'content'],
@@ -433,7 +433,7 @@ describe('cenário golden de 7 dias', () => {
     expect(state.settlement.wall.hp).toEqual({ left: 100, center: 100, right: 100 });
     // A continuação da ponte chegou na mesma virada da roteirizada, com lugar para as duas; e,
     // mais adiante (V4H-T1: às 124 h, depois que o sorteio mudou), a continuação do celeiro chega
-    // sozinha; a mesa agora tem a carta dos aprendizes (balance-v0.4.md §16).
+    // sozinha; a mesa agora tem a carta dos aprendizes (balance-v0.4.md §14).
     expect(
       cards.filter((event) => event.atMs === 40 * HOUR).map((event) => event.data.source),
     ).toEqual(['scripted', 'continuation']);

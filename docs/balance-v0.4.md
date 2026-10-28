@@ -600,7 +600,7 @@ no motor: marcação tardia só na ordem que muda a preferência; leituras não 
 fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
 
 
-## 16. V4H-T1 — cartas do Mercado e da Coroa (2026-10-28)
+## 14. V4H-T1 — cartas do Mercado e da Coroa (2026-10-28)
 
 Entram nove fichas aprovadas pelo autor em 2026-10-23: §4.4, §§5.1–5.5 e §§6.1–6.3 de
 `content-v0.4.md`. Texto, ordem das opções, números, condições, variantes e crônicas foram

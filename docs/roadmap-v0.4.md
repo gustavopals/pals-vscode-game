@@ -1019,18 +1019,23 @@ Como V4E-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-g.md`; correçõ
 **Depende de:** V4A-T2 (decisão 1: se a resposta for "v0.3.1", a tarefa sai deste plano e vira a V3F-T1 retomada); **pode começar depois da Fase B**, em trilha de conteúdo. **Da v0.3 usa:** o branch `wip/v3f-t1-lote2` (`2352e39`: `council.effects.test.ts`, `council.ts`, `councilTurn.ts`, `councilView.ts` e três arquivos de cartas, **não verde, nunca testado**), `deliverMaster` (existe; nenhuma carta a chama), `scripted`.
 **Decisões:** 1, 23.
 **Trilha:** motor e conteúdo.
-**Entregáveis:** os do branch, revisados um a um (não juntar sem revisar); `packages/content/src/cards/*.ts` (**novos** `refugees.ts`, `kingsCollector.ts`, `mysteriousMerchant.ts`, `whiteWolf.ts`, `scripted.ts` com "O mercador itinerante", avulsas), `council.ts` (efeitos `addMaster`, `marketPrice`, `rollEffect`; requisitos `heroPresent`, `heroTrait`, `heroClass`), `council.test.ts`, `chronicle.ts`; `packages/engine/src/council.ts`, `councilTurn.ts`, `councilView.ts`, `marketTurn.ts` (os efeitos sobre o preço), `migrations/v37.ts` e o passo em `v36.ts` (`market.effects`); `docs/content-v0.4.md`, seção 4 (as fichas; **rascunho**); `sim-cli` (`SHOW_COVERAGE=1`: cobertura por posse); README do motor ("Uma carta nova": toda carta nova muda o sorteio de todas as sementes).
+**Entregáveis:** os do branch, revisados um a um (não juntar sem revisar); `packages/content/src/cards/*.ts` (**novos** `refugees.ts`, `kingsCollector.ts`, `mysteriousMerchant.ts`, `whiteWolf.ts`, `scripted.ts` com "O mercador itinerante", avulsas), `council.ts` (efeitos `addMaster`, `marketPrice`, `rollEffect`; requisitos `heroPresent`, `heroTrait`, `heroClass`), `council.test.ts`, `chronicle.ts`; `packages/engine/src/council.ts`, `councilTurn.ts`, `councilView.ts`, `marketTurn.ts` (os efeitos sobre o preço), `migrations/v36.ts` e o passo em `v35.ts` (`market.effects`); `docs/content-v0.4.md`, seções 4 a 8 (as fichas aprovadas pelo autor); `sim-cli` (`SHOW_COVERAGE=1`: cobertura por posse); README do motor ("Uma carta nova": toda carta nova muda o sorteio de todas as sementes).
 
 - [ ] V4H-T1.1 Ler o branch e decidir o que aproveita; registrar o que foi descartado.
 - [ ] V4H-T1.2 Efeitos e requisitos novos, com teste de cada um e `council.effects.test.ts` verde.
+  - [x] Mercado e Coroa: `resourcesPercent`, `rollEffect`, `marketPrice`, destino específico, estoque mínimo estrito, flags de opção, Carismático livre e soldados treinados, todos com teste. Os ganchos das demais fichas continuam pendentes.
 - [ ] V4H-T1.3 As cartas, em lotes de cinco apresentados ao autor **antes** da transcrição (se ele responder "escrevo e sigo", vale como na v0.3 e fica registrado).
+  - [x] Transcrever exatamente as nove fichas já aprovadas: §4.4, §§5.1–5.5 e §§6.1–6.3, com ids fixados, comparação textual com as fichas e golden do conteúdo. As outras cartas desta tarefa continuam pendentes.
 - [ ] V4H-T1.4 "O Cobrador do Rei" com o ramo de soldados e "O Lobo Branco" com presságio e cerco, **sem adaptação**, porque a v0.4 os tem.
-- [ ] V4H-T1.5 Estado 36 → 37: `market.effects` (vazio). Goldens, retratos e `COUNCIL_SCENARIO_SEED` regravados de propósito (a receita do README).
+  - [x] O Cobrador com o ramo de dez soldados e a resposta da Coroa **conforme §§6.1–6.3 aprovados**: a requisição de comida/madeira da opção `hold` foi mantida. O Lobo Branco fica fora deste escopo; a redação original acima é anterior à aprovação dessas fichas.
+- [x] V4H-T1.5 Estado **35 → 36**: `market.effects` (vazio). Goldens, 55 retratos v36 e `COUNCIL_SCENARIO_SEED` regravados de propósito (a receita do README); v35 intactos e com fingerprints em `FROZEN`. **A previsão 36 → 37 estava defasada nesta base.**
 - [ ] V4H-T1.6 Cobertura por posse (herói, Mestre, Mercado, exército) em 50 sementes.
+
+**Execução parcial de 2026-10-28:** nove cartas no branch `v4h-t1-cartas`, a partir de `e88e2ba`, somadas às oito já implementadas. A tarefa geral permanece parcial. Os testes focados, typecheck e lint desta trilha estão no Registro; simulador, cobertura em 50 sementes e verify inteiro ficam para o coordenador.
 
 **Verificação:** `pnpm --filter @lotg/content test`; `pnpm --filter @lotg/engine test -- council market migrations fixtures`; `SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`.
 
-**Impacto em partidas antigas:** estado **37**; as cartas novas entram no sorteio das audiências seguintes; nenhuma chega por migração.
+**Impacto em partidas antigas:** estado **36** nesta base; as cartas novas entram no sorteio das audiências seguintes; nenhuma chega por migração.
 
 **Pronto quando:** as 23 cartas existem com ficha, Gil e Ximena chegam por carta, e a cobertura mostra cada cadeia terminando em todos os ramos.
 
@@ -1368,7 +1373,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4G-T4 | | | | | |
 | V4G-T5 | | | | | |
 | V4G (integração e segunda publicação) | | | | | |
-| V4H-T1 | | | | | |
+| V4H-T1 | 2026-10-28 | `7d760d7`, `c58342d`, `24199ce` e o desta linha | uma, trilha Codex no branch `v4h-t1-cartas` | **Parcial no roadmap; escopo Mercado/Coroa concluído.** Nove cartas transcritas de §§4.4, 5.1–5.5 e 6.1–6.3 aprovados; ids, texto, opções e crônicas fixados. Efeitos percentuais, risco na virada, preços temporários, descobertas e requisitos com testes; cadeia do Rei com soldados e requisição aprovada. Estado **35 → 36**, em vez do 36 → 37 previsto; guarda e passo, 53 v35 intactos em `FROZEN`, 55 v36, goldens regravados só com `UPDATE_GOLDEN=1` e diff conferido. Semente revista `fixture-council-1915`; semente do poço no servidor preservada e conferida no motor. **Verificação:** 709 testes focados em 18 arquivos + 379 contratos/guardas selecionados + 7 de unidade da Vigília, todos saída **0**; `pnpm typecheck` e `pnpm lint` saída **0**. Expectativas de versão da integração sincronizadas por leitura. Ajustes editoriais e diffs em `balance-v0.4.md` §14; propostas H-1/H-2 nas pendências | **Simulador, cobertura em 50 sementes e verify inteiro ficaram para o coordenador.** Integração e navegador não executados; sem build, publicação ou push. Seleção histórica completa das migrações interrompida (saída 130) para limitar a carga, substituída pelos contratos e passos novos. T1.1 e demais fichas/ganchos de T1.2–T1.4 não concluídos nesta trilha |
 | V4H-T2 | | | | | |
 | V4H-T3 | | | | | |
 | V4H-T4 | | | | | |

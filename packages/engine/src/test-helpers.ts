@@ -1751,7 +1751,7 @@ export function heroPromisedScenario(): GameState {
  * muda, e quando mudar a ordem do sorteio é preciso procurar outra. A terceira audiência, a do
  * 13º dia, é da carta roteirizada e não gasta o gerador.
  */
-// V4H-T1: busca refeita após as nove cartas do Mercado e da Coroa (balance-v0.4.md §16).
+// V4H-T1: busca refeita após as nove cartas do Mercado e da Coroa (balance-v0.4.md §14).
 export const COUNCIL_SCENARIO_SEED = 'fixture-council-1915';
 
 /**

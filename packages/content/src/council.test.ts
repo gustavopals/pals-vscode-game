@@ -733,7 +733,7 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
       const option = entry.options.find((candidate) => candidate.id === entry.autoResolve.lord);
       const onlyWay = entry.options.filter(isFree).length === 1;
       // §§6.2–6.3 aprovados: a multa/tributo automáticos custam −5 por 2 dias mesmo com recusa.
-      // Não se troca a ficha para satisfazer a regra editorial do lote 1 (balance-v0.4.md §16).
+      // Não se troca a ficha para satisfazer a regra editorial do lote 1 (balance-v0.4.md §14).
       if (entry.id === 'kingsCollector' || entry.id === 'kingsAnswer') {
         expect(known(option?.effects ?? []).morale, entry.id).toBe(-10);
       } else if (!onlyWay) {
@@ -789,7 +789,7 @@ describe('Conselho: a ordem das opções na carta', () => {
     // edifício), depois o que não custa nem arrisca, e por fim o que não custa e cobra de outro
     // jeito.
     // As nove fichas de §§4.4, 5 e 6.1–6.3 foram aprovadas na ordem das tabelas; seus ids e
-    // sua ordem ficam fixados acima e no golden das fichas. Ver balance-v0.4.md §16.
+    // sua ordem ficam fixados acima e no golden das fichas. Ver balance-v0.4.md §14.
     for (const entry of councilCards.slice(0, 30)) {
       const kinds = entry.options.map((option) => (isFree(option) ? 'free' : 'paid'));
       expect(kinds.join(','), entry.id).toMatch(/^(paid,)*free(,free)*$/);
