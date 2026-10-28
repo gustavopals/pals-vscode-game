@@ -33,7 +33,7 @@ outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentada
 ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
 [balance-v0.4.md](../../docs/balance-v0.4.md), seção 11.
 
-**Integração ainda por fazer:** ataques e sabotagem são da Fase F; o relógio,
+**Integração ainda por fazer:** o ataque e a sabotagem já estão no motor (V4F-T1/T2);
 a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
 permanece durante o inverno e é desativada na virada anual; isso é um estado
 intermediário da implementação, não o encerramento do cerco do GDD.
@@ -508,6 +508,43 @@ Os números são os de `warRaids` (`raidWar.ts`; pendência D-11, aprovada) e as
 - **`simulateBattle { formationId }`** (`warCouncilOrders.ts`) monta a entrada a partir do estado (os soldados que o feudo tem nos postos, o comandante que pode ser nomeado, a Torre, a regra `heroCapture`; o inimigo é o palpite de `balance.battle.previewEnemy` na estação de agora, com `?` em todos os postos até a Horda existir; a muralha só entra com a V4E-T1), grava `army.preview` (**uma por vez**, a nova substitui a velha) e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado nem cria entidade. Apagar a formação da prévia a apaga. O evento `battleSimulated` fica fora da Crônica (`CHRONICLE_HIDDEN_EVENT_TYPES`).
 - **Na visão** (`warCouncilView.ts`): `army.preview` com os percentuais inteiros (Vitória e Derrota somam 100), `riskText` montado a partir do fator (as frases estão em `warCouncilTexts`, no conteúdo), `expectedLosses` e `knownEnemy` por posto; `army.formations[].previewStale` quando os postos ou os comandantes mudaram depois da prévia (a impressão digital `army.preview.signature`).
 
+### Campanha ao Acampamento (V4F-T2)
+
+`attackCamp { formationId }` exige Acampamento ativo conhecido pela Torre, uma formação
+com soldados disponíveis e ao menos um comandante livre em ala preenchida. Recusa com
+`ARMY_AWAY`, `CAMP_NOT_FOUND`, `FORMATION_NOT_FOUND`, `NO_SOLDIERS` e os motivos de herói.
+A ordem não sorteia: preenche os postos na ordem das alas/linhas e guarda a fotografia
+em `army.campaign.formation`. Edição ou exclusão do plano salvo não muda quem partiu.
+
+`army.units` continua incluindo a tropa enviada até o retorno (limite, casas e consumo).
+`availableUnits` subtrai a fotografia: só o que ficou em casa defende, entra na prévia ou
+pode ser dispensado. O comandante usa `status: 'campaign'`, continua recebendo soldo e
+fica indisponível para expedição, escolta, equipamento e dispensa. A Defesa ativa pode
+ser enviada; os postos que ela não consegue preencher ficam vazios durante a ausência.
+
+A ida e a volta usam `balance.army.campaign.travelMs` em tempo de jogo. A chegada e o
+retorno têm instante próprio em `nextEventAt`, resolvidos por `settleCampaign` **depois
+das expedições e antes das caravanas**. Uma incursão no mesmo instante da volta ainda
+luta sem os que chegam, porque `settleRaids` vem antes. `fightBattle` resolve a chegada
+com o jogador atacante, paliçada do Acampamento, guarnição da estação da chegada e sem
+Torre do feudo. O fluxo `battle:<id>` nasce e morre nesse instante. Os efeitos em heróis
+(ferimento, morte em Rei de Ferro, XP e desgaste) e o relatório são os da batalha comum.
+
+Vitória limpa o tile uma vez, reduz a Ameaça e guarda o saque para a volta; derrota ou
+recuo após o limite de rodadas não limpam. No retorno, as baixas saem do total e o saque
+entra pelo depósito, com desperdício contado. O comandante ferido permanece ferido, e
+o soldo já vencido é cobrado depois da linha do retorno (`chargeReturned`). O tile volta
+na virada anual por `restoreTiles`. A previsão de moral exclui a campanha para não
+resolver a batalha na cópia. A visão traz `army.campaign`, `campAssault`, o aviso em
+`army.editor.warning` e `army.preview.warning`; a tela é V4F-T3.
+
+Estado **38 → 39**, sem prazo, sorteio, movimento de tropa ou alteração de partida
+antiga: só `army.campaign: null`. As guardas v38 e anteriores ficam intactas; a v39
+confere reserva, postos, comandantes, prazos e relatório. Os retratos v38 não mudaram;
+os v37 herdados da base, que faltavam em `FROZEN`, receberam apenas suas impressões.
+Números e escolhas conservadoras: pendências F-3/F-4; texto em rascunho no catálogo.
+Simulador e verify inteiro ficaram para o coordenador nesta divisão de trabalho.
+
 ## Sorteios
 
 O motor sorteia com um gerador próprio, com semente, em `src/random.ts`. `Math.random` é barrado pelo lint e por `purity.test.ts`.
@@ -572,7 +609,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 37):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 39):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -619,6 +656,8 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 35 | V4G-T1 | Origem real (`settings.realOriginMs`) e Vigília (`hourLocal`, offset fixo em minutos e `timezoneResolved`). Passo 34 → 35 em `v34.ts`; forma 35 em `v35.ts`. Vêm de `created_at` e do fuso resolvido no servidor, sem prazo, evento, identificador ou sorteio; incursões marcadas ficam intactas. Estado atual 34 → 35, independentemente da numeração de fases futuras no roadmap. |
 | 36 | V4H-T1 | `market.effects`, vazio na migração 35 → 36 (`v35.ts`), com forma em `v36.ts`. Cada efeito guarda recurso, fator racional, prazo e rótulo. O passo não muda preço, carta, prazo existente nem gerador. Os retratos v35 ficam congelados; a previsão 36 → 37 do roadmap estava defasada nesta base. |
 | 37 | V4H-T1 (avulsas) | `guild.tavern.extraOffer` desligado no passo 36 → 37; participantes por identidade e nome em cartas e riscos com alvo. Próxima rotação admite até quatro ofertas. A guarda v36 e seus 55 retratos ficam congelados. O passo não cria encontro, prazo ou sorteio. |
+| 38 | V4F-T1 | Contadores de sabotagem da Fortaleza, zerados no passo 37 → 38. |
+| 39 | V4F-T2 | Campanha ofensiva do exército e estado `campaign` do herói; o passo 38 → 39 só acrescenta `army.campaign: null`, sem prazo ou sorteio. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -686,7 +725,7 @@ Os heróis, o soldo e o atraso (V3C-T1) existem, desde V3C-T3 **toda partida rec
 
 O catálogo de cartas tem as 21 do primeiro lote (V2D-T2 e V2E-T2; o inventário é [docs/content-v0.2.md](../../docs/content-v0.2.md)): as cadeias "O Celeiro Comum", "A Ponte do Degelo" e "A Promessa da Paliçada" e as doze avulsas, quatro delas recorrentes; e, desde V3C-T3, a roteirizada "Estrangeira ferida" ([docs/content-v0.3.md](../../docs/content-v0.3.md)). Uma carta só confere um edifício pela opção trancada (`requires.building`, "existe ou não"; não há como uma carta **deixar de sair** porque um edifício existe: o pedido da cerca pode chegar a quem já a ergueu, e a opção de mostrá-la resolve), e não há efeito que dê aldeão ou experiência do ofício. Desde a V4H-T1, há 39 cartas: as 22 anteriores e 17 dos lotes 2 e 3. O Mercado e a Coroa usam estoque percentual, risco na virada, preço temporário, destino específico e requisitos de estoque, flag, herói Carismático e soldados; os textos e os ids das nove fichas estão fixados em teste.
 
-Das incursões existem os lobos (o único inimigo de tile) em três tamanhos, cada uma como batalha contra a Defesa ativa e a muralha (V4E-T1 e V4E-T2), com a composição sorteada na marcação. Não há tile de saqueadores, Horda que aprende, presságio nem cerco (Fases E e F da v0.4), e a Ameaça só cai com incursão ou com o Covil de Lobos limpo por uma expedição (V3D-T2), que volta na virada do ano. Com os números de hoje (+2 por dia do covil, +3 no outono, −35 por incursão, médias a partir de 70), ela oscila: cai abaixo dos 40 depois de cada incursão e volta a subir, a maioria das incursões sorteadas é leve e as médias vêm com o outono ([docs/balance-v0.2.md](../../docs/balance-v0.2.md), seção 16; com os números de antes da revisão das Fases D e E ela passava o ano perto do máximo, seção 14). As previsões da visão não contam com as incursões (são segredo até os vigias as verem): o prazo de "acaba em" é o de quem não é atacado no caminho.
+Das incursões existem lobos, saqueadores e Horda, em três tamanhos, como batalha contra a Defesa ativa e a muralha (V4E-T1/T2), com composição sorteada na marcação. A Horda aprende e há presságios (V4E-T3), sabotagem da Fortaleza (V4F-T1) e ataque ao Acampamento (V4F-T2). O Cerco ainda é da V4G-T2. A Ameaça cai com incursões e com a limpeza do Covil por expedição ou do Acampamento por campanha; ambos voltam na virada anual. Com os números de hoje (+2 por dia do covil, +3 no outono, −35 por incursão, médias a partir de 70), ela oscila: cai abaixo dos 40 depois de cada incursão e volta a subir, a maioria das incursões sorteadas é leve e as médias vêm com o outono ([docs/balance-v0.2.md](../../docs/balance-v0.2.md), seção 16; com os números de antes da revisão das Fases D e E ela passava o ano perto do máximo, seção 14). As previsões da visão não contam com as incursões (são segredo até os vigias as verem): o prazo de "acaba em" é o de quem não é atacado no caminho.
 
 Da dificuldade, quatro linhas mudam uma regra: o que acontece ao herói onde um nó marca captura (`heroCapture`, desde V3D-T2), o fator de armazenamento (`storageCapacity`, desde V2C-T2), a deserção por fome (`famineDesertion`, desde V2C-T4) e a opção que o Conselho aplica quando uma carta expira, marcada em cada carta (`autoResolve`, desde V2D-T1).
 

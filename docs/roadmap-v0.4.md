@@ -855,19 +855,19 @@ Como V4B-T5, sobre a Fase E, mais a publicação (decisão 26). **Entregáveis:*
 **Depende de:** V4F-T1, V4E-T3. **Da v0.3 usa:** `threatTileCleared`/`threatTileRestored`, `restoreTiles`, o molde da expedição que viaja (`sentAtMs`, `nodeEndsAtMs`).
 **Decisões:** 16 (o tile), 8 (comandantes fora).
 **Trilha:** motor.
-**Entregáveis:** `packages/content/src/balance.ts` (`army.campaign: { travelMs; campWall: hp; campGarrison por estação }`), `tiles.ts`, `chronicle.ts` (`armyMarched`, `campAssaulted`, `armyReturned`); `packages/engine/src/types.ts` (`army.campaign: { formationId; tile; departsAtMs; battleAtMs; returnsAtMs; report } | null`), `armyOrders.ts` (`attackCamp { formationId }`), `armyTurn.ts` (a batalha no instante da chegada; a volta), `battle.ts` (o lado atacante sem muralha; a paliçada do inimigo), `raids.ts` (a incursão que chega com o exército fora: a Defesa ativa fica sem os esquadrões que partiram), `migrations/v35.ts`? (**não**: `army.campaign` entra no passo da V4F-T1 se as duas fecharem juntas; senão, 35); `sim-cli`; README; GDD §10.9.
+**Entregáveis:** `packages/content/src/balance.ts` (`army.campaign: { travelMs; campWall: hp; campGarrison por estação }`), `tiles.ts`, `chronicle.ts` (`armyMarched`, `campAssaulted`, `armyReturned`); `packages/engine/src/types.ts` (`army.campaign: { formationId; tile; departsAtMs; battleAtMs; returnsAtMs; report } | null`), `armyOrders.ts` (`attackCamp { formationId }`), `armyTurn.ts` (a batalha no instante da chegada; a volta), `battle.ts` (o lado atacante sem muralha; a paliçada do inimigo), `raids.ts` (a incursão que chega com o exército fora: a Defesa ativa fica sem os esquadrões que partiram), `migrations/v38.ts` e `migrations/v39.ts` (**38 → 39** nesta base; a previsão antiga de 35 ficou defasada); `sim-cli`; README; GDD §10.9.
 
-- [ ] V4F-T2.1 A ordem: recusas `ARMY_AWAY`, `CAMP_NOT_FOUND`, `FORMATION_NOT_FOUND`, `NO_SOLDIERS`; o exército que vai é o da formação (os comandantes vão juntos e ficam `HERO_BUSY`); a viagem é tempo de jogo (o tempo do tile, conteúdo).
-- [ ] V4F-T2.2 A batalha na chegada (instante próprio, depois das expedições: §0.7), com `resolveBattle` invertido (o atacante é o jogador, a muralha é a do Acampamento); vitória limpa o tile (−30 de Ameaça, como o Covil) e dá saque; derrota ou 12 rodadas: o exército recua com as baixas.
-- [ ] V4F-T2.3 A volta, com as baixas descontadas de `army.units`; a incursão que chega com o exército fora usa a formação ativa **sem** as unidades que partiram (a prévia avisa).
-- [ ] V4F-T2.4 `ViewState`: `army.campaign` com onde está e quanto falta; `threat.tiles` com o Acampamento limpo; `army.editor` com o aviso de exército fora.
-- [ ] V4F-T2.5 Testes: ataque e volta; incursão durante a campanha; o Acampamento que volta na virada do ano; propriedade.
+- [x] V4F-T2.1 A ordem: recusas `ARMY_AWAY`, `CAMP_NOT_FOUND`, `FORMATION_NOT_FOUND`, `NO_SOLDIERS`; o exército que vai é o da formação (os comandantes vão juntos e ficam `HERO_BUSY`); a viagem é tempo de jogo (o tempo do tile, conteúdo).
+- [x] V4F-T2.2 A batalha na chegada (instante próprio, depois das expedições: §0.7), com `resolveBattle` invertido (o atacante é o jogador, a muralha é a do Acampamento); vitória limpa o tile (−30 de Ameaça, como o Covil) e dá saque; derrota ou 12 rodadas: o exército recua com as baixas.
+- [x] V4F-T2.3 A volta, com as baixas descontadas de `army.units`; a incursão que chega com o exército fora usa a formação ativa **sem** as unidades que partiram (a prévia avisa).
+- [x] V4F-T2.4 `ViewState`: `army.campaign` com onde está e quanto falta; `threat.tiles` com o Acampamento limpo; `army.editor` com o aviso de exército fora.
+- [x] V4F-T2.5 Testes: ataque e volta; incursão durante a campanha; o Acampamento que volta na virada do ano; propriedade.
 
 **Diversão:** "outra decisão com custo" (GDD §10.9): atacar deixa o feudo exposto.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- army battle raids threat migrations fixtures`.
 
-**Impacto em partidas antigas:** `army.campaign` nasce `null`.
+**Impacto em partidas antigas:** estado **38 → 39**, protocolo **3**. `army.campaign` nasce `null`, sem prazo, tropa, evento ou sorteio. Os 56 retratos v38 ficam congelados; há 59 retratos v39 (três da campanha). Os 56 v37 herdados, ausentes de `FROZEN` na base, foram registrados sem alterar arquivos.
 
 **Pronto quando:** o exército ataca, volta com baixas, o tile some e volta no ano seguinte, e uma incursão no meio é lutada sem quem partiu.
 
@@ -1365,7 +1365,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4E-T5 | | | | | |
 | V4E (integração e primeira publicação) | | | | | |
 | V4F-T1 | 2026-10-28 | branch `v4f-t1-sabotagem` | uma, subagente Gemini | Modelo de expedição `sabotage` (3 variantes de 300 min, 5 nós de 60 min, Xamã no último nó; Sucesso enfraquece onda marcada em 15% até 3x; Desastre alerta a Horda com +10% na onda 1 e captura no Senhor ou mata em Rei de Ferro; escalonamento por tentativa com `guardIncreasePerAttempt`; Xamã derrotado grava presságio exato da onda 3; recusas `SABOTAGE_SEASON`, `SABOTAGE_LIMIT`, `TEAM_SIZE`; desaparecimento da Fortaleza com equipe a caminho aciona retorno pela fronteira; contadores zeram na virada do ano). Estado migrado de 37 para 38 (`horde.sabotages: { attempts, successes, alerted }`, `wavePlan.waves[].reductionPercent`); 56 retratos congelados v38 e 57 testes em `migrations-v38.test.ts`. ViewState expõe oferta com `sabotage: { attemptsLeft, wavesWeakened, alerted }`, `fit`, `heroFit`, notas de relatório e `deedsText`. 13 testes em `sabotage.test.ts`, 313 testes em `expeditions.catalog.test.ts`, 19 testes em `expeditions.calibration.test.ts`, goldens atualizados. Pendências F-1 e F-2 | **Simulador (`sim-cli`), cobertura em 50 sementes e o verify inteiro ficaram para o coordenador.** Sem integração, navegador, build, publicação ou push. O Cerco (V4G-T2) e seu golden não foram criados nesta tarefa conforme instrução; `packages/sim-cli/src/bands.ts` intocado |
-| V4F-T2 | | | | | |
+| V4F-T2 | 2026-10-28 | `2a86d16`, `f8d6864`, `46698cd`, `b824be6`, `62bbe1e` e o commit de registro desta linha | uma, Codex no worktree `codex-acampamento` | Ordem `attackCamp`; fotografia dos postos disponíveis e comandantes; viagem de jogo; batalha ofensiva com paliçada inimiga, relatório e efeitos nos comandantes; limpeza −30 de Ameaça, saque e baixas no retorno; defesa e prévia sem a reserva; aviso e prazos no ViewState; soldo cobrado na volta e previsão sem resolver batalha. Estado **38 → 39**, protocolo 3, 59 retratos atuais; v38 intactos e os v37 herdados registrados em FROZEN. Rascunho em content §14 e propostas F-3/F-4. Goldens somente com `UPDATE_GOLDEN=1`; os 56 pares antigos só diferem em versão/campanha nula, e os 35 momentos do golden da visão só têm campos aditivos. Verificação focada com `nice -n 19`, `--maxWorkers=2`: **1.030 testes aprovados** (29 arquivos, soma sem repetir blocos; saída **0**); `pnpm typecheck` **0**, `pnpm lint` **0**. | **Simulador e verify inteiro ficaram para o coordenador**, por instrução desta divisão; política de ataque do bot e medição não foram implementadas/rodadas aqui. Não rodados: matriz, integração, navegador, captura da landing, migração completa nem revisão independente/playtest do autor. A conferência de migrations.test foi filtrada (5 testes; 12.056 fora do filtro). A tela é V4F-T3. `bands.ts` intacto; sem push ou publicação. |
 | V4F-T3 | | | | | |
 | V4F-T4 | | | | | |
 | V4F (integração) | | | | | |
@@ -1589,7 +1589,7 @@ type GameState = {
     activeFormationId: string | null;
     reports: BattleReport[];                           // V4D-T1 (30); até balance.battle.reportsKept
     preview: BattlePreview | null;                     // V4D-T2
-    campaign: { formationId; tile; departsAtMs; battleAtMs; returnsAtMs } | null;  // V4F-T2 (34)
+    campaign: { formationId; formation; tile; departsAtMs; battleAtMs; returnsAtMs; report } | null;  // V4F-T2 (39; efetivo nesta base)
     battlePlan: Record<1 | 2 | 3, string | null>;      // V4G-T2 (36)
   };
   horde: {

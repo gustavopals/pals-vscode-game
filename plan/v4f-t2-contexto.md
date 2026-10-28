@@ -41,6 +41,6 @@ Mapa revisado no worktree `v4f-t2-acampamento`, base `6964500` (estado 38).
 
 ## Passos
 
-1. Conteúdo e suporte da paliçada inimiga; teste focado e commit.
-2. Estado 39, ordem, reserva, chegada, retorno e contratos de visão; teste focado e commit.
-3. Retratos, propriedades, regressões e documentação/Registro; typecheck, lint e commit.
+1. [x] Conteúdo e suporte da paliçada inimiga; teste focado e commit.
+2. [x] Estado 39, ordem, reserva, chegada, retorno e contratos de visão; teste focado e commit.
+3. [x] Retratos, propriedades, regressões e documentação/Registro; typecheck, lint e commit.

@@ -142,7 +142,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 24) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (39 neste branch) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco. **Exceção:** os ids de carta, de modelo de expedição, de nó, de opção, de candidato, de item e de Mestre, e os limites do Mercado e das caravanas, ficam gravados no estado e pedem passo de migração para mudar |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -544,7 +544,7 @@ outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentada
 ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
 [balance-v0.4.md](balance-v0.4.md), seção 11.
 
-**Integração ainda por fazer:** ataques e sabotagem são da Fase F; o relógio,
+**Integração ainda por fazer:** ataque e sabotagem já estão no motor (V4F-T1/T2);
 a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
 permanece durante o inverno e é desativada na virada anual; isso é um estado
 intermediário da implementação, não o encerramento do cerco do GDD.
@@ -552,6 +552,31 @@ intermediário da implementação, não o encerramento do cerco do GDD.
 ## 19g. A Hora da Vigília (v0.4, V4G-T1)
 
 Estado **35**. `settings.realOriginMs` (de `games.created_at`) e `settings.vigil` (`hourLocal`, `utcOffsetMinutes`, `timezoneResolved`) entram pelo passo 34 → 35 com o contexto que o servidor dá a `migrateState` (`loadGame`), e na criação pelo `createGame`. O servidor resolve o fuso IANA com `Intl` (`games/vigil.ts`); o motor só faz a conta (`vigil.ts`): `real = realOriginMs + jogo / timeScale`, hora local `(real + deslocamento) mod 24 h`, a primeira Vigília a partir de +6 h de jogo dentro das 24 h de jogo do evento, senão +12 h, sem horário de verão. O fuso que o servidor não resolve entra com deslocamento 0 e a visão avisa (`settlement.vigil.warning`). O ensaio do dia 6 é marcado 6 h de jogo antes da chegada, num instante próprio da linha do tempo (`nextRehearsalMarkAt`), uma tentativa só (`stats.vigilRehearsalMarked`). As Preferências mudam hora e fuso pela ordem `setVigilHour`, que o servidor completa com o deslocamento (`CommandContext`, guardado em `commands.payload.resolvedVigil`); vale para o que ainda não foi marcado. O Cerco não existe.
+
+## 19h. Ataque ao Acampamento (v0.4, V4F-T2)
+
+Estado **39**, protocolo **3**, branch `v4f-t2-acampamento`, sem publicação. O passo
+38 → 39 cria `army.campaign: null`; nenhum prazo, tropa ou sorteio nasce na fronteira.
+
+A ordem `attackCamp { formationId }` reserva a fotografia dos postos que o exército
+consegue preencher e dos comandantes livres nas alas preenchidas. Os comandantes ficam
+em `campaign`, recebendo soldo. A Defesa ativa e a prévia usam apenas `availableUnits`,
+que subtrai a reserva; editar/apagar o plano não altera a tropa na estrada. O total do
+Quartel, a habitação e o consumo incluem a tropa até a volta, quando se descontam baixas.
+
+A chegada e o retorno são instantes da linha do tempo, depois das expedições e antes
+das caravanas. A incursão do mesmo instante da volta ainda luta sem quem partiu.
+`fightBattle` usa o fluxo `battle:<id>` e o modo ofensivo: a paliçada pertence à Horda,
+sem muralha ou Torre do jogador. A guarnição vem do conteúdo por estação. Vitória limpa
+o Acampamento, reduz a Ameaça e traz saque ao voltar; derrota ou recuo não limpam.
+O relatório e os efeitos nos comandantes reutilizam a batalha existente. A cobrança do
+soldo acontece depois da linha do retorno; a previsão de moral exclui a campanha.
+
+O Acampamento limpo aparece em `threat.tiles` e `clearedText` e é restaurado na virada
+anual por `restoreTiles`. A visão acrescenta `army.campaign`, `campAssault`, aviso no
+editor e na prévia, sem expor gerador ou guarnição futura. A interface é da V4F-T3.
+As propostas F-3/F-4 e os textos em rascunho estão nos documentos da versão. Simulador,
+matriz, integração, navegador e verify inteiro ficaram para o coordenador nesta sessão.
 
 ## 20. Divergências aceitas em relação ao GDD
 

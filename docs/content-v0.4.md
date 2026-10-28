@@ -1407,4 +1407,9 @@ Frases novas em `campaign.ts` e `chronicle.ts`:
 - Situação: “O exército segue para o Acampamento de Saqueadores.” / “O exército tomou o caminho de volta ao feudo.”
 - Aviso: “Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.”
 - Saque: “Os sobreviventes trouxeram o saque.” / “Os sobreviventes voltaram sem saque.”
-- Recusas: “O exército já está em campanha: espere o retorno antes de ordenar outro ataque.”; “Não há Acampamento de Saqueadores ativo à vista para atacar.”; “A formação não tem soldados disponíveis para marchar.”; “O ataque pede ao menos um comandante livre numa ala com soldados.”
+- Recusas: “O exército já está em campanha: espere o retorno antes de ordenar outro ataque.”; “Não há Acampamento de Saqueadores ativo à vista para atacar.”; “A formação não tem soldados disponíveis para marchar.”; “Ataque ao Acampamento de Saqueadores não pode partir agora: falta um comandante livre numa ala com soldados.”
+
+
+Os fragmentos do editor seguem o padrão das nomeações: “está com o exército no caminho
+do Acampamento”. O estado “Em campanha” e as frases informativas são de `campaign.ts`;
+nenhum nome de herói novo foi incluído. Os exemplos de testes usam nomes já existentes.

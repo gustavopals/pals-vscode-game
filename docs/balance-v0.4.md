@@ -685,3 +685,14 @@ Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
 ### V4F-T2 — suporte à paliçada inimiga (2026-10-28)
 
 `resolveBattle` passa a tratar `wall` como muralha do defensor nos dois modos. Em ataque a paliçada protege a Horda; a Torre do feudo continua ausente. O teste antigo de recuo após 12 rodadas fornecia uma muralha que era ignorada: agora usa campo aberto para conservar a prova exata do limite; `battle.camp.test.ts` prova separadamente a absorção pela paliçada e a atribuição à Horda. Nenhuma faixa do simulador foi alterada. Viagem, guarnição e saque são propostas F-3; medição, simulador e verify inteiro ficam para o coordenador nesta divisão de trabalho.
+
+
+A verificação da V4F-T2 cobriu também o recuo efetivo em 12 rodadas (dez Escudeiros na
+ala central, sem limpar o tile ou trazer saque), o comandante morto em Rei de Ferro,
+a defesa com soldados que ficaram em casa, o soldo devido no retorno e a previsão sem
+sortear a campanha. A adaptação do teste histórico da migração 37 → 38 passou a conferir
+`stateV38(after)` e, depois da cadeia inteira, `currentShape(loaded)`: a prova da forma
+antiga ficou mais explícita ao subir o estado. Os 56 retratos v37 da base não tinham
+registro em `FROZEN`; foram acrescentadas as impressões sem mudar um retrato ou hash
+anterior. Nenhuma faixa do simulador mudou. Permanecem propostas as guarnições e o saque;
+a medição e a política do bot estão com o coordenador.
