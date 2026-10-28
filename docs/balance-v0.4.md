@@ -987,3 +987,9 @@ eventos (358 na base), 67 ordens (66), 16 cartas, 10 respostas (9) e 4 expiraç�
 (5); mantém três incursões sofridas e seis repelidas. A expectativa do teste
 de efeitos vencidos usa explicitamente a guarda v37, para continuar provando
 a recusa do efeito vencido depois que a guarda atual passou a v38.
+
+Nos testes históricos, o ajudante que reconstrói a forma antiga retira também
+`market.effects`, `guild.tavern.extraOffer`, participantes do Conselho e
+`horde.sabotages`. O Mercado migrado esperado inclui `effects: []`; o teste de
+forma inválida passa a remover esse campo, em vez de usar uma lista vazia
+agora válida. Os passos antigos e suas guardas permanecem preservados.

@@ -228,7 +228,14 @@ function statsBeforeVigil(state: { stats: Record<string, unknown> }): Record<str
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  // Segunda junção: as comparações com versões antigas retiram só os campos posteriores
+  // (docs/balance-v0.4.md, seção "Segunda junção").
   delete copy.market?.effects;
+  delete copy.guild?.tavern?.extraOffer;
+  delete copy.horde?.sabotages;
+  for (const occurrence of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
+    delete occurrence.heroes;
+  }
   delete copy.settings.realOriginMs;
   delete copy.settings.vigil;
   // O passo 34 → 35 registra a tentativa do ensaio que a versão antiga já fez (V4G-T1).
@@ -6004,6 +6011,8 @@ describe('versão 20 → 21', () => {
     tradedToday: { food: 0, wood: 0, stone: 0, iron: 0 },
     // As caravanas são da versão 22: toda partida antiga chega sem nenhuma na estrada.
     caravans: [],
+    // Segunda junção: o Mercado migrado recebe a lista vazia da v36 (balance-v0.4.md, seção 19).
+    effects: [],
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
@@ -6161,7 +6170,8 @@ describe('versão 20 → 21', () => {
       /market\.tradedToday\.wood/,
     );
     expect(broken((state) => (state.market.quoteDay = -1))).toMatch(/market\.quoteDay/);
-    expect(broken((state) => (state.market.effects = []))).toMatch(/market\.effects/);
+    // A lista vazia passou a ser válida na v36; a ausência continua inválida (Segunda junção, §19).
+    expect(broken((state) => delete state.market.effects)).toMatch(/market\.effects/);
     expect(broken((state) => delete state.market.caravans)).toMatch(/market\.caravans/);
     // Sem o edifício nada andou: nem cotação, nem negociação, nem preço diferente do de ontem.
     expect(broken((state) => (state.market.quoteDay = 3))).toBe(
