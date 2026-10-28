@@ -855,3 +855,25 @@ de prêmio. A Fortaleza sem Ameaça e os novos instantes explicam as diferenças
 Ameaça, RNG, presságios, composição e perdas nos cenários longos. Os cinco feudos
 da pressão somam 45 incursões leves e 50 médias/fortes (31 do outono em diante),
 contra 48, 47 e 30 na seção 13. Nenhuma tolerância foi acrescentada.
+
+### 16.2 A matriz da junção
+
+Uma rodada só, nas três dificuldades, 50 sementes por célula, com tudo junto (a Fortaleza
+sem Ameaça até o Cerco, a Hora da Vigília e os objetivos 17 a 21). `MEASURED` foi
+regravada com esta rodada. Fome, frio e recusas ficaram em zero.
+
+- **Fora da faixa antes de regravar** (uma semente cada, sempre excedente parado ou
+  sequência desperdiçando): em Camponês, o Dedicado do Normal (semana e ano) com madeira
+  e pedra paradas acima do limite (sementes 036, 044 e 047); em Rei de Ferro, o Dedicado
+  do Normal (semente 040) e o Regular do ano do Tranquilo (semente 026: pedra parada e
+  5,5 h desperdiçando madeira, o limite era 4 h). Senhor ficou inteiro dentro. Vêm do
+  caminho de obras que os objetivos novos mudam (seção 15); **regressão medida**, para o
+  autor ler com a pendência H-4.
+- **Preguiçoso do Rápido, em Senhor:** no ano, 7 a 14 feridos (seção 13: 12 a 18), a
+  população mínima de 16 e de 9 a 11 objetivos; na semana, de 36 a 51 aldeões e 12
+  objetivos.
+- **A Ameaça no fim do ano** continua alta em quase toda célula (até 100 no Regular e no
+  Dedicado do Rápido): sem a Fortaleza, quem soma é o Acampamento (+2 por dia desde o
+  dia 25), que só se limpa na V4F-T2. Antes da V4E-T3 (seções 9 e 10) o Regular do
+  Normal terminava o ano entre 28 e 63. A decisão de manter o Acampamento em +2 até a
+  V4F-T2 é do autor (D-43).
