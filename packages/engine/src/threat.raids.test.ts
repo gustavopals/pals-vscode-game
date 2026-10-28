@@ -1911,6 +1911,8 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
     }
     // O Acampamento e a Fortaleza aumentam a pressão aprovada no ADR 0020: a régua da v0.2
     // (só covil) foi substituída pela medição exata, sem mudar os números nem os bots.
+    // A Vigília muda os instantes e os sorteios após o ensaio; a Fortaleza continua sem
+    // Ameaça. Remedição exata da junção: docs/balance-v0.4.md, seção 16.
     await expect(
       `${JSON.stringify({ crossings, light, medium, mediumFromAutumn }, null, 2)}\n`,
     ).toMatchFileSnapshot('./__golden__/horde-pressure.json');

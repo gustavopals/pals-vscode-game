@@ -2,16 +2,16 @@
   "crossings": [
     {
       "seed": "pedra-alta",
-      "down": 6,
+      "down": 7,
       "up": 7,
       "calm": 115,
       "turns": 153
     },
     {
       "seed": "vau-do-lobo",
-      "down": 3,
-      "up": 4,
-      "calm": 91,
+      "down": 2,
+      "up": 3,
+      "calm": 84,
       "turns": 153
     },
     {
@@ -30,13 +30,13 @@
     },
     {
       "seed": "cerro-velho",
-      "down": 5,
-      "up": 6,
-      "calm": 99,
+      "down": 4,
+      "up": 5,
+      "calm": 95,
       "turns": 153
     }
   ],
-  "light": 48,
-  "medium": 47,
-  "mediumFromAutumn": 30
+  "light": 45,
+  "medium": 50,
+  "mediumFromAutumn": 31
 }

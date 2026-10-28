@@ -843,3 +843,15 @@ pela Vigília ainda apontavam para a Fortaleza com +2: foram alinhadas aos bytes
 da base `0f7f098`, sem regravar retratos históricos.
 As regras combinadas ficam somente nos retratos v35, regravados com
 `UPDATE_GOLDEN=1` após identificar as divergências e conferir o diff.
+
+A conferência inicial de 12 arquivos encontrou 28 snapshots divergentes em apenas
+três arquivos de teste. Foram regravados 26 retratos v35, `scenario-7-days.json` e
+`horde-pressure.json`; os demais goldens permaneceram iguais, inclusive a contagem
+anual. No cenário semanal o ensaio passa de 120 h para 140 h; a Ameaça final, de
+43 para 50 (era 83 na Vigília isolada), mantendo seis repelidas e três sofridas.
+A chance final exibida passa de 7% para 14%. Os retratos com toda a lista cumprida
+ganham os cinco ids de objetivos; o último relatório repelido ganha o contador
+de prêmio. A Fortaleza sem Ameaça e os novos instantes explicam as diferenças de
+Ameaça, RNG, presságios, composição e perdas nos cenários longos. Os cinco feudos
+da pressão somam 45 incursões leves e 50 médias/fortes (31 do outono em diante),
+contra 48, 47 e 30 na seção 13. Nenhuma tolerância foi acrescentada.

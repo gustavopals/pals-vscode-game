@@ -74,7 +74,7 @@ describe('cenário golden de 7 dias', () => {
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
     // O Acampamento soma desde o verão (+2 por dia), além dos +3 do outono; a Fortaleza surge no
     // outono e não soma até o Cerco (resposta do autor de 2026-10-27). As marcas e suas frases
-    // abaixo congelam o roteiro do estado 34.
+    // abaixo congelam o roteiro do estado 35 (balance-v0.4.md, seção 16).
     expect(
       events
         .filter((event) => event.type === 'threatRose')
@@ -101,9 +101,9 @@ describe('cenário golden de 7 dias', () => {
         'No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
-        122.0,
+        124.0,
         70,
-        'No 14º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
+        'No 15º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
         134.0,
@@ -111,14 +111,19 @@ describe('cenário golden de 7 dias', () => {
         'No 20º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
-        148.0,
+        144.0,
         70,
-        'No 3º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 73.',
+        'No 1º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 72.',
       ],
       [
-        168.0,
+        162.0,
+        70,
+        'No 10º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 73.',
+      ],
+      [
+        164.0,
         40,
-        'No 1º dia da Primavera, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 43.',
+        'No 11º dia do Inverno, os vigias de Pedra Alta do Norte tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 42.',
       ],
     ]);
     expect(
@@ -136,8 +141,8 @@ describe('cenário golden de 7 dias', () => {
     // leve, já com a Torre: os vigias avisam uma hora antes, e sem Paliçada ela custa 10% da
     // comida e da madeira e um ferido. Depois a Ameaça leva um verão inteiro para voltar aos 40,
     // e as que ela sorteia no outono recuam diante da Paliçada, já no nível 2 desde as 97 h 30
-    // (desde o estado 33 são cinco; sem o +2 da Fortaleza, resposta do autor de 2026-10-27, a
-    // primeira do outono é média e a de 152 h, leve). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
+    // (na junção, seis repelidas; a primeira do outono é média e o ensaio chega na Vigília,
+    // às 140 h; balance-v0.4.md, seção 16). A da Torre Nv2 recém-erguida (96 h 18) é avistada no mesmo instante,
     // com o tamanho; as outras, duas horas antes.
     const raidStory = events
       .filter((event) => /^(wolvesHowl|raidSuffered|raidRepelled)$/.test(event.type))
@@ -154,10 +159,10 @@ describe('cenário golden de 7 dias', () => {
       [48.0, 'raidSuffered', 'light', 0, 0],
       [72.0, 'raidSuffered', 'light', 0, 0],
       [108.0, 'raidRepelled', 'medium', 2, null],
-      [120.0, 'raidRepelled', 'strong', 2, null],
-      [132.0, 'raidRepelled', 'strong', 2, null],
-      [144.0, 'raidRepelled', 'strong', 2, null],
-      [152.0, 'raidRepelled', 'light', 2, null],
+      [122.0, 'raidRepelled', 'strong', 2, null],
+      [130.0, 'raidRepelled', 'medium', 2, null],
+      [140.0, 'raidRepelled', 'strong', 2, null],
+      [152.0, 'raidRepelled', 'medium', 2, null],
       [162.0, 'raidRepelled', 'light', 2, null],
     ]);
     // Cada uma foi anunciada pelos vigias, com a antecedência do nível da Torre daquela hora.
@@ -167,9 +172,9 @@ describe('cenário golden de 7 dias', () => {
       [47.0, 'warned'],
       [71.0, 'warned'],
       [106.0, 'sized'],
-      [118.0, 'sized'],
-      [130.0, 'sized'],
-      [142.0, 'sized'],
+      [120.0, 'sized'],
+      [128.0, 'sized'],
+      [138.0, 'sized'],
       [150.0, 'sized'],
       [160.0, 'sized'],
     ]);
@@ -186,9 +191,9 @@ describe('cenário golden de 7 dias', () => {
     expect(told(30)).toBe(
       'No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 30,2 de comida, 35,3 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
     );
-    // A forte do 13º dia do Outono (V4E-T2.4) é segura pela Paliçada Nv2, como a média (D-35).
-    expect(told(120)).toBe(
-      'No 13º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.',
+    // Na Vigília, a forte do 23º dia do Outono é segura pela Paliçada Nv2 (D-35; seção 16).
+    expect(told(140)).toBe(
+      'No 23º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.',
     );
     // O ferido do roteiro estava sem ofício: fica de cama um dia de jogo e sara.
     const hurt = events.filter((event) => event.type === 'villagerInjured');
@@ -206,14 +211,14 @@ describe('cenário golden de 7 dias', () => {
     expect(state.rng.horde).toHaveLength(4);
     // A última incursão do ano já passou, e a seguinte ainda não foi sorteada.
     expect(state.horde.scheduledRaids).toEqual([]);
-    // 67 até a Fortaleza deixar de somar Ameaça (resposta do autor de 2026-10-27).
-    expect(state.map.threat).toBe(43);
+    // Junção da Vigília e da Fortaleza sem Ameaça: balance-v0.4.md, seção 16.
+    expect(state.map.threat).toBe(50);
     const lastView = deriveViewState(state, state.lastProcessedAt).threat;
     expect(lastView).toMatchObject({
       known: true,
-      level: 43,
+      level: 50,
       risePerDay: 4,
-      raidChancePercent: 7,
+      raidChancePercent: 14,
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no

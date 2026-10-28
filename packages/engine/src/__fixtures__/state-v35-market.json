@@ -147,7 +147,7 @@
     "threatActive": true
    }
   },
-  "threat": 28,
+  "threat": 24,
   "discovered": []
  },
  "horde": {
@@ -334,7 +334,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
