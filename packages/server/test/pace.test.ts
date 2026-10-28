@@ -29,6 +29,7 @@ import {
   renew,
   send,
   signUp,
+  startGame,
   type TestApp,
   testConfig,
 } from './helpers/app';
@@ -410,6 +411,10 @@ function firewoodAtPace(firewood: Firewood | null, pace: number): Firewood | nul
 function withoutRateTexts(view: ViewState): ViewState {
   return {
     ...view,
+    settlement: {
+      ...view.settlement,
+      vigil: { ...view.settlement.vigil, hourLocal: 0 },
+    },
     calendar: {
       ...view.calendar,
       seasonEffects: view.winter === null ? view.calendar.seasonEffects : '',
@@ -1199,8 +1204,18 @@ describe('as estações no relógio real (V2C-T1)', () => {
   });
 
   it('o mesmo inverno nos dois ritmos é o mesmo mundo, com prazos ÷3 e taxas ×3', async () => {
+    const epoch = '2026-10-01T12:00:00.000Z';
+    fast.clock.set(epoch);
+    normal.clock.set(epoch);
     const quick = await newPlayer(fast);
-    const slow = await newPlayer(normal);
+    const slowAuth = await signUp(normal);
+    const slow: Player = {
+      auth: slowAuth,
+      accountId: slowAuth.account.id,
+      token: slowAuth.accessToken,
+      refreshToken: slowAuth.refreshToken,
+      game: await startGame(normal, slowAuth.accessToken, { vigilHourLocal: 21 }),
+    };
     for (const [server, player] of [
       [fast, quick],
       [normal, slow],
