@@ -101,6 +101,8 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
             captivity: null,
             discontent: false,
             equipment: { weapon: null, armor: null, accessory: null },
+            joinedAtMs: at,
+            freedAtMs: null,
           });
         }
         if (injured) {
@@ -117,6 +119,8 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
             captivity: null,
             discontent: false,
             equipment: { weapon: null, armor: null, accessory: null },
+            joinedAtMs: at,
+            freedAtMs: null,
           });
         }
         return eligibleCards(state, at, avulsas).length;

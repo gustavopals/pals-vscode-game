@@ -21,7 +21,7 @@ function sample(
     title: 'O encontro',
     text: '{heroi} e {heroi2} chegaram. O conselho espera.',
     weight: 1,
-    requires,
+    ...(requires !== undefined ? { requires } : {}),
     autoResolve: { peasant: 'choose', lord: 'choose', ironKing: 'choose' },
     options: [
       {
@@ -133,7 +133,7 @@ describe('efeitos das avulsas aprovadas (§§7.3–7.5 e 8.1)', () => {
     const pending = state.council.pending[0]!;
     expect(pending.heroes).toHaveLength(2);
     expect(new Set(pending.heroes!.map((hero) => hero.id)).size).toBe(2);
-    const rng = structuredClone(state.rng);
+    const rng = JSON.parse(JSON.stringify(state.rng));
     const names = pending.heroes!.map((hero) => hero.name);
     state.guild.heroes.forEach((hero) => {
       hero.name = 'Nome alterado';
@@ -156,7 +156,7 @@ describe('efeitos das avulsas aprovadas (§§7.3–7.5 e 8.1)', () => {
       addHero(state, { name: 'Bia' });
       const card = sample([risk], { heroPresent: 2 });
       const pending = dealt(state, card.id, [card]);
-      const rng = structuredClone(pending.state.rng);
+      const rng = JSON.parse(JSON.stringify(pending.state.rng));
       const events: GameEvent[] = [];
       expect(answerCard(pending.state, pending.instanceId, 'choose', 0, events, [card])).toBeNull();
       expect(pending.state.rng).toEqual(rng);
@@ -201,7 +201,7 @@ describe('efeitos das avulsas aprovadas (§§7.3–7.5 e 8.1)', () => {
       const chosen = choose(state, card).state;
       if (status === 'departed') chosen.guild.heroes = [];
       else chosen.guild.heroes[0]!.status = status;
-      const rng = structuredClone(chosen.rng);
+      const rng = JSON.parse(JSON.stringify(chosen.rng));
       const events: GameEvent[] = [];
       applyDelayedEffects(chosen, DAY, events, [card]);
       expect(events[0]?.text).toContain(`${hero.name} voltou bem`);
