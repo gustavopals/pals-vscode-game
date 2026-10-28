@@ -355,6 +355,9 @@ describe('Conselho: o catálogo', () => {
       'resourcesPercent',
       'marketPrice',
       'rollEffect',
+      'tavernExtraOffer',
+      'injureHero',
+      'healHero',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -538,7 +541,9 @@ const known = (list: readonly CouncilEffect[]) => {
     } else if (
       effect.type === 'addMaster' ||
       effect.type === 'addSoldiers' ||
-      effect.type === 'revealDestination'
+      effect.type === 'revealDestination' ||
+      effect.type === 'tavernExtraOffer' ||
+      effect.type === 'healHero'
     ) {
       total.extra += 1;
     }

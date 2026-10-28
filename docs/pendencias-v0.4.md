@@ -495,3 +495,29 @@ O fator dura `durationDays` dias completos de jogo a partir da escolha; seu venc
 fatores vencidos: a tendência compara o preço atual com o passeio e a estação de ontem;
 o detalhamento explica cada fator vivo. O dia da cotação e o volume não mudam, conforme
 §5.6 aprovado. A migração desta base é 35 → 36, em vez de 36 → 37 previsto no roadmap.
+
+
+## V4H-T1 — quatro avulsas (2026-10-28)
+
+**H-3. Participantes, cura e contingências.** _(Proposta do agente; não lida pelo autor.)_
+As fichas §§7.4–7.5 e 8.1 escolhem participantes na chegada pelo fluxo `council`, sem
+reposição, e guardam identificador e nome na ocorrência e no risco pendente. Livre
+significa `idle` sem ferimento; comandante que permanece no feudo também pode conversar.
+Na virada do risco só pode se ferir um participante ainda livre; com nenhum, vale o ramo
+bom inteiro, sem sorteio. Com dois disponíveis o sorteio de quem se fere ocorre depois
+do da chance. A cura parcial arredonda o prazo restante para cima em milissegundos,
+para não dar mais de metade. A cura integral usa a mesma recuperação natural e emite `heroRecovered` depois da linha da
+carta. Nas opções de cura (`healHero`), se o alvo sarou ou partiu antes da resposta, o custo
+escolhido continua sendo o da ficha, sem cura substituta, e a frase de contingência proposta é:
+"No {dia}º dia {daEstacao}, o curandeiro errante chegou tarde a {feudo}: {heroi} já não estava
+entre os feridos da casa." A opção sem cura (`wait`) e o vencimento da carta preservam as
+frases aprovadas na ficha §8.1.
+
+**H-4. Persistência do recrutador.** _(Proposta do agente; não lida pelo autor.)_
+O estado passa de 36 para 37: marcador booleano `guild.tavern.extraOffer`, desligado
+na migração, e participantes opcionais em `council.pending`/`delayed` (obrigatórios nas
+três cartas com alvo). O bônus é um candidato na próxima lista e se consome na rotação,
+sem mudar limite de contratação ou número das listas seguintes. O teto persistido de
+ofertas passa de três para quatro; as guardas antigas e os retratos v36 ficam congelados.
+A escolha paga na hora exata de uma rotação vale para a seguinte: o instante vence
+antes da ordem, como no restante do motor.

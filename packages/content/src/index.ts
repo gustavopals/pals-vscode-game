@@ -141,7 +141,7 @@ export type {
 } from './expeditions';
 export { equipmentTexts, itemRarities, items, itemSlots } from './items';
 export type { ItemDef } from './items';
-export { COUNCIL_EFFECT_TYPES } from './council';
+export { COUNCIL_EFFECT_TYPES, councilHeroTexts } from './council';
 export type {
   CouncilCard,
   CouncilCardRequires,

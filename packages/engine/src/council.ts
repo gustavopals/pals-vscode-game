@@ -6,6 +6,7 @@ import {
   type CouncilOption,
   type HeroTraitId,
   councilCards,
+  councilHeroTexts,
   type MasterId,
   type UnitId,
   type ResourceAmounts,
@@ -16,16 +17,23 @@ import { grantSoldiers } from './armyTurn';
 import { armyCap, soldierCount } from './army';
 import { promiseHero } from './arrivals';
 import { emit } from './chronicle';
+import {
+  councilHeroCandidates,
+  councilHeroData,
+  councilHeroWords,
+  freeCouncilHero,
+} from './councilHeroes';
 import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
 import { amountsData, constructionOf, missingResources, payResources } from './construction';
 import { plural, thousands } from './format';
 import { rosterHasRoom, traitLabel } from './heroes';
 import { deliverMaster, masterCanArrive } from './masterTurn';
 import { addMoraleEffect } from './morale';
-import { nextHiddenDestination, revealDestination } from './outcomes';
+import { recoverHeroes, nextHiddenDestination, revealDestination } from './outcomes';
 import { reject } from './rejections';
 import { storeResource } from './storage';
 import type {
+  CouncilHero,
   GameEvent,
   GameState,
   PendingCard,
@@ -121,6 +129,11 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
     return true;
   }
   const { settlement, council } = state;
+  if (
+    (requires.heroPresent !== undefined || requires.injuredHero === true) &&
+    councilHeroCandidates(state, card).length < (requires.heroPresent ?? 1)
+  )
+    return false;
   if (requires.seasons !== undefined && !requires.seasons.includes(seasonAt(atMs).id)) {
     return false;
   }
@@ -266,6 +279,7 @@ export function deliverCard(
   atMs: number,
   events: GameEvent[],
   origin: CardOrigin,
+  heroes: CouncilHero[] = [],
 ): PendingCard {
   const { council, stats } = draft;
   // A ocorrência é o modelo e a ordem de chegada na partida: determinística, sem sorteio.
@@ -274,6 +288,7 @@ export function deliverCard(
   const pending: PendingCard = {
     instanceId: `${card.id}-${stats.cardsDrawn}`,
     cardId: card.id,
+    ...(heroes.length === 0 ? {} : { heroes }),
     drawnAtMs: atMs,
     expiresAtMs: atMs + expiryMs(draft),
     origin:
@@ -304,7 +319,7 @@ export function deliverCard(
           previousOptionId: origin.previousOptionId,
           previousInstanceId: origin.previousInstanceId,
         },
-    { carta: card.title },
+    { carta: card.title, ...councilHeroWords(heroes) },
     cardReading(draft, card).arrival,
   );
   return pending;
@@ -327,6 +342,8 @@ export type Outcome = {
   revealed: string | null;
   /** Os soldados que a opção trouxe, por unidade. */
   soldiers: Array<{ unit: UnitId; amount: number }>;
+  injuredHero: CouncilHero | null;
+  healedHeroId: string | null;
 };
 
 export const noOutcome = (): Outcome => ({
@@ -338,6 +355,8 @@ export const noOutcome = (): Outcome => ({
   masters: [],
   revealed: null,
   soldiers: [],
+  injuredHero: null,
+  healedHeroId: null,
 });
 
 const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
@@ -345,6 +364,10 @@ const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
 
 export function outcomeData(outcome: Outcome): Record<string, string | number> {
   return {
+    ...(outcome.injuredHero === null
+      ? {}
+      : { injuredHeroId: outcome.injuredHero.id, injuredHeroName: outcome.injuredHero.name }),
+    ...(outcome.healedHeroId === null ? {} : { healedHeroId: outcome.healedHeroId }),
     ...amountsData('spent', toUnits(outcome.spent)),
     ...amountsData('gained', toUnits(outcome.gained)),
     ...amountsData('lost', toUnits(outcome.lost)),
@@ -391,7 +414,14 @@ function insertByTime<T extends { atMs: number }>(list: T[], entry: T): void {
 export function applyEffects(
   draft: GameState,
   effects: readonly CouncilEffect[],
-  source: { card: CouncilCard; option: CouncilOption; instanceId: string; hidden: boolean },
+  source: {
+    card: CouncilCard;
+    option: CouncilOption;
+    instanceId: string;
+    hidden: boolean;
+    heroes?: readonly CouncilHero[] | undefined;
+    injuredHeroId?: string | undefined;
+  },
   atMs: number,
   outcome: Outcome,
 ): void {
@@ -399,6 +429,33 @@ export function applyEffects(
   const { card, option, instanceId, hidden } = source;
   for (const effect of effects) {
     switch (effect.type) {
+      case 'tavernExtraOffer':
+        draft.guild.tavern.extraOffer = true;
+        break;
+      case 'injureHero': {
+        const hero = draft.guild.heroes.find((entry) => entry.id === source.injuredHeroId);
+        if (hero !== undefined && freeCouncilHero(hero)) {
+          hero.injury = {
+            severity: effect.kind,
+            untilMs: atMs + balance.injuries.durationMs[effect.kind],
+          };
+          hero.status = 'injured';
+          draft.stats.heroesInjured = (draft.stats.heroesInjured ?? 0) + 1;
+          outcome.injuredHero = { id: hero.id, name: hero.name };
+        }
+        break;
+      }
+      case 'healHero': {
+        const hero = draft.guild.heroes.find((entry) => entry.id === source.heroes?.[0]?.id);
+        if (hero?.status === 'injured' && hero.injury !== null) {
+          hero.injury.untilMs =
+            effect.mode === 'full'
+              ? atMs
+              : atMs + Math.ceil(Math.max(0, hero.injury.untilMs - atMs) / 2);
+          outcome.healedHeroId = hero.id;
+        }
+        break;
+      }
       case 'rollEffect':
         // Só agenda em resolveCard; quem sorteia é councilTurn, na virada seguinte.
         break;
@@ -512,6 +569,7 @@ function deliverOutcomeMasters(
   atMs: number,
   events: GameEvent[],
 ): void {
+  if (outcome.healedHeroId !== null) recoverHeroes(draft, atMs, events);
   for (const masterId of outcome.masters) {
     deliverMaster(draft, masterId, atMs, events);
   }
@@ -534,18 +592,38 @@ function resolveCard(
   outcome: Outcome,
 ): void {
   const { instanceId } = pending;
-  applyEffects(draft, option.effects, { card, option, instanceId, hidden: false }, atMs, outcome);
+  applyEffects(
+    draft,
+    option.effects,
+    { card, option, instanceId, hidden: false, heroes: pending.heroes },
+    atMs,
+    outcome,
+  );
   if (
     option.hidden !== undefined ||
     option.effects.some((effect) => effect.type === 'rollEffect')
   ) {
     insertByTime(draft.council.delayed, {
+      ...(pending.heroes === undefined
+        ? {}
+        : { heroes: pending.heroes.map((hero) => ({ ...hero })) }),
       atMs: dayTurnAfter(atMs, option.hidden?.afterDays ?? 1),
       instanceId,
       cardId: card.id,
       optionId: option.id,
     });
   }
+}
+
+/** A ficha §8.1 manda narrar a chegada tardia nas opções de cura se o alvo já sarou ou partiu. */
+function healerIsLate(state: GameState, option: CouncilOption, pending: PendingCard): boolean {
+  return (
+    option.effects.some((effect) => effect.type === 'healHero') &&
+    !state.guild.heroes.some(
+      (hero) =>
+        hero.id === pending.heroes?.[0]?.id && hero.status === 'injured' && hero.injury !== null,
+    )
+  );
 }
 
 /**
@@ -574,6 +652,7 @@ export function expireCards(
     if (card === null || option === null) {
       continue;
     }
+    const late = healerIsLate(draft, option, pending);
     const outcome = noOutcome();
     resolveCard(draft, pending, card, option, atMs, outcome);
     council.expired.push(pending.instanceId);
@@ -588,10 +667,11 @@ export function expireCards(
         instanceId: pending.instanceId,
         optionId: option.id,
         difficulty: draft.settings.difficulty,
+        ...councilHeroData(pending.heroes),
         ...outcomeData(outcome),
       },
-      { carta: card.title, opcao: lowerFirst(option.label) },
-      option.expiredChronicle,
+      { carta: card.title, opcao: lowerFirst(option.label), ...councilHeroWords(pending.heroes) },
+      late ? councilHeroTexts.healerLate : option.expiredChronicle,
     );
     deliverOutcomeMasters(draft, outcome, atMs, events);
   }
@@ -777,6 +857,7 @@ export function answerCard(
   if (missing !== null) {
     return reject('INSUFFICIENT_RESOURCES', { missing });
   }
+  const late = healerIsLate(draft, option, pending);
   payResources(draft, cost);
   const speaker =
     option.requires?.heroTrait === undefined ? null : optionHero(draft, option.requires.heroTrait);
@@ -796,15 +877,17 @@ export function answerCard(
       cardId: card.id,
       instanceId: pending.instanceId,
       optionId: option.id,
+      ...councilHeroData(pending.heroes),
       ...(speaker === null ? {} : { heroId: speaker.id, heroName: speaker.name }),
       ...outcomeData(outcome),
     },
     {
       carta: card.title,
       opcao: lowerFirst(option.label),
+      ...councilHeroWords(pending.heroes),
       ...(speaker === null ? {} : { heroi: speaker.name }),
     },
-    option.chronicle,
+    late ? councilHeroTexts.healerLate : option.chronicle,
   );
   deliverOutcomeMasters(draft, outcome, nowMs, events);
   // O lugar que a carta deixou pode ser de uma continuação que já esperava.

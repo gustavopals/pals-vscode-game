@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { currentShape, migrateState, StateMigrationError } from './migrations';
+import { stateV36 } from './migrations/v36';
 import { stateV35, v35ToV36 } from './migrations/v35';
 import { DAY } from './test-helpers';
 
@@ -17,11 +18,13 @@ const currentFixtures = import.meta.glob<string>('./__fixtures__/state-v36-*.jso
 
 describe('35 → 36: fatores de carta no Mercado', () => {
   it.each(Object.entries(currentFixtures))(
-    '%s: a recarga aceita a forma atual e é idempotente',
+    '%s: a recarga migra o retrato e é idempotente',
     (_, raw) => {
       const state = JSON.parse(raw);
-      expect(currentShape(state, '')).toBeNull();
-      expect(migrateState(state, { timeScale: 1 })).toBe(state);
+      expect(stateV36(state, '')).toBeNull();
+      const loaded = migrateState(state, { timeScale: 1 });
+      expect(currentShape(loaded, '')).toBeNull();
+      expect(migrateState(loaded, { timeScale: 1 })).toBe(loaded);
     },
   );
   it.each(Object.entries(fixtures))('%s: só acrescenta a lista vazia', (_, raw) => {
@@ -30,7 +33,7 @@ describe('35 → 36: fatores de carta no Mercado', () => {
     const context = { timeScale: 1, boundaryMs: before.lastProcessedAt as number };
     const after = v35ToV36.migrate(before, context);
     expect(stateV35(before, '')).toBeNull();
-    expect(currentShape(after, '')).toBeNull();
+    expect(stateV36(after, '')).toBeNull();
     expect(after).toEqual({
       ...before,
       schemaVersion: 36,

@@ -163,6 +163,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'inimigo',
   'bando',
   'heroi',
+  'heroi2',
+  'heroiFerido',
   'classe',
   'preco',
   'expedicao',

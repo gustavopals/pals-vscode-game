@@ -23,6 +23,7 @@ import {
   deliverCard,
   DRAW_INTERVAL_MS,
 } from './council';
+import { drawCouncilHeroes } from './councilTurn';
 import { isPosture, modelOf, nextVariant } from './expeditions';
 import { emptyPosts } from './formations';
 import { deliverMaster } from './masterTurn';
@@ -246,7 +247,7 @@ export const NO_TAVERN: Pick<
 > = {
   inventory: [],
   tavernOffers: [],
-  tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+  tavern: { extraOffer: false, nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
   expeditions: [],
   reports: [],
 };
@@ -1164,7 +1165,7 @@ export function dealt(
     throw new Error(`Carta desconhecida no teste: ${cardId}.`);
   }
   const draft = cloneState(state);
-  const { instanceId } = deliverCard(draft, card, draft.lastProcessedAt, [], { source: 'draw' });
+  const { instanceId } = deliverCard(draft, card, draft.lastProcessedAt, [], { source: 'draw' }, drawCouncilHeroes(draft, card));
   return { state: draft, instanceId };
 }
 

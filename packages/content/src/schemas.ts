@@ -1451,6 +1451,9 @@ const nonZeroInt = z
   .refine((value) => value !== 0, 'zero não é efeito');
 
 const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
+  z.strictObject({ type: z.literal('tavernExtraOffer') }),
+  z.strictObject({ type: z.literal('injureHero'), kind: z.literal('light') }),
+  z.strictObject({ type: z.literal('healHero'), mode: z.enum(['full', 'half']) }),
   z.strictObject({
     type: z.literal('resources'),
     amounts: z
@@ -1500,13 +1503,14 @@ const rollChance = z
   .strictObject({ num: positiveInt, den: positiveInt })
   .refine(({ num, den }) => num <= den, 'chance acima de um');
 const rollOutcome = z.strictObject({
-  // Um risco só aplica estoque ou moral: não promete entidade nem agenda outro risco.
+  // Um risco aplica estoque, moral ou ferimento leve; o ramo bom pode não ter efeito (§7.5).
   effects: z
     .array(CouncilImmediateEffectSchema)
-    .min(1)
     .refine(
       (list) =>
-        list.every((effect) => ['resources', 'resourcesPercent', 'morale'].includes(effect.type)),
+        list.every((effect) =>
+          ['resources', 'resourcesPercent', 'morale', 'injureHero'].includes(effect.type),
+        ),
       'efeito fora do desfecho de risco',
     ),
   chronicle: chronicleTemplate,
@@ -1533,7 +1537,7 @@ const effects = z
   );
 
 /** Uma frase de pista ou de situação: começa em maiúscula e termina com ponto. */
-const sentence = label.regex(/^\p{Lu}.*[.!?]$/su);
+const sentence = label.regex(/^(?:\p{Lu}|\{heroi\}).*[.!?]$/su);
 const sentenceCount = (text: string) => text.split(/[.!?]+(?:\s+|$)/u).filter(Boolean).length;
 
 const givesHero = (list: ReadonlyArray<{ type: string }>) =>
@@ -1632,6 +1636,8 @@ export const CouncilCardSchema = z
         moralRange: moralRange.optional(),
         undiscovered: z.union([z.literal(true), z.enum(EXPEDITION_MODEL_IDS)]).optional(),
         resourcesAbove: resourceAmounts.optional(),
+        heroPresent: positiveInt.max(2).optional(),
+        injuredHero: z.literal(true).optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),

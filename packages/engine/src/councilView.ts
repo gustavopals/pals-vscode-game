@@ -6,6 +6,7 @@ import {
   RESOURCE_IDS,
 } from '@lotg/content';
 
+import { councilHeroWords } from './councilHeroes';
 import { DAY_MS, isYearBoundary } from './clock';
 import { costView } from './costView';
 import {
@@ -34,6 +35,7 @@ import type {
   CouncilCardView,
   CouncilOptionView,
   CouncilView,
+  CouncilHero,
   GameState,
   PendingCard,
   PendingDecisionView,
@@ -100,12 +102,31 @@ function heroText(namedHeroId: string, afterDays: number | undefined, timeScale:
  * 2 dias de jogo (1 h 20 min)". A duração de um efeito de moral conta dias de jogo, e o tempo
  * real entre parênteses é o do ritmo da partida. Flags e continuações não aparecem.
  */
-function effectsText(state: GameState, option: CouncilOption, timeScale: number): string {
+function effectsText(
+  state: GameState,
+  option: CouncilOption,
+  timeScale: number,
+  heroes: readonly CouncilHero[] = [],
+): string {
   const parts = positiveEntries(option.cost ?? {}).map(
     ([resource, amount]) => `−${thousands(amount)} ${resourceName(resource)}`,
   );
   for (const effect of option.effects) {
-    if (effect.type === 'resourcesPercent') {
+    if (effect.type === 'tavernExtraOffer') {
+      parts.push(
+        'um candidato a mais na próxima rotação da Taverna; o limite de contratação não muda',
+      );
+    } else if (effect.type === 'injureHero') {
+      parts.push(
+        `um dos participantes sofre ferimento leve (${durationText(realSecondsCeil(balance.injuries.durationMs.light, timeScale))}) se ainda estiver livre no feudo`,
+      );
+    } else if (effect.type === 'healHero') {
+      parts.push(
+        effect.mode === 'full'
+          ? `encerra agora o ferimento de ${heroes[0]?.name ?? 'quem está ferido'}`
+          : `reduz à metade o tempo restante do ferimento de ${heroes[0]?.name ?? 'quem está ferido'}`,
+      );
+    } else if (effect.type === 'resourcesPercent') {
       parts.push(
         `${effect.ratio.num < 0 ? '−' : '+'}${decimal((Math.abs(effect.ratio.num) * 100) / effect.ratio.den)}% do estoque de ${resourceName(effect.resource)} na resolução`,
       );
@@ -124,7 +145,9 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
           ? relief.chance
           : effect.chance;
       const describe = (effects: readonly CouncilEffect[]) =>
-        effectsText(state, { ...option, cost: {}, effects }, timeScale);
+        effects.length === 0
+          ? 'nenhum efeito'
+          : effectsText(state, { ...option, cost: {}, effects }, timeScale, heroes);
       parts.push(
         `Na próxima virada de dia: ${chance.num} em ${chance.den} de ${describe(effect.onHit.effects)}; caso contrário, ${describe(effect.onMiss.effects)}`,
       );
@@ -174,7 +197,12 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
   return parts.length === 0 ? 'Sem custo e sem efeito imediato.' : parts.join('; ');
 }
 
-function optionView(state: GameState, option: CouncilOption, timeScale: number): CouncilOptionView {
+function optionView(
+  state: GameState,
+  option: CouncilOption,
+  timeScale: number,
+  heroes?: readonly CouncilHero[],
+): CouncilOptionView {
   const cost = costView(state, option.cost ?? {});
   const lock = optionLock(state, option);
   return {
@@ -184,7 +212,7 @@ function optionView(state: GameState, option: CouncilOption, timeScale: number):
     affordable: cost.every((entry) => entry.missing === 0),
     locked: lock !== null,
     lockedReason: lock === null ? null : `${sentenceCase(lock)}.`,
-    effectsText: effectsText(state, option, timeScale),
+    effectsText: effectsText(state, option, timeScale, heroes),
     hint: option.hint,
   };
 }
@@ -242,7 +270,10 @@ export function councilView(
     pending.push({
       instanceId: entry.instanceId,
       title: card.title,
-      text: cardReading(state, card).text,
+      text: cardReading(state, card).text.replace(
+        /\{(heroi|heroi2)\}/g,
+        (marker, key: 'heroi' | 'heroi2') => councilHeroWords(entry.heroes)[key] ?? marker,
+      ),
       expiresInSeconds: until(entry.expiresAtMs),
       defaultOptionId: fallback.id,
       defaultOptionLabel: fallback.label,
@@ -250,7 +281,7 @@ export function councilView(
       followsFrom: followsFrom(entry, catalog),
       options: card.options
         .filter((option) => optionVisible(state, option))
-        .map((option) => optionView(state, option, timeScale)),
+        .map((option) => optionView(state, option, timeScale, entry.heroes)),
     });
   }
 

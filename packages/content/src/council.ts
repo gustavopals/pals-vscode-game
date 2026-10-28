@@ -37,6 +37,9 @@ export const COUNCIL_EFFECT_TYPES = [
   'resourcesPercent',
   'marketPrice',
   'rollEffect',
+  'tavernExtraOffer',
+  'injureHero',
+  'healHero',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
@@ -94,7 +97,13 @@ export type CouncilImmediateEffect =
    * (a mesma conta do fim do treino). A opção que os dá pede o Quartel e a vaga
    * (`requires.soldierRoom`), então o efeito nunca passa do teto nem do piso de aldeões.
    */
-  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number };
+  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number }
+  /** Um candidato a mais só na próxima rotação; não aumenta o limite de contratação. */
+  | { readonly type: 'tavernExtraOffer' }
+  /** Fere de leve um dos participantes gravados na carta, escolhido na resolução do risco. */
+  | { readonly type: 'injureHero'; readonly kind: 'light' }
+  /** Cura o participante gravado, ou reduz pela metade o tempo restante do ferimento. */
+  | { readonly type: 'healHero'; readonly mode: 'full' | 'half' };
 
 export type CouncilRollOutcome = {
   readonly effects: readonly CouncilImmediateEffect[];
@@ -129,6 +138,10 @@ export type CouncilCardRequires = {
   readonly undiscovered?: true | ExpeditionModelId;
   /** Estoque estritamente maior que estes valores, em unidades. */
   readonly resourcesAbove?: ResourceAmounts;
+  /** Quantos heróis livres a chegada escolhe, sem reposição, no fluxo council. */
+  readonly heroPresent?: number;
+  /** A chegada escolhe um herói em recuperação no feudo. */
+  readonly injuredHero?: true;
 };
 
 /** O que uma opção exige além do custo. Sem o requisito, ela aparece trancada, com o motivo. */
@@ -233,4 +246,10 @@ export type CouncilCard = {
   readonly variants?: readonly CouncilCardVariant[];
   /** A frase da Crônica quando a carta chega. Sem ela vale o modelo geral de `cardDrawn`. */
   readonly arrival?: string;
+};
+
+/** Texto de contingência exigido em §8.1; redação proposta em pendencias-v0.4.md, H-3. */
+export const councilHeroTexts = {
+  healerLate:
+    'No {dia}º dia {daEstacao}, o curandeiro errante chegou tarde a {feudo}: {heroi} já não estava entre os feridos da casa.',
 };

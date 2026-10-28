@@ -572,7 +572,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 36):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 37):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -618,6 +618,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 34 | V4E-T3 | Memória da última formação vista, preparação das ondas e presságios. O passo 33 → 34 preserva as incursões e começa com memória/preparação nulas e presságios vazios, sem prazo, sorteio ou evento. |
 | 35 | V4G-T1 | Origem real (`settings.realOriginMs`) e Vigília (`hourLocal`, offset fixo em minutos e `timezoneResolved`). Passo 34 → 35 em `v34.ts`; forma 35 em `v35.ts`. Vêm de `created_at` e do fuso resolvido no servidor, sem prazo, evento, identificador ou sorteio; incursões marcadas ficam intactas. Estado atual 34 → 35, independentemente da numeração de fases futuras no roadmap. |
 | 36 | V4H-T1 | `market.effects`, vazio na migração 35 → 36 (`v35.ts`), com forma em `v36.ts`. Cada efeito guarda recurso, fator racional, prazo e rótulo. O passo não muda preço, carta, prazo existente nem gerador. Os retratos v35 ficam congelados; a previsão 36 → 37 do roadmap estava defasada nesta base. |
+| 37 | V4H-T1 (avulsas) | `guild.tavern.extraOffer` desligado no passo 36 → 37; participantes por identidade e nome em cartas e riscos com alvo. Próxima rotação admite até quatro ofertas. A guarda v36 e seus 55 retratos ficam congelados. O passo não cria encontro, prazo ou sorteio. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -723,3 +724,20 @@ a Vigília: `vigil: { utcOffsetMinutes, timezoneResolved }`, resolvido pelo serv
 e guardado no registro da ordem. Sem contexto válido, `setVigilHour` recusa
 `INVALID_VIGIL`. A ordem muda a preferência e emite `vigilChanged`, sem tocar
 incursões marcadas, RNG ou ids. O Cerco não existe nesta entrega.
+
+
+### Encontros do Conselho e recrutador (V4H-T1, estado 37)
+
+`heroPresent` e `injuredHero` limitam o sorteio aos heróis que a ficha pede. Na chegada,
+o fluxo `council` escolhe os participantes sem reposição, depois do sorteio da carta.
+Identidade e nome ficam na ocorrência e acompanham o risco; a visão e a resposta só os
+leem. Na virada seguinte sorteia-se a chance e, se houver dano e dois alvos livres,
+quem sofre. Sem alvo livre, vale o desfecho bom sem sorteio. `injureHero` usa a duração
+leve do conteúdo; `healHero` encerra ou reduz o prazo restante pela metade, sem sorteio.
+A recuperação continua antes do calendário; a cura por carta ocorre no Conselho e sua
+linha precede `heroRecovered`. Não há morte nem captura por carta.
+
+`tavernExtraOffer` marca a próxima rotação, que continua depois do Conselho e das
+incursões na ordem existente. Ela sorteia um candidato extra no fluxo `tavern`, com as
+mesmas exclusões de nomes e modelos, e apaga o marcador. As demais listas e o limite
+de contratação mantêm seus números.

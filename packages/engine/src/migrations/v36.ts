@@ -1,5 +1,5 @@
 import { exactObject, listOf, literal, natural, oneOf, positive, text, type Shape } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { stateV35 } from './v35';
 
 // Identificadores da forma 36, congelados: o conteúdo pode crescer sem reescrever esta guarda.
@@ -27,4 +27,19 @@ export const stateV36: Shape = (value, path) => {
     effects(live, path ? `${path}.market.effects` : 'market.effects') ??
     stateV35({ ...state, schemaVersion: 35, market: oldMarket }, path)
   );
+};
+
+/** Não cria encontro, candidato, prazo nem sorteio: só deixa a próxima rotação sem bônus. */
+export const v36ToV37: MigrationStep = {
+  from: 36,
+  summary: 'Acrescenta o marcador do recrutador e admite participantes nos encontros do Conselho.',
+  shape: stateV36,
+  migrate: (state) => {
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 37,
+      guild: { ...guild, tavern: { ...(guild.tavern as StoredState), extraOffer: false } },
+    };
+  },
 };

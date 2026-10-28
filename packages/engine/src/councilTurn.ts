@@ -16,9 +16,28 @@ import {
   freeSeats,
   scriptedCard,
 } from './council';
-import { chance, pickWeighted } from './random';
+import { chance, nextInt, pickWeighted } from './random';
 import { emit } from './chronicle';
-import type { GameEvent, GameState } from './types';
+import type { CouncilCard } from '@lotg/content';
+import {
+  councilHeroCandidates,
+  councilHeroData,
+  councilHeroWords,
+  freeCouncilHero,
+} from './councilHeroes';
+import type { CouncilHero, GameEvent, GameState } from './types';
+
+/** Escolha sem reposição na chegada; guarda identidade e nome, nunca o desfecho. */
+export function drawCouncilHeroes(draft: GameState, card: CouncilCard): CouncilHero[] {
+  const count = card.requires?.heroPresent ?? (card.requires?.injuredHero === true ? 1 : 0);
+  const candidates = councilHeroCandidates(draft, card);
+  const heroes: CouncilHero[] = [];
+  for (let seat = 0; seat < count && candidates.length > 0; seat++) {
+    const [hero] = candidates.splice(nextInt(draft, 'council', candidates.length), 1);
+    if (hero !== undefined) heroes.push({ id: hero.id, name: hero.name });
+  }
+  return heroes;
+}
 
 /**
  * O sorteio do Conselho (GDD §7.1; ADR 0014, decisões 1 e 18), na virada do dia de jogo, depois
@@ -54,12 +73,19 @@ export function drawCard(
   }
   const scripted = scriptedCard(draft, atMs, catalog);
   if (scripted !== null) {
-    deliverCard(draft, scripted, atMs, events, { source: 'scripted' });
+    deliverCard(
+      draft,
+      scripted,
+      atMs,
+      events,
+      { source: 'scripted' },
+      drawCouncilHeroes(draft, scripted),
+    );
     return;
   }
   const card = pickWeighted(draft, 'council', eligibleCards(draft, atMs, catalog));
   if (card !== null) {
-    deliverCard(draft, card, atMs, events, { source: 'draw' });
+    deliverCard(draft, card, atMs, events, { source: 'draw' }, drawCouncilHeroes(draft, card));
   }
 }
 
@@ -87,7 +113,14 @@ export function applyDelayedEffects(
     }
     const outcome = noOutcome();
     const { instanceId } = entry;
-    const source = { card, option, instanceId, hidden: true };
+    const source = {
+      card,
+      option,
+      instanceId,
+      hidden: true,
+      heroes: entry.heroes,
+      injuredHeroId: undefined as string | undefined,
+    };
     const roll = option.effects.find((effect) => effect.type === 'rollEffect');
     const relief = roll?.withHeroClass;
     const probability =
@@ -97,21 +130,42 @@ export function applyDelayedEffects(
       )
         ? relief.chance
         : roll?.chance;
+    const injures = roll?.onHit.effects.some((effect) => effect.type === 'injureHero') === true;
+    const available = (entry.heroes ?? []).filter((target) =>
+      draft.guild.heroes.some((hero) => hero.id === target.id && freeCouncilHero(hero)),
+    );
     const branch =
       roll === undefined || probability === undefined
         ? option.hidden
-        : chance(draft, 'council', probability)
+        : (!injures || available.length > 0) && chance(draft, 'council', probability)
           ? roll.onHit
           : roll.onMiss;
     if (branch === undefined) continue;
+    if (branch.effects.some((effect) => effect.type === 'injureHero') && available.length > 0) {
+      source.injuredHeroId =
+        available.length === 1
+          ? available[0]!.id
+          : available[nextInt(draft, 'council', available.length)]!.id;
+    }
     applyEffects(draft, branch.effects, source, atMs, outcome);
     emit(
       events,
       draft,
       atMs,
       'cardEffectApplied',
-      { cardId: card.id, instanceId, optionId: option.id, ...outcomeData(outcome) },
-      { carta: card.title, opcao: lowerFirst(option.label) },
+      {
+        cardId: card.id,
+        instanceId,
+        optionId: option.id,
+        ...councilHeroData(entry.heroes),
+        ...outcomeData(outcome),
+      },
+      {
+        carta: card.title,
+        opcao: lowerFirst(option.label),
+        ...councilHeroWords(entry.heroes),
+        ...(outcome.injuredHero === null ? {} : { heroiFerido: outcome.injuredHero.name }),
+      },
       branch.chronicle,
     );
   }
