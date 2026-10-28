@@ -207,6 +207,8 @@ export function alertHordeFortress(
       }
     }
   }
+  // A informação da visão acompanha a composição; a frase já emitida continua histórica.
+  draft.horde.omens = draft.horde.omens.filter((omen) => omen.wave !== 1);
   emit(events, draft, atMs, 'hordeAlerted', { expeditionId, modelId: 'sabotage' });
 }
 
@@ -242,6 +244,7 @@ export function applyWaveSabotage(
       }
     }
   }
+  draft.horde.omens = draft.horde.omens.filter((omen) => omen.wave !== waveNumber);
   emit(
     events,
     draft,

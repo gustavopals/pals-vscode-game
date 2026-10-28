@@ -1,8 +1,17 @@
 import type { DifficultyId } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
-import { applyWaveSabotage, observeFormation, settleHordeTiles } from './hordePlan';
+import {
+  alertHordeFortress,
+  applyWaveSabotage,
+  observeFormation,
+  revealWaveThree,
+  settleHordeTiles,
+  turnOmens,
+} from './hordePlan';
 import { currentShape } from './migrations';
+import type { GameEvent } from './types';
+import { deriveViewState } from './view';
 import { AUTUMN, gameAt } from './test-helpers';
 
 function preparedHorde(difficulty: DifficultyId = 'lord') {
@@ -63,6 +72,39 @@ describe('as ondas após sabotagem', () => {
     expect(
       state.horde.wavePlan!.waves.map((wave) => wave.composition.map((post) => post.count)),
     ).toEqual(before);
+    expect(currentShape(state, '')).toBeNull();
+  });
+  it('descarta a revelação do Xamã ao reduzir a onda, sem reescrever a Crônica', () => {
+    const state = preparedHorde();
+    state.settlement.buildings.watchtower = 2;
+    const events: GameEvent[] = [];
+    revealWaveThree(state, AUTUMN, events);
+    const history = structuredClone(events);
+    expect(state.horde.omens).toHaveLength(1);
+    applyWaveSabotage(state, 3, AUTUMN, [], 'expedition-2');
+    expect(state.horde.omens).toEqual([]);
+    expect(deriveViewState(state, AUTUMN).army.omens).toEqual([]);
+    expect(currentShape(state, '')).toBeNull();
+    expect(events).toEqual(history);
+  });
+
+  it.each([1, 2, 4])('descarta presságios naturais afetados com Torre Nv%i', (tower) => {
+    const state = preparedHorde();
+    state.settlement.buildings.watchtower = tower;
+    for (
+      let attempt = 0;
+      attempt < 100 && !state.horde.omens.some((omen) => omen.wave === 1);
+      attempt += 1
+    )
+      turnOmens(state, AUTUMN, []);
+    expect(state.horde.omens.some((omen) => omen.wave === 1)).toBe(true);
+    expect(currentShape(state, '')).toBeNull();
+    const otherWaves = state.horde.omens.filter((omen) => omen.wave !== 1);
+    alertHordeFortress(state, AUTUMN, [], 'expedition-1');
+    expect(state.horde.omens).toEqual(otherWaves);
+    expect(currentShape(state, '')).toBeNull();
+    observeFormation(state, [{ unit: 'knight', count: 8 }], AUTUMN);
+    expect(state.horde.omens).toEqual([]);
     expect(currentShape(state, '')).toBeNull();
   });
 });
