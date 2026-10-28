@@ -706,3 +706,10 @@ de desfecho. O golden da calibragem muda só na sabotagem: nove provas passam
 de ferimento a captura e a duração passa de 300 para 360 min, reduzindo os
 ganhos por hora. O golden do relatório acrescenta a saída e os eventos da hora
 adicional. Ambos foram regravados com `UPDATE_GOLDEN=1` e os diffs conferidos.
+
+A suspeita da descoberta foi confirmada por quatro recusas que antes eram
+contornadas. `map.discovered` deixa de isentar a sabotagem da estação e do teto
+anual. Os testes do catálogo passam a usar o outono para esse modelo, sem
+fabricar a descoberta; os demais destinos conservam seu cenário. O golden do
+relatório foi regravado com `UPDATE_GOLDEN=1`: diff conferido, só a estação da
+sabotagem muda de Primavera para Outono.

@@ -358,7 +358,7 @@ export function destinationBlock(state: GameState, modelId: unknown): Rejection 
   if (model === null) {
     return reject('EXPEDITION_LOCKED');
   }
-  if (model.id === 'sabotage' && !state.map.discovered.includes('sabotage')) {
+  if (model.id === 'sabotage') {
     if (seasonAt(state.clock.gameTimeMs).id !== 'autumn') {
       return reject('SABOTAGE_SEASON');
     }

@@ -211,6 +211,36 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
       ).toBe('SABOTAGE_SEASON');
     });
 
+    it.each([
+      [SPRING, 0, 'SABOTAGE_SEASON'],
+      [SUMMER, 0, 'SABOTAGE_SEASON'],
+      [WINTER, 0, 'SABOTAGE_SEASON'],
+      [AUTUMN, 3, 'SABOTAGE_LIMIT'],
+    ] as const)('descobrir sabotage não contorna a recusa %s/%i → %s', (atMs, attempts, code) => {
+      const state = guildHall(atMs, (draft) => {
+        draft.map.discovered.push('sabotage');
+        draft.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
+        draft.horde.sabotages.attempts = attempts;
+        for (const name of ['Edda', 'Rolf', 'Isolda']) addHero(draft, { name });
+      });
+      expect(currentShape(state, '')).toBeNull();
+      expect(
+        refuse(
+          state,
+          command('sendExpedition', {
+            modelId: 'sabotage',
+            heroIds: ['hero-1', 'hero-2', 'hero-3'],
+            posture: 'balanced',
+          }),
+        ).code,
+      ).toBe(code);
+      const offer = deriveViewState(state, atMs).guild.available.find(
+        (entry) => entry.modelId === 'sabotage',
+      )!;
+      expect(offer.canSend).toBe(false);
+      expect(offer.locked).toBe(true);
+    });
+
     it('recusa equipes que não têm exatamente 3 heróis com TEAM_SIZE', () => {
       const state = autumnWithFortress((d) => {
         addHero(d, { name: 'Aldo' });
