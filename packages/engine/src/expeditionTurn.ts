@@ -16,6 +16,7 @@ import { lowerFirst } from './council';
 import { stowItem, wearTeam } from './equipment';
 import {
   enterNode,
+  effectiveTrialDifficulty,
   expeditionLabel,
   heroesOf,
   logEntry,
@@ -173,13 +174,11 @@ function resolveStage(
   if (trial !== undefined) {
     // 1. A sorte.
     const luck = rules.luck.min + nextInt(draft, stream, rules.luck.max - rules.luck.min + 1);
-    let difficulty = trial.difficulty;
-    if (expedition.modelId === 'sabotage') {
-      const attempts = draft.horde.sabotages?.attempts ?? 1;
-      const { num, den } = balance.horde.sabotage.guardIncreasePerAttempt;
-      const factorNum = den + Math.max(0, attempts - 1) * num;
-      difficulty = Math.floor((trial.difficulty * factorNum) / den);
-    }
+    const difficulty = effectiveTrialDifficulty(
+      trial.difficulty,
+      expedition.modelId,
+      draft.horde.sabotages.attempts,
+    );
     const result = outcomeOf(powerAgainst(team, trial, expedition.posture), luck, difficulty);
     entry.outcome = result;
     share = rules.lootShare[result];

@@ -17,6 +17,7 @@ import { narrate } from './chronicle';
 import { seasonAt } from './clock';
 import {
   destinationBlock,
+  effectiveTrialDifficulty,
   durationFactorAt,
   expeditionLabel,
   expeditionSlots,
@@ -96,7 +97,7 @@ export function posturesView(): PostureView[] {
  * dificuldade dos que têm prova, e o que vem depois dele (a encruzilhada, sem dizer o que há
  * além dela, ou o caminho de volta).
  */
-function firstStretchText(variant: ExpeditionVariant): string {
+function firstStretchText(variant: ExpeditionVariant, modelId: string, attempt: number): string {
   const parts: string[] = [];
   let nodeId = variant.start;
   for (let steps = 0; steps <= rules.graph.maxSteps; steps += 1) {
@@ -115,7 +116,7 @@ function firstStretchText(variant: ExpeditionVariant): string {
         ? fillText(expeditionTexts.stretchPassage, { no: node.title })
         : fillText(expeditionTexts.stretchTrial, {
             no: node.title,
-            dificuldade: node.trial.difficulty,
+            dificuldade: effectiveTrialDifficulty(node.trial.difficulty, modelId, attempt),
           }),
     );
     nodeId = node.next;
@@ -127,7 +128,11 @@ function firstStretchText(variant: ExpeditionVariant): string {
  * A prova mais dura do primeiro trecho, até a primeira encruzilhada: a de maior dificuldade (no
  * empate, a primeira). `null` quando o trecho não tem prova.
  */
-function firstStretchTrial(variant: ExpeditionVariant): ExpeditionTrial | null {
+function firstStretchTrial(
+  variant: ExpeditionVariant,
+  modelId: string,
+  attempt: number,
+): ExpeditionTrial | null {
   let hardest: ExpeditionTrial | null = null;
   let nodeId = variant.start;
   for (let steps = 0; steps <= rules.graph.maxSteps; steps += 1) {
@@ -135,8 +140,9 @@ function firstStretchTrial(variant: ExpeditionVariant): ExpeditionTrial | null {
     if (node === null || node.kind === 'crossroads' || node.kind === 'return') {
       break;
     }
-    if (node.trial !== undefined && node.trial.difficulty > (hardest?.difficulty ?? 0)) {
-      hardest = node.trial;
+    if (node.trial !== undefined) {
+      const difficulty = effectiveTrialDifficulty(node.trial.difficulty, modelId, attempt);
+      if (difficulty > (hardest?.difficulty ?? 0)) hardest = { ...node.trial, difficulty };
     }
     nodeId = node.next;
   }
@@ -200,7 +206,8 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       notes.push(fillText(expeditionTexts.summer, { estacao: season.label }));
     }
     const blocked = destinationBlock(state, model.id);
-    const trial = firstStretchTrial(variant);
+    const attempt = state.horde.sabotages.attempts + 1;
+    const trial = firstStretchTrial(variant, model.id, attempt);
     const fit = trial === null ? null : fitThresholds(trial.difficulty);
     const weights = powerWeights(trial?.weights);
     // O poder de um herói contra a prova mais dura do primeiro trecho, em milésimos inteiros.
@@ -248,7 +255,7 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
           : outlook.shortfall === null
             ? null
             : fillText(expeditionTexts.noTeam, { motivo: outlook.shortfall }),
-      firstStretchText: firstStretchText(variant),
+      firstStretchText: firstStretchText(variant, model.id, attempt),
       rescue: model.access.kind === 'captive',
       sabotage:
         model.id === 'sabotage'

@@ -12,6 +12,7 @@ import {
   command,
   guildHall,
   HOUR,
+  nextVariantIs,
   refuse,
   send,
   SPRING,
@@ -130,6 +131,36 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
         deriveViewState(state, AUTUMN).guild.available.find((offer) => offer.modelId === 'sabotage')
           ?.durationSeconds,
       ).toBe(6 * 3600);
+    },
+  );
+
+  it.each([
+    [0, 124, 146, 103, 'success'],
+    [1, 136, 160, 112, 'setback'],
+    [2, 148, 175, 122, 'setback'],
+  ] as const)(
+    'a régua e a resolução incluem os reforços após %i tentativas',
+    (attempts, difficulty, comfort, risk, outcome) => {
+      const state = autumnWithFortress((draft) => {
+        draft.horde.sabotages.attempts = attempts;
+        for (const hero of draft.guild.heroes) hero.level = 1;
+        nextVariantIs(draft, 'sabotage', 0);
+      });
+      const before = structuredClone(state);
+      const offer = deriveViewState(state, AUTUMN).guild.available.find(
+        (entry) => entry.modelId === 'sabotage',
+      )!;
+      expect(offer.firstStretchDifficulty).toBe(difficulty);
+      expect(offer.fit).toMatchObject({ comfortPower: comfort, riskPower: risk });
+      expect(offer.firstStretchText).toContain(String(difficulty));
+      expect(offer.fit?.text).toContain(String(comfort));
+      expect(offer.firstStretchText).not.toContain('Xamã');
+      expect(state).toEqual(before);
+      const sent = send(state, 'sabotage', ['hero-1', 'hero-2', 'hero-3'], 'balanced', 0);
+      // Vetor com a sorte neutra 100 no primeiro sorteio, igual nas três tentativas.
+      sent.state.rng[`expedition:${sent.expedition.id}`] = [1, 13, 3, 4];
+      const resolved = advanceTo(sent.state, sent.expedition.nodeEndsAtMs!);
+      expect(resolved.state.guild.expeditions[0]!.log[0]!.outcome).toBe(outcome);
     },
   );
 
