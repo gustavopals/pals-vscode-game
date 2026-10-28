@@ -680,3 +680,15 @@ Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
 - Os 55 retratos `state-v36-*.json` foram congelados em `FROZEN` e 56 retratos `state-v37-*.json`
   foram gravados (incluindo `council-encounters` com `extraOffer: true`, risco pendente com
   participante e duelo na mesa).
+
+## Revisão V4F-T1 — sabotagem (2026-10-28)
+
+Por decisão do coordenador, cada onda usa o total de base da dificuldade,
+com a redução acumulada `min(45, 15 × sucessos nessa onda)`. O total reduzido
+é truncado uma vez; os postos recebem sua parte e os restos na ordem fixa
+ala/linha. O Xamã e o Senhor da Guerra mantêm o efetivo fixo exigido pelo conteúdo.
+Redução e regeneração compartilham a conta, sem novo campo persistido ou sorteio.
+Em Senhor, três sucessos levam os totais 40/60/81 a 22/33/44. Testes focados
+provam as três reduções, o teto e a distribuição idêntica após regenerar.
+Nenhuma faixa do simulador foi alterada ou remedida; matriz e suítes pesadas
+ficam com o coordenador, conforme a divisão desta revisão.

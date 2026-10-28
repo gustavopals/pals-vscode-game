@@ -30,19 +30,13 @@ import type { GameEvent, GameState, ScheduledRaid } from './types';
 type Post = NonNullable<ScheduledRaid['composition']>[number];
 type Wave = NonNullable<GameState['horde']['wavePlan']>['waves'][number];
 
-/** Um sorteio por posto, em ordem fixa; a contagem exata é repartida sem perder resto. */
-function generateWave(draft: GameState, def: HordeWaveDef): Wave {
-  const weights = compositionWeights(
-    'autumn',
-    draft.settings.difficulty,
-    draft.horde.lastFormationSeen,
-    def.mix,
-  ).weights;
+/** Efetivos de base por posto, sem sorteio; compartilhados pela geração e pela sabotagem. */
+function baseWaveLayout(draft: GameState, def: HordeWaveDef) {
   const { num, den } = balance.difficulties[draft.settings.difficulty].siegeFactor;
   const count = Math.floor((def.baseCount * num) / den);
   const remaining = count - def.fixed.filter((p) => !p.extra).reduce((sum, p) => sum + p.count, 0);
   const hasBack = HORDE_UNIT_IDS.some(
-    (unit) => hordeUnits[unit].line === 'back' && (weights[unit] ?? 0) > 0,
+    (unit) => hordeUnits[unit].line === 'back' && (def.mix[unit] ?? 0) > 0,
   );
   const slots = WING_IDS.flatMap((wing) =>
     LINE_IDS.flatMap((line) => {
@@ -65,6 +59,18 @@ function generateWave(draft: GameState, def: HordeWaveDef): Wave {
     if (rest-- <= 0) break;
     amounts[index] = (amounts[index] ?? 0) + 1;
   }
+  return { slots, amounts };
+}
+
+/** Um sorteio por posto, em ordem fixa; a contagem exata é repartida sem perder resto. */
+function generateWave(draft: GameState, def: HordeWaveDef): Wave {
+  const weights = compositionWeights(
+    'autumn',
+    draft.settings.difficulty,
+    draft.horde.lastFormationSeen,
+    def.mix,
+  ).weights;
+  const { slots, amounts } = baseWaveLayout(draft, def);
   const posts: Post[] = def.fixed.map(({ wing, line, unit, count: fixedCount }) => ({
     wing,
     line,
@@ -97,6 +103,33 @@ function generateWave(draft: GameState, def: HordeWaveDef): Wave {
   return { number: def.number, composition: posts };
 }
 
+/** Reparte o total reduzido sobre a base, com os restos na ordem fixa dos postos. */
+function reduceWave(draft: GameState, wave: Wave): void {
+  const def = hordeWaves.find((entry) => entry.number === wave.number)!;
+  const { slots, amounts } = baseWaveLayout(draft, def);
+  const base = wave.composition.map((post) => {
+    const fixed = def.fixed.find((entry) => entry.wing === post.wing && entry.line === post.line);
+    const index = slots.findIndex((entry) => entry.wing === post.wing && entry.line === post.line);
+    return { count: fixed?.count ?? amounts[index] ?? 0, minimum: fixed?.count ?? 0 };
+  });
+  const percent = wave.reductionPercent ?? 0;
+  const target = Math.floor(
+    (base.reduce((sum, post) => sum + post.count, 0) * (100 - percent)) / 100,
+  );
+  const counts = base.map((post) =>
+    Math.max(post.minimum, Math.floor((post.count * (100 - percent)) / 100)),
+  );
+  let rest = target - counts.reduce((sum, count) => sum + count, 0);
+  // Os postos fixos (Xamã e Senhor da Guerra) conservam o efetivo exigido pelo conteúdo.
+  for (const [index, post] of base.entries()) {
+    if (rest <= 0) break;
+    if (post.minimum > 0) continue;
+    counts[index] = (counts[index] ?? 0) + 1;
+    rest -= 1;
+  }
+  for (const [index, post] of wave.composition.entries()) post.count = counts[index]!;
+}
+
 /** Só é chamada na linha do tempo: as ondas reais, ainda sem agendar o Cerco. */
 function prepareWaves(draft: GameState, atMs: number): void {
   const previousWaves = draft.horde.wavePlan?.waves;
@@ -109,9 +142,7 @@ function prepareWaves(draft: GameState, atMs: number): void {
       const prev = previousWaves.find((w) => w.number === wave.number);
       if (prev?.reductionPercent !== undefined && prev.reductionPercent > 0) {
         wave.reductionPercent = prev.reductionPercent;
-        for (const post of wave.composition) {
-          post.count = Math.max(1, Math.floor((post.count * (100 - prev.reductionPercent)) / 100));
-        }
+        reduceWave(draft, wave);
       }
     }
   }
@@ -199,9 +230,15 @@ export function applyWaveSabotage(
     if (wave !== undefined) {
       const { num, den } = balance.horde.sabotage.waveReduction;
       const percent = Math.round((num * 100) / den);
-      wave.reductionPercent = (wave.reductionPercent ?? 0) + percent;
-      for (const post of wave.composition) {
-        post.count = Math.max(1, Math.floor((post.count * (den - num)) / den));
+      wave.reductionPercent = Math.min(
+        balance.horde.sabotage.maxPerYear * percent,
+        (wave.reductionPercent ?? 0) + percent,
+      );
+      reduceWave(draft, wave);
+      if (waveNumber === 1 && draft.horde.sabotages.alerted) {
+        const increase = balance.horde.sabotage.alertIncrease;
+        for (const post of wave.composition)
+          post.count = Math.floor((post.count * (increase.den + increase.num)) / increase.den);
       }
     }
   }
