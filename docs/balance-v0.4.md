@@ -723,3 +723,10 @@ quarta e validam a guarda após cada etapa, incluindo a revelação do Xamã.
 A divisão de intervalo conserva exatamente estado, eventos e RNG nos ritmos
 0,5/1/3. O teste da dificuldade já exige régua e desfecho nas três tentativas.
 Não há teste com Cerco porque essa mecânica ainda não existe nesta trilha.
+
+No golden da visão, a única diferença é `durationSeconds` da sabotagem de
+18.000 para 21.600, correspondente às seis horas aprovadas. Regravado com
+`UPDATE_GOLDEN=1`, diff conferido. Os 56 retratos v38 permanecem idênticos;
+os 56 v37 são protegidos por `FROZEN` e seus JSONs não foram alterados.
+Validação final: typecheck e lint com saída 0; 824 testes focados e mais dois
+testes filtrados (golden da visão e congelamento v37), todos verdes.
