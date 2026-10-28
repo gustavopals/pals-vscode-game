@@ -1,12 +1,21 @@
 import { balance } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
-import { advanceTo } from './advance';
+import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import { availableUnits } from './campaign';
 import { currentShape } from './migrations';
 import { departBlock } from './expeditions';
 import { YEAR_MS } from './clock';
-import { accept, apply, campaignYard, command, HOUR, giveItem, MINUTE } from './test-helpers';
+import {
+  accept,
+  addHero,
+  apply,
+  campaignYard,
+  command,
+  HOUR,
+  giveItem,
+  MINUTE,
+} from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -219,6 +228,66 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
       expect(threat.tiles.find((tile) => tile.id === 'raiderCamp')).toMatchObject({
         active: false,
       });
+  });
+
+  it('a previsão da moral não resolve a campanha nem antecipa sorte, experiência ou baixas', () => {
+    const { state } = attack(campaignYard());
+    const ahead = stateAtNextMoraleTurn(state);
+    expect(ahead.rng).toEqual(state.rng);
+    expect(ahead.ids).toEqual(state.ids);
+    expect(ahead.army.reports).toEqual(state.army.reports);
+    expect(ahead.army.units).toEqual(state.army.units);
+    expect(ahead.guild.heroes[0]?.xp).toBe(state.guild.heroes[0]?.xp);
+    expect(ahead.guild.heroes[0]?.status).toBe('campaign');
+  });
+
+  it('os soldados e o comandante que ficaram em casa ainda defendem; as duas baixas não se misturam', () => {
+    const start = campaignYard();
+    start.army.units.swordsman += 5;
+    addHero(start, { name: 'Rolf', classId: 'archer', traits: ['loyal'] });
+    const { state } = attack(start);
+    // Uma edição do plano em casa não muda a fotografia que partiu.
+    state.army.formations[0]!.commanders.left = 'hero-2';
+    raidAt(state, HOUR);
+    const middle = advanceTo(state, HOUR);
+    const defense = middle.state.army.reports[0]!;
+    const homePosts = defense.casualties.filter((post) => post.owner === 'player');
+    expect(homePosts.reduce((sum, post) => sum + post.start, 0)).toBe(5);
+    expect(defense.commanders.map((hero) => hero.heroId)).toEqual(['hero-2']);
+    const homeLost = homePosts
+      .filter((post) => post.unit === 'swordsman')
+      .reduce((sum, post) => sum + post.lost, 0);
+    expect(middle.state.army.units.swordsman).toBe(50 - homeLost);
+    expect(availableUnits(middle.state).swordsman).toBe(5 - homeLost);
+    const back = advanceTo(middle.state, arrival * 2);
+    const assault = back.state.army.reports.find((report) => report.mode === 'attack')!;
+    const awayLost = assault.casualties
+      .filter((post) => post.owner === 'player' && post.unit === 'swordsman')
+      .reduce((sum, post) => sum + post.lost, 0);
+    expect(back.state.army.units.swordsman).toBe(50 - homeLost - awayLost);
+    expect(currentShape(back.state, '')).toBeNull();
+  });
+
+  it('o comandante com soldo vencido é cobrado depois da linha do retorno', () => {
+    const start = campaignYard(balance.heroes.arrears.leaveAfterRealMs - HOUR, false);
+    const hero = start.guild.heroes[0]!;
+    hero.traits = [];
+    hero.joinedAtMs = 0;
+    start.settlement.resources.gold = 0;
+    start.guild.wageArrears = {
+      sinceMs: 0,
+      carriedMs: 0,
+      departed: 0,
+    };
+    const { state } = attack(start);
+    const middle = advanceTo(state, state.army.campaign!.battleAtMs);
+    expect(middle.state.guild.heroes[0]?.status).toBe('campaign');
+    expect(currentShape(middle.state, '')).toBeNull();
+    const back = advanceTo(middle.state, state.army.campaign!.returnsAtMs);
+    expect(back.state.guild.heroes).toHaveLength(0);
+    const kinds = back.events.map((event) => event.type);
+    expect(kinds.indexOf('heroLeft')).toBeGreaterThan(kinds.indexOf('armyReturned'));
+    expect(currentShape(back.state, '')).toBeNull();
   });
 
   it('um comandante em campanha não equipa item nem sai para expedição', () => {

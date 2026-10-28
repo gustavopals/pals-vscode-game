@@ -17,6 +17,7 @@ import { clearThreatTile } from './outcomes';
 import { buildDefender, toHordePosts } from './raidArmy';
 import { storeResource } from './storage';
 import { MILLI } from './units';
+import { chargeReturned } from './wages';
 import { troopText } from './army';
 import { emit } from './chronicle';
 import { releaseExcessWorkers } from './population';
@@ -173,5 +174,12 @@ export function settleCampaign(draft: GameState, atMs: number, events: GameEvent
       retorno: report.outcome === 'victory' ? campaignTexts.loot : campaignTexts.noLoot,
       lugar: tileTypes.raiderCamp.label,
     },
+  );
+  // Como a escolta e a expedição: quem voltou entrega o saque e paga o atraso já vencido.
+  chargeReturned(
+    draft,
+    Object.values(campaign.formation.commanders).filter((id): id is string => id !== null),
+    atMs,
+    events,
   );
 }

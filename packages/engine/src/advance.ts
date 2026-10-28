@@ -232,12 +232,16 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * **As caravanas na estrada ficam de fora**, pela mesma razão: a chegada de uma sem escolta
  * sorteia a emboscada. Na cópia nenhuma chega, o ouro delas não entra e quem escolta continua
  * fora: a previsão da moral não conta com a volta de um herói Devoto antes da virada.
+ *
+ * A campanha também fica de fora: a chegada sorteia a batalha. As tropas continuam contando
+ * no consumo e os comandantes continuam fora, sem antecipar baixas, saque ou retorno.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
   const blind: GameState = {
     ...state,
     horde: { ...state.horde, scheduledRaids: [] },
+    army: { ...state.army, campaign: null },
     guild: {
       ...state.guild,
       tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS },
