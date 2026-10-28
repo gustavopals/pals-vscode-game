@@ -68,6 +68,19 @@ function expectedEtag(body: unknown): string {
   return `W/"${createHash('sha256').update(canonical(body)).digest('hex')}"`;
 }
 
+function withoutVigilSettings<T extends Record<string, unknown>>(settings: T): Record<string, unknown> {
+  const copy = { ...settings };
+  delete copy.realOriginMs;
+  delete copy.vigil;
+  return copy;
+}
+
+function withoutVigilSettlement<T extends Record<string, unknown>>(settlement: T): Record<string, unknown> {
+  const copy = { ...settlement };
+  delete copy.vigil;
+  return copy;
+}
+
 type GameSnapshot = {
   status: string;
   stateVersion: string;
@@ -242,7 +255,7 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
   it('sem escolha no corpo, a visão mostra os padrões: Senhor e o ritmo do servidor', async () => {
     const player = await newPlayer(server);
     const reply = await getView(server, player.token, player.game.id);
-    expect(reply.body.view.settlement).toEqual({
+    expect(withoutVigilSettlement(reply.body.view.settlement)).toEqual({
       name: 'Pedra Alta',
       townHallLevel: 1,
       difficulty: 'lord',
@@ -300,7 +313,7 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
       );
       expect(rows[0]?.difficulty).toBe(difficulty);
       expect(Number(rows[0]?.time_scale)).toBe(timeScale);
-      expect(rows[0]?.settings).toEqual({
+      expect(withoutVigilSettings(rows[0]?.settings ?? {})).toEqual({
         settlementName: 'Vale Fundo',
         timezone: 'UTC',
         vigilHourLocal: 0,
@@ -316,7 +329,7 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
       // A visão mostra a escolha e já fala no tempo real desse ritmo: o dia de jogo tem 2 h.
       const view = await getView(server, auth.accessToken, reply.body.game.id);
       expect(ViewResponseSchema.safeParse(view.body).error).toBeUndefined();
-      expect(view.body.view.settlement).toEqual({
+      expect(withoutVigilSettlement(view.body.view.settlement)).toEqual({
         name: 'Vale Fundo',
         townHallLevel: 1,
         difficulty,
