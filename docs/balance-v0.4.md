@@ -993,3 +993,23 @@ Nos testes históricos, o ajudante que reconstrói a forma antiga retira também
 `horde.sabotages`. O Mercado migrado esperado inclui `effects: []`; o teste de
 forma inválida passa a remover esse campo, em vez de usar uma lista vazia
 agora válida. Os passos antigos e suas guardas permanecem preservados.
+
+### 19.2 Método da matriz
+
+Uma remedição completa por dificuldade, em sequência, com 50 sementes fixas por
+célula, quatro perfis, três ritmos e as duas janelas: 72 células, 3.600 registros
+e 3.000 partidas distintas (as janelas do Normal repetem a mesma partida).
+Comandos, sempre com prioridade baixa:
+
+```bash
+nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > /tmp/v4-juncao2-matrix-peasant.csv 2> /tmp/v4-juncao2-matrix-peasant.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord > /tmp/v4-juncao2-matrix-lord.csv 2> /tmp/v4-juncao2-matrix-lord.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > /tmp/v4-juncao2-matrix-ironKing.csv 2> /tmp/v4-juncao2-matrix-ironKing.md
+```
+
+A motivação é a alteração intencional do sorteio pelas treze cartas novas, seus
+efeitos econômicos e os encontros de heróis, reunidos com a sabotagem. A
+preferência corrigida de `firstFree` veio da revisão das cartas: escolhe uma
+opção gratuita sem perda imediata quando existe, sem inventar novos números.
+Nenhum custo, recompensa ou tolerância foi alterado nesta junção para caber
+na faixa; `MEASURED` recebe as linhas emitidas pelo CLI desta rodada.

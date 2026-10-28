@@ -4,15 +4,15 @@ O motor de Lords of the Guild: funções puras e determinísticas que decidem tu
 
 ## A Horda aprende (v0.4, V4E-T3)
 
-Introduzida no estado **34** (o atual é **35**, V4G-T1), protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
+Introduzida no estado **34** (o atual é **38**, segunda junção da v0.4), protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
 as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
 não consome sorteios, cria eventos ou recalcula o passado.
 
 `hordePlan.ts` observa os soldados que realmente entraram em batalha, antes das
 baixas, e guarda somente contagens por unidade. A próxima incursão usa os pesos
 por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). A memória zera no ano novo.
-O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; cada tile ativo
-soma +2 por dia. A subida fecha o dia anterior, portanto o tile recém-nascido
+O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; o Acampamento ativo soma +2 por dia; a Fortaleza não soma Ameaça até o Cerco
+(resposta do autor à D-43). A subida fecha o dia anterior, portanto o tile recém-nascido
 começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
 
 As ondas são preparadas no outono e renovadas quando a formação vista muda,
@@ -33,8 +33,8 @@ outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentada
 ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
 [balance-v0.4.md](../../docs/balance-v0.4.md), seção 11.
 
-**Integração ainda por fazer:** ataques e sabotagem são da Fase F; o relógio,
-a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
+**Integração ainda por fazer:** os ataques ao Acampamento são da Fase F; a resolução
+das ondas e o fim do cerco são da G. A sabotagem já existe no estado 38. Até essa ligação, a Fortaleza
 permanece durante o inverno e é desativada na virada anual; isso é um estado
 intermediário da implementação, não o encerramento do cerco do GDD.
 
@@ -202,7 +202,7 @@ Os números são os de `balance.council` (GDD §7; [ADR 0014](../../docs/decisio
 2. `pnpm --filter @lotg/content test` confere o schema (2 a 4 frases, opções com verbo no infinitivo e sem números, a opção automática de cada dificuldade sem custo nem requisito) e o catálogo inteiro (flags com quem as grave, continuações que existem, carta sem peso com quem a agende).
 3. Uma carta que só chega como continuação tem `weight: 0`. Uma cadeia que não pode recomeçar enquanto está em curso grava uma flag na primeira carta, a exige ausente (`notFlags`) e a apaga no desfecho, em **todas** as opções dele, a automática inclusive.
 4. Um efeito que o jogador não deve ver antes vai em `hidden`, com o prazo em viradas de dia, a frase da Crônica do dia em que ele acontece e, na opção, a pista (`hint`).
-5. As regras editoriais do primeiro lote também são testes de conteúdo (`council.test.ts`; estão descritas em [docs/content-v0.2.md](../../docs/content-v0.2.md), seção 2): em Camponês e em Senhor a opção automática de uma carta do sorteio não tira recurso nem moral; as opções vêm na ordem pagas, a de Senhor, a de Rei de Ferro; nenhuma opção sem custo é melhor em tudo o que a tela mostra; e uma recorrente grava a flag `routine.<id>` em todas as opções e apaga as das outras. As exceções aprovadas do Mercado e da Coroa estão em `docs/balance-v0.4.md`, §14; a ordem das tabelas aprovadas é preservada.
+5. As regras editoriais do primeiro lote também são testes de conteúdo (`council.test.ts`; estão descritas em [docs/content-v0.2.md](../../docs/content-v0.2.md), seção 2): em Camponês e em Senhor a opção automática de uma carta do sorteio não tira recurso nem moral; as opções vêm na ordem pagas, a de Senhor, a de Rei de Ferro; nenhuma opção sem custo é melhor em tudo o que a tela mostra; e uma recorrente grava a flag `routine.<id>` em todas as opções e apaga as das outras. As exceções aprovadas do Mercado e da Coroa estão em `docs/balance-v0.4.md`, §17; a ordem das tabelas aprovadas é preservada.
 6. Rode `pnpm --filter @lotg/engine test`. **Toda carta nova muda o sorteio de todas as sementes** (a ordem e o peso do catálogo entram nele): os goldens do cenário de 7 dias e da visão e os retratos de `__fixtures__/` mudam; confira o diff e regrave de propósito. O cenário do Conselho (`councilScenario`, em `test-helpers.ts`) usa uma semente escolhida pelas cartas que tira (`COUNCIL_SCENARIO_SEED`): quando o catálogo muda é preciso procurar outra que dê o poço e as tábuas nas duas primeiras audiências (a terceira, a do 13º dia, é da roteirizada; a variante `strangerCameBefore` devolve essa audiência ao sorteio, que traz a refeição dos pedreiros, e é a mesa de exemplo do app). O mesmo vale para `WELL_FIRST_SEED` em `packages/server/test/council.test.ts`. A cobertura por estação e nível do Salão (`council.coverage.test.ts`) tem as contagens escritas: atualize-as. Depois, a matriz do simulador (`packages/sim-cli/README.md`, "Faixas") e a cobertura em 50 sementes (`packages/sim-cli/src/coverage.test.ts`). **Uma carta sem peso** (a roteirizada, uma continuação) não entra no sorteio por peso e pode ficar em qualquer lugar da lista sem mudar a chance das outras; o que muda as sementes é a audiência que ela ocupa (a roteirizada) ou o lugar que ela toma na mesa.
 7. Uma cadeia nova ganha um cenário de ponta a ponta em `council.chains.test.ts`: aceitar, recusar, expirar nas três dificuldades, a continuação com a mesa cheia e o que fica gravado para o ano seguinte.
 8. Uma promessa que o jogador cumpre com uma obra é conferida pela opção trancada por edifício (`requires.building`), repetida em cada carta da cadeia e marcada em `autoResolveIfUnlocked`, com a frase de quando é o conselho que a aplica (`expiredChronicle`). O modelo é "A Promessa da Paliçada" (`cards/palisadePromise.ts`).
@@ -755,3 +755,15 @@ linha precede `heroRecovered`. Não há morte nem captura por carta.
 incursões na ordem existente. Ela sorteia um candidato extra no fluxo `tavern`, com as
 mesmas exclusões de nomes e modelos, e apaga o marcador. As demais listas e o limite
 de contratação mantêm seus números.
+
+### Sabotagem da Fortaleza (V4F-T1, estado 38)
+
+`sendExpedition` envia exatamente três heróis no modelo `sabotage`, somente no
+outono, com Fortaleza ativa e até três tentativas por ano. Os contadores ficam em
+`horde.sabotages` e zeram no ano novo. Sucessos enfraquecem a onda marcada, até 45%;
+o Xamã revela a terceira onda, e o Desastre alerta a primeira. A captura ou morte
+segue a dificuldade. A dificuldade cresce por tentativa; a Fortaleza que some
+faz a equipe voltar pela fronteira. As ofertas, recusas e notas dos relatórios
+chegam ao app pela visão. O passo 37 → 38 apenas acrescenta contadores zerados.
+A duração conservada do grafo está na pendência F-1; as ondas do Cerco ainda não
+são agendadas nem resolvidas.
