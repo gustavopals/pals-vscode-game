@@ -6,6 +6,7 @@ import { buildingWithArticle } from './construction';
 import { decimal, joinList, priceText, sentenceCase, thousands } from './format';
 import {
   dailyVolume,
+  liveMarketEffects,
   marketLevel,
   maxBuyable,
   maxSellable,
@@ -73,10 +74,17 @@ function breakdown(state: GameState, resource: MarketResourceId): string {
   const { buy, sell } = quote(state, resource);
   const walked = `${priceText(state.market.prices[resource])} (cotação de hoje; a base é ${priceText(rules.basePrice[resource])})`;
   const { num, den } = seasonalFactor(resource, state.lastProcessedAt);
-  const price =
+  let price =
     num === den
       ? walked
       : `${priceText(buy)} = ${walked} × ${decimal(num / den)} (${seasonAt(state.lastProcessedAt).label})`;
+  const effects = liveMarketEffects(state, resource);
+  if (effects.length > 0) {
+    const factors = effects
+      .map((effect) => ` × ${decimal(effect.factor.num / effect.factor.den)} (${effect.label})`)
+      .join('');
+    price = `${priceText(buy)} = ${walked}${num === den ? '' : ` × ${decimal(num / den)} (${seasonAt(state.lastProcessedAt).label})`}${factors}`;
+  }
   return `${price}. A venda paga ${sellPercent}%: ${priceText(sell)}.`;
 }
 
@@ -124,7 +132,15 @@ export function marketView(state: GameState, timeScale: number): MarketView {
     text: marketText(state),
     quoteDay: state.market.quoteDay,
     nextChangeInSeconds:
-      level === 0 ? null : realSecondsCeil(nextDayBoundary(now) - now, timeScale),
+      level === 0
+        ? null
+        : realSecondsCeil(
+            Math.min(
+              nextDayBoundary(now),
+              ...state.market.effects.map((effect) => effect.untilMs),
+            ) - now,
+            timeScale,
+          ),
     dailyVolume: dailyVolume(state),
     // Sem Mercado não há preço a mostrar: ele aparece com o edifício (descoberta gradual).
     prices: level === 0 ? [] : rules.resources.map((resource) => priceView(state, resource)),

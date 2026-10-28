@@ -1,4 +1,10 @@
-import { balance, type CouncilOption, RESOURCE_IDS } from '@lotg/content';
+import {
+  balance,
+  type CouncilOption,
+  type CouncilEffect,
+  expeditionModels,
+  RESOURCE_IDS,
+} from '@lotg/content';
 
 import { DAY_MS, isYearBoundary } from './clock';
 import { costView } from './costView';
@@ -12,6 +18,7 @@ import {
   eligibleCards,
   lowerFirst,
   optionLock,
+  optionVisible,
   optionOf,
   scriptedCard,
   seatedCards,
@@ -98,7 +105,30 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
     ([resource, amount]) => `−${thousands(amount)} ${resourceName(resource)}`,
   );
   for (const effect of option.effects) {
-    if (effect.type === 'resources') {
+    if (effect.type === 'resourcesPercent') {
+      parts.push(
+        `${effect.ratio.num < 0 ? '−' : '+'}${decimal((Math.abs(effect.ratio.num) * 100) / effect.ratio.den)}% do estoque de ${resourceName(effect.resource)} na resolução`,
+      );
+    } else if (effect.type === 'marketPrice') {
+      const change = ((effect.factor.num - effect.factor.den) * 100) / effect.factor.den;
+      parts.push(
+        `${signed(change)}% no preço de compra e venda de ${effect.resources.map(resourceName).join(', ')} por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${durationText(realSecondsCeil(effect.durationDays * DAY_MS, timeScale))})`,
+      );
+    } else if (effect.type === 'rollEffect') {
+      const relief = effect.withHeroClass;
+      const chance =
+        relief !== undefined &&
+        state.guild.heroes.some(
+          (hero) => hero.classId === relief.heroClass && hero.status !== 'captured',
+        )
+          ? relief.chance
+          : effect.chance;
+      const describe = (effects: readonly CouncilEffect[]) =>
+        effectsText(state, { ...option, cost: {}, effects }, timeScale);
+      parts.push(
+        `Na próxima virada de dia: ${chance.num} em ${chance.den} de ${describe(effect.onHit.effects)}; caso contrário, ${describe(effect.onMiss.effects)}`,
+      );
+    } else if (effect.type === 'resources') {
       for (const resource of RESOURCE_IDS) {
         const amount = effect.amounts[resource] ?? 0;
         if (amount > 0) {
@@ -113,8 +143,14 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
         `${signed(effect.amount)} de moral por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${real})`,
       );
     } else if (effect.type === 'revealDestination') {
-      if (nextHiddenDestination(state) !== null) {
-        parts.push('revela à Guilda um destino de expedição novo');
+      const target = effect.modelId ?? nextHiddenDestination(state);
+      if (target !== null && !state.map.discovered.includes(target)) {
+        const label = expeditionModels.find((model) => model.id === target)?.label;
+        parts.push(
+          effect.modelId === undefined
+            ? 'revela à Guilda um destino de expedição novo'
+            : `revela à Guilda ${label ?? target}`,
+        );
       }
     } else if (effect.type === 'addSoldiers') {
       parts.push(`+${troopText(effect.unit, effect.amount)} no Quartel, já treinado`);
@@ -212,7 +248,9 @@ export function councilView(
       defaultOptionLabel: fallback.label,
       expiryNote: `Sem resposta até o fim do prazo, o conselho decide sozinho: ${lowerFirst(fallback.label)}.`,
       followsFrom: followsFrom(entry, catalog),
-      options: card.options.map((option) => optionView(state, option, timeScale)),
+      options: card.options
+        .filter((option) => optionVisible(state, option))
+        .map((option) => optionView(state, option, timeScale)),
     });
   }
 

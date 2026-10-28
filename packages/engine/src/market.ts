@@ -142,7 +142,35 @@ export function quoteOf(price: number, factor: Ratio): Quote {
 
 /** O preço negociado de um recurso agora: o do passeio de hoje com o fator da estação de agora. */
 export function quote(state: GameState, resource: MarketResourceId): Quote {
-  return quoteOf(state.market.prices[resource], seasonalFactor(resource, state.lastProcessedAt));
+  const seasonal = seasonalFactor(resource, state.lastProcessedAt);
+  const factor = liveMarketEffects(state, resource).reduce(
+    (total, effect) => ({
+      num: total.num * BigInt(effect.factor.num),
+      den: total.den * BigInt(effect.factor.den),
+    }),
+    { num: BigInt(seasonal.num), den: BigInt(seasonal.den) },
+  );
+  // Multiplica antes de arredondar, sem perder precisão ao acumular fatores racionais.
+  const scaled = BigInt(state.market.prices[resource]) * factor.num;
+  return {
+    buy: Number((scaled + factor.den - 1n) / factor.den),
+    sell: Number(
+      (scaled * BigInt(rules.sellRatio.num)) / (factor.den * BigInt(rules.sellRatio.den)),
+    ),
+  };
+}
+
+export function liveMarketEffects(state: GameState, resource: MarketResourceId) {
+  return state.market.effects.filter(
+    (effect) => effect.resource === resource && effect.untilMs > state.lastProcessedAt,
+  );
+}
+
+/** O preço muda também quando um fator acaba, mesmo entre duas viradas do dia. */
+export function nextMarketEffectAt(state: GameState): number | null {
+  return state.market.effects.length === 0
+    ? null
+    : Math.min(...state.market.effects.map((effect) => effect.untilMs));
 }
 
 /**

@@ -476,3 +476,22 @@ Se o novo horário já passou (dentro da janela do evento), o ensaio é marcado 
 _(Corrigido na revisão de 2026-10-27: antes, o horário já passado deixava o ensaio sem
 marcação para sempre, e a ordem podia marcar o Acampamento que a virada do dia deixara de
 fora por falta de vaga.)_
+
+
+## V4H-T1 — Mercado e Coroa (2026-10-28)
+
+**H-1. Arredondamento e momento do risco.** _(Proposta do agente; não lida pelo autor.)_
+`resourcesPercent` arredonda a quantidade retirada ou concedida para baixo em milésimos,
+lendo o estoque na resolução. O ganho respeita o depósito e conta desperdício.
+A Clériga que reduz o risco da praga é consultada na virada da resolução, não na escolha;
+vale em expedição ou recuperação, mas não em cativeiro (decisão 19). O risco reaproveita a
+fila `council.delayed`: só guarda carta e opção, nunca o resultado, e não admite outro risco
+aninhado. O herói Carismático que fala na escolha é o primeiro livre na lista, e o evento
+guarda identificador e nome para a Crônica não trocar de interlocutor numa recarga.
+
+**H-2. Duração e tendência do preço.** _(Proposta do agente; não lida pelo autor.)_
+O fator dura `durationDays` dias completos de jogo a partir da escolha; seu vencimento
+é um instante da linha do tempo, antes do passeio e do Conselho. Não há histórico de
+fatores vencidos: a tendência compara o preço atual com o passeio e a estação de ontem;
+o detalhamento explica cada fator vivo. O dia da cotação e o volume não mudam, conforme
+§5.6 aprovado. A migração desta base é 35 → 36, em vez de 36 → 37 previsto no roadmap.

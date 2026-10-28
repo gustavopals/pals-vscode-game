@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 35,
+    schemaVersion: 36,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -125,6 +125,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // O Mercado ainda não existe: os preços nascem na base e só andam depois de ele ser erguido.
     market: {
+      effects: [],
       prices: { ...balance.market.basePrice },
       previousPrices: { ...balance.market.basePrice },
       quoteDay: 0,

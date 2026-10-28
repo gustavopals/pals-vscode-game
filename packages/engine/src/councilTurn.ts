@@ -1,4 +1,12 @@
 import {
+  applyEffects,
+  cardOf,
+  expireCards,
+  deliverContinuations,
+  lowerFirst,
+  noOutcome,
+  optionOf,
+  outcomeData,
   CATALOG,
   type Catalog,
   deliverCard,
@@ -8,7 +16,8 @@ import {
   freeSeats,
   scriptedCard,
 } from './council';
-import { pickWeighted } from './random';
+import { chance, pickWeighted } from './random';
+import { emit } from './chronicle';
 import type { GameEvent, GameState } from './types';
 
 /**
@@ -52,4 +61,74 @@ export function drawCard(
   if (card !== null) {
     deliverCard(draft, card, atMs, events, { source: 'draw' });
   }
+}
+
+/**
+ * Os efeitos escondidos cujo instante chegou: acontecem agora, e é aqui que o jogador os
+ * descobre (`cardEffectApplied`). Antes disso nada deles sai na visão nem na resposta da ordem.
+ */
+export function applyDelayedEffects(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  catalog: Catalog = CATALOG,
+): void {
+  const { council } = draft;
+  const due = council.delayed.filter((entry) => entry.atMs <= atMs);
+  if (due.length === 0) {
+    return;
+  }
+  council.delayed = council.delayed.filter((entry) => entry.atMs > atMs);
+  for (const entry of due) {
+    const card = cardOf(catalog, entry.cardId);
+    const option = card === null ? null : optionOf(card, entry.optionId);
+    if (card === null || option === null) {
+      continue;
+    }
+    const outcome = noOutcome();
+    const { instanceId } = entry;
+    const source = { card, option, instanceId, hidden: true };
+    const roll = option.effects.find((effect) => effect.type === 'rollEffect');
+    const relief = roll?.withHeroClass;
+    const probability =
+      relief !== undefined &&
+      draft.guild.heroes.some(
+        (hero) => hero.classId === relief.heroClass && hero.status !== 'captured',
+      )
+        ? relief.chance
+        : roll?.chance;
+    const branch =
+      roll === undefined || probability === undefined
+        ? option.hidden
+        : chance(draft, 'council', probability)
+          ? roll.onHit
+          : roll.onMiss;
+    if (branch === undefined) continue;
+    applyEffects(draft, branch.effects, source, atMs, outcome);
+    emit(
+      events,
+      draft,
+      atMs,
+      'cardEffectApplied',
+      { cardId: card.id, instanceId, optionId: option.id, ...outcomeData(outcome) },
+      { carta: card.title, opcao: lowerFirst(option.label) },
+      branch.chronicle,
+    );
+  }
+}
+
+/**
+ * O que o Conselho faz em um instante, fora o sorteio (que é da virada do dia, antes daqui), em
+ * ordem fixa: as cartas que expiram, os efeitos escondidos que acontecem e as continuações que
+ * chegam (ADR 0013, "Ordem dos eventos no mesmo instante").
+ */
+export function settleCouncil(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  catalog: Catalog = CATALOG,
+): void {
+  expireCards(draft, atMs, events, catalog);
+  applyDelayedEffects(draft, atMs, events, catalog);
+  deliverContinuations(draft, atMs, events, catalog);
 }

@@ -4,6 +4,7 @@ import {
   type CouncilCard,
   type CouncilEffect,
   type CouncilOption,
+  type HeroTraitId,
   councilCards,
   type MasterId,
   type UnitId,
@@ -18,7 +19,7 @@ import { emit } from './chronicle';
 import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
 import { amountsData, constructionOf, missingResources, payResources } from './construction';
 import { plural, thousands } from './format';
-import { rosterHasRoom } from './heroes';
+import { rosterHasRoom, traitLabel } from './heroes';
 import { deliverMaster, masterCanArrive } from './masterTurn';
 import { addMoraleEffect } from './morale';
 import { nextHiddenDestination, revealDestination } from './outcomes';
@@ -140,6 +141,17 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
   if (requires.undiscovered === true && nextHiddenDestination(state) === null) {
     return false;
   }
+  if (
+    typeof requires.undiscovered === 'string' &&
+    state.map.discovered.includes(requires.undiscovered)
+  )
+    return false;
+  if (
+    positiveEntries(requires.resourcesAbove ?? {}).some(
+      ([resource, amount]) => settlement.resources[resource] <= amount * MILLI,
+    )
+  )
+    return false;
   if (requires.moralRange !== undefined) {
     const [min, max] = requires.moralRange;
     if (settlement.morale < min || settlement.morale > max) {
@@ -299,7 +311,7 @@ export function deliverCard(
 }
 
 /** O que uma opção mexeu no estoque e na moral: vai no evento, para o Relatório não refazer conta. */
-type Outcome = {
+export type Outcome = {
   /** O que saiu do estoque: o custo e as perdas. Em milésimos. */
   spent: Record<ResourceId, number>;
   /** O que entrou de fato. */
@@ -317,7 +329,7 @@ type Outcome = {
   soldiers: Array<{ unit: UnitId; amount: number }>;
 };
 
-const noOutcome = (): Outcome => ({
+export const noOutcome = (): Outcome => ({
   spent: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
   gained: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
   lost: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
@@ -331,7 +343,7 @@ const noOutcome = (): Outcome => ({
 const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
   Object.fromEntries(RESOURCE_IDS.map((id) => [id, milli[id] / MILLI]));
 
-function outcomeData(outcome: Outcome): Record<string, string | number> {
+export function outcomeData(outcome: Outcome): Record<string, string | number> {
   return {
     ...amountsData('spent', toUnits(outcome.spent)),
     ...amountsData('gained', toUnits(outcome.gained)),
@@ -376,7 +388,7 @@ function insertByTime<T extends { atMs: number }>(list: T[], entry: T): void {
  *   dias de jogo depois, contados deste instante. Quem cria o herói é `settleHeroArrivals`, que
  *   a ordem e o instante chamam logo em seguida: a linha da chegada vem depois da da carta.
  */
-function applyEffects(
+export function applyEffects(
   draft: GameState,
   effects: readonly CouncilEffect[],
   source: { card: CouncilCard; option: CouncilOption; instanceId: string; hidden: boolean },
@@ -387,6 +399,32 @@ function applyEffects(
   const { card, option, instanceId, hidden } = source;
   for (const effect of effects) {
     switch (effect.type) {
+      case 'rollEffect':
+        // Só agenda em resolveCard; quem sorteia é councilTurn, na virada seguinte.
+        break;
+      case 'resourcesPercent': {
+        const stock = settlement.resources[effect.resource];
+        const amount = Math.floor((stock * Math.abs(effect.ratio.num)) / effect.ratio.den);
+        if (effect.ratio.num < 0) {
+          settlement.resources[effect.resource] -= amount;
+          outcome.spent[effect.resource] += amount;
+        } else {
+          const stored = storeResource(draft, effect.resource, amount);
+          outcome.gained[effect.resource] += stored;
+          outcome.lost[effect.resource] += amount - stored;
+        }
+        break;
+      }
+      case 'marketPrice':
+        for (const resource of effect.resources) {
+          draft.market.effects.push({
+            resource,
+            factor: { ...effect.factor },
+            untilMs: atMs + effect.durationDays * DAY_MS,
+            label: `Carta: ${card.title}`,
+          });
+        }
+        break;
       case 'resources':
         for (const resource of RESOURCE_IDS) {
           const amount = (effect.amounts[resource] ?? 0) * MILLI;
@@ -435,7 +473,7 @@ function applyEffects(
         break;
       }
       case 'revealDestination': {
-        const next = nextHiddenDestination(draft);
+        const next = effect.modelId ?? nextHiddenDestination(draft);
         if (next !== null && revealDestination(draft, next)) {
           outcome.revealed = next;
         }
@@ -497,9 +535,12 @@ function resolveCard(
 ): void {
   const { instanceId } = pending;
   applyEffects(draft, option.effects, { card, option, instanceId, hidden: false }, atMs, outcome);
-  if (option.hidden !== undefined) {
+  if (
+    option.hidden !== undefined ||
+    option.effects.some((effect) => effect.type === 'rollEffect')
+  ) {
     insertByTime(draft.council.delayed, {
-      atMs: dayTurnAfter(atMs, option.hidden.afterDays),
+      atMs: dayTurnAfter(atMs, option.hidden?.afterDays ?? 1),
       instanceId,
       cardId: card.id,
       optionId: option.id,
@@ -557,44 +598,6 @@ export function expireCards(
 }
 
 /**
- * Os efeitos escondidos cujo instante chegou: acontecem agora, e é aqui que o jogador os
- * descobre (`cardEffectApplied`). Antes disso nada deles sai na visão nem na resposta da ordem.
- */
-export function applyDelayedEffects(
-  draft: GameState,
-  atMs: number,
-  events: GameEvent[],
-  catalog: Catalog = CATALOG,
-): void {
-  const { council } = draft;
-  const due = council.delayed.filter((entry) => entry.atMs <= atMs);
-  if (due.length === 0) {
-    return;
-  }
-  council.delayed = council.delayed.filter((entry) => entry.atMs > atMs);
-  for (const entry of due) {
-    const card = cardOf(catalog, entry.cardId);
-    const option = card === null ? null : optionOf(card, entry.optionId);
-    if (card === null || option === null || option.hidden === undefined) {
-      continue;
-    }
-    const outcome = noOutcome();
-    const { instanceId } = entry;
-    const source = { card, option, instanceId, hidden: true };
-    applyEffects(draft, option.hidden.effects, source, atMs, outcome);
-    emit(
-      events,
-      draft,
-      atMs,
-      'cardEffectApplied',
-      { cardId: card.id, instanceId, optionId: option.id, ...outcomeData(outcome) },
-      { carta: card.title, opcao: lowerFirst(option.label) },
-      option.hidden.chronicle,
-    );
-  }
-}
-
-/**
  * As continuações cujo prazo chegou entram na mesa enquanto houver lugar, na ordem do prazo. A
  * que não cabe fica na lista e chega no primeiro instante em que uma pendente sair: uma
  * expiração (este mesmo passo, logo depois dela) ou uma resposta do jogador.
@@ -622,22 +625,6 @@ export function deliverContinuations(
       deliverCard(draft, card, atMs, events, entry);
     }
   }
-}
-
-/**
- * O que o Conselho faz em um instante, fora o sorteio (que é da virada do dia, antes daqui), em
- * ordem fixa: as cartas que expiram, os efeitos escondidos que acontecem e as continuações que
- * chegam (ADR 0013, "Ordem dos eventos no mesmo instante").
- */
-export function settleCouncil(
-  draft: GameState,
-  atMs: number,
-  events: GameEvent[],
-  catalog: Catalog = CATALOG,
-): void {
-  expireCards(draft, atMs, events, catalog);
-  applyDelayedEffects(draft, atMs, events, catalog);
-  deliverContinuations(draft, atMs, events, catalog);
 }
 
 /**
@@ -681,6 +668,18 @@ export function optionLock(state: GameState, option: CouncilOption): string | nu
     return null;
   }
   const { settlement } = state;
+  if (!optionVisible(state, option)) return 'requer a história dos mercadores em curso';
+  for (const [id, level] of Object.entries(requires.buildings ?? {})) {
+    const building = id as keyof typeof settlement.buildings;
+    if (settlement.buildings[building] < level)
+      return `requer ${buildings[building].article} ${buildings[building].label} Nv${level}`;
+  }
+  if (requires.undiscovered !== undefined && state.map.discovered.includes(requires.undiscovered))
+    return 'requer um destino ainda não revelado';
+  if (requires.heroTrait !== undefined && optionHero(state, requires.heroTrait) === null)
+    return `requer um herói ${traitLabel(requires.heroTrait, 'm')} livre no feudo`;
+  if (requires.minSoldiers !== undefined && soldierCount(state) < requires.minSoldiers)
+    return `requer ${plural(requires.minSoldiers, 'soldado treinado', 'soldados treinados')} no Exército`;
   if (requires.building !== undefined && settlement.buildings[requires.building] < 1) {
     const def = buildings[requires.building];
     // Com a obra em curso a frase diz que falta pouco: quem já mandou erguer sabe o que esperar.
@@ -705,6 +704,17 @@ export function optionLock(state: GameState, option: CouncilOption): string | nu
     return `requer ${thousands(amount)} de ${balance.resources[resource].label.toLowerCase()} em estoque`;
   }
   return null;
+}
+
+/** Flag de opção controla a presença; os demais requisitos continuam aparecendo como tranca. */
+export function optionVisible(state: GameState, option: CouncilOption): boolean {
+  return (option.requires?.flags ?? []).every((flag) => state.council.flags[flag] === true);
+}
+
+export function optionHero(state: GameState, trait: HeroTraitId) {
+  return (
+    state.guild.heroes.find((hero) => hero.status === 'idle' && hero.traits.includes(trait)) ?? null
+  );
 }
 
 /**
@@ -768,6 +778,8 @@ export function answerCard(
     return reject('INSUFFICIENT_RESOURCES', { missing });
   }
   payResources(draft, cost);
+  const speaker =
+    option.requires?.heroTrait === undefined ? null : optionHero(draft, option.requires.heroTrait);
   council.pending.splice(index, 1);
   const outcome = noOutcome();
   for (const [resource, amount] of positiveEntries(cost)) {
@@ -784,9 +796,14 @@ export function answerCard(
       cardId: card.id,
       instanceId: pending.instanceId,
       optionId: option.id,
+      ...(speaker === null ? {} : { heroId: speaker.id, heroName: speaker.name }),
       ...outcomeData(outcome),
     },
-    { carta: card.title, opcao: lowerFirst(option.label) },
+    {
+      carta: card.title,
+      opcao: lowerFirst(option.label),
+      ...(speaker === null ? {} : { heroi: speaker.name }),
+    },
     option.chronicle,
   );
   deliverOutcomeMasters(draft, outcome, nowMs, events);

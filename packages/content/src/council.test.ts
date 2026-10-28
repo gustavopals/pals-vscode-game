@@ -334,6 +334,9 @@ describe('Conselho: o catálogo', () => {
       'addMaster',
       'revealDestination',
       'addSoldiers',
+      'resourcesPercent',
+      'marketPrice',
+      'rollEffect',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -1595,7 +1598,8 @@ describe('Conselho: o schema de uma carta', () => {
     expect(parses({ requires: { heroTrait: 'charismatic' } })).toBe(false);
     expect(parses({ requires: { moralRange: [60, 40] } })).toBe(false);
     expect(parses({ requires: {} })).toBe(false);
-    expect(withOption({ requires: { heroTrait: 'charismatic' } })).toBe(false);
+    expect(withOption({ requires: { heroTrait: 'charismatic' } })).toBe(true);
+    expect(withOption({ requires: { heroTrait: 'unknown' } })).toBe(false);
     expect(withOption({ requires: { building: 'granary', resources: { food: 100 } } })).toBe(true);
   });
 });

@@ -515,6 +515,8 @@ export type Caravan = {
  * marcado, na virada de um dia de jogo **com o Mercado de pé**.
  */
 export type MarketState = {
+  /** Fatores de carta por recurso; só os vivos entram na compra e na venda. */
+  effects: Array<{ resource: MarketResourceId; factor: Ratio; untilMs: number; label: string }>;
   /** O preço de hoje de cada recurso, entre o piso e o teto do conteúdo. */
   prices: Record<MarketResourceId, number>;
   /**
@@ -550,7 +552,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 35;
+  schemaVersion: 36;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
