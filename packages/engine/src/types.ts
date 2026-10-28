@@ -557,7 +557,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 37;
+  schemaVersion: 38;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -752,7 +752,11 @@ export type GameState = {
       year: number;
       revision: number;
       generatedAtMs: number;
-      waves: Array<{ number: 1 | 2 | 3; composition: NonNullable<ScheduledRaid['composition']> }>;
+      waves: Array<{
+        number: 1 | 2 | 3;
+        composition: NonNullable<ScheduledRaid['composition']>;
+        reductionPercent?: number;
+      }>;
     } | null;
     omens: Array<{
       atMs: number;
@@ -763,6 +767,11 @@ export type GameState = {
       /** Postos revelados; o parcial guarda apenas o posto e a contagem aproximada da frase. */
       reveals: NonNullable<ScheduledRaid['composition']>;
     }>;
+    sabotages: {
+      attempts: number;
+      successes: number;
+      alerted: boolean;
+    };
   };
   /**
    * Os heróis, o soldo deles e as expedições (GDD §9.1 e §9.2; ADR 0017 e 0018). O edifício da

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { currentShape, migrateState, StateMigrationError } from './migrations';
 import { stateV36, v36ToV37 } from './migrations/v36';
+import { stateV37 } from './migrations/v37';
 import { addHero, quietGame, DAY } from './test-helpers';
 
 const fixtures = import.meta.glob<string>('./__fixtures__/state-v36-*.json', {
@@ -22,9 +23,10 @@ describe('36 → 37: encontros e próxima rotação da Taverna', () => {
         schemaVersion: 37,
         guild: { ...before.guild, tavern: { ...before.guild.tavern, extraOffer: false } },
       });
-      expect(currentShape(after, '')).toBeNull();
+      expect(stateV37(after, '')).toBeNull();
       expect(JSON.stringify(before)).toBe(JSON.stringify(JSON.parse(raw)));
       const loaded = migrateState(before, { timeScale: 1 });
+      expect(currentShape(loaded, '')).toBeNull();
       expect(loaded.migratedAtMs).toBe(before.lastProcessedAt);
       expect(migrateState(loaded, { timeScale: 1 })).toBe(loaded);
     },

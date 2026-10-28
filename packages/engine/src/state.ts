@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 37,
+    schemaVersion: 38,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -107,6 +107,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       lastFormationSeen: null,
       wavePlan: null,
       omens: [],
+      sabotages: { attempts: 0, successes: 0, alerted: false },
     },
     // Nenhum herói no começo: o primeiro chega por uma carta do Conselho (GDD §9.1).
     // A Taverna ainda não existe: nenhum candidato, nenhuma rotação marcada, nenhum festival.
