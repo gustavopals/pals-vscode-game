@@ -1,5 +1,3 @@
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { parseCli, USAGE } from './cli';
 import { formatExpeditionStudy, runExpeditionStudy } from './expeditionStudy';
 import { formatMatrix, matrixCsv, runMatrix } from './matrix';
@@ -42,9 +40,6 @@ async function main(): Promise<void> {
 
   if (command.mode === 'matrix') {
     const result = await runMatrix(command.options);
-    if (process.env.LOTG_JUNCAO_MEASUREMENT_DIR) {
-      writeFileSync(join(process.env.LOTG_JUNCAO_MEASUREMENT_DIR, `matrix-${result.difficulty}.json`), JSON.stringify(result));
-    }
     process.stdout.write(matrixCsv(result));
     process.stderr.write(formatMatrix(result));
     if (result.cells.some((cell) => cell.violations.length > 0)) {
