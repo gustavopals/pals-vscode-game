@@ -230,4 +230,115 @@ describe('a intenção do treino', () => {
       intentOf('cancelTraining', { lotKey: 'k' }),
     );
   });
+
+  it('o ataque ao acampamento tem intenção campaign', () => {
+    expect(intentOf('attackCamp', { formationId: 'formation-1' })).toBe('campaign');
+  });
+});
+
+describe('atacar o acampamento (V4F-T3)', () => {
+  const WINGS = ['left', 'center', 'right'] as const;
+  const LINES = ['front', 'back'] as const;
+  const mockFormation = (id: string, name: string): ViewState['army']['formations'][number] => ({
+    id,
+    name,
+    isActive: true,
+    previewStale: false,
+    total: 6,
+    shortfall: [],
+    shortfallText: '',
+    canDelete: true,
+    posts: WINGS.flatMap((wing) =>
+      LINES.map((line) => ({
+        wing,
+        wingLabel: wing,
+        line,
+        lineLabel: line,
+        unit: 'spearman' as const,
+        unitLabel: 'Lanceiro',
+        count: 1,
+        text: '1 lanceiro',
+      })),
+    ),
+    commanders: WINGS.map((wing) => ({
+      wing,
+      wingLabel: wing,
+      heroId: null,
+      heroName: null,
+      classLabel: null,
+    })),
+  });
+
+  const readyView: ViewState = {
+    ...armyIdleView,
+    army: {
+      ...armyIdleView.army,
+      campAssault: {
+        text: 'O exército viaja até o Acampamento de Saqueadores.',
+        travelSeconds: 5400,
+        totalSeconds: 10800,
+        blockedReason: null,
+        formations: [
+          {
+            formationId: 'formation-1',
+            canAttack: true,
+            blockedReason: null,
+          },
+        ],
+      },
+      formations: [mockFormation('formation-1', 'Vanguarda')],
+    },
+  };
+
+  it('pelo painel: com formationId, confirma com a duração e envia a ordem', async () => {
+    const { run, answers, shown, orders } = await setup(readyView);
+    answers.push(true);
+    await run('lords.attackCamp', { formationId: 'formation-1' });
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['confirm']);
+    const confirm = shown[0];
+    if (confirm?.kind !== 'confirm') {
+      throw new Error('esperava a confirmação');
+    }
+    expect(confirm.detail?.[0]).toContain('O feudo fica sem estes esquadrões por 3 h.');
+    expect(orders()).toEqual([{ type: 'attackCamp', payload: { formationId: 'formation-1' } }]);
+  });
+
+  it('pela paleta: sem formationId, pergunta a formação e depois confirma', async () => {
+    const { run, answers, shown, orders } = await setup(readyView);
+    answers.push(0, true);
+    await run('lords.attackCamp');
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['pick', 'confirm']);
+    expect(orders()).toEqual([{ type: 'attackCamp', payload: { formationId: 'formation-1' } }]);
+  });
+
+  it('desistir na confirmação não envia nada', async () => {
+    const { run, answers, orders } = await setup(readyView);
+    answers.push(false);
+    await run('lords.attackCamp', { formationId: 'formation-1' });
+    expect(orders()).toEqual([]);
+  });
+
+  it('com exército já em campanha avisa e não envia', async () => {
+    const awayView: ViewState = {
+      ...readyView,
+      army: {
+        ...readyView.army,
+        campaign: {
+          formationId: 'formation-1',
+          formationName: 'Vanguarda',
+          tile: 'raiderCamp',
+          destination: 'Acampamento',
+          phase: 'marching',
+          text: 'O exército segue para o Acampamento de Saqueadores.',
+          battleInSeconds: 3600,
+          returnsInSeconds: 7200,
+          reportId: null,
+        },
+      },
+    };
+    const { run, toasts, orders } = await setup(awayView);
+    await run('lords.attackCamp', { formationId: 'formation-1' });
+    expect(toasts()).toContain('O exército segue para o Acampamento de Saqueadores.');
+    expect(orders()).toEqual([]);
+  });
 });

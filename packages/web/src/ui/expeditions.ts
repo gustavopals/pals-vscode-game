@@ -317,6 +317,33 @@ export function heroFitPower(destination: Destination, heroId: string): number |
   return destination.heroFit.find((entry) => entry.heroId === heroId)?.power ?? null;
 }
 
+export type SabotageStatus = {
+  attemptsText: string;
+  wavesText: string;
+  alertText: string | null;
+};
+
+/** O resumo da sabotagem da Fortaleza: tentativas restantes, ondas enfraquecidas e alerta. */
+export function sabotageStatus(sabotage: NonNullable<Destination['sabotage']>): SabotageStatus {
+  const attemptsText =
+    sabotage.attemptsLeft === 0
+      ? 'Nenhuma tentativa restante este ano.'
+      : sabotage.attemptsLeft === 1
+        ? '1 tentativa restante este ano.'
+        : `${sabotage.attemptsLeft} tentativas restantes este ano.`;
+
+  const wavesText =
+    sabotage.wavesWeakened.length === 0
+      ? 'Nenhuma onda enfraquecida ainda.'
+      : `Ondas enfraquecidas: ${sabotage.wavesWeakened.map((w) => `onda ${w}`).join(', ')}.`;
+
+  const alertText = sabotage.alerted
+    ? 'A Horda está em alerta: a primeira onda virá reforçada.'
+    : null;
+
+  return { attemptsText, wavesText, alertText };
+}
+
 /**
  * O ícone do desfecho de um passo (nada é dito só pela cor: a palavra vem sempre ao lado, na
  * frase do servidor). O que não é desfecho de prova (o trecho sem incidentes, o caminho

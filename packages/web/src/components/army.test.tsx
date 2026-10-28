@@ -8,6 +8,10 @@ import { armyIdleView, armyTrainingView, initialView } from '../test-helpers';
 import type { Actions } from './actions';
 import { BarracksPanel } from './BarracksPanel';
 import { BattleReports } from './BattleReport';
+import { CampaignPanel } from './CampaignPanel';
+import { FormationEditor } from './FormationEditor';
+import { WarCouncilPanel } from './WarCouncilPanel';
+import { emptyDraft } from '../ui/formation';
 
 /**
  * O painel do Quartel (V4C-T3.2), desenhado com visões de exemplo. O app só dispõe o que veio:
@@ -175,5 +179,135 @@ describe('o relatório de batalha (V4D-T4.3)', () => {
     );
     expect(markup).not.toContain('battle-adjust');
     expect(html(<BattleReports reports={[]} onAdjust={noop} />)).toBe('');
+  });
+});
+
+describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
+  const sampleCampaign = {
+    formationId: 'formation-1',
+    formationName: 'Vanguarda',
+    tile: 'raiderCamp',
+    destination: 'Acampamento de Saqueadores',
+    phase: 'marching' as const,
+    text: 'O exército segue para o Acampamento de Saqueadores.',
+    battleInSeconds: 3600,
+    returnsInSeconds: 7200,
+    reportId: null,
+  };
+
+  it('CampaignPanel exibe marcha, prazos e aviso de tropas fora', () => {
+    const markup = html(<CampaignPanel campaign={sampleCampaign} elapsed={0} actions={actions} />);
+    const shown = text(markup);
+    expect(shown).toContain('Campanha militar');
+    expect(shown).toContain('O exército segue para o Acampamento de Saqueadores.');
+    expect(shown).toContain('Acampamento de Saqueadores');
+    expect(shown).toContain('Vanguarda');
+    expect(shown).toContain('Batalha em');
+    expect(shown).toContain('1 h');
+    expect(shown).toContain('Retorno em');
+    expect(shown).toContain('2 h');
+    expect(shown).toContain(
+      'Soldados e comandantes em marcha não defendem o feudo até retornarem.',
+    );
+  });
+
+  it('CampaignPanel na volta exibe botão de ver relatório de batalha', () => {
+    const returningCampaign = {
+      ...sampleCampaign,
+      phase: 'returning' as const,
+      text: 'O exército tomou o caminho de volta ao feudo.',
+      reportId: 'battle-1',
+    };
+    const markup = html(
+      <CampaignPanel campaign={returningCampaign} elapsed={0} actions={actions} />,
+    );
+    const shown = text(markup);
+    expect(shown).toContain('O exército tomou o caminho de volta ao feudo.');
+    expect(markup).toContain('data-testid="campaign-see-report"');
+  });
+
+  it('WarCouncilPanel exibe botão de atacar o acampamento e aviso de campanha', () => {
+    const armyWithAssault = {
+      ...armyIdleView.army,
+      campAssault: {
+        text: 'O exército viaja até o Acampamento.',
+        travelSeconds: 5400,
+        totalSeconds: 10800,
+        blockedReason: null,
+        formations: [
+          {
+            formationId: 'formation-1',
+            canAttack: true,
+            blockedReason: null,
+          },
+        ],
+      },
+      formations: [
+        {
+          id: 'formation-1',
+          name: 'Vanguarda',
+          isActive: true,
+          previewStale: false,
+          posts: [],
+          commanders: [],
+          total: 0,
+          shortfall: [],
+          shortfallText: '',
+          canDelete: true,
+        },
+      ],
+      preview: {
+        formationId: 'formation-1',
+        warning:
+          'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
+        runs: 200,
+        winsPercent: 75,
+        gloriousPercent: 20,
+        lossesPercent: 25,
+        riskText: 'Risco moderado.',
+        expectedLosses: [],
+        knownEnemy: [],
+      },
+    };
+
+    const markup = html(
+      <WarCouncilPanel
+        army={armyWithAssault}
+        formationId="formation-1"
+        disabled={false}
+        busy={NONE}
+        actions={actions}
+      />,
+    );
+    expect(markup).toContain('data-testid="war-attack-camp"');
+    expect(markup).toContain('data-testid="war-preview-warning"');
+    expect(text(markup)).toContain(
+      'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
+    );
+  });
+
+  it('FormationEditor exibe aviso quando editor.warning está presente', () => {
+    const armyWithWarning = {
+      ...armyIdleView.army,
+      editor: {
+        ...armyIdleView.army.editor,
+        warning:
+          'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
+      },
+    };
+    const markup = html(
+      <FormationEditor
+        army={armyWithWarning}
+        draft={emptyDraft()}
+        onChange={noop}
+        disabled={false}
+        busy={false}
+        actions={actions}
+      />,
+    );
+    expect(markup).toContain('data-testid="formation-editor-warning"');
+    expect(text(markup)).toContain(
+      'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
+    );
   });
 });

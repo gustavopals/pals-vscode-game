@@ -1893,3 +1893,30 @@ table.army-units td.num {
   margin: 4px 0 8px;
   padding-left: 20px;
 }
+
+/* Campanha militar e ataque ao acampamento (V4F-T3) */
+.campaign-panel {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.campaign-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.campaign-details dt {
+  color: var(--vscode-descriptionForeground);
+}
+
+.campaign-details dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.sabotage-status {
+  margin-top: 6px;
+}

@@ -1852,6 +1852,11 @@ export class Controller {
     );
   }
 
+  /** Ataca o Acampamento de Saqueadores com uma formação salva; a trava é `campaign`. */
+  attackCamp(formationId: string): Promise<boolean> {
+    return this.guildOrder('campaign', 'attackCamp', { formationId }, 'ao Exército');
+  }
+
   /** Põe uma formação como a Defesa ativa (`null` tira a Defesa). */
   setActiveFormation(id: string | null): Promise<boolean> {
     return this.guildOrder('formation:active', 'setActiveFormation', { id }, 'ao Exército');

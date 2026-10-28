@@ -18,6 +18,7 @@ import {
   heroFitPower,
   type Posture,
   REPORTS_ANCHOR,
+  sabotageStatus,
   sendArg,
   stretchEnds,
   teamFit,
@@ -261,6 +262,19 @@ function DestinationRow(props: {
         </p>
         {destination.fit === null ? null : <p class="muted">{destination.fit.text}</p>}
         {destination.durationNote === '' ? null : <p class="muted">{destination.durationNote}</p>}
+        {destination.sabotage === null ? null : (
+          <div class="sabotage-status" data-testid="sabotage-status">
+            <p>
+              {sabotageStatus(destination.sabotage).attemptsText}{' '}
+              {sabotageStatus(destination.sabotage).wavesText}
+            </p>
+            {destination.sabotage.alerted ? (
+              <p class="warning" data-testid="sabotage-alert">
+                <Icon name="warning" /> {sabotageStatus(destination.sabotage).alertText}
+              </p>
+            ) : null}
+          </div>
+        )}
       </div>
       {open ? (
         <SendForm

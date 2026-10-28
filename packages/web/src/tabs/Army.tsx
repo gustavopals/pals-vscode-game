@@ -5,6 +5,7 @@ import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
 import { BattleReports } from '../components/BattleReport';
 import { BarracksPanel } from '../components/BarracksPanel';
+import { CampaignPanel } from '../components/CampaignPanel';
 import { FormationEditor } from '../components/FormationEditor';
 import { FormationList } from '../components/FormationList';
 import { Header } from '../components/Header';
@@ -145,6 +146,9 @@ export function ArmyTab(props: {
       {view.army.built ? (
         <div class="army-formations">
           <OmensPanel army={view.army} />
+          {view.army.campaign !== null ? (
+            <CampaignPanel campaign={view.army.campaign} elapsed={elapsed} actions={actions} />
+          ) : null}
           <Formations view={view} disabled={disabled} busy={props.busy} actions={actions} />
         </div>
       ) : null}
