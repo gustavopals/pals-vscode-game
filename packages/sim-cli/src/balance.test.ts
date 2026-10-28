@@ -250,7 +250,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(heroes('year/3/explorador')).toEqual({ min: 2, max: 3 });
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de quatro a sete.
-    expect(heroes('year/1/explorador')).toEqual({ min: 4, max: 7 });
+    // Junção da Fase E (seção 16.2: a Vigília e os objetivos 17 a 21): de seis a oito.
+    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 8 });
     // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1); com a política
     // mínima de guerra (V4C-T1.8), seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de seis a sete.

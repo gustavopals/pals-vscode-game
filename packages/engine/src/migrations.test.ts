@@ -216,6 +216,16 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
+/**
+ * Os contadores de um estado migrado sem a marca do ensaio do dia 6: o passo 34 → 35 (V4G-T1) a
+ * grava quando a partida antiga já teve a tentativa, e os passos anteriores não mexem no resto.
+ */
+function statsBeforeVigil(state: { stats: Record<string, unknown> }): Record<string, unknown> {
+  const rest = { ...state.stats };
+  delete rest.vigilRehearsalMarked;
+  return rest;
+}
+
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
   delete copy.settings.realOriginMs;
@@ -6731,7 +6741,7 @@ describe('versão 24 → 25 (V4B-T1: o ferro)', () => {
       expect(after.market.tradedToday.iron).toBe(0);
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.ids).toStrictEqual(before.ids);
-      expect(after.stats).toStrictEqual(before.stats);
+      expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion24(after)).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6832,7 +6842,7 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
       expect(after.settlement.forge).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.ids).toStrictEqual(before.ids);
-      expect(after.stats).toStrictEqual(before.stats);
+      expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion25(after)).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6969,7 +6979,7 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.ids).toStrictEqual(before.ids);
-      expect(after.stats).toStrictEqual(before.stats);
+      expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion26(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       if (before.settlement.forge !== null) {
         expect(after.settlement.forge?.kind).toBe('weapons');
@@ -7142,7 +7152,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
       expect(Object.values(after.army.units).every((count) => count === 0)).toBe(true);
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.ids).toStrictEqual(before.ids);
-      expect(after.stats).toStrictEqual(before.stats);
+      expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion27(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       // Nada acontece na fronteira: o passo não cria prazo nem evento.
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
@@ -7544,7 +7554,7 @@ describe('versão 30 → 31 (V4D-T2.2: a prévia do Conselho de Guerra)', () => 
       expect(after.army.preview).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.ids).toStrictEqual(before.ids);
-      expect(after.stats).toStrictEqual(before.stats);
+      expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion30(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type === 'battleSimulated')).toEqual([]);

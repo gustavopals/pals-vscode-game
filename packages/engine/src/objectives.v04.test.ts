@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { trainingLotKey } from './army';
-import { currentShape, migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape, migrateState } from './migrations';
 import { evaluateObjectives, hasUnsettledObjectives, objectiveProgress } from './objectives';
 import { cloneState } from './state';
 import {
@@ -92,7 +92,7 @@ describe('objetivos da v0.4 (V4H-T3)', () => {
     const result = advanceTo(migrated, migrated.lastProcessedAt + 1);
     expect(result.events.every((event) => event.atMs === migrated.lastProcessedAt)).toBe(true);
     expect(completedIn(result.events)).toEqual(added);
-    expect(result.state.schemaVersion).toBe(34);
+    expect(result.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(currentShape(result.state, '')).toBeNull();
     expect(result.state.settlement.weapons - before.settlement.weapons).toBe(1);
     expect(result.state.settlement.resources.gold - before.settlement.resources.gold).toBe(
