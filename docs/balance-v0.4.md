@@ -827,3 +827,19 @@ o diff conferido: somente os cinco ids nos cenários que já marcavam toda a lis
 concluída e `lastRaidRepelledBattle` nas estatísticas. Nenhum retrato anterior ao estado 34
 mudou. Testes em navegador, integração e capturas não foram rodados (banco compartilhado);
 sem playtest do autor, sem medição de Cerco ou sabotagem e sem publicação.
+
+## 16. Junção da Fase E (2026-10-28)
+
+Branch `v4e-juncao`, estado 35, protocolo 3. Integra a revisão da Horda e da tela,
+a Fortaleza sem Ameaça até o Cerco, a Hora da Vigília e os objetivos 17 a 21.
+Nenhum bot, custo, recompensa ou regra de folga foi alterado nesta junção.
+
+### 16.1 Retratos e goldens
+
+A junção dos objetivos trouxe 24 retratos v34 modificados em paralelo à criação
+do estado 35. Foram restaurados os bytes congelados na entrada da Vigília
+(`d21424d`), preservando a entrada real do passo 34 → 35. Oito impressões digitais trazidas
+pela Vigília ainda apontavam para a Fortaleza com +2: foram alinhadas aos bytes
+da base `0f7f098`, sem regravar retratos históricos.
+As regras combinadas ficam somente nos retratos v35, regravados com
+`UPDATE_GOLDEN=1` após identificar as divergências e conferir o diff.

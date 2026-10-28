@@ -678,10 +678,12 @@ function fingerprint(text: string): string {
  * não no retrato. Quando `schemaVersion` subir, acrescente aqui os retratos da versão que acabou
  * de ficar para trás (o teste abaixo diz quais faltam e qual é a impressão de cada um).
  */
+// Junção: v34 preserva os bytes da base 0f7f098, anterior à Vigília, inclusive a Fortaleza
+// sem Ameaça; oito hashes da trilha paralela divergiam (balance-v0.4.md, seção 16).
 const FROZEN: Record<string, string> = {
   'state-v34-caravan-escort.json': '610b158e',
   'state-v34-caravan.json': 'f601ac47',
-  'state-v34-cold.json': '8936d5a6',
+  'state-v34-cold.json': 'e6482cec',
   'state-v34-construction.json': 'a3e3c303',
   'state-v34-council-hidden.json': '22d8e61a',
   'state-v34-council.json': 'fdc47090',
@@ -701,13 +703,13 @@ const FROZEN: Record<string, string> = {
   'state-v34-hero-captured.json': 'a85103fa',
   'state-v34-hero-injured.json': '9f812975',
   'state-v34-hero-promised.json': '15232d6b',
-  'state-v34-horde-omens-exact.json': '3cd9c01d',
-  'state-v34-horde-omens-partial.json': '8c1042d5',
-  'state-v34-horde-omens-vague.json': '3a49011d',
+  'state-v34-horde-omens-exact.json': 'f9de0d9e',
+  'state-v34-horde-omens-partial.json': '35eccca2',
+  'state-v34-horde-omens-vague.json': '465a040a',
   'state-v34-housing-full.json': '9c22495d',
   'state-v34-iron-king-half.json': '38d0b020',
   'state-v34-market-opening.json': 'cb8024e3',
-  'state-v34-market.json': '02644275',
+  'state-v34-market.json': '9a0dc239',
   'state-v34-master-waiting.json': '284e8dd8',
   'state-v34-masters.json': '561bda6c',
   'state-v34-migrated-3x.json': '2d8264b2',
@@ -717,9 +719,9 @@ const FROZEN: Record<string, string> = {
   'state-v34-morale.json': '10450e19',
   'state-v34-objectives.json': 'c8d4064f',
   'state-v34-palisade.json': '0a099cfd',
-  'state-v34-peasant-3x.json': '0fb07053',
+  'state-v34-peasant-3x.json': '97b3e3a4',
   'state-v34-queues.json': '582eeadf',
-  'state-v34-raid-announced.json': 'a2a24ea1',
+  'state-v34-raid-announced.json': '12ec0493',
   'state-v34-raid.json': '282350b8',
   'state-v34-smithy-forging.json': 'a411df7c',
   'state-v34-storage.json': '0f2acaac',
@@ -730,7 +732,7 @@ const FROZEN: Record<string, string> = {
   'state-v34-wage-arrears-resumed.json': '07e5f2a2',
   'state-v34-wage-arrears.json': 'a7082f4d',
   'state-v34-warehouse-full.json': '5ba0cdc1',
-  'state-v34-week-scripted.json': '63b70973',
+  'state-v34-week-scripted.json': '60132c0b',
   'state-v33-caravan-escort.json': '4309aecd',
   'state-v33-caravan.json': '9cadfb33',
   'state-v33-cold.json': 'ebcc05c3',
