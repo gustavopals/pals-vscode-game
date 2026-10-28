@@ -245,7 +245,8 @@ describe('relatório da matriz', () => {
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a população sobe e o ouro parado também.
       // D-39 (docs/balance-v0.4.md, seção 10): a faixa do ouro parado desce.
       // Revisão da V4E-T3 (seção 12): a pedra e o ouro parados sobem um pouco.
-      '| Rápido 3× | Regular | 65 a 93 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.460 | ≤ 117.573 | ≤ 32 | 0 |',
+      // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
+      '| Rápido 3× | Regular | 64 a 93 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.460 | ≤ 5.323 | ≤ 113.133 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -343,7 +344,8 @@ describe('relatório da matriz', () => {
     // e sem ferido) ele volta ao Salão Nv3 na hora 53 e à Torre na 50 em duas das três
     // sementes, e conclui de nove a onze objetivos.
     expect(year).toContain(
-      '| Rápido 3× | Preguiçoso | 29 | 53 a — | — | 31 | 33 | 50 a — | 54 a — | — | 11 a 16 | 7 | 9 a 11 | — |',
+      // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
+      '| Rápido 3× | Preguiçoso | 29 | 53 a — | — | 31 | 33 | 50 a — | 53 a — | — | 11 a 16 | 7 | 9 a 11 | — |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
@@ -387,13 +389,14 @@ describe('relatório da matriz', () => {
       // sorteadas voltam a ser de lobos; o Acampamento e a Fortaleza somam Ameaça, e cada
       // incursão a baixa: repelidas 27 a 31, Ameaça no fim 67 a 89.
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): repelidas 25 a 29, Ameaça no fim 57 a 74.
-      '| Rápido 3× | Regular | 3 a 5 | 25 a 29 | 29 a 30 | 1 a 3 | 139 a 287 | 43 a 69 | 57 a 74 |',
+      // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
+      '| Rápido 3× | Regular | 3 a 5 | 25 a 29 | 29 a 30 | 1 a 3 | 139 a 287 | 43 a 69 | 43 a 74 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
       suffered: { min: 3, max: 5 },
       repelled: { min: 25, max: 29 },
-      threatFinal: { min: 57, max: 74 },
+      threatFinal: { min: 43, max: 74 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
     // a Paliçada sai nas últimas horas do ano.
@@ -423,7 +426,8 @@ describe('relatório da matriz', () => {
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a madeira passa a ir ao chão pela metade, com sequências de até 123 h.
       // D-39 (docs/balance-v0.4.md, seção 10): as sequências encurtam (até 63 h).
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a pedra, de 32% a 49%, com sequências de 36 a 51 h.
-      '| Rápido 3× | Preguiçoso | 47% a 51% | 29% a 40% | 32% a 49% | 60 a 63 | 48 | 36 a 51 |',
+      // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
+      '| Rápido 3× | Preguiçoso | 47% a 52% | 29% a 41% | 32% a 49% | 60 a 63 | 48 | 36 a 51 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
@@ -437,7 +441,8 @@ describe('relatório da matriz', () => {
       // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): a comida vai menos ao chão (5% a 10%) e a madeira, até 18%.
       // D-39 (docs/balance-v0.4.md, seção 10): a comida de 2% a 14%, a madeira de 13% a 22%.
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a madeira de 11% a 21%, a pedra de 10% a 18%.
-      '| Rápido 3× | Regular | 3% a 14% | 11% a 21% | 10% a 18% | 15 a 21 | 27 a 30 | 18 a 24 |',
+      // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
+      '| Rápido 3× | Regular | 3% a 14% | 11% a 22% | 10% a 18% | 15 a 21 | 27 a 30 | 18 a 24 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
   });
@@ -469,6 +474,8 @@ describe('problemas de uma célula', () => {
     if (cell?.band === null || cell === undefined || run === undefined) {
       throw new Error('Célula week/3/regular sem faixa.');
     }
+    // O piso 64 vem das 50 sementes da junção, com a mesma folga
+    // (docs/balance-v0.4.md, seção 16).
     const fine = run.summary;
     const piled = { ...fine, surplus: { ...fine.surplus, wood: 50_000 } };
     const empty = { ...fine, villagers: 3 };
@@ -477,10 +484,10 @@ describe('problemas de uma célula', () => {
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
       'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5460 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 65 a 93 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: população 3, fora da faixa de 64 a 93 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 65 a 93 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 64 a 93 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });

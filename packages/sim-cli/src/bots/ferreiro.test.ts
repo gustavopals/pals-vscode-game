@@ -27,7 +27,7 @@ describe('o Ferreiro do Explorador (V4B-T2.6)', () => {
     });
     expect(result.finalState.settlement.buildings.smithy).toBe(0);
     // V4H-T3: a arma vem do objetivo 18, sem Ferreiro nem forja. A matriz e o impacto
-    // estão em docs/balance-v0.4.md, seção 13 (a remedir na junção).
+    // estão em docs/balance-v0.4.md, seção 16 (junção com a Vigília e a Fortaleza sem Ameaça).
     expect(result.finalState.objectives.completed).toContain('trainTenSoldiers');
     expect(result.finalState.settlement.weapons).toBe(1);
     expect(result.rows.every((row) => row.weapons === 0 || row.weapons === 1)).toBe(true);

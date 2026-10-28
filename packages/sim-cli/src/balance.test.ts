@@ -14,8 +14,8 @@ import {
 import { MILESTONES, WASTE_STREAK_GOAL } from './report';
 import { simulate } from './simulate';
 
-// A matriz inteira: 2 janelas × 3 ritmos × 3 perfis × 50 sementes, na dificuldade Senhor. São
-// 750 partidas distintas (no ritmo 1 as duas janelas são a mesma partida) e uns 20 s.
+// A matriz inteira: 2 janelas × 3 ritmos × 4 perfis × 50 sementes, em Senhor: 1.200
+// registros e 1.000 partidas distintas (as duas janelas do Normal repetem a mesma partida).
 const matrix = await runMatrix();
 const paces = balance.paces.map((pace) => pace.timeScale);
 
@@ -56,32 +56,17 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.cells.flatMap((cell) => cell.violations)).toEqual([]);
   });
 
-  it('a linha de base de Senhor confere sem folga, com o prêmio dos objetivos separado de MEASURED (V3B-T2.4, V4H-T3)', () => {
+  it('a linha de base de Senhor confere sem folga (V3B-T2.4, V4E-JUNCAO)', () => {
     // A faixa aceita 5% ou 10% de folga; isto, nenhuma. É o que prova que uma tarefa que não
     // era para mexer na economia (a fundação da v0.3: identidades, fluxos por entidade, o bot
     // explorador, as colunas reservadas) não mexeu em nenhum número medido. Quando uma mecânica
     // muda a economia de propósito, este teste falha junto com as faixas, e a linha de base é
     // atualizada como um golden (cabeçalho de `MEASURED`, em bands.ts).
     for (const cell of matrix.cells) {
-      // V4H-T3: três extremos ganham 20 de ouro. No ano do Tranquilo, a mudança de caminho
-      // também altera população e estoque. Mantemos os valores exatos medidos, sem aumentar
-      // folga nem regravar MEASURED, que outro agente remede.
-      // docs/balance-v0.4.md, seção 13: a remedir na junção; retirar este delta ao integrar.
-      const rewarded = ['week/3/explorador', 'week/1/explorador', 'year/1/explorador'].includes(
-        cell.key,
-      );
-      const baseline = baselineFor(cell.key);
-      let expected =
-        rewarded && baseline !== null
-          ? { ...baseline, surplus: { ...baseline.surplus, gold: baseline.surplus.gold + 20 } }
-          : baseline;
-      if (cell.key === 'year/0.5/explorador' && baseline !== null) {
-        expected = {
-          ...baseline,
-          villagers: { min: 57, max: 73 },
-          surplus: { wood: 5200, stone: 3202, gold: 17805 },
-        };
-      }
+      // Junção da Fase E: os objetivos e a Vigília já integram a base nas três dificuldades.
+      // Compare diretamente com MEASURED, sem o delta temporário da V4H-T3 nem folga extra
+      // (docs/balance-v0.4.md, seção 16).
+      const expected = baselineFor(cell.key);
       const { villagers, townHall, famineHours, coldHours, surplus, wasteStreakWorst } =
         cell.measure;
       expect(
@@ -251,7 +236,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): na pior semente do Normal o
     // cofre paga dois contratos a menos: de quatro a sete.
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de seis a sete.
-    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 7 });
+    // Junção: os heróis de carta podem chegar acima do limite da Taverna; de seis a oito
+    // (docs/balance-v0.4.md, seção 16), sem mudar a política de contratação.
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 8 });
     // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
     // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a cinco.
@@ -389,7 +376,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         }
       }
       // V4H-T3: o Explorador também cumpre os cinco da guerra e chega a 21, em vez de 16.
-      // Medição: docs/balance-v0.4.md, seção 13 (a remedir na junção).
+      // Medição conjunta: docs/balance-v0.4.md, seção 16.
       const tranquil = year.find((cell) => cell.key === 'year/0.5/explorador');
       expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(21);
     }
@@ -399,7 +386,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     for (const cell of half) {
       expect(cell.measure.objectivesDone.min, cell.key).toBeGreaterThanOrEqual(11);
       // O Explorador chega a quinze nas 50 sementes, em vez dos quatorze da régua antiga;
-      // o inverno continua impossível nesta janela (balance, seção 13).
+      // o inverno continua impossível nesta janela (balance-v0.4.md, seção 16).
       expect(cell.measure.objectivesDone.max, cell.key).toBeLessThanOrEqual(
         cell.profile.id === 'explorador' ? 15 : 14,
       );
@@ -482,8 +469,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): 76 das 1.000 em 80 ou mais (31 em 90 ou mais, uma em 100). O que sobra é do
     // Acampamento, que soma +2 do 25º dia até a virada do ano (o Covil e ele, +4 por dia no
     // inverno): fica à espera do autor (pendência D-43).
-    expect(Math.max(...finals)).toBeLessThanOrEqual(100);
-    expect(finals.filter((value) => value >= 80).length).toBeLessThanOrEqual(76);
+    // Junção: 114 dos mesmos 1.000 registros terminam em ≥80 (48 em ≥90); a Vigília muda
+    // os instantes e os sorteios após o ensaio. Guarde os valores exatos, sem aumentar uma
+    // tolerância; a comparação com as seções 9/10 está em balance-v0.4.md, seção 16.
+    expect(Math.max(...finals)).toBe(100);
+    expect(finals.filter((value) => value >= 80).length).toBe(114);
     expect(Math.min(...finals)).toBeLessThan(balance.threat.raidChanceAbove);
   });
 
@@ -536,7 +526,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // V4E-T3 ela ia de 49 a 100; antes deles, de 28 a 63).
     expect(year?.suffered).toEqual({ min: 2, max: 2 });
     expect(year?.repelled).toEqual({ min: 5, max: 8 });
-    expect(year?.threatFinal).toEqual({ min: 22, max: 99 });
+    // Junção: a Vigília desloca a descarga da Ameaça e os sorteios; intervalo medido das
+    // mesmas 50 sementes (docs/balance-v0.4.md, seção 16).
+    expect(year?.threatFinal).toEqual({ min: 29, max: 100 });
   });
 
   it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo e em nenhuma dificuldade', () => {
