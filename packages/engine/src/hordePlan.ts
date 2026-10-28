@@ -154,7 +154,14 @@ export function turnOmens(draft: GameState, atMs: number, events: GameEvent[]): 
   if (tower === 0 || plan === null || (season !== 'autumn' && season !== 'winter')) return;
   if (!chance(draft, 'horde', { num: omenChancePercent(tower), den: 100 })) return;
   const wave = plan.waves[nextInt(draft, 'horde', plan.waves.length)]!;
-  const clarity = omenClarity(tower);
+  revealOmen(draft, wave, atMs, events);
+}
+
+/** Revela uma onda real sem sortear: também serve ao presságio gratuito do objetivo 19. */
+export function revealOmen(draft: GameState, wave: Wave, atMs: number, events: GameEvent[]): void {
+  const plan = draft.horde.wavePlan;
+  if (plan === null) return;
+  const clarity = omenClarity(Math.max(1, watchtowerLevel(draft)));
   const composition: Partial<Record<HordeUnitId, number>> = {};
   for (const post of wave.composition)
     composition[post.unit] = (composition[post.unit] ?? 0) + post.count;

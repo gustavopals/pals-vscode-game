@@ -950,6 +950,10 @@ export const BuildingsSchema = z.strictObject({
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
+  z.strictObject({ type: z.literal('soldiersTrained'), count: positiveInt }),
+  z.strictObject({ type: z.literal('formationSaved') }),
+  z.strictObject({ type: z.literal('battleSimulated'), count: positiveInt }),
+  z.strictObject({ type: z.literal('raidRepelled'), count: positiveInt }),
   z.strictObject({
     type: z.literal('workersAtLeast'),
     building: productionBuildingId,
@@ -1015,12 +1019,18 @@ export const ObjectiveSchema = z
     rewardText: label.regex(/^\p{Ll}.*[^.]$/u).optional(),
     // Um item do catálogo, dado ao arsenal.
     item: z.enum(ITEM_IDS).optional(),
+    weapons: positiveInt.optional(),
+    omen: z.literal(true).optional(),
+    commanderXp: positiveInt.optional(),
   })
   .refine(
     (objective) =>
       Object.keys(objective.reward).length > 0 ||
       objective.morale !== undefined ||
       objective.item !== undefined ||
+      objective.weapons !== undefined ||
+      objective.omen !== undefined ||
+      objective.commanderXp !== undefined ||
       objective.rewardText !== undefined,
     'objetivo sem recompensa',
   );

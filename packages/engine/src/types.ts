@@ -1260,6 +1260,7 @@ export type ObjectiveTarget =
   | { kind: 'season'; season: SeasonId }
   | { kind: 'tavern' }
   | { kind: 'expeditions' }
+  | { kind: 'army' }
   | { kind: 'market' };
 
 /** Um Objetivo do Senhor (GDD §12.2): a ação, o porquê, a recompensa e o que falta. */

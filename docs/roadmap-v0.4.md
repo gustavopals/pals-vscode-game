@@ -1057,8 +1057,8 @@ Como V4E-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-g.md`; correçõ
 **Trilha:** motor.
 **Entregáveis:** `packages/content/src/objectives.ts`, `packages/engine/src/objectives.ts`, `objectivesView.ts`, **novo** `objectives.v04.test.ts`; `sim-cli` (a matriz remedida: F-1 mostrou que um objetivo muda o caminho de obras de todo bot).
 
-- [ ] V4H-T3.1 Os cinco, com `targetKind` novo onde preciso; a partida migrada que já fez conta e paga uma vez.
-- [ ] V4H-T3.2 **Medir antes de fechar** (lição de F-1): a matriz nas três dificuldades com os objetivos; o que piorar volta ao autor.
+- [x] V4H-T3.1 Os cinco, com `targetKind` novo onde preciso; a partida migrada que já fez conta e paga uma vez.
+- [x] V4H-T3.2 **Medir antes de fechar** (lição de F-1): a matriz nas três dificuldades com os objetivos; o que piorar volta ao autor.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- objectives`; `pnpm --filter @lotg/sim-cli test`.
 
@@ -1370,7 +1370,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4G (integração e segunda publicação) | | | | | |
 | V4H-T1 | | | | | |
 | V4H-T2 | | | | | |
-| V4H-T3 | | | | | |
+| V4H-T3 | 2026-10-27 | `a6ec7ae`; T3.2 em verificação | uma | Os objetivos 17 a 21 seguem o GDD §12.2 e a decisão 24; sem substituições nem mudança de forma (estado 34, protocolo 3). Condições e recompensas no conteúdo; treino acumulado, formação salva, presságio gratuito sem sorteio e XP dos comandantes da incursão identificada; destino Exército na visão e no app. Leituras propostas H-1 a H-3 | Testes focados de conteúdo, motor, protocolo e app; goldens regravados com `UPDATE_GOLDEN=1` e 26 diffs conferidos (somente ids novos e identidade da última incursão repelida; versões anteriores intactas). Matrizes completas nas três dificuldades (50 sementes; 72 células): fome/frio/recusas em zero; Senhor sem violação, Camponês com uma e Rei de Ferro com duas células fora das faixas antigas (mesma partida nas duas janelas do Normal), registradas em H-4 e balance §13. `MEASURED` intacta, a remedir na junção. Conferência dos dois extremos com a lista de 16 confirma a mudança de caminho; `pnpm verify` (revisão de 2026-10-27): 178 de 179 arquivos verdes e só `balance.test.ts` falha, em 6 testes (Taverna, Torre, Paliçada, aldeões do Regular, meta de desperdício, excedente parado), **todos já vermelhos em `a4e94b3`** (lá eram 8: a remedição `5e69114` e a Ameaça da Fortaleza deixaram as expectativas velhas; os 2 do Codex a mais, a linha de base e a lista de objetivos, ficaram verdes). Não se editaram: são do agente que remede a matriz na junção. Corrigidos na revisão: a contagem de cumpridos em `objectives.test.tsx` (16 para o tamanho da visão). Integração, navegador e capturas não rodados: banco compartilhado; sem publicação, playtest ou leitura do autor |
 | V4H-T4 | | | | | |
 | V4H-T5 | | | | | |
 | V4H (integração) | | | | | |

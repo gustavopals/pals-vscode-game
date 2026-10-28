@@ -22,6 +22,12 @@
 > ficam intactos. Passo 34 → 35 sem prazo ou sorteio; limites e propostas G-1 a G-5
 > em `docs/pendencias-v0.4.md`. **O Cerco não foi implementado.**
 
+**V4H-T3 (2026-10-27, branch `v4h-t3-objetivos`):** os objetivos 17 a 21 usam somente as
+mecânicas existentes da guerra; os primeiros dezesseis estão preservados. Estado 34 e
+protocolo 3 continuam: estatísticas registram treino e presságio devido, sem forma nova.
+As leituras propostas estão nas pendências H-1 a H-3, e a matriz, em `docs/balance-v0.4.md`,
+seção 15; `MEASURED` fica para remedir na junção com a mudança da Fortaleza.
+
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 

@@ -4827,6 +4827,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -6277,6 +6353,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -7901,6 +8053,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -9363,6 +9591,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -10821,6 +11125,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -12270,6 +12650,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -13710,6 +14166,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -15258,6 +15790,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -16799,6 +17407,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -18290,6 +18974,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -19803,6 +20563,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -21355,6 +22191,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -22845,6 +23757,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -28578,6 +29566,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -30124,6 +31188,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -31708,6 +32848,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -33367,6 +34583,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -35116,6 +36408,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -36875,6 +38243,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -38619,6 +40063,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -40494,6 +42014,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -42255,6 +43851,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -43788,6 +45460,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -45309,6 +47057,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -46919,6 +48743,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],
@@ -48569,6 +50469,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -50080,6 +52056,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -51579,6 +53631,82 @@
         "target": {
           "kind": "expeditions"
         }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
       }
     ],
     "council": {
@@ -53020,6 +55148,82 @@
         "missing": null,
         "target": {
           "kind": "expeditions"
+        }
+      },
+      {
+        "id": "townHallLevel4",
+        "title": "Alcance o Salão do Senhor Nv4",
+        "hint": "O Quartel treina quem defende o feudo; o Ferreiro forja as armas de que precisam.",
+        "reward": "desbloqueia o Quartel e o Ferreiro",
+        "status": "completed",
+        "progress": {
+          "current": 4,
+          "target": 4
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "trainTenSoldiers",
+        "title": "Treine 10 soldados",
+        "hint": "Cada soldado deixa um ofício: reserve comida para quem guarda as muralhas.",
+        "reward": "1 arma",
+        "status": "completed",
+        "progress": {
+          "current": 10,
+          "target": 10
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "saveDefenseFormation",
+        "title": "Salve uma Formação de Defesa",
+        "hint": "Distribua os soldados entre a frente e a retaguarda antes de o inimigo chegar.",
+        "reward": "um presságio gratuito (quando as ondas estiverem preparadas)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "simulateFirstBattle",
+        "title": "Simule uma batalha no Conselho de Guerra",
+        "hint": "A prévia mostra onde a defesa pode ceder antes que a batalha cobre seu preço.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
+        }
+      },
+      {
+        "id": "repelFirstRaid",
+        "title": "Repila uma incursão",
+        "hint": "A Defesa ativa luta quando o Senhor está longe; a muralha segura o inimigo.",
+        "reward": "+20 XP aos comandantes sobreviventes da última incursão repelida registrada",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "army"
         }
       }
     ],

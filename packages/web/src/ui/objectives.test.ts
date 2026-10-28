@@ -54,6 +54,17 @@ const completed = (
 });
 
 describe('objetivos: o que a lista diz', () => {
+  it('o destino Exército só navega, inclusive sem ligação, sem conhecer o id do objetivo', () => {
+    const objective = { ...initialView.objectives[0]!, target: { kind: 'army' as const } };
+    const action = objectiveAction(initialView, objective);
+    expect(action).toEqual({
+      command: 'lords.openPanel',
+      arg: 'army',
+      label: 'Ver o Exército',
+      text: 'Ver',
+    });
+    expect(navigatesOnly(action!)).toBe(true);
+  });
   it('separa os em aberto dos cumpridos, na ordem em que vieram', () => {
     expect(activeObjectives(unlockedView).map((objective) => objective.id)).toEqual([
       'buildWatchtower',
@@ -71,7 +82,8 @@ describe('objetivos: o que a lista diz', () => {
   it('o resumo da árvore conta os dois grupos, e fala só do que existe', () => {
     expect(objectivesSummary(initialView)).toBe('3 em aberto');
     expect(objectivesSummary(unlockedView)).toBe('3 em aberto · 4 cumpridos');
-    expect(objectivesSummary(autumnView)).toBe('16 cumpridos');
+    // O cenário marca a lista inteira como cumprida; a v0.4 acrescentou cinco objetivos.
+    expect(objectivesSummary(autumnView)).toBe('21 cumpridos');
     expect(objectivesSummary({ objectives: [objectiveOf(unlockedView, 'allocateFarmers')] })).toBe(
       '1 cumprido',
     );

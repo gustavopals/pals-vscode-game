@@ -187,7 +187,9 @@ describe('objetivos', () => {
   it('informa o progresso de cada condição', () => {
     const state = accept(newGame(), command('recruitVillagers', { quantity: 2 })).state;
     const later = play(state, [{ at: HOUR }]).state;
-    const progress = objectives.map((objective) => objectiveProgress(later, objective.condition));
+    const progress = objectives
+      .slice(0, 16)
+      .map((objective) => objectiveProgress(later, objective.condition));
     expect(progress).toEqual([
       { current: 0, target: 2 },
       { current: 0, target: 1 },

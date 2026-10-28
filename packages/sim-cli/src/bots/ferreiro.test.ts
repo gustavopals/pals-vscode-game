@@ -26,8 +26,12 @@ describe('o Ferreiro do Explorador (V4B-T2.6)', () => {
       sessionsPerDay: 2,
     });
     expect(result.finalState.settlement.buildings.smithy).toBe(0);
-    expect(result.finalState.settlement.weapons).toBe(0);
-    expect(result.rows.every((row) => row.weapons === 0)).toBe(true);
+    // V4H-T3: a arma vem do objetivo 18, sem Ferreiro nem forja. A matriz e o impacto
+    // estão em docs/balance-v0.4.md, seção 13 (a remedir na junção).
+    expect(result.finalState.objectives.completed).toContain('trainTenSoldiers');
+    expect(result.finalState.settlement.weapons).toBe(1);
+    expect(result.rows.every((row) => row.weapons === 0 || row.weapons === 1)).toBe(true);
+    expect(result.events.filter((event) => event.type === 'weaponsForged')).toEqual([]);
     const header = toCsv(result.rows).split('\n')[0]?.split(',') ?? [];
     expect(header).toContain('weapons');
     expect(header).toContain('smithy');

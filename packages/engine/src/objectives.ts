@@ -9,14 +9,17 @@ import {
   type ResourceAmounts,
 } from '@lotg/content';
 
+import { soldierCount } from './army';
 import { emit } from './chronicle';
 import { DAY_MS } from './clock';
 import { amountsData } from './construction';
 import { stowItem } from './equipment';
-import { durabilityOf } from './heroes';
 import { decimal, durationText, joinList, plural } from './format';
+import { durabilityOf } from './heroes';
+import { revealOmen } from './hordePlan';
 import { nextId } from './ids';
 import { addMoraleEffect } from './morale';
+import { grantXp } from './outcomes';
 import { seasonsSurvived } from './seasonWatch';
 import { grantResources } from './storage';
 import type { GameEvent, GameState } from './types';
@@ -73,6 +76,17 @@ export function objectiveProgress(
         current: stats[`expeditionsReturned:${condition.model}`] ?? 0,
         target: condition.count,
       };
+    case 'soldiersTrained':
+      return {
+        current: Math.max(stats.soldiersTrained ?? 0, soldierCount(state)),
+        target: condition.count,
+      };
+    case 'formationSaved':
+      return { current: (state.ids.formation ?? 0) > 0 ? 1 : 0, target: 1 };
+    case 'battleSimulated':
+      return { current: stats.battlesSimulated ?? 0, target: condition.count };
+    case 'raidRepelled':
+      return { current: stats.raids_repelled ?? 0, target: condition.count };
   }
 }
 
@@ -91,7 +105,7 @@ export function objectiveMoraleEffectId(objectiveId: string): string {
  * mesma em qualquer ritmo, fica só com os dias de jogo.
  */
 export function describeReward(
-  { reward, morale, rewardText, item }: ObjectiveDef,
+  { reward, morale, rewardText, item, weapons, omen, commanderXp }: ObjectiveDef,
   timeScale?: number,
 ): string {
   const parts = positiveEntries(reward).map(
@@ -108,6 +122,13 @@ export function describeReward(
   if (item !== undefined) {
     parts.push(`um item (${items[item].label})`);
   }
+  if (weapons !== undefined) parts.push(plural(weapons, 'arma', 'armas'));
+  if (omen !== undefined)
+    parts.push('um presságio gratuito (quando as ondas estiverem preparadas)');
+  if (commanderXp !== undefined)
+    parts.push(
+      `+${commanderXp} XP aos comandantes sobreviventes da última incursão repelida registrada`,
+    );
   return joinList(rewardText === undefined ? parts : [...parts, rewardText]);
 }
 
@@ -170,6 +191,22 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
           untilMs: atMs + morale.durationDays * DAY_MS,
         });
       }
+      if (objective.weapons !== undefined) draft.settlement.weapons += objective.weapons;
+      if (objective.omen !== undefined) draft.stats.objectiveOmenPending = 1;
+      if (objective.commanderXp !== undefined) {
+        const report = [...draft.army.reports]
+          .reverse()
+          .find((entry) =>
+            draft.stats.lastRaidRepelledBattle === undefined
+              ? entry.mode === 'defense' && entry.outcome !== 'defeat'
+              : entry.id === `battle-${draft.stats.lastRaidRepelledBattle}`,
+          );
+        const ids = new Set(
+          report?.commanders.filter((entry) => entry.fate !== 'died').map((entry) => entry.heroId),
+        );
+        const team = draft.guild.heroes.filter((hero) => ids.has(hero.id));
+        grantXp(draft, team, objective.commanderXp, atMs, events);
+      }
       emit(
         events,
         draft,
@@ -177,6 +214,8 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
         'objectiveCompleted',
         {
           objective: objective.id,
+          ...(objective.weapons === undefined ? {} : { weapons: objective.weapons }),
+          ...(objective.commanderXp === undefined ? {} : { commanderXp: objective.commanderXp }),
           ...amountsData('gained', gained),
           ...amountsData('lost', lost),
           ...(morale === undefined
@@ -216,6 +255,13 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
       }
     }
   }
+  // A recompensa usa a primeira onda real, sem gastar o fluxo `horde`. Antes da preparação,
+  // o recibo fica no mapa de estatísticas já existente; é consumido uma única vez.
+  const wave = draft.horde.wavePlan?.waves[0];
+  if (draft.stats.objectiveOmenPending === 1 && wave !== undefined) {
+    delete draft.stats.objectiveOmenPending;
+    revealOmen(draft, wave, atMs, events);
+  }
   return tracker.completed.length > completedBefore;
 }
 
@@ -226,6 +272,7 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
  * do conteúdo crescer: `advanceTo` a acomoda na fronteira, antes de o tempo andar.
  */
 export function hasUnsettledObjectives(state: GameState): boolean {
+  if (state.stats.objectiveOmenPending === 1 && state.horde.wavePlan !== null) return true;
   const { active, completed } = state.objectives;
   const known = (id: string) => active.includes(id) || completed.includes(id);
   if (

@@ -56,13 +56,32 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.cells.flatMap((cell) => cell.violations)).toEqual([]);
   });
 
-  it('a linha de base de Senhor confere sem folga: as 50 sementes medem exatamente o que `MEASURED` diz (roadmap da v0.3, V3B-T2.4)', () => {
+  it('a linha de base de Senhor confere sem folga, com o prêmio dos objetivos separado de MEASURED (V3B-T2.4, V4H-T3)', () => {
     // A faixa aceita 5% ou 10% de folga; isto, nenhuma. É o que prova que uma tarefa que não
     // era para mexer na economia (a fundação da v0.3: identidades, fluxos por entidade, o bot
     // explorador, as colunas reservadas) não mexeu em nenhum número medido. Quando uma mecânica
     // muda a economia de propósito, este teste falha junto com as faixas, e a linha de base é
     // atualizada como um golden (cabeçalho de `MEASURED`, em bands.ts).
     for (const cell of matrix.cells) {
+      // V4H-T3: três extremos ganham 20 de ouro. No ano do Tranquilo, a mudança de caminho
+      // também altera população e estoque. Mantemos os valores exatos medidos, sem aumentar
+      // folga nem regravar MEASURED, que outro agente remede.
+      // docs/balance-v0.4.md, seção 13: a remedir na junção; retirar este delta ao integrar.
+      const rewarded = ['week/3/explorador', 'week/1/explorador', 'year/1/explorador'].includes(
+        cell.key,
+      );
+      const baseline = baselineFor(cell.key);
+      let expected =
+        rewarded && baseline !== null
+          ? { ...baseline, surplus: { ...baseline.surplus, gold: baseline.surplus.gold + 20 } }
+          : baseline;
+      if (cell.key === 'year/0.5/explorador' && baseline !== null) {
+        expected = {
+          ...baseline,
+          villagers: { min: 57, max: 73 },
+          surplus: { wood: 5200, stone: 3202, gold: 17805 },
+        };
+      }
       const { villagers, townHall, famineHours, coldHours, surplus, wasteStreakWorst } =
         cell.measure;
       expect(
@@ -75,7 +94,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           wasteStreak: wasteStreakWorst.max,
         },
         cell.key,
-      ).toEqual(baselineFor(cell.key));
+      ).toEqual(expected);
     }
   });
 
@@ -352,7 +371,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     ).toHaveLength(0);
   });
 
-  it('os bots percorrem a sequência dos objetivos: os dez da v0.2 e os da v0.3 que a equipe alcança (V2E-T4, V3F-T2)', () => {
+  it('os bots percorrem os objetivos das três versões que a equipe alcança (V2E-T4, V3F-T2, V4H-T3)', () => {
     // O bot segue o que cada objetivo ativo aponta na visão (`seguir os objetivos`). Até a v0.2
     // a lista tinha dez, e o último a cair era o do inverno, na virada para a primavera. Com os
     // seis da v0.3 (V3F-T2) a lista tem dezesseis, e ninguém que não envia expedição a fecha: o
@@ -369,17 +388,21 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           expect(cell.measure.objectivesAllDoneAtHour, where).toEqual({ min: null, max: null });
         }
       }
-      // Só o Explorador envia a Patrulha, escolhe na encruzilhada e explora as Ruínas: no ano do
-      // Tranquilo, em alguma das 50 sementes, ele fecha a lista inteira na virada do ano.
+      // V4H-T3: o Explorador também cumpre os cinco da guerra e chega a 21, em vez de 16.
+      // Medição: docs/balance-v0.4.md, seção 13 (a remedir na junção).
       const tranquil = year.find((cell) => cell.key === 'year/0.5/explorador');
-      expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(16);
+      expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(21);
     }
     // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 ficam nove, mais
     // os da v0.3 que já couberam na lista.
     const half = matrix.cells.filter((cell) => cell.window === 'week' && cell.timeScale === 0.5);
     for (const cell of half) {
       expect(cell.measure.objectivesDone.min, cell.key).toBeGreaterThanOrEqual(11);
-      expect(cell.measure.objectivesDone.max, cell.key).toBeLessThanOrEqual(14);
+      // O Explorador chega a quinze nas 50 sementes, em vez dos quatorze da régua antiga;
+      // o inverno continua impossível nesta janela (balance, seção 13).
+      expect(cell.measure.objectivesDone.max, cell.key).toBeLessThanOrEqual(
+        cell.profile.id === 'explorador' ? 15 : 14,
+      );
     }
     // O Preguiçoso, com uma visita por dia, chega aos dez da v0.2 e ao primeiro herói em toda
     // janela de Senhor; no ano do Rápido não chega à Guilda.

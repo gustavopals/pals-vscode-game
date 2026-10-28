@@ -690,7 +690,9 @@ describe('resumo de uma partida', () => {
     // 13: eram 13 até a V4E-T2, 12 com as incursões-batalha do roteiro, e 13 de novo desde que
     // as dos dias 25 e 37 são leves e não ferem (D-39).
     expect(summary.objectives).toEqual({ done: 13, total: objectives.length, allDoneAtHour: null });
-    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 16 concluídos\n');
+    // V4H-T3: a lista passou de 16 a 21; este bot segue com 13 concluídos.
+    // Medição e limites: docs/balance-v0.4.md, seção 13 (a remedir na junção).
+    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 21 concluídos\n');
     // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
     const done = twoSessions.rows.map((row) => row.objectives);
     expect(done[0]).toBeGreaterThanOrEqual(2);
@@ -701,7 +703,7 @@ describe('resumo de uma partida', () => {
     const short = summarize(twoDays);
     expect(short.objectives.allDoneAtHour).toBeNull();
     expect(short.objectives.done).toBeLessThan(10);
-    expect(formatSummary(twoDays)).toMatch(/Objetivos: \d de 16 concluídos\n/);
+    expect(formatSummary(twoDays)).toMatch(/Objetivos: \d de 21 concluídos\n/);
   });
 
   it('traz os sinais de tédio: fila ociosa, aldeões sem ofício e excedente parado', () => {

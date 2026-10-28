@@ -671,3 +671,159 @@ A primeira rodada do portão detectou divergência da divisão de intervalo em
 estados postos diretamente dentro da antecedência, sem ensaio marcado. Corrigido
 no motor: marcação tardia só na ordem que muda a preferência; leituras não a
 fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
+
+## 15. Objetivos 17 a 21 (V4H-T3, 2026-10-27) — a remedir na junção
+
+Branch `v4h-t3-objetivos`, a partir de `a4e94b3`; implementação em `a6ec7ae`, estado 34 e
+protocolo 3. Os cinco objetivos do GDD §12.2 usam mecânicas existentes, sem substituições
+por Cerco ou sabotagem; os sazonais continuam fora (ADR 0020, decisão 24). As leituras de
+implementação estão nas pendências H-1 a H-3.
+
+### 15.1 Método e reprodução
+
+A medição usa `runMatrix({ difficulty })`, a mesma função do CLI, com as 50 sementes fixas,
+os quatro perfis padrão, os três ritmos e as duas janelas (semana real e ano de jogo).
+São 24 células e 1.200 registros por dificuldade; descontada a repetição das janelas no
+Normal, 1.000 partidas distintas por dificuldade. As células, os resumos e as linhas de
+base de `baselineFor` foram exportados para comparar cada grandeza sem escrever `MEASURED`.
+Reprodução pelo CLI:
+
+```bash
+export PATH=/home/g_pals/.nvm/versions/node/v22.22.3/bin:$PATH
+pnpm -s sim -- --matrix --difficulty lord > /tmp/v4h-t3-lord.csv 2> /tmp/v4h-t3-lord.md
+pnpm -s sim -- --matrix --difficulty peasant > /tmp/v4h-t3-peasant.csv 2> /tmp/v4h-t3-peasant.md
+pnpm -s sim -- --matrix --difficulty ironKing > /tmp/v4h-t3-ironKing.csv 2> /tmp/v4h-t3-ironKing.md
+```
+
+**`MEASURED` não foi regravada.** Esta rodada conserva a Ameaça da Fortaleza da base deste
+branch: a mudança paralela para zero até o Cerco não está incluída. As faixas ficam **a
+remedir na junção**, sobre o conjunto das duas mudanças. Não se alteraram políticas dos
+bots para atingir os objetivos.
+
+### 15.2 Resultado das 50 sementes
+
+**72 células, 3.600 registros (3.000 partidas distintas).** Fome, frio e recusas em zero
+nas três dificuldades. Senhor: **zero violações**; Camponês: **uma célula** fora da faixa;
+Rei de Ferro: **duas células**, as duas janelas da mesma partida do Normal. Os quatro
+perfis continuam com as políticas anteriores. Ninguém além do Explorador fecha os 21:
+as expedições continuam limitando os outros perfis.
+
+Cada entrada abaixo é o mínimo–máximo de objetivos cumpridos nas 50 sementes; a última
+coluna conta os Exploradores que fecharam a lista inteira.
+
+**Senhor**
+
+| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Semana | 3 | 12 | 12–13 | 13 | 19–21 | 12/50 |
+| Semana | 1 | 12 | 12–13 | 12–13 | 13–21 | 9/50 |
+| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
+| Ano | 3 | 9–11 | 12 | 12–13 | 12–13 | 0/50 |
+| Ano | 1 | 12 | 12–13 | 12–13 | 13–21 | 9/50 |
+| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 33/50 |
+
+**Camponês**
+
+| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Semana | 3 | 12 | 12–13 | 13 | 19–21 | 11/50 |
+| Semana | 1 | 12 | 12–13 | 12–13 | 15–21 | 12/50 |
+| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
+| Ano | 3 | 9–11 | 12 | 12–13 | 12–15 | 0/50 |
+| Ano | 1 | 12 | 12–13 | 12–13 | 15–21 | 12/50 |
+| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 27/50 |
+
+**Rei de Ferro**
+
+| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Semana | 3 | 12 | 12–13 | 12–13 | 19–21 | 18/50 |
+| Semana | 1 | 12 | 12–13 | 12–13 | 13–21 | 7/50 |
+| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
+| Ano | 3 | 9–10 | 12 | 12–13 | 12–16 | 0/50 |
+| Ano | 1 | 12 | 12–13 | 12–13 | 13–21 | 7/50 |
+| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 32/50 |
+
+As primeiras conclusões dos 21 ocorrem na semana do Rápido nas horas reais 86 (Senhor),
+112 (Camponês) e 76 (Rei de Ferro); no Normal, hora 168, e no ano do Tranquilo, hora 336,
+nas três dificuldades. Os ritmos 3, 1 e 0,5 são Rápido, Normal e Tranquilo. Nem toda semente fecha a lista: o máximo nulo da hora de conclusão
+continua indicando partidas incompletas.
+
+**Diferenças da linha de base preservada (seção 12 / `MEASURED`).** Só quatro células do
+Explorador por dificuldade mudaram nas grandezas da linha de base; todas as demais
+coincidiram exatamente. Nas linhas “Normal”, semana e ano são a mesma partida.
+
+| Dificuldade / célula | Antes → agora |
+| --- | --- |
+| Senhor, semana Rápido | Ouro parado máximo 182.298 → 182.318 |
+| Senhor, Normal (semana e ano) | Ouro parado máximo 16.732 → 16.752 |
+| Senhor, ano Tranquilo | População 54–73 → 57–73; pedra parada máxima 3.268 → 3.202; ouro 17.369 → 17.805 |
+| Camponês, semana Rápido | Ouro parado máximo 190.855 → 190.821 |
+| Camponês, Normal (semana e ano) | Pedra parada máxima 3.437 → 3.447; ouro 13.976 → 13.996 |
+| Camponês, ano Tranquilo | População 62–74 → 58–72; Salão mínimo 7 → 6; ouro parado máximo 17.593 → 17.605 |
+| Rei de Ferro, semana Rápido | Ouro parado máximo 174.167 → 174.187 |
+| Rei de Ferro, Normal (semana e ano) | Pedra parada máxima 2.602 → 2.761; ouro 14.406 → 14.426 |
+| Rei de Ferro, ano Tranquilo | População 55–75 → 54–75; pedra parada máxima 3.610 → 3.680; ouro 17.948 → 18.134 |
+
+Os extremos de Salão, população e materiais das demais linhas, e todos os de fome, frio
+e sequência de desperdício, ficaram iguais aos anteriores. Parte da variação do ouro é o
+prêmio de 20; as demais diferenças refletem o caminho que a lista nova faz o bot seguir,
+e não foram atribuídas a um prêmio específico.
+
+**O que piorou e volta ao autor (pendência H-4):**
+
+- Camponês, `year/0.5/explorador`, `pedra-alta-047`: Salão Nv6, abaixo do Nv7 da faixa,
+  **1/50** sementes. O mínimo e o máximo de população da célula também caem.
+- Rei de Ferro, `week/1/explorador` e `year/1/explorador`, `pedra-alta-015`: pedra parada
+  **2.761**, acima do limite **2.733**, **1/50** sementes; é a mesma partida nas duas
+  janelas. No ano do Tranquilo, a população mínima cai de 55 a 54, ainda dentro da faixa.
+
+**Conferência dos dois extremos.** Rodadas pontuais repetiram as duas sementes com visita
+extra à encruzilhada (`crossroadsVisit: true`, como na matriz), primeiro com os 21 e depois
+com apenas os 16 anteriores no mesmo processo, sem alterar arquivos, números ou políticas.
+Em Camponês/047, a lista de 16 termina com **63 aldeões, Salão Nv7 e Paliçada Nv4**;
+a de 21, com **58 aldeões, Salão Nv6 e Paliçada Nv5**. Em Rei de Ferro/015, a lista de 16
+termina com **61 aldeões e 876 de pedra parada**; a de 21, com **57 e 2.761**, ambas no
+Salão Nv6. A hora do Salão Nv4 é a mesma nas duas listas (129 e 78, respectivamente), e
+as incursões sofridas/repelidas também: 1/7 em Camponês, 2/7 em Rei de Ferro. A diferença
+é causada pela lista nova, mas esta comparação não isola qual prêmio muda o caminho.
+
+Essas violações **continuam visíveis** na matriz completa: não foram apagadas de `bands.ts`
+nem corrigidas mudando os bots ou os objetivos aprovados. O exportador de `runMatrix`
+terminou com código 0 nas três dificuldades; o CLI com verificação das faixas terminaria
+com 0 em Senhor e 1 em Camponês e Rei de Ferro. A confirmação sobre a Fortaleza com Ameaça
+zero até o Cerco é **a remedir na junção**.
+
+### 15.3 Expectativas dos testes e limites
+
+As expectativas ajustadas por causa dos objetivos novos são registradas aqui, sem afrouxar
+as verificações das mecânicas anteriores:
+
+- `simulate.test.ts`, “diz quantos Objetivos do Senhor…”: o econômico do cenário continua
+  com 13 concluídos; o denominador do texto passa de 16 a 21, também na partida curta.
+- `bots/ferreiro.test.ts`, “a partida do Explorador não ergue o Ferreiro nem forja…”: a arma
+  final passa de zero a uma, recebida do objetivo 18. O teste exige esse objetivo cumprido,
+  mantém o Ferreiro ausente e exige nenhum evento `weaponsForged`; as amostras têm zero ou
+  uma arma. Nenhuma regra de forja foi afrouxada.
+
+- `balance.test.ts`, “a linha de base de Senhor confere sem folga…”: preserva `MEASURED`
+  e aplica expectativas exatas locais só nas quatro células de Senhor acima: +20 de ouro
+  nas três primeiras e os extremos medidos de população/pedra/ouro no ano do Tranquilo.
+  Não aumenta a folga; o ajuste deve sair quando a junção remedir a base.
+- `balance.test.ts`, “os bots percorrem os objetivos…”: o máximo do Explorador no ano do
+  Tranquilo passa de 16 a **21**, nas três dificuldades; na semana do Tranquilo em Senhor,
+  de até 14 a **até 15**, como medido. Os limites dos demais perfis ficam preservados.
+
+O portão continua usando as 50 sementes de Senhor e as três primeiras nas outras duas
+(como antes); as sementes 047 e 015 que saíram da faixa aparecem **na rodada completa
+acima**, não nessa amostra do teste unitário. Portão verde não significa que as 50 de
+Camponês e Rei de Ferro estejam todas dentro das faixas antigas.
+
+Os testes do motor cobrem conclusão na fronteira de uma partida do estado 34, prêmio único,
+ordens reais, treino cancelado ou reduzido pelo piso, alvo e bloqueios na visão, XP de quem
+comandou a incursão e presságio adiado, com divisão exata do intervalo e persistência nas
+três dificuldades e ritmos. Os 26 goldens foram atualizados com `UPDATE_GOLDEN=1` e tiveram
+o diff conferido: somente os cinco ids nos cenários que já marcavam toda a lista como
+concluída e `lastRaidRepelledBattle` nas estatísticas. Nenhum retrato anterior ao estado 34
+mudou. Testes em navegador, integração e capturas não foram rodados (banco compartilhado);
+sem playtest do autor, sem medição de Cerco ou sabotagem e sem publicação.

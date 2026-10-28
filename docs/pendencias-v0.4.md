@@ -485,3 +485,53 @@ Se o novo horário já passou (dentro da janela do evento), o ensaio é marcado 
 _(Corrigido na revisão de 2026-10-27: antes, o horário já passado deixava o ensaio sem
 marcação para sempre, e a ordem podia marcar o Acampamento que a virada do dia deixara de
 fora por falta de vaga.)_
+
+### V4H-T3 — objetivos 17 a 21 (2026-10-27)
+
+**H-1. O treino anterior e a formação salva.** _(Proposta do agente; não lida pelo autor.)_
+O objetivo 18 conta soldados que terminaram o treino, somados, mesmo depois de baixas ou
+dispensa. O estado 34 não tinha esse total: os soldados presentes são o piso comprovável do
+histórico anterior; baixas e dispensas anteriores à mudança não podem ser reconstruídas.
+Os soldados entregues por carta também entram nesse piso, mas não somam ao contador novo de
+treino. O objetivo 19 conta salvar uma formação, sem exigir ativá-la (é a ação do GDD): o
+contador de identidades comprova a ação mesmo depois de apagar a formação. Os demais usam o
+Salão e os contadores já existentes de simulações e incursões repelidas. O que foi feito
+antes de revelar o objetivo vale, e cada prêmio sai uma vez. Nenhuma forma de estado mudou:
+continuam estado 34 e protocolo 3; os contadores novos cabem em `stats`, já de chaves livres.
+
+**H-2. O presságio gratuito antes do outono.** _(Proposta do agente; não lida pelo autor.)_
+O GDD não diz como dar presságio quando as ondas ainda não foram preparadas. A recompensa
+fica devida em `stats.objectiveOmenPending` e sai no primeiro `settlePlanned` com preparação
+real: lê a primeira onda da revisão atual, com a clareza da Torre (vaga sem Torre), sem
+sortear nem mudar o plano. A visão avisa que a entrega espera a preparação. Depois vale a
+regra normal: uma nova revisão substitui os presságios do painel. Não se inventa onda nem
+se antecipa o Cerco. Com preparação já existente, a entrega é imediata.
+
+**H-3. Quanto XP e a quem.** _(Proposta do agente; não lida pelo autor.)_
+O GDD promete XP ao comandante sem fixar valor: a proposta é **20 XP por comandante
+sobrevivente da última incursão repelida ainda identificável nos relatórios guardados**.
+`stats.lastRaidRepelledBattle` registra o número da batalha ao repelir: a Paliçada pode
+repelir mesmo quando a conta da batalha perdeu (D-36). Trocar a Defesa depois não transfere
+o prêmio. Para um estado anterior sem esse identificador, usa-se a última defesa com
+vitória ou resistência ainda registrada. Sem relatório ou comandante sobrevivente no
+feudo, não se inventa destinatário; o objetivo continua cumprido, sem XP adiado para outro
+herói. O número está no conteúdo. Os textos dos cinco objetivos são rascunhos do agente.
+
+Nenhum dos cinco objetivos de §12.2 depende de Cerco ou sabotagem: **nenhuma substituição**
+foi necessária. Os sazonais continuam fora, conforme a decisão 24 do ADR 0020.
+
+**H-4. Pioras medidas com os objetivos novos.** _(Proposta do agente; não lida pelo autor.)_
+A matriz de 50 sementes nas três dificuldades (balance-v0.4.md, seção 15) mantém fome,
+frio e recusas em zero, mas o Explorador de **Camponês no ano do Tranquilo** cai do Salão
+mínimo 7 ao **6** (`pedra-alta-047`, 1/50), e sua população passa de 62–74 a 58–72.
+Em **Rei de Ferro no Normal**, a pedra parada máxima sobe de 2.602 a **2.761**, acima do
+limite de 2.733 (`pedra-alta-015`, 1/50; a mesma partida na semana e no ano). No ano do
+Tranquilo de Rei de Ferro, a população mínima cai de 55 a 54, ainda dentro da faixa.
+Senhor fica dentro das faixas. A conferência pontual sem os cinco objetivos novos, com
+as visitas extras da matriz, recupera os dois extremos: Camponês/047 volta ao Salão Nv7
+(com Paliçada Nv4 em vez de Nv5) e Rei de Ferro/015 volta a 876 de pedra parada. Não se
+isolou qual recompensa muda o caminho. A proposta conservadora é manter os cinco objetivos
+aprovados e **remedir na junção** com a Ameaça da Fortaleza em zero até o Cerco, antes de
+decidir ajuste de custo, recompensa ou progressão. `MEASURED` ficou intacta; os desvios
+continuam visíveis na matriz completa. O portão só amostra as três primeiras sementes
+nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 015 e 047.

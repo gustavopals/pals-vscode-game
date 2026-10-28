@@ -708,3 +708,18 @@ a Vigília: `vigil: { utcOffsetMinutes, timezoneResolved }`, resolvido pelo serv
 e guardado no registro da ordem. Sem contexto válido, `setVigilHour` recusa
 `INVALID_VIGIL`. A ordem muda a preferência e emite `vigilChanged`, sem tocar
 incursões marcadas, RNG ou ids. O Cerco não existe nesta entrega.
+
+### Objetivos 17 a 21 (V4H-T3)
+
+O catálogo de `objectives.ts` chega a 21 objetivos, com os primeiros dezesseis preservados.
+O Salão Nv4, o total de treino concluído, uma formação salva, uma prévia e uma incursão
+repelida são avaliados pelo mesmo `settlePlanned`, no máximo três ativos. A visão aponta
+`target.kind: 'army'` para os objetivos de guerra; o cliente só navega até o Exército.
+
+A forma continua na versão 34: `stats.soldiersTrained` registra treino concluído (os soldados
+presentes são o piso para partidas antigas); `ids.formation` comprova a formação salva mesmo
+apagada. O presságio gratuito usa `revealOmen`, sem sorteio: espera em
+`stats.objectiveOmenPending` até existir preparação real e revela sua primeira onda com a
+clareza da Torre. A incursão repelida registra `stats.lastRaidRepelledBattle` para o prêmio
+achar os comandantes que lutaram. Valores e limites estão no conteúdo; as escolhas e os
+limites do histórico antigo estão em `docs/pendencias-v0.4.md`, H-1 a H-3.
