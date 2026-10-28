@@ -92,6 +92,9 @@ export const REJECTION_CODES = [
   'WALL_REQUIRED',
   'WALL_INTACT',
   'WALL_REPAIRING',
+  'SABOTAGE_SEASON',
+  'SABOTAGE_LIMIT',
+  'TEAM_SIZE',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;

@@ -1167,6 +1167,9 @@ export const REJECTION_CODES = [
   'WALL_REQUIRED',
   'WALL_INTACT',
   'WALL_REPAIRING',
+  'SABOTAGE_SEASON',
+  'SABOTAGE_LIMIT',
+  'TEAM_SIZE',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 

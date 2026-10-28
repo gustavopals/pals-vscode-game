@@ -869,6 +869,7 @@ export function everyDestinationOpen(draft: GameState): void {
   draft.map.discovered = expeditionModels
     .filter((model) => model.access.kind === 'discovered')
     .map((model) => model.id);
+  draft.map.discovered.push('sabotage');
   const captive = addHero(draft, { name: 'Cativo' });
   captive.status = 'captured';
   captive.captivity = { sinceMs: draft.lastProcessedAt, modelId: 'ruins' };

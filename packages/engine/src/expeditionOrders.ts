@@ -69,6 +69,10 @@ export function sendExpedition(
   const sentKey = `expeditionsSent:${model.id}`;
   draft.stats[sentKey] = timesSent(draft, model.id) + 1;
   draft.stats.expeditionsSent = (draft.stats.expeditionsSent ?? 0) + 1;
+  if (model.id === 'sabotage') {
+    draft.horde.sabotages.attempts += 1;
+    draft.stats.sabotages = (draft.stats.sabotages ?? 0) + 1;
+  }
   const expedition: Expedition = {
     id: nextId(draft, 'expedition'),
     modelId: model.id,

@@ -99,12 +99,39 @@ function generateWave(draft: GameState, def: HordeWaveDef): Wave {
 
 /** Só é chamada na linha do tempo: as ondas reais, ainda sem agendar o Cerco. */
 function prepareWaves(draft: GameState, atMs: number): void {
+  const previousWaves = draft.horde.wavePlan?.waves;
   const revision = (draft.horde.wavePlan?.revision ?? 0) + 1;
+  const waves = hordeWaves.map((def) => generateWave(draft, def));
+
+  // Preserva reduções de sabotagens anteriores ao regerar as ondas
+  if (previousWaves !== undefined) {
+    for (const wave of waves) {
+      const prev = previousWaves.find((w) => w.number === wave.number);
+      if (prev?.reductionPercent !== undefined && prev.reductionPercent > 0) {
+        wave.reductionPercent = prev.reductionPercent;
+        for (const post of wave.composition) {
+          post.count = Math.max(1, Math.floor((post.count * (100 - prev.reductionPercent)) / 100));
+        }
+      }
+    }
+  }
+
+  // Aplica alerta se a Horda já foi alertada por sabotagem desastrada
+  if (draft.horde.sabotages?.alerted) {
+    const wave1 = waves.find((w) => w.number === 1);
+    if (wave1 !== undefined) {
+      const { num, den } = balance.horde.sabotage.alertIncrease;
+      for (const post of wave1.composition) {
+        post.count = Math.floor((post.count * (den + num)) / den);
+      }
+    }
+  }
+
   draft.horde.wavePlan = {
     year: yearOf(atMs),
     revision,
     generatedAtMs: atMs,
-    waves: hordeWaves.map((def) => generateWave(draft, def)),
+    waves,
   };
   // Um presságio antigo é um fato da Crônica. No painel só fica a informação da versão atual.
   draft.horde.omens = [];
@@ -128,6 +155,98 @@ export function resetHordeYear(draft: GameState): void {
   draft.horde.lastFormationSeen = null;
   draft.horde.wavePlan = null;
   draft.horde.omens = [];
+  draft.horde.sabotages = { attempts: 0, successes: 0, alerted: false };
+}
+
+/** Alerta a Fortaleza da Horda após um Desastre com alarme: +10% na primeira onda. */
+export function alertHordeFortress(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  expeditionId: string,
+): void {
+  if (draft.horde.sabotages.alerted) return;
+  draft.horde.sabotages.alerted = true;
+  if (draft.horde.wavePlan !== null) {
+    const wave1 = draft.horde.wavePlan.waves.find((w) => w.number === 1);
+    if (wave1 !== undefined) {
+      const { num, den } = balance.horde.sabotage.alertIncrease;
+      for (const post of wave1.composition) {
+        post.count = Math.floor((post.count * (den + num)) / den);
+      }
+    }
+  }
+  emit(events, draft, atMs, 'hordeAlerted', { expeditionId, modelId: 'sabotage' });
+}
+
+const WAVE_CHRONICLE_LABELS: Record<number, string> = {
+  1: 'a primeira onda',
+  2: 'a segunda onda',
+  3: 'a terceira onda',
+};
+
+/** Aplica a redução da sabotagem à onda correspondente (-15%). */
+export function applyWaveSabotage(
+  draft: GameState,
+  waveNumber: 1 | 2 | 3,
+  atMs: number,
+  events: GameEvent[],
+  expeditionId: string,
+): void {
+  draft.horde.sabotages.successes += 1;
+  if (draft.horde.wavePlan !== null) {
+    const wave = draft.horde.wavePlan.waves.find((w) => w.number === waveNumber);
+    if (wave !== undefined) {
+      const { num, den } = balance.horde.sabotage.waveReduction;
+      const percent = Math.round((num * 100) / den);
+      wave.reductionPercent = (wave.reductionPercent ?? 0) + percent;
+      for (const post of wave.composition) {
+        post.count = Math.max(1, Math.floor((post.count * (den - num)) / den));
+      }
+    }
+  }
+  emit(
+    events,
+    draft,
+    atMs,
+    'hordeSabotaged',
+    { expeditionId, wave: waveNumber },
+    { onda: WAVE_CHRONICLE_LABELS[waveNumber] ?? `${waveNumber}ª onda` },
+  );
+}
+
+/** Revela a composição exata da terceira onda após derrotar o Xamã. */
+export function revealWaveThree(draft: GameState, atMs: number, events: GameEvent[]): void {
+  if (draft.horde.wavePlan === null) return;
+  const wave3 = draft.horde.wavePlan.waves.find((w) => w.number === 3);
+  if (wave3 === undefined) return;
+  const parts = wave3.composition.map((post) =>
+    omenTexts.post
+      .replace('{contagem}', String(post.count))
+      .replace(
+        '{inimigo}',
+        post.count === 1
+          ? hordeUnits[post.unit].label.toLowerCase()
+          : hordeUnits[post.unit].pluralLabel,
+      )
+      .replace('{linha}', omenTexts.lines[post.line])
+      .replace('{ala}', omenTexts.wings[post.wing]),
+  );
+  const text = omenTexts.exact
+    .replace('{onda}', omenTexts.waves[3])
+    .replace('{composicao}', parts.join('; '));
+
+  draft.horde.omens.push({
+    atMs,
+    revision: draft.horde.wavePlan.revision,
+    clarity: 'exact',
+    wave: 3,
+    text,
+    reveals: wave3.composition.map((post) => ({ ...post })),
+  });
+  draft.horde.omens = draft.horde.omens.slice(-balance.omens.kept);
+  draft.stats.omens = (draft.stats.omens ?? 0) + 1;
+  emit(events, draft, atMs, 'omenSeen', { wave: 3, clarity: 'exact' }, { pressagio: text });
 }
 
 /** Datas conferidas só nas viradas, também para quem acabou de migrar depois delas. */

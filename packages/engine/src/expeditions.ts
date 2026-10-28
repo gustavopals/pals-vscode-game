@@ -217,6 +217,9 @@ export function rescuesUnderWay(state: GameState): number {
  * de revelados; o Resgate, enquanto houver um cativo. **O que não aparece não sai do servidor.**
  */
 export function isKnownDestination(state: GameState, model: ExpeditionModelDef): boolean {
+  if (model.id === 'sabotage') {
+    return state.map.tiles.hordeFortress?.threatActive === true;
+  }
   if (model.access.kind === 'tile') {
     return true;
   }
@@ -348,6 +351,14 @@ export function destinationBlock(state: GameState, modelId: unknown): Rejection 
   if (model === null) {
     return reject('EXPEDITION_LOCKED');
   }
+  if (model.id === 'sabotage' && !state.map.discovered.includes('sabotage')) {
+    if (seasonAt(state.clock.gameTimeMs).id !== 'autumn') {
+      return reject('SABOTAGE_SEASON');
+    }
+    if ((state.horde.sabotages?.attempts ?? 0) >= balance.horde.sabotage.maxPerYear) {
+      return reject('SABOTAGE_LIMIT');
+    }
+  }
   if (level < model.requires.guildLevel) {
     return reject('EXPEDITION_LOCKED', {
       remedy: `pede ${buildingWithArticle('guild')} no nível ${model.requires.guildLevel}`,
@@ -400,6 +411,9 @@ export function teamBlock(
   heroIds: unknown,
 ): Rejection | null {
   const ids = Array.isArray(heroIds) ? (heroIds as unknown[]) : [];
+  if (model.id === 'sabotage' && ids.length !== 3) {
+    return reject('TEAM_SIZE');
+  }
   if (ids.length === 0 || new Set(ids).size !== ids.length) {
     return reject('TEAM_INVALID', { label: model.label });
   }

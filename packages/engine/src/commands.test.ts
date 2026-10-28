@@ -9,6 +9,7 @@ import {
   addHero,
   accept,
   apply,
+  AUTUMN,
   command,
   dealt,
   gameWith,
@@ -210,6 +211,27 @@ describe('catálogo de recusas', () => {
     atFork,
     command('chooseExpeditionPath', { expeditionId: inForest.expedition.id, optionId: 'stream' }),
   ).state;
+  const autumnFortress = guildHall(
+    AUTUMN,
+    (draft) => {
+      addHero(draft);
+      addHero(draft, { classId: 'archer' });
+      addHero(draft, { classId: 'mage' });
+      draft.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
+    },
+    { level: 3 },
+  );
+  const maxedSabotages = guildHall(
+    AUTUMN,
+    (draft) => {
+      addHero(draft);
+      addHero(draft, { classId: 'archer' });
+      addHero(draft, { classId: 'mage' });
+      draft.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
+      draft.horde.sabotages.attempts = 3;
+    },
+    { level: 3 },
+  );
   const smithy = smithyStall(0);
   const intact = smithyStall(0, (draft) => {
     giveItem(draft, 'ashBow');
@@ -363,6 +385,30 @@ describe('catálogo de recusas', () => {
     WALL_REPAIRING: [
       accept(wallSite(2, { left: 10 }), command('repairWall', {})).state,
       command('repairWall', {}),
+    ],
+    SABOTAGE_SEASON: [
+      roomy2,
+      command('sendExpedition', {
+        modelId: 'sabotage',
+        heroIds: ['hero-1', 'hero-2', 'hero-3'],
+        posture: 'balanced',
+      }),
+    ],
+    SABOTAGE_LIMIT: [
+      maxedSabotages,
+      command('sendExpedition', {
+        modelId: 'sabotage',
+        heroIds: ['hero-1', 'hero-2', 'hero-3'],
+        posture: 'balanced',
+      }),
+    ],
+    TEAM_SIZE: [
+      autumnFortress,
+      command('sendExpedition', {
+        modelId: 'sabotage',
+        heroIds: ['hero-1'],
+        posture: 'balanced',
+      }),
     ],
   };
 
