@@ -128,6 +128,14 @@ function teamFor(
       classes.push(requires.heroClass);
     }
   }
+  // Duas capturas antes da encruzilhada não podem retirar o único herói que abre
+  // o ramo sob teste. A sabotagem parte com três; todos carregam o requisito do ramo.
+  if (model.id === 'sabotage' && (classes.length > 0 || traits.length > 0)) {
+    return Array.from({ length: model.requires.teamMax }, () => ({
+      classId: classes[0] ?? 'warrior',
+      traits: [...traits],
+    }));
+  }
   for (const classId of HERO_CLASS_IDS) {
     if (classes.length < model.requires.teamMax && !classes.includes(classId)) {
       classes.push(classId);

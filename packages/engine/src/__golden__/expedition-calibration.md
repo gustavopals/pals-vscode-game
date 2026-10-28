@@ -99,19 +99,19 @@ Em 31 sortes:
 | Pântano Nebuloso | C | A maldição dos enforcados | 150 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 0/16/15/0 | 0/4/27/0 | 0/19/12/0 |
 | Pântano Nebuloso | C | O canal escuro | 104 | o padrão | Guerreiro | fere | 0/10/21/0 | 0/23/8/0 | 12/19/0/0 |
 | Pântano Nebuloso | C | A serpente do lodo | 134 | perícia ×0,5 | Guerreiro | captura | 0/0/31/0 | 0/11/20/0 | 0/25/6/0 |
-| Sabotagem da Fortaleza | A | As trincheiras da vanguarda | 110 | o padrão | Guerreiro | fere | 0/1/30/0 | 0/18/13/0 | 6/25/0/0 |
-| Sabotagem da Fortaleza | A | Os cercados das feras | 124 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 11/20/0/0 | 0/23/8/0 | 12/19/0/0 |
-| Sabotagem da Fortaleza | A | As oficinas de cerco | 124 | perícia ×1,5 | Arqueiro | fere | 0/22/9/0 | 13/18/0/0 | 28/3/0/0 |
+| Sabotagem da Fortaleza | A | As trincheiras da vanguarda | 110 | o padrão | Guerreiro | captura | 0/1/30/0 | 0/18/13/0 | 6/25/0/0 |
+| Sabotagem da Fortaleza | A | Os cercados das feras | 124 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 11/20/0/0 | 0/23/8/0 | 12/19/0/0 |
+| Sabotagem da Fortaleza | A | As oficinas de cerco | 124 | perícia ×1,5 | Arqueiro | captura | 0/22/9/0 | 13/18/0/0 | 28/3/0/0 |
 | Sabotagem da Fortaleza | A | O bastião dos guardas negros | 158 | defesa ×1,5 | Guerreiro | captura | 0/0/20/11 | 0/0/29/2 | 0/10/21/0 |
 | Sabotagem da Fortaleza | A | O altar do xamã de sangue | 112 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/29/2 | 0/10/21/0 | 0/24/7/0 |
-| Sabotagem da Fortaleza | B | O desfiladeiro das sentinelas | 110 | perícia ×1,5 | Arqueiro | fere | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
-| Sabotagem da Fortaleza | B | Os canis de guerra | 122 | defesa ×1,5 | Guerreiro | fere | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
-| Sabotagem da Fortaleza | B | As cisternas da guarnição | 122 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 13/18/0/0 | 0/24/7/0 | 13/18/0/0 |
+| Sabotagem da Fortaleza | B | O desfiladeiro das sentinelas | 110 | perícia ×1,5 | Arqueiro | captura | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
+| Sabotagem da Fortaleza | B | Os canis de guerra | 122 | defesa ×1,5 | Guerreiro | captura | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
+| Sabotagem da Fortaleza | B | As cisternas da guarnição | 122 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 13/18/0/0 | 0/24/7/0 | 13/18/0/0 |
 | Sabotagem da Fortaleza | B | O salão das caveiras | 150 | vontade ×1,5 | Mago | captura | 0/26/5/0 | 0/22/9/0 | 11/20/0/0 |
 | Sabotagem da Fortaleza | B | O círculo de ossos do xamã | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
-| Sabotagem da Fortaleza | C | O parapeito ruído da muralha | 110 | perícia ×1,5 | Arqueiro | fere | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
-| Sabotagem da Fortaleza | C | Os estábulos da matilha | 136 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 1/26/4/0 | 0/14/17/0 | 2/26/3/0 |
-| Sabotagem da Fortaleza | C | O depósito de óleo e breu | 122 | defesa ×1,5 | Guerreiro | fere | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
+| Sabotagem da Fortaleza | C | O parapeito ruído da muralha | 110 | perícia ×1,5 | Arqueiro | captura | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
+| Sabotagem da Fortaleza | C | Os estábulos da matilha | 136 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 1/26/4/0 | 0/14/17/0 | 2/26/3/0 |
+| Sabotagem da Fortaleza | C | O depósito de óleo e breu | 122 | defesa ×1,5 | Guerreiro | captura | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
 | Sabotagem da Fortaleza | C | O paiol fortificado | 152 | perícia ×1,5 | Arqueiro | captura | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
 | Sabotagem da Fortaleza | C | O santuário dos totens | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
 

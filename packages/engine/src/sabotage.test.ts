@@ -1,8 +1,9 @@
-import type { DifficultyId } from '@lotg/content';
+import { expeditionModels, type DifficultyId } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { currentShape } from './migrations';
+import { harmOf } from './outcomes';
 import { cloneState } from './state';
 import {
   accept,
@@ -72,6 +73,25 @@ function autumnWithFortress(
 }
 
 describe('V4F-T1 · Sabotagem da Fortaleza', () => {
+  it.each([
+    ['peasant', 'severe', true],
+    ['lord', 'captured', false],
+    ['ironKing', 'died', false],
+  ] as const)('toda prova usa a captura pela dificuldade em %s', (difficulty, kind, spared) => {
+    const state = autumnWithFortress(undefined, difficulty);
+    const model = expeditionModels.find((entry) => entry.id === 'sabotage')!;
+    let trials = 0;
+    for (const [index, variant] of model.variants.entries()) {
+      for (const [nodeId, node] of Object.entries(variant.nodes)) {
+        if (!('trial' in node) || node.trial === undefined) continue;
+        trials += 1;
+        expect(node.trial.onDisaster, `${index}/${nodeId}`).toBe('capture');
+        expect(harmOf(state, 'disaster', node.trial.onDisaster)).toEqual({ kind, spared });
+      }
+    }
+    expect(trials).toBe(15);
+  });
+
   describe('recusas de envio', () => {
     it('recusa fora do outono com SABOTAGE_SEASON', () => {
       const heroes = ['hero-1', 'hero-2', 'hero-3'];
