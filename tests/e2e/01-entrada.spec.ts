@@ -198,7 +198,7 @@ function watchNewGames(context: BrowserContext): Array<Record<string, unknown>> 
 }
 
 async function openSettings(page: Page) {
-  await page.getByRole('button', { name: 'Preferências' }).click();
+  await page.getByRole('button', { name: 'Preferências', exact: true }).click();
   await expect(settings(page).getByRole('heading', { name: 'Preferências' })).toBeVisible();
 }
 

@@ -21,7 +21,7 @@ import {
 const settings = (page: Page) => page.getByRole('tabpanel', { name: 'Preferências' });
 
 async function openSettings(page: Page) {
-  await page.getByRole('button', { name: 'Preferências' }).click();
+  await page.getByRole('button', { name: 'Preferências', exact: true }).click();
   await expect(settings(page).getByRole('heading', { name: 'Preferências' })).toBeVisible();
 }
 
