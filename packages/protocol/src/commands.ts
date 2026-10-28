@@ -300,6 +300,11 @@ export const SimulateBattleCommandSchema = command(
   z.strictObject({ formationId: z.string().min(1).max(64) }),
 );
 
+export const AttackCampCommandSchema = command(
+  'attackCamp',
+  z.strictObject({ formationId: z.string().min(1).max(64) }),
+);
+
 /** Repara a muralha (V4E-T1): o reparo entra na frente das obras e termina junto delas. */
 export const RepairWallCommandSchema = command('repairWall', z.strictObject({}));
 
@@ -335,6 +340,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   DeleteFormationCommandSchema,
   SetActiveFormationCommandSchema,
   SimulateBattleCommandSchema,
+  AttackCampCommandSchema,
   RepairWallCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;

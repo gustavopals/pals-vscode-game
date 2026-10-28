@@ -1,3 +1,4 @@
+import { nextCampaignEventAt } from './campaign';
 import { nextCaravanArrivalAt } from './caravans';
 import { nextDayBoundary } from './clock';
 import { nextCouncilEventAt } from './council';
@@ -107,6 +108,8 @@ export function nextEventAt(state: GameState): number | null {
     candidates.push(expedition);
   }
   // As caravanas: a chegada. É nesse instante, e só nele, que uma caravana sem escolta sorteia.
+  const campaign = nextCampaignEventAt(state);
+  if (campaign !== null) candidates.push(campaign);
   const caravan = nextCaravanArrivalAt(state);
   if (caravan !== null) {
     candidates.push(caravan);

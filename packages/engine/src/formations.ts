@@ -1,6 +1,7 @@
 import {
   balance,
   formationTexts,
+  campaignTexts,
   LINE_IDS,
   lineLabels,
   UNIT_IDS,
@@ -9,6 +10,7 @@ import {
   wingLabels,
 } from '@lotg/content';
 
+import { availableUnits } from './campaign';
 import { barracksLevel, isUnitId, troopText } from './army';
 import { fillText, joinList } from './format';
 import { canDepart } from './heroes';
@@ -73,9 +75,10 @@ export function formationShortfall(
   formation: Formation,
 ): Array<{ unit: UnitId; missing: number }> {
   const required = requiredUnits(formation);
-  return UNIT_IDS.filter((unit) => required[unit] > state.army.units[unit]).map((unit) => ({
+  const available = availableUnits(state);
+  return UNIT_IDS.filter((unit) => required[unit] > available[unit]).map((unit) => ({
     unit,
-    missing: required[unit] - state.army.units[unit],
+    missing: required[unit] - available[unit],
   }));
 }
 
@@ -154,6 +157,8 @@ export function nominationReason(hero: Hero): string | null {
       return formationTexts.heroInjured;
     case 'captured':
       return formationTexts.heroCaptive;
+    case 'campaign':
+      return campaignTexts.heroAway;
     case 'escort':
       return formationTexts.heroEscort;
     default:

@@ -1886,9 +1886,17 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     ).toBe(false);
   });
 
-  it('o estado de um herói tem rótulo: no feudo, em expedição, em recuperação ou em cativeiro', () => {
+  it('o estado de um herói tem rótulo, inclusive em campanha', () => {
     expect(HeroStatusesSchema.safeParse(heroStatuses).error).toBeUndefined();
-    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured', 'escort']);
+    expect(HERO_STATUS_IDS).toEqual([
+      'idle',
+      'expedition',
+      'injured',
+      'captured',
+      'escort',
+      'campaign',
+    ]);
+    expect(heroStatuses.campaign.label).toBe('Em campanha');
     expect(heroStatuses.escort.label).toBe('Em escolta');
     expect(heroStatuses.injured.label).toBe('Em recuperação');
     expect(heroStatuses.captured.label).toBe('Em cativeiro');

@@ -1,4 +1,4 @@
-import { balance, units } from '@lotg/content';
+import { balance, campaignTexts, units, WING_IDS } from '@lotg/content';
 
 import {
   armyCap,
@@ -13,11 +13,16 @@ import {
   trainingWeapons,
   troopText,
 } from './army';
+import { availableUnits, formationCount } from './campaign';
+import { findFormation } from './formations';
+import { canDepart } from './heroes';
+import { buildDefender } from './raidArmy';
+import { watchtowerLevel } from './threat';
 import { emit } from './chronicle';
 import { amountsData, missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import { storeResource } from './storage';
-import type { GameEvent, GameState, Rejection } from './types';
+import type { Formation, GameEvent, GameState, Rejection } from './types';
 import { MILLI } from './units';
 
 /**
@@ -184,7 +189,7 @@ export function disbandSoldiers(
       note: 'Dispense um número inteiro de soldados, a partir de 1.',
     });
   }
-  const have = draft.army.units[unit];
+  const have = availableUnits(draft)[unit];
   if (amount > have) {
     return reject('NOT_ENOUGH_SOLDIERS', { count: have });
   }
@@ -203,5 +208,89 @@ export function disbandSoldiers(
     },
     { tropa: troopText(unit, amount) },
   );
+  return null;
+}
+
+/** A fotografia da tropa que pode partir; o plano pode pedir mais soldados do que existem. */
+function departingFormation(state: GameState, formation: Formation): Formation {
+  const player = buildDefender(formation, availableUnits(state), (heroId) => {
+    const hero = state.guild.heroes.find((entry) => entry.id === heroId);
+    return hero !== undefined && canDepart(hero) && hero.injury === null ? hero.classId : null;
+  });
+  return {
+    id: formation.id,
+    name: formation.name,
+    posts: player.posts,
+    commanders: Object.fromEntries(
+      WING_IDS.map((wing) => [
+        wing,
+        player.posts[wing].front === null && player.posts[wing].back === null
+          ? null
+          : (player.commanders[wing]?.heroId ?? null),
+      ]),
+    ) as Formation['commanders'],
+  };
+}
+
+/** Validação sem sorteio, usada pela ordem e pela visão. */
+export function attackCampBlock(state: GameState, formationId: unknown): Rejection | null {
+  if (state.army.campaign !== null) return reject('ARMY_AWAY');
+  const camp = state.map.tiles.raiderCamp;
+  // O tile só é conhecido com a Torre. A recusa é a mesma com tile ausente, oculto ou limpo.
+  if (camp?.type !== 'raiderCamp' || !camp.threatActive || watchtowerLevel(state) === 0)
+    return reject('CAMP_NOT_FOUND');
+  const formation = findFormation(state, formationId);
+  if (formation === undefined) return reject('FORMATION_NOT_FOUND');
+  const departing = departingFormation(state, formation);
+  if (formationCount(departing) === 0) return reject('NO_SOLDIERS');
+  for (const wing of WING_IDS) {
+    if (departing.posts[wing].front === null && departing.posts[wing].back === null) continue;
+    const heroId = formation.commanders[wing];
+    if (heroId === null) continue;
+    const hero = state.guild.heroes.find((entry) => entry.id === heroId);
+    if (hero === undefined) return reject('HERO_NOT_FOUND');
+    if (!canDepart(hero) || hero.injury !== null) return reject('HERO_BUSY', { label: hero.name });
+  }
+  if (
+    WING_IDS.filter((wing) => departing.commanders[wing] !== null).length <
+    balance.army.campaign.minCommanders
+  ) {
+    return reject('HERO_UNAVAILABLE', {
+      label: campaignTexts.label,
+      remedy: campaignTexts.commanderRequired,
+    });
+  }
+  return null;
+}
+
+/** A ordem só reserva tropa e marca os instantes. O fluxo battle:<id> nasce na chegada. */
+export function attackCamp(
+  draft: GameState,
+  formationId: unknown,
+  nowMs: number,
+  events: GameEvent[],
+): Rejection | null {
+  const blocked = attackCampBlock(draft, formationId);
+  if (blocked !== null) return blocked;
+  const formation = departingFormation(draft, findFormation(draft, formationId)!);
+  const { travelMs } = balance.army.campaign;
+  draft.army.campaign = {
+    formationId: formation.id,
+    formation,
+    tile: 'raiderCamp',
+    departsAtMs: nowMs,
+    battleAtMs: nowMs + travelMs,
+    returnsAtMs: nowMs + travelMs * 2,
+    report: null,
+  };
+  for (const heroId of Object.values(formation.commanders)) {
+    const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
+    if (hero !== undefined) hero.status = 'campaign';
+  }
+  emit(events, draft, nowMs, 'armyMarched', {
+    formationId: formation.id,
+    tileId: 'raiderCamp',
+    soldiers: formationCount(formation),
+  });
   return null;
 }

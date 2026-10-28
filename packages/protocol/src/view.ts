@@ -21,6 +21,9 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'ARMY_AWAY',
+  'CAMP_NOT_FOUND',
+  'NO_SOLDIERS',
   'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
@@ -813,6 +816,32 @@ const SmithySchema = z.strictObject({
 const unitId = z.enum(UNIT_IDS);
 
 const ArmySchema = z.strictObject({
+  campaign: z
+    .strictObject({
+      formationId: z.string(),
+      formationName: z.string(),
+      tile: z.string(),
+      destination: z.string(),
+      phase: z.enum(['marching', 'returning']),
+      text: z.string(),
+      battleInSeconds: z.number(),
+      returnsInSeconds: z.number(),
+      reportId: z.string().nullable(),
+    })
+    .nullable(),
+  campAssault: z.strictObject({
+    text: z.string(),
+    travelSeconds: z.number(),
+    totalSeconds: z.number(),
+    blockedReason: z.string().nullable(),
+    formations: z.array(
+      z.strictObject({
+        formationId: z.string(),
+        canAttack: z.boolean(),
+        blockedReason: z.string().nullable(),
+      }),
+    ),
+  }),
   /** O edifício do Quartel: é o que `startConstruction` recebe. */
   building: buildingId,
   built: z.boolean(),
@@ -912,6 +941,7 @@ const ArmySchema = z.strictObject({
     }),
   ),
   editor: z.strictObject({
+    warning: z.string().nullable(),
     postMax: z.number(),
     formationsCap: z.number(),
     canSaveNew: z.boolean(),
@@ -938,6 +968,7 @@ const ArmySchema = z.strictObject({
   /** A última prévia do Conselho de Guerra (V4D-T2); `null` até a primeira. */
   preview: z
     .strictObject({
+      warning: z.string().nullable(),
       formationId: z.string(),
       runs: z.number(),
       /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */

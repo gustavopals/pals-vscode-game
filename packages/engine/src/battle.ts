@@ -343,15 +343,13 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
 
   const defense = input.mode === 'defense';
   const wall: Partial<Record<WingId, number>> = {};
-  {
-    for (const wing of WING_IDS) {
-      const hp = input.wall[wing];
-      if (hp !== undefined) {
-        if (!Number.isSafeInteger(hp) || hp < 0) {
-          throw new Error(`Muralha com vida inválida na batalha: ${wing}.`);
-        }
-        wall[wing] = hp;
+  for (const wing of WING_IDS) {
+    const hp = input.wall[wing];
+    if (hp !== undefined) {
+      if (!Number.isSafeInteger(hp) || hp < 0) {
+        throw new Error(`Muralha com vida inválida na batalha: ${wing}.`);
       }
+      wall[wing] = hp;
     }
   }
   const wallStart = { ...wall };

@@ -272,6 +272,25 @@ export function clearTile(
   atMs: number,
   events: GameEvent[],
 ): boolean {
+  return clearThreatTile(
+    draft,
+    tileId,
+    label,
+    { expeditionId: expedition.id, modelId: expedition.modelId },
+    atMs,
+    events,
+  );
+}
+
+/** A mesma limpeza para expedição ou campanha: uma queda de Ameaça por tile ativo. */
+export function clearThreatTile(
+  draft: GameState,
+  tileId: string,
+  label: string,
+  source: Record<string, string>,
+  atMs: number,
+  events: GameEvent[],
+): boolean {
   const tile = Object.hasOwn(draft.map.tiles, tileId) ? draft.map.tiles[tileId] : undefined;
   if (tile === undefined || !tile.threatActive) {
     return false;
@@ -284,7 +303,7 @@ export function clearTile(
     draft,
     atMs,
     'threatTileCleared',
-    { tileId, expeditionId: expedition.id, modelId: expedition.modelId },
+    { tileId, ...source },
     { expedicao: label, lugar: tileWithArticle(draft, tileId) ?? '' },
   );
   return true;
@@ -327,7 +346,7 @@ export function restoreTiles(draft: GameState, atMs: number, events: GameEvent[]
 
 /** Os tiles de ameaça limpos agora, pela chave, em ordem. */
 export function clearedTiles(state: GameState): string[] {
-  return startingTiles
+  return [...startingTiles, { id: 'raiderCamp', threatActive: true }]
     .filter((start) => start.threatActive && state.map.tiles[start.id]?.threatActive === false)
     .map((start) => start.id)
     .sort();

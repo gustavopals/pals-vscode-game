@@ -557,7 +557,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 38;
+  schemaVersion: 39;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -878,7 +878,19 @@ export type Formation = {
   commanders: Record<WingId, string | null>;
 };
 
+/** Campanha única; os postos são os que partiram, independentes da formação salva. */
+export type ArmyCampaign = {
+  formationId: string;
+  formation: Formation;
+  tile: string;
+  departsAtMs: number;
+  battleAtMs: number;
+  returnsAtMs: number;
+  report: BattleReport | null;
+};
+
 export type ArmyState = {
+  campaign: ArmyCampaign | null;
   units: Record<UnitId, number>;
   training: TrainingBatch | null;
   /** As formações salvas, na ordem em que foram criadas; até `balance.army.formationsCap`. */
@@ -1077,6 +1089,7 @@ export type Command =
       };
     }
   /** Apaga uma formação salva; a Defesa ativa não se apaga (desative ou troque antes). */
+  | { commandId: string; type: 'attackCamp'; payload: { formationId: string } }
   | { commandId: string; type: 'deleteFormation'; payload: { id: string } }
   /** Marca a Defesa ativa; `id: null` a desmarca. */
   | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } }
@@ -1096,6 +1109,9 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'ARMY_AWAY',
+  'CAMP_NOT_FOUND',
+  'NO_SOLDIERS',
   'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
@@ -2360,6 +2376,24 @@ export type SmithyView = {
  * prontos: o app não calcula nada. `foodPerHour` é o consumo de cada soldado por hora real.
  */
 export type ArmyView = {
+  campaign: {
+    formationId: string;
+    formationName: string;
+    tile: string;
+    destination: string;
+    phase: 'marching' | 'returning';
+    text: string;
+    battleInSeconds: number;
+    returnsInSeconds: number;
+    reportId: string | null;
+  } | null;
+  campAssault: {
+    text: string;
+    travelSeconds: number;
+    totalSeconds: number;
+    blockedReason: string | null;
+    formations: Array<{ formationId: string; canAttack: boolean; blockedReason: string | null }>;
+  };
   /** Frases públicas dos presságios atuais; sem a composição escondida ou a memória. */
   /** A onda de que o presságio fala; `null` no vago, que não diz qual é. */
   omens: Array<{ text: string; wave: 1 | 2 | 3 | null }>;
@@ -2487,6 +2521,8 @@ export type ArmyReportView = {
 
 /** A prévia do Conselho de Guerra na visão: percentuais inteiros e frases prontas. */
 export type ArmyPreviewView = {
+  /** A prévia defensiva exclui os soldados e comandantes em campanha. */
+  warning: string | null;
   formationId: string;
   /** Quantas batalhas a prévia rodou. */
   runs: number;
@@ -2564,6 +2600,8 @@ export type FormationView = {
 
 /** O que o editor de formação oferece (GDD §13.4). */
 export type FormationEditorView = {
+  /** Aviso da reserva em campanha; null com todos no feudo. */
+  warning: string | null;
   /** O máximo de soldados por posto no Quartel de agora. */
   postMax: number;
   /** Quantas formações cabem, e se ainda cabe uma nova. */

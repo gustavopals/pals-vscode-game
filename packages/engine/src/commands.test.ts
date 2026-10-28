@@ -7,6 +7,7 @@ import { applyCommand } from './commands';
 import { describeAmounts, reject } from './rejections';
 import {
   addHero,
+  campaignYard,
   accept,
   apply,
   AUTUMN,
@@ -248,6 +249,20 @@ describe('catálogo de recusas', () => {
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
+    ARMY_AWAY: [
+      accept(campaignYard(), command('attackCamp', { formationId: 'formation-1' })).state,
+      command('attackCamp', { formationId: 'formation-1' }),
+    ],
+    CAMP_NOT_FOUND: [rich, command('attackCamp', { formationId: 'formation-1' })],
+    NO_SOLDIERS: [
+      (() => {
+        const state = campaignYard();
+        state.army.units.swordsman = 0;
+        state.army.units.archer = 0;
+        return state;
+      })(),
+      command('attackCamp', { formationId: 'formation-1' }),
+    ],
     INVALID_VIGIL: [rich, command('setVigilHour', { hourLocal: 24, timezone: 'UTC' })],
     UNKNOWN_COMMAND: [rich, unknown],
     INVALID_BUILDING: [rich, command('startConstruction', bogus)],

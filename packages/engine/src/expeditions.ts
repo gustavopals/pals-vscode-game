@@ -382,6 +382,7 @@ export function teamSizeText({ teamMin, teamMax }: ExpeditionModelDef['requires'
  * (GDD §9.1).
  */
 export function departBlock(state: GameState, hero: Hero): Rejection | null {
+  if (hero.status === 'campaign') return reject('HERO_BUSY', { label: hero.name });
   if (canDepart(hero)) {
     // O comandante da Defesa ativa fica no feudo (ADR 0019, decisão 8).
     return commandingBlock(state, hero);

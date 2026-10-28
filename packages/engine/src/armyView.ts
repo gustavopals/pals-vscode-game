@@ -1,4 +1,4 @@
-import { balance, buildings, UNIT_IDS, units } from '@lotg/content';
+import { balance, buildings, campaignTexts, tileTypes, UNIT_IDS, units } from '@lotg/content';
 
 import {
   armyCap,
@@ -10,7 +10,7 @@ import {
   trainingRefund,
   troopText,
 } from './army';
-import { trainingBlock } from './armyOrders';
+import { attackCampBlock, trainingBlock } from './armyOrders';
 import { decimal, fillText, plural } from './format';
 import { formationEditorView, formationViews } from './formationsView';
 import { armyReportsView } from './battleReportView';
@@ -100,7 +100,47 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
   const { training } = state.army;
   const total = soldierCount(state);
   const perSoldier = rules.foodPerSoldierPerHour;
+  const campaign = state.army.campaign;
+  const assaultFormations = state.army.formations.map((formation) => {
+    const blocked = attackCampBlock(state, formation.id);
+    return {
+      formationId: formation.id,
+      canAttack: blocked === null,
+      blockedReason: blocked?.message ?? null,
+    };
+  });
   return {
+    campaign:
+      campaign === null
+        ? null
+        : {
+            formationId: campaign.formationId,
+            formationName: campaign.formation.name,
+            tile: campaign.tile,
+            destination: tileTypes.raiderCamp.label,
+            phase: campaign.report === null ? 'marching' : 'returning',
+            text: campaign.report === null ? campaignTexts.marching : campaignTexts.returning,
+            battleInSeconds: realSecondsCeil(
+              Math.max(0, campaign.battleAtMs - state.lastProcessedAt),
+              timeScale,
+            ),
+            returnsInSeconds: realSecondsCeil(
+              Math.max(0, campaign.returnsAtMs - state.lastProcessedAt),
+              timeScale,
+            ),
+            reportId: campaign.report?.id ?? null,
+          },
+    campAssault: {
+      text: campaignTexts.ready,
+      travelSeconds: realSecondsCeil(rules.campaign.travelMs, timeScale),
+      totalSeconds: realSecondsCeil(rules.campaign.travelMs * 2, timeScale),
+      blockedReason: assaultFormations.some((formation) => formation.canAttack)
+        ? null
+        : (assaultFormations[0]?.blockedReason ??
+          attackCampBlock(state, undefined)?.message ??
+          null),
+      formations: assaultFormations,
+    },
     building: 'barracks',
     // O presságio vago não diz de qual onda fala (névoa: revisão da V4E-T3).
     omens: state.horde.omens.map(({ text, wave, clarity }) => ({

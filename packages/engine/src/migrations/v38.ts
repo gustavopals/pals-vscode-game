@@ -1,5 +1,5 @@
 import { boolean, exactObject, literal, natural, type Shape } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { stateV37 } from './v37';
 
 const object = (value: unknown): value is StoredState =>
@@ -45,4 +45,16 @@ export const stateV38: Shape = (value, path) => {
     horde: strippedHorde,
   };
   return stateV37(inherited, path);
+};
+
+/** V4F-T2: nenhuma tropa parte, nenhum prazo nem sorteio nasce na migração. */
+export const v38ToV39: MigrationStep = {
+  from: 38,
+  summary: 'Acrescenta a campanha ofensiva do exército, inicialmente ausente.',
+  shape: stateV38,
+  migrate: (state) => ({
+    ...state,
+    schemaVersion: 39,
+    army: { ...(state.army as StoredState), campaign: null },
+  }),
 };

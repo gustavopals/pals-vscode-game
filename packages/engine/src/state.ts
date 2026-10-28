@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 38,
+    schemaVersion: 39,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -135,6 +135,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // Nenhum soldado, nenhum lote no Quartel (que nasce no nível 0).
     army: {
+      campaign: null,
       units: Object.fromEntries(UNIT_IDS.map((id) => [id, 0])) as Record<UnitId, number>,
       training: null,
       formations: [],

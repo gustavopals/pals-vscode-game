@@ -6,6 +6,8 @@ export const campaignTexts = {
   away: 'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
   commanderRequired: 'O ataque pede ao menos um comandante livre numa ala com soldados.',
   heroAway: 'Está com o exército no caminho do Acampamento.',
+  loot: 'Os sobreviventes trouxeram o saque.',
+  noLoot: 'Os sobreviventes voltaram sem saque.',
   ready:
     'O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.',
   noCamp: 'Não há Acampamento de Saqueadores ativo à vista para atacar.',

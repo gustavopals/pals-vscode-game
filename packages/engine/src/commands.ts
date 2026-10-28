@@ -18,7 +18,7 @@ import { assignMaster } from './masterOrders';
 import { settlePlanned } from './planned';
 import { repairItem } from './repairOrders';
 import { cancelForge, forgeWeapons } from './smithyOrders';
-import { cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
+import { attackCamp, cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
 import { deleteFormation, saveFormation, setActiveFormation } from './formationOrders';
 import { simulateBattle } from './warCouncilOrders';
 import { repairWall } from './wallRepair';
@@ -152,6 +152,8 @@ function dispatch(
       return forgeWeapons(draft, payload.amount, nowMs, events);
     case 'cancelForge':
       return cancelForge(draft, nowMs, events);
+    case 'attackCamp':
+      return attackCamp(draft, payload.formationId, nowMs, events);
     case 'trainSoldiers':
       return trainSoldiers(draft, payload.unit, payload.amount, nowMs, events);
     case 'cancelTraining':

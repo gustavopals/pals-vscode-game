@@ -15,6 +15,7 @@ import {
   vigilRules,
 } from '@lotg/content';
 
+import { availableUnits } from './campaign';
 import { applyBattleOutcome } from './battleOutcome';
 import { buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
@@ -406,7 +407,7 @@ function fightRaid(
   const composition = raid.composition ?? baseRaidComposition(raid.size, seasonAt(raid.atMs).id);
   const { army } = draft;
   const formation = army.formations.find((entry) => entry.id === army.activeFormationId) ?? null;
-  const defender = buildDefender(formation, army.units, (heroId) => {
+  const defender = buildDefender(formation, availableUnits(draft), (heroId) => {
     const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
     return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
   });

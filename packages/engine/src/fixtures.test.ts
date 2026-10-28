@@ -8,6 +8,8 @@ import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
   AUTUMN,
+  campaignYard,
+  accept,
   gameAt,
   caravanEscortScenario,
   caravanOrder,
@@ -83,6 +85,22 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'campaign-marching': () =>
+    accept(campaignYard(), command('attackCamp', { formationId: 'formation-1' })).state,
+  'campaign-returning': () => {
+    const state = accept(
+      campaignYard(),
+      command('attackCamp', { formationId: 'formation-1' }),
+    ).state;
+    return advanceTo(state, state.army.campaign!.battleAtMs).state;
+  },
+  'campaign-defeated': () => {
+    const state = accept(
+      campaignYard(0, false),
+      command('attackCamp', { formationId: 'formation-1' }),
+    ).state;
+    return advanceTo(state, state.army.campaign!.battleAtMs).state;
+  },
   'market-council-effects': () => {
     const start = dealt(marketDayScenario(), 'royalCaravan').state;
     return play(start, [

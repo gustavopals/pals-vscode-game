@@ -13,7 +13,7 @@ import {
 import { finishConstructions } from './construction';
 import { finishWallRepair } from './wallRepair';
 import { finishForge } from './smithy';
-import { finishTraining } from './armyTurn';
+import { finishTraining, settleCampaign } from './armyTurn';
 import { CATALOG, type Catalog, turnCouncilYear } from './council';
 import { drawCard, settleCouncil } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
@@ -177,6 +177,8 @@ export function processEventsAt(
   // Antes das planejadas, dos objetivos e da conta do ouro: o saque que entra agora já paga a
   // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
   settleExpeditions(draft, atMs, events);
+  // O exército chega e volta após as expedições; a incursão deste instante já foi resolvida.
+  settleCampaign(draft, atMs, events);
   // As caravanas que chegam, na ordem do identificador, com a emboscada de quem foi sem escolta
   // sorteada no fluxo de cada uma. Depois das obras (a Torre de Vigia que fica pronta neste
   // instante já baixa o risco) e da virada do dia (o preço que andou agora não muda o da
