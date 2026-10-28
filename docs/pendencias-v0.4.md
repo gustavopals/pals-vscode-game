@@ -521,3 +521,13 @@ sem mudar limite de contratação ou número das listas seguintes. O teto persis
 ofertas passa de três para quatro; as guardas antigas e os retratos v36 ficam congelados.
 A escolha paga na hora exata de uma rotação vale para a seguinte: o instante vence
 antes da ordem, como no restante do motor.
+
+
+## V4F-T1 — Sabotagem da Fortaleza (2026-10-28)
+
+**F-1. Duração da expedição de sabotagem e profundidade do grafo.** _(Proposta do agente; não lida pelo autor.)_
+O roadmap (§§V4F-T1, 16.2) e o GDD §9.5 mencionam informalmente "6 h de jogo", enquanto os esquemas do motor (`ExpeditionVariantSchema`, `expeditions.ts`) fixam `maxDepth: 5` nós por caminho e `maxNodeMs: 60 min` (3.600.000 ms), resultando em duração total de 300 min (5 h de jogo) em todos os ramos das três variantes. Manteve-se conservadoramente a restrição existente da engine (5 nós de 60 min = 300 min) para total conformidade estrutural com os validadores e os limites de calibragem.
+
+**F-2. Versão do esquema de estado (37 → 38).** _(Proposta do agente; não lida pelo autor.)_
+O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
+
