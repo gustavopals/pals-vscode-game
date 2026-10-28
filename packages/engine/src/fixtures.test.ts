@@ -83,6 +83,39 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'market-council-effects': () => {
+    const start = dealt(marketDayScenario(), 'royalCaravan').state;
+    return play(start, [
+      command('answerCard', {
+        instanceId: start.council.pending[0]!.instanceId,
+        optionId: 'hospitality',
+      }),
+    ]).state;
+  },
+  'council-risk': () => {
+    const start = dealt(
+      gameAt(SUMMER + DAY / 3, (state) => {
+        state.settlement.resources.food = 400_000;
+        state.settlement.workers.farm = 3;
+      }),
+      'fieldBlight',
+    ).state;
+    return play(start, [
+      command('answerCard', { instanceId: start.council.pending[0]!.instanceId, optionId: 'pray' }),
+    ]).state;
+  },
+  'council-encounters': () => {
+    const start = tavernBusyScenario();
+    const recruiter = dealt(start, 'passingRecruiter');
+    const paid = play(recruiter.state, [
+      command('answerCard', { instanceId: recruiter.instanceId, optionId: 'pay' }),
+    ]).state;
+    const debt = dealt(paid, 'gamblingDebt');
+    const left = play(debt.state, [
+      command('answerCard', { instanceId: debt.instanceId, optionId: 'leave' }),
+    ]).state;
+    return dealt(left, 'squareDuel').state;
+  },
   'vigil-fixed-offset': () =>
     createInitialState('fixture-vigil-fixed-offset', {
       ...settings,
@@ -918,6 +951,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       nextRotationAtMs: 13 * DAY + 3 * HOUR + 15 * MINUTE + 12 * DAY,
       festival: null,
       lastFestivalAtMs: null,
+      extraOffer: false,
     });
     const busy = of('tavern-busy');
     expect(busy.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1', 'hero-2']);
@@ -928,11 +962,16 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       nextRotationAtMs: opened + 24 * DAY,
       festival: { untilMs: opened + 12 * DAY },
       lastFestivalAtMs: opened,
+      extraOffer: false,
     });
     expect(busy.settlement.moraleEffects.map((effect) => effect.id)).toEqual(['festival']);
+    const encounters = of('council-encounters');
+    expect(encounters.guild.tavern.extraOffer).toBe(true);
+    expect(encounters.council.delayed[0]?.heroes).toHaveLength(1);
+    expect(encounters.council.pending[0]?.heroes).toHaveLength(2);
     // Nos outros retratos a Taverna não existe: nenhum candidato, nenhuma rotação, nenhum fluxo.
     const withTavern = all0().filter((state) => state.settlement.buildings.tavern > 0);
-    expect(withTavern).toHaveLength(2);
+    expect(withTavern).toHaveLength(3);
     for (const state of all0().filter((entry) => entry.settlement.buildings.tavern === 0)) {
       expect(state.guild.tavernOffers).toEqual([]);
       expect(state.guild.tavern.nextRotationAtMs).toBeNull();
@@ -1084,6 +1123,15 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // Em dia de feira: os preços longe da base, o de ontem diferente do de hoje, o fluxo em
     // uso e o volume gasto na compra e na venda.
     const fair = of('market');
+    expect(of('market-council-effects').market.effects).toHaveLength(3);
+    expect(
+      of('market-council-effects').market.effects.every(
+        (effect) => effect.untilMs > of('market-council-effects').lastProcessedAt,
+      ),
+    ).toBe(true);
+    expect(of('council-risk').council.delayed).toEqual([
+      { atMs: SUMMER + DAY, instanceId: 'fieldBlight-1', cardId: 'fieldBlight', optionId: 'pray' },
+    ]);
     expect(fair.settings.timeScale).toBe(3);
     expect(fair.market.quoteDay).toBe(Math.floor(fair.lastProcessedAt / DAY) + 1);
     expect(fair.market.prices).not.toEqual(of('fresh').market.prices);
@@ -1182,6 +1230,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       (entry) =>
         entry !== opening &&
         entry !== fair &&
+        entry !== of('market-council-effects') &&
         entry !== road &&
         entry !== escorted &&
         entry !== migratedRoad,

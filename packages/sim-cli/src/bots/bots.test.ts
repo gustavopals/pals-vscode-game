@@ -2598,6 +2598,36 @@ describe('política "responder a carta"', () => {
     ]);
   });
 
+  it('o preguiçoso prefere opção sem perda imediata entre as gratuitas', async () => {
+    const view = withCards([
+      card('praga-1', [
+        option('queimar', {
+          effectsText:
+            '−30% do estoque de comida na resolução; −5 de moral por 2 dias de jogo (1 h 20 min)',
+        }),
+        option('rezar', {
+          effectsText:
+            'Na próxima virada de dia: 1 em 2 de −50% do estoque de comida na resolução; caso contrário, +5 de moral por 2 dias de jogo (1 h 20 min)',
+        }),
+      ]),
+      card('mercador-1', [
+        option('prender', {
+          effectsText:
+            '−10 de moral por 2 dias de jogo (1 h 20 min); +20% no preço de compra e venda de comida a partir da próxima virada do dia',
+        }),
+        option('recusar', {
+          effectsText: 'nenhum efeito',
+        }),
+      ]),
+    ]);
+    const { act, orders } = recorder(view);
+    await responderCartasSemGastar.run(view, act);
+    expect(orders.map((order) => (order.payload as { optionId: string }).optionId)).toEqual([
+      'rezar',
+      'recusar',
+    ]);
+  });
+
   it('não gasta com carta a comida da reserva, a comida de um feudo com fome nem a madeira da lareira', async () => {
     const meal = [option('servir', costing('food', 25)), option('pão')];
     const decide = async (view: ViewState) => {

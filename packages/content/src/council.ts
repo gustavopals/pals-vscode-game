@@ -1,8 +1,13 @@
 import type {
   BuildingId,
   DifficultyId,
+  ExpeditionModelId,
+  HeroClassId,
+  HeroTraitId,
+  MarketResourceId,
   MasterId,
   NamedHeroId,
+  Ratio,
   ResourceAmounts,
   ResourceId,
   SeasonId,
@@ -29,16 +34,31 @@ export const COUNCIL_EFFECT_TYPES = [
   'addMaster',
   'revealDestination',
   'addSoldiers',
+  'resourcesPercent',
+  'marketPrice',
+  'rollEffect',
+  'tavernExtraOffer',
+  'injureHero',
+  'healHero',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
-export type CouncilEffect =
+export type CouncilImmediateEffect =
   /**
    * Recursos, em unidades. Positivo é ganho: entra o que cabe no depósito, e o que não cabe é
    * desperdício contado (GDD §5.5). Negativo é perda: sai o que houver, e o estoque nunca fica
    * abaixo de zero.
    */
   | { readonly type: 'resources'; readonly amounts: Partial<Record<ResourceId, number>> }
+  /** Fração do estoque lido na resolução; sinal negativo tira, positivo dá. */
+  | { readonly type: 'resourcesPercent'; readonly resource: ResourceId; readonly ratio: Ratio }
+  /** Multiplica compra e venda sem mudar o passeio nem o dia da cotação. */
+  | {
+      readonly type: 'marketPrice';
+      readonly resources: readonly MarketResourceId[];
+      readonly factor: Ratio;
+      readonly durationDays: number;
+    }
   /** Moral, por `durationDays` dias de jogo: conta em exatamente esse número de viradas do dia. */
   | { readonly type: 'morale'; readonly amount: number; readonly durationDays: number }
   /** Um marcador narrativo. Nunca é texto de interface nem sai na visão. */
@@ -71,13 +91,35 @@ export type CouncilEffect =
    * em `map.discovered`, na ordem do catálogo (a mesma entrada que a Patrulha e a Floresta Antiga
    * usam). A carta que o dá pede `undiscovered`, e a revelação não é segredo.
    */
-  | { readonly type: 'revealDestination' }
+  | { readonly type: 'revealDestination'; readonly modelId?: ExpeditionModelId }
   /**
    * Soldados já treinados entram no Exército, sem fila nem custo de treino, saindo dos aldeões
    * (a mesma conta do fim do treino). A opção que os dá pede o Quartel e a vaga
    * (`requires.soldierRoom`), então o efeito nunca passa do teto nem do piso de aldeões.
    */
-  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number };
+  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number }
+  /** Um candidato a mais só na próxima rotação; não aumenta o limite de contratação. */
+  | { readonly type: 'tavernExtraOffer' }
+  /** Fere de leve um dos participantes gravados na carta, escolhido na resolução do risco. */
+  | { readonly type: 'injureHero'; readonly kind: 'light' }
+  /** Cura o participante gravado, ou reduz pela metade o tempo restante do ferimento. */
+  | { readonly type: 'healHero'; readonly mode: 'full' | 'half' };
+
+export type CouncilRollOutcome = {
+  readonly effects: readonly CouncilImmediateEffect[];
+  readonly chronicle: string;
+};
+
+/** Risco conhecido; um sorteio no fluxo council, na primeira virada depois da escolha. */
+export type CouncilRollEffect = {
+  readonly type: 'rollEffect';
+  readonly chance: Ratio;
+  readonly withHeroClass?: { readonly heroClass: HeroClassId; readonly chance: Ratio };
+  readonly onHit: CouncilRollOutcome;
+  readonly onMiss: CouncilRollOutcome;
+};
+
+export type CouncilEffect = CouncilImmediateEffect | CouncilRollEffect;
 
 /** Quando uma carta pode ser sorteada. Sem um campo, ele não restringe. */
 export type CouncilCardRequires = {
@@ -93,13 +135,27 @@ export type CouncilCardRequires = {
   /** A moral do feudo, do mínimo ao máximo, os dois inclusive. */
   readonly moralRange?: readonly [number, number];
   /** Ao menos um destino de expedição que só aparece por descoberta ainda não foi revelado. */
-  readonly undiscovered?: true;
+  readonly undiscovered?: true | ExpeditionModelId;
+  /** Estoque estritamente maior que estes valores, em unidades. */
+  readonly resourcesAbove?: ResourceAmounts;
+  /** Quantos heróis livres a chegada escolhe, sem reposição, no fluxo council. */
+  readonly heroPresent?: number;
+  /** A chegada escolhe um herói em recuperação no feudo. */
+  readonly injuredHero?: true;
 };
 
 /** O que uma opção exige além do custo. Sem o requisito, ela aparece trancada, com o motivo. */
 export type CouncilOptionRequires = {
   /** O edifício tem de existir (nível 1 ou mais). */
   readonly building?: BuildingId;
+  readonly buildings?: Partial<Record<BuildingId, number>>;
+  /** A opção só aparece enquanto todas as flags estiverem gravadas. */
+  readonly flags?: readonly string[];
+  readonly undiscovered?: ExpeditionModelId;
+  /** Herói livre no feudo; o primeiro na lista fornece {heroi} à Crônica. */
+  readonly heroTrait?: HeroTraitId;
+  /** Soldados treinados, sem contar o lote em treino. */
+  readonly minSoldiers?: number;
   /** Recursos que o feudo tem de ter em estoque, sem gastá-los. */
   readonly resources?: ResourceAmounts;
   /**
@@ -190,4 +246,10 @@ export type CouncilCard = {
   readonly variants?: readonly CouncilCardVariant[];
   /** A frase da Crônica quando a carta chega. Sem ela vale o modelo geral de `cardDrawn`. */
   readonly arrival?: string;
+};
+
+/** Texto de contingência exigido em §8.1; redação proposta em pendencias-v0.4.md, H-3. */
+export const councilHeroTexts = {
+  healerLate:
+    'No {dia}º dia {daEstacao}, o curandeiro errante chegou tarde a {feudo}: {heroi} já não estava entre os feridos da casa.',
 };

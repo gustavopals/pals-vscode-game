@@ -1,5 +1,5 @@
 import { boolean, exactObject, integer, literal, natural, type Shape } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { stateV34 } from './v34';
 
 const hour: Shape = (value, path) =>
@@ -42,4 +42,16 @@ export const stateV35: Shape = (value, path) => {
   if (!resolved.timezoneResolved && resolved.utcOffsetMinutes !== 0)
     return `${settingsPath}.vigil.utcOffsetMinutes: fuso não resolvido exige zero`;
   return null;
+};
+
+/** Só acrescenta a lista vazia; não muda prazos, preços, sorteios ou cartas. */
+export const v35ToV36: MigrationStep = {
+  from: 35,
+  summary: 'Acrescenta os fatores temporários das cartas sobre o preço do Mercado.',
+  shape: stateV35,
+  migrate: (state) => ({
+    ...state,
+    schemaVersion: 36,
+    market: { ...(state.market as StoredState), effects: [] },
+  }),
 };

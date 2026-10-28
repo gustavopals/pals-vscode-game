@@ -1465,7 +1465,10 @@ const nonZeroInt = z
   .int()
   .refine((value) => value !== 0, 'zero não é efeito');
 
-export const CouncilEffectSchema = z.discriminatedUnion('type', [
+const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
+  z.strictObject({ type: z.literal('tavernExtraOffer') }),
+  z.strictObject({ type: z.literal('injureHero'), kind: z.literal('light') }),
+  z.strictObject({ type: z.literal('healHero'), mode: z.enum(['full', 'half']) }),
   z.strictObject({
     type: z.literal('resources'),
     amounts: z
@@ -1473,6 +1476,22 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
       .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso')
       // O ferro não chega por carta (V4B-T1; ADR 0019, decisão 3).
       .refine((amounts) => !Object.hasOwn(amounts, 'iron'), 'ferro em carta do Conselho'),
+  }),
+  z.strictObject({
+    type: z.literal('resourcesPercent'),
+    resource: resourceId.exclude(['iron']),
+    ratio: z
+      .strictObject({ num: nonZeroInt, den: positiveInt })
+      .refine(({ num, den }) => Math.abs(num) <= den, 'fração acima de um estoque'),
+  }),
+  z.strictObject({
+    type: z.literal('marketPrice'),
+    resources: z
+      .array(z.enum(MARKET_RESOURCE_IDS))
+      .min(1)
+      .refine((ids) => new Set(ids).size === ids.length, 'recurso repetido'),
+    factor: z.strictObject({ num: positiveInt, den: positiveInt }),
+    durationDays: positiveInt,
   }),
   z.strictObject({ type: z.literal('morale'), amount: nonZeroInt, durationDays: positiveInt }),
   z.strictObject({ type: z.literal('setFlag'), flag }),
@@ -1488,8 +1507,40 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
     masterId: z.enum(MASTER_IDS),
     ifFlags: z.array(flag).min(1).optional(),
   }),
-  z.strictObject({ type: z.literal('revealDestination') }),
+  z.strictObject({
+    type: z.literal('revealDestination'),
+    modelId: z.enum(EXPEDITION_MODEL_IDS).optional(),
+  }),
   z.strictObject({ type: z.literal('addSoldiers'), unit: z.enum(UNIT_IDS), amount: positiveInt }),
+]);
+
+const rollChance = z
+  .strictObject({ num: positiveInt, den: positiveInt })
+  .refine(({ num, den }) => num <= den, 'chance acima de um');
+const rollOutcome = z.strictObject({
+  // Um risco aplica estoque, moral ou ferimento leve; o ramo bom pode não ter efeito (§7.5).
+  effects: z
+    .array(CouncilImmediateEffectSchema)
+    .refine(
+      (list) =>
+        list.every((effect) =>
+          ['resources', 'resourcesPercent', 'morale', 'injureHero'].includes(effect.type),
+        ),
+      'efeito fora do desfecho de risco',
+    ),
+  chronicle: chronicleTemplate,
+});
+export const CouncilEffectSchema = z.union([
+  CouncilImmediateEffectSchema,
+  z.strictObject({
+    type: z.literal('rollEffect'),
+    chance: rollChance,
+    withHeroClass: z
+      .strictObject({ heroClass: z.enum(HERO_CLASS_IDS), chance: rollChance })
+      .optional(),
+    onHit: rollOutcome,
+    onMiss: rollOutcome,
+  }),
 ]);
 
 const effects = z
@@ -1501,7 +1552,7 @@ const effects = z
   );
 
 /** Uma frase de pista ou de situação: começa em maiúscula e termina com ponto. */
-const sentence = label.regex(/^\p{Lu}.*[.!?]$/su);
+const sentence = label.regex(/^(?:\p{Lu}|\{heroi\}).*[.!?]$/su);
 const sentenceCount = (text: string) => text.split(/[.!?]+(?:\s+|$)/u).filter(Boolean).length;
 
 const givesHero = (list: ReadonlyArray<{ type: string }>) =>
@@ -1519,6 +1570,11 @@ export const CouncilOptionSchema = z
     requires: z
       .strictObject({
         building: buildingId.optional(),
+        buildings: z.partialRecord(buildingId, positiveInt).optional(),
+        flags: z.array(flag).min(1).optional(),
+        undiscovered: z.enum(EXPEDITION_MODEL_IDS).optional(),
+        heroTrait: z.enum(HERO_TRAIT_IDS).optional(),
+        minSoldiers: positiveInt.optional(),
         resources: resourceAmounts.optional(),
         soldierRoom: positiveInt.optional(),
         rosterRoom: z.literal(true).optional(),
@@ -1543,6 +1599,17 @@ export const CouncilOptionSchema = z
     // (GDD §9.1: "o primeiro herói chega grátis"). E a promessa não é segredo: nunca vem
     // escondida. Um herói por opção.
     const known = givesHero(option.effects);
+    if (
+      option.effects.filter((effect) => effect.type === 'rollEffect').length > 1 ||
+      (option.hidden !== undefined &&
+        option.effects.some((effect) => effect.type === 'rollEffect')) ||
+      (option.hidden?.effects ?? []).some((effect) => effect.type === 'rollEffect')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'um risco conhecido por opção, sem efeito escondido junto',
+      });
+    }
     if (known > 1) {
       context.addIssue({ code: 'custom', message: 'mais de um herói na mesma opção' });
     }
@@ -1582,7 +1649,10 @@ export const CouncilCardSchema = z
         flags: z.array(flag).min(1).optional(),
         notFlags: z.array(flag).min(1).optional(),
         moralRange: moralRange.optional(),
-        undiscovered: z.literal(true).optional(),
+        undiscovered: z.union([z.literal(true), z.enum(EXPEDITION_MODEL_IDS)]).optional(),
+        resourcesAbove: resourceAmounts.optional(),
+        heroPresent: positiveInt.max(2).optional(),
+        injuredHero: z.literal(true).optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
@@ -1687,6 +1757,7 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
               : [],
         ),
       ),
+      ...card.options.flatMap((option) => option.requires?.flags ?? []),
     ];
     for (const name of read) {
       if (!written.has(name)) {

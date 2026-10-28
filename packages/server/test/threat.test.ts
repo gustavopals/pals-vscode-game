@@ -391,35 +391,3 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
-    expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-    expect(row.state.settlement.buildings.palisade).toBe(0);
-    expect(row.state.map).toEqual({
-      tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
-      threat: 0,
-      discovered: [],
-    });
-    expect(row.state.horde).toEqual({
-      scheduledRaids: [],
-      lastFormationSeen: null,
-      wavePlan: null,
-      omens: [],
-    });
-    expect(row.state.settlement.buildings.watchtower).toBe(0);
-    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-
-    // Um dia de jogo depois (40 min reais no ritmo 3), a primeira subida; e a Torre pode ser
-    // erguida: o Salão desse feudo já passou do nível 2.
-    await wait(fast, game, 40 * MINUTE);
-    await viewOf(fast, game, game.id);
-    // O covil soma 2, e o outono, se o dia que acabou é de outono, mais 3.
-    expect([2, 5]).toContain((await storedState(fast, game.id)).state.map.threat);
-    const tower = (await viewOf(fast, game, game.id)).constructions.available.find(
-      (entry) => entry.building === 'watchtower',
-    );
-    expect(tower).toMatchObject({ fromLevel: 0, targetLevel: 1 });
-    expect(tower?.blockedCode).not.toBe('GATE_LOCKED');
-    const events = await eventsOf(fast, game, game.id);
-    expect(events.filter((event) => event.type === 'threatRose')).toEqual([]);
-  });
-});

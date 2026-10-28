@@ -32,8 +32,17 @@ const card = (id: string): CouncilCard => {
   return found;
 };
 
+const flattenEffects = (effects: readonly CouncilEffect[]): CouncilEffect[] =>
+  effects.flatMap((effect) =>
+    effect.type === 'rollEffect'
+      ? [effect, ...flattenEffects(effect.onHit.effects), ...flattenEffects(effect.onMiss.effects)]
+      : [effect],
+  );
+
 const effectsOf = (entry: CouncilCard): CouncilEffect[] =>
-  entry.options.flatMap((option) => [...option.effects, ...(option.hidden?.effects ?? [])]);
+  entry.options.flatMap((option) =>
+    flattenEffects([...option.effects, ...(option.hidden?.effects ?? [])]),
+  );
 
 /** Todas as frases que uma carta põe na tela ou na Crônica. */
 const textsOf = (entry: CouncilCard): string[] => [
@@ -47,6 +56,12 @@ const textsOf = (entry: CouncilCard): string[] => [
     option.chronicle,
     option.expiredChronicle ?? '',
     option.hidden?.chronicle ?? '',
+    ...option.effects.flatMap((effect) =>
+      effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+    ),
+    ...(option.hidden?.effects ?? []).flatMap((effect) =>
+      effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+    ),
   ]),
 ];
 
@@ -133,7 +148,7 @@ describe('Conselho: o catálogo', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
     // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
     // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
-    expect(councilCards).toHaveLength(30);
+    expect(councilCards).toHaveLength(43);
     expect(councilCards.slice(0, 22).map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -168,6 +183,19 @@ describe('Conselho: o catálogo', () => {
       ['itinerantMerchant', 'O mercador itinerante'],
       ['firstRecruit', 'O primeiro recruta'],
       ['veteranCaptain', 'O capitão veterano'],
+      ['fieldBlight', 'Praga nos campos'],
+      ['mysteriousMerchant', 'O Mercador Misterioso'],
+      ['merchantLead', 'O que o mapa mostrava'],
+      ['merchantFinalOffer', 'A última oferta do mercador'],
+      ['merchantBoycott', 'Boicote dos mercadores'],
+      ['royalCaravan', 'A caravana real'],
+      ['kingsTax', 'Impostos do Rei'],
+      ['kingsCollector', 'O Cobrador do Rei'],
+      ['kingsAnswer', 'A resposta da coroa'],
+      ['passingRecruiter', 'Recrutador de passagem'],
+      ['gamblingDebt', 'A dívida de jogo'],
+      ['squareDuel', 'Duelo na praça'],
+      ['wanderingHealer', 'O curandeiro errante'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -225,6 +253,19 @@ describe('Conselho: o catálogo', () => {
       itinerantMerchant: ['sellWood', 'sellStone', 'wait'],
       firstRecruit: ['train', 'farm'],
       veteranCaptain: ['hire', 'feast', 'refuse'],
+      fieldBlight: ['burn', 'pray', 'alchemist'],
+      mysteriousMerchant: ['buy', 'imprison', 'refuse'],
+      merchantLead: ['follow', 'sell', 'drop'],
+      merchantFinalOffer: ['profit', 'destination', 'peace'],
+      merchantBoycott: ['yield', 'resist', 'route'],
+      royalCaravan: ['sellNow', 'hospitality', 'winter'],
+      kingsTax: ['pay', 'negotiate', 'refuse'],
+      kingsCollector: ['fine', 'soldiers', 'refuse'],
+      kingsAnswer: ['tribute', 'envoy', 'hold'],
+      passingRecruiter: ['pay', 'refuse'],
+      gamblingDebt: ['cover', 'leave'],
+      squareDuel: ['allow', 'train', 'forbid'],
+      wanderingHealer: ['pay', 'herbs', 'wait'],
     });
     expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf', 'osbert']);
   });
@@ -292,6 +333,7 @@ describe('Conselho: o catálogo', () => {
       const read = [
         ...(entry.requires?.flags ?? []),
         ...(entry.requires?.notFlags ?? []),
+        ...entry.options.flatMap((option) => option.requires?.flags ?? []),
         ...(entry.variants ?? []).map((variant) => variant.flag),
         ...effectsOf(entry).flatMap((effect) => (effect.type === 'clearFlag' ? [effect.flag] : [])),
       ];
@@ -334,6 +376,12 @@ describe('Conselho: o catálogo', () => {
       'addMaster',
       'revealDestination',
       'addSoldiers',
+      'resourcesPercent',
+      'marketPrice',
+      'rollEffect',
+      'tavernExtraOffer',
+      'injureHero',
+      'healHero',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -451,17 +499,37 @@ describe('Conselho: o catálogo', () => {
     for (const entry of councilCards) {
       for (const option of entry.options) {
         expect(option.hint.trim(), `${entry.id}/${option.id}`).not.toBe('');
+        const rollPhrases = [...option.effects, ...(option.hidden?.effects ?? [])].flatMap(
+          (effect) =>
+            effect.type === 'rollEffect' ? [effect.onHit.chronicle, effect.onMiss.chronicle] : [],
+        );
         const phrases = [
           option.chronicle,
           option.expiredChronicle,
           option.hidden?.chronicle,
+          ...rollPhrases,
           entry.arrival,
           ...(entry.variants ?? []).map((variant) => variant.arrival),
         ].filter((phrase): phrase is string => phrase !== undefined);
         for (const phrase of phrases) {
           // Datada, no lugar certo, e só com marcadores que o motor sabe preencher.
           expect(phrase, `${entry.id}/${option.id}`).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
-          expect(phrase).toContain('{feudo}');
+          // §6.1 aprovado usa o interlocutor no lugar do feudo; frases de risco em 7.4 e 7.5
+          // citam o herói ou heróis do duelo.
+          if (
+            (entry.id === 'kingsTax' && option.id === 'negotiate') ||
+            entry.id === 'gamblingDebt' ||
+            entry.id === 'squareDuel'
+          ) {
+            expect(
+              phrase.includes('{feudo}') ||
+                phrase.includes('{heroi}') ||
+                phrase.includes('{heroiFerido}'),
+              `${entry.id}/${option.id}: ${phrase}`,
+            ).toBe(true);
+          } else {
+            expect(phrase, `${entry.id}/${option.id}`).toContain('{feudo}');
+          }
           for (const [, name] of phrase.matchAll(/\{([^}]*)\}/g)) {
             expect(placeholders).toContain(name);
           }
@@ -475,8 +543,14 @@ describe('Conselho: o catálogo', () => {
       const applied = [...Object.values(entry.autoResolve), entry.autoResolveIfUnlocked];
       for (const id of new Set(applied.filter((value) => value !== undefined))) {
         const option = entry.options.find((candidate) => candidate.id === id);
-        const changes = (option?.effects ?? []).some(
-          (effect) => effect.type === 'resources' || effect.type === 'morale',
+        const optionEffects = flattenEffects(option?.effects ?? []);
+        const changes = optionEffects.some(
+          (effect) =>
+            effect.type === 'resources' ||
+            effect.type === 'resourcesPercent' ||
+            effect.type === 'morale' ||
+            effect.type === 'marketPrice' ||
+            effect.type === 'rollEffect',
         );
         if (changes) {
           expect(option?.expiredChronicle, `${entry.id}/${id}`).toBeDefined();
@@ -504,6 +578,8 @@ const known = (list: readonly CouncilEffect[]) => {
       for (const [resource, amount] of Object.entries(effect.amounts)) {
         total[resource as keyof typeof total] += amount;
       }
+    } else if (effect.type === 'resourcesPercent') {
+      total[effect.resource as keyof typeof total] += effect.ratio.num / effect.ratio.den;
     } else if (effect.type === 'morale') {
       // Pontos de moral vezes dias: serve para comparar "+5 por 3 dias" com "+10 por 2".
       total.morale += effect.amount * effect.durationDays;
@@ -512,7 +588,9 @@ const known = (list: readonly CouncilEffect[]) => {
     } else if (
       effect.type === 'addMaster' ||
       effect.type === 'addSoldiers' ||
-      effect.type === 'revealDestination'
+      effect.type === 'revealDestination' ||
+      effect.type === 'tavernExtraOffer' ||
+      effect.type === 'healHero'
     ) {
       total.extra += 1;
     }
@@ -521,6 +599,10 @@ const known = (list: readonly CouncilEffect[]) => {
 };
 const schedules = (option: CouncilCard['options'][number]) =>
   option.effects.some((effect) => effect.type === 'scheduleCard');
+const hasRisk = (option: CouncilCard['options'][number]) =>
+  option.effects.some((effect) => effect.type === 'rollEffect');
+const changesPrice = (option: CouncilCard['options'][number]) =>
+  option.effects.some((effect) => effect.type === 'marketPrice');
 const isFree = (option: CouncilCard['options'][number]) =>
   option.cost === undefined && option.requires === undefined;
 
@@ -541,7 +623,17 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
         for (const worse of free) {
           // A opção que esconde um efeito ou leva a história adiante não se compara só pelo
           // que mostra: a pista diz que há mais.
-          if (better === worse || better.hidden !== undefined || schedules(better)) {
+          // Risco e preço têm lados opostos (comprador/vendedor); não cabem nesta ordem escalar.
+          // Fichas aprovadas §§4.4 e 5; contratos específicos em council.market-crown.test.ts.
+          if (
+            better === worse ||
+            better.hidden !== undefined ||
+            schedules(better) ||
+            hasRisk(better) ||
+            hasRisk(worse) ||
+            changesPrice(better) ||
+            changesPrice(worse)
+          ) {
             continue;
           }
           const a = known(better.effects);
@@ -619,12 +711,14 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
         // A opção sem custo que esconde um efeito fica de fora: o que a paga oferece pode ser
         // justamente não correr o risco que a pista anuncia.
         for (const free of entry.options.filter(
-          (option) => isFree(option) && option.hidden === undefined,
+          (option) => isFree(option) && option.hidden === undefined && !hasRisk(option),
         )) {
           const other = known(free.effects);
           const offers =
             paid.hidden !== undefined ||
             schedules(paid) ||
+            // No Boicote (§5.4 aprovado), pagar evita ou reduz a alta, sem prêmio em estoque.
+            changesPrice(free) ||
             keys.some((key) => gain[key] > other[key]);
           expect(offers, `${entry.id}: ${paid.id} não oferece nada além de ${free.id}`).toBe(true);
         }
@@ -647,17 +741,37 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
 
 describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
   it('em Camponês e em Senhor, a opção que o conselho aplica sozinho nunca tira recurso, nem depois', () => {
+    // Exceções com fichas aprovadas em docs/content-v0.4.md que preveem perda de recursos
+    // na resolução automática em Camponês e Senhor:
+    // - kingsTax (§6.1): imposto real de 15% de ouro em `pay`
+    // - kingsCollector (§6.2): multa real de 30% de ouro em `fine`
+    // - kingsAnswer (§6.3): tributo real de 10% de recursos em `tribute`
+    // - fieldBlight (§4.4): risco de praga (rollEffect com -50% de comida) em `pray`
+    const RESOURCE_LOSS_EXCEPTIONS = new Set([
+      'kingsTax',
+      'kingsCollector',
+      'kingsAnswer',
+      'fieldBlight',
+    ]);
     for (const entry of councilCards) {
+      if (RESOURCE_LOSS_EXCEPTIONS.has(entry.id)) {
+        continue;
+      }
       for (const difficulty of ['peasant', 'lord'] as const) {
         const option = entry.options.find(
           (candidate) => candidate.id === entry.autoResolve[difficulty],
         );
-        const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
+        const all = flattenEffects([
+          ...(option?.effects ?? []),
+          ...(option?.hidden?.effects ?? []),
+        ]);
         for (const effect of all) {
           if (effect.type === 'resources') {
             for (const amount of Object.values(effect.amounts)) {
               expect(amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
             }
+          } else if (effect.type === 'resourcesPercent') {
+            expect(effect.ratio.num, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
           }
         }
       }
@@ -678,7 +792,13 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
         const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
         for (const effect of all) {
           if (effect.type === 'morale' && entry.weight > 0) {
-            expect(effect.amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+            // §7.5 aprovado: proibir o duelo é a opção sem risco que autoaplica nas três
+            // dificuldades, mesmo custando −5 de moral por 2 dias (balance-v0.4.md §14).
+            if (entry.id === 'squareDuel') {
+              expect(effect.amount, `${entry.id}/${difficulty}`).toBe(-5);
+            } else {
+              expect(effect.amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+            }
           }
         }
       }
@@ -690,7 +810,11 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
     for (const entry of continuations) {
       const option = entry.options.find((candidate) => candidate.id === entry.autoResolve.lord);
       const onlyWay = entry.options.filter(isFree).length === 1;
-      if (!onlyWay) {
+      // §§6.2–6.3 aprovados: a multa/tributo automáticos custam −5 por 2 dias mesmo com recusa.
+      // Não se troca a ficha para satisfazer a regra editorial do lote 1 (balance-v0.4.md §14).
+      if (entry.id === 'kingsCollector' || entry.id === 'kingsAnswer') {
+        expect(known(option?.effects ?? []).morale, entry.id).toBe(-10);
+      } else if (!onlyWay) {
         expect(known(option?.effects ?? []).morale, entry.id).toBeGreaterThanOrEqual(0);
       }
       expect(option?.hidden, entry.id).toBeUndefined();
@@ -700,7 +824,10 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
   it('em Camponês e em Senhor, a opção automática de uma carta recorrente não mexe em nada', () => {
     // Uma recorrente pode expirar várias vezes por ano com o senhor fora: não pode pingar
     // prêmio nem castigo. A exceção é Rei de Ferro, que fica com a opção mais dura.
-    for (const entry of councilCards.filter((candidate) => candidate.recurring === true)) {
+    // O imposto recorrente aprovado em §6.1 perde 15%; a rotina neutra continua no lote 1.
+    for (const entry of councilCards.filter(
+      (candidate) => candidate.recurring === true && candidate.id !== 'kingsTax',
+    )) {
       for (const difficulty of ['peasant', 'lord'] as const) {
         const option = entry.options.find(
           (candidate) => candidate.id === entry.autoResolve[difficulty],
@@ -739,7 +866,26 @@ describe('Conselho: a ordem das opções na carta', () => {
     // É a ordem em que a tela mostra: quem lê de cima para baixo vê o que custa (ou pede um
     // edifício), depois o que não custa nem arrisca, e por fim o que não custa e cobra de outro
     // jeito.
+    // As fichas de §§4.4, 5.1–5.5, 6.1–6.3 e 7.5 foram aprovadas na ordem das tabelas em
+    // docs/content-v0.4.md (balance-v0.4.md §14). A exceção fica restrita a esses IDs aprovados;
+    // todas as outras cartas do catálogo (inclusive passingRecruiter, gamblingDebt e
+    // wanderingHealer) seguem a convenção.
+    const ORDER_EXCEPTIONS = new Set([
+      'fieldBlight',
+      'mysteriousMerchant',
+      'merchantLead',
+      'merchantFinalOffer',
+      'merchantBoycott',
+      'royalCaravan',
+      'kingsTax',
+      'kingsCollector',
+      'kingsAnswer',
+      'squareDuel',
+    ]);
     for (const entry of councilCards) {
+      if (ORDER_EXCEPTIONS.has(entry.id)) {
+        continue;
+      }
       const kinds = entry.options.map((option) => (isFree(option) ? 'free' : 'paid'));
       expect(kinds.join(','), entry.id).toMatch(/^(paid,)*free(,free)*$/);
       const free = entry.options.filter(isFree);
@@ -877,7 +1023,8 @@ describe('Conselho: as correções aprovadas pelo autor em 2026-10-05 (roadmap d
 });
 
 describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)', () => {
-  const recurring = councilCards.filter((entry) => entry.recurring === true);
+  // A ronda é a das quatro cartas do lote 1. O imposto tem a cadência e as flags de §6.1.
+  const recurring = councilCards.slice(0, 22).filter((entry) => entry.recurring === true);
   const yearDays = balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
 
   it('o ano tem 21 audiências e só 11 cartas de uma vez por ano: quem cobre o resto são as recorrentes', () => {
@@ -1595,7 +1742,8 @@ describe('Conselho: o schema de uma carta', () => {
     expect(parses({ requires: { heroTrait: 'charismatic' } })).toBe(false);
     expect(parses({ requires: { moralRange: [60, 40] } })).toBe(false);
     expect(parses({ requires: {} })).toBe(false);
-    expect(withOption({ requires: { heroTrait: 'charismatic' } })).toBe(false);
+    expect(withOption({ requires: { heroTrait: 'charismatic' } })).toBe(true);
+    expect(withOption({ requires: { heroTrait: 'unknown' } })).toBe(false);
     expect(withOption({ requires: { building: 'granary', resources: { food: 100 } } })).toBe(true);
   });
 });
@@ -1616,6 +1764,17 @@ describe('Conselho: o schema do catálogo', () => {
   it('recusa flag exigida, proibida, lembrada ou apagada que ninguém grava', () => {
     expect(catalog([{ ...sample, requires: { flags: ['chain.done'] } }])).toBe(false);
     expect(catalog([{ ...sample, requires: { notFlags: ['chain.done'] } }])).toBe(false);
+    expect(
+      catalog([
+        {
+          ...sample,
+          options: [
+            sample.options[0],
+            { ...sample.options[1], requires: { flags: ['chain.done'] } },
+          ],
+        },
+      ]),
+    ).toBe(false);
     expect(
       catalog([
         { ...sample, variants: [{ flag: 'chain.done', text: 'Alguém voltou. O conselho ri.' }] },

@@ -14,8 +14,8 @@ import { finishConstructions } from './construction';
 import { finishWallRepair } from './wallRepair';
 import { finishForge } from './smithy';
 import { finishTraining } from './armyTurn';
-import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council';
-import { drawCard } from './councilTurn';
+import { CATALOG, type Catalog, turnCouncilYear } from './council';
+import { drawCard, settleCouncil } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { recallStranded, settleExpeditions } from './expeditionTurn';
@@ -148,6 +148,8 @@ export function processEventsAt(
   // da virada do dia: a moral e a experiência do ofício daquela virada já os encontram no feudo.
   settleMasterArrivals(draft, atMs, events);
   recoverHeroes(draft, atMs, events);
+  // Os fatores que acabaram saem antes do passeio e das cartas deste instante.
+  draft.market.effects = draft.market.effects.filter((effect) => effect.untilMs > atMs);
   processCalendar(draft, atMs, events, catalog);
   // De novo depois da virada do dia: o aldeão que partiu ou desertou nela abriu uma vaga, e o
   // Mestre à espera entra neste mesmo instante, e não no próximo que alguém processar. A vaga

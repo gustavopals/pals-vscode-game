@@ -25149,51 +25149,51 @@
     "council": {
       "pending": [
         {
-          "instanceId": "collapsedWell-1",
-          "title": "O poço entulhado",
-          "text": "A boca do poço da praça cedeu durante a noite. As mulheres já descem ao riacho com os baldes, e a fila cresce. O mestre de obras pede pedra para refazer a mureta.",
+          "instanceId": "neighborsWatch-1",
+          "title": "Vigília entre vizinhos",
+          "text": "Há três noites somem galinhas dos currais, e ninguém viu o ladrão. Os vizinhos querem revezar a vigília e pedem lenha para as fogueiras. O capataz lembra que lenha queimada na vigília é lenha a menos na pilha.",
           "expiresInSeconds": 83860,
-          "defaultOptionId": "dig",
-          "defaultOptionLabel": "Mandar o povo cavar",
-          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: mandar o povo cavar.",
+          "defaultOptionId": "vigil",
+          "defaultOptionLabel": "Revezar a vigília no escuro",
+          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: revezar a vigília no escuro.",
           "followsFrom": null,
           "options": [
             {
-              "id": "repair",
-              "label": "Ceder a pedra",
+              "id": "fires",
+              "label": "Ceder lenha para as fogueiras",
               "cost": [
                 {
-                  "resource": "stone",
-                  "label": "Pedra",
-                  "amount": 20,
+                  "resource": "wood",
+                  "label": "Madeira",
+                  "amount": 25,
                   "missing": 0
                 }
               ],
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "−20 pedra; +10 de moral por 3 dias de jogo (2 h)",
-              "hint": "Mureta bem assentada dura mais que a queixa."
+              "effectsText": "−25 madeira; +5 de moral por 3 dias de jogo (2 h)",
+              "hint": "Fogueira acesa afasta o medo, e bicho pequeno não gosta de luz."
             },
             {
-              "id": "dig",
-              "label": "Mandar o povo cavar",
+              "id": "vigil",
+              "label": "Revezar a vigília no escuro",
               "cost": [],
               "affordable": true,
               "locked": false,
               "lockedReason": null,
               "effectsText": "Sem custo e sem efeito imediato.",
-              "hint": "Sem pedra nova, a mureta fica como der. A água volta, e é só."
+              "hint": "Sem fogueira vela-se do mesmo jeito: com mais frio e menos conversa."
             },
             {
-              "id": "wait",
-              "label": "Deixar para depois",
+              "id": "wind",
+              "label": "Dizer que é só o vento",
               "cost": [],
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "Sem custo e sem efeito imediato.",
-              "hint": "O riacho fica longe, e o povo tem memória. Dizem que no entulho ainda há pedra boa."
+              "effectsText": "+5 de moral por 1 dia de jogo (40 min)",
+              "hint": "A palavra do senhor acalma por uma noite. O que ronda costuma voltar."
             }
           ]
         }
@@ -25207,8 +25207,8 @@
     "pendingDecisions": [
       {
         "kind": "card",
-        "id": "collapsedWell-1",
-        "title": "O poço entulhado",
+        "id": "neighborsWatch-1",
+        "title": "Vigília entre vizinhos",
         "expiresInSeconds": 83860
       }
     ],
@@ -26638,18 +26638,18 @@
     "council": {
       "pending": [
         {
-          "instanceId": "springSeeds-2",
-          "title": "Sementes para o próximo campo",
-          "text": "Os lavradores abriram um campo novo junto ao riacho, e falta semente para ele. Pedem grão da despensa para lançar à terra. O que se planta hoje só volta à mesa daqui a alguns dias.",
+          "instanceId": "masonsMeal-2",
+          "title": "A refeição dos pedreiros",
+          "text": "Os pedreiros largaram as ferramentas ao meio-dia. Pedem uma refeição quente antes de voltar à obra, e dizem que de barriga cheia o braço rende. A despensa é a mesma que alimenta o resto do feudo.",
           "expiresInSeconds": 24418,
-          "defaultOptionId": "fallow",
-          "defaultOptionLabel": "Deixar o campo em pousio",
-          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: deixar o campo em pousio.",
+          "defaultOptionId": "bread",
+          "defaultOptionLabel": "Repartir o pão do dia",
+          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.",
           "followsFrom": null,
           "options": [
             {
-              "id": "sow",
-              "label": "Ceder o grão",
+              "id": "feast",
+              "label": "Servir a refeição",
               "cost": [
                 {
                   "resource": "food",
@@ -26661,35 +26661,28 @@
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "−40 comida",
-              "hint": "Grão na terra volta dobrado em poucos dias, se houver onde guardar."
+              "effectsText": "−40 comida; +10 de moral por 2 dias de jogo (4 h)",
+              "hint": "Barriga cheia, ânimo alto."
             },
             {
-              "id": "buy",
-              "label": "Comprar a semente",
-              "cost": [
-                {
-                  "resource": "gold",
-                  "label": "Ouro",
-                  "amount": 30,
-                  "missing": 30
-                }
-              ],
-              "affordable": false,
-              "locked": false,
-              "lockedReason": null,
-              "effectsText": "−30 ouro",
-              "hint": "O ouro poupa a despensa, e a colheita vem do mesmo jeito."
-            },
-            {
-              "id": "fallow",
-              "label": "Deixar o campo em pousio",
+              "id": "bread",
+              "label": "Repartir o pão do dia",
               "cost": [],
               "affordable": true,
               "locked": false,
               "lockedReason": null,
               "effectsText": "Sem custo e sem efeito imediato.",
-              "hint": "Terra descansada não pede nada, e não dá nada."
+              "hint": "Nem festa, nem queixa."
+            },
+            {
+              "id": "refuse",
+              "label": "Mandar voltar ao trabalho",
+              "cost": [],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "+15 pedra; −5 de moral por 4 dias de jogo (8 h)",
+              "hint": "A tarde rende mais pedra, e a obra guarda a mágoa."
             }
           ]
         }
@@ -26703,8 +26696,8 @@
     "pendingDecisions": [
       {
         "kind": "card",
-        "id": "springSeeds-2",
-        "title": "Sementes para o próximo campo",
+        "id": "masonsMeal-2",
+        "title": "A refeição dos pedreiros",
         "expiresInSeconds": 24418
       }
     ],

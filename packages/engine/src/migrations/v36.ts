@@ -1,0 +1,70 @@
+import { exactObject, listOf, literal, natural, oneOf, positive, text, type Shape } from './shape';
+import type { MigrationStep, StoredState } from './step';
+import { stateV35 } from './v35';
+
+// Identificadores da forma 36, congelados: o conteúdo pode crescer sem reescrever esta guarda.
+const effects = listOf(
+  exactObject({
+    resource: oneOf(['food', 'wood', 'stone', 'iron']),
+    factor: exactObject({ num: positive, den: positive }),
+    untilMs: natural,
+    label: (value, path) =>
+      text(value, path) ?? ((value as string).trim().length > 0 ? null : `${path}: texto vazio`),
+  }),
+);
+
+export const marketEffectsWithinState = (
+  market: StoredState,
+  lastProcessedAt: number,
+  path: string,
+): string | null => {
+  const at = path ? `${path}.market.effects` : 'market.effects';
+  const list = market.effects;
+  if (!Array.isArray(list)) return null;
+  for (const [index, entry] of list.entries()) {
+    if (entry !== null && typeof entry === 'object' && !Array.isArray(entry)) {
+      if (typeof entry.untilMs === 'number' && entry.untilMs <= lastProcessedAt) {
+        return `${at}.${index}.untilMs: efeito que já devia ter terminado`;
+      }
+    }
+  }
+  return null;
+};
+
+export const stateV36: Shape = (value, path) => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    return stateV35(value, path);
+  const state = value as StoredState;
+  const error = literal(36)(state.schemaVersion, path ? `${path}.schemaVersion` : 'schemaVersion');
+  if (error !== null) return error;
+  const market = state.market;
+  if (market === null || typeof market !== 'object' || Array.isArray(market))
+    return stateV35({ ...state, schemaVersion: 35 }, path);
+  const { effects: live, ...oldMarket } = market as StoredState;
+  return (
+    effects(live, path ? `${path}.market.effects` : 'market.effects') ??
+    marketEffectsWithinState(market as StoredState, state.lastProcessedAt as number, path) ??
+    stateV35({ ...state, schemaVersion: 35, market: oldMarket }, path)
+  );
+};
+
+/** Não cria encontro, candidato, prazo nem sorteio: só deixa a próxima rotação sem bônus. */
+export const v36ToV37: MigrationStep = {
+  from: 36,
+  summary: 'Acrescenta o marcador do recrutador e admite participantes nos encontros do Conselho.',
+  shape: stateV36,
+  migrate: (state) => {
+    const guild = state.guild as StoredState;
+    const market = state.market as StoredState;
+    const effects = ((market.effects as StoredState[]) ?? []).map((effect) => ({
+      ...effect,
+      fromMs: (effect.fromMs as number) ?? state.lastProcessedAt,
+    }));
+    return {
+      ...state,
+      schemaVersion: 37,
+      guild: { ...guild, tavern: { ...(guild.tavern as StoredState), extraOffer: false } },
+      market: { ...market, effects },
+    };
+  },
+};

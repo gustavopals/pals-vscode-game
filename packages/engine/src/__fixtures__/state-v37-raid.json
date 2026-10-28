@@ -1,0 +1,290 @@
+{
+ "schemaVersion": 37,
+ "seed": "fixture-raid",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 108785432,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 108785432,
+ "rng": {
+  "council": [
+   1392097009,
+   1269604760,
+   3154874510,
+   1372563934
+  ]
+ },
+ "ids": {
+  "battle": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 455396,
+   "wood": 454325,
+   "stone": 105000,
+   "gold": 320000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 2845952,
+   "wood": 403968,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 2,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 1,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 644,
+   "wood": 724,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 60,
+   "lumberMill": 60,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [
+   {
+    "id": "raid",
+    "label": "Incursão sofrida",
+    "amount": -10,
+    "untilMs": 122400000
+   }
+  ],
+  "injured": [
+   {
+    "untilMs": 115200000,
+    "building": "farm"
+   }
+  ],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "thawBridgePlea-1",
+    "cardId": "thawBridgePlea",
+    "drawnAtMs": 28800000,
+    "expiresAtMs": 115200000,
+    "origin": null
+   },
+   {
+    "instanceId": "springSeeds-2",
+    "cardId": "springSeeds",
+    "drawnAtMs": 57600000,
+    "expiresAtMs": 144000000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "thawBridgePlea",
+   "springSeeds"
+  ],
+  "nextDrawAtMs": 115200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 0,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [],
+  "lastFormationSeen": null,
+  "wavePlan": null,
+  "omens": []
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "extraOffer": false,
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "effects": [],
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [
+   {
+    "id": "battle-1",
+    "foughtAtMs": 108000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "wolf",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 7,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
+  "preview": null
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "answerFirstCard"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 2,
+  "cardsDrawn:thawBridgePlea": 1,
+  "wasted_food": 719644,
+  "cardsDrawn:springSeeds": 1,
+  "wasted_wood": 148724,
+  "raids_suffered": 1
+ }
+}

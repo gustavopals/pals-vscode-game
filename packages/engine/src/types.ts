@@ -156,6 +156,9 @@ export type MoraleEffect = {
   untilMs: number;
 };
 
+/** Identidade e nome no instante da chegada: permanecem mesmo se o herói partir. */
+export type CouncilHero = { id: string; name: string };
+
 /** Uma carta do Conselho à espera de resposta (GDD §7.1). */
 export type PendingCard = {
   /**
@@ -165,6 +168,7 @@ export type PendingCard = {
   instanceId: string;
   cardId: string;
   drawnAtMs: number;
+  heroes?: CouncilHero[];
   /**
    * Quando o conselho decide sozinho. O prazo é de tempo real (24 h) e foi convertido para
    * tempo de jogo, com o ritmo da partida, no instante em que a carta chegou.
@@ -193,6 +197,7 @@ export type ScheduledCard = {
  * deixou: o efeito em si é lido do conteúdo quando acontece.
  */
 export type DelayedCardEffect = {
+  heroes?: CouncilHero[];
   atMs: number;
   instanceId: string;
   cardId: string;
@@ -515,6 +520,18 @@ export type Caravan = {
  * marcado, na virada de um dia de jogo **com o Mercado de pé**.
  */
 export type MarketState = {
+  /**
+   * Fatores de carta por recurso; só os vivos entram na compra e na venda. Um fator vale de
+   * `fromMs` (uma virada de dia de jogo, sempre depois da resposta) até `untilMs` (outra virada,
+   * exclusivo): a cotação de um dia nunca muda no meio dele (§5.6).
+   */
+  effects: Array<{
+    resource: MarketResourceId;
+    factor: Ratio;
+    fromMs: number;
+    untilMs: number;
+    label: string;
+  }>;
   /** O preço de hoje de cada recurso, entre o piso e o teto do conteúdo. */
   prices: Record<MarketResourceId, number>;
   /**
@@ -550,7 +567,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 35;
+  schemaVersion: 37;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -808,6 +825,7 @@ export type GameState = {
      * é o que faz valer "um por estação"; `null` enquanto o feudo nunca deu um.
      */
     tavern: {
+      extraOffer: boolean;
       nextRotationAtMs: number | null;
       festival: { untilMs: number } | null;
       lastFestivalAtMs: number | null;

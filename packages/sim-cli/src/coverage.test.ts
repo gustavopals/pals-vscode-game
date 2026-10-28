@@ -30,7 +30,14 @@ if (process.env.SHOW_COVERAGE !== undefined) {
   console.log(formatCoverage('Ritmo Rápido (um ano em 56 horas), 2 visitas por dia', fast));
 }
 
-const drawable = councilCards.filter((card) => card.weight > 0).map((card) => card.id);
+// As sorteadas no início da cadeia: cartas com peso que não dependem de flag prévia (como
+// merchantBoycott, que só sai após a escolha de prender em mysteriousMerchant).
+const drawable = councilCards
+  .filter(
+    (card) =>
+      card.weight > 0 && (card.requires?.flags === undefined || card.requires.flags.length === 0),
+  )
+  .map((card) => card.id);
 
 /**
  * As duas continuações de "A Promessa da Paliçada" só chegam a quem promete, e o bot nunca

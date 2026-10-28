@@ -8,7 +8,16 @@ import { dailyVolume, gameDay, priceBounds, quote, seasonalFactor } from './mark
 import { currentShape } from './migrations';
 import { cloneState, createInitialState } from './state';
 import { storageCapacity } from './storage';
-import { command, DAY, HOUR, marketStall, tradeOrder, YEAR } from './test-helpers';
+import {
+  caravanOrder,
+  command,
+  DAY,
+  dealt,
+  HOUR,
+  marketStall,
+  tradeOrder,
+  YEAR,
+} from './test-helpers';
 import { nextEventAt } from './timeline';
 import type {
   Command,
@@ -495,5 +504,111 @@ describe('nenhuma sequência de compra e venda no mesmo dia dá lucro (critério
       { numRuns: 100 },
     );
     expect(accepted).toBeGreaterThan(250);
+  });
+});
+
+describe('fatores de carta no meio do dia não abrem arbitragem (§5.6)', () => {
+  // As cartas que mexem no preço de compra e venda, com a opção que o faz.
+  const picks = [
+    ['royalCaravan', 'sellNow'],
+    ['royalCaravan', 'hospitality'],
+    ['merchantBoycott', 'resist'],
+    ['merchantBoycott', 'route'],
+    ['mysteriousMerchant', 'imprison'],
+  ] as const;
+  const sends = fc.record({
+    resource: fc.constantFrom<MarketResourceId>('food', 'wood', 'stone'),
+    amount: fc.integer({ min: 1, max: 60 }),
+    at: fc.nat(10),
+  });
+
+  it('a carta respondida no meio do dia não muda a cotação do dia: compra, venda e caravana não dão lucro, e o fator vale na virada seguinte', () => {
+    let answered = 0;
+    let caravans = 0;
+    let started = 0;
+    fc.assert(
+      fc.property(
+        day,
+        fc.constantFrom(...picks),
+        fc.nat(10),
+        fc.array(sends, { maxLength: 3 }),
+        (plan, [cardId, optionId], answerAt, rides) => {
+          const base = marketDay(plan);
+          base.council.flags['merchant.hostile'] = true;
+          const start = dealt(base, cardId);
+          const quotes = Object.fromEntries(RESOURCES.map((id) => [id, quote(start.state, id)]));
+          const buyAt = { food: 0, wood: 0, stone: 0, iron: 0 };
+          const sellAt = { food: 0, wood: 0, stone: 0, iron: 0 };
+          for (const id of RESOURCES) {
+            buyAt[id] = quotes[id]!.buy;
+            sellAt[id] = quotes[id]!.sell;
+          }
+          let state = start.state;
+          const check = () => {
+            for (const id of RESOURCES) {
+              expect(quote(state, id)).toEqual(quotes[id]);
+            }
+          };
+          const steps = Math.max(plan.deals.length, answerAt + 1);
+          for (let index = 0; index < steps; index += 1) {
+            if (index === answerAt) {
+              const result = applyCommand(
+                state,
+                command('answerCard', { instanceId: start.instanceId, optionId }),
+                state.lastProcessedAt,
+              );
+              if (result.ok) {
+                answered += 1;
+                state = result.state;
+                started += state.market.effects.length;
+              }
+              // A cotação do dia e a conferência de duas etapas seguem as mesmas.
+              check();
+              expect(state.market.quoteDay).toBe(start.state.market.quoteDay);
+            }
+            for (const ride of rides.filter((entry) => entry.at === index)) {
+              const sent = applyCommand(
+                state,
+                caravanOrder(ride.resource, ride.amount, null, state.market.quoteDay),
+                state.lastProcessedAt,
+              );
+              if (sent.ok) {
+                caravans += 1;
+                state = sent.state;
+                // Pagar a compra do dia e mandar a mesma carga na caravana nunca rende.
+                expect(state.market.caravans.at(-1)!.unitPrice).toBeLessThan(buyAt[ride.resource]);
+              }
+              check();
+            }
+            const wanted = plan.deals[index];
+            if (wanted !== undefined) {
+              const before = state;
+              const result = applyCommand(
+                state,
+                tradeOrder(state, wanted.resource, wanted.direction, wanted.amount),
+                state.lastProcessedAt,
+              );
+              if (result.ok) {
+                state = result.state;
+                const byBuy = worth(state, buyAt) - worth(before, buyAt);
+                const bySell = worth(state, sellAt) - worth(before, sellAt);
+                expect(wanted.direction === 'buy' ? byBuy : bySell).toBe(0);
+                expect(wanted.direction === 'buy' ? bySell : byBuy).toBeLessThan(0);
+              }
+              check();
+            }
+          }
+          // Na virada seguinte o fator entra (quando a carta foi respondida), nunca antes.
+          const next = advanceTo(state, (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY).state;
+          for (const effect of next.market.effects) {
+            expect(effect.fromMs).toBeLessThanOrEqual(next.lastProcessedAt);
+          }
+        },
+      ),
+      { numRuns: 150 },
+    );
+    expect(answered).toBeGreaterThan(100);
+    expect(started).toBeGreaterThan(300);
+    expect(caravans).toBeGreaterThan(10);
   });
 });

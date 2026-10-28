@@ -12,6 +12,7 @@ import { nextForgeEndAt } from './smithy';
 import { nextTrainingEndAt } from './army';
 import { storageFillsIn } from './storage';
 import { nextTavernRotationAt } from './tavern';
+import { nextMarketEffectAt } from './market';
 import type { GameState } from './types';
 
 /**
@@ -41,6 +42,8 @@ export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
   const { constructionQueues, recruitmentQueue, famine } = state.settlement;
   const candidates = [nextDayBoundary(now)];
+  const marketEnds = nextMarketEffectAt(state);
+  if (marketEnds !== null) candidates.push(marketEnds);
   const rehearsalMark = nextRehearsalMarkAt(state);
   if (rehearsalMark !== null) candidates.push(rehearsalMark);
 

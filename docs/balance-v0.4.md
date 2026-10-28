@@ -672,208 +672,84 @@ estados postos diretamente dentro da antecedência, sem ensaio marcado. Corrigid
 no motor: marcação tardia só na ordem que muda a preferência; leituras não a
 fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
 
-## 15. Objetivos 17 a 21 (V4H-T3, 2026-10-27) — a remedir na junção
 
-Branch `v4h-t3-objetivos`, a partir de `a4e94b3`; implementação em `a6ec7ae`, estado 34 e
-protocolo 3. Os cinco objetivos do GDD §12.2 usam mecânicas existentes, sem substituições
-por Cerco ou sabotagem; os sazonais continuam fora (ADR 0020, decisão 24). As leituras de
-implementação estão nas pendências H-1 a H-3.
+## 17. V4H-T1 — cartas do Mercado e da Coroa (2026-10-28)
 
-### 15.1 Método e reprodução
+Entram nove fichas aprovadas pelo autor em 2026-10-23: §4.4, §§5.1–5.5 e §§6.1–6.3 de
+`content-v0.4.md`. Texto, ordem das opções, números, condições, variantes e crônicas foram
+preservados. O catálogo passa de 30 para 39 cartas; a mudança de sorteio é intencional.
+O estado passa de 35 para 36 (a previsão 36 → 37 do roadmap estava defasada).
 
-A medição usa `runMatrix({ difficulty })`, a mesma função do CLI, com as 50 sementes fixas,
-os quatro perfis padrão, os três ritmos e as duas janelas (semana real e ano de jogo).
-São 24 células e 1.200 registros por dificuldade; descontada a repetição das janelas no
-Normal, 1.000 partidas distintas por dificuldade. As células, os resumos e as linhas de
-base de `baselineFor` foram exportados para comparar cada grandeza sem escrever `MEASURED`.
-Reprodução pelo CLI:
+Os testes editoriais do lote 1 foram ajustados só onde a ficha aprovada exige:
 
-```bash
-export PATH=/home/g_pals/.nvm/versions/node/v22.22.3/bin:$PATH
-pnpm -s sim -- --matrix --difficulty lord > /tmp/v4h-t3-lord.csv 2> /tmp/v4h-t3-lord.md
-pnpm -s sim -- --matrix --difficulty peasant > /tmp/v4h-t3-peasant.csv 2> /tmp/v4h-t3-peasant.md
-pnpm -s sim -- --matrix --difficulty ironKing > /tmp/v4h-t3-ironKing.csv 2> /tmp/v4h-t3-ironKing.md
-```
+- A ordem das nove fichas é a das tabelas aprovadas, fixada nos ids e no retrato de conteúdo,
+  em vez de mover automaticamente as opções pagas para o início.
+- `kingsTax/negotiate` usa `{heroi}` e não `{feudo}` na crônica aprovada.
+- O risco da praga não é um ganho garantido; o preço favorece quem vende e pesa sobre quem
+  compra. A comparação escalar de dominância não os ordena. Pagar o alquimista evita o risco;
+  pagar o Boicote evita ou reduz a alta. Os testes específicos conferem as chances e os fatores.
+- A multa de `kingsCollector/fine` e o tributo de `kingsAnswer/tribute` têm −5 de moral por
+  2 dias mesmo sem resposta, conforme a aprovação. As asserções exigem esses valores exatos.
+- O imposto recorrente perde 15% do ouro em Camponês/Senhor e usa flags da própria cadeia;
+  não integra a ronda neutra das quatro recorrentes do lote 1, cujos testes continuam intactos.
 
-**`MEASURED` não foi regravada.** Esta rodada conserva a Ameaça da Fortaleza da base deste
-branch: a mudança paralela para zero até o Cerco não está incluída. As faixas ficam **a
-remedir na junção**, sobre o conjunto das duas mudanças. Não se alteraram políticas dos
-bots para atingir os objetivos.
+As fórmulas de preço mantêm o passeio entre 60% e 160%, aplicam estação e todos os fatores
+vivos antes de arredondar, e conservam a venda a 85%. Não se alterou número de carta aprovado,
+regra de bot ou faixa do simulador. Matriz do simulador, cobertura em 50 sementes e verify
+inteiro ficam para o coordenador, por divisão explícita de trabalho nesta sessão.
 
-### 15.2 Resultado das 50 sementes
+Goldens regravados exclusivamente com `UPDATE_GOLDEN=1` e diff conferido. Há dois novos
+retratos de conteúdo/visão das nove cartas, e o golden semanal muda pelo sorteio: 360 eventos,
+67 ordens, 16 cartas, 10 respostas e 4 expirações. A Paliçada é mostrada às 108 h (antes,
+163 h); o poço cobra −10 de moral às 166 h; a moral final passa de 80 para 50. Permanecem
+exatos os ataques (3 sofridos e 6 repelidos), a deserção às 98 h e a Ameaça final 83.
+As asserções narrativas foram atualizadas para estes valores, sem tolerância.
 
-**72 células, 3.600 registros (3.000 partidas distintas).** Fome, frio e recusas em zero
-nas três dificuldades. Senhor: **zero violações**; Camponês: **uma célula** fora da faixa;
-Rei de Ferro: **duas células**, as duas janelas da mesma partida do Normal. Os quatro
-perfis continuam com as políticas anteriores. Ninguém além do Explorador fecha os 21:
-as expedições continuam limitando os outros perfis.
+A receita do README foi refeita: `COUNCIL_SCENARIO_SEED = fixture-council-1915` mantém poço,
+tábuas, estrangeira e a variante com a refeição dos pedreiros. `WELL_FIRST_SEED` do servidor
+continua válido em ritmos 1 e 3, conferido em teste de motor. Os 53 retratos v35 estão
+intactos, registrados em `FROZEN`; há 55 retratos v36, incluindo preço vivo e risco pendente.
+Na comparação semântica, além da versão e da lista vazia, mudam só os cenários que recebem
+cartas ou usam a semente revista; a semente também muda os fluxos da Horda nesses cenários.
+As contagens por estação das nove cartas novas estão fixadas em teste, sem substituir a
+cobertura de 50 sementes do coordenador.
 
-Cada entrada abaixo é o mínimo–máximo de objetivos cumpridos nas 50 sementes; a última
-coluna conta os Exploradores que fecharam a lista inteira.
+Verificação focada sem regravação: 709 testes em 18 arquivos, saída 0; contratos e guardas
+selecionados de `migrations.test.ts`: 379 testes, saída 0; unidade da Vigília no servidor:
+7 testes, saída 0. A seleção inicial que incluía todo o replay histórico das migrações foi
+interrompida (saída 130) para limitar a carga, e substituída pelos contratos e passos novos.
+As expectativas de versão atual da integração foram sincronizadas de 35 para 36 por leitura;
+a integração não foi executada nesta trilha. Typecheck e lint são conferidos no fechamento.
 
-**Senhor**
 
-| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Semana | 3 | 12 | 12–13 | 13 | 19–21 | 12/50 |
-| Semana | 1 | 12 | 12–13 | 12–13 | 13–21 | 9/50 |
-| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
-| Ano | 3 | 9–11 | 12 | 12–13 | 12–13 | 0/50 |
-| Ano | 1 | 12 | 12–13 | 12–13 | 13–21 | 9/50 |
-| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 33/50 |
+## 18. V4H-T1 — quatro avulsas do lote 2 (2026-10-28)
 
-**Camponês**
+Entram no branch `v4h-t1-avulsas` (a partir de `b902b00`) quatro fichas avulsas aprovadas
+pelo autor em 2026-10-23: §7.3 `passingRecruiter`, §7.4 `gamblingDebt`, §7.5 `squareDuel` e
+§8.1 `wanderingHealer` de `content-v0.4.md`. O catálogo passa de 39 para 43 cartas e o
+estado passa de 36 para 37 (`guild.tavern.extraOffer: boolean` e `heroes?: CouncilHero[]` em
+`council.pending` e `council.delayed`).
 
-| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Semana | 3 | 12 | 12–13 | 13 | 19–21 | 11/50 |
-| Semana | 1 | 12 | 12–13 | 12–13 | 15–21 | 12/50 |
-| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
-| Ano | 3 | 9–11 | 12 | 12–13 | 12–15 | 0/50 |
-| Ano | 1 | 12 | 12–13 | 12–13 | 15–21 | 12/50 |
-| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 27/50 |
+Ajuste editorial único em `packages/content/src/council.test.ts`:
 
-**Rei de Ferro**
+- Em `squareDuel` (§7.5), a opção sem risco que autoaplica nas três dificuldades é `forbid`
+  ("Proibir o duelo"), que aplica −5 de moral por 2 dias conforme a ficha aprovada. O teste
+  de autoaplicação em Camponês/Senhor exige esse valor exato (`expect(effect.amount).toBe(-5)`),
+  sem afrouxar para o resto do catálogo.
+- `known(effects)` passa a contar `tavernExtraOffer` e `healHero` em `extra`, confirmando que
+  as opções pagas (`passingRecruiter/pay`, `wanderingHealer/pay` e `wanderingHealer/herbs`)
+  entregam o que a opção sem custo não dá.
 
-| Janela | Ritmo | Preguiçoso | Regular | Dedicado | Explorador | Explorador com 21/21 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Semana | 3 | 12 | 12–13 | 12–13 | 19–21 | 18/50 |
-| Semana | 1 | 12 | 12–13 | 12–13 | 13–21 | 7/50 |
-| Semana | 0,5 | 11 | 11–12 | 11–12 | 11–15 | 0/50 |
-| Ano | 3 | 9–10 | 12 | 12–13 | 12–16 | 0/50 |
-| Ano | 1 | 12 | 12–13 | 12–13 | 13–21 | 7/50 |
-| Ano | 0,5 | 12 | 12–13 | 12–13 | 19–21 | 32/50 |
+Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
 
-As primeiras conclusões dos 21 ocorrem na semana do Rápido nas horas reais 86 (Senhor),
-112 (Camponês) e 76 (Rei de Ferro); no Normal, hora 168, e no ano do Tranquilo, hora 336,
-nas três dificuldades. Os ritmos 3, 1 e 0,5 são Rápido, Normal e Tranquilo. Nem toda semente fecha a lista: o máximo nulo da hora de conclusão
-continua indicando partidas incompletas.
-
-**Diferenças da linha de base preservada (seção 12 / `MEASURED`).** Só quatro células do
-Explorador por dificuldade mudaram nas grandezas da linha de base; todas as demais
-coincidiram exatamente. Nas linhas “Normal”, semana e ano são a mesma partida.
-
-| Dificuldade / célula | Antes → agora |
-| --- | --- |
-| Senhor, semana Rápido | Ouro parado máximo 182.298 → 182.318 |
-| Senhor, Normal (semana e ano) | Ouro parado máximo 16.732 → 16.752 |
-| Senhor, ano Tranquilo | População 54–73 → 57–73; pedra parada máxima 3.268 → 3.202; ouro 17.369 → 17.805 |
-| Camponês, semana Rápido | Ouro parado máximo 190.855 → 190.821 |
-| Camponês, Normal (semana e ano) | Pedra parada máxima 3.437 → 3.447; ouro 13.976 → 13.996 |
-| Camponês, ano Tranquilo | População 62–74 → 58–72; Salão mínimo 7 → 6; ouro parado máximo 17.593 → 17.605 |
-| Rei de Ferro, semana Rápido | Ouro parado máximo 174.167 → 174.187 |
-| Rei de Ferro, Normal (semana e ano) | Pedra parada máxima 2.602 → 2.761; ouro 14.406 → 14.426 |
-| Rei de Ferro, ano Tranquilo | População 55–75 → 54–75; pedra parada máxima 3.610 → 3.680; ouro 17.948 → 18.134 |
-
-Os extremos de Salão, população e materiais das demais linhas, e todos os de fome, frio
-e sequência de desperdício, ficaram iguais aos anteriores. Parte da variação do ouro é o
-prêmio de 20; as demais diferenças refletem o caminho que a lista nova faz o bot seguir,
-e não foram atribuídas a um prêmio específico.
-
-**O que piorou e volta ao autor (pendência H-4):**
-
-- Camponês, `year/0.5/explorador`, `pedra-alta-047`: Salão Nv6, abaixo do Nv7 da faixa,
-  **1/50** sementes. O mínimo e o máximo de população da célula também caem.
-- Rei de Ferro, `week/1/explorador` e `year/1/explorador`, `pedra-alta-015`: pedra parada
-  **2.761**, acima do limite **2.733**, **1/50** sementes; é a mesma partida nas duas
-  janelas. No ano do Tranquilo, a população mínima cai de 55 a 54, ainda dentro da faixa.
-
-**Conferência dos dois extremos.** Rodadas pontuais repetiram as duas sementes com visita
-extra à encruzilhada (`crossroadsVisit: true`, como na matriz), primeiro com os 21 e depois
-com apenas os 16 anteriores no mesmo processo, sem alterar arquivos, números ou políticas.
-Em Camponês/047, a lista de 16 termina com **63 aldeões, Salão Nv7 e Paliçada Nv4**;
-a de 21, com **58 aldeões, Salão Nv6 e Paliçada Nv5**. Em Rei de Ferro/015, a lista de 16
-termina com **61 aldeões e 876 de pedra parada**; a de 21, com **57 e 2.761**, ambas no
-Salão Nv6. A hora do Salão Nv4 é a mesma nas duas listas (129 e 78, respectivamente), e
-as incursões sofridas/repelidas também: 1/7 em Camponês, 2/7 em Rei de Ferro. A diferença
-é causada pela lista nova, mas esta comparação não isola qual prêmio muda o caminho.
-
-Essas violações **continuam visíveis** na matriz completa: não foram apagadas de `bands.ts`
-nem corrigidas mudando os bots ou os objetivos aprovados. O exportador de `runMatrix`
-terminou com código 0 nas três dificuldades; o CLI com verificação das faixas terminaria
-com 0 em Senhor e 1 em Camponês e Rei de Ferro. A confirmação sobre a Fortaleza com Ameaça
-zero até o Cerco é **a remedir na junção**.
-
-### 15.3 Expectativas dos testes e limites
-
-As expectativas ajustadas por causa dos objetivos novos são registradas aqui, sem afrouxar
-as verificações das mecânicas anteriores:
-
-- `simulate.test.ts`, “diz quantos Objetivos do Senhor…”: o econômico do cenário continua
-  com 13 concluídos; o denominador do texto passa de 16 a 21, também na partida curta.
-- `bots/ferreiro.test.ts`, “a partida do Explorador não ergue o Ferreiro nem forja…”: a arma
-  final passa de zero a uma, recebida do objetivo 18. O teste exige esse objetivo cumprido,
-  mantém o Ferreiro ausente e exige nenhum evento `weaponsForged`; as amostras têm zero ou
-  uma arma. Nenhuma regra de forja foi afrouxada.
-
-- `balance.test.ts`, “a linha de base de Senhor confere sem folga…”: preserva `MEASURED`
-  e aplica expectativas exatas locais só nas quatro células de Senhor acima: +20 de ouro
-  nas três primeiras e os extremos medidos de população/pedra/ouro no ano do Tranquilo.
-  Não aumenta a folga; o ajuste deve sair quando a junção remedir a base.
-- `balance.test.ts`, “os bots percorrem os objetivos…”: o máximo do Explorador no ano do
-  Tranquilo passa de 16 a **21**, nas três dificuldades; na semana do Tranquilo em Senhor,
-  de até 14 a **até 15**, como medido. Os limites dos demais perfis ficam preservados.
-
-O portão continua usando as 50 sementes de Senhor e as três primeiras nas outras duas
-(como antes); as sementes 047 e 015 que saíram da faixa aparecem **na rodada completa
-acima**, não nessa amostra do teste unitário. Portão verde não significa que as 50 de
-Camponês e Rei de Ferro estejam todas dentro das faixas antigas.
-
-Os testes do motor cobrem conclusão na fronteira de uma partida do estado 34, prêmio único,
-ordens reais, treino cancelado ou reduzido pelo piso, alvo e bloqueios na visão, XP de quem
-comandou a incursão e presságio adiado, com divisão exata do intervalo e persistência nas
-três dificuldades e ritmos. Os 26 goldens foram atualizados com `UPDATE_GOLDEN=1` e tiveram
-o diff conferido: somente os cinco ids nos cenários que já marcavam toda a lista como
-concluída e `lastRaidRepelledBattle` nas estatísticas. Nenhum retrato anterior ao estado 34
-mudou. Testes em navegador, integração e capturas não foram rodados (banco compartilhado);
-sem playtest do autor, sem medição de Cerco ou sabotagem e sem publicação.
-
-## 16. Junção da Fase E (2026-10-28)
-
-Branch `v4e-juncao`, estado 35, protocolo 3. Integra a revisão da Horda e da tela,
-a Fortaleza sem Ameaça até o Cerco, a Hora da Vigília e os objetivos 17 a 21.
-Nenhum bot, custo, recompensa ou regra de folga foi alterado nesta junção.
-
-### 16.1 Retratos e goldens
-
-A junção dos objetivos trouxe 24 retratos v34 modificados em paralelo à criação
-do estado 35. Foram restaurados os bytes congelados na entrada da Vigília
-(`d21424d`), preservando a entrada real do passo 34 → 35. Oito impressões digitais trazidas
-pela Vigília ainda apontavam para a Fortaleza com +2: foram alinhadas aos bytes
-da base `0f7f098`, sem regravar retratos históricos.
-As regras combinadas ficam somente nos retratos v35, regravados com
-`UPDATE_GOLDEN=1` após identificar as divergências e conferir o diff.
-
-A conferência inicial de 12 arquivos encontrou 28 snapshots divergentes em apenas
-três arquivos de teste. Foram regravados 26 retratos v35, `scenario-7-days.json` e
-`horde-pressure.json`; os demais goldens permaneceram iguais, inclusive a contagem
-anual. No cenário semanal o ensaio passa de 120 h para 140 h; a Ameaça final, de
-43 para 50 (era 83 na Vigília isolada), mantendo seis repelidas e três sofridas.
-A chance final exibida passa de 7% para 14%. Os retratos com toda a lista cumprida
-ganham os cinco ids de objetivos; o último relatório repelido ganha o contador
-de prêmio. A Fortaleza sem Ameaça e os novos instantes explicam as diferenças de
-Ameaça, RNG, presságios, composição e perdas nos cenários longos. Os cinco feudos
-da pressão somam 45 incursões leves e 50 médias/fortes (31 do outono em diante),
-contra 48, 47 e 30 na seção 13. Nenhuma tolerância foi acrescentada.
-
-### 16.2 A matriz da junção
-
-Uma rodada só, nas três dificuldades, 50 sementes por célula, com tudo junto (a Fortaleza
-sem Ameaça até o Cerco, a Hora da Vigília e os objetivos 17 a 21). `MEASURED` foi
-regravada com esta rodada. Fome, frio e recusas ficaram em zero.
-
-- **Fora da faixa antes de regravar** (uma semente cada, sempre excedente parado ou
-  sequência desperdiçando): em Camponês, o Dedicado do Normal (semana e ano) com madeira
-  e pedra paradas acima do limite (sementes 036, 044 e 047); em Rei de Ferro, o Dedicado
-  do Normal (semente 040) e o Regular do ano do Tranquilo (semente 026: pedra parada e
-  5,5 h desperdiçando madeira, o limite era 4 h). Senhor ficou inteiro dentro. Vêm do
-  caminho de obras que os objetivos novos mudam (seção 15); **regressão medida**, para o
-  autor ler com a pendência H-4.
-- **Preguiçoso do Rápido, em Senhor:** no ano, 7 a 14 feridos (seção 13: 12 a 18), a
-  população mínima de 16 e de 9 a 11 objetivos; na semana, de 36 a 51 aldeões e 12
-  objetivos.
-- **A Ameaça no fim do ano** continua alta em quase toda célula (até 100 no Regular e no
-  Dedicado do Rápido): sem a Fortaleza, quem soma é o Acampamento (+2 por dia desde o
-  dia 25), que só se limpa na V4F-T2. Antes da V4E-T3 (seções 9 e 10) o Regular do
-  Normal terminava o ano entre 28 e 63. A decisão de manter o Acampamento em +2 até a
-  V4F-T2 é do autor (D-43).
+- Dois novos goldens das quatro cartas (`packages/content/src/__golden__/council-avulsas.json`
+  e `packages/engine/src/__golden__/council-avulsas-view.json`).
+- `COUNCIL_SCENARIO_SEED` (`fixture-council-1915`), `WELL_FIRST_SEED` (`pedra-alta-teste-16`)
+  e a linha do tempo de `scenario-7-days.json` não mudam de sorteio (nenhuma das quatro cartas
+  é elegível sem Taverna, dois heróis livres ou um herói ferido; em `scenario-7-days.json` só
+  mudam `schemaVersion: 37` e `guild.tavern.extraOffer: false`).
+- Em `view-seed-pedra-alta.json`, mudam apenas as cartas na mesa das visões que já têm Taverna
+  ou dois heróis livres (`tavernOpen`, `tavernBusy`, `expeditionCrossroads`, `heroInjured`).
+- Os 55 retratos `state-v36-*.json` foram congelados em `FROZEN` e 56 retratos `state-v37-*.json`
+  foram gravados (incluindo `council-encounters` com `extraOffer: true`, risco pendente com
+  participante e duelo na mesa).

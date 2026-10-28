@@ -8,6 +8,7 @@ import {
   marketReserve,
   maxBuyable,
   maxSellable,
+  nextMarketEffectAt,
   priceBounds,
   priceZone,
   quote,
@@ -234,6 +235,7 @@ describe('o preço que anda (V3E-T1.2)', () => {
     expect(later.settlement.buildings.market).toBe(0);
     expect(later.market).toStrictEqual(fresh.market);
     expect(later.market).toStrictEqual({
+      effects: [],
       prices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       previousPrices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       quoteDay: 0,
@@ -866,6 +868,20 @@ describe('o Mercado na visão (V3E-T1.6)', () => {
     });
     expect(market.prices[0]).toMatchObject({ buyText: '1,00', sellText: '0,85', trend: 'flat' });
     expect(market.prices[2]).toMatchObject({ buyText: '2,00', sellText: '1,70', baseText: '2,00' });
+  });
+
+  it('fatores vencidos (untilMs <= lastProcessedAt) são ignorados por nextMarketEffectAt e marketView', () => {
+    const stall = marketStall(DAY - 90 * MINUTE);
+    stall.market.effects.push({
+      resource: 'food',
+      factor: { num: 6, den: 5 },
+      fromMs: 0,
+      untilMs: stall.lastProcessedAt,
+      label: 'Carta: Boicote Vencido',
+    });
+    expect(nextMarketEffectAt(stall)).toBeNull();
+    const market = deriveViewState(stall, stall.lastProcessedAt, { timeScale: 1 }).market;
+    expect(market.nextChangeInSeconds).toBe(5400);
   });
 
   it('os preços por extenso têm duas casas, e a terceira quando ela existe', () => {

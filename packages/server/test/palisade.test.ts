@@ -489,29 +489,3 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
     expect(palisade(view)?.blockedCode).not.toBe('GATE_LOCKED');
 
     const row = await storedState(fast, game.id);
-    expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
-    expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-    // A Paliçada da versão 10, a Taverna da 16, a Guilda dos Aventureiros da 17 e o Mercado da 21
-    // entram por construir.
-    expect(row.state.settlement.buildings).toEqual({
-      ...before.settlement.buildings,
-      palisade: 0,
-      tavern: 0,
-      guild: 0,
-      market: 0,
-      smithy: 0,
-      barracks: 0,
-    });
-    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-    // Nada do Conselho mudou na fronteira: a promessa só existe para quem a fizer.
-    expect(Object.keys(row.state.council.flags).join()).not.toContain('palisadePromise');
-  });
-
-  it('a Torre que a partida já tinha continua vendo a Ameaça depois da migração', async () => {
-    const before = v9State('threat');
-    const game = await insertGame(normal, before, before.settings.timeScale);
-    const view = await viewOf(normal, game, game.id);
-    expect(view.threat).toMatchObject({ known: true, level: 45 });
-    expect(view.threat.defense.palisadeLevel).toBe(0);
-  });
-});

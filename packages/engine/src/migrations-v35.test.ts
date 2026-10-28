@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { currentShape, migrateState } from './migrations';
+import { stateV35 } from './migrations/v35';
 import { stateV34, v34ToV35 } from './migrations/v34';
 import { nextRehearsalMarkAt } from './raids';
 import { DAY, HOUR, WINTER } from './test-helpers';
@@ -30,7 +31,7 @@ describe('34 → 35: origem real e Vigília', () => {
         boundaryMs: before.lastProcessedAt as number,
       });
       expect(stateV34(before, '')).toBeNull();
-      expect(currentShape(after, '')).toBeNull();
+      expect(stateV35(after, '')).toBeNull();
       expect(after).toEqual({
         ...before,
         schemaVersion: 35,
@@ -49,7 +50,8 @@ describe('34 → 35: origem real e Vigília', () => {
             : before.stats,
       });
       expect(JSON.stringify(before)).toBe(input);
-      expect(migrateState(after, context)).toBe(after);
+      const current = migrateState(after, context);
+      expect(migrateState(current, context)).toBe(current);
     },
   );
 

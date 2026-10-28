@@ -1,0 +1,255 @@
+[
+ {
+  "id": "passingRecruiter",
+  "title": "Recrutador de passagem",
+  "text": "Um recrutador de capa gasta bateu à porta da Taverna e abriu a bolsa de couro sem rodeios. Conhece gente que procura trabalho de espada e que não pediria mal. Cobra a taxa de quem encontra, não de quem contrata, e diz que não volta tão cedo.",
+  "weight": 2,
+  "requires": {
+   "buildings": {
+    "tavern": 1
+   }
+  },
+  "autoResolve": {
+   "peasant": "refuse",
+   "lord": "refuse",
+   "ironKing": "refuse"
+  },
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pagar a taxa do recrutador",
+    "cost": {
+     "gold": 100
+    },
+    "effects": [
+     {
+      "type": "tavernExtraOffer"
+     }
+    ],
+    "hint": "O candidato extra sai da rotação seguinte, e a bolsa sai agora.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou a taxa do recrutador de passagem. Ele garantiu mais um nome na lista da Taverna e pegou a estrada."
+   },
+   {
+    "id": "refuse",
+    "label": "Dispensar o recrutador",
+    "effects": [],
+    "hint": "A Taverna escolhe quem aparece por conta própria.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou o recrutador. Ele guardou a bolsa e foi bater a outra porta.",
+    "expiredChronicle": "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} dispensou o recrutador. Ele guardou a bolsa e foi bater a outra porta."
+   }
+  ]
+ },
+ {
+  "id": "gamblingDebt",
+  "title": "A dívida de jogo",
+  "text": "Um cobrador de dados e baralhos bateu à porta com um papel dobrado na mão: {heroi}, dizem, perdeu na mesa mais do que o soldo de um mês e não tem como pagar. O homem não fala alto, mas não parece disposto a esperar. O conselho quer saber o que o senhor responde.",
+  "weight": 2,
+  "requires": {
+   "buildings": {
+    "tavern": 1
+   },
+   "heroPresent": 1
+  },
+  "autoResolve": {
+   "peasant": "leave",
+   "lord": "leave",
+   "ironKing": "leave"
+  },
+  "options": [
+   {
+    "id": "cover",
+    "label": "Cobrir a dívida",
+    "cost": {
+     "gold": 90
+    },
+    "effects": [
+     {
+      "type": "morale",
+      "amount": 5,
+      "durationDays": 2
+     }
+    ],
+    "hint": "Uma dívida paga é lealdade comprada.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} cobriu a dívida de jogo de {heroi}. O cobrador contou as moedas duas vezes e se foi sem dizer o nome da taverna."
+   },
+   {
+    "id": "leave",
+    "label": "Deixá-lo resolver sozinho",
+    "effects": [
+     {
+      "type": "rollEffect",
+      "chance": {
+       "num": 1,
+       "den": 2
+      },
+      "onHit": {
+       "effects": [
+        {
+         "type": "injureHero",
+         "kind": "light"
+        },
+        {
+         "type": "morale",
+         "amount": -5,
+         "durationDays": 3
+        }
+       ],
+       "chronicle": "No {dia}º dia {daEstacao}, {heroi} voltou da conversa com o cobrador de olho roxo e costelas doloridas. A Taverna comentou por uma semana."
+      },
+      "onMiss": {
+       "effects": [
+        {
+         "type": "morale",
+         "amount": 5,
+         "durationDays": 2
+        }
+       ],
+       "chronicle": "No {dia}º dia {daEstacao}, {heroi} acertou as contas com o cobrador sem derramar sangue. Ninguém soube explicar como, e ninguém perguntou."
+      }
+     }
+    ],
+    "hint": "Cada um sabe da própria mesa, e do próprio fim de noite.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} deixou {heroi} se resolver com o cobrador.",
+    "expiredChronicle": "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deixou {heroi} se resolver com o cobrador."
+   }
+  ]
+ },
+ {
+  "id": "squareDuel",
+  "title": "Duelo na praça",
+  "text": "{heroi} e {heroi2} trocaram palavras duras na Taverna, e a coisa foi parar na praça, onde se juntou a aldeia inteira com os braços cruzados. Ambos querem resolver com o aço. O capitão da guarda olha para o senhor, esperando uma palavra.",
+  "weight": 2,
+  "requires": {
+   "seasons": [
+    "spring",
+    "summer",
+    "autumn"
+   ],
+   "heroPresent": 2
+  },
+  "autoResolve": {
+   "peasant": "forbid",
+   "lord": "forbid",
+   "ironKing": "forbid"
+  },
+  "options": [
+   {
+    "id": "allow",
+    "label": "Permitir o duelo",
+    "effects": [
+     {
+      "type": "morale",
+      "amount": 10,
+      "durationDays": 2
+     },
+     {
+      "type": "rollEffect",
+      "chance": {
+       "num": 1,
+       "den": 3
+      },
+      "onHit": {
+       "effects": [
+        {
+         "type": "injureHero",
+         "kind": "light"
+        }
+       ],
+       "chronicle": "No {dia}º dia {daEstacao}, {heroiFerido} saiu do duelo na praça com um corte no braço, e a aldeia cantou o nome do outro."
+      },
+      "onMiss": {
+       "effects": [],
+       "chronicle": "No {dia}º dia {daEstacao}, o duelo entre {heroi} e {heroi2} acabou em abraço e vinho. Ninguém saiu ferido."
+      }
+     }
+    ],
+    "hint": "O povo gosta de ver o aço, e o aço nem sempre sai limpo.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} permitiu o duelo entre {heroi} e {heroi2}. A praça lotou antes do meio-dia."
+   },
+   {
+    "id": "train",
+    "label": "Marcar um duelo de treino",
+    "cost": {
+     "gold": 30
+    },
+    "effects": [
+     {
+      "type": "morale",
+      "amount": 5,
+      "durationDays": 2
+     }
+    ],
+    "hint": "Madeira no lugar de aço: a honra fica salva, e as costelas também.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou {heroi} e {heroi2} duelarem com lanças de madeira. Ganhou quem apanhou menos, e a praça aplaudiu os dois."
+   },
+   {
+    "id": "forbid",
+    "label": "Proibir o duelo",
+    "effects": [
+     {
+      "type": "morale",
+      "amount": -5,
+      "durationDays": 2
+     }
+    ],
+    "hint": "A ordem do senhor vale mais que a honra dos dois, mesmo que ninguém goste.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} proibiu o duelo na praça. A aldeia resmungou e foi para casa.",
+    "expiredChronicle": "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} proibiu o duelo na praça. A aldeia resmungou e foi para casa."
+   }
+  ]
+ },
+ {
+  "id": "wanderingHealer",
+  "title": "O curandeiro errante",
+  "text": "Um homem magro, de bolsa cheia de ervas e dedos manchados de verde, parou diante dos portões e perguntou, sem cumprimentar, quem era o ferido da casa. Já ouviu falar de {heroi}. Diz que cura numa noite o que o tempo cura em muitas, e cobra pela noite.",
+  "weight": 2,
+  "requires": {
+   "injuredHero": true
+  },
+  "autoResolve": {
+   "peasant": "wait",
+   "lord": "wait",
+   "ironKing": "wait"
+  },
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pagar pela cura",
+    "cost": {
+     "gold": 60
+    },
+    "effects": [
+     {
+      "type": "healHero",
+      "mode": "full"
+     }
+    ],
+    "hint": "A bolsa esvazia hoje, e a espada volta ao trabalho amanhã.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} pagou o curandeiro errante. {heroi} acordou sem febre e sem dor, e o homem das ervas sumiu na estrada."
+   },
+   {
+    "id": "herbs",
+    "label": "Comprar só as ervas",
+    "cost": {
+     "food": 30
+    },
+    "effects": [
+     {
+      "type": "healHero",
+      "mode": "half"
+     }
+    ],
+    "hint": "Mais lento, mais barato, e a cozinha cheira a mato.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} comprou as ervas do curandeiro errante. O caldo fedia, e {heroi} jurou que melhorou por teimosia."
+   },
+   {
+    "id": "wait",
+    "label": "Deixar o tempo curar",
+    "effects": [],
+    "hint": "O ferimento sara sozinho, no passo dele.",
+    "chronicle": "No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou o curandeiro errante. {heroi} continuou de cama, e o homem das ervas foi cobrar noutra porta.",
+    "expiredChronicle": "No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} dispensou o curandeiro errante. {heroi} continuou de cama, e o homem das ervas foi cobrar noutra porta."
+   }
+  ]
+ }
+]

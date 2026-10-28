@@ -142,7 +142,46 @@ export function quoteOf(price: number, factor: Ratio): Quote {
 
 /** O preço negociado de um recurso agora: o do passeio de hoje com o fator da estação de agora. */
 export function quote(state: GameState, resource: MarketResourceId): Quote {
-  return quoteOf(state.market.prices[resource], seasonalFactor(resource, state.lastProcessedAt));
+  const seasonal = seasonalFactor(resource, state.lastProcessedAt);
+  const factor = liveMarketEffects(state, resource).reduce(
+    (total, effect) => ({
+      num: total.num * BigInt(effect.factor.num),
+      den: total.den * BigInt(effect.factor.den),
+    }),
+    { num: BigInt(seasonal.num), den: BigInt(seasonal.den) },
+  );
+  // Multiplica antes de arredondar, sem perder precisão ao acumular fatores racionais.
+  const scaled = BigInt(state.market.prices[resource]) * factor.num;
+  return {
+    buy: Number((scaled + factor.den - 1n) / factor.den),
+    sell: Number(
+      (scaled * BigInt(rules.sellRatio.num)) / (factor.den * BigInt(rules.sellRatio.den)),
+    ),
+  };
+}
+
+/**
+ * Os fatores de carta que valem agora: já começaram (`fromMs`) e ainda não acabaram
+ * (`untilMs`). Os dois instantes são viradas de dia, então a cotação do dia não muda nele.
+ */
+export function liveMarketEffects(state: GameState, resource: MarketResourceId) {
+  return state.market.effects.filter(
+    (effect) =>
+      effect.resource === resource &&
+      effect.fromMs <= state.lastProcessedAt &&
+      effect.untilMs > state.lastProcessedAt,
+  );
+}
+
+/**
+ * O próximo instante em que um fator começa ou acaba, depois de agora; `null` sem nenhum. Os
+ * dois são viradas de dia, que a linha do tempo já tem, e os vencidos não contam.
+ */
+export function nextMarketEffectAt(state: GameState): number | null {
+  const ahead = state.market.effects.flatMap((effect) =>
+    [effect.fromMs, effect.untilMs].filter((ms) => ms > state.lastProcessedAt),
+  );
+  return ahead.length === 0 ? null : Math.min(...ahead);
 }
 
 /**

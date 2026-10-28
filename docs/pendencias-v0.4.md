@@ -486,52 +486,59 @@ _(Corrigido na revisão de 2026-10-27: antes, o horário já passado deixava o e
 marcação para sempre, e a ordem podia marcar o Acampamento que a virada do dia deixara de
 fora por falta de vaga.)_
 
-### V4H-T3 — objetivos 17 a 21 (2026-10-27)
 
-**H-1. O treino anterior e a formação salva.** _(Proposta do agente; não lida pelo autor.)_
-O objetivo 18 conta soldados que terminaram o treino, somados, mesmo depois de baixas ou
-dispensa. O estado 34 não tinha esse total: os soldados presentes são o piso comprovável do
-histórico anterior; baixas e dispensas anteriores à mudança não podem ser reconstruídas.
-Os soldados entregues por carta também entram nesse piso, mas não somam ao contador novo de
-treino. O objetivo 19 conta salvar uma formação, sem exigir ativá-la (é a ação do GDD): o
-contador de identidades comprova a ação mesmo depois de apagar a formação. Os demais usam o
-Salão e os contadores já existentes de simulações e incursões repelidas. O que foi feito
-antes de revelar o objetivo vale, e cada prêmio sai uma vez. Nenhuma forma de estado mudou:
-continuam estado 34 e protocolo 3; os contadores novos cabem em `stats`, já de chaves livres.
+## V4H-T1 — Mercado e Coroa (2026-10-28)
 
-**H-2. O presságio gratuito antes do outono.** _(Proposta do agente; não lida pelo autor.)_
-O GDD não diz como dar presságio quando as ondas ainda não foram preparadas. A recompensa
-fica devida em `stats.objectiveOmenPending` e sai no primeiro `settlePlanned` com preparação
-real: lê a primeira onda da revisão atual, com a clareza da Torre (vaga sem Torre), sem
-sortear nem mudar o plano. A visão avisa que a entrega espera a preparação. Depois vale a
-regra normal: uma nova revisão substitui os presságios do painel. Não se inventa onda nem
-se antecipa o Cerco. Com preparação já existente, a entrega é imediata.
+**H-1. Arredondamento e momento do risco.** _(Proposta do agente; não lida pelo autor.)_
+`resourcesPercent` arredonda a quantidade retirada ou concedida para baixo em milésimos,
+lendo o estoque na resolução. O ganho respeita o depósito e conta desperdício.
+A Clériga que reduz o risco da praga é consultada na virada da resolução, não na escolha;
+vale em expedição ou recuperação, mas não em cativeiro (decisão 19). O risco reaproveita a
+fila `council.delayed`: só guarda carta e opção, nunca o resultado, e não admite outro risco
+aninhado. O herói Carismático que fala na escolha é o primeiro livre na lista, e o evento
+guarda identificador e nome para a Crônica não trocar de interlocutor numa recarga.
 
-**H-3. Quanto XP e a quem.** _(Proposta do agente; não lida pelo autor.)_
-O GDD promete XP ao comandante sem fixar valor: a proposta é **20 XP por comandante
-sobrevivente da última incursão repelida ainda identificável nos relatórios guardados**.
-`stats.lastRaidRepelledBattle` registra o número da batalha ao repelir: a Paliçada pode
-repelir mesmo quando a conta da batalha perdeu (D-36). Trocar a Defesa depois não transfere
-o prêmio. Para um estado anterior sem esse identificador, usa-se a última defesa com
-vitória ou resistência ainda registrada. Sem relatório ou comandante sobrevivente no
-feudo, não se inventa destinatário; o objetivo continua cumprido, sem XP adiado para outro
-herói. O número está no conteúdo. Os textos dos cinco objetivos são rascunhos do agente.
+**H-2. Duração, início na virada e conflito de narrativa do preço.** _(Decisão do coordenador; não lida pelo autor.)_
+O fator de preço de uma carta do Conselho passa a valer apenas a partir da **próxima
+virada de dia de jogo** depois da resposta (`fromMs = nextDayBoundary(atMs)`), expirando
+também em uma virada de dia (`untilMs = fromMs + durationDays * DAY_MS`). Como o preço do
+Mercado já só muda na virada, a cotação do dia nunca muda no meio dele: nenhuma sequência
+de compra e venda (nem envio de caravana) no mesmo dia dá lucro (§5.6, achados 1 e 3 da
+revisão). A visão explica "a partir da próxima virada do dia, por N dias de jogo".
+_Conflito de narrativa com fichas aprovadas:_ as fichas de `mysteriousMerchant` (opção
+`imprison`: "Os preços da praça subiram no mesmo dia.") e `royalCaravan` (opção `sellNow`:
+"Vender à caravana agora", com "Um dia de preço alto, e só um dia." e bancas esvaziando
+"antes do pôr do sol") afirmam efeito imediato no mesmo dia. O texto das fichas foi mantido
+intacto; cabe ao autor ajustar as frases para harmonizar com a ativação na virada seguinte.
 
-Nenhum dos cinco objetivos de §12.2 depende de Cerco ou sabotagem: **nenhuma substituição**
-foi necessária. Os sazonais continuam fora, conforme a decisão 24 do ADR 0020.
 
-**H-4. Pioras medidas com os objetivos novos.** _(Proposta do agente; não lida pelo autor.)_
-A matriz de 50 sementes nas três dificuldades (balance-v0.4.md, seção 15) mantém fome,
-frio e recusas em zero, mas o Explorador de **Camponês no ano do Tranquilo** cai do Salão
-mínimo 7 ao **6** (`pedra-alta-047`, 1/50), e sua população passa de 62–74 a 58–72.
-Em **Rei de Ferro no Normal**, a pedra parada máxima sobe de 2.602 a **2.761**, acima do
-limite de 2.733 (`pedra-alta-015`, 1/50; a mesma partida na semana e no ano). No ano do
-Tranquilo de Rei de Ferro, a população mínima cai de 55 a 54, ainda dentro da faixa.
-Senhor fica dentro das faixas. A conferência pontual sem os cinco objetivos novos, com
-as visitas extras da matriz, recupera os dois extremos: Camponês/047 volta ao Salão Nv7
-(com Paliçada Nv4 em vez de Nv5) e Rei de Ferro/015 volta a 876 de pedra parada. Não se
-isolou qual recompensa muda o caminho. A proposta conservadora é manter os cinco objetivos
-aprovados e **remedir na junção** com a Ameaça da Fortaleza em zero até o Cerco, antes de
-decidir ajuste de custo, recompensa ou progressão. `MEASURED` ficou intacta; os desvios
-continuam visíveis na matriz completa. O portão só amostra as três primeiras sementes
-nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 015 e 047.
+## V4H-T1 — quatro avulsas (2026-10-28)
+
+**H-3. Participantes, cura e contingências.** _(Proposta do agente; não lida pelo autor.)_
+As fichas §§7.4–7.5 e 8.1 escolhem participantes na chegada pelo fluxo `council`, sem
+reposição, e guardam identificador e nome na ocorrência e no risco pendente. Livre
+significa `idle` sem ferimento; comandante que permanece no feudo também pode conversar.
+Na virada do risco só pode se ferir um participante ainda livre; com nenhum, vale o ramo
+bom inteiro, sem sorteio. Com dois disponíveis o sorteio de quem se fere ocorre depois
+do da chance. A cura parcial arredonda o prazo restante para cima em milissegundos,
+para não dar mais de metade. A cura integral usa a mesma recuperação natural e emite `heroRecovered` depois da linha da
+carta. Nas opções de cura (`healHero`), se o alvo sarou ou partiu antes da resposta, o custo
+escolhido continua sendo o da ficha, sem cura substituta, e a frase de contingência proposta é:
+"No {dia}º dia {daEstacao}, o curandeiro errante chegou tarde a {feudo}: {heroi} já não estava
+entre os feridos da casa." A opção sem cura (`wait`) e o vencimento da carta preservam as
+frases aprovadas na ficha §8.1.
+
+**H-4. Persistência do recrutador.** _(Proposta do agente; não lida pelo autor.)_
+O estado passa de 36 para 37: marcador booleano `guild.tavern.extraOffer`, desligado
+na migração, e participantes opcionais em `council.pending`/`delayed` (obrigatórios nas
+três cartas com alvo). O bônus é um candidato na próxima lista e se consome na rotação,
+sem mudar limite de contratação ou número das listas seguintes. O teto persistido de
+ofertas passa de três para quatro; as guardas antigas e os retratos v36 ficam congelados.
+A escolha paga na hora exata de uma rotação vale para a seguinte: o instante vence
+antes da ordem, como no restante do motor.
+
+**H-5. Travas sugeridas na revisão para `kingsTax` e `merchantBoycott`.** _(Proposta do agente; não lida pelo autor.)_
+A revisão independente das cartas levantou a suspeita de faltarem travas de narrativa:
+1. Em `kingsTax` (§6.1, imposto do rei, recorrente): responder `pay` ou `negotiate` não grava flag, permitindo em tese que o sorteio tire a carta novamente no mesmo ano ou estação.
+2. Em `merchantBoycott` (§5.4): a carta requer apenas `flags: ['merchant.hostile']`, podendo sair no início do outono em paralelo à continuação `merchantFinalOffer` (§5.3) antes de uma possível trégua (`peace`).
+Como as fichas aprovadas pelo autor em `docs/content-v0.4.md` (§§5.4 e 6.1) não preveem trava sazonal em `kingsTax` nem `notFlags: ['merchant.lead', 'merchant.sold']` em `merchantBoycott`, as cartas foram mantidas exatamente como aprovadas, sem alterações de conteúdo pelo agente. A decisão sobre acrescentar essas travas fica para o autor.
