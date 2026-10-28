@@ -647,3 +647,36 @@ selecionados de `migrations.test.ts`: 379 testes, saída 0; unidade da Vigília 
 interrompida (saída 130) para limitar a carga, e substituída pelos contratos e passos novos.
 As expectativas de versão atual da integração foram sincronizadas de 35 para 36 por leitura;
 a integração não foi executada nesta trilha. Typecheck e lint são conferidos no fechamento.
+
+
+## 15. V4H-T1 — quatro avulsas do lote 2 (2026-10-28)
+
+Entram no branch `v4h-t1-avulsas` (a partir de `b902b00`) quatro fichas avulsas aprovadas
+pelo autor em 2026-10-23: §7.3 `passingRecruiter`, §7.4 `gamblingDebt`, §7.5 `squareDuel` e
+§8.1 `wanderingHealer` de `content-v0.4.md`. O catálogo passa de 39 para 43 cartas e o
+estado passa de 36 para 37 (`guild.tavern.extraOffer: boolean` e `heroes?: CouncilHero[]` em
+`council.pending` e `council.delayed`).
+
+Ajuste editorial único em `packages/content/src/council.test.ts`:
+
+- Em `squareDuel` (§7.5), a opção sem risco que autoaplica nas três dificuldades é `forbid`
+  ("Proibir o duelo"), que aplica −5 de moral por 2 dias conforme a ficha aprovada. O teste
+  de autoaplicação em Camponês/Senhor exige esse valor exato (`expect(effect.amount).toBe(-5)`),
+  sem afrouxar para o resto do catálogo.
+- `known(effects)` passa a contar `tavernExtraOffer` e `healHero` em `extra`, confirmando que
+  as opções pagas (`passingRecruiter/pay`, `wanderingHealer/pay` e `wanderingHealer/herbs`)
+  entregam o que a opção sem custo não dá.
+
+Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
+
+- Dois novos goldens das quatro cartas (`packages/content/src/__golden__/council-avulsas.json`
+  e `packages/engine/src/__golden__/council-avulsas-view.json`).
+- `COUNCIL_SCENARIO_SEED` (`fixture-council-1915`), `WELL_FIRST_SEED` (`pedra-alta-teste-16`)
+  e a linha do tempo de `scenario-7-days.json` não mudam de sorteio (nenhuma das quatro cartas
+  é elegível sem Taverna, dois heróis livres ou um herói ferido; em `scenario-7-days.json` só
+  mudam `schemaVersion: 37` e `guild.tavern.extraOffer: false`).
+- Em `view-seed-pedra-alta.json`, mudam apenas as cartas na mesa das visões que já têm Taverna
+  ou dois heróis livres (`tavernOpen`, `tavernBusy`, `expeditionCrossroads`, `heroInjured`).
+- Os 55 retratos `state-v36-*.json` foram congelados em `FROZEN` e 56 retratos `state-v37-*.json`
+  foram gravados (incluindo `council-encounters` com `extraOffer: true`, risco pendente com
+  participante e duelo na mesa).

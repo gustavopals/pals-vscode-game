@@ -1165,7 +1165,14 @@ export function dealt(
     throw new Error(`Carta desconhecida no teste: ${cardId}.`);
   }
   const draft = cloneState(state);
-  const { instanceId } = deliverCard(draft, card, draft.lastProcessedAt, [], { source: 'draw' }, drawCouncilHeroes(draft, card));
+  const { instanceId } = deliverCard(
+    draft,
+    card,
+    draft.lastProcessedAt,
+    [],
+    { source: 'draw' },
+    drawCouncilHeroes(draft, card),
+  );
   return { state: draft, instanceId };
 }
 

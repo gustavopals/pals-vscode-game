@@ -36,7 +36,11 @@ function drawOffers(draft: GameState): TavernOffer[] {
   }
   const offers: TavernOffer[] = [];
   let models = [...tavernCandidates];
-  for (let seat = offersPerRotation(draft) + (guild.tavern.extraOffer ? 1 : 0); seat > 0; seat -= 1) {
+  for (
+    let seat = offersPerRotation(draft) + (guild.tavern.extraOffer ? 1 : 0);
+    seat > 0;
+    seat -= 1
+  ) {
     const free = heroNames.filter((entry) => !taken.has(entry.name));
     if (free.length === 0) {
       break;
