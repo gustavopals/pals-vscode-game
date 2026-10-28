@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 35;
+const CURRENT = 36;
 
 describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
   it.each(['fresh', 'crafts', 'cold', 'caravan', 'raid-announced', 'week-scripted'])(
@@ -66,7 +66,7 @@ describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
       expect(reply.status).toBe(200);
       expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
       const row = await rowOf(server, game.id);
-      expect(row).toMatchObject({ schemaVersion: 35, stateVersion: 8 });
+      expect(row).toMatchObject({ schemaVersion: 36, stateVersion: 8 });
       expect(row.state).toMatchObject({
         settlement: before.settlement,
         rng: before.rng,

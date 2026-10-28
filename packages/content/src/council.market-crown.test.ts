@@ -18,6 +18,11 @@ const ids = [
 const card = (id: string): CouncilCard => councilCards.find((entry) => entry.id === id)!;
 
 describe('as nove fichas aprovadas: Mercado, praga e Coroa', () => {
+  it('golden do conteúdo aprovado, incluindo todos os números e condições', async () => {
+    await expect(`${JSON.stringify(ids.map(card), null, 1)}\n`).toMatchFileSnapshot(
+      './__golden__/council-market-crown.json',
+    );
+  });
   it.each(ids)('%s: título, texto, variantes, opções, pistas e crônicas iguais à ficha', (id) => {
     const entry = card(id);
     const match = source.match(

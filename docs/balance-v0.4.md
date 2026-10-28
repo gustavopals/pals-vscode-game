@@ -624,3 +624,26 @@ As fórmulas de preço mantêm o passeio entre 60% e 160%, aplicam estação e t
 vivos antes de arredondar, e conservam a venda a 85%. Não se alterou número de carta aprovado,
 regra de bot ou faixa do simulador. Matriz do simulador, cobertura em 50 sementes e verify
 inteiro ficam para o coordenador, por divisão explícita de trabalho nesta sessão.
+
+Goldens regravados exclusivamente com `UPDATE_GOLDEN=1` e diff conferido. Há dois novos
+retratos de conteúdo/visão das nove cartas, e o golden semanal muda pelo sorteio: 360 eventos,
+67 ordens, 16 cartas, 10 respostas e 4 expirações. A Paliçada é mostrada às 108 h (antes,
+163 h); o poço cobra −10 de moral às 166 h; a moral final passa de 80 para 50. Permanecem
+exatos os ataques (3 sofridos e 6 repelidos), a deserção às 98 h e a Ameaça final 83.
+As asserções narrativas foram atualizadas para estes valores, sem tolerância.
+
+A receita do README foi refeita: `COUNCIL_SCENARIO_SEED = fixture-council-1915` mantém poço,
+tábuas, estrangeira e a variante com a refeição dos pedreiros. `WELL_FIRST_SEED` do servidor
+continua válido em ritmos 1 e 3, conferido em teste de motor. Os 53 retratos v35 estão
+intactos, registrados em `FROZEN`; há 55 retratos v36, incluindo preço vivo e risco pendente.
+Na comparação semântica, além da versão e da lista vazia, mudam só os cenários que recebem
+cartas ou usam a semente revista; a semente também muda os fluxos da Horda nesses cenários.
+As contagens por estação das nove cartas novas estão fixadas em teste, sem substituir a
+cobertura de 50 sementes do coordenador.
+
+Verificação focada sem regravação: 709 testes em 18 arquivos, saída 0; contratos e guardas
+selecionados de `migrations.test.ts`: 379 testes, saída 0; unidade da Vigília no servidor:
+7 testes, saída 0. A seleção inicial que incluía todo o replay histórico das migrações foi
+interrompida (saída 130) para limitar a carga, e substituída pelos contratos e passos novos.
+As expectativas de versão atual da integração foram sincronizadas de 35 para 36 por leitura;
+a integração não foi executada nesta trilha. Typecheck e lint são conferidos no fechamento.

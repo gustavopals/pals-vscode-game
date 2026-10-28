@@ -9,8 +9,21 @@ const fixtures = import.meta.glob<string>('./__fixtures__/state-v35-*.json', {
   import: 'default',
   eager: true,
 });
+const currentFixtures = import.meta.glob<string>('./__fixtures__/state-v36-*.json', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
 
 describe('35 → 36: fatores de carta no Mercado', () => {
+  it.each(Object.entries(currentFixtures))(
+    '%s: a recarga aceita a forma atual e é idempotente',
+    (_, raw) => {
+      const state = JSON.parse(raw);
+      expect(currentShape(state, '')).toBeNull();
+      expect(migrateState(state, { timeScale: 1 })).toBe(state);
+    },
+  );
   it.each(Object.entries(fixtures))('%s: só acrescenta a lista vazia', (_, raw) => {
     const before = JSON.parse(raw) as Record<string, unknown>;
     const input = JSON.stringify(before);

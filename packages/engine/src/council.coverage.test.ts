@@ -61,6 +61,24 @@ const ids = (state: GameState, atMs: number, seen: readonly string[] = []) =>
   eligibleCards(state, atMs, EARLIER, seen).map((card) => card.id);
 
 describe('cobertura do catálogo por estação e nível do Salão', () => {
+  it('as nove cartas novas: contagens exatas por estação, Mercado, Guilda e hostilidade', () => {
+    const fresh = CATALOG.slice(30);
+    const counts = (hall: number, market: number, guild: number, hostile: boolean) =>
+      balance.calendar.seasons.map((season) => {
+        const at = SEASON_START[season.id] + DAY;
+        const state = feudAt(at, hall);
+        state.settlement.resources.food = 400_000;
+        state.settlement.buildings.market = market;
+        state.settlement.buildings.guild = guild;
+        if (hostile) state.council.flags['merchant.hostile'] = true;
+        return eligibleCards(state, at, fresh).length;
+      });
+    // Primavera, verão, outono e inverno: só a praga dispensa os edifícios novos.
+    expect(counts(1, 0, 0, false)).toEqual([0, 1, 0, 0]);
+    expect(counts(3, 0, 0, false)).toEqual([1, 1, 1, 0]);
+    expect(counts(3, 1, 1, false)).toEqual([1, 3, 2, 0]);
+    expect(counts(3, 1, 1, true)).toEqual([1, 2, 3, 1]);
+  });
   it('o ano tem 5 audiências na primavera, 6 no verão, 6 no outono e 3 no inverno', () => {
     expect(balance.calendar.seasons.map((season) => audiencesOf(season.id).length)).toEqual([
       5, 6, 6, 3,
@@ -97,7 +115,8 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
       .slice(0, 22)
       .filter((card) => card.recurring !== true)
       .map((card) => card.id);
-    const recurring = councilCards.filter((card) => card.recurring === true);
+    // A ronda neutra do lote 1; o imposto de §6.1 aprovado tem requisitos e cadência próprios.
+    const recurring = EARLIER.filter((card) => card.recurring === true);
     expect(recurring).toHaveLength(4);
     for (const season of balance.calendar.seasons) {
       for (const at of audiencesOf(season.id)) {

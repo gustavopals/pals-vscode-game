@@ -1,0 +1,558 @@
+{
+ "cards": {
+  "fieldBlight": {
+   "instanceId": "fieldBlight-1",
+   "title": "Praga nos campos",
+   "text": "As folhas do trigo amarelam de ponta a ponta, e o cheiro de mofo chega até o portão. Os velhos dizem que a praga se espalha rápido e que a hora de decidir é agora. A despensa depende da colheita.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "pray",
+   "defaultOptionLabel": "Rezar e esperar",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: rezar e esperar.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "burn",
+     "label": "Queimar a plantação",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−30% do estoque de comida na resolução; −5 de moral por 2 dias de jogo (4 h)",
+     "hint": "A fumaça sobe cedo. O que resta fica a salvo."
+    },
+    {
+     "id": "pray",
+     "label": "Rezar e esperar",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Na próxima virada de dia: 1 em 2 de −50% do estoque de comida na resolução; caso contrário, +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Fé não se mede em sacos. Uma Clériga costuma acalmar o campo."
+    },
+    {
+     "id": "alchemist",
+     "label": "Pagar o alquimista",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 120,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−120 ouro",
+     "hint": "Ouro rende pó de cal e fé, nessa ordem."
+    }
+   ]
+  },
+  "mysteriousMerchant": {
+   "instanceId": "mysteriousMerchant-1",
+   "title": "O Mercador Misterioso",
+   "text": "Um forasteiro de capa verde armou banca à beira do Mercado sem pedir licença. Vende pouca coisa e promete muito: diz ter um mapa da serra, desenhado por alguém que voltou de lá. Os guardas olham para ele com desconfiança, e ele olha para a bolsa do senhor.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "refuse",
+   "defaultOptionLabel": "Mandar o homem embora",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: mandar o homem embora.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "buy",
+     "label": "Comprar o mapa",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 80,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−80 ouro; revela à Guilda Ruínas de Vel'Thar",
+     "hint": "O mapa é bom ou é desenho de bêbado, e o feudo só saberá depois."
+    },
+    {
+     "id": "imprison",
+     "label": "Prender o forasteiro",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+50 ouro; −10 de moral por 2 dias de jogo (4 h); +20% no preço de compra e venda de comida, madeira, pedra, ferro por 2 dias de jogo (4 h)",
+     "hint": "A bolsa dele paga a cela, e os mercadores da estrada não esquecem."
+    },
+    {
+     "id": "refuse",
+     "label": "Mandar o homem embora",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Sem custo e sem efeito imediato.",
+     "hint": "Quem vende mapa a estranhos pode ter vendido o mesmo a outros."
+    }
+   ]
+  },
+  "merchantLead": {
+   "instanceId": "merchantLead-1",
+   "title": "O que o mapa mostrava",
+   "text": "O mercador preso escapou na calada da noite e deixou para trás o livro de contas, com uma rota riscada a tinta. Os companheiros dele rondam o Mercado, calados. Seguir a rota dá trabalho. Vender o livro a quem o procura dá ouro.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "drop",
+   "defaultOptionLabel": "Deixar o assunto de lado",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: deixar o assunto de lado.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "follow",
+     "label": "Seguir a pista",
+     "cost": [
+      {
+       "resource": "food",
+       "label": "Comida",
+       "amount": 40,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−40 comida; +90 ouro; +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "A pista vale ouro e traz companhia."
+    },
+    {
+     "id": "sell",
+     "label": "Vender a informação",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+120 ouro; −5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Mais moedas hoje, e um comprador que volta amanhã."
+    },
+    {
+     "id": "drop",
+     "label": "Deixar o assunto de lado",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Sem custo e sem efeito imediato.",
+     "hint": "Nem toda pista precisa ser seguida."
+    }
+   ]
+  },
+  "merchantFinalOffer": {
+   "instanceId": "merchantFinalOffer-1",
+   "title": "A última oferta do mercador",
+   "text": "A pista deu em um depósito de caravana esquecido, e o homem de capa verde reaparece na praça com um sorriso de quem sabia. Propõe fechar as contas: uma bolsa pelo que os batedores acharam, ou um último mapa em troca de um favor. O conselho quer saber o que o senhor responde.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "profit",
+   "defaultOptionLabel": "Fechar com lucro",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: fechar com lucro.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "profit",
+     "label": "Fechar com lucro",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+100 ouro",
+     "hint": "Dinheiro na mão e conta fechada."
+    },
+    {
+     "id": "destination",
+     "label": "Pedir o último mapa",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 50,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−50 ouro; revela à Guilda Mina Abandonada",
+     "hint": "A serra tem mais de um segredo, e este tem ferro."
+    },
+    {
+     "id": "peace",
+     "label": "Fazer as pazes com os mercadores",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 60,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−60 ouro; +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Um inimigo a menos pesa mais que uma bolsa."
+    }
+   ]
+  },
+  "merchantBoycott": {
+   "instanceId": "merchantBoycott-1",
+   "title": "Boicote dos mercadores",
+   "text": "Os mercadores da estrada não esqueceram o homem que o feudo prendeu. Mandaram dizer que as carroças deles passarão por outro caminho, e que o que ficar na praça será vendido mais caro. O Mercado de {feudo} começa a sentir o vazio das bancas.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "resist",
+   "defaultOptionLabel": "Resistir ao boicote",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: resistir ao boicote.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "yield",
+     "label": "Ceder às exigências",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 100,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−100 ouro",
+     "hint": "O ouro compra a paz, e a memória dura mais que ele."
+    },
+    {
+     "id": "resist",
+     "label": "Resistir ao boicote",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+20% no preço de compra e venda de comida, madeira, pedra, ferro por 3 dias de jogo (6 h); +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Os preços sobem uns dias, e o feudo mostra de que lado está."
+    },
+    {
+     "id": "route",
+     "label": "Buscar outra rota",
+     "cost": [
+      {
+       "resource": "wood",
+       "label": "Madeira",
+       "amount": 60,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−60 madeira; +10% no preço de compra e venda de comida, madeira, pedra, ferro por 2 dias de jogo (4 h)",
+     "hint": "A estrada nova custa madeira e cura o rancor."
+    }
+   ]
+  },
+  "royalCaravan": {
+   "instanceId": "royalCaravan-1",
+   "title": "A caravana real",
+   "text": "Uma caravana com o estandarte do rei parou à porta do Mercado. Os cavalariços comem como lobos, e o intendente diz que a coroa compra o que o feudo tiver de sobra, e a bom preço, mas só enquanto a caravana estiver na praça. O inverno vem depois, e a despensa depende de quanto o senhor guardar.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "winter",
+   "defaultOptionLabel": "Guardar o excedente para o inverno",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: guardar o excedente para o inverno.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "sellNow",
+     "label": "Vender à caravana agora",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+25% no preço de compra e venda de comida, madeira, pedra por 1 dia de jogo (2 h)",
+     "hint": "Um dia de preço alto, e só um dia."
+    },
+    {
+     "id": "hospitality",
+     "label": "Dar hospitalidade à caravana",
+     "cost": [
+      {
+       "resource": "food",
+       "label": "Comida",
+       "amount": 40,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−40 comida; +10% no preço de compra e venda de comida, madeira, pedra por 3 dias de jogo (6 h); +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "A coroa lembra quem a recebeu à mesa: a alta dura mais, só que menor."
+    },
+    {
+     "id": "winter",
+     "label": "Guardar o excedente para o inverno",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Sem custo e sem efeito imediato.",
+     "hint": "O celeiro cheio vale mais quando a neve cai e a comida custa 30% a mais."
+    }
+   ]
+  },
+  "kingsTax": {
+   "instanceId": "kingsTax-1",
+   "title": "Impostos do Rei",
+   "text": "Um arauto do rei parou ao pé da escadaria do Salão e leu o rolo em voz alta, devagar, para que ninguém dissesse que não ouviu. A coroa lembra que o feudo existe por mercê dela e que a mercê tem preço. O escrivão já tem a pena molhada.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "pay",
+   "defaultOptionLabel": "Pagar o imposto",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: pagar o imposto.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "pay",
+     "label": "Pagar o imposto",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−15% do estoque de ouro na resolução",
+     "hint": "O ouro sai inteiro, e o arauto vai embora satisfeito."
+    },
+    {
+     "id": "negotiate",
+     "label": "Negociar com o arauto",
+     "cost": [],
+     "affordable": true,
+     "locked": true,
+     "lockedReason": "Requer um herói Carismático livre no feudo.",
+     "effectsText": "−7% do estoque de ouro na resolução",
+     "hint": "Quem sabe falar paga menos que quem só sabe pagar."
+    },
+    {
+     "id": "refuse",
+     "label": "Recusar o imposto",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+10 de moral por 3 dias de jogo (6 h)",
+     "hint": "O povo gosta da altivez. O rei não gosta de nada."
+    }
+   ]
+  },
+  "kingsCollector": {
+   "instanceId": "kingsCollector-1",
+   "title": "O Cobrador do Rei",
+   "text": "O arauto voltou com companhia: o cobrador do rei, um homem de rosto fechado, e quatro soldados de brasão na mão. Diz que a coroa não esquece quem a esquece e que a conta, agora, vem com multa. Os soldados olham o portão como quem avalia a madeira.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "fine",
+   "defaultOptionLabel": "Pagar a multa dobrada",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: pagar a multa dobrada.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "fine",
+     "label": "Pagar a multa dobrada",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−30% do estoque de ouro na resolução; −5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Paga-se o dobro do que se devia, e o assunto morre."
+    },
+    {
+     "id": "soldiers",
+     "label": "Mostrar os soldados",
+     "cost": [],
+     "affordable": true,
+     "locked": true,
+     "lockedReason": "Requer 10 soldados treinados no Exército.",
+     "effectsText": "+10 de moral por 3 dias de jogo (6 h)",
+     "hint": "A fileira diante do portão pesa mais que a pena do escrivão."
+    },
+    {
+     "id": "refuse",
+     "label": "Mandar o cobrador embora",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Duas recusas seguidas, e a coroa perde a paciência."
+    }
+   ]
+  },
+  "kingsAnswer": {
+   "instanceId": "kingsAnswer-1",
+   "title": "A resposta da coroa",
+   "text": "A carta do rei chegou lacrada. O cobrador escreveu à corte que o feudo tem soldados em fileira e vontade de usá-los, e a corte, por ora, prefere conversa a guerra. A coroa propõe um acordo; o conselho quer saber qual.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "tribute",
+   "defaultOptionLabel": "Pagar o tributo atrasado",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: pagar o tributo atrasado.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "tribute",
+     "label": "Pagar o tributo atrasado",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−20% do estoque de ouro na resolução; −5 de moral por 2 dias de jogo (4 h)",
+     "hint": "O rei esquece rápido o que recebe em dia."
+    },
+    {
+     "id": "envoy",
+     "label": "Mandar um enviado à corte",
+     "cost": [
+      {
+       "resource": "food",
+       "label": "Comida",
+       "amount": 40,
+       "missing": 0
+      },
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 80,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−40 comida; −80 ouro; +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Cartas e presentes compram tempo, e tempo compra paz."
+    },
+    {
+     "id": "hold",
+     "label": "Manter a recusa",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−40 comida; −40 madeira; +10 de moral por 3 dias de jogo (6 h)",
+     "hint": "O povo canta a teimosia, e a despensa paga a conta."
+    }
+   ]
+  }
+ },
+ "market": {
+  "building": "market",
+  "level": 1,
+  "text": "Mercado Nv1: negocia até 200 de cada recurso por dia de jogo, entre compras e vendas.",
+  "quoteDay": 0,
+  "nextChangeInSeconds": 4800,
+  "dailyVolume": 200,
+  "prices": [
+   {
+    "resource": "food",
+    "label": "Comida",
+    "buy": 1320,
+    "sell": 1122,
+    "buyText": "1,32",
+    "sellText": "1,122",
+    "baseText": "1,00",
+    "trend": "flat",
+    "breakdown": "1,32 = 1,00 (cotação de hoje; a base é 1,00) × 1,2 (Carta: O Mercador Misterioso) × 1,1 (Carta: A caravana real). A venda paga 85%: 1,122.",
+    "tradedToday": 0,
+    "remainingToday": 200,
+    "maxBuyable": 200,
+    "maxSellable": 200,
+    "surplusSellable": 200,
+    "reserve": 120,
+    "surplusText": "O feudo guarda 120 de comida: a comida guardada que sustenta a moral.",
+    "buyBlockedReason": null,
+    "sellBlockedReason": null
+   },
+   {
+    "resource": "wood",
+    "label": "Madeira",
+    "buy": 1584,
+    "sell": 1346,
+    "buyText": "1,584",
+    "sellText": "1,346",
+    "baseText": "1,20",
+    "trend": "flat",
+    "breakdown": "1,584 = 1,20 (cotação de hoje; a base é 1,20) × 1,2 (Carta: O Mercador Misterioso) × 1,1 (Carta: A caravana real). A venda paga 85%: 1,346.",
+    "tradedToday": 0,
+    "remainingToday": 200,
+    "maxBuyable": 200,
+    "maxSellable": 200,
+    "surplusSellable": 200,
+    "reserve": 0,
+    "surplusText": "O feudo não guarda madeira agora: o que há no estoque pode sair.",
+    "buyBlockedReason": null,
+    "sellBlockedReason": null
+   },
+   {
+    "resource": "stone",
+    "label": "Pedra",
+    "buy": 2640,
+    "sell": 2244,
+    "buyText": "2,64",
+    "sellText": "2,244",
+    "baseText": "2,00",
+    "trend": "flat",
+    "breakdown": "2,64 = 2,00 (cotação de hoje; a base é 2,00) × 1,2 (Carta: O Mercador Misterioso) × 1,1 (Carta: A caravana real). A venda paga 85%: 2,244.",
+    "tradedToday": 0,
+    "remainingToday": 200,
+    "maxBuyable": 200,
+    "maxSellable": 100,
+    "surplusSellable": 100,
+    "reserve": 0,
+    "surplusText": "O feudo não guarda pedra agora: o que há no estoque pode sair.",
+    "buyBlockedReason": null,
+    "sellBlockedReason": null
+   },
+   {
+    "resource": "iron",
+    "label": "Ferro",
+    "buy": 9600,
+    "sell": 8160,
+    "buyText": "9,60",
+    "sellText": "8,16",
+    "baseText": "8,00",
+    "trend": "flat",
+    "breakdown": "9,60 = 8,00 (cotação de hoje; a base é 8,00) × 1,2 (Carta: O Mercador Misterioso). A venda paga 85%: 8,16.",
+    "tradedToday": 0,
+    "remainingToday": 200,
+    "maxBuyable": 57,
+    "maxSellable": 0,
+    "surplusSellable": 0,
+    "reserve": 0,
+    "surplusText": "O feudo não guarda ferro agora: o que há no estoque pode sair.",
+    "buyBlockedReason": null,
+    "sellBlockedReason": "Faltam 1 ferro."
+   }
+  ],
+  "caravans": [],
+  "caravanOffer": {
+   "available": false,
+   "blockedReason": "As caravanas pedem o Mercado no nível 2: o do feudo está no nível 1.",
+   "destination": "Porto do Rio",
+   "maxUnits": 300,
+   "priceRatioText": "O preço de venda do dia × 1,15, fixado no envio.",
+   "tripSeconds": 14400,
+   "riskPercent": 10,
+   "riskText": "10% de chance de emboscada sem escolta; com escolta, nenhuma. Conta a Torre de Vigia que o feudo tiver na chegada.",
+   "riskBreakdown": "10% na estrada, cada nível da Torre de Vigia tira 5; com escolta, nenhum.",
+   "lossText": "A emboscada leva 50% da carga, arredondada para baixo; o resto é vendido pelo preço fixado.",
+   "slots": 0,
+   "slotsInUse": 0,
+   "resources": [],
+   "eligibleEscortIds": []
+  }
+ }
+}

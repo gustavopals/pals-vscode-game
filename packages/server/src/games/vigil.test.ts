@@ -70,6 +70,6 @@ describe('contexto civil da linha ao migrar', () => {
     expect(migrated.state.horde.scheduledRaids).toEqual(
       (raw as unknown as { horde: { scheduledRaids: unknown } }).horde.scheduledRaids,
     );
-    expect(loadGame({ ...row, state: migrated.state, schemaVersion: 35 }).migratedFrom).toBeNull();
+    expect(loadGame({ ...row, state: migrated.state, schemaVersion: 36 }).migratedFrom).toBeNull();
   });
 });

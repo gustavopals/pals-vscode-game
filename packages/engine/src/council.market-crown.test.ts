@@ -12,6 +12,8 @@ import {
   addHero,
   AUTUMN,
   command,
+  councilScenario,
+  COUNCIL_SCENARIO_SEED,
   DAY,
   dealt,
   quietCouncil,
@@ -259,6 +261,24 @@ describe('O Cobrador do Rei, de ponta a ponta', () => {
 });
 
 describe('continuação com mesa cheia', () => {
+  it('a semente revista mantém poço, tábuas, estrangeira e a variante dos pedreiros', () => {
+    expect(councilScenario(4 * DAY).council.pending[0]?.cardId).toBe('collapsedWell');
+    expect(councilScenario(8 * DAY).council.pending[0]?.cardId).toBe('commonGranaryPlanks');
+    expect(councilScenario(12 * DAY).council.pending.map((entry) => entry.cardId)).toEqual([
+      'commonGranaryShare',
+      'woundedStranger',
+    ]);
+    expect(
+      councilScenario(12 * DAY, COUNCIL_SCENARIO_SEED, true).council.pending.map(
+        (entry) => entry.cardId,
+      ),
+    ).toEqual(['commonGranaryShare', 'masonsMeal']);
+    // WELL_FIRST_SEED, do servidor: o primeiro sorteio continua sendo o poço, em ambos os ritmos.
+    for (const timeScale of [1, 3]) {
+      const start = createInitialState('pedra-alta-teste-16', { ...settings, timeScale });
+      expect(advanceTo(start, 4 * DAY).state.council.pending[0]?.cardId).toBe('collapsedWell');
+    }
+  });
   it.each([
     ['mysteriousMerchant', 'buy', 'merchantLead'],
     ['kingsTax', 'refuse', 'kingsCollector'],
@@ -283,6 +303,36 @@ describe('continuação com mesa cheia', () => {
 });
 
 describe('praga e choques de preço', () => {
+  it('golden das opções, riscos, trancas e preços que a visão explica', async () => {
+    const cards = [
+      'fieldBlight',
+      'mysteriousMerchant',
+      'merchantLead',
+      'merchantFinalOffer',
+      'merchantBoycott',
+      'royalCaravan',
+      'kingsTax',
+      'kingsCollector',
+      'kingsAnswer',
+    ];
+    const views = Object.fromEntries(
+      cards.map((id) => {
+        const start = feud();
+        start.council.flags = { 'merchant.hostile': true, 'tax.defied': true };
+        const state = dealt(start, id).state;
+        return [id, deriveViewState(state, state.lastProcessedAt).council.pending[0]];
+      }),
+    );
+    const state = choose(
+      dealt(feud(), 'mysteriousMerchant').state,
+      'mysteriousMerchant',
+      'imprison',
+    ).state;
+    const car = choose(dealt(state, 'royalCaravan').state, 'royalCaravan', 'hospitality').state;
+    await expect(
+      `${JSON.stringify({ cards: views, market: deriveViewState(car, car.lastProcessedAt).market }, null, 1)}\n`,
+    ).toMatchFileSnapshot('./__golden__/council-market-crown-view.json');
+  });
   it('a praga queima 30% ou aceita o alquimista sem perda', () => {
     const pending = dealt(feud(), 'fieldBlight').state;
     const burnt = choose(pending, 'fieldBlight', 'burn');

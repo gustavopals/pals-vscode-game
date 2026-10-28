@@ -232,17 +232,18 @@ describe('cenário golden de 7 dias', () => {
     // Desde a V4E-T2.4 as incursões-batalha do 25º e do 37º dia (antes da Paliçada) pesam: a
     // moral cai às 74 h e às 86 h (às 84 h até a D-39, quando elas ainda feriam), e a fome leva
     // um aldeão às 98 h (às 96 h até a D-39).
+    // V4H-T1: a Paliçada é mostrada às 108 h; o poço cobra −10 às 166 h.
+    // Valores exatos do novo sorteio, conferidos no golden (balance-v0.4.md §16).
     expect(bands).toEqual([
       [74, 'restless'],
       [78, 'content'],
       [86, 'restless'],
       [92, 'desperate'],
       [98, 'content'],
-      // V4H-T1: com o lote 2 no sorteio, a paliçada só é mostrada aos aldeões às 163 h, depois de
-      // o frio acabar (+20 por três dias de jogo levam o povo a "orgulhoso"): o "inquieto" das
-      // 162 h é o frio, e a moral não volta a "contente" antes do fim da semana.
+      [110, 'proud'],
+      [116, 'content'],
       [162, 'restless'],
-      [164, 'proud'],
+      [164, 'content'],
     ]);
     const cold = events
       .filter((event) => event.type === 'coldStarted' || event.type === 'coldEnded')
@@ -255,8 +256,8 @@ describe('cenário golden de 7 dias', () => {
     expect(
       events.filter((event) => event.type === 'villagerDeserted').map((event) => event.atMs / HOUR),
     ).toEqual([98]);
-    // V4H-T1: a paliçada foi mostrada às 163 h, e a semana acaba com o efeito dela ainda valendo.
-    expect(state.settlement.morale).toBe(80);
+    // V4H-T1: o poço cobra −10 às 166 h e a semana acaba em 50 de moral.
+    expect(state.settlement.morale).toBe(50);
     // O Conselho, de ponta a ponta, com as cartas do jogo. A primeira audiência é no 5º dia de
     // jogo (8 h). "A Ponte do Degelo" inteira: as vigas cedidas, a laje dois dias de jogo depois
     // da escolha, os pilares de pedra (o que eles escondiam aparece na 4ª virada: a carroça
@@ -265,11 +266,11 @@ describe('cenário golden de 7 dias', () => {
     // ponte; a vigília e a laje), e ela espera, sem se perder, até a do 21º dia (40 h), em que
     // toma o lugar do sorteio; a continuação da ponte chega junto, no lugar que tinha reservado.
     // O senhor a acolhe na visita das 48 h, e Edda entra para o feudo. "A Promessa da Paliçada"
-    // pelo caminho mais curto: quando os aldeões pedem a cerca (112 h) ela já está de pé desde
-    // as 76 h, e o senhor a mostra (120 h). "O Celeiro Comum" inteira, com o Celeiro já erguido:
+    // pelo caminho mais curto: quando os aldeões pedem a cerca (96 h) ela já está de pé desde
+    // as 76 h, e o senhor a mostra (108 h). "O Celeiro Comum" inteira, com o Celeiro já erguido:
     // as tábuas, a vez de repartir e o desfecho. O poço fica para depois, e o que ele escondia
-    // aparece duas viradas adiante. Cinco cartas ficam sem resposta e expiram 24 h reais depois
-    // de chegar, sem custo nenhum. As recorrentes voltam: a vigília sai duas vezes no ano.
+    // aparece duas viradas adiante. Quatro cartas ficam sem resposta e expiram 24 h reais depois
+    // de chegar, sem custo nenhum. A vigília abre a semana, e os viajantes chegam no outono.
     const cards = events.filter((event) => event.type.startsWith('card'));
     expect(
       cards.map((event) => [event.atMs / HOUR, event.type, event.data.cardId, event.data.optionId]),
@@ -286,25 +287,25 @@ describe('cenário golden de 7 dias', () => {
       [48, 'cardAnswered', 'woundedStranger', 'shelter'],
       [48, 'cardAnswered', 'thawBridgeCrossing', 'feast'],
       [56, 'cardDrawn', 'itinerantMerchant', undefined],
-      [64, 'cardDrawn', 'masonsMeal', undefined],
+      [64, 'cardDrawn', 'fullGranary', undefined],
       [80, 'cardExpired', 'itinerantMerchant', 'wait'],
-      [88, 'cardDrawn', 'collapsedWell', undefined],
-      [88, 'cardExpired', 'masonsMeal', 'bread'],
-      [96, 'cardDrawn', 'neighborsWatch', undefined],
-      [108, 'cardAnswered', 'collapsedWell', 'wait'],
+      [88, 'cardDrawn', 'moreMouths', undefined],
+      [88, 'cardExpired', 'fullGranary', 'keep'],
+      [96, 'cardDrawn', 'palisadePromisePlea', undefined],
+      [108, 'cardAnswered', 'moreMouths', 'close'],
+      [108, 'cardAnswered', 'palisadePromisePlea', 'show'],
       [112, 'cardDrawn', 'commonGranaryPlanks', undefined],
-      [112, 'cardEffectApplied', 'collapsedWell', 'wait'],
-      [120, 'cardExpired', 'neighborsWatch', 'vigil'],
+      [120, 'cardDrawn', 'apprenticesTable', undefined],
       [120, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
       [124, 'cardDrawn', 'commonGranaryShare', undefined],
-      [128, 'cardDrawn', 'harvestFeast', undefined],
       [132, 'cardAnswered', 'commonGranaryShare', 'reserve'],
       [136, 'cardDrawn', 'commonGranaryOutcome', undefined],
+      [144, 'cardExpired', 'apprenticesTable', 'watch'],
       [144, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
       [152, 'cardDrawn', 'firstRecruit', undefined],
-      [152, 'cardExpired', 'harvestFeast', 'store'],
-      [160, 'cardDrawn', 'palisadePromisePlea', undefined],
-      [163, 'cardAnswered', 'palisadePromisePlea', 'show'],
+      [160, 'cardDrawn', 'collapsedWell', undefined],
+      [163, 'cardAnswered', 'collapsedWell', 'wait'],
+      [166, 'cardEffectApplied', 'collapsedWell', 'wait'],
       [168, 'cardDrawn', 'commonGranaryPlanks', undefined],
     ]);
     // Cada continuação leva a escolha que a trouxe: é o que liga as linhas na Crônica.
@@ -315,7 +316,7 @@ describe('cenário golden de 7 dias', () => {
       ['thawBridgePlea-2', 'timber'],
       ['thawBridgeSlab-3', 'piers'],
       ['commonGranaryPlanks-10', 'cede'],
-      ['commonGranaryShare-11', 'reserve'],
+      ['commonGranaryShare-12', 'reserve'],
     ]);
     // A estrangeira (GDD §9.1; ADR 0017, decisão 6): a carta chega pelo roteiro, uma vez, e a
     // resposta dá o primeiro herói no mesmo instante, sem custo. A linha da chegada dele vem
@@ -413,12 +414,12 @@ describe('cenário golden de 7 dias', () => {
       [
         'cardDrawn',
         undefined,
-        'No 9º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.',
+        'No 1º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.',
       ],
       [
         'cardAnswered',
         20,
-        'No 10º dia do Inverno, o senhor de Pedra Alta do Norte levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
+        'No 7º dia do Outono, o senhor de Pedra Alta do Norte levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
       ],
     ]);
     expect(state.settlement.buildings.palisade).toBe(2);
@@ -432,7 +433,7 @@ describe('cenário golden de 7 dias', () => {
     expect(state.settlement.wall.hp).toEqual({ left: 100, center: 100, right: 100 });
     // A continuação da ponte chegou na mesma virada da roteirizada, com lugar para as duas; e,
     // mais adiante (V4H-T1: às 124 h, depois que o sorteio mudou), a continuação do celeiro chega
-    // sozinha, e a carta da colheita sai quatro horas depois.
+    // sozinha; a mesa agora tem a carta dos aprendizes (balance-v0.4.md §16).
     expect(
       cards.filter((event) => event.atMs === 40 * HOUR).map((event) => event.data.source),
     ).toEqual(['scripted', 'continuation']);
@@ -441,7 +442,7 @@ describe('cenário golden de 7 dias', () => {
     ).toEqual(['continuation']);
     expect(
       orders.filter((order) => order.type === 'answerCard').map((order) => order.result),
-    ).toEqual(Array.from({ length: 9 }, () => 'accepted'));
+    ).toEqual(Array.from({ length: 10 }, () => 'accepted'));
     // Quem não respondeu não perdeu nada: nenhuma expiração tirou recurso nem moral.
     for (const expired of cards.filter((event) => event.type === 'cardExpired')) {
       expect(Object.keys(expired.data).filter((key) => /^(spent|lost|morale)/.test(key))).toEqual(
@@ -455,7 +456,7 @@ describe('cenário golden de 7 dias', () => {
       'thawBridge.piers': true,
       'palisadePromise.kept': true,
       'commonGranary.gifted': true,
-      'routine.neighborsWatch': true,
+      'routine.moreMouths': true,
       // V4H-T1: o mercador itinerante, que o conselho deixou seguir viagem sem o senhor.
       'itinerant.heardOfMarket': true,
     });
@@ -468,7 +469,7 @@ describe('cenário golden de 7 dias', () => {
       'firstRecruit',
       'commonGranaryPlanks',
     ]);
-    expect(state.stats).toMatchObject({ cardsDrawn: 16, cardsAnswered: 9, cardsExpired: 5 });
+    expect(state.stats).toMatchObject({ cardsDrawn: 16, cardsAnswered: 10, cardsExpired: 4 });
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
     // Os Objetivos do Senhor: nove dos dez, cada um quando o roteiro faz o que ele pede. Com o

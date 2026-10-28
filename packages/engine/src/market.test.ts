@@ -234,6 +234,7 @@ describe('o preço que anda (V3E-T1.2)', () => {
     expect(later.settlement.buildings.market).toBe(0);
     expect(later.market).toStrictEqual(fresh.market);
     expect(later.market).toStrictEqual({
+      effects: [],
       prices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       previousPrices: { food: 1000, wood: 1200, stone: 2000, iron: 8000 },
       quoteDay: 0,
