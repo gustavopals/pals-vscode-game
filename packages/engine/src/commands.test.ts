@@ -226,6 +226,7 @@ describe('catálogo de recusas', () => {
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
+    INVALID_VIGIL: [rich, command('setVigilHour', { hourLocal: 24, timezone: 'UTC' })],
     UNKNOWN_COMMAND: [rich, unknown],
     INVALID_BUILDING: [rich, command('startConstruction', bogus)],
     INVALID_WORKERS: [rich, command('setWorkers', { building: 'farm', count: -2 })],

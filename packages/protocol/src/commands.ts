@@ -25,6 +25,14 @@ const targetLevel = z.number().int().min(1).max(1_000).optional();
 const command = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
   z.strictObject({ commandId, type: z.literal(type), payload });
 
+export const SetVigilHourCommandSchema = command(
+  'setVigilHour',
+  z.strictObject({
+    hourLocal: z.number().int(),
+    timezone: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE),
+  }),
+);
+
 export const SetWorkersCommandSchema = command(
   'setWorkers',
   z.strictObject({
@@ -297,6 +305,7 @@ export const RepairWallCommandSchema = command('repairWall', z.strictObject({}))
 
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
+  SetVigilHourCommandSchema,
   SetWorkersCommandSchema,
   StartConstructionCommandSchema,
   CancelConstructionCommandSchema,

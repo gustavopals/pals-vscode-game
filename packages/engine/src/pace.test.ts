@@ -1,4 +1,4 @@
-import { balance, DIFFICULTY_IDS } from '@lotg/content';
+import { vigilTexts, balance, DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { paceLabel, yearInRealTime } from './pace';
@@ -70,6 +70,12 @@ describe('ViewState.settlement: dificuldade e ritmo da partida', () => {
       difficulty: 'lord',
       difficultyLabel: 'Senhor',
       paceLabel: 'Normal: um ano em 7 dias',
+      vigil: {
+        hourLocal: 20,
+        timezone: 'America/Sao_Paulo',
+        text: vigilTexts.about,
+        warning: vigilTexts.unresolved,
+      },
     });
   });
 

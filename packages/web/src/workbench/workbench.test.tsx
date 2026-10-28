@@ -1199,7 +1199,8 @@ describe('Workbench', () => {
     const markup = render(controller);
     expect(markup).toMatch(/role="tabpanel"[^>]*aria-labelledby="tab-settings"/);
     expect(markup).toContain('id="tab-settings"');
-    expect(panel(markup)).toContain('Valem só neste navegador.');
+    // V4G-T1: a Vigília é confirmada no feudo; tema e avisos continuam locais.
+    expect(panel(markup)).toContain('A Vigília também fica no feudo aberto.');
     controller.navigate('about');
     expect(panel(render(controller))).toContain('Um feudo medieval');
   });

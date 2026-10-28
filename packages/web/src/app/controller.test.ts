@@ -2486,6 +2486,23 @@ describe('outras abas do navegador', () => {
 });
 
 describe('preferências', () => {
+  it('envia a mudança de hora e fuso ao feudo aberto, sem novo endpoint', async () => {
+    const { controller, api, store } = await opened();
+    await controller.setPreferences({ vigilHour: 3, vigilTimezone: 'Asia/Tokyo' });
+    expect(api.state.commands.at(-1)).toMatchObject({
+      type: 'setVigilHour',
+      payload: { hourLocal: 3, timezone: 'Asia/Tokyo' },
+    });
+    expect(controller.gameDefaults()).toEqual({ timezone: 'Asia/Tokyo', vigilHourLocal: 3 });
+    expect(store.get(PREFERENCES_KEY)).toEqual(controller.preferences);
+    // Outra aba pode ter confirmado outra hora: mudar só o fuso preserva a hora do feudo.
+    controller.view!.settlement.vigil.hourLocal = 7;
+    await controller.setPreferences({ vigilTimezone: 'UTC' });
+    expect(api.state.commands.at(-1)).toMatchObject({
+      type: 'setVigilHour',
+      payload: { hourLocal: 7, timezone: 'UTC' },
+    });
+  });
   it('começam no padrão e são guardadas neste navegador', async () => {
     const { controller, store } = make();
     expect(controller.preferences).toEqual(DEFAULT_PREFERENCES);

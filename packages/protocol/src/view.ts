@@ -21,6 +21,7 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
   'INVALID_WORKERS',
@@ -1298,6 +1299,12 @@ export const ViewStateSchema = z.strictObject({
     difficultyLabel: z.string(),
     /** O ritmo da partida, pronto para exibir: "Rápido: um ano em 56 horas". */
     paceLabel: z.string(),
+    vigil: z.strictObject({
+      hourLocal: z.number().int(),
+      timezone: z.string(),
+      text: z.string(),
+      warning: z.string().nullable(),
+    }),
   }),
   calendar: z.strictObject({
     year: z.number(),

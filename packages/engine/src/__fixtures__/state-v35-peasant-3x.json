@@ -1,0 +1,453 @@
+{
+ "schemaVersion": 35,
+ "seed": "fixture-peasant-3x",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "peasant",
+  "timeScale": 3,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 1246380777,
+  "yearStartMs": 1209600000,
+  "year": 3
+ },
+ "lastProcessedAt": 1246380777,
+ "rng": {
+  "council": [
+   3110125439,
+   2513904367,
+   882278677,
+   3279530805
+  ],
+  "horde": [
+   2427122860,
+   4271009136,
+   3453090629,
+   3575043216
+  ]
+ },
+ "ids": {
+  "battle": 22,
+  "hero": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 533718,
+   "wood": 535986,
+   "stone": 45000,
+   "gold": 0,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 442260,
+   "wood": 2569680,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 1,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [
+   {
+    "building": "farm",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 822,
+   "wood": 268,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [
+   {
+    "id": "raid",
+    "label": "Incursão sofrida",
+    "amount": -10,
+    "untilMs": 1260000000
+   }
+  ],
+  "injured": [
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   },
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   }
+  ],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "sawmillRest-9",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 1180800000,
+    "expiresAtMs": 1440000000,
+    "origin": null
+   },
+   {
+    "instanceId": "springSeeds-10",
+    "cardId": "springSeeds",
+    "drawnAtMs": 1209600000,
+    "expiresAtMs": 1468800000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "itinerant.heardOfMarket": true,
+   "routine.neighborsWatch": true
+  },
+  "seenThisYear": [
+   "springSeeds"
+  ],
+  "nextDrawAtMs": 1267200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   },
+   "raiderCamp": {
+    "type": "raiderCamp",
+    "threatActive": true
+   },
+   "hordeFortress": {
+    "type": "hordeFortress",
+    "threatActive": false
+   }
+  },
+  "threat": 50,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [],
+  "lastFormationSeen": null,
+  "wavePlan": null,
+  "omens": []
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "warrior",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "loyal"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 576000000,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": {
+   "sinceMs": 1062000000,
+   "carriedMs": 0,
+   "departed": 0
+  },
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [
+   {
+    "id": "battle-20",
+    "foughtAtMs": 1166400000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 16,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "blackKnight",
+      "start": 9,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "start": 9,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 16,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-21",
+    "foughtAtMs": 1209600000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 18,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 12,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-22",
+    "foughtAtMs": 1245600000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 18,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
+  "preview": null
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "cardsDrawn": 10,
+  "cardsDrawn:springNews": 1,
+  "wasted_food": 9508822,
+  "cardsDrawn:thawBridgePlea": 1,
+  "raids_suffered": 22,
+  "wasted_wood": 4677268,
+  "coldSpellsThisSeason": 0,
+  "campAppearedAtDay": 25,
+  "threatCrossed:40": 5,
+  "cardsExpired": 8,
+  "cardsDrawn:woundedStranger": 1,
+  "seasonsSurvived:summer": 2,
+  "cardsDrawn:itinerantMerchant": 1,
+  "fortressAppearedAtDay": 49,
+  "threatCrossed:70": 18,
+  "vigilRehearsalMarked": 1,
+  "seasonsSurvived:autumn": 2,
+  "seasonsSurvived:winter": 2,
+  "cardsDrawn:springSeeds": 2,
+  "cardsDrawn:sawmillRest": 2,
+  "seasonsSurvived:spring": 1,
+  "cardsDrawn:neighborsWatch": 1,
+  "cardsDrawn:refugeesAtGates": 1
+ }
+}

@@ -154,6 +154,7 @@ export type {
 } from './council';
 export { councilCards } from './cards';
 export { WAR_RAID_SIZE_IDS, warRaids } from './raidWar';
+export { vigilRules, vigilTexts } from './vigil';
 export type { WarRaidLossDef, WarRaidSizeId, WarRaidsDef, WarScriptedRaidDef } from './raidWar';
 export { enemies, prowlingTileOrder, raidSizes, startingTiles, tileTypes } from './tiles';
 export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';

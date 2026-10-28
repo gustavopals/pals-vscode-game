@@ -1,6 +1,7 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'vigilChanged',
   'dayStarted',
   'seasonChanged',
   'yearStarted',
@@ -191,6 +192,8 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  vigilChanged:
+    'No {dia}º dia {daEstacao}, o senhor de {feudo} mudou a Hora da Vigília. Os acontecimentos já marcados mantiveram sua hora.',
   dayStarted: 'Amanhece o {dia}º dia {daEstacao} em {feudo}.',
   seasonChanged: 'Chega {aEstacao} a {feudo}.',
   yearStarted: 'Começa o ano {ano} da Casa de {feudo}.',

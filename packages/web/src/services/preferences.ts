@@ -5,13 +5,15 @@ import { PREFERENCES_KEY } from './tabSync';
 export const THEMES = ['dark', 'light', 'high-contrast'] as const;
 export type ThemeId = (typeof THEMES)[number];
 
-/** As escolhas do jogador neste navegador. Não vão para o servidor. */
+/** As escolhas do jogador neste navegador. A Vigília também é enviada ao feudo aberto. */
 export type Preferences = {
   notifications: NotificationLevel;
   /** Barra de status e título da aba mostram só um contador; nenhum aviso aparece. */
   discreetMode: boolean;
-  /** Hora local (0 a 23) da Vigília, enviada ao fundar um feudo. */
+  /** Hora local (0 a 23) da Vigília, enviada ao fundar um feudo e ao mudar a preferência. */
   vigilHour: number;
+  /** Fuso escolhido; sem escolha, usa o detectado pelo navegador. */
+  vigilTimezone?: string;
   /** `null` enquanto o jogador não escolheu: vale a preferência do sistema. */
   theme: ThemeId | null;
   /** Avisos pelo sistema de notificações do navegador, com a aba em segundo plano. */
@@ -45,6 +47,9 @@ export function loadPreferences(store: KeyValueStore): Preferences {
       typeof hour === 'number' && Number.isInteger(hour) && hour >= 0 && hour <= 23
         ? hour
         : DEFAULT_PREFERENCES.vigilHour,
+    ...(typeof saved.vigilTimezone === 'string' && saved.vigilTimezone.length > 0
+      ? { vigilTimezone: saved.vigilTimezone }
+      : {}),
     theme: THEMES.includes(saved.theme as ThemeId) ? (saved.theme as ThemeId) : null,
     browserNotifications: saved.browserNotifications === true,
     mutedUntil: typeof saved.mutedUntil === 'number' ? saved.mutedUntil : null,

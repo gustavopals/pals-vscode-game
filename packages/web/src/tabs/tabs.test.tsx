@@ -383,8 +383,8 @@ describe('aba Preferências', () => {
       .filter((tag) => hasAttribute(tag, 'checked'))
       .map((tag) => attribute(tag, 'value'));
 
-  it('diz que as preferências valem só neste navegador', () => {
-    expect(render()).toContain('Valem só neste navegador.');
+  it('diz quais preferências também vão ao feudo', () => {
+    expect(render()).toContain('A Vigília também fica no feudo aberto.');
   });
 
   it('três temas em botões de rádio, com o tema em uso marcado', () => {
@@ -483,17 +483,24 @@ describe('aba Preferências', () => {
     ]);
   });
 
-  it('Hora da Vigília: o texto não promete efeito que a v0.1 não tem', () => {
-    const markup = render();
-    const start = markup.indexOf('<legend>Hora da Vigília</legend>');
-    expect(start).toBeGreaterThan(-1);
-    const section = markup.slice(start, markup.indexOf('</fieldset>', start));
-    expect(section).toContain('Ainda não muda nada no jogo');
-    expect(section).toContain('Fica guardada com cada feudo fundado a partir de agora');
-    // Nada de dizer que o dia de jogo vira nessa hora: na v0.1 não vira.
-    expect(section).not.toMatch(/dia de jogo/i);
-    expect(section).not.toMatch(/\bvira\b/i);
-    expect(section).not.toContain('Vale para os feudos');
+  it('Hora da Vigília: exibe a regra e o aviso de fuso enviados na visão', () => {
+    const markup = render({
+      game: {
+        difficultyLabel: 'Senhor',
+        paceLabel: 'Normal',
+        difficultyAbout: null,
+        vigil: {
+          hourLocal: 20,
+          timezone: 'Fuso/Antigo',
+          text: 'Vale para os ainda não marcados.',
+          warning: 'Fuso não resolvido: UTC.',
+        },
+      },
+    });
+    expect(markup).toContain('Vale para os ainda não marcados.');
+    expect(markup).toContain('Fuso do feudo: Fuso/Antigo');
+    expect(markup).toContain('role="status">Fuso não resolvido: UTC.');
+    expect(markup).not.toContain('Ainda não muda nada no jogo');
   });
 
   describe('esta partida: dificuldade e ritmo', () => {
@@ -542,7 +549,7 @@ describe('aba Preferências', () => {
     it('fica depois das preferências do navegador, que continuam com os mesmos campos', () => {
       const markup = render({ game });
       expect(markup.indexOf('Esta partida')).toBeGreaterThan(markup.indexOf('Hora da Vigília'));
-      expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1);
+      expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1 + 1);
     });
   });
 
@@ -550,7 +557,8 @@ describe('aba Preferências', () => {
     const markup = render();
     const labelled = tags(markup, /<label>.*?<\/label>/g).join('');
     const fields = tags(markup, /<(input|select)[^>]*>/g);
-    expect(fields.length).toBe(3 + 3 + 1 + 1 + 1);
+    // V4G-T1: há também o campo de fuso IANA, com rótulo como os demais.
+    expect(fields.length).toBe(3 + 3 + 1 + 1 + 1 + 1);
     for (const field of fields) {
       expect(labelled).toContain(field);
     }

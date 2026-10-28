@@ -106,7 +106,7 @@ Quatro coisas mudam de forma entre uma versão do jogo e outra. Cada uma tem o s
 
 ### Migração do estado
 
-- **Onde.** `loadGame` (`src/games/repository.ts`) chama `migrateState` do motor com o `time_scale` da linha. `lockGame` passa por ela, e o job `advance-stale-games` também, depois da própria trava. O resto do servidor só enxerga o estado já na versão atual (`LoadedGame`); o tipo de `games.state` (`StoredGameState`) deixa ler direto só o nome do feudo, que é o que a lista de partidas mostra.
+- **Onde.** `loadGame` (`src/games/repository.ts`) chama `migrateState` do motor com o `time_scale`, a origem real de `created_at` e o offset IANA resolvido no servidor no instante de criação da linha (estado 35). O offset fica fixo, sem ajuste automático de horário de verão; se ICU não resolver um fuso antigo, usa zero com aviso no `ViewState`. `lockGame` passa por ela, e o job `advance-stale-games` também, depois da própria trava. O resto do servidor só enxerga o estado já na versão atual (`LoadedGame`); o tipo de `games.state` (`StoredGameState`) deixa ler direto só o nome do feudo, que é o que a lista de partidas mostra.
 - **Quando grava.** A migração acontece em memória, sob o lock, e é gravada pela primeira escrita daquela transação, junto com `schema_version` e um único incremento de `state_version`: a leitura (que neste caso escreve mesmo sem eventos), o comando novo, aceito ou recusado, ou o job. Duas requisições simultâneas migram uma vez: a segunda espera o lock e já encontra a versão nova.
 - **Reenvio.** Um comando repetido responde o recibo antes de avançar: não grava nada, nem a migração. Ela fica para a próxima leitura.
 - **Fronteira.** Cada passo de migração grava em `state.migratedAtMs` o instante de jogo em que encontrou a partida, isto é, até onde a versão anterior simulou. Os prazos de uma mecânica nova contam a partir da fronteira do passo que a trouxe ([README do motor](../engine/README.md), "a fronteira é de cada passo").
@@ -156,3 +156,16 @@ O app web obtém o token do GitHub por *device flow* (GDD §14.7). O GitHub não
 Não há segredo de OAuth, nada é guardado e nada vai para o log. Sem `GITHUB_CLIENT_ID` as duas respondem `404 NOT_FOUND` e `GET /v1/version` informa `features.githubDevice: false`, para o app esconder os botões ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)). Limite por IP: `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP` (padrão 20) para começar e 30 por minuto para consultar. O endereço que o GitHub devolve só é aceito se for do próprio `GITHUB_OAUTH_URL`, porque vira um link na tela do jogador.
 
 Na v0.1 o vínculo GitHub fica desligado em produção (sem `GITHUB_CLIENT_ID`). O código continua no repositório, testado só com um GitHub simulado (`test/helpers/github.ts`, `test/githubDevice.test.ts`); nunca foi exercitado contra o GitHub real.
+
+### Preferência da Vigília (V4G-T1)
+
+A ordem idempotente `setVigilHour { hourLocal, timezone }` usa o caminho de comandos.
+Depois de travar e avançar a partida, o servidor resolve o offset com `Intl` no
+instante da ordem e passa `CommandContext.vigil` ao motor. O cliente nunca fornece
+esse contexto (campos extras são recusados pelo schema). O offset resolvido fica
+em `commands.payload.resolvedVigil`, junto da intenção original, para replay sem
+depender de outra versão de ICU; o hash e o recibo continuam sendo da intenção
+do cliente. O replay entrega esse dado como quarto argumento de `applyCommand`.
+A linha (`timezone`, `vigil_hour`) e o estado são atualizados na mesma transação.
+Ordens recusadas preservam o avanço; reenvios devolvem o recibo antes de resolver
+o fuso outra vez. Nenhum agendamento já marcado é refeito.

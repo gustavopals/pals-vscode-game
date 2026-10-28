@@ -76,6 +76,19 @@ export type GameSettings = {
   timeScale: number;
 };
 
+/** Contexto civil fornecido pelo servidor, sem consulta de fuso no motor. */
+export type VigilSettings = {
+  hourLocal: number;
+  utcOffsetMinutes: number;
+  timezoneResolved: boolean;
+};
+
+export type GameCreationSettings = GameSettings & {
+  /** Chamadas offline sem contexto usam a época UTC, de forma reproduzível. */
+  realOriginMs?: number;
+  vigil?: VigilSettings;
+};
+
 export type Construction = {
   building: BuildingId;
   targetLevel: number;
@@ -537,9 +550,9 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 34;
+  schemaVersion: 35;
   seed: string;
-  settings: GameSettings;
+  settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
    * Fronteira da atualização mais recente: instante de jogo em que a última migração encontrou
    * a partida, ou seja, até onde ela foi simulada por uma versão anterior das regras. `null` em
@@ -907,6 +920,7 @@ export type GameEvent = {
 };
 
 export type Command =
+  | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {
       commandId: string;
       type: 'setWorkers';
@@ -1065,6 +1079,7 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
   'INVALID_WORKERS',
@@ -2575,6 +2590,7 @@ export type ViewState = {
     difficultyLabel: string;
     /** O ritmo da partida, pronto para exibir: "Rápido: um ano em 56 horas" (GDD §4.2). */
     paceLabel: string;
+    vigil: { hourLocal: number; timezone: string; text: string; warning: string | null };
   };
   calendar: {
     year: number;

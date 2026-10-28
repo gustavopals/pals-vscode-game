@@ -1,3 +1,4 @@
+import { vigilAt } from './vigil';
 import { balance, warRaids } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
@@ -162,12 +163,13 @@ describe('a névoa da composição (V4E-T2.5)', () => {
 });
 
 describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
-  it('são marcadas na virada 6 h de jogo antes de cada uma (dias 25, 37 e 61), sem composição', () => {
+  it('são marcadas 6 h de jogo antes da chegada, com o ensaio na Vigília e sem composição', () => {
     expect(newGame().horde.scheduledRaids.map((raid) => raid.id)).toEqual(['wolvesYear1']);
     const lead = balance.threat.raidLeadMs;
     const marked: Array<[string, number, string]> = [];
     for (const def of warRaids.scripted) {
-      const atMs = (def.atGameDay - 1) * DAY_MS;
+      const base = (def.atGameDay - 1) * DAY_MS;
+      const atMs = def.rehearsal ? vigilAt(newGame().settings, base) : base;
       let state = gameAt(atMs - lead - 1, (draft) => {
         draft.horde.scheduledRaids = [];
       });
@@ -184,7 +186,7 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
     expect(marked).toEqual([
       ['raidersYear1Weak', 25, 'light'],
       ['raidersYear1Medium', 37, 'light'],
-      ['raidersYear1Rehearsal', 61, 'strong'],
+      ['raidersYear1Rehearsal', vigilAt(newGame().settings, 60 * DAY_MS) / DAY_MS + 1, 'strong'],
     ]);
   });
 
@@ -270,14 +272,15 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
     const start = gameAt(57 * DAY_MS - 1, (draft) => {
       draft.horde.scheduledRaids = [];
     });
-    const before = advanceTo(start, 60 * DAY_MS - 1).state;
+    const arrival = vigilAt(start.settings, 60 * DAY_MS);
+    const before = advanceTo(start, arrival - 1).state;
     before.horde.scheduledRaids = before.horde.scheduledRaids.filter(
       (raid) => raid.id === 'raidersYear1Rehearsal',
     );
     before.settlement.buildings.palisade = 0;
     before.settlement.wall.hp = { left: 0, center: 0, right: 0 };
-    const { events } = advanceTo(before, 60 * DAY_MS);
-    const suffered = at(events, 60 * DAY_MS).find((event) => event.type === 'raidSuffered');
+    const { events } = advanceTo(before, arrival);
+    const suffered = at(events, arrival).find((event) => event.type === 'raidSuffered');
     expect(suffered?.data).toMatchObject({ size: 'strong' });
     expect(Number(suffered?.data.injured)).toBeLessThanOrEqual(warRaids.losses.strong.injuries);
   });

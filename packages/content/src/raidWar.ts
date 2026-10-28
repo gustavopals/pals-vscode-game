@@ -29,7 +29,7 @@ export type WarScriptedRaidDef = {
   readonly size: WarRaidSizeId;
   /** O dia de jogo do ano 1 em cujo início ela chega (o "dia 3", "4" e "6" do ritmo Normal). */
   readonly atGameDay: number;
-  /** O ensaio do cerco: na Hora da Vigília (V4G-T1); até lá, o início do dia marcado. */
+  /** O ensaio do cerco: a janela da Hora da Vigília começa no início deste dia. */
   readonly rehearsal: boolean;
   /**
    * Se ela fere aldeões quando passa. As dos dias 25 e 37 não ferem ninguém (resposta do autor à

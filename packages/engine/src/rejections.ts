@@ -50,6 +50,7 @@ export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} $
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
+  INVALID_VIGIL: () => 'Escolha uma hora de 0 a 23 e um fuso que o servidor consiga resolver.',
   UNKNOWN_COMMAND: () => 'O feudo não conhece essa ordem.',
   INVALID_BUILDING: () => 'Esse edifício não existe no feudo.',
   INVALID_WORKERS: () =>

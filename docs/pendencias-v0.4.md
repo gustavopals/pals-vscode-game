@@ -442,3 +442,46 @@ Também corrigidos, sem decisão: o presságio vago não diz mais a onda (`wave:
 sem a chave `wave` no evento `omenSeen`); a guarda da forma 34 exige o Acampamento e a
 Fortaleza na chave do próprio tipo (um de cada); e os números congelados da guarda têm teste
 contra o conteúdo de hoje.
+
+### V4G-T1 — Hora da Vigília (2026-10-27)
+
+**G-1. Janela da Vigília e fallback.** _(Proposta do agente; não lida pelo autor.)_
+O GDD §4.3 prevê +12 h de jogo se não houver Vigília, sem delimitar a busca.
+Escolhida a janela de 24 h de jogo do evento: inverno [144 h, 168 h) e ensaio
+[120 h, 144 h), buscando a partir de +6 h, inclusive. Se não couber, +12 h.
+É a leitura que mantém o evento na data e torna útil o fallback no Rápido.
+Prazos são arredondados para cima em milissegundos de jogo. Nenhum Cerco é criado.
+
+**G-2. Chamadas offline e compatibilidade.** _(Proposta do agente; não lida pelo autor.)_
+A criação e a migração sem contexto civil explícito usam origem 0, offset 0 e
+`timezoneResolved: false`, de forma determinística. O servidor sempre passa `created_at`
+e resolve o offset IANA na criação da linha; uma preferência posterior resolve no
+instante da ordem. O offset só muda por essa ordem, sem atualização automática por DST.
+
+**G-3. Marcação do ensaio.** _(Proposta do agente; não lida pelo autor.)_
+Mantida a antecedência de 6 h de jogo, agora como instante próprio da linha do tempo
+(pode não ser virada de dia). A tentativa é única: `stats.vigilRehearsalMarked`, também
+quando não há vaga (D-33), impede repetir por mudar a preferência. Incursões antigas
+já marcadas mantêm seu prazo. Quem migra com a fronteira em 114 h de jogo ou depois (o
+instante em que o estado 34 marcava o ensaio) não recebe um ensaio novo: a versão antiga já
+o marcou, o perdeu por falta de vaga ou o cumpriu, e o passo grava `stats.vigilRehearsalMarked`.
+Nenhum prazo nasce no passo. _(Corrigido na revisão de 2026-10-27: o critério era
+`migratedAtMs` antes do início do 61º dia, que dava uma segunda tentativa a quem migrou dentro
+da antecedência sem vaga e que a migração seguinte, ao trocar `migratedAtMs`, desligaria.)_
+
+**G-4. Alteração e replay.** _(Proposta do agente; não lida pelo autor.)_
+Escolhida a ordem `setVigilHour { hourLocal, timezone }`, pelo caminho idempotente
+das demais ordens. O servidor resolve o offset no instante da ordem, entrega
+`CommandContext.vigil` ao motor e guarda o dado em `commands.payload.resolvedVigil`
+para replay independente de ICU. Nenhum offset enviado pelo cliente é aceito.
+Preferências permitem editar o fuso IANA; a hora confirmada vem da visão.
+
+**G-5. Preferência alterada dentro da antecedência.** _(Proposta do agente; não lida pelo autor.)_
+Se o ensaio ainda não foi marcado e o novo horário ainda é futuro, mas a
+antecedência de 6 h já começou, a ordem marca agora (sujeita à vaga única).
+Se o novo horário já passou (dentro da janela do evento), o ensaio é marcado agora e chega
+6 h de jogo depois da ordem: mudar a hora não esquiva a incursão forte. A tentativa continua
+única, e a ordem só olha o ensaio (as outras incursões do roteiro não são remarcadas).
+_(Corrigido na revisão de 2026-10-27: antes, o horário já passado deixava o ensaio sem
+marcação para sempre, e a ordem podia marcar o Acampamento que a virada do dia deixara de
+fora por falta de vaga.)_

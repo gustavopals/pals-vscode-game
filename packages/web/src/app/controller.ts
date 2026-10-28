@@ -1475,7 +1475,10 @@ export class Controller {
 
   /** O fuso deste navegador e a Hora da Vigília das preferências, para fundar um feudo. */
   gameDefaults(): { timezone: string; vigilHourLocal: number } {
-    return { timezone: this.timezone(), vigilHourLocal: this.preferences.vigilHour };
+    return {
+      timezone: this.preferences.vigilTimezone ?? this.timezone(),
+      vigilHourLocal: this.preferences.vigilHour,
+    };
   }
 
   /**
@@ -1910,6 +1913,21 @@ export class Controller {
   }
 
   async setPreferences(patch: Partial<Preferences>): Promise<void> {
+    const next = { ...this.preferences, ...patch };
+    if (
+      (patch.vigilHour !== undefined || patch.vigilTimezone !== undefined) &&
+      this.session.gameId !== null
+    ) {
+      const accepted = await this.order('setVigilHour', {
+        hourLocal: patch.vigilHour ?? this.view?.settlement.vigil.hourLocal ?? next.vigilHour,
+        timezone:
+          patch.vigilTimezone ??
+          this.view?.settlement.vigil.timezone ??
+          next.vigilTimezone ??
+          this.timezone(),
+      });
+      if (!accepted) return;
+    }
     this.preferences = { ...this.preferences, ...patch };
     if (this.preferences.discreetMode) {
       // No modo discreto nenhum aviso aparece, nem os que já estavam à vista.

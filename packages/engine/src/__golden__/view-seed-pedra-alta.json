@@ -5,7 +5,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -1234,7 +1240,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -2489,7 +2501,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -3781,7 +3799,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -5227,7 +5251,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -6672,7 +6702,13 @@
       "townHallLevel": 4,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -8289,7 +8325,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -9745,7 +9787,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -11197,7 +11245,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -12640,7 +12694,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -14181,7 +14241,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -15705,7 +15771,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -17191,7 +17263,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -18687,7 +18765,13 @@
       "townHallLevel": 2,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -20243,7 +20327,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -21739,7 +21829,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -23228,7 +23324,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -24700,7 +24802,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -26181,7 +26289,13 @@
       "townHallLevel": 1,
       "difficulty": "ironKing",
       "difficultyLabel": "Rei de Ferro",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -27442,7 +27556,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -28972,7 +29092,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -30566,7 +30692,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -32219,7 +32351,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -33962,7 +34100,13 @@
       "townHallLevel": 3,
       "difficulty": "ironKing",
       "difficultyLabel": "Rei de Ferro",
-      "paceLabel": "Tranquilo: um ano em 14 dias"
+      "paceLabel": "Tranquilo: um ano em 14 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -35714,7 +35858,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -37442,7 +37592,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -39321,7 +39477,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Tranquilo: um ano em 14 dias"
+      "paceLabel": "Tranquilo: um ano em 14 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -41055,7 +41217,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -42592,7 +42760,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -44119,7 +44293,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -45712,7 +45892,13 @@
       "townHallLevel": 3,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -47410,7 +47596,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -48910,7 +49102,13 @@
       "townHallLevel": 1,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Rápido: um ano em 56 horas"
+      "paceLabel": "Rápido: um ano em 56 horas",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -50363,7 +50561,13 @@
       "townHallLevel": 4,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,
@@ -51799,7 +52003,13 @@
       "townHallLevel": 4,
       "difficulty": "lord",
       "difficultyLabel": "Senhor",
-      "paceLabel": "Normal: um ano em 7 dias"
+      "paceLabel": "Normal: um ano em 7 dias",
+      "vigil": {
+        "hourLocal": 20,
+        "timezone": "America/Sao_Paulo",
+        "text": "A Hora da Vigília vale para os acontecimentos ainda não marcados. Os já anunciados mantêm o horário. O deslocamento do fuso fica fixo até você mudar a preferência, sem ajuste de horário de verão.",
+        "warning": "Não foi possível resolver este fuso. A Vigília usa UTC (deslocamento zero); escolha um fuso válido nas Preferências."
+      }
     },
     "calendar": {
       "year": 1,

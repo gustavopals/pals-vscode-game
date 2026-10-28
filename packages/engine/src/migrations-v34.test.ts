@@ -2,6 +2,7 @@ import { balance, ENEMY_IDS, hordeWaves, TILE_TYPE_IDS, WING_IDS, LINE_IDS } fro
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { stateV34 } from './migrations/v34';
 import { currentShape, migrateState } from './migrations';
 import { v33ToV34 } from './migrations/v33';
 import {
@@ -62,7 +63,7 @@ describe('33 → 34: memória, presságios e fronteira da Horda (V4E-T3)', () =>
       expect(JSON.stringify(before)).toBe(copy);
       expect(state.rng).toEqual(before.rng);
       expect(state.ids).toEqual(before.ids);
-      expect(currentShape(state, '')).toBeNull();
+      expect(stateV34(state, '')).toBeNull();
     },
   );
 

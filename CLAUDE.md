@@ -16,6 +16,12 @@
 > branches `v4e-t3-codex` e `v4e-t3-correcoes`, e a tela da V4E-T4 no `v4e-t4-tela`, fora do `main`;
 > protocolo 3, sem publicação.
 
+> **V4G-T1 em 2026-10-27, branch `v4g-t1-vigilia`: estado 35, protocolo 3.**
+> A Hora da Vigília calcula o ensaio do dia 6; o servidor fornece origem real e offset
+> IANA fixo. As Preferências enviam `setVigilHour` ao feudo aberto; prazos já marcados
+> ficam intactos. Passo 34 → 35 sem prazo ou sorteio; limites e propostas G-1 a G-5
+> em `docs/pendencias-v0.4.md`. **O Cerco não foi implementado.**
+
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -214,7 +220,7 @@ O [README da página](packages/landing/README.md) descreve a estrutura e o [ADR 
 
 - **Avanço preguiçoso.** Leituras e comandos novos autenticam, verificam propriedade e travam a partida antes de `advanceTo(agora)`. Reenvios retornam o recibo antes de avançar. Um job (`advance-stale-games`) avança partidas sem estado persistido há mais de 1 h; não há temporizador por partida em memória.
 - **Caminho de um comando** (uma transação): lock da partida → busca de recibo por `(game_id, commandId)` → para comando novo, `advanceTo` → `applyCommand` → persistência do estado, eventos e recibo completo (`request_hash`, `response_status`, `response_body`). Recusa preserva o avanço e faz commit antes do 422; falha inesperada faz rollback. Reenvio idêntico retorna status/corpo originais com `X-Lords-Replayed`; payload diferente com o mesmo UUID recebe `COMMAND_ID_CONFLICT`. Recibos permanecem enquanto a partida existir.
-- **Persistência.** `GameState` inteiro em `games.state` (JSONB), sem patches parciais, com `schemaVersion` (hoje 33) e a coluna `schema_version` como espelho; `commands` + estado inicial + semente = replay completo de uma partida nascida na versão atual (a migrada precisa também do estado de cada fronteira). Mudar a forma do estado não é migração de SQL. Crônica e eventos ficam em tabelas próprias; o motor só os **emite** como saída.
+- **Persistência.** `GameState` inteiro em `games.state` (JSONB), sem patches parciais, com `schemaVersion` (hoje 35 neste branch) e a coluna `schema_version` como espelho; `commands` + estado inicial + semente = replay completo de uma partida nascida na versão atual (a migrada precisa também do estado de cada fronteira). Mudar a forma do estado não é migração de SQL. Crônica e eventos ficam em tabelas próprias; o motor só os **emite** como saída.
 - **Cliente.** Polling de 30 s com a aba à vista (2 min em segundo plano) em `GET /view` e `GET /events?after=`. ETag fraco é SHA-256 do corpo `{ view, stateVersion }`; pode mudar sem escrita no banco. `stateVersion` é string decimal; `X-Lords-State-Version` é apenas aviso de concorrência, sem usar `If-Match`. Após recibo repetido, buscar view/eventos atuais sem reaplicar eventos antigos. Cache no `localStorage` separado por conta e partida; comandos nunca ficam em fila local.
 - **Sessões e recuperação.** Uma família por sessão/máquina, validade absoluta de 30 dias, histórico completo em `refresh_tokens`. Reuso de qualquer antecessor revoga a família com commit antes do 401. Autorização consulta conta/sessão no banco sem cache positivo. Código do Reino usa HMAC-SHA256 com `RECOVERY_CODE_SECRET` independente; detalhes em GDD §14.7 e ADRs 0003/0005.
 - **Exclusão.** Bloqueio imediato, revogação de todas as sessões, limpeza do código de recuperação e arquivamento das partidas em transação; resposta 202 com `deletedAt`/`purgeAfter`. Primeiro job a partir de sete dias remove dependentes em cascata; backups seguem retenção de 14 dias desde a geração. Logout, exclusão e sessão revogada limpam tokens e cache local. Não prometer remoção física imediata nem oferecer desfazer exclusão. Os dados da v0.2 vivem em `games.state` e `game_events`, e saem no mesmo expurgo.

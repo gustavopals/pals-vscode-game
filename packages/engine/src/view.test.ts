@@ -61,6 +61,7 @@ describe('deriveViewState', () => {
       difficulty: 'lord',
       difficultyLabel: 'Senhor',
       paceLabel: 'Normal: um ano em 7 dias',
+      vigil: initial.settlement.vigil,
     });
     expect(initial.calendar).toEqual({
       year: 1,

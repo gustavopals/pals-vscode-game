@@ -74,6 +74,7 @@ function TabContent(props: {
               : {
                   difficultyLabel: view.settlement.difficultyLabel,
                   paceLabel: view.settlement.paceLabel,
+                  vigil: view.settlement.vigil,
                   difficultyAbout: difficultyDescription(
                     controller.newGameOptions,
                     view.settlement.difficulty,

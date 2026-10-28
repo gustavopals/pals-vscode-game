@@ -83,6 +83,13 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'vigil-fixed-offset': () =>
+    createInitialState('fixture-vigil-fixed-offset', {
+      ...settings,
+      vigilHourLocal: 3,
+      realOriginMs: 1_792_100_123_456,
+      vigil: { hourLocal: 3, utcOffsetMinutes: -180, timezoneResolved: true },
+    }),
   'horde-omens-vague': () => omensScenario(1),
   'horde-omens-partial': () => omensScenario(3),
   'horde-omens-exact': () => omensScenario(5),

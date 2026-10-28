@@ -4,7 +4,7 @@ O motor de Lords of the Guild: funções puras e determinísticas que decidem tu
 
 ## A Horda aprende (v0.4, V4E-T3)
 
-Estado **34**, protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
+Introduzida no estado **34** (o atual é **35**, V4G-T1), protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
 as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
 não consome sorteios, cria eventos ou recalcula o passado.
 
@@ -601,6 +601,8 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 31 | V4D-T2 | A prévia do Conselho de Guerra: `army.preview` (`null`) |
 | 32 | V4E-T1 | A muralha: `settlement.wall.hp` (a vida de cada ala, **cheia pelo nível de hoje da Paliçada**: 60 ou 100; zero sem Paliçada) e `settlement.wallRepair` (`null`). A guarda (`migrations/v32.ts`) recusa ala acima da vida do nível e o reparo que já devia ter terminado ou que levaria uma ala para baixo ou acima do nível. Não cria prazo, evento nem sorteio |
 | 33 | V4E-T2 | As incursões-batalha: cada incursão marcada ganha `composition` (`null` no passo: **o passo não sorteia**, e a batalha usa a composição-base da estação) e pode ter `size: 'strong'`; cada relatório de batalha ganha `formationId` (`null`). O passo (`v32ToV33`, no fim de `migrations/v32.ts`; a forma em `migrations/v33.ts`) marca a incursão do roteiro da guerra que a fronteira encontra dentro da antecedência dela, sem outra marcada (D-32). Não cria identificador, sorteio nem evento |
+| 34 | V4E-T3 | Memória da última formação vista, preparação das ondas e presságios. O passo 33 → 34 preserva as incursões e começa com memória/preparação nulas e presságios vazios, sem prazo, sorteio ou evento. |
+| 35 | V4G-T1 | Origem real (`settings.realOriginMs`) e Vigília (`hourLocal`, offset fixo em minutos e `timezoneResolved`). Passo 34 → 35 em `v34.ts`; forma 35 em `v35.ts`. Vêm de `created_at` e do fuso resolvido no servidor, sem prazo, evento, identificador ou sorteio; incursões marcadas ficam intactas. Estado atual 34 → 35, independentemente da numeração de fases futuras no roadmap. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -673,3 +675,36 @@ Das incursões existem os lobos (o único inimigo de tile) em três tamanhos, ca
 Da dificuldade, quatro linhas mudam uma regra: o que acontece ao herói onde um nó marca captura (`heroCapture`, desde V3D-T2), o fator de armazenamento (`storageCapacity`, desde V2C-T2), a deserção por fome (`famineDesertion`, desde V2C-T4) e a opção que o Conselho aplica quando uma carta expira, marcada em cada carta (`autoResolve`, desde V2D-T1).
 
 `UpgradeView.effect` é preenchido para os depósitos, a Torre de Vigia, a Paliçada, a Taverna, a Guilda dos Aventureiros e o Mercado; nos outros edifícios é `null`.
+
+### Hora da Vigília (V4G-T1)
+
+`vigil.ts` calcula o instante em inteiros: `real = realOriginMs + gameMs / timeScale`;
+a hora local é `(real + utcOffsetMinutes × 60.000) mod 86.400.000`. Busca a primeira
+Vigília a partir de +6 h de jogo, dentro da janela de 24 h do evento (fim exclusivo);
+se não couber, usa +12 h. O arredondamento é para cima. A janela está registrada na
+pendência G-1. O offset fica fixo, sem horário de verão; só o servidor consulta `Intl`.
+Chamadas offline sem contexto civil usam origem 0 e UTC não resolvido, com aviso na
+visão; o servidor sempre fornece origem e offset. O passo 34 → 35 só acrescenta esses
+dados e nunca recalcula uma incursão marcada. O Cerco continua fora desta tarefa.
+
+O ensaio usa a janela do 61º dia de jogo (120 a 144 h), e a marcação fica
+6 h de jogo antes da chegada, em instante próprio de `nextEventAt`. Resolve em
+`settleRaids`, depois das obras e da virada do dia e antes do aviso da Torre.
+`stats.vigilRehearsalMarked` registra a tentativa única, inclusive sem vaga; a
+preferência não repete um ensaio já marcado ou resolvido. O passo de migração
+não marca nada, e o ensaio antigo em curso mantém seu prazo; quando a fronteira já
+passou de 114 h de jogo (o instante em que o estado 34 marcava o ensaio), o passo
+grava `stats.vigilRehearsalMarked`, porque a versão antiga já fez a tentativa. O
+registro fica no estado, e não em `migratedAtMs`, que a próxima migração troca.
+
+Mudar a Vigília (`setVigilHour`) chama `markRehearsalAfterVigilChange`, que só
+olha o ensaio: se a nova marcação já ficou para trás e a janela do evento não
+acabou, ele é marcado na hora; se a nova Vigília já passou, chega `raidLeadMs`
+depois da ordem (a mudança de hora não apaga o ensaio). As outras incursões do
+roteiro não são remarcadas pela ordem.
+
+`applyCommand` aceita um quarto argumento opcional, `CommandContext`, só para
+a Vigília: `vigil: { utcOffsetMinutes, timezoneResolved }`, resolvido pelo servidor
+e guardado no registro da ordem. Sem contexto válido, `setVigilHour` recusa
+`INVALID_VIGIL`. A ordem muda a preferência e emite `vigilChanged`, sem tocar
+incursões marcadas, RNG ou ids. O Cerco não existe nesta entrega.

@@ -509,7 +509,7 @@ Entram na v0.4 sem publicação (ADR 0019, decisões 13 e 14; pendências D-11 e
 
 - **Toda incursão é uma batalha** (`raids.ts`, `fightRaid`): o atacante é a composição da incursão, sorteada no fluxo `horde` quando ela é marcada (a do roteiro e a marcada antes do estado 33 usam a composição-base da estação, sem sorteio); o defensor é a Defesa ativa, e, sem ela, só a muralha e as torres lutam. A batalha sorteia no fluxo `battle:<id>`, danifica a muralha, mata soldados, fere comandantes e guarda o relatório em `army.reports` com a formação que lutou.
 - **A batalha só alivia a regra da v0.2** (decisão 14): a perda é a menor entre a que a Paliçada deixava passar e a do que passou pela batalha, na proporção. Sem exército, os lobos do 16º dia custam o mesmo que antes.
-- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; as duas primeiras leves e sem ferido, pela resposta do autor à D-39; o ensaio do cerco, forte, no início do 61º dia, até a Hora da Vigília da V4G-T1), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
+- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; as duas primeiras leves e sem ferido, pela resposta do autor à D-39; o ensaio do cerco, forte, na Hora da Vigília da janela do 61º dia desde a V4G-T1, §19g), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
 - **A névoa**: `threat.incoming.compositionText` diz da composição só o que o nível da Torre revela (nada nos níveis 1 e 2; os tipos, as quantidades por ala e a composição exata nos 3, 4 e 5).
 - **No simulador**, o econômico e o preguiçoso montam e ativam a formação com o que treinam (decisão 25); a medição está em [balance-v0.4.md](balance-v0.4.md), seção 9.
 
@@ -549,6 +549,10 @@ ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
 a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
 permanece durante o inverno e é desativada na virada anual; isso é um estado
 intermediário da implementação, não o encerramento do cerco do GDD.
+
+## 19g. A Hora da Vigília (v0.4, V4G-T1)
+
+Estado **35**. `settings.realOriginMs` (de `games.created_at`) e `settings.vigil` (`hourLocal`, `utcOffsetMinutes`, `timezoneResolved`) entram pelo passo 34 → 35 com o contexto que o servidor dá a `migrateState` (`loadGame`), e na criação pelo `createGame`. O servidor resolve o fuso IANA com `Intl` (`games/vigil.ts`); o motor só faz a conta (`vigil.ts`): `real = realOriginMs + jogo / timeScale`, hora local `(real + deslocamento) mod 24 h`, a primeira Vigília a partir de +6 h de jogo dentro das 24 h de jogo do evento, senão +12 h, sem horário de verão. O fuso que o servidor não resolve entra com deslocamento 0 e a visão avisa (`settlement.vigil.warning`). O ensaio do dia 6 é marcado 6 h de jogo antes da chegada, num instante próprio da linha do tempo (`nextRehearsalMarkAt`), uma tentativa só (`stats.vigilRehearsalMarked`). As Preferências mudam hora e fuso pela ordem `setVigilHour`, que o servidor completa com o deslocamento (`CommandContext`, guardado em `commands.payload.resolvedVigil`); vale para o que ainda não foi marcado. O Cerco não existe.
 
 ## 20. Divergências aceitas em relação ao GDD
 
@@ -608,7 +612,7 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
 | Catálogos de edifícios e cartas em `GET /catalog` (GDD §14.5) | O catálogo só traz as opções de nova partida; o `ViewState` leva o resto |
 | "Baixar cópia da partida (JSON)" (GDD §13.6) | Não existe; existe "Baixar Crônica (Markdown)" |
 | A Ameaça no cabeçalho (GDD §13.3) | Fica no painel "Ameaça" da aba Feudo |
-| Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
+| Hora da Vigília no Cerco | Só o ensaio do dia 6 cai nela (V4G-T1); o Cerco é da V4G-T2 |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
 | O lote 2 do Conselho, o efeito de carta que dá um Mestre (`addMaster`), os efeitos de carta sobre o preço (`market.effects`) e o requisito de carta por herói presente (V3F-T1) | Fora da v0.3.0 (F-3). A função que entrega um Mestre (`deliverMaster`) existe; nenhuma carta a chama |

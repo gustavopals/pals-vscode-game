@@ -640,3 +640,34 @@ quando as incursões mudam de dia).
 (`scripts/measure-v4e-t3.ts`) não foram refeitas. Os arquivos das rodadas ficaram no
 scratchpad da sessão. **Fica para o autor**: se o Acampamento também precisa de ajuste até o
 Cerco (a Ameaça de fim de ano e os feridos do Preguiçoso continuam acima da seção 10).
+## 14. Hora da Vigília (V4G-T1, 2026-10-27)
+
+O ensaio deixa o início fixo do 61º dia de jogo e usa a Vigília na janela
+[120 h, 144 h), com mínimo +6 h e fallback +12 h. O instante da marcação
+(6 h antes) também muda; portanto podem mudar as incursões sorteadas, o RNG,
+as perdas e o progresso das sementes. O simulador sem contexto civil continua
+reproduzível com origem 0 e offset 0. Os bots e `MEASURED` não foram alterados.
+**Remedida na revisão (2026-10-27, conteúdo `ac37885256c7d702`).** As três
+matrizes de 50 sementes (`pnpm -s sim -- --matrix`, com `--difficulty peasant` e
+`ironKing`) saíram da faixa só por uma a três sementes por célula, todas em
+excedente parado (madeira, pedra), na sequência desperdiçando (33 h no Regular
+da semana do Rápido, eram 30 h; 1,5 h no Dedicado do ano do Tranquilo em Rei de
+Ferro) e uma vez no Salão (Explorador da semana do Normal em Rei de Ferro, uma
+semente no nível 5). Nada de fome, frio, partida, recusa ou população fora: é o
+ensaio que agora chega 6 a 24 h de jogo mais tarde e muda os sorteios da Horda
+depois dele. `MEASURED` (`packages/sim-cli/src/bands.ts`) recebeu a linha de base
+desta rodada nas três dificuldades, e os números exatos de `matrix.test.ts`
+foram regravados. A mudança paralela que zera a Ameaça da Fortaleza até o Cerco
+não está neste branch: a junção remede de novo.
+
+Goldens do motor regravados só com `UPDATE_GOLDEN=1`, com diff conferido:
+o ensaio do roteiro semanal muda de 120 h para 140 h (origem/offset offline 0,
+Vigília 20 h); a Ameaça final passa de 67 para 83, com 6 repelidas e 3 sofridas
+como antes. As asserções do cenário e do retrato foram atualizadas para esses
+valores exatos, sem tolerância ou remoção de cobertura. Os goldens da pressão
+e da contagem anual também mudam pelos novos instantes e pelo fluxo `horde`.
+
+A primeira rodada do portão detectou divergência da divisão de intervalo em
+estados postos diretamente dentro da antecedência, sem ensaio marcado. Corrigido
+no motor: marcação tardia só na ordem que muda a preferência; leituras não a
+fazem. As duas propriedades foram mantidas sem afrouxar e há regressão focada.
