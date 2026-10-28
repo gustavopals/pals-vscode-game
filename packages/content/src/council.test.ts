@@ -133,7 +133,7 @@ describe('Conselho: o catálogo', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
     // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
     // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
-    expect(councilCards).toHaveLength(39);
+    expect(councilCards).toHaveLength(43);
     expect(councilCards.slice(0, 22).map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -177,6 +177,10 @@ describe('Conselho: o catálogo', () => {
       ['kingsTax', 'Impostos do Rei'],
       ['kingsCollector', 'O Cobrador do Rei'],
       ['kingsAnswer', 'A resposta da coroa'],
+      ['passingRecruiter', 'Recrutador de passagem'],
+      ['gamblingDebt', 'A dívida de jogo'],
+      ['squareDuel', 'Duelo na praça'],
+      ['wanderingHealer', 'O curandeiro errante'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -243,6 +247,10 @@ describe('Conselho: o catálogo', () => {
       kingsTax: ['pay', 'negotiate', 'refuse'],
       kingsCollector: ['fine', 'soldiers', 'refuse'],
       kingsAnswer: ['tribute', 'envoy', 'hold'],
+      passingRecruiter: ['pay', 'refuse'],
+      gamblingDebt: ['cover', 'leave'],
+      squareDuel: ['allow', 'train', 'forbid'],
+      wanderingHealer: ['pay', 'herbs', 'wait'],
     });
     expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf', 'osbert']);
   });
@@ -725,7 +733,13 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
         const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
         for (const effect of all) {
           if (effect.type === 'morale' && entry.weight > 0) {
-            expect(effect.amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+            // §7.5 aprovado: proibir o duelo é a opção sem risco que autoaplica nas três
+            // dificuldades, mesmo custando −5 de moral por 2 dias (balance-v0.4.md §14).
+            if (entry.id === 'squareDuel') {
+              expect(effect.amount, `${entry.id}/${difficulty}`).toBe(-5);
+            } else {
+              expect(effect.amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+            }
           }
         }
       }

@@ -14,6 +14,10 @@ import {
   fieldBlight,
   merchantBoycott,
   royalCaravan,
+  passingRecruiter,
+  gamblingDebt,
+  squareDuel,
+  wanderingHealer,
 } from './lote2';
 import { mysteriousMerchant, merchantLead, merchantFinalOffer } from './mysteriousMerchant';
 import { kingsTax, kingsCollector, kingsAnswer } from './kingsCollector';
@@ -97,4 +101,8 @@ export const councilCards: readonly CouncilCard[] = [
   kingsTax,
   kingsCollector,
   kingsAnswer,
+  passingRecruiter,
+  gamblingDebt,
+  squareDuel,
+  wanderingHealer,
 ];

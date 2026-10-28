@@ -1,0 +1,187 @@
+{
+ "cards": {
+  "passingRecruiter": {
+   "instanceId": "passingRecruiter-1",
+   "title": "Recrutador de passagem",
+   "text": "Um recrutador de capa gasta bateu à porta da Taverna e abriu a bolsa de couro sem rodeios. Conhece gente que procura trabalho de espada e que não pediria mal. Cobra a taxa de quem encontra, não de quem contrata, e diz que não volta tão cedo.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "refuse",
+   "defaultOptionLabel": "Dispensar o recrutador",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: dispensar o recrutador.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "pay",
+     "label": "Pagar a taxa do recrutador",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 100,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−100 ouro; um candidato a mais na próxima rotação da Taverna; o limite de contratação não muda",
+     "hint": "O candidato extra sai da rotação seguinte, e a bolsa sai agora."
+    },
+    {
+     "id": "refuse",
+     "label": "Dispensar o recrutador",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Sem custo e sem efeito imediato.",
+     "hint": "A Taverna escolhe quem aparece por conta própria."
+    }
+   ]
+  },
+  "gamblingDebt": {
+   "instanceId": "gamblingDebt-1",
+   "title": "A dívida de jogo",
+   "text": "Um cobrador de dados e baralhos bateu à porta com um papel dobrado na mão: Bia, dizem, perdeu na mesa mais do que o soldo de um mês e não tem como pagar. O homem não fala alto, mas não parece disposto a esperar. O conselho quer saber o que o senhor responde.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "leave",
+   "defaultOptionLabel": "Deixá-lo resolver sozinho",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: deixá-lo resolver sozinho.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "cover",
+     "label": "Cobrir a dívida",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 90,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−90 ouro; +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Uma dívida paga é lealdade comprada."
+    },
+    {
+     "id": "leave",
+     "label": "Deixá-lo resolver sozinho",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Na próxima virada de dia: 1 em 2 de um dos participantes sofre ferimento leve (2 h) se ainda estiver livre no feudo; −5 de moral por 3 dias de jogo (6 h); caso contrário, +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Cada um sabe da própria mesa, e do próprio fim de noite."
+    }
+   ]
+  },
+  "squareDuel": {
+   "instanceId": "squareDuel-1",
+   "title": "Duelo na praça",
+   "text": "Bia e Ada trocaram palavras duras na Taverna, e a coisa foi parar na praça, onde se juntou a aldeia inteira com os braços cruzados. Ambos querem resolver com o aço. O capitão da guarda olha para o senhor, esperando uma palavra.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "forbid",
+   "defaultOptionLabel": "Proibir o duelo",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: proibir o duelo.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "allow",
+     "label": "Permitir o duelo",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "+10 de moral por 2 dias de jogo (4 h); Na próxima virada de dia: 1 em 3 de um dos participantes sofre ferimento leve (2 h) se ainda estiver livre no feudo; caso contrário, nenhum efeito",
+     "hint": "O povo gosta de ver o aço, e o aço nem sempre sai limpo."
+    },
+    {
+     "id": "train",
+     "label": "Marcar um duelo de treino",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 30,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−30 ouro; +5 de moral por 2 dias de jogo (4 h)",
+     "hint": "Madeira no lugar de aço: a honra fica salva, e as costelas também."
+    },
+    {
+     "id": "forbid",
+     "label": "Proibir o duelo",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−5 de moral por 2 dias de jogo (4 h)",
+     "hint": "A ordem do senhor vale mais que a honra dos dois, mesmo que ninguém goste."
+    }
+   ]
+  },
+  "wanderingHealer": {
+   "instanceId": "wanderingHealer-1",
+   "title": "O curandeiro errante",
+   "text": "Um homem magro, de bolsa cheia de ervas e dedos manchados de verde, parou diante dos portões e perguntou, sem cumprimentar, quem era o ferido da casa. Já ouviu falar de Ada. Diz que cura numa noite o que o tempo cura em muitas, e cobra pela noite.",
+   "expiresInSeconds": 86400,
+   "defaultOptionId": "wait",
+   "defaultOptionLabel": "Deixar o tempo curar",
+   "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: deixar o tempo curar.",
+   "followsFrom": null,
+   "options": [
+    {
+     "id": "pay",
+     "label": "Pagar pela cura",
+     "cost": [
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 60,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−60 ouro; encerra agora o ferimento de Ada",
+     "hint": "A bolsa esvazia hoje, e a espada volta ao trabalho amanhã."
+    },
+    {
+     "id": "herbs",
+     "label": "Comprar só as ervas",
+     "cost": [
+      {
+       "resource": "food",
+       "label": "Comida",
+       "amount": 30,
+       "missing": 0
+      }
+     ],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "−30 comida; reduz à metade o tempo restante do ferimento de Ada",
+     "hint": "Mais lento, mais barato, e a cozinha cheira a mato."
+    },
+    {
+     "id": "wait",
+     "label": "Deixar o tempo curar",
+     "cost": [],
+     "affordable": true,
+     "locked": false,
+     "lockedReason": null,
+     "effectsText": "Sem custo e sem efeito imediato.",
+     "hint": "O ferimento sara sozinho, no passo dele."
+    }
+   ]
+  }
+ }
+}
