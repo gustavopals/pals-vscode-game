@@ -151,6 +151,41 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     expect(currentShape(back.state, '')).toBeNull();
   });
 
+  it('a morte do comandante em Rei de Ferro não deixa herói nem reserva órfã', () => {
+    const start = campaignYard(0, false);
+    start.settings.difficulty = 'ironKing';
+    // A retaguarda continua de pé depois da Frente cair: o golpe seguinte expõe o comandante.
+    start.army.units.archer = 5;
+    start.army.formations[0]!.posts.center.back = { unit: 'archer', count: 5 };
+    const { state } = attack(start);
+    const at = advanceTo(state, arrival);
+    expect(at.state.army.campaign?.report?.commanders[0]?.fate).toBe('died');
+    expect(at.state.guild.heroes).toHaveLength(0);
+    expect(currentShape(at.state, '')).toBeNull();
+    const back = advanceTo(at.state, arrival * 2);
+    expect(back.state.army.campaign).toBeNull();
+    expect(currentShape(back.state, '')).toBeNull();
+  });
+
+  it('o limite de 12 rodadas faz o exército recuar sem limpar o Acampamento nem trazer saque', () => {
+    const start = campaignYard(0, false);
+    start.army.units.swordsman = 0;
+    start.army.units.shieldbearer = 10;
+    start.army.formations[0]!.posts.center.front = { unit: 'shieldbearer', count: 10 };
+    const { state } = attack(start);
+    const back = advanceTo(state, arrival * 2);
+    const report = back.state.army.reports[0]!;
+    expect(report.outcome).toBe('withdrew');
+    expect(report.rounds).toBe(balance.battle.maxRounds);
+    expect(back.state.map.tiles.raiderCamp?.threatActive).toBe(true);
+    expect(back.state.army.campaign).toBeNull();
+    expect(back.events.some((event) => event.type === 'threatTileCleared')).toBe(false);
+    expect(
+      back.events.find((event) => event.type === 'armyReturned')?.data.gained_gold,
+    ).toBeUndefined();
+    expect(currentShape(back.state, '')).toBeNull();
+  });
+
   it('a incursão no meio e no instante da volta luta sem quem partiu; a prévia usa a mesma reserva', () => {
     for (const raidAtMs of [HOUR, arrival * 2]) {
       const { state } = attack(campaignYard());
