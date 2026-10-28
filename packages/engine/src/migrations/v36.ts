@@ -13,6 +13,24 @@ const effects = listOf(
   }),
 );
 
+export const marketEffectsWithinState = (
+  market: StoredState,
+  lastProcessedAt: number,
+  path: string,
+): string | null => {
+  const at = path ? `${path}.market.effects` : 'market.effects';
+  const list = market.effects;
+  if (!Array.isArray(list)) return null;
+  for (const [index, entry] of list.entries()) {
+    if (entry !== null && typeof entry === 'object' && !Array.isArray(entry)) {
+      if (typeof entry.untilMs === 'number' && entry.untilMs <= lastProcessedAt) {
+        return `${at}.${index}.untilMs: efeito que já devia ter terminado`;
+      }
+    }
+  }
+  return null;
+};
+
 export const stateV36: Shape = (value, path) => {
   if (value === null || typeof value !== 'object' || Array.isArray(value))
     return stateV35(value, path);
@@ -25,6 +43,7 @@ export const stateV36: Shape = (value, path) => {
   const { effects: live, ...oldMarket } = market as StoredState;
   return (
     effects(live, path ? `${path}.market.effects` : 'market.effects') ??
+    marketEffectsWithinState(market as StoredState, state.lastProcessedAt as number, path) ??
     stateV35({ ...state, schemaVersion: 35, market: oldMarket }, path)
   );
 };

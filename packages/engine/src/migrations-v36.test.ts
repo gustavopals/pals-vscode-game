@@ -51,10 +51,25 @@ describe('35 → 36: fatores de carta no Mercado', () => {
     const good = {
       resource: 'food',
       factor: { num: 6, den: 5 },
+      fromMs: 0,
       untilMs: DAY,
       label: 'Carta: Boicote',
     };
     expect(currentShape({ ...state, market: { ...state.market, effects: [good] } }, '')).toBeNull();
+
+    const goodV36 = {
+      resource: 'food',
+      factor: { num: 6, den: 5 },
+      untilMs: DAY,
+      label: 'Carta: Boicote',
+    };
+    const v36State = {
+      ...before,
+      schemaVersion: 36,
+      market: { ...(before.market as object), effects: [goodV36] },
+    };
+    expect(stateV36(v36State, '')).toBeNull();
+
     for (const effects of [
       undefined,
       null,
@@ -73,5 +88,62 @@ describe('35 → 36: fatores de carta no Mercado', () => {
       expect(currentShape(invalid, '')).not.toBeNull();
       expect(() => migrateState(invalid, { timeScale: 1 })).toThrow(StateMigrationError);
     }
+  });
+
+  it('stateV36 e stateV37 recusam efeitos vencidos (untilMs <= lastProcessedAt)', () => {
+    const before = JSON.parse(fixtures['./__fixtures__/state-v35-fresh.json']!);
+    const v36State = {
+      ...before,
+      schemaVersion: 36,
+      lastProcessedAt: DAY,
+      market: {
+        ...(before.market as object),
+        effects: [
+          {
+            resource: 'food',
+            factor: { num: 6, den: 5 },
+            untilMs: DAY,
+            label: 'Carta: Boicote',
+          },
+        ],
+      },
+    };
+    expect(stateV36(v36State, '')).toContain('efeito que já devia ter terminado');
+
+    const v36ExpiredPast = {
+      ...v36State,
+      market: {
+        ...(before.market as object),
+        effects: [
+          {
+            resource: 'food',
+            factor: { num: 6, den: 5 },
+            untilMs: DAY - 100,
+            label: 'Carta: Boicote',
+          },
+        ],
+      },
+    };
+    expect(stateV36(v36ExpiredPast, '')).toContain('efeito que já devia ter terminado');
+
+    const v37State = {
+      ...v36State,
+      schemaVersion: 37,
+      guild: { ...(v36State.guild as object), tavern: { extraOffer: false } },
+      market: {
+        ...(before.market as object),
+        effects: [
+          {
+            resource: 'food',
+            factor: { num: 6, den: 5 },
+            fromMs: 0,
+            untilMs: DAY,
+            label: 'Carta: Boicote',
+          },
+        ],
+      },
+    };
+    expect(currentShape(v37State, '')).toContain('efeito que já devia ter terminado');
+    expect(() => migrateState(v37State, { timeScale: 1 })).toThrow(StateMigrationError);
   });
 });

@@ -137,7 +137,9 @@ export function marketView(state: GameState, timeScale: number): MarketView {
         : realSecondsCeil(
             Math.min(
               nextDayBoundary(now),
-              ...state.market.effects.map((effect) => effect.untilMs),
+              ...state.market.effects
+                .map((effect) => effect.untilMs)
+                .filter((untilMs) => untilMs > now),
             ) - now,
             timeScale,
           ),

@@ -10,7 +10,7 @@ import {
   type Shape,
 } from './shape';
 import type { StoredState } from './step';
-import { stateV36 } from './v36';
+import { marketEffectsWithinState, stateV36 } from './v36';
 
 const object = (value: unknown): value is StoredState =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -54,7 +54,9 @@ export const stateV37: Shape = (value, path) => {
   if (!object(guild) || !object(guild.tavern) || !object(council) || !object(market))
     return stateV36(old, path);
   if (!Array.isArray(market.effects)) return stateV36(old, path);
-  const effectsError = effectsV37(market.effects, at('market.effects'));
+  const effectsError =
+    effectsV37(market.effects, at('market.effects')) ??
+    marketEffectsWithinState(market, value.lastProcessedAt as number, path);
   if (effectsError !== null) return effectsError;
   const { extraOffer, ...tavern } = guild.tavern;
   const marker = boolean(extraOffer, at('guild.tavern.extraOffer'));
