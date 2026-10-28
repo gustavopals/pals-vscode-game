@@ -375,9 +375,11 @@ describe('CSV de uma partida', () => {
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md,
     // seção 13) o ano termina em 85 (era 77): com a Ameaça mais baixa no outono os sorteios de
     // incursão caem em outras viradas, e a última do ano sai em outro dia (não investigado além disso).
-    expect(summary.threat).toEqual({ final: 85, max: 100, watchtower: 4 });
+    // Na junção da Fase E (a Vigília muda a hora do ensaio do dia 6, e os objetivos 17 a 21 o
+    // caminho de obras) o ano termina em 57.
+    expect(summary.threat).toEqual({ final: 57, max: 100, watchtower: 4 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 85 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 57 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(

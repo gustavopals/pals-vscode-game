@@ -299,8 +299,9 @@ describe('relatório da matriz', () => {
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
       // Remedida na resposta do autor à D-39 (docs/balance-v0.4.md, seção 10) e com a
-      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13).
-      "  'week/3/regular': measured([73, 83], 8, 0, 0, 5200, 4900, 92931, 30),",
+      // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13),
+      // e na junção da Fase E (a Vigília e os objetivos 17 a 21; seção "Junção da Fase E").
+      "  'week/3/regular': measured([73, 83], 8, 0, 0, 5200, 4900, 92315, 30),",
     );
   });
 
@@ -365,7 +366,8 @@ describe('relatório da matriz', () => {
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
     expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: null });
-    expect(lazy?.measure.milestones.palisade).toEqual({ min: 54, max: null });
+    // Na junção da Fase E (objetivos 17 a 21) a Paliçada sai uma hora antes na melhor semente.
+    expect(lazy?.measure.milestones.palisade).toEqual({ min: 53, max: null });
     expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
     expect(lazy?.measure.objectivesDone).toEqual({ min: 9, max: 11 });
     expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });

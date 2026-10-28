@@ -246,8 +246,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
     // No ano do Rápido o cofre não paga o contrato em uma semente (V4E-T1): de um a três.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a três.
-    // D-39 (seção 10): de um a três.
-    expect(heroes('year/3/explorador')).toEqual({ min: 1, max: 3 });
+    // D-39 (seção 10): de um a três. Junção da Fase E (objetivos 17 a 21 e Vigília): de dois a três.
+    expect(heroes('year/3/explorador')).toEqual({ min: 2, max: 3 });
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de quatro a sete.
     expect(heroes('year/1/explorador')).toEqual({ min: 4, max: 7 });
