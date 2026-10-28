@@ -567,7 +567,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 37;
+  schemaVersion: 38;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -762,7 +762,11 @@ export type GameState = {
       year: number;
       revision: number;
       generatedAtMs: number;
-      waves: Array<{ number: 1 | 2 | 3; composition: NonNullable<ScheduledRaid['composition']> }>;
+      waves: Array<{
+        number: 1 | 2 | 3;
+        composition: NonNullable<ScheduledRaid['composition']>;
+        reductionPercent?: number;
+      }>;
     } | null;
     omens: Array<{
       atMs: number;
@@ -773,6 +777,11 @@ export type GameState = {
       /** Postos revelados; o parcial guarda apenas o posto e a contagem aproximada da frase. */
       reveals: NonNullable<ScheduledRaid['composition']>;
     }>;
+    sabotages: {
+      attempts: number;
+      successes: number;
+      alerted: boolean;
+    };
   };
   /**
    * Os heróis, o soldo deles e as expedições (GDD §9.1 e §9.2; ADR 0017 e 0018). O edifício da
@@ -1168,6 +1177,9 @@ export const REJECTION_CODES = [
   'WALL_REQUIRED',
   'WALL_INTACT',
   'WALL_REPAIRING',
+  'SABOTAGE_SEASON',
+  'SABOTAGE_LIMIT',
+  'TEAM_SIZE',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1917,6 +1929,14 @@ export type ExpeditionOfferView = {
    * o oferece ao lado de quem está lá ("Enviar o Resgate"), sem conhecer o nome do modelo.
    */
   rescue: boolean;
+  /**
+   * O estado da sabotagem da Fortaleza da Horda; `null` em qualquer outro destino.
+   */
+  sabotage: {
+    attemptsLeft: number;
+    wavesWeakened: number[];
+    alerted: boolean;
+  } | null;
 };
 
 /**

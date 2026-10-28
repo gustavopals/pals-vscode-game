@@ -2,6 +2,7 @@ import {
   balance,
   type ExpeditionModelDef,
   expeditionModels,
+  type ExpeditionNode,
   type ExpeditionTrial,
   expeditionOutcomes,
   expeditionPostures,
@@ -249,6 +250,19 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
             : fillText(expeditionTexts.noTeam, { motivo: outlook.shortfall }),
       firstStretchText: firstStretchText(variant),
       rescue: model.access.kind === 'captive',
+      sabotage:
+        model.id === 'sabotage'
+          ? {
+              attemptsLeft: Math.max(
+                0,
+                balance.horde.sabotage.maxPerYear - (state.horde.sabotages?.attempts ?? 0),
+              ),
+              wavesWeakened: (state.horde.wavePlan?.waves ?? [])
+                .filter((w) => (w.reductionPercent ?? 0) > 0)
+                .map((w) => w.number),
+              alerted: state.horde.sabotages?.alerted ?? false,
+            }
+          : null,
     });
   }
   return views;
@@ -272,7 +286,11 @@ const itemLabel = (defId: string): string =>
  * saque que a cobiça perdeu, quem sofreu, o que foi achado, o destino revelado, o tile limpo, o
  * cativo solto e quem subiu de nível. Só nomes e fatos: nenhum número de regra.
  */
-function logNotes(state: GameState, entry: ExpeditionLogEntry): string[] {
+function logNotes(
+  state: GameState,
+  entry: ExpeditionLogEntry,
+  node?: ExpeditionNode | null,
+): string[] {
   const notes: string[] = [];
   if (entry.lootLost) {
     notes.push(expeditionTexts.reportLootLost);
@@ -306,6 +324,22 @@ function logNotes(state: GameState, entry: ExpeditionLogEntry): string[] {
   }
   if (entry.master !== null && isMasterId(entry.master)) {
     notes.push(fillText(expeditionTexts.reportMaster, { mestre: masterLabel(entry.master) }));
+  }
+  if (node !== null && node !== undefined) {
+    if (entry.outcome === 'success' || entry.outcome === 'full') {
+      if ('rewards' in node && node.rewards?.weakensWave !== undefined) {
+        const wave = node.rewards.weakensWave;
+        const waveText =
+          wave === 1 ? 'primeira onda' : wave === 2 ? 'segunda onda' : 'terceira onda';
+        notes.push(fillText(expeditionTexts.reportWeakenedWave, { onda: waveText }));
+      }
+      if ('rewards' in node && node.rewards?.revealsWave === 3) {
+        notes.push(expeditionTexts.reportRevealedWave);
+      }
+    }
+    if (entry.outcome === 'disaster' && 'trial' in node && node.trial?.alertsHorde) {
+      notes.push(expeditionTexts.reportAlertedHorde);
+    }
   }
   for (const { heroName, level } of entry.leveled) {
     notes.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));
@@ -371,7 +405,7 @@ function logView(
       )}${found === '' ? '' : ` ${fillText(expeditionTexts.loot, { saque: found })}`}`,
       outcome: entry.outcome,
       outcomeLabel,
-      notes: logNotes(state, entry),
+      notes: logNotes(state, entry, node),
       standoutName: entry.standout,
       lessonText:
         trial !== undefined && entry.lesson !== null ? lessonText(entry.lesson, trial) : null,
@@ -432,8 +466,10 @@ function lossesText(report: ExpeditionReport): string {
  * novo, o tile limpo, o cativo solto e quem subiu de nível. `null` sem nenhum.
  */
 function deedsText(state: GameState, report: ExpeditionReport): string | null {
+  const variant = variantOf(report.modelId, report.variant);
   const deeds: string[] = [];
   for (const entry of report.log) {
+    const node = variant === null ? null : nodeIn(variant, entry.nodeId);
     if (entry.revealed !== null) {
       deeds.push(
         fillText(expeditionTexts.reportRevealed, { destino: expeditionLabel(entry.revealed) }),
@@ -451,6 +487,21 @@ function deedsText(state: GameState, report: ExpeditionReport): string | null {
     }
     if (entry.master !== null && isMasterId(entry.master)) {
       deeds.push(fillText(expeditionTexts.reportMaster, { mestre: masterLabel(entry.master) }));
+    }
+    if (
+      node !== null &&
+      'rewards' in node &&
+      (entry.outcome === 'success' || entry.outcome === 'full')
+    ) {
+      if (node.rewards?.weakensWave !== undefined) {
+        const wave = node.rewards.weakensWave;
+        const waveText =
+          wave === 1 ? 'primeira onda' : wave === 2 ? 'segunda onda' : 'terceira onda';
+        deeds.push(fillText(expeditionTexts.reportWeakenedWave, { onda: waveText }));
+      }
+      if (node.rewards?.revealsWave === 3) {
+        deeds.push(expeditionTexts.reportRevealedWave);
+      }
     }
     for (const { heroName, level } of entry.leveled) {
       deeds.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));

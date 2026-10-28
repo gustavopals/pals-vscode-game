@@ -370,8 +370,8 @@ const everyBranch = graphs.flatMap((graph) =>
 );
 
 describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)', () => {
-  it('são 21 grafos (os 18 da v0.3 e os 3 da Mina Abandonada), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
-    expect(graphs).toHaveLength(21);
+  it('são 24 grafos (os 18 da v0.3, os 3 da Mina Abandonada e os 3 da Sabotagem), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
+    expect(graphs).toHaveLength(24);
     expect(everyBranch.length).toBe(
       4 * graphs.reduce((sum, graph) => sum + pathsOf(graph.variant).length, 0),
     );

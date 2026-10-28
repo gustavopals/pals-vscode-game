@@ -29,6 +29,7 @@ import {
 import { lessonOf, standoutOf, trialTemplate } from './expeditionReport';
 import { joinList } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
+import { alertHordeFortress, applyWaveSabotage, revealWaveThree } from './hordePlan';
 import { nextId } from './ids';
 import { deliverMaster, masterCanArrive } from './masterTurn';
 import {
@@ -172,9 +173,19 @@ function resolveStage(
   if (trial !== undefined) {
     // 1. A sorte.
     const luck = rules.luck.min + nextInt(draft, stream, rules.luck.max - rules.luck.min + 1);
-    const result = outcomeOf(powerAgainst(team, trial, expedition.posture), luck, trial.difficulty);
+    let difficulty = trial.difficulty;
+    if (expedition.modelId === 'sabotage') {
+      const attempts = draft.horde.sabotages?.attempts ?? 1;
+      const { num, den } = balance.horde.sabotage.guardIncreasePerAttempt;
+      const factorNum = den + Math.max(0, attempts - 1) * num;
+      difficulty = Math.floor((trial.difficulty * factorNum) / den);
+    }
+    const result = outcomeOf(powerAgainst(team, trial, expedition.posture), luck, difficulty);
     entry.outcome = result;
     share = rules.lootShare[result];
+    if (result === 'disaster' && trial.alertsHorde) {
+      alertHordeFortress(draft, atMs, events, expedition.id);
+    }
     // Quem se destacou e, no Revés e no Desastre, o que o desfecho ensina: contas sobre a equipe
     // como chegou ao nó, sem sorteio, guardadas no registro para o relatório dizer o mesmo.
     entry.standout = standoutOf(team, trial, expedition.posture)?.name ?? null;
@@ -316,6 +327,12 @@ function resolveStage(
     );
   }
   if (succeeded(entry.outcome)) {
+    if (rewards?.weakensWave !== undefined) {
+      applyWaveSabotage(draft, rewards.weakensWave, atMs, events, expedition.id);
+    }
+    if (rewards?.revealsWave === 3) {
+      revealWaveThree(draft, atMs, events);
+    }
     const tileId = rewards?.clearsTile;
     if (tileId !== undefined && clearTile(draft, expedition, tileId, label, atMs, events)) {
       entry.cleared = tileId;
@@ -587,6 +604,9 @@ function isStranded(draft: GameState, expedition: Expedition): boolean {
   // divisão de intervalo deixaria de ser exata.
   if (expedition.status === 'returning') {
     return false;
+  }
+  if (expedition.modelId === 'sabotage' && draft.map.tiles.hordeFortress?.threatActive !== true) {
+    return true;
   }
   const node = nodeOf(expedition);
   if (node === null) {

@@ -9,7 +9,7 @@ import {
   text,
   type Shape,
 } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { marketEffectsWithinState, stateV36 } from './v36';
 
 const object = (value: unknown): value is StoredState =>
@@ -122,4 +122,26 @@ export const stateV37: Shape = (value, path) => {
   if (error !== null || offers.length <= 3) return error;
   // Confere também a quarta oferta inteira e suas relações com o contador e a Taverna.
   return stateV36({ ...inherited, guild: { ...guild, tavern, tavernOffers: [offers[3]] } }, path);
+};
+
+/**
+ * Estado 37 → 38 (V4F-T1.2):
+ * Acrescenta horde.sabotages = { attempts: 0, successes: 0, alerted: false }
+ * Não cria instante, sorteio nem prazo.
+ */
+export const v37ToV38: MigrationStep = {
+  from: 37,
+  summary: 'Acrescenta os contadores de sabotagem da Fortaleza à Horda.',
+  shape: stateV37,
+  migrate: (state) => {
+    const horde = state.horde as StoredState;
+    return {
+      ...state,
+      schemaVersion: 38,
+      horde: {
+        ...horde,
+        sabotages: { attempts: 0, successes: 0, alerted: false },
+      },
+    };
+  },
 };

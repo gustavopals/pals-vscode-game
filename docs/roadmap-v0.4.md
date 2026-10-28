@@ -834,11 +834,11 @@ Como V4B-T5, sobre a Fase E, mais a publicação (decisão 26). **Entregáveis:*
 **Trilha:** motor.
 **Entregáveis:** `packages/content/src/ids.ts` (`EXPEDITION_MODEL_IDS` + `sabotage`), **novo** `missions/sabotage.ts` (três variantes; a dificuldade sobe com `horde.sabotages.attempts`), `expeditions.ts` (requisito `season`, `tile`, `teamSize: 3`; recompensas `weakensWave`, `revealsWave`; penalidade `alertsHorde` no Desastre), `balance.ts` (`horde.sabotage: { maxPerYear: 3; waveReduction: 3/20; alertIncrease: 1/10; guardIncreasePerAttempt }`), `chronicle.ts` (`hordeSabotaged`, `hordeAlerted`); `packages/engine/src/expeditionOrders.ts`, `expeditionTurn.ts`, `hordeTurn.ts`, `expeditionsView.ts`, `migrations/v34.ts` e o passo em `v33.ts` (`horde.sabotages: { attempts; successes; alerted }`); `sim-cli` (o `militar` sabota uma vez no outono se a prévia do cerco der menos de 65%); `docs/content-v0.4.md`, seção 3 (fichas, rascunho); README; GDD §9.5.
 
-- [ ] V4F-T1.1 Conteúdo: as três variantes com o Xamã no último nó; os requisitos (outono, Fortaleza ativa, exatamente 3 heróis, `attempts < 3`); as recusas `SABOTAGE_SEASON`, `SABOTAGE_LIMIT`, `TEAM_SIZE`; ids em `STABLE_IDS`; o golden da calibragem e o do relatório.
-- [ ] V4F-T1.2 Estado 33 → 34: `horde.sabotages` (zeros; zera na virada do ano).
-- [ ] V4F-T1.3 Motor: cada nó com Sucesso soma uma redução **à onda que o nó marca** (as três ondas, um nó cada, mais o Xamã); o Desastre captura (pela dificuldade: `heroCapture`) e marca `alerted` (+10% na onda 1); a dificuldade de cada nó sobe por tentativa (`guardIncreasePerAttempt`, como fator); o Xamã derrotado grava a composição da onda 3 como presságio de clareza máxima.
-- [ ] V4F-T1.4 `ViewState`: o destino com `sabotage { attemptsLeft; wavesWeakened; alerted }` e a régua da equipe; o relatório com o que cada nó fez à Horda.
-- [ ] V4F-T1.5 Testes: três sabotagens e a quarta recusada; o Desastre que alerta; a captura em Senhor e a morte em Rei de Ferro; a Fortaleza que some (fim do cerco, V4G-T2) com a equipe no caminho (volta pela fronteira, o molde do nó que o conteúdo deixou de ter); propriedade com sabotagem e cerco no mesmo intervalo.
+- [x] V4F-T1.1 Conteúdo: as três variantes com o Xamã no último nó; os requisitos (outono, Fortaleza ativa, exatamente 3 heróis, `attempts < 3`); as recusas `SABOTAGE_SEASON`, `SABOTAGE_LIMIT`, `TEAM_SIZE`; ids em `STABLE_IDS`; o golden da calibragem e o do relatório.
+- [x] V4F-T1.2 Estado 37 → 38: `horde.sabotages` (zeros; zera na virada do ano).
+- [x] V4F-T1.3 Motor: cada nó com Sucesso soma uma redução **à onda que o nó marca** (as três ondas, um nó cada, mais o Xamã); o Desastre captura (pela dificuldade: `heroCapture`) e marca `alerted` (+10% na onda 1); a dificuldade de cada nó sobe por tentativa (`guardIncreasePerAttempt`, como fator); o Xamã derrotado grava a composição da onda 3 como presságio de clareza máxima.
+- [x] V4F-T1.4 `ViewState`: o destino com `sabotage { attemptsLeft; wavesWeakened; alerted }` e a régua da equipe; o relatório com o que cada nó fez à Horda.
+- [x] V4F-T1.5 Testes: três sabotagens e a quarta recusada; o Desastre que alerta; a captura em Senhor e a morte em Rei de Ferro; a Fortaleza que some (fim do cerco, V4G-T2) com a equipe no caminho (volta pela fronteira, o molde do nó que o conteúdo deixou de ter); propriedade com sabotagem e cerco no mesmo intervalo.
 
 **Diversão:** a decisão estratégica do outono (GDD §8.3). O teste é o autor hesitar entre sabotar e guardar os heróis.
 
@@ -1021,4 +1021,656 @@ Como V4E-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-g.md`; correçõ
 **Trilha:** motor e conteúdo.
 **Entregáveis:** os do branch, revisados um a um (não juntar sem revisar); `packages/content/src/cards/*.ts` (**novos** `refugees.ts`, `kingsCollector.ts`, `mysteriousMerchant.ts`, `whiteWolf.ts`, `scripted.ts` com "O mercador itinerante", avulsas), `council.ts` (efeitos `addMaster`, `marketPrice`, `rollEffect`; requisitos `heroPresent`, `heroTrait`, `heroClass`), `council.test.ts`, `chronicle.ts`; `packages/engine/src/council.ts`, `councilTurn.ts`, `councilView.ts`, `marketTurn.ts` (os efeitos sobre o preço), `migrations/v36.ts` e o passo em `v35.ts` (`market.effects`); `docs/content-v0.4.md`, seções 4 a 8 (as fichas aprovadas pelo autor); `sim-cli` (`SHOW_COVERAGE=1`: cobertura por posse); README do motor ("Uma carta nova": toda carta nova muda o sorteio de todas as sementes).
 
+- [x] V4H-T1.1 Ler o branch e decidir o que aproveita; registrar o que foi descartado. **Feita:** o branch `wip/v3f-t1-lote2` (`2352e39`) foi lido; aproveitou-se a cadeia "Os Refugiados" reescrita para entregar Gil ou Ximena uma só vez por flag (`packages/content/src/cards/refugees.ts`, `packages/engine/src/council.lote2.test.ts`, commit `235be70`); descartaram-se a entrega dupla do branch antigo, a juntada direta de `guild.ts`/`kingsCollector.ts` e a carta 4.5 `masterApprentice` ("O aprendiz e o Mestre", fora do lote por decisão do autor em 2026-10-23; `docs/content-v0.4.md` §4, §4.3, §4.5 e §6, commits `5e841ff`, `bc14457`, `3144377`).
+- [ ] V4H-T1.2 Efeitos e requisitos novos, com teste de cada um e `council.effects.test.ts` verde.
+  - [x] Mercado e Coroa: `resourcesPercent`, `rollEffect`, `marketPrice`, destino específico, estoque mínimo estrito, flags de opção, Carismático livre e soldados treinados, todos com teste.
+  - [x] Quatro avulsas (§§7.3–7.5 e 8.1): `tavernExtraOffer`, `injureHero`, `healHero` e requisitos `heroPresent` (1 ou 2) e `injuredHero`, com `council.avulsas-effects.test.ts` verde. Os ganchos das demais fichas continuam pendentes.
+- [ ] V4H-T1.3 As cartas, em lotes de cinco apresentados ao autor **antes** da transcrição (se ele responder "escrevo e sigo", vale como na v0.3 e fica registrado).
+  - [x] Transcrever exatamente as nove fichas já aprovadas: §4.4, §§5.1–5.5 e §§6.1–6.3, com ids fixados, comparação textual com as fichas e golden do conteúdo.
+  - [x] Transcrever exatamente as quatro avulsas aprovadas: §7.3 `passingRecruiter`, §7.4 `gamblingDebt`, §7.5 `squareDuel` e §8.1 `wanderingHealer`, com ids fixados, comparação textual com as fichas e goldens de conteúdo e visão. As outras cartas desta tarefa continuam pendentes.
+- [ ] V4H-T1.4 "O Cobrador do Rei" com o ramo de soldados e "O Lobo Branco" com presságio e cerco, **sem adaptação**, porque a v0.4 os tem.
+  - [x] O Cobrador com o ramo de dez soldados e a resposta da Coroa **conforme §§6.1–6.3 aprovados**: a requisição de comida/madeira da opção `hold` foi mantida. O Lobo Branco fica fora deste escopo; a redação original acima é anterior à aprovação dessas fichas.
+- [x] V4H-T1.5 Estado **35 → 36** (`market.effects`) e **36 → 37** (`guild.tavern.extraOffer` e `heroes` em `council.pending`/`delayed`). Goldens, 55 retratos v36 e 56 retratos v37 regravados de propósito (a receita do README); v35 e v36 intactos e com fingerprints em `FROZEN`.
+- [ ] V4H-T1.6 Cobertura por posse (herói, Mestre, Mercado, exército) em 50 sementes.
+
+**Execução parcial de 2026-10-28:** nove cartas no branch `v4h-t1-cartas` (estado 36) e quatro avulsas no branch `v4h-t1-avulsas` (estado 37, a partir de `b902b00`), somadas às oito já implementadas (43 cartas no catálogo). A tarefa geral permanece parcial. Os testes focados, typecheck e lint destas trilhas estão no Registro; simulador, cobertura em 50 sementes e verify inteiro ficam para o coordenador.
+
+**Verificação:** `pnpm --filter @lotg/content test`; `pnpm --filter @lotg/engine test -- council market migrations fixtures`; `SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`.
+
+**Impacto em partidas antigas:** estado **37** nesta base; as cartas novas entram no sorteio das audiências seguintes; nenhuma chega por migração.
+
+**Pronto quando:** as 23 cartas existem com ficha, Gil e Ximena chegam por carta, e a cobertura mostra cada cadeia terminando em todos os ramos.
+
+### V4H-T2 · O lote 3 do Conselho `L`
+
+**Objetivo:** as 15 cartas que faltam para as 60: "A Filha do Ferreiro" (a quinta cadeia do GDD §7.1), cartas de guerra (soldados, ferro, formação, presságio, saqueadores, Fortaleza, Vigília, rescaldo), as quatro roteirizadas que faltam (o GDD §7.2 fala em seis), e cartas de herói para os traços sem uso em carta.
+**GDD:** §7, Apêndice B.
+**Depende de:** V4H-T1, Fase G. **Decisões:** 23.
+**Trilha:** conteúdo.
+**Entregáveis:** `packages/content/src/cards/**` (**novos** `smithsDaughter.ts`, `war.ts`, as roteirizadas), `council.test.ts`, `docs/content-v0.4.md`, seção 5; goldens e retratos regravados.
+
+- [ ] V4H-T2.1 A lista proposta da §16.3, apresentada ao autor em lotes de cinco.
+- [ ] V4H-T2.2 Cada traço novo e cada mecânica da v0.4 com ao menos uma opção que o use; nenhuma carta pede o que o feudo não pode ter.
+- [ ] V4H-T2.3 Cobertura por estação e por posse; o inventário das 60.
+
+**Verificação:** como V4H-T1.
+
+**Pronto quando:** o catálogo tem 60 cartas, todas com ficha, e a cobertura em 50 sementes não deixa carta nenhuma sem sair.
+
+### V4H-T3 · Objetivos 17 a 21 `S`
+
+**Objetivo:** os cinco objetivos do GDD §12.2 `[v0.4]`: Salão Nv4 (desbloqueio: Quartel e Ferreiro); treinar 10 soldados (1 arma); salvar uma Formação de Defesa (presságio gratuito); simular uma batalha (+20 ouro); repelir uma incursão (XP ao comandante); os de 1 a 16 intocados.
+**Depende de:** Fases C a E. **Decisões:** 24 (os sazonais).
+**Trilha:** motor.
+**Entregáveis:** `packages/content/src/objectives.ts`, `packages/engine/src/objectives.ts`, `objectivesView.ts`, **novo** `objectives.v04.test.ts`; `sim-cli` (a matriz remedida: F-1 mostrou que um objetivo muda o caminho de obras de todo bot).
+
+- [x] V4H-T3.1 Os cinco, com `targetKind` novo onde preciso; a partida migrada que já fez conta e paga uma vez.
+- [x] V4H-T3.2 **Medir antes de fechar** (lição de F-1): a matriz nas três dificuldades com os objetivos; o que piorar volta ao autor.
+
+**Verificação:** `pnpm --filter @lotg/engine test -- objectives`; `pnpm --filter @lotg/sim-cli test`.
+
+### V4H-T4 · Retorno e "Antes de partir" com a guerra `M`
+
+**Objetivo:** o Relatório de Retorno conta a forja, o treino, as batalhas (com os fatores), o cerco, os presságios e a Crônica do Ano em três blocos; "Antes de partir" avisa do que a guerra pede (Defesa ativa, Plano, muralha, ferro).
+**Depende de:** V4G-T4. **Trilha:** app.
+**Entregáveis:** `packages/web/src/game/returnReport.ts`, `game/beforeLeaving.ts`, `notifications/policy.ts`, `tests/e2e/03-retorno-e-conexao.spec.ts`; README do app.
+
+- [ ] V4H-T4.1 Os blocos com os eventos novos; a ordem de "Antes de partir" **escrita e testada** (F-6).
+- [ ] V4H-T4.2 Navegador: reabrir depois de 4 h com cerco, batalha e forja na ausência.
+
+### V4H-T5 · Revisão independente e editorial da Fase H `S`
+
+Como V4B-T5, mais a revisão editorial carta a carta (como a dos 18 grafos na v0.3). **Entregáveis:** **novo** `docs/reviews/v0.4-fase-h.md`; correções `V4H: corrige …`; `docs/balance-v0.4.md`, seção 8; integração.
+
+---
+
+## 9. Fase I — Fechamento da v0.4
+
+### V4I-T1 · Balanceamento com o simulador `M`
+
+**Objetivo:** a matriz completa (os quatro perfis × três ritmos × três dificuldades × 50 sementes) com o cerco, as faixas da §15.2 do GDD fixadas **pela primeira vez como metas** (Preguiçoso 40 a 60% de Vitória; Regular 65 a 80% e 20 a 30% Gloriosa; Dedicado 90%+ e 50%+ Gloriosa; Regular em Rei de Ferro 35 a 50%), e as propostas ao autor onde a medida não cabe.
+**GDD:** §15.2, §15.3, §16.2 (critério 6). **Depende de:** Fase H. **Decisões:** 25.
+**Entregáveis:** `packages/sim-cli/src/bands.ts`, `balance.test.ts`, `matrix.ts`; `docs/balance-v0.4.md`, seção 9; `docs/pendencias-v0.4.md`.
+
+- [ ] V4I-T1.1 A matriz inteira; a faixa do Regular **como meta**, não como medida com folga (é o critério 6); o que não cabe volta ao autor com propostas de número.
+- [ ] V4I-T1.2 O ouro por fonte e por destino no fim da versão contra a linha de base de V4A-T1 (§13): o número que a v0.4 promete baixar.
+- [ ] V4I-T1.3 `--perf` com cerco, `--remote` com 50 bots, tamanho do estado e da visão no pior caso.
+- [ ] V4I-T1.4 Os extremos repetidos à mão (a semente de pior resultado por célula).
+
+**Verificação:** as cinco matrizes; `pnpm -s sim -- --perf`; `pnpm --filter @lotg/sim-cli test`.
+
+**Pronto quando:** o critério 6 é um teste que falha se o Regular sair de 65 a 80%, e o ouro parado está medido contra a linha de base.
+
+### V4I-T2 · Critérios de aceitação da v0.4 `M`
+
+**Entregáveis:** **novo** `docs/acceptance-v0.4.md` (os seis critérios e QA-19 a QA-34 com a prova automática de cada um e a evidência manual por preencher), **novo** `docs/manual-test-v0.4.md`. Firefox, Safari, celular e leitor de tela: ao menos uma rodada manual registrada, ou a ausência escrita.
+
+### V4I-T3 · Playtest da v0.4 `M`
+
+**Entregáveis:** `docs/playtest/convite-v0.4.md`, `formulario-v0.4.md`, `relatorio-v0.4.md`; as consultas de `deploy/analytics/ops.sql` com cerco, exército e ritmo. É do autor convidar; se não houver playtest, escrever que não houve (lição 8).
+
+### V4I-T4 · Correções, documentação e release `S`
+
+**Entregáveis:** `CHANGELOG.md` (0.4.0, com "O que muda nas partidas em andamento"), versão `0.4.0` nos oito pacotes e em `ENGINE_VERSION`, `docs/relatorio-v0.4.md`, `docs/architecture.md` reescrito, a página de apresentação sem a guerra no horizonte (e com as capturas refeitas: a aba Feudo e a árvore mudaram), `CLAUDE.md`, o portão inteiro no commit candidato, as três imagens construídas. A tag e a release são do autor; a publicação, a terceira da versão (decisão 26).
+
+### V4I-T5 · Preparar a v0.5 `S`
+
+**Entregáveis:** **novo** `docs/roadmap-v0.5.md` no mesmo formato: o mapa hexagonal sobre os tiles abstratos (`map.tiles`, `map.discovered`), postos avançados, Capela e relíquias (o Lendário), Legado e Votos (o fator de Votos na onda), anos seguintes (o fator do ano; a Horda que lembra), semente visível, Temporadas e ranking; as lições desta versão; a primeira tarefa detalhada.
+
+---
+## 10. Critérios de aceitação, cenários integrados e sinais de diversão
+
+### 10.1 Critérios do GDD §16.2 por tarefa
+
+| # | Critério | Tarefas que o entregam | Como provar |
+|---|---|---|---|
+| 1 | Uma formação salva defende offline | V4C-T2, V4E-T2, V4E-T4 | Cenário no motor com 30 dias fora e incursão no meio + integração + navegador com relógio controlado |
+| 2 | A prévia e a batalha real usam o mesmo código (golden) | V4D-T1, V4D-T2 | Golden compartilhado: `previewBattle` com inimigo conhecido = `resolveBattle` |
+| 3 | A Horda altera a composição em resposta à última formação (determinístico) | V4E-T3 | Mesma memória e semente → mesma composição; formação de arqueiros → mais lobos e cavalaria |
+| 4 | O cerco ocorre na Hora da Vigília com 3 ondas e Plano de Batalha | V4G-T1, V4G-T2, V4G-T4 | Cenário nos três ritmos e três fusos + integração + navegador |
+| 5 | A Crônica do Ano é gerada e exportável em Markdown | V4G-T3, V4G-T4 | Golden do Markdown + integração do endpoint + navegador (download) |
+| 6 | O perfil Regular do `sim-cli` fica em 65–80% de Vitória | V4C-T1.8 (decisão 25), V4G-T2.10, V4I-T1 | `balance.test.ts` com a faixa como meta |
+
+Entregas fora dos seis critérios e obrigatórias: ferro, Ferreiro, desgaste e reparo, Quartel, muralha com HP e reparo, Torre Nv3+, saqueadores e as roteirizadas, Fortaleza e presságios, sabotagem, Acampamento, milícia, rescaldo, os lotes 2 e 3, objetivos 17 a 21, Retorno. Estão na matriz abaixo.
+
+### 10.2 Matriz de cenários integrados
+
+Os QA-01 a QA-18 da v0.3 **não podem regredir**; em especial QA-01 e QA-02 (migração e avanço longo), QA-03 (a ordem no mesmo instante, agora com batalha, forja, treino e cerco), QA-14 (versões, com o protocolo 4), QA-17 e QA-18 (exclusão e névoa).
+
+| ID | Cenário | Resultado a verificar | Tarefas |
+|---|---|---|---|
+| QA-19 | Carregar uma partida da v0.3 (estado 24) com expedição, encruzilhada, cativo, caravana, Mestre à porta, estoque no cap, incursão marcada e anunciada, no outono e no inverno | Migrada uma vez por passo até a versão atual; nada perdido nem pago de novo; ninguém ganha ferro, arma, soldado nem muralha; a Fortaleza e o cerco contam da fronteira; a incursão marcada resolve com a composição-base | toda tarefa que sobe a versão |
+| QA-20 | Comprar ferro e vender no mesmo dia; forjar e dispensar; treinar e dispensar; comprar para forjar e revender | Nenhum ciclo dá lucro (propriedade e `especulador`) | V4B-T1, V4B-T2, V4C-T1 |
+| QA-21 | Forja, reparo, treino e obra terminando no mesmo instante que uma virada, uma incursão e uma caravana | Ordem documentada (§0.7); nenhuma cobrança duplicada | V4B-T2, V4B-T3, V4C-T1, V4E-T2 |
+| QA-22 | Soldados com as casas cheias, com fome aberta, com o piso de 3; dispensar durante o treino | Vaga e comida contadas; o piso protege; ninguém deserta por ser soldado | V4C-T1 |
+| QA-23 | Comandante que parte em expedição, escolta, é dispensado, ferido ou capturado; duas abas salvando a mesma formação | `HERO_BUSY`; a formação perde o comandante; uma formação salva | V4C-T2 |
+| QA-24 | Sete cenários de batalha com a conta à mão; dois esquadrões com a mesma iniciativa; muralha em 0; Ogro; mortos-vivos; 12 rodadas | Golden igual à conta; desempate fixo; inteiros | V4D-T1 |
+| QA-25 | Prévia com inimigo conhecido; prévia com `?`; 200 simulações; `state.rng` antes e depois | Igual à batalha real; o gerador do estado intocado; < 50 ms | V4D-T2 |
+| QA-26 | Lobos do dia 16 contra Paliçada Nv1, Nv2 e nenhuma; média contra formação ativa; forte sem formação | O desfecho da v0.2 preservado onde a Paliçada "segurava"; a formação repele; sem formação só a muralha luta | V4E-T2 |
+| QA-27 | Reparo com prioridade durante obra; reparo durante batalha; dois `repairWall` | A obra ativa espera; o HP sobe no prazo; uma ordem | V4E-T1 |
+| QA-28 | Formação-isca no ensaio e outra no cerco; a mesma memória e semente duas vezes | Composição determinística; a Horda responde à última | V4E-T3 |
+| QA-29 | Presságio por nível da Torre; o que o presságio diz contra a onda gerada | Nunca mente; nada além da clareza do nível sai | V4E-T3 |
+| QA-30 | Três sabotagens, a quarta, o Desastre, a Fortaleza que some com a equipe lá | Redução por onda; alerta; volta pela fronteira | V4F-T1 |
+| QA-31 | Ataque ao Acampamento com incursão no meio; o tile que volta no ano | A defesa sem quem partiu; o tile volta | V4F-T2 |
+| QA-32 | O cerco inteiro com o jogador fora 30 dias; a decisão entre ondas no instante da onda; em duas abas; nos três ritmos e três fusos; migração no inverno com a Vigília passada | O Plano vale; uma troca; o prazo real igual; a partida migrada recebe o cerco na primeira virada | V4G-T1, V4G-T2 |
+| QA-33 | Milícia convocada duas vezes; a Queda com 3 aldeões; a Primavera da Reconstrução nas obras | Uma convocação; o piso protege; os custos ×4/5 por 2 dias | V4G-T2 |
+| QA-34 | API nova com app e cache antigos (protocolo 3); recibo antigo; imagem anterior diante do estado novo | 426; cache descartado e cursor mantido; recibo intocado; 500 sem gravar | V4G-T2, V4I-T2 |
+
+### 10.3 Matriz de balanceamento e sinais de diversão
+
+**Matriz mínima:** os quatro perfis da rodada padrão (Preguiçoso, Regular, Dedicado, Explorador) mais `militar`, `ousado` e `especulador` a pedido × três ritmos × três dificuldades × 50 sementes, nas duas janelas. Rodar inteira no fechamento (V4I-T1); as rodadas das fases não a substituem.
+
+| Sinal | Como medir | Como usar |
+|---|---|---|
+| Vitória no cerco | Resultado por perfil, ritmo e dificuldade | As faixas da §15.2 do GDD, como **metas** (critério 6) |
+| Ouro com destino | Ouro por fonte e por destino contra a linha de base de V4A-T1 | O ouro parado tem de cair; o ferro, o treino e o reparo são os sumidouros novos (§13) |
+| Exército sustentável | Horas de comida negativa por soldados; soldados dispensados por fome | No Preguiçoso, zero fome causada só por exército |
+| Formação viva | Formações salvas; trocas depois de um relatório; a finta medida | Se ninguém troca, o relatório não ensina |
+| Horda legível | Vitória com e sem presságios; com e sem Torre Nv3 | O presságio tem de valer uma obra |
+| Sabotagem como escolha | Sabotagens por ano; capturas; vitória com 0, 1, 2 e 3 | Nem obrigatória nem inútil |
+| Muralha útil | HP rompido por onda; reparos; vitória por nível de muralha | Cada nível vendido muda algo que o jogador vê |
+| Cerco com o jogador fora | Vitória do perfil de uma visita por dia | "Estar presente é vantagem, não exigência" |
+| O que valeu (humano) | A pessoa diz o que preparou na semana e se valeu | É a promessa da versão |
+| A finta (humano) | A pessoa descobriu sozinha que a Horda responde à última formação? | Mede se o relatório é lido |
+| Peso da interface (humano) | Cliques para montar e ativar uma formação; duração da sessão do cerco | Sem microgerenciamento |
+
+**Perguntas no playtest da v0.4:** O que você preparou para o cerco e o que faltou? Você leu o relatório de uma batalha? O que ele dizia? Mudou a formação depois? Sabotou? Por quê? O cerco caiu em uma hora boa? Você estava lá?
+
+### 10.4 Definição de pronto da versão
+
+- [ ] Os seis critérios têm prova automática e evidência manual, por critério, com data e navegador.
+- [ ] Ferro, Ferreiro, desgaste, Quartel, formações, batalha, prévia, muralha, incursões, Horda, presságios, sabotagem, Acampamento, cerco, milícia, rescaldo, Crônica do Ano, cartas e objetivos têm os cenários integrados cobertos (§10.2).
+- [ ] ADRs 0019 e 0020 aprovados, ou "aplicados por delegação" com as pendências escritas.
+- [ ] Um feudo novo e um migrado da v0.3 completam um ano com cerco e a virada seguinte sem travas.
+- [ ] As 60 cartas existem com ficha; o que o autor não leu está inventariado.
+- [ ] Matriz rodada; as faixas da §15.2 como metas; extremos analisados; playtest registrado, ou a ausência escrita; zero P0 e P1.
+- [ ] Nada de mapa gráfico, posto avançado, Capela, relíquia, Legado, Voto, Temporada ou Academia entrou, nem como campo vazio.
+- [ ] Migração, backup, restauração e reversão com procedimento e, desta vez, **ensaio feito** (ato 23).
+- [ ] Documentação, capturas e página de apresentação correspondem ao produto; CI verde no commit candidato; publicação autorizada.
+
+---
+
+## 11. Decisões que esperam o autor, com premissas recomendadas
+
+**Nada aqui foi decidido.** Cada linha é uma pergunta com opções; a "premissa recomendada" é o que valeria se o autor dissesse "pode ser", e é proposta do agente que revisou este plano contra o código da v0.3 publicada, sem código da v0.4 (que não existe). A coluna "Registro" fica vazia até a sessão.
+
+Como ler: "Trava" diz que tarefa não começa sem a resposta; "Por quê, alternativa e o que validar" diz de onde a recomendação vem, o que foi descartado e que medição a confirma ou derruba.
+
+### 11.1 Lote 1: herança, ferro, exército, formações e combate (V4A-T2 → ADR 0019)
+
+| # | Decisão | Trava | Premissa recomendada | Por quê, alternativa e o que validar | Registro |
+|---|---|---|---|---|---|
+| 1 | **O lote 2 do Conselho**: v0.3.1 antes da Fase B, ou Fase H da v0.4? | V4H-T1; a Fase B se for v0.3.1 | **Fase H da v0.4**, em trilha de conteúdo que pode começar depois da Fase B; "O Cobrador do Rei" e "O Lobo Branco" entram sem adaptação, porque a v0.4 tem soldados, presságio e cerco; Gil e Ximena esperam | O branch não é verde e nunca foi testado; uma v0.3.1 publicaria o estado 25 (`market.effects`) para a v0.4 empilhar por cima, e exigiria do autor a leitura de 23 cartas antes de a v0.4 começar. Alternativa: v0.3.1 em duas semanas, com as cartas adaptadas como estão. Validar: quantas audiências um feudo perde sem as cartas (cobertura por estação com 22 cartas) || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 2 | **O ouro sem destino** (§13): a v0.4 cria regra nova para ele, ou mede os sumidouros que já traz? | V4B-T1, V4C-T4 | **Medir**: o ferro a 8 de ouro, o treino, o reparo e a Muralha são os destinos novos; a medida de V4C-T4.3 volta ao autor com propostas de número antes da Fase D. Nenhuma regra de ouro nova antes disso | É a resposta dele de 2026-10-06 ("medir após a Fase E e então decidir") levada à frente; a v0.3 provou que soldo pequeno não mexe no ouro (0,45%). Alternativas já ouvidas: soldo de soldado; preço do ferro mais alto; experiência mais rápida. Validar: a soma do ouro final das 1.200 partidas de Senhor contra 46,2 milhões || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 3 | **O ferro**: no Mercado a 8,0 com volume `200 × nível` e sem caravana; na Mina Abandonada (40 a 80); o Armazém o guarda com o mesmo cap; ferro inicial 0 | V4B-T1 | Sim a tudo; a Mina Abandonada pede Guilda Nv2 e é revelada pela Floresta Antiga (B-8); **sem caravana de ferro** | O GDD dá o preço e não o volume; a caravana a +15% com ferro a 8 seria 1,2 de ouro por unidade de lucro sobre o balcão, o maior da tabela. Alternativas: ferro só por expedição (o Mercado não vira fonte sem limite, mas o jogador de uma visita nunca forja); caravana de ferro. Validar: o ferro comprado por perfil e a parcela do volume usada || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 4 | **Armas e a forja**: recurso sem cap; um lote por vez, até `batchMax` (10); 2 ferro + 1 madeira por arma em 6 min de jogo; "+10% por nível" como tempo × 10/(10 + nível − 1); cobrança ao começar; cancelar devolve 80% | V4B-T2 | Como escrito | É o GDD §5.1 e §6.1 lidos com o molde das obras; a fila única mantém o estado com teto. Alternativas: várias filas; "+10%" como armas a mais por lote. Validar: armas por semana no Regular contra as unidades que ele treina || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 5 | **Desgaste e reparo**: entra na v0.4? | V4B-T3 | **Entra, mínimo**: um ponto por expedição e por batalha comandada; durabilidade por raridade; item em 0 sem bônus; reparo no Ferreiro, na mesma fila da forja, por ferro e tempo | O GDD põe o reparo no Ferreiro e o `CLAUDE.md` já o reserva para a v0.4; sem desgaste o ferro só serve à arma. Alternativa: não entra (o Ferreiro só forja), e sai do GDD. Validar: itens em 0 por ano no Explorador || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 6 | **Guilda Nv5 e o Lendário** | V4B-T3, V4F-T1 | **Não entram**: a Guilda fica no Nv4 (o Nv5 daria as mesmas 3 expedições: `1 + 5/2 = 3`) e o Lendário fica com as relíquias (v0.5) | ADR 0018, decisões 12 e 15; nada na v0.4 pede o quinto nível. Alternativa: o Senhor da Guerra deixa um item Lendário. Validar: nada || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 7 | **Soldados e população**: saem da população ao fim do treino (um aldeão sem ofício; senão, do edifício com mais gente), comem 1,5/h, não trabalham, não desertam por fome nem por moral, não contam no piso de 3 aldeões; limite `10 × nível`; dispensar devolve o aldeão sem ofício e sem o custo | V4C-T1 | Como escrito | GDD §5.2 e §17.1 com o molde dos feridos e do Mestre (`inhabitants`). Alternativas: o soldado vem de fora (não sai da população); desertam por fome como aldeões. Validar: a comida do Regular com 20 soldados no inverno; o piso || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 8 | **Herói comandante e expedição**: o herói nomeado na formação **ativa** não parte (expedição, caravana, sabotagem); nas outras formações, pode | V4C-T2, V4F | Como escrito | Evita herói em dois lugares e dá peso à escolha (GDD §8.3). Alternativa: o herói comanda só no instante da batalha, de onde estiver. Validar: horas de herói ocioso no Explorador com uma formação ativa || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 9 | **Formações**: até 5 salvas; 6 postos; máximo 20 por posto (30 com Quartel Nv5+); uma Defesa ativa; a formação pode pedir mais do que há (a prévia avisa) | V4C-T2 | Como escrito | GDD §10.1 e §10.8; o teto limita o estado. Alternativas: sem teto; formação só com o que existe. Validar: formações salvas por perfil || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 10 | **A prévia**: ordem `simulateBattle` que grava o resultado (uma por vez) e conta para o objetivo, com 200 sementes derivadas por `hash` da semente, da formação e do que se sabe, **nunca `state.rng`**; `purity.test.ts` ganha a exceção explícita | V4D-T2 | Como escrito | Uma leitura (`GET`) não contaria para o objetivo "Simule uma batalha" e teria de viver no servidor; um comando que sorteia no fluxo do estado quebra a regra "só `advanceTo` sorteia". Alternativa: endpoint de leitura e o objetivo cumprido por "salvar uma formação depois de ler a prévia". Validar: custo das 200 batalhas (< 50 ms) || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 11 | **A batalha em inteiros**: sorte 90 a 110 por esquadrão por rodada; frações para ×0,5, ×1,5, ×1,25, ×0,7, ×1,2, ×2; um arredondamento para baixo por conta; desempate pelo defensor, depois ala (esquerda, centro, direita), depois linha; a batalha é instantânea na linha do tempo | V4D-T1 | Como escrito | GDD §14.3 e ADR 0013 (13a); "desempate pelo lado defensor" não diz o resto. Alternativa: sorte por rodada para todos. Validar: os sete goldens || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 12 | **Relógios da v0.4**: tudo em tempo de jogo (treino, forja, reparo, viagem, sabotagem, presságios, Fortaleza), **com duas exceções em tempo real**: a Hora da Vigília (hora local) e o intervalo entre as ondas do cerco (60 min reais, a janela de trocar a formação) | V4E-T2, V4G-T1, V4G-T2 | Como escrito | O critério da v0.3 (lição 10): é real o que depende de uma pessoa responder. Em tempo de jogo, no Rápido as ondas viriam a cada 20 min reais e ninguém trocaria nada. Alternativa: tudo em tempo de jogo. Validar: a parcela de trocas entre ondas no perfil de duas visitas || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 13 | **A Hora da Vigília**: o estado ganha `settings.realOriginMs` (de `games.created_at`, pelo contexto da migração) e `settings.vigil.utcOffsetMinutes` (do fuso IANA, calculado no servidor); o motor calcula a Vigília sem horário de verão; mudar a hora ou o fuso só vale para o que ainda não foi marcado | V4G-T1, V4E-T2.4 | Como escrito | `settings.timezone` e `vigilHourLocal` já estão no estado e ninguém os usa; o motor não pode ler o relógio nem a base de fusos. Alternativa: o servidor marca o cerco por uma ordem interna quando o outono abre (mais simples no motor, mas põe regra de jogo no servidor). Validar: três fusos nos testes; o limite do horário de verão escrito || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 14 | **Incursão sem exército**: toda incursão vira batalha; sem Defesa ativa, só a muralha e as torres lutam; o que passa aplica a regra da v0.2 (10%/15% e feridos) **na proporção do que passou**; a Paliçada Nv1 e Nv2 continuam segurando, por HP, o que seguravam | V4E-T2 | Como escrito | Quem joga hoje não tem exército e não pode piorar na fronteira (golden dos lobos do dia 16 igual ao de hoje). Alternativa: sem formação, a regra da v0.2 inteira, sem batalha. Validar: o Preguiçoso perde mais do que hoje? || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 25 | **O que o Regular faz na guerra** (processo que decide o critério 6): as políticas mínimas (Quartel, Lanceiros e Arqueiros com o que sobra, uma formação ativa, o Plano = a Defesa ativa) entram no `economico`, que os perfis Preguiçoso, Regular e Dedicado usam; o `militar` faz a finta, a sabotagem e a milícia e é o Dedicado da guerra | V4C-T1.8, V4I-T1 | Como escrito | Sem isso, o Regular perde todo cerco e a faixa de 65 a 80% não mede nada. Alternativa: um perfil novo "Regular de guerra". Validar: a faixa || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+| 26 | **Publicação da v0.4**: três publicações, pelo autor, com backup antes: fim da Fase E (a formação defende), fim da Fase G (o cerco; protocolo 4) e o fechamento; entre elas, versões empilhadas no `main` local | V4E-T5, V4G-T5, V4I-T4 | Como escrito | A Fase B sozinha dá ferro sem uso e a C, soldados que comem sem defender; a E é o primeiro ponto em que a semana de quem joga melhora. Alternativa: tudo no fechamento (três meses sem publicar); ou cada fase. Validar: o ato 23 feito antes da primeira || [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), 2026-10-16: a premissa recomendada |
+
+### 11.2 Lote 2: Horda, presságios, sabotagem, Cerco, Crônica e cartas (V4E-T0 → ADR 0020)
+
+| # | Decisão | Trava | Premissa recomendada | Por quê, alternativa e o que validar | Registro |
+|---|---|---|---|---|---|
+| 15 | **A Horda aprende**: guarda só a **última** formação vista (incursão ou onda); `peso = base(estação) + astúcia × contra(tipo, última)`, com astúcia por dificuldade (3/10, 1/2, 4/5) em `difficulties[]`; sem memória entre anos | V4E-T3 | Como escrito | GDD §10.6; a memória do ano anterior é v0.5 (§11.5). Alternativa: média das últimas três. Validar: o teste determinístico e a finta medida | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 16 | **Tiles e datas**: a Fortaleza nasce na virada que abre o outono, soma +2 por dia, some com o fim do cerco e volta no outono seguinte; o Acampamento nasce no 25º dia de jogo (o "dia 3" do Normal), soma +2, é limpo pelo ataque e volta na virada do ano como o Covil; a Torre Nv3 a Nv5 avisa com 3, 4 e 5 h reais e revela a composição por partes | V4E-T1, V4E-T3, V4F-T2 | Como escrito | A Ameaça precisa de fonte no ano 2 (ADR 0018, decisão 14); o GDD dá a data da Fortaleza e não a do Acampamento ("dia 3", §2.2). Alternativas: Acampamento por descoberta; Fortaleza que não volta. Validar: a Ameaça média por estação com os três tiles | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 17 | **Sabotagem**: só no outono com a Fortaleza de pé; exatamente 3 heróis por 6 h de jogo; até 3 por ano; cada nó com Sucesso −15% em uma onda; o Xamã revela a onda 3; o Desastre captura (pela dificuldade) e alerta (+10% na onda 1); a dificuldade sobe por tentativa | V4F-T1 | Como escrito | GDD §9.5 e §8.3. Alternativa: uma por estação, sem reforço. Validar: vitória com 0 a 3 sabotagens no Regular | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 18 | **Presságios e as ondas**: as três ondas são **geradas na virada que abre o outono**, com a memória da Horda daquele instante, e regeradas a cada formação nova vista até o inverno (a última vista vale); os presságios leem da versão atual e por isso nunca mentem sobre ela; chance `35% + 10% × (Torre − 1)` por virada de outono e de inverno, no fluxo `horde`; clareza por nível 1, 3 e 5 | V4E-T3, V4G-T2 | Como escrito | Sem gerar cedo, o presságio não tem o que ler; sem regerar, a finta do dia 6 não funciona. Alternativa: ondas fixas no outono e a adaptação só pela astúcia da incursão. Validar: um presságio que fica falso depois da finta volta ao autor | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 19 | **O Cerco e a Queda**: ondas 40/60/80 + o Senhor da Guerra; dificuldade 7/10, 1, 13/10; Queda = 30% dos recursos, 20% da população (aldeões, sem Mestres nem heróis), muralha a 0, os dois edifícios de nível mais alto −2 (o Salão incluído), sem sorteio; Vitória Gloriosa sem ala rompida em onda nenhuma; derrotar o Senhor da Guerra encerra a onda 3 e dá o Feito; Primavera da Reconstrução ×4/5 por 2 dias de jogo | V4G-T2 | Como escrito | GDD §11.2 e §11.4; "dana 2 edifícios" não diz quais. Alternativas: edifícios sorteados; a Queda sem perda de população em Camponês. Validar: a faixa de vitória e o que a Queda custa no ano 2 do Regular | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 20 | **Plano de Batalha e presença**: uma formação por onda, salva antes; entre ondas, decisão pendente com prazo de 60 min reais para trocar a formação e pedir reparo de emergência (pedra, na hora); sem resposta, o Plano vale; **sem** "reparo automático se pedra ≥ X" (GDD §17.2 deixa em aberto) | V4G-T2 | Como escrito | GDD §10.8 e §11.2. Alternativa: o reparo automático pré-agendado no Plano. Validar: trocas entre ondas por perfil | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 21 | **Milícia**: ordem só com incursão forte ou cerco marcado dentro da antecedência da Torre (ou a qualquer hora do dia do cerco?); até 50% dos aldeões; 3/2/12, ×5/4; não produzem; dissolve ao fim da batalha; as baixas reduzem a população com o piso de 3 | V4G-T2 | Como escrito | GDD §11.3. Alternativa: convocar a qualquer hora, com o custo de produção. Validar: a milícia muda o resultado da onda 3 no Regular? | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada (convocação só com o aviso da Torre) |
+| 22 | **Rescaldo e Crônica do Ano**: luto −10 por 1 dia com mortos; festa +15 com Gloriosa; reparo com desconto até o fim do inverno; a Crônica do Ano montada **pelo servidor** dos eventos do ano e de um evento `yearEnded` com estatísticas, pontuação (pesos inteiros no conteúdo) e os seis Feitos do cerco, sem lista no estado; **"Avançar para o Degelo" não entra** | V4G-T3 | Como escrito | O servidor é o relógio e a semana tem 7 dias para todos; um Feito "completo" é v0.6. Alternativa: o Degelo como ordem que encerra o inverno do feudo. Validar: a Crônica de um ano com Queda é legível | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 23 | **Os lotes 2 e 3**: 38 cartas (23 + 15), com "A Filha do Ferreiro", cartas de guerra e quatro roteirizadas; apresentadas em lotes de cinco antes da transcrição; o teste de palavras proibidas afrouxado carta a carta | V4H-T1, V4H-T2 | Como escrito | O GDD §7.2 fala em 60 com 6 roteirizadas. Alternativa: "escrevo e sigo" como na v0.3 (tudo rascunho). Validar: a cobertura por posse e por estação | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+| 24 | **Objetivos 17 a 21** (os do GDD §12.2 `[v0.4]`) e os sazonais ("Estoque 1.000 comida", "Sabote a Horda uma vez"): os cinco entram; os sazonais **não** (seriam os primeiros objetivos que se repetem por ano) | V4H-T3 | Como escrito | F-1 mostrou que um objetivo muda o caminho de todo bot: medir antes de fechar. Alternativa: dois sazonais do outono. Validar: a matriz com os objetivos | [ADR 0020](decisions/0020-horda-cerco-e-cronica-do-ano.md), 2026-10-23: a premissa recomendada |
+
+### 11.3 Atos do autor, que não são decisões de regra
+
+| # | O que é | Trava | Recomendação | Estado em 2026-10-15 |
+|---|---|---|---|---|
+| 27 | **A v0.3 publicada**: conferir no banco `schema_version = 24` em toda partida ativa e o log do job; criar a tag `v0.3.0` e a release; corrigir a data da 0.3.0 no `CHANGELOG.md` | V4A-T1.1 | Antes da Fase B | pendente |
+| 28 | **Operação (o ato 23 da v0.3):** backup fora do servidor; cópia do `RECOVERY_CODE_SECRET` fora do Coolify; ensaio de reversão com duas imagens atravessando uma migração de estado, em banco descartável | A primeira publicação da v0.4 (decisão 26) | Antes do fim da Fase E; a v0.4 não deveria subir doze versões de estado de novo sem o ensaio | pendente desde a v0.2 |
+| 29 | **Jogar a v0.3** (roteiros) e preencher `acceptance-v0.3.md`; ler o conteúdo (`content-v0.3.md`); responder a F-1, F-4, E-51, E-54 e B-2 | V4A-T1.9, V4A-T2.1 | Antes da Fase B | pendente |
+| 30 | **Playtest** (o da v0.1, o da v0.2, o da v0.3 e o desta) | V4I-T3 | Convidar depois da segunda publicação | nunca houve |
+| 31 | Os oito pontos do ADR 0012 e o vínculo GitHub | Nenhuma | Continuam como estão | pendente |
+
+---
+
+## 12. Dívidas conhecidas, herdadas da v0.3
+
+Lidas em 2026-10-15 no Registro da v0.3 (§12), em `pendencias-v0.3.md` (seções 5 e 6), em `retomada-v0.3.md`, em `architecture.md` (§21) e no código em `561b0ff`. V4A-T1.10 passa linha a linha: resolvida, continua ou nova.
+
+### 12.1 Código
+
+| Onde | O que é | Bloqueia a v0.4? |
+|---|---|---|
+| `wip/v3f-t1-lote2` (`2352e39`) | O lote 2 pela metade: efeitos e requisitos em `council.ts`, `councilTurn.ts`, `councilView.ts`, `council.effects.test.ts` e três arquivos de cartas; **não verde, nunca testado** | Decisão 1; V4H-T1 |
+| `packages/content/src/masters.ts` | Gil e Ximena existem e não têm de onde vir (`deliverMaster` existe; nenhuma carta a chama; `addMaster` não existe) | V4H-T1 |
+| `packages/engine/src/types.ts` (`market`) | `market.effects` não existe; nenhuma carta mexe no preço | V4H-T1 |
+| `packages/content/src/council.test.ts` (linha 345) e `expeditions.test.ts` (683) | Expressões regulares barram ferro, ferreiro, exército, combate, batalha, soldado, presságio, relíquia, quartel, muralha, horda, cerco, arma, planta, unidade, mestre e mercado nos textos | Afrouxar de propósito por tarefa (B1, H1, H2) |
+| `packages/content/src/ids.ts` | `ENEMY_IDS = ['wolves']`, `RAID_SIZE_IDS = ['light', 'medium']`, `RESOURCE_IDS` sem ferro, um tipo de tile | B1, E2, E3 |
+| `packages/content/src/buildings.ts` | Torre e Paliçada em `maxLevel: 2` com a recusa que promete versão futura | E1 |
+| `packages/engine/src/types.ts` (`GameSettings`) | `timezone` e `vigilHourLocal` no estado sem uso; não há origem em tempo real | G1; decisão 13 |
+| `packages/protocol/src/view.ts` | `PendingDecisionSchema` fechado em `card` e `crossroads` | G2 (protocolo 4) |
+| `packages/engine/src/objectives.ts` | F-5: o contador `expeditionsReturned:<modelo>` não é preenchido por passo (a partida migrada não conta as Ruínas) | Não alcança ninguém hoje; se um passo da v0.4 reconstituir contadores, resolver junto |
+| `packages/web/src/notifications/policy.ts` | F-4: alarmes passam do teto de 3 por hora desde a correção da Fase E | Resposta do autor (V4A-T2.1) |
+| `packages/web/src/game/beforeLeaving.ts` | F-6: a ordem dos itens não é a do roadmap da v0.3 | V4H-T4 escreve e testa a ordem |
+| `packages/content/src/balance.ts` | E-54: a tabela do soldo por nível proposta pelo agente; E-51: as marcas de 85% e 115% | Leitura do autor |
+| `packages/engine/src/masterTurn.ts` | E-53: quem já teve edifício paga a adaptação ao voltar a trabalhar (leitura do agente) | Leitura do autor |
+| `packages/content/src/objectives.ts` | F-1: o objetivo 12 manda erguer a Guilda a todo bot; o Preguiçoso do Tranquilo perde o Salão Nv4 na semana | Resposta do autor |
+| `packages/engine/src/seasonView.test.ts` (`it.fails`) | C-8 da v0.2: as previsões de lenha e comida erram quando as duas acabam no mesmo inverno | Não; pesa em "Antes de partir" com o cerco |
+| `packages/sim-cli` | V3G-T1 não rodou `--perf` nem a carga; a hora do primeiro herói contra a meta não foi medida; `economy.property.test.ts` estoura 30 s com a máquina ocupada | V4A-T1.7 e T1.8 |
+| `.hermes.md` na raiz, árvores `worktree-agent-*`, branch `e2e-fixes`, banco `lotg_test_e2e` | Sobras da v0.3 | V4A-T1.1 lista; remover é ato de limpeza |
+| `CLAUDE.md` | Descreve a v0.3 "em execução" e a publicação por fazer | V4A-T1.12 lista; a integração da Fase B corrige |
+
+### 12.2 Operação
+
+| O que é | Bloqueia a v0.4? |
+|---|---|
+| **Há pessoas jogando a v0.3.0** (estado 24) desde 2026-10-15; 4 partidas migradas pelo job; ninguém conferiu as outras | Ato 27 |
+| O ato 23 por fazer; a primeira migração de doze passos foi feita sem ele | Ato 28 antes da primeira publicação |
+| A tag `v0.3.0` e a release não existem; o `CHANGELOG.md` data a 0.3.0 de 2026-10-07 | Ato 27 |
+| Backups no mesmo disco; sem canal do Coolify; e-mail do GitHub não conferido; `ops.sql` sem consultas de heróis, expedições, exército | V4I-T3 |
+| `RATE_LIMIT_PER_MINUTE` em 600 desde 2026-10-06 | Não |
+| A pendência B-2 da v0.2 (sessões na restauração) nunca foi levada ao autor | V4A-T2.1 |
+
+### 12.3 Verificação
+
+| O que não foi verificado | Bloqueia a v0.4? |
+|---|---|
+| **Ninguém jogou a v0.3** (nem o autor, nem playtest); todo o conteúdo narrativo é rascunho | Lição 8: V4A-T1.9 |
+| Só Chromium; Firefox, Safari, celular e leitor de tela nunca | V4I-T2 |
+| A matriz de fechamento da v0.3 foi a da retomada (67 de 72 células remedidas pelos objetivos); `--perf` e 50 bots não rodaram | V4A-T1 |
+| O ensaio de reversão nunca foi feito; a migração 12 → 24 é a única evidência real, e foi conferida só pelo job do arranque | Ato 28 |
+| As decisões 1 e 4 a 21 da v0.3 aprovadas em bloco; os números do ADR 0017 e a tabela do soldo não lidos | Herança nas pendências |
+
+---
+
+## 13. O ouro sem destino
+
+**O problema, com número** ([balance-v0.3.md](balance-v0.3.md), seção 14.4, Senhor): a Mina é de **79% a 99,4%** do ouro que entra; o balcão e as caravanas somados passam de 5% só no Dedicado do Normal (10%) e do ano do Tranquilo (21%); o saque nunca chega a 1%. **O destino são as obras**: de 72% a 93% do que sai; o soldo é de 1,6% a 20%; **ninguém compra no balcão** (zero em todas as células). O Regular da semana do Rápido tira 201.039 da Mina e termina com 185.659 parados; o Explorador, 258.908 e 235.655. O soldo por nível (2 a 20) baixou a soma do ouro final de Senhor em 0,45% (46,36 → 46,16 milhões em 1.200 partidas); os objetivos 11 a 16, −2,5% a +0,5%.
+
+**O que a v0.4 traz que gasta ouro:** o ferro no Mercado a 8 de ouro (o primeiro recurso que o jogador compra por necessidade); o treino (10 a 60 de ouro por soldado, mais comida); o Quartel e o Ferreiro (100 e 150 de ouro); a Muralha (pedra, não ouro); o reparo (ferro); a milícia (braços). O que falta saber é se eles **absorvem** o ouro parado de quem joga duas vezes por dia no Rápido (185 mil) ou só criam outro buraco pequeno, como o soldo.
+
+**Medida antes de regra** (decisão 2): V4A-T1.7 fixa a linha de base com `goldTable`; V4B-T5.3 mede o ferro comprado; **V4C-T4.3 mede com o treino e volta ao autor com propostas concretas** (preço do ferro, custo do treino, um custo contínuo de exército, outra coisa) antes da Fase D; V4I-T1.2 fecha a conta. Nenhum número de ouro muda sem a resposta dele. Alternativas já ouvidas e não aplicadas: soldo de soldado (o GDD não o tem); experiência mais rápida; o soldo dos níveis 1 e 2 mais alto.
+
+---
+
+## 14. O que a v0.3 ensinou
+
+Tiradas do Registro (§12 do roadmap da v0.3), de [pendencias-v0.3.md](pendencias-v0.3.md), do [relatório](relatorio-v0.3.md) e da [retomada](retomada-v0.3.md). Cada uma diz o que muda na v0.4.
+
+| # | Lição | Evidência | O que muda na v0.4 |
+|---|---|---|---|
+| 1 | **A revisão independente achou defeito real em toda fase depois do portão verde** | B: 0 defeitos e 7 riscos; C: 2 + 3; D: 2 + 8 + 9 (52 commits); E: cerca de 25; F: 9 achados, 6 corrigidos. Os relatórios das Fases C e E não foram gravados e o fechamento não pôde conferir as contagens | Uma revisão por fase, em tarefa própria, **com o relatório em `docs/reviews/`**; o cerco tem revisão antes da tela |
+| 2 | **Uma conversão sem teto vira lucro certo** | A caravana pagava 1,19 do preço de compra; corrigido para +15% sobre o balcão com propriedade e teste de conteúdo | Toda conversão (ouro ↔ ferro, ferro → arma, arma → soldado, soldado → aldeão) entra com propriedade de nenhum ciclo lucrativo e com o `especulador` tentando (§0.5) |
+| 3 | **Bots que não medem** | 0% de encruzilhadas decididas com 6 h; ninguém capturado; ninguém comprando no balcão; os bots Regular e Dedicado erguem a Guilda e não enviam | Cada mecânica ganha o bot **antes** da faixa; o Regular tem políticas de guerra (decisão 25) ou o critério 6 não mede nada |
+| 4 | **Decisões fechadas antes do código** | 21 decisões em uma sessão antes da Fase B; as mudanças depois (12 h, +15%, soldo por nível, piso de 3, primeira alocação) vieram de números medidos | Dois lotes (§11); as perguntas que dependem de medida (ouro, tamanho das ondas) vão ao autor com a medida na mão |
+| 5 | **Árvores separadas para paralelizar** | Fases E e F em árvores separadas, juntadas por commits de mesclagem | Continua; os arquivos de cada trilha ficam listados na tarefa; os documentos compartilhados são do integrador |
+| 6 | **Subagentes no Sonnet para execução** | Pedido do autor de 2026-10-06 | Mantido; revisão independente e decisão de regra, não |
+| 7 | **A primeira publicação salta vários estados** | A produção foi do 12 ao 24 e do protocolo 2 ao 3 em um `push`; o ensaio de reversão nunca foi feito; deu certo nas 4 partidas que o job migrou | A v0.4 publica em três pontos (decisão 26) e **pede o ensaio antes do primeiro** (ato 28) |
+| 8 | **Ninguém jogou** | Nenhuma fase foi jogada pelo autor; nenhum playtest em três versões; todo o conteúdo é rascunho | A v0.4 não começa o motor do cerco sem uma sessão de jogo da v0.3 (V4A-T1.9); as paradas "mostrar ao autor" continuam e são registradas quando não acontecem |
+| 9 | **O ouro parado não caiu** | 0,45% com o soldo por nível; a Mina rende de 10 a 400 vezes o soldo | §13 |
+| 10 | **Tempo real é só para o que depende de uma pessoa** | A encruzilhada foi de 6 h para 12 h reais depois da medida | Decisão 12: a Vigília e o intervalo entre ondas |
+| 11 | **Retratos congelados com o que a produção terá** | 44 retratos da versão 24; dois retratos novos antes de subir a versão a cada tarefa | V4A-T1.5 lista os que faltam; cada tarefa congela antes de subir |
+| 12 | **Um teste que conta o que é novo precisa saber da linha nova** | Um cenário em navegador contava as linhas da árvore e não conhecia "Mercado" | Toda linha nova na árvore atualiza `05-teclado-e-temas.spec.ts` na mesma tarefa |
+| 13 | **Uma tarefa que não roda a matriz deixa o `main` vermelho** (novo) | A V3F-T2 não rodou a matriz; na retomada havia 24 testes vermelhos (22 do simulador, 1 de integração, 1 em navegador) | O portão inteiro, pelo código de saída, é parte de "pronto" de toda tarefa que toca motor ou conteúdo; a integração repete |
+| 14 | **Um objetivo muda o caminho de todo bot** (novo) | O objetivo 12 fez todo perfil erguer a Guilda e piorou três células | V4H-T3 mede antes de fechar; os sazonais ficam de fora (decisão 24) |
+| 15 | **Conteúdo pela metade não vai ao ar** (novo) | O lote 2 ficou fora da v0.3.0 por não ser verde e não ter sido lido | O lote 2 é tarefa com revisão (V4H-T1); nada de branch de conteúdo sem portão |
+
+---
+
+## 15. Registro de execução
+
+Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito e desvios, e **o que não foi verificado**. Com trilhas em paralelo, cada fase ganha também uma linha "V4x (integração)".
+
+| Tarefa | Data | Commit | Sessões | O que foi feito e desvios | O que não foi verificado |
+|---|---|---|---|---|---|
+| Revisão 0.2 do plano (não é tarefa) | 2026-10-15 | base `561b0ff` | uma | Plano reescrito contra o código e contra a v0.3 publicada: o lote 2 como herança (decisão 1), Gil e Ximena, F-1 a F-6, o ouro com número, o Apêndice B.0 conferido, as Fases B a I com tarefas, a §11 com 26 decisões em dois lotes e cinco atos, o §15 vazio por tarefa. Nenhum código, nenhum outro documento | **Nenhum teste foi rodado**; a conferência foi por leitura do código em `561b0ff`. Não lidos por dentro: `raids.ts`, `hordeTurn.ts`, `warCouncil` (não existe), as políticas do simulador, `tests/e2e/server.ts` além das rotas |
+| V4A-T1 | 2026-10-16 | `dbe38ac` (partida), `71e08f3` e o desta linha | uma (o orquestrador, com dois subagentes de leitura no Sonnet) | **Onde estamos:** `main` 4 commits de documento à frente de `origin/main` (`c2cb21e`, no ar: `0.3.0`, protocolo 3, `contentHash` `3a006cc05fed0b0f`, `builtAt` 2026-10-15T19:54Z); a tag `v0.3.0` não existe. **Versões:** estado 24, protocolo 3, `RNG_VERSION` 1, `VIEW_FORMAT` 2 (constante não exportada), `CACHE_VERSION` `3.2`, `ENGINE_VERSION` e pacotes `0.3.0`; o primeiro passo da v0.4 é o 24 → 25. **Apêndice B.0** conferido linha a linha por leitura: confere, com quatro correções aplicadas (o `boundaryMs` está no `StepContext`, não no `MigrationContext`; dez constantes de tempo real, não nove; dezesseis passos e quinze funções em `processEventsAt`; a linha do teste de expedições). **Retratos:** 44 da versão 24 (599 arquivos); falta, para a v0.4, um de inverno com equipe, um com Torre e Paliçada no nível 2 e incursão marcada, e um com o Armazém no cap conferido. **Portão:** `pnpm verify` **1** na primeira rodada, só por **dois testes de propriedade que estouraram os 30 s** com a máquina ocupada (134 de 136 arquivos, 11.523 testes); sozinhos passam em 21 s; corrigido em `71e08f3` (120 s por bloco); `pnpm build` **0**; `pnpm test:e2e:landing` **0** (37, 7 pulados). **Simulador:** as matrizes das três dificuldades **0** (3.600 partidas dentro das faixas), `ousado` e `especulador` **0** (a arbitragem dá prejuízo); `--perf` **0** (pior `advanceTo` de 40 ms em 30 dias reais fora). Linha de base em **novo** [balance-v0.4.md](balance-v0.4.md), seção 1, com o ouro por fonte e por destino. Caixa de entrada em **novo** [pendencias-v0.4.md](pendencias-v0.4.md). **Lista do `CLAUDE.md` que fica falsa** (para a integração da Fase B): linha 10 (a v0.3 "em execução"), 12 (`architecture.md` "reescrito para a v0.2"), 14 (estado 20 e produção no protocolo 2), 16 (o parágrafo da v0.3 "em execução"), 141 (regra 6: "a versão implementada é a v0.2… com a v0.3 em construção", o ferro e o exército como "ainda é erro" e as versões seguintes), 229 (prefixo de commit da v0.3) e 244 ("quem dá o `push` é o autor", que a decisão 26 e a publicação de 2026-10-15 refinam) | **Integração e navegador não rodaram: o Docker não estava disponível** (o portão do código igual, em `3cb6e01`, passou em 2026-10-15). A carga com 50 bots (`--remote`) também não. **A migração em produção não foi conferida no banco** e o log do job só foi lido no arranque (4 partidas, 0 falhas): as duas perguntas da T1.1 estão nas pendências (ato 27). **O autor não jogou a v0.3** (T1.9): a v0.4 começa sem isso. As impressões digitais dos retratos não foram conferidas uma a uma. `raids.ts` e `hordeTurn.ts` foram lidos só nos trechos que a busca tocou |
+| V4A-T2 | 2026-10-16 | `dbe38ac` e o desta linha | uma, com o autor | O lote 1 (decisões 1 a 14, 25 e 26) e a herança da v0.3 (F-1, F-4, E-51, E-54, B-2) respondidos **um a um**, em cinco rodadas de perguntas, todos com a premissa recomendada: **novo** [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md). **V4A-T2.4:** o GDD na versão **0.9** (um subagente no Sonnet, conferido por amostra): as decisões do lote 1 no texto e toda duração sem unidade dizendo "de jogo" ou "reais"; o aviso da Torre, que dizia "de jogo", passou a "real", como o código. **V4A-T2.5:** os números das Fases B e C (ADR 0019, "Números propostos") **aprovados pelo autor** em uma rodada de três perguntas: durabilidade 8/10/14/20, reparo a 1 ou 2 ferro por ponto e 2 min de jogo por ponto, o resto em bloco | Os pontos do lote 2 que o GDD ficou marcando "a decidir (ADR 0020)" esperam a V4E-T0. Os links do ADR, do GDD e do roadmap conferidos por roteiro; `pnpm lint` 0 |
+| V4B-T1 | 2026-10-16 e 2026-10-19 | `ab86177` (T1.1), `6cb6245` (T1.2 a T1.6, num commit só: `iron` em `RESOURCE_IDS` não fica verde sem o estado 25), `816bd7c` (T1.7 e T1.8), `a83d582` (os testes de integração), `46070d1` (a página lista a Mina), `c0a6fa7` (as faixas de Rei de Ferro); **no `main` desde 2026-10-19** | duas: um subagente em árvore separada (2026-10-16) e o orquestrador (2026-10-19) | O ferro como quinto recurso: conteúdo (8.000 milésimos, `200 × nível`, venda a 85%, **sem caravana**), o **estado 25** (passo 24 → 25 sem prazo, evento, identificador nem sorteio), o motor (estoque, cap no Armazém, desperdício, o sorteio do Mercado em comida, madeira, pedra, ferro), a visão e a **Mina Abandonada** (Guilda Nv2, três variantes, 40 a 80 de ferro, revelada **só pela Floresta Antiga**: B-8, respondida). A divisão de intervalo com o ferro (`iron.property.test.ts`) e o Explorador que acha a Mina e vende o ferro (`bots/ferro.test.ts`). A integração tinha 118 falhas, **todas de teste**: o auxiliar `tavernSite` reescrevia os recursos sem o ferro (500), os testes de migração não podavam o ferro, e as listas de recursos, preços e limites e a versão esperada eram as de antes. Faixas: 18 células de Senhor e 14 de Rei de Ferro remedidas de propósito; Camponês dentro das faixas. Pendências B-1 a B-10 em [pendencias-v0.4.md](pendencias-v0.4.md). **Portão no branch** (Node 22): integração **0** (27 arquivos, 564 testes), `pnpm build` **0**, `pnpm test:e2e` **0** (131), `pnpm test:e2e:landing` **0** (39, 7 pulados), as três matrizes (Camponês 0; Rei de Ferro remedida; Senhor 0) | O `pnpm verify` inteiro no branch teve uma falha (a página, que listava seis destinos), corrigida e conferida só no pacote da página; o `verify` do `main` depois da junção está na linha "V4B (junção)". `GAME_TIME_SCALE=3` em navegador, `--perf` e o `especulador` com ferro (ele não tem caravana para revender: B-10) não rodaram. Nada foi lido nem jogado pelo autor. **Não publicado** (decisão 26: a primeira publicação da v0.4 é a do fim da Fase E) |
+| V4B (junção do ferro) | 2026-10-19 | `c0a6fa7` (junção direta), `6e4a3cb` (o tipo no teste de migração) | o orquestrador | O `pnpm verify` do `main` com o ferro: **0** (138 arquivos, 12.007 testes e 1 falha esperada, Node 22), depois de corrigido um erro de tipo num teste de migração que a integração não pegava | Não publicado (decisão 26) |
+| V4B-T2 | 2026-10-19 e 2026-10-20 | `2fcce08` (T2.1 a T2.6 num commit só: o estado 26 precisa do conteúdo, e a ordem e a visão precisam do estado), `4daf947` (a junção do `main`), `0ad2cb6` (os testes de integração); **no `main` desde 2026-10-20** (junção direta) | duas: um subagente no Sonnet (2026-10-19) e o orquestrador (2026-10-20) | O Ferreiro (Salão Nv4, até o Nv6, 200 madeira, 200 pedra e 150 ouro em 20 min), a forja (2 ferro + 1 madeira por arma em 6 min de jogo, lote até 10, tempo × 10/(10 + nível − 1), cobra ao começar, cancelar devolve 80%, recusa nova `NOT_FORGING`), o **estado 26** (`buildings.smithy`, `settlement.weapons`, `settlement.forge`), o fim do lote como instante logo depois das obras, a visão (`smithy`), as propriedades nos três ritmos (a arma não se vende), e as políticas do bot, inertes até o Quartel. A integração tinha 98 falhas, **todas de teste** (a versão esperada e a poda dos testes de migração). Pendências B-11 a B-15 em [pendencias-v0.4.md](pendencias-v0.4.md) (a B-11: as armas em `settlement.weapons`, fora de `resources`). **Portão** (Node 22): `pnpm verify` **0** (141 arquivos, 12.401 testes e 1 falha esperada), integração **0** (27, 564), `pnpm build` **0**, `pnpm test:e2e` **0** (131) | Nenhuma faixa mudou, porque o Ferreiro nunca é construído pelos bots até o Quartel: a forja contra o ferro da Mina não foi medida (B-14). A tela do Ferreiro é da V4B-T4. O GDD §6.1 não foi editado (a leitura do "+10%" está na B-12). Não publicado (decisão 26) |
+| V4B-T3 | 2026-10-20 | `ba79b4e` (T3.1 a T3.5 num commit só: o estado 27 precisa do conteúdo, e a ordem, a visão e os testes precisam do estado), `ec613bf` e `e455c4b` (as junções do `main`), `90f2878` e `3807db7` (os testes de integração e a rota de teste do item); **no `main` desde 2026-10-20** (junção direta) | duas: um subagente no Sonnet, parado pelo limite de uso no meio da junção, e o orquestrador, que terminou a junção | A durabilidade por raridade (8, 10, 14, 20), um ponto de desgaste por expedição concluída (a perdida não volta com o item), o item em 0 sem bônus e no arsenal, e o reparo no Ferreiro, **na mesma fila da forja**, a 1 ou 2 ferro por ponto e 2 min de jogo por ponto. O **estado 27** (`Item.condition`, cheio na migração; o lote da forja ganha `kind`). A visão da forja passou a ter `kind`, `label`, `cancelable` e `repairOffer`. Na integração, a poda dos testes de migração tirando a condição; no navegador, a rota `/__test/item` criava o item sem condição (o servidor recusava o estado). Pendências B-16 a B-20. **Portão** (Node 22): `pnpm verify` **0** (145 arquivos, 12.843 testes e 1 falha esperada), integração **0** (564), navegador **0** (141) | **A tela do reparo não existe** (é da V4B-T4). O desgaste por batalha comandada fica para a Fase D (B-19). Nenhuma faixa do simulador foi remedida: nenhum bot repara ainda, e o desgaste dos itens do Explorador não foi medido. Não publicado (decisão 26) |
+| V4B-T4 | 2026-10-20 e 2026-10-21 | `3e17a96` a `39b3a28` e `502f487` (o ferro e o Ferreiro), `000d058` (o cenário no ritmo da produção), `663e963` a `5285980` (a tela do reparo) e a junção `cb46083`; **no `main`** | três: dois subagentes no Sonnet e o orquestrador | **T4.1:** as duas capturas mostradas ao autor antes de completar a tela. **T4.2:** o ferro no estoque e no Mercado. **T4.3:** o painel do Ferreiro (a obra; a forja em duas etapas; o lote em curso com "Cancelar (devolve 80%)"; o reparo em curso sem cancelar) e o reparo pela ficha do item no Arsenal, em duas etapas. **T4.4:** a árvore ("Ferreiro", com "N itens a reparar"), `lords.forgeWeapons`, `lords.cancelForge` e `lords.repairItem` por `guildOrder` com a trava `forge` (e `repairItem` na família `forge` de intenção), `nextPollMs`, o Retorno (`weaponsForged` e `itemRepaired` em "prosperou", `itemWorn` em "custou" com "Reparar…"), os avisos em "Todas" e "Antes de partir" com o ferro parado, a forja parada e o item equipado em 0. **T4.5:** `11-ferreiro` (forjar, cancelar, reparar pelo teclado, a fila ocupada, o item gasto, no ritmo da produção), o ferro em `10-mercado`, as setas em `05`. A visão ganhou, por adição, `smithy.offer.options[]`, `smithy.forge.refundText`/`cancelLabel`; o reparo usou só campos que já existiam. Pendências B-21 a B-27 | O contraste, os três temas e os 720 px do bloco de conferência do reparo no Arsenal não têm cenário próprio (os da forja não cobrem o Arsenal). As capturas da página de apresentação não foram refeitas depois da tela do reparo (a aba Feudo só ganhou o texto da linha do Ferreiro na árvore, e o teste da página passou). Ninguém viu a tela viva do reparo |
+| V4B-T5 | 2026-10-20 e 2026-10-21 | `e23ab65`, `eef4459`, `545a270`, `3e70244`, `11bb086`, `dacec57` (a primeira passada), `7cb91ec`, `1814b1b`, `5d94d78` (a segunda), `98f7430` (a medição), `495b2f6` (os documentos), `c86097b` (o roteiro) | uma, com dois revisores independentes que só leram | **T5.1:** duas passadas, em [docs/reviews/v0.4-fase-b.md](reviews/v0.4-fase-b.md): a do ferro, do Ferreiro e da tela (seis achados) e a do reparo (três). **T5.2:** sete corrigidos, cada um com teste (entre eles a retentativa velha de cancelar a forja que cancelaria um lote novo, e a guarda do estado 27 que recusaria o reparo de um item acrescentado ao conteúdo); um não alcançável hoje; um registrado (o reparo em curso de um item que o conteúdo removeu). **T5.3:** as três matrizes e o especulador ([balance-v0.4.md](balance-v0.4.md), seção 4): Senhor e Camponês dentro das faixas; duas células do Explorador em Rei de Ferro remedidas (o desgaste); **o ferro ainda não dá destino ao ouro** (nenhum bot compra ferro sem o Quartel). **T5.4:** `CLAUDE.md`, `architecture.md` (versões 25 a 27, a ordem do mesmo instante, a seção do ferro, do Ferreiro e do reparo) e a linha "V4B (integração)" abaixo. **T5.5:** o roteiro de 15 minutos em [pendencias-v0.4.md](pendencias-v0.4.md), seção 7 | **O autor não jogou a fase** (T5.5): em 2026-10-21 ele escolheu **fechar a Fase B sem jogar**, como nas fases da v0.3; o roteiro fica em pendencias-v0.4.md, seção 7, para quando ele puder. Sem `push` |
+| V4B (integração) | 2026-10-21 | `cb46083` (a tela do reparo junta) e os commits de documento seguintes | o orquestrador | **A Fase B fechou** (o autor escolheu fechá-la sem jogar, em 2026-10-21). O que existe: o ferro, a Mina Abandonada, o Ferreiro e a forja, o desgaste e o reparo, e a tela de tudo isso (estados 25, 26 e 27; protocolo 3). **Portão no `main`** (Node 22): `pnpm verify` **0** (145 arquivos, 12.856 testes e 1 falha esperada), integração **0** (27 arquivos, 564 testes), `pnpm build` **0**, `pnpm test:e2e` **0** (143), `pnpm test:e2e:landing` **0** (39, 7 pulados), os testes do simulador **0** (365) e as três matrizes (seção 4 de balance-v0.4.md) | Não publicado (decisão 26: a primeira publicação da v0.4 é a do fim da Fase E). `--perf` e a carga com 50 bots não rodaram de novo. O autor não jogou a fase |
+| V4C-T1 | 2026-10-21 | **no `main`** (ff até `8a73cef`): `012b1b8` (T1.1), `f08bc0f` (T1.2 a T1.7), `8a47bb1` (resposta do autor à C-1: madeira-base do Quartel 150), `63bd2e3` (integração no estado 28), `8a73cef` (T1.9) | duas, por subagentes no Sonnet, e o orquestrador | O Quartel (`buildings.barracks`, Salão Nv4, até o Nv8, **150** de madeira, 150 de pedra e 100 de ouro), as cinco unidades (`units.ts`, com o ciclo de contra-ataques), `balance.army`, o **estado 28** (`state.army`, passo 27 → 28), as ordens `trainSoldiers`, `cancelTraining` e `disbandSoldiers` com sete recusas novas, o soldado que sai da população no fim do treino e come 1,5 por hora, o fim do treino como instante logo depois dos recrutas, `ViewState.army` e `population.soldiers`; as propriedades da T1.9 (divisão de intervalo com treino e fome, comida nunca negativa, habitantes dentro das casas, nenhum ciclo lucrativo). Com a C-1 respondida, o Quartel Nv8 cabe em Camponês e Senhor; em Rei de Ferro para no 7, como as obras que pedem o Salão no nível 8 | Portão inteiro no branch antes da junção: `pnpm verify` (147 arquivos, 13.300 testes), integração (564), `pnpm build` + navegador (143), página de apresentação (39). **Falta a T1.8** (o bot `militar` e a política mínima de guerra dos três perfis, com as faixas remedidas): sem ela nenhum bot treina soldado, e a matriz não mede o exército. **Ninguém jogou o Quartel, e ele não tem tela** (V4C-T3). Pendências C-2 a C-7 são decisões do agente |
+| V4C-T1.8 | 2026-10-22 | **no `main`** (`8f988f3`, junção do branch `v4c-t1-8-militar`: `1aedc64`, `b7485b3`, `26b8a75`, `62f1a9e`, `6d4f828`, `2415287`, `7fcfe9c`) | uma, por um subagente no Sonnet, e o orquestrador | O bot `militar` (o econômico mais o Ferreiro, a forja e os Espadachins; sem faixa, como o `ousado`), a política mínima de guerra (`erguerQuartel`, `treinarSoldados`: Lanceiros e Arqueiros, com reserva de comida) no `economico` e no `preguicoso`, as colunas `soldiers`, `soldiers_by_unit`, `training_batches` e `army_food`, e as faixas remedidas nas três dificuldades (balance-v0.4.md, seção 5.1). O Ferreiro e a forja saíram das políticas do Explorador e do Ousado. A população do Regular cai porque o soldado sai dela (decisão 7). **Regressão aceita pelo autor em 2026-10-22:** a meta de desperdício do Regular no Normal passa de 10 para 11 h (rever na V4C-T2) | `pnpm verify` no branch: 149 arquivos, 13.305 testes, com uma falha (os heróis do Explorador no ano do Tranquilo) corrigida em `7fcfe9c` e conferida com `balance.test` (21 testes) sozinho. Integração e navegador não rodaram: a tarefa só mexe no simulador. **A matriz do `militar` não rodou**, e ele não compra ferro, então quase não forja; formação e Plano são da V4C-T2 e da V4D |
+| V4C-T2 | 2026-10-22 | **no `main`** (`74cba18`, junção do branch `v4c-t2-formacoes`: `80e9f21`, `7868477`, `cbcd9b4`, `1a0a37f`, `9e9bf15`) | uma, por um subagente no Sonnet | O estado 29 (`army.formations`, `activeFormationId`, passo 28 para 29, retratos da 28 congelados e os da 29 gravados), `formations.ts`, as ordens `saveFormation`, `deleteFormation` e `setActiveFormation` com quatro recusas novas, o comandante da Defesa ativa que não parte (`HERO_BUSY` em expedição e caravana) e que sai do comando ao ser dispensado, desertar, ser capturado ou morrer, `army.formations`, `army.editor` e `guild.heroes[].commanding` na visão e no protocolo, o bot `militar` que monta e ativa uma formação. Pendência C-8 | Verde: formations, migrations (suíte inteira), engine inteiro, protocolo, content, web, `games-migration`, `scenarios`, as seis integrações de versão do estado e `formations` do servidor, lint, typecheck. **Não rodados depois das últimas correções de teste:** o `pnpm test` do sim-cli inteiro (só `militar` e `perf`), `pnpm test:e2e`, o portão inteiro. Sem golden próprio de uma formação salva (só os existentes, regravados). O `CLAUDE.md` deste branch está defasado (diz estado 27) e não foi tocado **Portão inteiro no branch antes da junção** (2026-10-22): `pnpm verify` (150 arquivos, 13.745 testes), integração (28 arquivos, 566), `pnpm build` + navegador (143). As decisões do agente são a pendência C-8 |
+| V4C-T3 | 2026-10-22 | **no `main`** a tarefa inteira: a T3.4 e a T3.5 vieram do branch `v4c-t3-resto` (`4f46ca4`, `f7f395b`; navegador inteiro, 152 cenários, e `verify` no branch antes da junção; **o cenário "cancelar o treino" de `12-exercito` falhou uma vez** — o cancelamento não chegou ao servidor — e passou nas duas rodadas seguintes: possível intermitência, a investigar); antes, a T3.1, a T3.2 e a T3.3 (`5293eb5`, a aba Exército e o Quartel; `12efd31`, o editor e a lista das salvas), com o portão de cada branch antes da junção: `verify` (154 e 155 arquivos, 13.779 e 13.785 testes) e navegador (148 e 151). O custo e o prazo de cada lote de treino vêm da visão (`army.offer[].options`, só os lotes que a ordem aceita, para a visão ficar abaixo dos 40 kB do teste de custo). Falta a T3.4 e a T3.5 (branch `v4c-t3-resto`). Desde `164f3dc` os rótulos das alas e das linhas do editor vêm da visão (`army.editor.wingLabels`, `lineLabels`, do conteúdo), conferido com `verify` (13.785 testes) e os cenários 12 e 13 em navegador | por um subagente no Sonnet | A aba Exército (`#/exercito`, fixa depois do Mercado), `BarracksPanel`, `ui/army.ts`, os comandos `lords.trainSoldiers`, `cancelTraining`, `disbandSoldiers` e `openArmy`, a linha da árvore, o fim do treino em `nextPollMs`, o aviso e o Retorno de `soldiersTrained` | `pnpm --filter @lotg/web test`, `typecheck` e `lint` verdes; o cenário `tests/e2e/12-exercito.spec.ts` está escrito e **não foi rodado**. **T3.1 feita em 2026-10-22**: o autor viu a captura do editor com três postos e aprovou o desenho, pedindo o posto vazio mais apagado (contorno tracejado, sem o fundo do botão); aplicado. **T3.3 feita no branch `v4c-t3-editor`** (editor, lista, comandos, cenário `13-formacoes`). **Faltam** o resto da T3.4 (barra de status, "Antes de partir") e a T3.5 |
+| V4C-T4 | 2026-10-23 | **no `main`**: a revisão (`d5dc39e`, [reviews/v0.4-fase-c.md](reviews/v0.4-fase-c.md)), a medição do ouro (`57362d8`), o roteiro do autor (`8fd5809`) e as correções (`da08d02`, junção de `d6c3651`, `1a53026`, `4ec317c` e `e8ef427`) | uma revisão e uma correção por subagentes no Sonnet, e o orquestrador | A revisão achou um defeito médio (o lote que o piso de aldeões encolhia terminava sem linha na Crônica: agora `trainingShortfall`) e quatro baixos (a adoção da formação salva, o lote sem identidade no cancelamento, agora `lotKey` e `TRAINING_CHANGED`, a frase da reserva de comida, e o salvamento de duas abas, aceito). A medição: o treino leva ~110 de ouro por partida e o ouro parado do Rápido continua (157 mil no Regular); **resposta do autor (C-9): Muralha cara em ouro na Fase E**, sem regra nova antes da Fase D. A arquitetura ganhou a seção 19c | Portão inteiro nas correções antes da junção: `verify` (155 arquivos, 13.798 testes), navegador (152) e integração (566). **O achado 2 não tem teste de unidade** (o hook não roda sem DOM; o cenário em navegador do segundo Salvar continua verde). A revisão não concluiu o `migrations.test` (ele passou depois no `verify`). **O autor não jogou a fase** (V4C-T4.5; roteiro na seção 8 das pendências): **em 2026-10-23 ele escolheu fechar a Fase C sem jogar**, como a B |
+| V4C (integração) | | | | | |
+| V4D-T1 | 2026-10-23 | **no `main`**: a T1.1 e a T1.2 (`43986c2`, `797fc35`) e o motor (junção de `d7a8529` T1.3, `243a5c2` T1.4, `52a56c8` T1.5, `4ef4f2a` T1.6, `b1ddf19` T1.7) | duas, por subagentes (Sonnet nos cenários e nos inimigos; **Opus** no motor) | `resolveBattle` pura em inteiros e frações, a família de fluxo `battle:<id>` (`battleTurn.ts`, `fightBattle`), o relatório com os três fatores decisivos (`battleReport.ts`), o **estado 30** (`army.reports`) e as propriedades. **Os sete cenários escritos à mão batem com o motor linha a linha** (`battle.test.ts` lê `docs/content-v0.4.md`); a única diferença era de ordem de apresentação no cenário 2.1, corrigida no documento. As respostas do autor D-1 a D-4 estão no GDD §10.4; as regras que o motor fechou sem o autor estão na pendência D-5. Nenhuma incursão chama a batalha | No branch: `battle random purity scenario` (161), conteúdo (521), `migrations fixtures` (8.665), integração `games-migration` (100), typecheck e lint. O portão inteiro roda no `main` depois da junção |
+| V4D-T2 a T3 | 2026-10-23 | **no `main`**: a prévia pura (`6330f08`, T2.1 e T2.3), os comandantes (junção de `1806fb4`, `84c924c`, `2636470`, T3.1 a T3.3) e a ordem `simulateBattle` com o **estado 31** (`army.preview`) e a prévia na visão (junção `95587cf` de `a70d06e` e `dc3c7ab`, T2.2, T2.4 e T2.5; pendência D-9) | subagentes (Opus nos comandantes; Sonnet na prévia) | A prévia roda 200 batalhas com o mesmo `resolveBattle` (cerca de 28 ms) e, com o inimigo conhecido, dá o mesmo relatório que a batalha real (critério 2). As auras por classe, o ferimento e a morte do comandante (só em Rei de Ferro), a experiência e o desgaste por batalha em `applyBattleOutcome`, que nenhuma incursão chama ainda; `battleFought`, `commanderInjured` e `commanderDied` na Crônica. Pendências D-6 (prévia, aberta) e D-8 (comandantes, aprovada) | **Portão inteiro no `main` com a Fase D completa (`ae9e5e1`, 2026-10-23 15:42)**: `verify` 165 arquivos, 14.732 testes; integração 566; navegador 153. Antes, **no `main` em `95587cf`**: `verify` 164 arquivos, 14.681 testes; integração 28 arquivos, 566; navegador 152 (a primeira rodada caiu porque os contêineres do banco pararam no meio, saída 255; a segunda, com eles de pé, passou inteira). Antes, em `4a781b3`: 14.246, 566 e 152 |
+| V4D-T3 | | | | | |
+| V4D-T4 | | | | | |
+| V4D-T5 | | | | | |
+| V4D (integração) | | | | | |
+| V4E-T0 | | | | | |
+| V4E-T1 | | | | | |
+| V4E-T2 | 2026-10-23 a 2026-10-26 | branch `v4e-t2-batalha` (**não está no `main`**): `8f3cb6a` (T2.2, estado 33), `ecbb591` (T2.3), `28a0443` (T2.5), `06edd70` (T2.6), `83988e0` (T2.4), `4f1a4f6`, `dae52c3` e `d1193f9` (migrations.test), `9d26c89` e `2431f21` (junção do `main` com a Muralha no estado 32 e as cartas do lote 2), `31ac7ee` (T2.7) e o commit dos documentos | subagentes (Opus) | Toda incursão é uma batalha contra a Defesa ativa e a muralha (`fightRaid`, fluxo `battle:<id>`); a composição sorteada no fluxo `horde` na marcação (`null` nas do roteiro e nas migradas, que lutam com a composição-base da estação, sem sorteio); o tamanho forte; o roteiro da guerra (dias 25, 37 e 61; o ensaio no início do 61º dia até a V4G-T1); a batalha só alivia a perda da v0.2 (decisão 14); `threat.incoming.compositionText` pela Torre; o estado 33 (passo 32 → 33 que não sorteia); a Defesa ativa no econômico e no preguiçoso (decisão 25) e as faixas remedidas (balance-v0.4.md, seção 9). Decisões do agente: D-31 a D-38; a regressão do Preguiçoso do Rápido, D-39. **Verificado no branch, depois da junção:** `pnpm typecheck` e `pnpm lint` **0**; motor sem `migrations.test` **2.561 testes** verdes e 1 falha esperada (78 arquivos) e `migrations.test` inteiro **9.736** (uma falha, as impressões dos retratos v32, corrigida em `2431f21` e conferida com o filtro); conteúdo **547**, protocolo **148**, app **2.002**; simulador sem `balance.test` **348** (17 arquivos); `balance.test` **21** verdes; as três matrizes (50 sementes) | **Não verificado:** `pnpm test:integration` e `pnpm test:e2e` (o mesmo banco do portão do `main`, que rodava ao mesmo tempo: ficam para o coordenador), `pnpm build`, o GDD §8.2 (não reescrito), o tile de saqueadores, a frase `raidBattle` da Crônica e as colunas `raids_lost` e `wall_breaches` (D-38). O autor não leu as frases da composição nem jogou. **A regressão D-39 espera o autor.** |
+| V4E-T2 (D-39) | 2026-10-26 | branch `v4e-d39` (a partir de `7afd7bd`): `9be64a0` (a regra) e o commit da remedição | subagente (Opus) | Resposta do autor à D-39, opção (b): as incursões do roteiro da guerra dos dias 25 e 37 são leves e não ferem (`warRaids.scripted[].injures`, lido por `raidInjures` pelo id da marcada; sem campo novo no estado, estado 33); a do dia 61 fica como está; a visão da incursão à vista diz "não fere ninguém"; a matriz remedida nas três dificuldades e `MEASURED` trocada (balance-v0.4.md, seção 10; nenhum bot mexido); o teste dos objetivos do Preguiçoso do Rápido voltou a `bots.test.ts`. **Verificado:** `pnpm verify` **0** no branch (lint, typecheck e `pnpm test`: **173 arquivos, 15.560 testes** verdes e 1 falha esperada, com `migrations.test` e `balance.test` inteiros, 21 neste); as três matrizes de 50 sementes (saem com 1 contra a `MEASURED` antiga, como esperado; o `balance.test` confere a nova). | **Não verificado:** `pnpm test:integration` e `pnpm test:e2e` (o banco de teste estava em uso por outro processo), `pnpm build`; a rodada da seção 9 não foi refeita (a comparação usa a tabela dela e `MEASURED`); o autor não jogou. |
+| V4E-T3 | 2026-10-27 | branch `v4e-t3-codex` (`1043e48`, o trabalho do Codex, sem commit no `main` até a revisão) e `v4e-t3-correcoes` (`19b190c`, `d2c44f0`, `c11c415`, `09a0070`, `eb09314`, `61f8cdb`, `1eb94d4`, `5e69114`, `d928c72`) | Codex (gpt sol 6.1), revisão e correções por subagentes (Opus e Sonnet) | Estado 34: a memória da última formação vista (`horde.lastFormationSeen`), as ondas preparadas no outono (`horde.wavePlan`), os presságios (`horde.omens`, `army.omens`), a astúcia por dificuldade, o Acampamento (dia 25) e a Fortaleza (outono), a finta como política do `militar`, as colunas `omens` e `fortress_day`. A revisão independente confirmou seis defeitos, corrigidos um por commit: o inimigo que ronda pela ordem alfabética dos tiles (agora `prowlingTileOrder`: Covil, Acampamento, Fortaleza; D-45a), o presságio vago que dizia a onda, a prévia da incursão que lia o presságio de uma onda do Cerco (D-45b), a memória apagada por incursão sem Defesa ativa (D-45c), a guarda 34 que aceitava os tiles em qualquer chave e os números congelados sem teste. | **Não verificado:** o Codex entregou com o `pnpm verify` vermelho (6 falhas no sim-cli); depois das correções ainda falham 5 testes de `balance.test.ts` (Taverna, Torre, Paliçada, Regular no ritmo 1, meta de desperdício), efeito dos tiles novos a remedir; integração e navegador não rodaram sobre as correções; o Preguiçoso do Rápido em Senhor sobe de 4–11 para 13–25 feridos na semana (D-43, a decidir pelo autor). |
+| V4E-T4 | 2026-10-27 | branch `v4e-t4-tela` (a partir de `1043e48`, **não está no `main`**): a T4.2, a T4.3 e a T4.4, um commit cada | subagente (Sonnet) | **T4.1 não feita:** a muralha danificada e o presságio não foram mostrados ao autor antes. **T4.2:** `components/WallPanel.tsx` no painel da Ameaça (nível, vida por ala, a Torre que dispara, o reparo em duas etapas — "Reparar a muralha…" e "Confirmar o reparo", com a conferência invalidada se o custo ou o prazo da visão mudam —, o reparo em curso com contagem), `compositionText` no aviso da incursão, `lords.repairWall` (paleta, com confirmação e releitura da oferta depois do diálogo; `controller.repairWall`, trava `wall`), "Antes de partir" com o item "Reparar…" e a incursão sem Defesa ativa (perigo, "Ativar uma formação"), o Retorno com `wallDamaged`, `wallRepaired` e `omenSeen`, e os avisos de guerra (`omenSeen`, `battleFought`, `wallDamaged`, `wallRepaired`, `campAppeared`, `fortressAppeared`) em "Todas"; `raidAnnounced` (forte ou não) já era essencial. **T4.3:** `components/OmensPanel.tsx` na aba Exército, tolerando `wave: null`; a linha inimiga da prévia (`knownEnemy`) e o relatório de batalha já existiam da V4D-T4 e a incursão sai por eles. **T4.4:** `tests/e2e/14-guerra.spec.ts` e as rotas `/__test/wall` e `/__test/omen`. **Verificado:** `pnpm --filter @lotg/web test` (53 arquivos, 2.025 testes), `pnpm lint` e `pnpm typecheck` verdes. Pendências E-T4 a decidir pelo autor: a tela da muralha não tem linha na árvore | **Não rodados:** `pnpm test:e2e` (o banco de teste estava em uso), `pnpm test:integration`, `pnpm build`, `pnpm capture:landing` e `pnpm test:e2e:landing` (a aba Feudo ganhou a caixa da muralha: as capturas da página precisam ser refeitas). **Não feitos:** cenário em navegador da incursão como batalha com `wolvesRoam()` e a Defesa ativa, e o da barra de status; o item da muralha em "Antes de partir" só tem teste de unidade (o corte de cinco itens pode escondê-lo). Ninguém viu a tela viva |
+| V4E-T5 | | | | | |
+| V4E (integração e primeira publicação) | | | | | |
+| V4F-T1 | 2026-10-28 | branch `v4f-t1-sabotagem` | uma, subagente Gemini | Modelo de expedição `sabotage` (3 variantes de 300 min, 5 nós de 60 min, Xamã no último nó; Sucesso enfraquece onda marcada em 15% até 3x; Desastre alerta a Horda com +10% na onda 1 e captura no Senhor ou mata em Rei de Ferro; escalonamento por tentativa com `guardIncreasePerAttempt`; Xamã derrotado grava presságio exato da onda 3; recusas `SABOTAGE_SEASON`, `SABOTAGE_LIMIT`, `TEAM_SIZE`; desaparecimento da Fortaleza com equipe a caminho aciona retorno pela fronteira; contadores zeram na virada do ano). Estado migrado de 37 para 38 (`horde.sabotages: { attempts, successes, alerted }`, `wavePlan.waves[].reductionPercent`); 56 retratos congelados v38 e 57 testes em `migrations-v38.test.ts`. ViewState expõe oferta com `sabotage: { attemptsLeft, wavesWeakened, alerted }`, `fit`, `heroFit`, notas de relatório e `deedsText`. 13 testes em `sabotage.test.ts`, 313 testes em `expeditions.catalog.test.ts`, 19 testes em `expeditions.calibration.test.ts`, goldens atualizados. Pendências F-1 e F-2 | **Simulador (`sim-cli`), cobertura em 50 sementes e o verify inteiro ficaram para o coordenador.** Sem integração, navegador, build, publicação ou push. O Cerco (V4G-T2) e seu golden não foram criados nesta tarefa conforme instrução; `packages/sim-cli/src/bands.ts` intocado |
+| V4F-T2 | | | | | |
+| V4F-T3 | | | | | |
+| V4F-T4 | | | | | |
+| V4F (integração) | | | | | |
+| V4G-T1 | | | | | |
+| V4G-T2 | | | | | |
+| V4G-T3 | | | | | |
+| V4G-T4 | | | | | |
+| V4G-T5 | | | | | |
+| V4G (integração e segunda publicação) | | | | | |
 | V4H-T1 | 2026-10-28 | `7d760d7`, `c58342d`, `24199ce`, `b902b00` (`v4h-t1-cartas`), `b5c009c`, `adffa9c`, `303b79b`, `c552a43`, `c778f3f`, `0d3ff45` e o desta linha (`v4h-t1-avulsas`) | duas trilhas: Codex (`v4h-t1-cartas`, e início de `v4h-t1-avulsas`) e subagente Gemini (`v4h-t1-avulsas`) | **Parcial no roadmap; escopos Mercado/Coroa e quatro avulsas concluídos (43 cartas no catálogo) com correções da revisão.** Nove cartas transcritas de §§4.4, 5.1–5.5 e 6.1–6.3 aprovados (estado **35 → 36**) e quatro avulsas de §§7.3–7.5 e 8.1 (`passingRecruiter`, `gamblingDebt`, `squareDuel`, `wanderingHealer`, estado **36 → 37**: `guild.tavern.extraOffer` e `heroes` em `council.pending`/`delayed`, passo `v36ToV37` e guarda `stateV37`). Correções da revisão independente: arbitragem intradiária eliminada com início de `marketPrice` na próxima virada de dia (achados 1 e 3; `c552a43`); guarda e filtros de efeitos vencidos do Mercado em `stateV36`/`stateV37`, `nextMarketEffectAt` e `marketView` (achado 2; `c778f3f`); testes de contrato de `council.test.ts` cobrindo `rollEffect`, `resourcesPercent`, `marketPrice` e `option.requires.flags` com exceções restritas aos IDs aprovados (achado 4; `0d3ff45`); `firstFree` do bot preferindo opção gratuita sem perda imediata e `drawable` em `coverage.test.ts` restrito a cartas sem flag de cadeia (suspeita 5); fichas aprovadas de `kingsTax` e `merchantBoycott` mantidas sem travas arbitrárias e registradas como pendência H-5 (suspeita 6). Efeitos `tavernExtraOffer`, `injureHero` e `healHero` e requisitos `heroPresent` (1 ou 2) e `injuredHero` com testes; 55 retratos v36 congelados em `FROZEN` e 56 retratos v37 gravados; goldens regravados só com `UPDATE_GOLDEN=1` e diff conferido. **Verificação em `v4h-t1-avulsas`:** testes focados verdes; `pnpm typecheck` saída **0**; `pnpm lint` saída **0**. Propostas H-1 a H-5 nas pendências | **Simulador, cobertura em 50 sementes, replay completo de `migrations.test.ts` e verify inteiro ficaram para o coordenador.** Integração e navegador não executados; sem build, publicação ou push. `bands.ts` intocado. T1.1 e demais fichas/ganchos de T1.2–T1.4 (cadeias de mercadores/Lobo Branco/aprendiz) não concluídos nesta trilha |
+| V4H-T2 | | | | | |
+| V4H-T3 | 2026-10-27 | `a6ec7ae`; T3.2 em verificação | uma | Os objetivos 17 a 21 seguem o GDD §12.2 e a decisão 24; sem substituições nem mudança de forma (estado 34, protocolo 3). Condições e recompensas no conteúdo; treino acumulado, formação salva, presságio gratuito sem sorteio e XP dos comandantes da incursão identificada; destino Exército na visão e no app. Leituras propostas H-1 a H-3 | Testes focados de conteúdo, motor, protocolo e app; goldens regravados com `UPDATE_GOLDEN=1` e 26 diffs conferidos (somente ids novos e identidade da última incursão repelida; versões anteriores intactas). Matrizes completas nas três dificuldades (50 sementes; 72 células): fome/frio/recusas em zero; Senhor sem violação, Camponês com uma e Rei de Ferro com duas células fora das faixas antigas (mesma partida nas duas janelas do Normal), registradas em H-4 e balance §13. `MEASURED` intacta, a remedir na junção. Conferência dos dois extremos com a lista de 16 confirma a mudança de caminho; `pnpm verify` (revisão de 2026-10-27): 178 de 179 arquivos verdes e só `balance.test.ts` falha, em 6 testes (Taverna, Torre, Paliçada, aldeões do Regular, meta de desperdício, excedente parado), **todos já vermelhos em `a4e94b3`** (lá eram 8: a remedição `5e69114` e a Ameaça da Fortaleza deixaram as expectativas velhas; os 2 do Codex a mais, a linha de base e a lista de objetivos, ficaram verdes). Não se editaram: são do agente que remede a matriz na junção. Corrigidos na revisão: a contagem de cumpridos em `objectives.test.tsx` (16 para o tamanho da visão). Integração, navegador e capturas não rodados: banco compartilhado; sem publicação, playtest ou leitura do autor |
+| V4H-T4 | | | | | |
+| V4H-T5 | | | | | |
+| V4H (integração) | | | | | |
+| V4I-T1 | | | | | |
+| V4I-T2 | | | | | |
+| V4I-T3 | | | | | |
+| V4I-T4 | | | | | |
+| V4I-T5 | | | | | |
+| Lançamento da v0.4.0 | | | | | |
+
+---
+## 16. Conteúdo proposto: unidades, destinos de expedição e o lote 3
+
+Ponto de partida para as tarefas de conteúdo; tudo é rascunho até o autor ler. As fichas vão para **novo** `docs/content-v0.4.md`.
+
+### 16.1 Unidades e inimigos
+
+As tabelas do GDD §10.2 e §10.3 entram como estão, em `packages/content/src/units.ts`, com os ids `spearman`, `swordsman`, `archer`, `knight`, `shieldbearer`, `militia` e `wolf`, `raider`, `banditArcher`, `blackKnight`, `ogre`, `skeleton`, `shaman`, `warlord`. O ciclo de contra-ataques é uma tabela (`counters`), e as regras especiais são campos, nunca código. O que o GDD não tem e V4A-T2.5 propõe: o número de armas que uma incursão humana perdida leva (nenhum), e a composição-base por estação do Apêndice A como pesos inteiros (Primavera 70/30; Verão 50/30/20; Outono 35/25/15/15/10).
+
+### 16.2 Destinos de expedição novos
+
+| Modelo | Requer | Aparece | Equipe | O que dá | Desastre |
+|---|---|---|---|---|---|
+| **Mina Abandonada** (`abandonedMine`) | Guilda Nv2 | Revelada pela Floresta Antiga (B-8) | 1 a 3 | 40 a 80 de ferro no último nó com prova; um item nas variantes B e C | Ferimento ou captura, nó a nó |
+| **Sabotagem** (`sabotage`) | Outono; Fortaleza ativa; 3 heróis; menos de 3 tentativas | Com a Fortaleza | Exatamente 3 | Cada nó com Sucesso: −15% em uma onda; o Xamã derrotado revela a onda 3 | Captura (pela dificuldade) e a Horda alertada (+10% na onda 1) |
+
+O Acampamento de Saqueadores não é expedição: é a batalha ofensiva do exército (V4F-T2). A Caçada ao Dragão continua fora (v0.5 ou depois).
+
+### 16.3 O lote 3 do Conselho (15 cartas) e a conta das 60
+
+| | Cartas | Cadeias | Roteirizadas |
+|---|---:|---:|---:|
+| No jogo hoje (lote 1 + "Estrangeira ferida") | 22 | 3 | 1 |
+| Lote 2, herdado (V4H-T1): 4 cadeias de 3, "O mercador itinerante" e 10 avulsas | 23 | 4 | 1 |
+| **Lote 3** (V4H-T2) | **15** | 1 | 4 |
+| **Total** | **60** | 8 | 6 |
+
+Proposta do lote 3, uma linha por carta:
+
+| Tipo | Carta | Escolha que provoca | Depende de |
+|---|---|---|---|
+| Cadeia 1/3 | A Filha do Ferreiro | Aceitar a aprendiz (forja mais rápida por um prazo) ou recusar | Ferreiro |
+| Cadeia 2/3 | O segredo da têmpera | Pagar ferro por uma arma a mais por lote, ou guardar | Ferreiro |
+| Cadeia 3/3 | A espada do Senhor | Um item raro, ou armas para a tropa | Ferreiro, Quartel |
+| Roteirizada | O primeiro recruta (Salão Nv4) | Treinar o voluntário de graça (Lanceiro) ou mandá-lo à Fazenda | Quartel |
+| Roteirizada | Os corvos do norte (1º dia de outono) | Erguer a Torre ao Nv3 com desconto ou ignorar o presságio | Outono |
+| Roteirizada | O desertor (último dia de outono) | Pagar pela composição de uma onda ou expulsá-lo | Fortaleza |
+| Roteirizada | A véspera (o dia do cerco) | Festa (moral) ou vigília (milícia pronta sem custo de produção por uma noite) | Cerco marcado |
+| Avulsa | Mercenários de passagem | Contratar 5 Espadachins por ouro e armas, por um prazo, ou recusar | Quartel |
+| Avulsa | Ferro de contrabando | Comprar barato com risco de ser falso (sorteio na virada) | Mercado |
+| Avulsa | O capitão veterano | Um herói Veterano com desconto na Taverna | Taverna |
+| Avulsa | A muralha rachada | Reparar agora com desconto ou esperar | Muralha danificada |
+| Avulsa | Saqueadores pedem passagem | Pagar comida ou arriscar uma incursão fraca a mais | Acampamento ativo |
+| Avulsa | O espião da Horda | Interrogar (presságio) ou enforcar (moral) | Fortaleza |
+| Avulsa | Conselho de Guerra | Um comandante Prudente abre "ouvir": a prévia da próxima incursão de graça | Opção extra por traço |
+| Avulsa | Depois da tempestade | Luto ou festa pelo cerco: reparo com desconto ou moral | Rescaldo |
+
+Nenhuma carta pede o que o feudo não pode ter; cada mecânica da v0.4 tem ao menos uma; os títulos e as escolhas são ponto de partida.
+
+### 16.4 Fichas obrigatórias
+
+As da v0.3 (roadmap da v0.3, §13.4), mais: a **ficha de uma unidade** (atributos, iniciativa, linha, custo, treino, contra quem, frase da tela), a **ficha de um cenário de batalha** (a entrada, a conta rodada a rodada à mão, os três fatores esperados) e a **ficha de um presságio** (clareza, o que revela, a frase).
+
+### 16.5 Guardar para as próximas versões
+
+Caçada ao Dragão; Veio de Ferro (posto avançado); relíquias e o Lendário; a Horda que lembra do ano anterior; Votos e o fator do ano na onda; Feitos completos; "Avançar para o Degelo" se a decisão 22 o descartar; os objetivos sazonais.
+
+---
+
+## Apêndice A — Modelos de prompt
+
+### A.1 Abrir uma tarefa
+
+```
+Leia CLAUDE.md, as seções do GAME_DESIGN.md indicadas na tarefa, a tarefa <ID> em docs/roadmap-v0.4.md,
+o Apêndice B do roadmap e os ADRs que a tarefa consome (docs/decisions/0019 e 0020, os que existirem).
+Trabalhe só nessa tarefa. Se uma decisão que ela consome ainda não tem ADR, pare e me pergunte,
+apresentando a premissa recomendada da §11 como padrão. Confira o Apêndice B.0 contra o código.
+Se for M ou L, escreva o plano (arquivos, nomes de eventos/recusas/campos do ViewState, passo de
+migração, testes) antes de codar.
+Escreva os testes antes da implementação onde houver regra de jogo ou contrato de API; na batalha,
+o golden antes do motor.
+Ao terminar, rode a "Verificação" da tarefa e a verificação comum (§0.9) pelo código de saída, cole
+as saídas, marque as caixas, preencha o Registro (§15) com o que foi e o que não foi verificado, e
+faça um commit "<ID>: <resumo>". Se precisar desviar do GDD, pare e me proponha um ADR antes. Não dê push.
+```
+
+### A.2 Retomar uma tarefa interrompida
+
+```
+Leia CLAUDE.md e a tarefa <ID> em docs/roadmap-v0.4.md. Veja `git status`, `git diff` e `git log -5`.
+Me diga em cinco linhas o que já está feito, o que falta e se há algo quebrado (`pnpm verify`).
+Depois continue pela próxima subtarefa não marcada.
+```
+
+### A.3 Sessão de decisões (V4A-T2 e V4E-T0)
+
+```
+Leia CLAUDE.md, docs/roadmap-v0.4.md §11 e §0.6, docs/pendencias-v0.4.md e as seções do GDD da tarefa.
+Vamos fechar o lote <N>. Para cada decisão: a pergunta em uma frase, a sua recomendação como padrão
+("se eu não disser nada, fica assim"), a alternativa e o que muda no jogo. Poucas por rodada, as que
+mudam o jogo de quem já joga primeiro. Registre em docs/decisions/<NNNN>-<titulo>.md com o que foi
+aplicado, data, alternativa descartada, razão, tarefa afetada e seção do GDD; corrija o GDD onde a
+resposta mudar uma frase ou um número; atualize a §11 do roadmap. Não preencha resposta por suposição.
+```
+
+### A.4 Revisão independente (subagente que não escreveu o código)
+
+```
+Você é um revisor que não escreveu este código. Leia CLAUDE.md, docs/roadmap-v0.4.md (a fase indicada,
+§0.7, §10.2 e §14) e os commits de <intervalo>. Não aceite teste verde como prova: para cada contrato
+da §0.7 e cada cenário QA da fase, diga se há teste que o cubra e tente quebrá-lo com um caso concreto
+(instante exato, duas abas, reenvio, migração no meio, cortes diferentes do intervalo, entidade que
+nasce e morre, o jogador fora 30 dias, três fusos).
+Procure: número de jogo fora de packages/content; regra fora de packages/engine; ponto flutuante em
+conta de jogo; sorteio em comando, em visão ou em nextEventAt (a prévia é a exceção escrita: confira
+que state.rng sai igual); fluxo de sorteio que sobrevive à entidade; composição de onda, memória da
+Horda ou presságio além da clareza saindo no ViewState; número ou frase do conteúdo no pacote do app;
+bot que lê algo além do ViewState; lista do estado sem teto; conversão entre recursos sem propriedade
+de ciclo; e qualquer campo ou botão de versão futura (mapa, relíquia, Legado, Voto, Temporada).
+Entregue uma lista de achados classificados (defeito confirmado com reprodução; risco; dúvida), cada
+um com arquivo e linha, em docs/reviews/v0.4-<fase>.md. Não corrija nada: quem corrige é a sessão
+principal, um commit por defeito, com teste de regressão.
+```
+
+### A.5 Integração de uma fase
+
+```
+Leia CLAUDE.md e docs/roadmap-v0.4.md §0.4, §0.8 e §0.9. Mescle as trilhas no main. Rode no resultado,
+um comando de cada vez, pelo código de saída: pnpm verify, a integração inteira, pnpm build,
+pnpm test:e2e, pnpm test:e2e:landing e pnpm --filter @lotg/sim-cli test. Não corrija defeito de
+mecânica aqui: registre e devolva à trilha. Atualize CLAUDE.md, docs/architecture.md e os READMEs
+com o que a fase tornou falso. Preencha a linha "V4x (integração)" do Registro com as contagens, o
+que quebrou e o que não foi rodado. Se a fase é publicável (decisão 26): backup manual do banco,
+SHA de retorno anotado, nota em deploy/README.md, e me avise. Não dê push.
+```
+
+### A.6 Definição de pronto (vale para toda tarefa)
+
+- [ ] Comandos da "Verificação" executados, com saída colada e o código de saída conferido.
+- [ ] `pnpm verify` verde; integração, navegador e simulador quando a tarefa toca servidor, app ou motor; a matriz quando toca motor ou conteúdo.
+- [ ] Nenhum número de jogo fora de `packages/content`; nenhuma regra fora de `packages/engine`; nenhum ponto flutuante em conta de jogo; nenhuma conversão de tempo no app; nenhum sorteio fora de `advanceTo` (fora a exceção escrita da prévia).
+- [ ] Passo de migração escrito e testado quando a forma do estado mudou; retratos da versão anterior congelados antes de subir.
+- [ ] Golden regravado de propósito, com o diff lido; GDD atualizado se a regra mudou.
+- [ ] Documentação tocada quando o comportamento mudou (README do pacote, `docs/architecture.md`, `CLAUDE.md`, `deploy/README.md`).
+- [ ] Caixas marcadas; Registro preenchido (com o que não foi verificado); ADR criado se houve desvio.
+- [ ] Um commit `<ID>: <resumo>`; `main` continua verde; nenhum `push`.
+
+### A.7 Sessão típica (exemplo com V4A-T1, a primeira)
+
+1. Você: o prompt de V4A-T1.
+2. Agente: lê, roda `git status -sb`, `git log`, `git worktree list`, consulta `GET /v1/version` e confirma o commit de partida, o estado 24 e o protocolo 3. Você responde às duas perguntas de V4A-T1.1 (a migração no banco; o log do job).
+3. Agente: roda o portão inteiro, as cinco matrizes, `--perf` e a carga; mede os tamanhos.
+4. Agente: confere o Apêndice B.0 contra o código e corrige o que divergir; escreve `docs/balance-v0.4.md` (seção 1) e `docs/pendencias-v0.4.md`; revisa a §12.
+5. Agente: confere links por script, marca V4A-T1.1 a T1.12, preenche o Registro e faz o commit `V4A-T1: confere a herança da v0.3 e mede a linha de base`.
+6. Você: lê `docs/pendencias-v0.4.md` e abre a sessão de decisões (V4A-T2).
+
+---
+
+## Apêndice B — Contratos de dados propostos da v0.4
+
+Referência única dos **nomes propostos** para estado, comandos, eventos, recusas e `ViewState`. Cada tarefa confirma ou ajusta os seus e atualiza este apêndice; nenhum campo entra antes da tarefa que o usa (regra 6 do `CLAUDE.md`). Tudo em tempo de jogo no estado e em tempo real no `ViewState`.
+
+### B.0 O que a v0.3 entrega e a v0.4 usa
+
+**Conferido em 2026-10-15, no commit `561b0ff`** (estado 24, protocolo 3), por leitura do código; nenhum teste foi rodado para esta conferência. V4A-T1.3 reconfere.
+
+| Mecânica da v0.4 | O que ela usa da v0.3 | Onde está | O que a conferência achou |
+|---|---|---|---|
+| Toda tarefa que muda o estado | `migrateState`, um passo por versão, retratos congelados, `context.boundaryMs`, recusa de versão futura, guarda de forma | `packages/engine/src/migrations.ts`, `migrations/v1.ts` a `v24.ts`, `migrations/shape.ts`, `__fixtures__/` | `CURRENT_SCHEMA_VERSION` **24**; `GameState.schemaVersion: 24`; 598 retratos `.json`, 44 da versão 24. O primeiro passo da v0.4 é 24 → 25. `MigrationContext` traz só `timeScale`; o `StepContext`, que cada passo recebe, acrescenta `boundaryMs` (`migrations/step.ts`). A origem real da Vigília pede um campo novo no contexto (decisão 13) (a origem real da Vigília pede um campo novo: decisão 13) |
+| Batalha, prévia, Horda, presságios | Gerador xoshiro128\*\* com fluxos fixos e por entidade; `dropStream`; só `advanceTo` sorteia | `random.ts` | `RNG_VERSION` 1; `RNG_STREAMS = ['council', 'morale', 'horde', 'tavern', 'market']`; `RNG_STREAM_FAMILIES = ['expedition', 'caravan']`. A família `battle` é nova; a prévia não pode usar `state.rng` (decisão 10) |
+| Identidades (formação, batalha, campanha) | `nextId(draft, tipo)` por contador em `state.ids` | `ids.ts` | Tipos hoje: `hero`, `offer`, `expedition`, `item`, `caravan`, `master`. Novos: `formation`, `battle` |
+| Ferro | `RESOURCE_IDS`, `MARKET_RESOURCE_IDS`, `storage.ts`, `market*.ts`, `caravanOrders.ts` | `packages/content/src/ids.ts`, `balance.ts` | `RESOURCE_IDS = ['food', 'wood', 'stone', 'gold']`; `MARKET_RESOURCE_IDS = ['food', 'wood', 'stone']`; `market.caravan.priceRatio` 23/20, `slotsByLevel [0,1,1,2,2]`; a guarda da versão 24 escreve os limites do Mercado (E-59): **mudar um deles pede versão nova** |
+| Ferreiro, Quartel, Muralha, Torre | `BUILDING_IDS` (treze), `buildings.ts`, `construction.ts`, as duas filas, `UpgradeView.effect` | `packages/content/src/buildings.ts` | Torre (`watchtower`) e Paliçada (`palisade`) em `maxLevel: 2`, com a recusa que promete versão futura; a Taverna, a Guilda e o Mercado são o molde do edifício que nasce no nível 0 com teste "cabe no depósito" |
+| Soldados | `population.villagers`, `inhabitants`, o piso (`aboveFloor` só conta aldeões), a fila de recrutamento, os feridos | `population.ts`, `masters.ts`, `raids.ts` | O Mestre é "um braço a mais" fora dos aldeões: o molde de um habitante que não é aldeão |
+| Comandante de ala | `Hero` com `status: 'idle' \| 'expedition' \| 'escort' \| 'injured' \| 'captured'`, `injury`, `captivity`, `equipment` (3 espaços), `freedAtMs`; `heroCapture` por dificuldade; auras não existem | `types.ts`, `heroes.ts`, `content/heroes.ts` | Os traços têm só os efeitos que a v0.3 usa (C-7: a aura do Veterano não existe); `power` = ataque + defesa + vida/10 |
+| Sabotagem, Mina Abandonada | O motor de expedições: `ExpeditionModelDef` com `requires`, `access`, nós com `onDisaster`, `rewards` (`resources`, `items`, `reveals`, `clearsTile`, `rescues`, `master`), três variantes, `STABLE_IDS`, os goldens de calibragem e catálogo | `content/expeditions.ts`, `missions/*.ts`, `engine/expedition*.ts` | Seis modelos (`patrol`, `oldForest`, `wolfDen`, `rescue`, `ruins`, `swamp`); `slotsByGuildLevel [1,2,2,3]`, `reportsKept 3`, `crossroadsWaitRealMs` 12 h. `expeditions.test.ts` (o `it` na linha 679, a expressão na 683) barra ferro, arma, relíquia, planta, unidade, presságio, exército, mestre e mercado nas frases e recompensas |
+| Incursões como batalha | `ScheduledRaid { id; atMs; kind; enemy; size; announcedAtMs }`, `raids.scripted` (só `wolvesYear1`), `raids.damage.wolves`, `settleRaids`, `palisadeLevels`, `palisadeBreach` | `types.ts`, `raids.ts`, `hordeTurn.ts`, `balance.threat`, `balance.raids` | `ENEMY_IDS = ['wolves']`; `RAID_SIZE_IDS = ['light', 'medium']`; a Ameaça com `perActiveTilePerDay 2`, `seasonPerDay { autumn: 3 }`, `raidChanceAbove 40`, `mediumRaidAbove 70`, `raidDrop 35`, `raidLeadMs` 6 h, `tileClearedDrop 30`; `watchtowerLevels` com duas entradas (1 h e 2 h reais) |
+| Tiles (Fortaleza, Acampamento) | `map.tiles: Record<string, MapTile>`, `MapTile { type; threatActive }`, `map.discovered`, `restoreTiles` na virada do ano, `threat.seasonEnemy` | `types.ts`, `threat.ts`, `content/tiles.ts` | `tileTypes` só `wolfDen`; `startingTiles` um; `enemies` só `wolves` com frases por tamanho |
+| Hora da Vigília | `GameSettings { settlementName; timezone; vigilHourLocal; difficulty; timeScale }`; `games.vigil_hour`, `games.created_at`, `games.time_scale`; `realToGameMs` | `types.ts`, `units.ts`, `server/db/schema.ts`, `games/service.ts`, `web/tabs/Settings.tsx` | **O fuso e a hora já estão no estado** e não são usados por nenhuma regra; não há origem em tempo real no estado; o app grava `vigilHour` nas Preferências |
+| Decisão entre ondas | `pendingDecisions` como união fechada por `kind` | `protocol/src/view.ts` (`PendingDecisionSchema`) | `z.discriminatedUnion('kind', [card, crossroads])`: a terceira sobe o protocolo para 4 |
+| Crônica do Ano | `GET /chronicle`, `/chronicle.md?links=1`, `chronicleRows`, `CHRONICLE_HIDDEN_EVENT_TYPES`, `game_events`, `stats` | `server/src/games/*`, `protocol` | Não há evento de fim de ano nem rota por ano; `yearStarted` existe |
+| Cartas | `scripted`, `COUNCIL_EFFECT_TYPES` (`resources`, `morale`, `setFlag`, `clearFlag`, `scheduleCard`, `addHero`), requisitos (`seasons`, `minDay`, `buildings`, `flags`, `notFlags`, `moralRange`), 22 cartas | `content/council.ts`, `cards/*.ts`, `council.test.ts` | O teste da linha 345 barra ferro, ferreiro, exército, combate, batalha, soldado, presságio, relíquia, quartel, muralha, horda e cerco; `deliverMaster` existe sem carta que o chame; `market.effects` não existe |
+| Ordem do mesmo instante | `processEventsAt` | `advance.ts` (linhas 125 a 176) | `finishConstructions` → `finishRecruitments` → `recoverInjured` → `settleMasterArrivals` → `recoverHeroes` → `processCalendar` → `settleMasterArrivals` → `settleCouncil` → `settleHeroArrivals` → `finishAdaptations` → `settleRaids` → `settleTavern` → `settleExpeditions` → `settleCaravans` → `settlePlanned` → `settleScarcity` |
+| Simulador | Bots `economico`, `preguicoso`, `explorador`, `ousado`, `especulador`; `--matrix --profile`, `--expeditions`, `--perf`, `--remote`, `--smoke`; `goldTable`; `MEASURED` | `packages/sim-cli/src/bots/*`, `matrix.ts`, `bands.ts` | Não há `militar` (GDD §15.3 o nomeia); nenhuma coluna de exército ou cerco |
+| App | Abas Hoje, Feudo, Conselho, Guilda, Mercado, Crônica; `guildOrder`; a conferência em duas etapas; `VIEW_FORMAT 2`; `CACHE_VERSION '3.2'` | `packages/web/src` | Não há aba Exército; `tests/e2e/server.ts` tem rotas `/__test/*` (`hero`, `item`, `crossroads`, `captive`, `master`, `reveal`, `threat`, `stock`, `raise`…) como molde das novas |
+
+### B.1 `GameState`: o que a v0.4 acrescenta, por tarefa
+
+```ts
+type GameState = {
+  // …tudo o que a v0.3 deixa…
+  schemaVersion: 37;                                   // a contagem prevista; cada tarefa fixa a sua
+  settings: { …; realOriginMs: number; vigil: { hourLocal: number; utcOffsetMinutes: number } };  // V4G-T1 (35)
+  rng: Record<string, number[]>;                       // + 'battle:<id>' (V4D-T1), apagado no fim do instante
+  settlement: {
+    buildings: Record<BuildingId, number>;             // + smithy (V4B-T2, 26), barracks (V4C-T1, 28); palisade até 6 e watchtower até 5 (V4E-T1)
+    resources: Record<ResourceId, number>;             // + iron (V4B-T1, 25; com cap no Armazém), weapons (V4B-T2; sem cap)
+    forge: { kind: 'weapons'; amount } | { kind: 'repair'; itemId } & { startedAtMs; endsAtMs } | null;  // V4B-T2, V4B-T3 (27)
+    wall: { hp: Record<WingId, number> };              // V4E-T1 (31)
+    wallRepair: { untilMs: number; toHp: number } | null;
+    militia: { count: number; untilMs: number } | null;    // V4G-T2 (36)
+    reconstructionUntilMs: number | null;              // V4G-T2
+  };
+  army: {                                              // V4C-T1 (28)
+    units: Record<UnitId, number>;
+    training: { unit: UnitId; amount: number; startedAtMs: number; endsAtMs: number } | null;
+    formations: Formation[];                           // V4C-T2 (29); até balance.army.formationsCap
+    activeFormationId: string | null;
+    reports: BattleReport[];                           // V4D-T1 (30); até balance.battle.reportsKept
+    preview: BattlePreview | null;                     // V4D-T2
+    campaign: { formationId; tile; departsAtMs; battleAtMs; returnsAtMs } | null;  // V4F-T2 (34)
+    battlePlan: Record<1 | 2 | 3, string | null>;      // V4G-T2 (36)
+  };
+  horde: {
+    scheduledRaids: ScheduledRaid[];                   // + composition (V4E-T2, 32), size 'strong'
+    lastFormationSeen: FormationSummary | null;        // V4E-T3 (33)
+    omens: Omen[];                                     // V4E-T3; teto balance.omens.cap
+    sabotages: { attempts: number; successes: number; alerted: boolean };  // V4F-T1 (34); zera na virada do ano
+  };
+  siege: { atMs: number; waves: Wave[]; current: 0 | 1 | 2 | 3; result: 'glorious' | 'victory' | 'fall' | null } | null;  // V4G-T2 (36)
+  market: { …; prices/previousPrices/tradedToday com iron; effects: MarketEffect[] };  // V4B-T1 (25); V4H-T1 (37)
+  map: { tiles: Record<string, MapTile> };             // + hordeFortress, raiderCamp (V4E-T3)
+  stats: Record<string, number>;                       // + weaponsForged, soldiersTrained, battlesFought, battlesSimulated, raidsRepelled, sabotages, siegeResult:<ano>…
+};
+
+type Formation = {
+  id: string; name: string;
+  posts: Record<WingId, Record<LineId, { unit: UnitId; count: number } | null>>;
+  commanders: Record<WingId, string | null>;            // heroId
+};
+type Item = { id; defId; condition: number };          // V4B-T3 (27)
+type Hero = { …; status: … };                           // sem estado novo: o comandante é campo da formação (decisão 8)
+```
+
+### B.2 Comandos novos
+
+| Comando | Payload | Tarefa | Recusas |
+|---|---|---|---|
+| `forgeWeapons` | `{ amount }` | V4B-T2 | `SMITHY_REQUIRED`, `FORGE_BUSY`, `INVALID_AMOUNT`, `INSUFFICIENT_RESOURCES` |
+| `cancelForge` | `{}` | V4B-T2 | `NO_FORGE` |
+| `repairItem` | `{ itemId }` | V4B-T3 | `SMITHY_REQUIRED`, `FORGE_BUSY`, `ITEM_NOT_FOUND`, `ITEM_INTACT`, `INSUFFICIENT_RESOURCES` |
+| `trainSoldiers` | `{ unit, amount }` | V4C-T1 | `BARRACKS_REQUIRED`, `TRAINING_BUSY`, `ARMY_LIMIT`, `NOT_ENOUGH_VILLAGERS`, `INVALID_AMOUNT`, `INSUFFICIENT_RESOURCES` |
+| `cancelTraining`, `disbandSoldiers` | `{}`, `{ unit, amount }` | V4C-T1 | `NO_TRAINING`, `INVALID_AMOUNT` |
+| `saveFormation` | `{ id: string \| null, name, posts, commanders }` | V4C-T2 | `FORMATIONS_CAP`, `FORMATION_NOT_FOUND`, `INVALID_FORMATION`, `HERO_UNAVAILABLE` |
+| `deleteFormation`, `setActiveFormation` | `{ formationId }` | V4C-T2 | `FORMATION_NOT_FOUND`, `FORMATION_ACTIVE` |
+| `simulateBattle` | `{ formationId }` | V4D-T2 | `BARRACKS_REQUIRED`, `FORMATION_NOT_FOUND` |
+| `repairWall` | `{}` | V4E-T1 | `WALL_INTACT`, `REPAIR_BUSY`, `INSUFFICIENT_RESOURCES` |
+| `attackCamp` | `{ formationId }` | V4F-T2 | `ARMY_AWAY`, `CAMP_NOT_FOUND`, `NO_SOLDIERS`, `FORMATION_NOT_FOUND` |
+| `setBattlePlan` | `{ wave, formationId \| null }` | V4G-T2 | `FORMATION_NOT_FOUND`, `SIEGE_STARTED` |
+| `swapWaveFormation`, `emergencyRepair` | `{ formationId }`, `{}` | V4G-T2 | `NO_WAVE_DECISION`, `INSUFFICIENT_RESOURCES` |
+| `callMilitia` | `{ count }` | V4G-T2 | `MILITIA_NOT_ALLOWED`, `MILITIA_ACTIVE`, `INVALID_AMOUNT` |
+| `sendExpedition` | (o de hoje) | V4F-T1 | + `SABOTAGE_SEASON`, `SABOTAGE_LIMIT`, `TEAM_SIZE`; + `HERO_BUSY` para o comandante da formação ativa (V4C-T2) |
+
+Toda recusa entra em `REJECTION_CODES` do motor e do protocolo, com o teste de igualdade de tipos, e tem de ser alcançável (`commands.test.ts`).
+
+### B.3 Eventos novos (`EVENT_TYPES` e `chronicleTemplates`)
+
+`weaponsForged`, `forgeQueued`, `forgeCancelled`, `itemWorn`, `itemRepaired` (B); `trainingStarted`, `soldiersTrained`, `soldiersDisbanded`, `formationSaved`, `formationActivated`, `formationDeleted` (C); `battleFought`, `battleSimulated` (escondido da Crônica), `commanderInjured` (D); `wallDamaged`, `wallRepairStarted`, `wallRepaired`, `raidBattle`, `omenSeen`, `fortressAppeared`, `campAppeared` (E); `hordeSabotaged`, `hordeAlerted`, `armyMarched`, `campAssaulted`, `armyReturned` (F); `siegeScheduled`, `siegeWaveFought`, `siegeWon`, `siegeGlorious`, `siegeFell`, `militiaCalled`, `militiaDisbanded`, `warlordSlain`, `reconstructionStarted`, `yearEnded` (G). Os marcadores novos: `{unidade}`, `{ala}`, `{fatores}`, `{onda}`.
+
+### B.4 `ViewState`: campos novos
+
+| Onde | Campo | Tarefa |
+|---|---|---|
+| `resources` | `iron` (com cap, `breakdown`, `depletesInSeconds`), `weapons` | V4B-T1, V4B-T2 |
+| `market.prices` | `iron` (sem caravana) | V4B-T1 |
+| **novo** `smithy` | `built`, `level`, `forge`, `perWeaponSeconds`, `offer`, `repairOffers[]` | V4B-T2, V4B-T3 |
+| `guild.heroes[].equipment[]`, `guild.inventory[]` | `conditionText`, `repairable` | V4B-T3 |
+| **novo** `army` | `built`, `level`, `cap`, `units[]`, `training`, `offer[]`, `formations[]` (com `shortfall`, `isActive`, `previewStale`), `editor`, `preview`, `omens[]`, `campaign`, `battlePlan`, `reports[]` | V4C-T1 a V4G-T2 |
+| `population` | `soldiers`, `militia` | V4C-T1, V4G-T2 |
+| `guild.heroes[]` | `commanding: { formationName; wing } \| null`, `auraText` | V4C-T2, V4D-T3 |
+| `threat.defense` | `wall { levelLabel; hp[]; repairOffer }`, `tower { damageText; revealsComposition }` | V4E-T1 |
+| `threat.incoming` | `knownComposition[]` (por nível da Torre) | V4E-T2 |
+| `threat.tiles[]` | a Fortaleza e o Acampamento, com o que cada um faz | V4E-T3 |
+| **novo** `siege` | `scheduledInSeconds`, `vigilText`, `waves[]` (só o que se sabe), `current`, `plan`, `result`, `rescaldoText` | V4G-T2 |
+| `pendingDecisions[]` | `{ kind: 'siegeWave', wave, decidesInSeconds, options }` (**protocolo 4**) | V4G-T2 |
+| **novo** `year` | `number`, `endsInSeconds`, `chronicleAvailable` | V4G-T3 |
+
+### B.5 Conteúdo novo (`@lotg/content`)
+
+`units.ts` (unidades, inimigos, contra-ataques, composições por estação), `omens.ts`, `feats.ts`, `missions/abandonedMine.ts`, `missions/sabotage.ts`, `cards/*` dos lotes 2 e 3; em `balance.ts`: `resources.iron`, `smithy`, `army`, `battle`, `wall`, `horde`, `omens`, `siege`, `score`; em `buildings.ts`: `smithy`, `barracks`, os níveis novos da Torre e da Paliçada; em `tiles.ts`: `hordeFortress`, `raiderCamp`, os inimigos novos; em `difficulties[]`: `cunning`, `siegeFactor`. Tudo com schema zod e teste de conteúdo, e os ids fixados em teste.
+
+---
+
+## Mudanças propostas fora deste arquivo
+
+Nada além de `docs/roadmap-v0.4.md` foi editado nesta revisão. O que ela achou que pede mudança em outro lugar, para quem executar V4A-T1 ou o autor:
+
+1. **`CHANGELOG.md`**: a 0.3.0 está datada de 2026-10-07; a publicação foi em 2026-10-15. A seção "O que muda nas partidas em andamento" diz "o lote 2 do Conselho pode ter subido a versão" e "Objetivos 11 a 16 e o lote 2": o lote 2 **não entrou** (F-3).
+2. **`CLAUDE.md`**: descreve a v0.3 como em execução e a publicação como pendente; a lista do estado por fase, a regra 6 ("ainda é erro: … ferro no Mercado (v0.4)…") e o regime de `push` precisam do estado de 2026-10-15 e, a partir da Fase B, da v0.4 em execução. V4A-T1.12 entrega a lista; a integração da Fase B aplica.
+3. **`docs/retomada-v0.3.md`**: diz "apague-o quando a versão fechar (a tag `v0.3.0`)"; a tag ainda não existe. Fica até o ato 27.
+4. **`docs/roadmap-v0.3.md`**, §12: a linha V3G-T5 diz "o lote 3 depende do lote 2, que ficou fora"; o destino do lote 2 passa a ser a decisão 1 deste roadmap.
+5. **`GAME_DESIGN.md`**: §12.2 lista os objetivos `[v0.4]` sem id; §4.3 pede o fuso IANA, que já está no estado; §11.2 tem o fator do ano e os Votos (v0.5) na fórmula; §10.8 e §11.2 não dizem se "60 min" é real ou de jogo. Tudo isso é da sessão de decisões (V4A-T2.4 e V4E-T0.3), não desta revisão.
+6. **`docs/decisions/README.md`**: ganhará as linhas 0019 e 0020 nas sessões.
+7. **`packages/content/src/council.test.ts`** (linha 345) e **`expeditions.test.ts`** (linha 683): as expressões regulares que barram as palavras da guerra serão afrouxadas carta a carta e recompensa a recompensa, nas tarefas B1, H1 e H2, nunca de uma vez.
+8. **Limpeza do repositório** (não é tarefa): `.hermes.md` na raiz sem rastreio; as árvores `worktree-agent-*` e o branch `e2e-fixes` sobrando da v0.3 (`git worktree prune`); o banco `lotg_test_e2e`.

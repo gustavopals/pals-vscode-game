@@ -265,6 +265,12 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     label === undefined
       ? `Um Mestre só trabalha em edifício produtivo: ${PRODUCTION_PLACES}.`
       : `${label}: esse edifício ainda não foi erguido, e o Mestre não tem onde trabalhar.`,
+  // A Sabotagem da Fortaleza (V4F-T1; GDD §9.5).
+  SABOTAGE_SEASON: () => 'A sabotagem da Fortaleza só pode ser feita durante o outono.',
+  SABOTAGE_LIMIT: ({ count = balance.horde.sabotage.maxPerYear }) =>
+    `A Fortaleza só pode ser sabotada até ${count} vezes por ano.`,
+  TEAM_SIZE: ({ count = 3 }) =>
+    `A sabotagem da Fortaleza pede uma equipe de exatamente ${count} heróis.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

@@ -2254,6 +2254,7 @@ describe('ViewStateSchema', () => {
       sendBlockedReason: null,
       firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
       rescue: false,
+      sabotage: null,
     };
     expect(parse({ ...view.guild, available: [offer] })).toBe(true);
     // Sem prova no primeiro trecho não há régua; a sorte e os pesos do nó nunca saem.

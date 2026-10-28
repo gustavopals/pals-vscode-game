@@ -18,6 +18,7 @@ import { rescue } from './missions/rescue';
 import { ruins } from './missions/ruins';
 import { swamp } from './missions/swamp';
 import { abandonedMine } from './missions/abandonedMine';
+import { sabotage } from './missions/sabotage';
 import { wolfDen } from './missions/wolfDen';
 
 /**
@@ -49,6 +50,10 @@ export type ExpeditionReward = {
   readonly clearsTile?: string;
   readonly rescues?: true;
   readonly master?: ExpeditionMasterDrop;
+  /** Enfraquece a onda da Horda correspondente em 15% (V4F-T1). */
+  readonly weakensWave?: 1 | 2 | 3;
+  /** Revela a composição da onda da Horda correspondente (V4F-T1). */
+  readonly revealsWave?: 1 | 2 | 3;
 };
 
 /**
@@ -77,6 +82,8 @@ export type ExpeditionTrial = {
   readonly helps: HeroClassId;
   readonly lesson?: string;
   readonly outcomes: Record<ExpeditionOutcomeId, string>;
+  /** No Desastre, alerta a Horda aumentando em 10% a primeira onda (V4F-T1). */
+  readonly alertsHorde?: true;
 };
 
 /** Os tipos de nó que a equipe atravessa em um tempo: tudo menos a encruzilhada e o retorno. */
@@ -152,6 +159,12 @@ export type ExpeditionRequires = {
   readonly minHeroLevel: number;
   /** As classes de que a equipe precisa de ao menos um herói. */
   readonly classes: readonly HeroClassId[];
+  /** Estação em que o destino pode ser enviado (V4F-T1). */
+  readonly season?: 'spring' | 'summer' | 'autumn' | 'winter';
+  /** Tile de ameaça exigido ativo (V4F-T1). */
+  readonly tile?: string;
+  /** Tamanho exato da equipe exigido (V4F-T1). */
+  readonly teamSize?: number;
 };
 
 /**
@@ -196,6 +209,7 @@ export const expeditionModels: readonly ExpeditionModelDef[] = [
   ruins,
   abandonedMine,
   swamp,
+  sabotage,
 ];
 
 /**
@@ -325,6 +339,9 @@ export const expeditionTexts = {
   reportCleared: 'Limpo: {lugar}.',
   reportRescued: '{heroi} ganhou a liberdade.',
   reportMaster: '{mestre} tomou a estrada do feudo.',
+  reportWeakenedWave: 'Enfraqueceu a {onda} da Horda.',
+  reportAlertedHorde: 'A Horda foi alertada por intrusos: a primeira onda virá reforçada.',
+  reportRevealedWave: 'Revelou a composição da terceira onda da Horda.',
   reportLootLost: 'A cobiça pesou: o que a equipe juntou neste trecho ficou pelo caminho.',
   /**
    * O que o Revés e o Desastre ensinam quando não é a classe que faltou (essa frase é do nó,

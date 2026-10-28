@@ -542,3 +542,12 @@ A revisão independente das cartas levantou a suspeita de faltarem travas de nar
 1. Em `kingsTax` (§6.1, imposto do rei, recorrente): responder `pay` ou `negotiate` não grava flag, permitindo em tese que o sorteio tire a carta novamente no mesmo ano ou estação.
 2. Em `merchantBoycott` (§5.4): a carta requer apenas `flags: ['merchant.hostile']`, podendo sair no início do outono em paralelo à continuação `merchantFinalOffer` (§5.3) antes de uma possível trégua (`peace`).
 Como as fichas aprovadas pelo autor em `docs/content-v0.4.md` (§§5.4 e 6.1) não preveem trava sazonal em `kingsTax` nem `notFlags: ['merchant.lead', 'merchant.sold']` em `merchantBoycott`, as cartas foram mantidas exatamente como aprovadas, sem alterações de conteúdo pelo agente. A decisão sobre acrescentar essas travas fica para o autor.
+
+## V4F-T1 — Sabotagem da Fortaleza (2026-10-28)
+
+**F-1. Duração da expedição de sabotagem e profundidade do grafo.** _(Proposta do agente; não lida pelo autor.)_
+O roadmap (§§V4F-T1, 16.2) e o GDD §9.5 mencionam informalmente "6 h de jogo", enquanto os esquemas do motor (`ExpeditionVariantSchema`, `expeditions.ts`) fixam `maxDepth: 5` nós por caminho e `maxNodeMs: 60 min` (3.600.000 ms), resultando em duração total de 300 min (5 h de jogo) em todos os ramos das três variantes. Manteve-se conservadoramente a restrição existente da engine (5 nós de 60 min = 300 min) para total conformidade estrutural com os validadores e os limites de calibragem.
+
+**F-2. Versão do esquema de estado (37 → 38).** _(Proposta do agente; não lida pelo autor.)_
+O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
+

@@ -774,6 +774,13 @@ export type HordeMindDef = {
    * formação que é daquela unidade. O Escudeiro não é vencido por ninguém (0).
    */
   readonly counterWeights: Record<UnitId, number>;
+  /** Sabotagem da Fortaleza (GDD §9.5; ADR 0020, decisão 17; V4F-T1). */
+  readonly sabotage: {
+    readonly maxPerYear: number;
+    readonly waveReduction: Ratio;
+    readonly alertIncrease: Ratio;
+    readonly guardIncreasePerAttempt: Ratio;
+  };
 };
 
 /** Os presságios (GDD §11.1; ADR 0020, decisão 18). */
@@ -1338,6 +1345,12 @@ export const balance: Balance = {
   // Propostas do agente, D-21 a D-23, respondidas pelo autor: astúcia do ADR 0020 (3/10, 1/2, 4/5).
   horde: {
     counterWeights: { spearman: 100, swordsman: 100, archer: 100, knight: 100, shieldbearer: 0 },
+    sabotage: {
+      maxPerYear: 3,
+      waveReduction: { num: 3, den: 20 },
+      alertIncrease: { num: 1, den: 10 },
+      guardIncreasePerAttempt: { num: 1, den: 10 },
+    },
   },
   omens: {
     chancePercent: 35,

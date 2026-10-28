@@ -245,6 +245,8 @@ export const EXPEDITION_MODEL_IDS = [
   // V4B-T1: a Mina Abandonada, o único destino que rende ferro (ADR 0019, decisão 3).
   'abandonedMine',
   'swamp',
+  // V4F-T1: a sabotagem da Fortaleza da Horda (ADR 0020, decisão 17).
+  'sabotage',
 ] as const;
 export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];
 

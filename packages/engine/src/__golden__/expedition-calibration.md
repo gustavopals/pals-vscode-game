@@ -27,6 +27,9 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Pântano Nebuloso | Alto | Fraca: Mago + Clérigo + Clérigo Nv1 | 59% | 6% / 92% / 2% | 16% / 69% / 15% | 2% / 15% |
 | Pântano Nebuloso | Alto | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 80% | 20% / 80% / 0% | 53% / 44% / 2% | 0% / 2% |
 | Pântano Nebuloso | Alto | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 100% | 76% / 24% / 0% | 74% / 26% / 0% | 0% / 0% |
+| Sabotagem da Fortaleza | Alto | Fraca: Clérigo + Clérigo + Clérigo Nv1 | 41% | 0% / 98% / 2% | 41% / 59% / 0% | 2% / 0% |
+| Sabotagem da Fortaleza | Alto | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 52% | 14% / 86% / 0% | 21% / 77% / 2% | 0% / 2% |
+| Sabotagem da Fortaleza | Alto | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 97% | 79% / 21% / 0% | 66% / 34% / 0% | 0% / 0% |
 
 ## Cada prova, para as três equipes
 
@@ -96,6 +99,21 @@ Em 31 sortes:
 | Pântano Nebuloso | C | A maldição dos enforcados | 150 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 0/16/15/0 | 0/4/27/0 | 0/19/12/0 |
 | Pântano Nebuloso | C | O canal escuro | 104 | o padrão | Guerreiro | fere | 0/10/21/0 | 0/23/8/0 | 12/19/0/0 |
 | Pântano Nebuloso | C | A serpente do lodo | 134 | perícia ×0,5 | Guerreiro | captura | 0/0/31/0 | 0/11/20/0 | 0/25/6/0 |
+| Sabotagem da Fortaleza | A | As trincheiras da vanguarda | 110 | o padrão | Guerreiro | fere | 0/1/30/0 | 0/18/13/0 | 6/25/0/0 |
+| Sabotagem da Fortaleza | A | Os cercados das feras | 124 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 11/20/0/0 | 0/23/8/0 | 12/19/0/0 |
+| Sabotagem da Fortaleza | A | As oficinas de cerco | 124 | perícia ×1,5 | Arqueiro | fere | 0/22/9/0 | 13/18/0/0 | 28/3/0/0 |
+| Sabotagem da Fortaleza | A | O bastião dos guardas negros | 158 | defesa ×1,5 | Guerreiro | captura | 0/0/20/11 | 0/0/29/2 | 0/10/21/0 |
+| Sabotagem da Fortaleza | A | O altar do xamã de sangue | 112 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/29/2 | 0/10/21/0 | 0/24/7/0 |
+| Sabotagem da Fortaleza | B | O desfiladeiro das sentinelas | 110 | perícia ×1,5 | Arqueiro | fere | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
+| Sabotagem da Fortaleza | B | Os canis de guerra | 122 | defesa ×1,5 | Guerreiro | fere | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
+| Sabotagem da Fortaleza | B | As cisternas da guarnição | 122 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 13/18/0/0 | 0/24/7/0 | 13/18/0/0 |
+| Sabotagem da Fortaleza | B | O salão das caveiras | 150 | vontade ×1,5 | Mago | captura | 0/26/5/0 | 0/22/9/0 | 11/20/0/0 |
+| Sabotagem da Fortaleza | B | O círculo de ossos do xamã | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
+| Sabotagem da Fortaleza | C | O parapeito ruído da muralha | 110 | perícia ×1,5 | Arqueiro | fere | 7/24/0/0 | 25/6/0/0 | 31/0/0/0 |
+| Sabotagem da Fortaleza | C | Os estábulos da matilha | 136 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 1/26/4/0 | 0/14/17/0 | 2/26/3/0 |
+| Sabotagem da Fortaleza | C | O depósito de óleo e breu | 122 | defesa ×1,5 | Guerreiro | fere | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
+| Sabotagem da Fortaleza | C | O paiol fortificado | 152 | perícia ×1,5 | Arqueiro | captura | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
+| Sabotagem da Fortaleza | C | O santuário dos totens | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
 
 ## Cada opção de encruzilhada
 
@@ -155,6 +173,15 @@ Em 31 sortes:
 | Pântano Nebuloso | C | Desfazer a maldição da árvore | Ousada | Clérigo | Mago + Clérigo + Clérigo Nv3 (passa em 37%) | Guerreiro + Arqueiro + Mago Nv1 (não pode) | 12 de 20 |
 | Pântano Nebuloso | C | Passar ao largo, pelo canal | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Mago + Clérigo + Clérigo Nv3 (passa em 31%) | 8 de 20 |
 | Pântano Nebuloso | C | Dar meia-volta | Cautelosa | — | — | Guerreiro + Mago + Clérigo Nv5 (passa em 100%) | 0 de 20 |
+| Sabotagem da Fortaleza | A | Queimar as oficinas de assédio | Equilibrada | — | Arqueiro + Mago + Clérigo Nv5 (passa em 100%) | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 23 de 24 |
+| Sabotagem da Fortaleza | A | Invadir o torreão da guarda | Ousada | Guerreiro | Guerreiro + Guerreiro + Mago Nv5 (passa em 94%) | Guerreiro + Mago + Clérigo Nv1 (passa em 0%) | 1 de 24 |
+| Sabotagem da Fortaleza | A | Recuar em silêncio pelos bosques | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 0 de 24 |
+| Sabotagem da Fortaleza | B | Envenenar as cisternas da guarnição | Equilibrada | — | Guerreiro + Arqueiro + Clérigo Nv5 (passa em 97%) | Mago + Clérigo + Clérigo Nv5 (passa em 100%) | 4 de 24 |
+| Sabotagem da Fortaleza | B | Romper os portões do santuário | Ousada | Mago | Mago + Clérigo + Clérigo Nv5 (passa em 100%) | Guerreiro + Arqueiro + Clérigo Nv1 (não pode) | 20 de 24 |
+| Sabotagem da Fortaleza | B | Recuar pelo desfiladeiro | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 0 de 24 |
+| Sabotagem da Fortaleza | C | Esvaziar os tonéis de óleo | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Arqueiro + Mago + Clérigo Nv3, com brave (passa em 62%) | 28 de 48 |
+| Sabotagem da Fortaleza | C | Arrombar a câmara interior | Ousada | traço brave | Arqueiro + Mago + Clérigo Nv3, com brave (passa em 69%) | Guerreiro + Guerreiro + Mago Nv1, com brave (passa em 20%) | 20 de 48 |
+| Sabotagem da Fortaleza | C | Partir em segredo pelas sombras | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv5, com brave (passa em 100%) | 0 de 48 |
 
 ## Por hora de jogo de cada herói
 
@@ -174,3 +201,5 @@ Em 31 sortes:
 | Mina Abandonada | 240 min | Com folga: Guerreiro + Arqueiro Nv3 | 11,2 | 12,8 |
 | Pântano Nebuloso | 300 min | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 8,6 | 30,5 |
 | Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |
+| Sabotagem da Fortaleza | 300 min | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 4,4 | 37,0 |
+| Sabotagem da Fortaleza | 300 min | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 5,6 | 45,9 |

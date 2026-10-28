@@ -332,7 +332,9 @@ describe('os modelos e os desfechos (ADR 0018, decisões 12 e 14)', () => {
         expect(reachable.has(model.id), model.id).toBe(true);
       }
       if (model.access.kind === 'tile') {
-        expect(startingTiles.map((tile) => tile.id)).toContain(model.access.tileId);
+        // O Covil nasce no feudo; a Fortaleza da Horda nasce no outono (V4E-T3; V4F-T1).
+        const knownTiles = [...startingTiles.map((tile) => tile.id), 'hordeFortress'];
+        expect(knownTiles).toContain(model.access.tileId);
       }
       for (const node of stagesOf(model)) {
         const tile = node.rewards?.clearsTile;
@@ -347,8 +349,8 @@ describe('os modelos e os desfechos (ADR 0018, decisões 12 e 14)', () => {
     const capturing = expeditionModels
       .filter((model) => stagesOf(model).some((node) => node.trial?.onDisaster === 'capture'))
       .map((model) => model.id);
-    // E a Mina Abandonada, no veio fundo (V4B-T1).
-    expect(capturing).toEqual(['rescue', 'ruins', 'abandonedMine', 'swamp']);
+    // E a Mina Abandonada, no veio fundo (V4B-T1), e a Sabotagem (V4F-T1).
+    expect(capturing).toEqual(['rescue', 'ruins', 'abandonedMine', 'swamp', 'sabotage']);
   });
 
   it('o schema recusa prova sem experiência, recompensa vazia, chance acima de 1, item repetido e acesso desconhecido', () => {
