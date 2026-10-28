@@ -16,6 +16,7 @@ import {
   GameRuleErrorSchema,
   ViewResponseSchema,
 } from '@lotg/protocol';
+import { CURRENT_SCHEMA_VERSION } from '@lotg/engine';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { lockGame, persistState } from '../src/games/repository';
@@ -42,7 +43,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 35;
+const CURRENT = CURRENT_SCHEMA_VERSION;
 
 describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
   it.each(['fresh', 'crafts', 'cold', 'caravan', 'raid-announced', 'week-scripted'])(
@@ -136,6 +137,13 @@ function withoutIron(value: unknown): unknown {
   );
 }
 
+function withoutVigilSettings<T extends Record<string, unknown>>(settings: T): Record<string, unknown> {
+  const copy = { ...settings };
+  delete copy.realOriginMs;
+  delete copy.vigil;
+  return copy;
+}
+
 function beforeMasters<T>(state: T): T {
   const copy = withoutIron(JSON.parse(JSON.stringify(state))) as {
     settlement?: {
@@ -152,6 +160,16 @@ function beforeMasters<T>(state: T): T {
       reports?: Array<{ log?: Array<Record<string, unknown>> }>;
     };
   };
+  // E a Hora da Vigília, da versão 35 (V4G-T1): origem real, vigil e a marca do ensaio.
+  const settings = (copy as { settings?: Record<string, unknown> }).settings;
+  if (settings !== undefined) {
+    delete settings.realOriginMs;
+    delete settings.vigil;
+  }
+  const stats = (copy as { stats?: Record<string, unknown> }).stats;
+  if (stats !== undefined) {
+    delete stats.vigilRehearsalMarked;
+  }
   delete copy.settlement?.masters;
   delete copy.settlement?.mastersWaiting;
   // E o Ferreiro, da versão 26 (V4B-T2): o edifício por construir, nenhuma arma, nenhum lote.
@@ -495,7 +513,7 @@ describe('partida nova', () => {
     const row = await rowOf(server, player.game.id);
     expect(row.schemaVersion).toBe(CURRENT);
     expect(row.state.schemaVersion).toBe(CURRENT);
-    expect(row.state.settings).toEqual({
+    expect(withoutVigilSettings(row.state.settings)).toEqual({
       settlementName: 'Pedra Alta',
       timezone: 'America/Sao_Paulo',
       vigilHourLocal: 20,
@@ -534,7 +552,7 @@ describe('uma partida gravada na versão 1', () => {
     expect(row.schemaVersion).toBe(CURRENT);
     expect(row.stateVersion).toBe(8);
     expect(row.state.schemaVersion).toBe(CURRENT);
-    expect(row.state.settings).toEqual({
+    expect(withoutVigilSettings(row.state.settings)).toEqual({
       settlementName: 'Pedra Alta',
       timezone: 'America/Sao_Paulo',
       vigilHourLocal: 20,
