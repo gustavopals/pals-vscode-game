@@ -2,6 +2,7 @@ import { expeditionModels, type DifficultyId } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { settleHordeTiles } from './hordePlan';
 import { currentShape } from './migrations';
 import { harmOf } from './outcomes';
 import { cloneState } from './state';
@@ -10,6 +11,7 @@ import {
   addHero,
   AUTUMN,
   command,
+  expeditionAtNode,
   guildHall,
   HOUR,
   nextVariantIs,
@@ -19,6 +21,7 @@ import {
   SUMMER,
   WINTER,
   YEAR,
+  weakened,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -37,36 +40,7 @@ function autumnWithFortress(
       addHero(draft, { name: 'Edda', gender: 'f', classId: 'warrior', level: 3 });
       addHero(draft, { name: 'Rolf', gender: 'm', classId: 'archer', level: 3 });
       addHero(draft, { name: 'Isolda', gender: 'f', classId: 'mage', level: 3 });
-      if (!draft.horde.wavePlan) {
-        draft.horde.wavePlan = {
-          year: 1,
-          revision: 1,
-          generatedAtMs: AUTUMN,
-          waves: [
-            {
-              number: 1,
-              composition: [
-                { wing: 'center', line: 'front', unit: 'raider', count: 20 },
-                { wing: 'right', line: 'back', unit: 'banditArcher', count: 10 },
-              ],
-            },
-            {
-              number: 2,
-              composition: [
-                { wing: 'center', line: 'front', unit: 'raider', count: 30 },
-                { wing: 'left', line: 'front', unit: 'blackKnight', count: 15 },
-              ],
-            },
-            {
-              number: 3,
-              composition: [
-                { wing: 'center', line: 'front', unit: 'ogre', count: 40 },
-                { wing: 'center', line: 'back', unit: 'shaman', count: 5 },
-              ],
-            },
-          ],
-        };
-      }
+      settleHordeTiles(draft, AUTUMN, []);
       edit?.(draft);
     },
     { difficulty },
@@ -146,7 +120,7 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
         for (const hero of draft.guild.heroes) hero.level = 1;
         nextVariantIs(draft, 'sabotage', 0);
       });
-      const before = structuredClone(state);
+      const before = cloneState(state);
       const offer = deriveViewState(state, AUTUMN).guild.available.find(
         (entry) => entry.modelId === 'sabotage',
       )!;
@@ -347,11 +321,11 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
       const step = advanceTo(sentState, endsAt);
 
       // Nó 1 concluído com sucesso
-      expect(step.state.horde.sabotages.successes).toBeGreaterThanOrEqual(1);
+      expect(step.state.horde.sabotages.successes).toBe(1);
       const wave1 = step.state.horde.wavePlan!.waves.find((w) => w.number === 1)!;
       expect(wave1.reductionPercent).toBe(15);
       const newWave1Count = wave1.composition.reduce((sum, p) => sum + p.count, 0);
-      expect(newWave1Count).toBeLessThan(initialWave1Count);
+      expect(newWave1Count).toBe(Math.floor((initialWave1Count * 85) / 100));
 
       // Crônica registrou a sabotagem
       const sabotagedEvent = step.events.find((e) => e.type === 'hordeSabotaged');
@@ -397,64 +371,36 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
       );
     });
 
-    it('o Desastre alerta a Horda (+10% na onda 1) e captura o herói no modo Senhor', () => {
-      const state = autumnWithFortress((d) => {
-        // Heróis fracos de nível 1 em postura ousada para forçar desastre
-        for (const h of d.guild.heroes) {
-          h.level = 1;
-        }
-      }, 'lord');
-      const initialWave1Count = state.horde.wavePlan!.waves[0]!.composition.reduce(
-        (sum, p) => sum + p.count,
+    it.each([
+      ['peasant', 'heroInjured', 'severe'],
+      ['lord', 'heroCaptured', 'captured'],
+      ['ironKing', 'heroDied', 'died'],
+    ] as const)('o Desastre certo alerta e aplica %s → %s', (difficulty, eventType, harm) => {
+      const state = autumnWithFortress(undefined, difficulty);
+      const heroIds = ['hero-1', 'hero-2', 'hero-3'];
+      const initialCount = state.horde.wavePlan!.waves[0]!.composition.reduce(
+        (sum, post) => sum + post.count,
         0,
       );
-
-      // Envia variante com desastre
-      const heroIds = ['hero-1', 'hero-2', 'hero-3'];
-      const { state: sentState, expedition } = send(state, 'sabotage', heroIds, 'bold', 2);
-      const endsAt = expedition.nodeEndsAtMs!;
-      const step = advanceTo(sentState, endsAt);
-
-      // Se desastre ocorreu, alerta e captura
-      const disasterEvent = step.events.find(
-        (e) => e.type === 'expeditionNodeFailed' && e.data?.outcome === 'disaster',
-      );
-      if (disasterEvent) {
-        expect(step.state.horde.sabotages.alerted).toBe(true);
-        const wave1 = step.state.horde.wavePlan!.waves.find((w) => w.number === 1)!;
-        const newCount = wave1.composition.reduce((sum, p) => sum + p.count, 0);
-        expect(newCount).toBeGreaterThan(initialWave1Count);
-
-        // Herói capturado no Senhor
-        const victim = step.state.guild.heroes.find((h) => h.status === 'captured');
-        expect(victim).toBeDefined();
-
-        // Crônica registrou o alerta da Horda
-        const alertEvent = step.events.find((e) => e.type === 'hordeAlerted');
-        expect(alertEvent).toBeDefined();
-      }
-    });
-
-    it('o Desastre mata o herói no modo Rei de Ferro', () => {
-      const state = autumnWithFortress((d) => {
-        for (const h of d.guild.heroes) {
-          h.level = 1;
-        }
-      }, 'ironKing');
-
-      const heroIds = ['hero-1', 'hero-2', 'hero-3'];
-      const { state: sentState, expedition } = send(state, 'sabotage', heroIds, 'bold', 2);
-      const endsAt = expedition.nodeEndsAtMs!;
-      const step = advanceTo(sentState, endsAt);
-
-      const disasterEvent = step.events.find(
-        (e) => e.type === 'expeditionNodeFailed' && e.data?.outcome === 'disaster',
-      );
-      if (disasterEvent) {
-        expect(step.state.horde.sabotages.alerted).toBe(true);
-        expect(step.events.some((e) => e.type === 'heroDied')).toBe(true);
-        expect(step.state.guild.heroes.length).toBe(2);
-      }
+      const sent = send(state, 'sabotage', heroIds, 'bold', 0);
+      // Três Clérigos Descontentes Nv1 não alcançam sequer Revés no bastião,
+      // mesmo com a melhor sorte. O teste exige o desfecho antes de conferir o dano.
+      const positioned = expeditionAtNode(weakened(sent.state, heroIds), 'warriorBastion');
+      const step = advanceTo(positioned.state, positioned.endsAt);
+      expect(
+        step.events.filter(
+          (event) => event.type === 'expeditionNodeFailed' && event.data.outcome === 'disaster',
+        ),
+      ).toHaveLength(1);
+      expect(step.events.filter((event) => event.type === eventType)).toHaveLength(1);
+      expect(step.events.filter((event) => event.type === 'hordeAlerted')).toHaveLength(1);
+      expect(step.state.horde.sabotages.alerted).toBe(true);
+      expect(
+        step.state.horde.wavePlan!.waves[0]!.composition.reduce((sum, post) => sum + post.count, 0),
+      ).toBe(Math.floor((initialCount * 110) / 100));
+      expect(step.state.guild.expeditions[0]!.log[0]!.harm?.kind).toBe(harm);
+      expect(step.state.guild.heroes).toHaveLength(difficulty === 'ironKing' ? 2 : 3);
+      expect(currentShape(step.state, '')).toBeNull();
     });
 
     it('a Fortaleza que some chama a equipe de volta pela fronteira', () => {
@@ -483,34 +429,99 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
       expect(recalled).toBeDefined();
     });
 
-    it('a dificuldade dos nós sobe a cada tentativa pelo fator guardIncreasePerAttempt', () => {
-      const state = autumnWithFortress();
-      const heroIds = ['hero-1', 'hero-2', 'hero-3'];
-
-      // 1ª tentativa: fator 1.0
-      state.horde.sabotages.attempts = 0;
-      const sent1 = send(state, 'sabotage', heroIds, 'balanced', 0);
-      const ends1 = sent1.expedition.nodeEndsAtMs!;
-      const step1 = advanceTo(sent1.state, ends1);
-      const log1 = step1.state.guild.reports[0]?.log ?? step1.state.guild.expeditions[0]?.log;
-      expect(log1).toBeDefined();
-
-      // 2ª tentativa: fator 1.1 (+10%)
-      const state2 = cloneState(step1.state);
-      state2.guild.expeditions = [];
-      for (const h of state2.guild.heroes) h.status = 'idle';
-      state2.horde.sabotages.attempts = 1;
-      const sent2 = send(state2, 'sabotage', heroIds, 'balanced', 0);
-      expect(sent2.state.horde.sabotages.attempts).toBe(2);
-
-      // 3ª tentativa: fator 1.2 (+20%)
-      const state3 = cloneState(sent2.state);
-      state3.guild.expeditions = [];
-      for (const h of state3.guild.heroes) h.status = 'idle';
-      state3.horde.sabotages.attempts = 2;
-      const sent3 = send(state3, 'sabotage', heroIds, 'balanced', 0);
-      expect(sent3.state.horde.sabotages.attempts).toBe(3);
+    it('três viagens reais reduzem cada onda em 15/30/45% e mantêm a revelação do Xamã válida', () => {
+      let state = autumnWithFortress((draft) => {
+        for (const hero of draft.guild.heroes) hero.level = 10;
+      });
+      const expected = [
+        [34, 51, 68],
+        [28, 42, 56],
+        [22, 33, 44],
+      ];
+      for (let trip = 0; trip < 3; trip += 1) {
+        state = send(state, 'sabotage', ['hero-1', 'hero-2', 'hero-3'], 'balanced', 0).state;
+        const model = expeditionModels.find((entry) => entry.id === 'sabotage')!;
+        for (let step = 0; step < 10 && state.guild.expeditions.length > 0; step += 1) {
+          const expedition = state.guild.expeditions[0]!;
+          if (expedition.crossroads !== null) {
+            const node = model.variants[expedition.variant]!.nodes[expedition.nodeId]!;
+            if (node.kind !== 'crossroads') throw new Error('Encruzilhada esperada.');
+            state = accept(
+              state,
+              command('chooseExpeditionPath', {
+                expeditionId: expedition.id,
+                optionId: node.posture.balanced,
+              }),
+            ).state;
+          } else {
+            state = advanceTo(state, expedition.nodeEndsAtMs!).state;
+          }
+          expect(currentShape(state, '')).toBeNull();
+        }
+        expect(state.guild.expeditions).toEqual([]);
+        expect(state.horde.sabotages.attempts).toBe(trip + 1);
+        expect(state.horde.sabotages.successes).toBe(3 * (trip + 1));
+        expect(
+          state.horde.wavePlan!.waves.map((wave) =>
+            wave.composition.reduce((sum, post) => sum + post.count, 0),
+          ),
+        ).toEqual(expected[trip]);
+        const omen = state.horde.omens.find(
+          (entry) => entry.wave === 3 && entry.clarity === 'exact',
+        );
+        expect(omen?.reveals).toEqual(state.horde.wavePlan!.waves[2]!.composition);
+      }
+      expect(state.guild.reports).toHaveLength(3);
+      expect(state.lastProcessedAt).toBe(AUTUMN + 18 * HOUR);
+      expect(
+        refuse(
+          state,
+          command('sendExpedition', {
+            modelId: 'sabotage',
+            heroIds: ['hero-1', 'hero-2', 'hero-3'],
+            posture: 'balanced',
+          }),
+        ).code,
+      ).toBe('SABOTAGE_LIMIT');
     });
+
+    it.each([0.5, 1, 3])(
+      'dividir o intervalo conserva estado, eventos e RNG na sabotagem, ritmo %s',
+      (timeScale) => {
+        const state = autumnWithFortress((draft) => {
+          draft.settings.timeScale = timeScale;
+          for (const hero of draft.guild.heroes) hero.level = 10;
+        });
+        const sent = send(state, 'sabotage', ['hero-1', 'hero-2', 'hero-3'], 'balanced', 0).state;
+        const before = cloneState(sent);
+        // A Postura responde no prazo: a mesma chamada cobre as reduções e a revelação final.
+        const target = AUTUMN + (6 + 12 * timeScale) * HOUR;
+        const once = advanceTo(sent, target);
+        let split = sent;
+        const events = [];
+        const cuts = [
+          AUTUMN + HOUR - 1,
+          AUTUMN + HOUR,
+          AUTUMN + 2 * HOUR,
+          AUTUMN + (2 + 12 * timeScale) * HOUR,
+          target - 1,
+          target,
+        ];
+        for (const cut of cuts) {
+          const result = advanceTo(split, cut);
+          split = result.state;
+          events.push(...result.events);
+        }
+        expect(split).toEqual(once.state);
+        expect(events).toEqual(once.events);
+        expect(split.rng).toEqual(once.state.rng);
+        expect(sent).toEqual(before);
+        expect(split.guild.expeditions).toEqual([]);
+        expect(once.events.filter((event) => event.type === 'hordeSabotaged')).toHaveLength(3);
+        expect(once.events.some((event) => event.type === 'omenSeen')).toBe(true);
+        expect(currentShape(split, '')).toBeNull();
+      },
+    );
 
     it('virada do ano zera os contadores da sabotagem', () => {
       const state = autumnWithFortress((d) => {

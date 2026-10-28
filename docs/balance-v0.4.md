@@ -713,3 +713,13 @@ anual. Os testes do catálogo passam a usar o outono para esse modelo, sem
 fabricar a descoberta; os demais destinos conservam seu cenário. O golden do
 relatório foi regravado com `UPDATE_GOLDEN=1`: diff conferido, só a estação da
 sabotagem muda de Primavera para Outono.
+
+Os testes antigos de captura e morte passaram sem produzir Desastre; exigir
+o evento fez ambos falharem. Os cenários agora garantem Desastre mesmo com
+a melhor sorte e exigem ferimento grave em Camponês, captura em Senhor e
+morte em Rei de Ferro, além do aumento exato da onda. O teste de redução
+exige o total exato. Três viagens completas verificam 15/30/45%, recusam a
+quarta e validam a guarda após cada etapa, incluindo a revelação do Xamã.
+A divisão de intervalo conserva exatamente estado, eventos e RNG nos ritmos
+0,5/1/3. O teste da dificuldade já exige régua e desfecho nas três tentativas.
+Não há teste com Cerco porque essa mecânica ainda não existe nesta trilha.

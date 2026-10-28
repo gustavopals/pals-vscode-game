@@ -10,6 +10,7 @@ import {
   turnOmens,
 } from './hordePlan';
 import { currentShape } from './migrations';
+import { cloneState } from './state';
 import type { GameEvent } from './types';
 import { deriveViewState } from './view';
 import { AUTUMN, gameAt } from './test-helpers';
@@ -28,7 +29,7 @@ const total = (composition: readonly { count: number }[]) =>
 describe('as ondas após sabotagem', () => {
   it('recalcula três reduções sobre a base total, limita a 45% e preserva os postos fixos', () => {
     const state = preparedHorde();
-    const rng = structuredClone(state.rng);
+    const rng = cloneState(state).rng;
     const expected = [
       [34, 51, 68],
       [28, 42, 56],
@@ -79,7 +80,7 @@ describe('as ondas após sabotagem', () => {
     state.settlement.buildings.watchtower = 2;
     const events: GameEvent[] = [];
     revealWaveThree(state, AUTUMN, events);
-    const history = structuredClone(events);
+    const history = JSON.parse(JSON.stringify(events)) as GameEvent[];
     expect(state.horde.omens).toHaveLength(1);
     applyWaveSabotage(state, 3, AUTUMN, [], 'expedition-2');
     expect(state.horde.omens).toEqual([]);
@@ -116,7 +117,7 @@ describe('as ondas após sabotagem', () => {
       const state = preparedHorde(difficulty);
       const wave = state.horde.wavePlan!.waves[0]!;
       expect(total(wave.composition)).toBe(before);
-      const rng = structuredClone(state.rng);
+      const rng = cloneState(state).rng;
       alertHordeFortress(state, AUTUMN, [], 'expedition-1');
       expect(total(wave.composition)).toBe(after);
       const counts = wave.composition.map((post) => post.count);
