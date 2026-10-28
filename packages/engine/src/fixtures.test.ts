@@ -104,6 +104,18 @@ const scenarios: Record<string, () => GameState> = {
       command('answerCard', { instanceId: start.council.pending[0]!.instanceId, optionId: 'pray' }),
     ]).state;
   },
+  'council-encounters': () => {
+    const start = tavernBusyScenario();
+    const recruiter = dealt(start, 'passingRecruiter');
+    const paid = play(recruiter.state, [
+      command('answerCard', { instanceId: recruiter.instanceId, optionId: 'pay' }),
+    ]).state;
+    const debt = dealt(paid, 'gamblingDebt');
+    const left = play(debt.state, [
+      command('answerCard', { instanceId: debt.instanceId, optionId: 'leave' }),
+    ]).state;
+    return dealt(left, 'squareDuel').state;
+  },
   'vigil-fixed-offset': () =>
     createInitialState('fixture-vigil-fixed-offset', {
       ...settings,
@@ -939,6 +951,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       nextRotationAtMs: 13 * DAY + 3 * HOUR + 15 * MINUTE + 12 * DAY,
       festival: null,
       lastFestivalAtMs: null,
+      extraOffer: false,
     });
     const busy = of('tavern-busy');
     expect(busy.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1', 'hero-2']);
@@ -949,11 +962,16 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       nextRotationAtMs: opened + 24 * DAY,
       festival: { untilMs: opened + 12 * DAY },
       lastFestivalAtMs: opened,
+      extraOffer: false,
     });
     expect(busy.settlement.moraleEffects.map((effect) => effect.id)).toEqual(['festival']);
+    const encounters = of('council-encounters');
+    expect(encounters.guild.tavern.extraOffer).toBe(true);
+    expect(encounters.council.delayed[0]?.heroes).toHaveLength(1);
+    expect(encounters.council.pending[0]?.heroes).toHaveLength(2);
     // Nos outros retratos a Taverna não existe: nenhum candidato, nenhuma rotação, nenhum fluxo.
     const withTavern = all0().filter((state) => state.settlement.buildings.tavern > 0);
-    expect(withTavern).toHaveLength(2);
+    expect(withTavern).toHaveLength(3);
     for (const state of all0().filter((entry) => entry.settlement.buildings.tavern === 0)) {
       expect(state.guild.tavernOffers).toEqual([]);
       expect(state.guild.tavern.nextRotationAtMs).toBeNull();

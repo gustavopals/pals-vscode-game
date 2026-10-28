@@ -718,6 +718,7 @@ describe('o festival (holdFestival; ADR 0017, decisão 10)', () => {
       nextRotationAtMs: opensAt + ROTATION,
       festival: { untilMs: opensAt + 12 * DAY },
       lastFestivalAtMs: opensAt,
+      extraOffer: false,
     });
     // A ordem não sorteia nem cria nada.
     expect(held.state.rng).toStrictEqual(state.rng);

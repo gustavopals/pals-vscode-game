@@ -114,7 +114,7 @@ describe('Hora da Vigília nas partidas (V4G-T1)', () => {
     expect(response.status).toBe(200);
     expect(response.body.view.settlement.vigil.warning).toContain('UTC');
     const loaded = await row(player.game.id);
-    expect(loaded.state.schemaVersion).toBe(36);
+    expect(loaded.state.schemaVersion).toBe(37);
     expect(loaded.state.settings.realOriginMs).toBe(loaded.created_at.getTime());
     expect(loaded.state.settings.vigil.utcOffsetMinutes).toBe(0);
     expect(loaded.state.settings.vigil.timezoneResolved).toBe(false);

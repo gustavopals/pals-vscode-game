@@ -571,7 +571,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -756,6 +756,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -828,7 +829,7 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1024,6 +1025,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -1209,7 +1211,7 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1432,6 +1434,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -1679,7 +1682,7 @@
    "day": 4,
    "eventsSoFar": 186,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2019,6 +2022,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -2273,7 +2277,7 @@
    "day": 5,
    "eventsSoFar": 239,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2698,6 +2702,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -2989,7 +2994,7 @@
    "day": 6,
    "eventsSoFar": 296,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3425,6 +3430,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
@@ -3752,7 +3758,7 @@
    "day": 7,
    "eventsSoFar": 360,
    "state": {
-    "schemaVersion": 36,
+    "schemaVersion": 37,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3990,6 +3996,7 @@
      "lastWageArrears": null,
      "tavernOffers": [],
      "tavern": {
+      "extraOffer": false,
       "nextRotationAtMs": null,
       "festival": null,
       "lastFestivalAtMs": null
