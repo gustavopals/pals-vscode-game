@@ -17,10 +17,17 @@ describe('36 → 37: encontros e próxima rotação da Taverna', () => {
       const before = JSON.parse(raw);
       expect(stateV36(before, '')).toBeNull();
       const after = v36ToV37.migrate(before, { timeScale: 1, boundaryMs: before.lastProcessedAt });
+      const expectedEffects = (
+        (before.market?.effects as Array<Record<string, unknown>>) ?? []
+      ).map((e) => ({
+        ...e,
+        fromMs: e.fromMs ?? before.lastProcessedAt,
+      }));
       expect(after).toEqual({
         ...before,
         schemaVersion: 37,
         guild: { ...before.guild, tavern: { ...before.guild.tavern, extraOffer: false } },
+        market: { ...before.market, effects: expectedEffects },
       });
       expect(currentShape(after, '')).toBeNull();
       expect(JSON.stringify(before)).toBe(JSON.stringify(JSON.parse(raw)));

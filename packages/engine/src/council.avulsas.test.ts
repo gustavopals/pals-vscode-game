@@ -98,8 +98,8 @@ describe('as quatro avulsas aprovadas, de ponta a ponta', () => {
     const rotated = advanceTo(paid.state, nextRotation).state;
     expect(rotated.guild.tavern.extraOffer).toBe(false);
     expect(rotated.guild.tavernOffers).toHaveLength(balance.tavern.offersByLevel[0]! + 1);
-    expect(deriveViewState(rotated, nextRotation).guild.tavern?.maxHiresPerRotation).toBe(
-      balance.tavern.maxHiresPerRotation,
+    expect(deriveViewState(rotated, nextRotation).tavern.offers).toHaveLength(
+      balance.tavern.offersByLevel[0]! + 1,
     );
 
     const expired = expires(dealt(feud(), 'passingRecruiter').state, 'passingRecruiter');

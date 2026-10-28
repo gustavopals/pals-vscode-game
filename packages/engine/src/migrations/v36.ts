@@ -36,10 +36,16 @@ export const v36ToV37: MigrationStep = {
   shape: stateV36,
   migrate: (state) => {
     const guild = state.guild as StoredState;
+    const market = state.market as StoredState;
+    const effects = ((market.effects as StoredState[]) ?? []).map((effect) => ({
+      ...effect,
+      fromMs: (effect.fromMs as number) ?? state.lastProcessedAt,
+    }));
     return {
       ...state,
       schemaVersion: 37,
       guild: { ...guild, tavern: { ...(guild.tavern as StoredState), extraOffer: false } },
+      market: { ...market, effects },
     };
   },
 };

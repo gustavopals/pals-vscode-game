@@ -133,7 +133,7 @@ function effectsText(
     } else if (effect.type === 'marketPrice') {
       const change = ((effect.factor.num - effect.factor.den) * 100) / effect.factor.den;
       parts.push(
-        `${signed(change)}% no preço de compra e venda de ${effect.resources.map(resourceName).join(', ')} por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${durationText(realSecondsCeil(effect.durationDays * DAY_MS, timeScale))})`,
+        `${signed(change)}% no preço de compra e venda de ${effect.resources.map(resourceName).join(', ')} a partir da próxima virada do dia, por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${durationText(realSecondsCeil(effect.durationDays * DAY_MS, timeScale))})`,
       );
     } else if (effect.type === 'rollEffect') {
       const relief = effect.withHeroClass;

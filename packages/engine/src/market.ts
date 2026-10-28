@@ -160,17 +160,28 @@ export function quote(state: GameState, resource: MarketResourceId): Quote {
   };
 }
 
+/**
+ * Os fatores de carta que valem agora: já começaram (`fromMs`) e ainda não acabaram
+ * (`untilMs`). Os dois instantes são viradas de dia, então a cotação do dia não muda nele.
+ */
 export function liveMarketEffects(state: GameState, resource: MarketResourceId) {
   return state.market.effects.filter(
-    (effect) => effect.resource === resource && effect.untilMs > state.lastProcessedAt,
+    (effect) =>
+      effect.resource === resource &&
+      effect.fromMs <= state.lastProcessedAt &&
+      effect.untilMs > state.lastProcessedAt,
   );
 }
 
-/** O preço muda também quando um fator acaba, mesmo entre duas viradas do dia. */
+/**
+ * O próximo instante em que um fator começa ou acaba, depois de agora; `null` sem nenhum. Os
+ * dois são viradas de dia, que a linha do tempo já tem, e os vencidos não contam.
+ */
 export function nextMarketEffectAt(state: GameState): number | null {
-  return state.market.effects.length === 0
-    ? null
-    : Math.min(...state.market.effects.map((effect) => effect.untilMs));
+  const ahead = state.market.effects.flatMap((effect) =>
+    [effect.fromMs, effect.untilMs].filter((ms) => ms > state.lastProcessedAt),
+  );
+  return ahead.length === 0 ? null : Math.min(...ahead);
 }
 
 /**

@@ -1,4 +1,14 @@
-import { boolean, exactObject, listOf, literal, text, type Shape } from './shape';
+import {
+  boolean,
+  exactObject,
+  listOf,
+  literal,
+  natural,
+  oneOf,
+  positive,
+  text,
+  type Shape,
+} from './shape';
 import type { StoredState } from './step';
 import { stateV36 } from './v36';
 
@@ -13,6 +23,17 @@ const heroId: Shape = (value, path) =>
     ? null
     : `${path}: esperado identificador hero-<n>`;
 const heroes = listOf(exactObject({ id: heroId, name }));
+
+const effectsV37 = listOf(
+  exactObject({
+    resource: oneOf(['food', 'wood', 'stone', 'iron']),
+    factor: exactObject({ num: positive, den: positive }),
+    fromMs: natural,
+    untilMs: natural,
+    label: (value, path) =>
+      text(value, path) ?? ((value as string).trim().length > 0 ? null : `${path}: texto vazio`),
+  }),
+);
 
 /** Identificadores congelados; participantes antigos podem já ter partido da Guilda. */
 const participants: Readonly<Record<string, number>> = {
@@ -29,7 +50,12 @@ export const stateV37: Shape = (value, path) => {
   const old = { ...value, schemaVersion: 36 };
   const guild = value.guild;
   const council = value.council;
-  if (!object(guild) || !object(guild.tavern) || !object(council)) return stateV36(old, path);
+  const market = value.market;
+  if (!object(guild) || !object(guild.tavern) || !object(council) || !object(market))
+    return stateV36(old, path);
+  if (!Array.isArray(market.effects)) return stateV36(old, path);
+  const effectsError = effectsV37(market.effects, at('market.effects'));
+  if (effectsError !== null) return effectsError;
   const { extraOffer, ...tavern } = guild.tavern;
   const marker = boolean(extraOffer, at('guild.tavern.extraOffer'));
   if (marker !== null) return marker;
@@ -88,6 +114,7 @@ export const stateV37: Shape = (value, path) => {
     ...old,
     council: stripped,
     guild: { ...guild, tavern, tavernOffers: offers.slice(0, 3) },
+    market: { ...market, effects: [] },
   };
   const error = stateV36(inherited, path);
   if (error !== null || offers.length <= 3) return error;

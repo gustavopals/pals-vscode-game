@@ -489,12 +489,18 @@ fila `council.delayed`: só guarda carta e opção, nunca o resultado, e não ad
 aninhado. O herói Carismático que fala na escolha é o primeiro livre na lista, e o evento
 guarda identificador e nome para a Crônica não trocar de interlocutor numa recarga.
 
-**H-2. Duração e tendência do preço.** _(Proposta do agente; não lida pelo autor.)_
-O fator dura `durationDays` dias completos de jogo a partir da escolha; seu vencimento
-é um instante da linha do tempo, antes do passeio e do Conselho. Não há histórico de
-fatores vencidos: a tendência compara o preço atual com o passeio e a estação de ontem;
-o detalhamento explica cada fator vivo. O dia da cotação e o volume não mudam, conforme
-§5.6 aprovado. A migração desta base é 35 → 36, em vez de 36 → 37 previsto no roadmap.
+**H-2. Duração, início na virada e conflito de narrativa do preço.** _(Decisão do coordenador; não lida pelo autor.)_
+O fator de preço de uma carta do Conselho passa a valer apenas a partir da **próxima
+virada de dia de jogo** depois da resposta (`fromMs = nextDayBoundary(atMs)`), expirando
+também em uma virada de dia (`untilMs = fromMs + durationDays * DAY_MS`). Como o preço do
+Mercado já só muda na virada, a cotação do dia nunca muda no meio dele: nenhuma sequência
+de compra e venda (nem envio de caravana) no mesmo dia dá lucro (§5.6, achados 1 e 3 da
+revisão). A visão explica "a partir da próxima virada do dia, por N dias de jogo".
+_Conflito de narrativa com fichas aprovadas:_ as fichas de `mysteriousMerchant` (opção
+`imprison`: "Os preços da praça subiram no mesmo dia.") e `royalCaravan` (opção `sellNow`:
+"Vender à caravana agora", com "Um dia de preço alto, e só um dia." e bancas esvaziando
+"antes do pôr do sol") afirmam efeito imediato no mesmo dia. O texto das fichas foi mantido
+intacto; cabe ao autor ajustar as frases para harmonizar com a ativação na virada seguinte.
 
 
 ## V4H-T1 — quatro avulsas (2026-10-28)

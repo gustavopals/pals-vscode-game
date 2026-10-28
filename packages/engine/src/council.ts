@@ -474,10 +474,14 @@ export function applyEffects(
       }
       case 'marketPrice':
         for (const resource of effect.resources) {
+          // Só a partir da próxima virada de dia: o preço do Mercado só muda na virada, e a
+          // cotação do dia não pode mudar no meio dele (nada de comprar e vender com lucro).
+          const fromMs = nextDayBoundary(atMs);
           draft.market.effects.push({
             resource,
             factor: { ...effect.factor },
-            untilMs: atMs + effect.durationDays * DAY_MS,
+            fromMs,
+            untilMs: fromMs + effect.durationDays * DAY_MS,
             label: `Carta: ${card.title}`,
           });
         }

@@ -520,8 +520,18 @@ export type Caravan = {
  * marcado, na virada de um dia de jogo **com o Mercado de pé**.
  */
 export type MarketState = {
-  /** Fatores de carta por recurso; só os vivos entram na compra e na venda. */
-  effects: Array<{ resource: MarketResourceId; factor: Ratio; untilMs: number; label: string }>;
+  /**
+   * Fatores de carta por recurso; só os vivos entram na compra e na venda. Um fator vale de
+   * `fromMs` (uma virada de dia de jogo, sempre depois da resposta) até `untilMs` (outra virada,
+   * exclusivo): a cotação de um dia nunca muda no meio dele (§5.6).
+   */
+  effects: Array<{
+    resource: MarketResourceId;
+    factor: Ratio;
+    fromMs: number;
+    untilMs: number;
+    label: string;
+  }>;
   /** O preço de hoje de cada recurso, entre o piso e o teto do conteúdo. */
   prices: Record<MarketResourceId, number>;
   /**

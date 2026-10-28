@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
+import { nextDayBoundary } from './clock';
 import { eligibleCards } from './council';
-import { quote } from './market';
+import { quote, quoteOf } from './market';
 import { migrateState } from './migrations';
 import { cloneState } from './state';
 import {
@@ -381,17 +382,24 @@ describe('praga e choques de preço', () => {
     },
   );
 
-  it('a caravana real deixa o ferro fora da alta e compra seguida de venda usa o mesmo fator', () => {
+  it('a caravana real deixa o ferro fora da alta e compra seguida de venda usa o mesmo fator a partir da virada', () => {
     const start = choose(dealt(feud(), 'royalCaravan').state, 'royalCaravan', 'sellNow').state;
-    expect(quote(start, 'wood')).toEqual({ buy: 1500, sell: 1275 });
+    // No mesmo dia a cotação não muda (sem arbitragem intradiária nem PRICE_CHANGED imprevisto).
+    expect(quote(start, 'wood')).toEqual({ buy: 1200, sell: 1020 });
     expect(quote(start, 'iron')).toEqual({ buy: 8000, sell: 6800 });
+    // Na próxima virada de dia o fator passa a valer e deixa o ferro fora da alta.
+    const nextDay = advanceTo(start, nextDayBoundary(start.lastProcessedAt)).state;
+    expect(quote(nextDay, 'wood')).toEqual(quoteOf(nextDay.market.prices.wood, { num: 5, den: 4 }));
+    expect(quote(nextDay, 'iron')).toEqual(quoteOf(nextDay.market.prices.iron, { num: 1, den: 1 }));
+    const woodBuy = quote(nextDay, 'wood').buy;
+    const woodSell = quote(nextDay, 'wood').sell;
     const bought = accept(
-      start,
+      nextDay,
       command('trade', {
         resource: 'wood',
         direction: 'buy',
         amount: 5,
-        quoteDay: start.market.quoteDay,
+        quoteDay: nextDay.market.quoteDay,
       }),
     ).state;
     const sold = accept(
@@ -400,11 +408,11 @@ describe('praga e choques de preço', () => {
         resource: 'wood',
         direction: 'sell',
         amount: 5,
-        quoteDay: start.market.quoteDay,
+        quoteDay: nextDay.market.quoteDay,
       }),
     ).state;
     expect(sold.settlement.resources.gold).toBe(
-      start.settlement.resources.gold - 5 * (1500 - 1275),
+      nextDay.settlement.resources.gold - 5 * (woodBuy - woodSell),
     );
     expect(sold.market.tradedToday.wood).toBe(10);
     expect(start.market.tradedToday.wood).toBe(0);
