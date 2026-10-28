@@ -1918,6 +1918,14 @@ export type ExpeditionOfferView = {
    * o oferece ao lado de quem está lá ("Enviar o Resgate"), sem conhecer o nome do modelo.
    */
   rescue: boolean;
+  /**
+   * O estado da sabotagem da Fortaleza da Horda; `null` em qualquer outro destino.
+   */
+  sabotage: {
+    attemptsLeft: number;
+    wavesWeakened: number[];
+    alerted: boolean;
+  } | null;
 };
 
 /**

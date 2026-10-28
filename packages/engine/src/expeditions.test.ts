@@ -1442,6 +1442,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         sendBlockedReason: null,
         firstStretchText: 'A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.',
         rescue: false,
+        sabotage: null,
       },
       {
         modelId: 'oldForest',
@@ -1469,6 +1470,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         firstStretchText:
           'A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.',
         rescue: false,
+        sabotage: null,
       },
     ]);
   });

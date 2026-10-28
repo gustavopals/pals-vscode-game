@@ -579,6 +579,14 @@ const GuildSchema = z.strictObject({
       firstStretchText: z.string(),
       /** É o Resgate: só existe com alguém em cativeiro, e é o que o traz de volta. */
       rescue: z.boolean(),
+      /** O estado da sabotagem da Fortaleza da Horda; `null` nos outros destinos. */
+      sabotage: z
+        .strictObject({
+          attemptsLeft: z.number(),
+          wavesWeakened: z.array(z.number()),
+          alerted: z.boolean(),
+        })
+        .nullable(),
     }),
   ),
   /**

@@ -530,7 +530,9 @@
      "text": "No 1º dia da Primavera, Rolf fixou ganchos de escalada no trecho quebrado da muralha, permitindo à equipe sabotar as defesas da primeira onda sem ruído.",
      "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
-     "notes": [],
+     "notes": [
+      "Enfraqueceu a primeira onda da Horda."
+     ],
      "standoutName": "Rolf",
      "lessonText": null
     },
@@ -560,6 +562,7 @@
      "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [
+      "Enfraqueceu a terceira onda da Horda.",
       "Edda chegou ao nível 2.",
       "Rolf chegou ao nível 2.",
       "Isolda chegou ao nível 2."
@@ -589,7 +592,7 @@
     }
    ],
    "lossesText": "O preço: Isolda, com um ferimento leve; Rolf, com um ferimento leve.",
-   "deedsText": "Edda chegou ao nível 2. Rolf chegou ao nível 2. Isolda chegou ao nível 2.",
+   "deedsText": "Enfraqueceu a primeira onda da Horda. Enfraqueceu a terceira onda da Horda. Edda chegou ao nível 2. Rolf chegou ao nível 2. Isolda chegou ao nível 2.",
    "lootText": "Trouxe 59 de ouro.",
    "itemsText": null,
    "lost": false
