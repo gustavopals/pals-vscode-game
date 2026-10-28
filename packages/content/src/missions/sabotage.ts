@@ -2,7 +2,7 @@ import type { ExpeditionModelDef, ExpeditionReturnNode } from '../expeditions';
 
 /**
  * "Sabotagem da Fortaleza" (GDD §9.5; ADR 0020, decisão 17; V4F-T1): expedição especial do outono,
- * só com a Fortaleza da Horda de pé. Exige exatamente três heróis e dura 5 horas de jogo (300 min).
+ * só com a Fortaleza da Horda de pé. Exige exatamente três heróis e dura 6 horas de jogo (360 min).
  * Cabem até 3 tentativas por ano.
  *
  * Cada nó com sucesso enfraquece uma onda da Horda em 15% (até -45% no ano). O chefe no último nó
@@ -39,7 +39,7 @@ export const sabotage: ExpeditionModelDef = {
   id: 'sabotage',
   label: 'Sabotagem da Fortaleza',
   riskLabel: 'Alto',
-  durationMs: 300 * MINUTE_MS,
+  durationMs: 360 * MINUTE_MS,
   requires: {
     guildLevel: 1,
     teamMin: 3,
@@ -207,6 +207,13 @@ export const sabotage: ExpeditionModelDef = {
             },
           },
           rewards: { revealsWave: 3, resources: { gold: { min: 40, max: 70 } } },
+          next: 'escape',
+        },
+        escape: {
+          kind: 'travel',
+          title: 'A saída da Fortaleza',
+          durationMs: 60 * MINUTE_MS,
+          text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.',
           next: 'home',
         },
         home: home0,
@@ -368,6 +375,13 @@ export const sabotage: ExpeditionModelDef = {
             },
           },
           rewards: { revealsWave: 3, resources: { gold: { min: 40, max: 70 } } },
+          next: 'escape',
+        },
+        escape: {
+          kind: 'travel',
+          title: 'A saída da Fortaleza',
+          durationMs: 60 * MINUTE_MS,
+          text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.',
           next: 'home',
         },
         home: home1,
@@ -530,6 +544,13 @@ export const sabotage: ExpeditionModelDef = {
             },
           },
           rewards: { revealsWave: 3, resources: { gold: { min: 40, max: 70 } } },
+          next: 'escape',
+        },
+        escape: {
+          kind: 'travel',
+          title: 'A saída da Fortaleza',
+          durationMs: 60 * MINUTE_MS,
+          text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.',
           next: 'home',
         },
         home: home2,

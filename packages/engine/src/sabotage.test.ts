@@ -92,6 +92,47 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
     expect(trials).toBe(15);
   });
 
+  it.each([0, 1, 2])(
+    'a jornada completa da variante %i dura seis horas, com decisão imediata',
+    (variant) => {
+      const state = autumnWithFortress((draft) => {
+        for (const hero of draft.guild.heroes) hero.level = 5;
+      });
+      const model = expeditionModels.find((entry) => entry.id === 'sabotage')!;
+      let current = send(
+        state,
+        'sabotage',
+        ['hero-1', 'hero-2', 'hero-3'],
+        'balanced',
+        variant,
+      ).state;
+      for (let step = 0; step < 10 && current.guild.expeditions.length > 0; step += 1) {
+        const expedition = current.guild.expeditions[0]!;
+        if (expedition.crossroads !== null) {
+          const node = model.variants[variant]!.nodes[expedition.nodeId]!;
+          if (node.kind !== 'crossroads') throw new Error('Encruzilhada esperada.');
+          current = accept(
+            current,
+            command('chooseExpeditionPath', {
+              expeditionId: expedition.id,
+              optionId: node.posture.balanced,
+            }),
+          ).state;
+        } else {
+          current = advanceTo(current, expedition.nodeEndsAtMs!).state;
+        }
+      }
+      expect(current.guild.expeditions).toHaveLength(0);
+      expect(current.guild.reports).toHaveLength(1);
+      expect(current.lastProcessedAt - AUTUMN).toBe(6 * HOUR);
+      expect(model.durationMs).toBe(6 * HOUR);
+      expect(
+        deriveViewState(state, AUTUMN).guild.available.find((offer) => offer.modelId === 'sabotage')
+          ?.durationSeconds,
+      ).toBe(6 * 3600);
+    },
+  );
+
   describe('recusas de envio', () => {
     it('recusa fora do outono com SABOTAGE_SEASON', () => {
       const heroes = ['hero-1', 'hero-2', 'hero-3'];

@@ -697,3 +697,12 @@ O alerta também trunca uma vez sobre o total da onda atual e distribui os
 restos na ordem fixa: Camponês 28 → 30, Senhor 40 → 44. Não acumula novos
 alertas. Após três reduções em Senhor, 22 → 24 com alerta, tanto ao reduzir
 uma onda alertada quanto ao alertar uma onda reduzida ou regenerá-la.
+
+As seis horas do ADR 0020/17 são cumpridas com um trecho de saída de uma hora,
+sem prova ou recompensa, após o Xamã. O limite estrutural aumenta de cinco para
+seis nós temporizados; o teste desse limite passa a recusar sete nós e mantém
+as recusas de duração por nó acima de 60 min. Não houve afrouxamento de regra
+de desfecho. O golden da calibragem muda só na sabotagem: nove provas passam
+de ferimento a captura e a duração passa de 300 para 360 min, reduzindo os
+ganhos por hora. O golden do relatório acrescenta a saída e os eventos da hora
+adicional. Ambos foram regravados com `UPDATE_GOLDEN=1` e os diffs conferidos.

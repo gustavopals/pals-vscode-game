@@ -1375,9 +1375,13 @@ Crônica; a lista corrente é limpa quando a Horda altera as ondas no outono.
 **Rascunho que o autor não leu.**
 
 Modelo de expedição especial do outono, só com a Fortaleza da Horda de pé (ADR 0020, decisão 17; GDD §9.5).
-Pede exatamente 3 heróis, dura 5 h de jogo (300 min), até 3 vezes no mesmo ano.
+Pede exatamente 3 heróis, dura 6 h de jogo (360 min), até 3 vezes no mesmo ano.
 
 ### 13.1 Regras editoriais e mecânicas
+
+A jornada completa atravessa quatro provas, um trecho de saída e o retorno,
+uma hora de jogo cada. O recuo na encruzilhada permite voltar antes.
+
 - **Enfraquecimento:** cada nó com prova bem-sucedido reduz em 15% a onda correspondente (Nó 1 enfraquece onda 1; Nó 2 enfraquece onda 2; Nó 3 enfraquece onda 3). Até 3 tentativas reduzem em até 45% cada onda.
 - **Xamã:** o último nó com prova é o Xamã. Derrotado, revela a composição exata da onda 3 no painel de presságios (`revealsWave: 3`).
 - **Desastre:** captura um herói (conforme `heroCapture` da dificuldade) e alerta a Horda (`alertsHorde: true`, marcando `horde.sabotages.alerted = true`), acrescentando +10% de efetivo à onda 1.

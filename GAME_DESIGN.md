@@ -621,6 +621,10 @@ Narrado em tom de crônica, nó a nó: o que aconteceu, quem se destacou, o que 
 
 ### 9.5 Sabotagem da Horda
 
+`[v0.4]` A jornada completa dura **6 h de jogo** (ADR 0020/17): quatro provas,
+um trecho de saída e o retorno, uma hora cada. O limite estrutural é de seis nós
+temporizados de até 60 min; a opção de recuar na encruzilhada conserva o caminho curto.
+
 Expedição especial do outono, **só com a Fortaleza de pé** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 17). Exige **exatamente 3 heróis** por **6 h de jogo**, e cabem **até 3 por ano**. Cada nó com Sucesso reduz em 15% uma onda; o chefe do grafo é um **Xamã** que, derrotado, revela a composição da onda 3. O Desastre captura um herói (pela dificuldade, §9.2) e **alerta a Horda** (+10% na onda 1). A dificuldade sobe a cada tentativa, porque a Fortaleza reforça a guarda. Decisão central: gastar os heróis agora ou guardá-los para comandar as alas.
 
 ---

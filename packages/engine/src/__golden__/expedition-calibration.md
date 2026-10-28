@@ -201,5 +201,5 @@ Em 31 sortes:
 | Mina Abandonada | 240 min | Com folga: Guerreiro + Arqueiro Nv3 | 11,2 | 12,8 |
 | Pântano Nebuloso | 300 min | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 8,6 | 30,5 |
 | Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |
-| Sabotagem da Fortaleza | 300 min | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 4,4 | 37,0 |
-| Sabotagem da Fortaleza | 300 min | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 5,6 | 45,9 |
+| Sabotagem da Fortaleza | 360 min | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 3,6 | 30,8 |
+| Sabotagem da Fortaleza | 360 min | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 4,7 | 38,2 |

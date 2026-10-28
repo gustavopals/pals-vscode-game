@@ -513,7 +513,10 @@
    "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
    "expeditionNodeFailed: No 3º dia da Primavera, ondas de choque místicas abalaram Isolda: o xamã bateu em retirada deixando planos da terceira onda, mas os heróis saíram atordoados. A prova pedia mais do que a equipe tinha: gente mais calejada.",
    "heroInjured: No 3º dia da Primavera, Rolf sofreu um ferimento leve em \"Sabotagem da Fortaleza\". Termina a jornada, mas depois precisa de descanso.",
-   "expeditionReturned: No 3º dia da Primavera, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionNodeResolved: No 3º dia da Primavera, a expedição de Pedra Alta atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.",
+   "heroRecovered: No 4º dia da Primavera, Rolf sarou das feridas e já pode partir de Pedra Alta outra vez.",
+   "dayStarted: Amanhece o 4º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 4º dia da Primavera, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -582,8 +585,17 @@
      "lessonText": "A prova pedia mais do que a equipe tinha: gente mais calejada."
     },
     {
+     "title": "A saída da Fortaleza",
+     "text": "No 3º dia da Primavera, a expedição de Pedra Alta atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
      "title": "O retorno pelas sombras",
-     "text": "No 3º dia da Primavera, a expedição de Pedra Alta escapou pelas sombras da mata e retornou da Fortaleza da Horda.",
+     "text": "No 4º dia da Primavera, a expedição de Pedra Alta escapou pelas sombras da mata e retornou da Fortaleza da Horda.",
      "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
