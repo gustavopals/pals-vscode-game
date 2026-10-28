@@ -137,7 +137,9 @@ function withoutIron(value: unknown): unknown {
   );
 }
 
-function withoutVigilSettings<T extends Record<string, unknown>>(settings: T): Record<string, unknown> {
+function withoutVigilSettings<T extends Record<string, unknown>>(
+  settings: T,
+): Record<string, unknown> {
   const copy = { ...settings };
   delete copy.realOriginMs;
   delete copy.vigil;

@@ -68,14 +68,18 @@ function expectedEtag(body: unknown): string {
   return `W/"${createHash('sha256').update(canonical(body)).digest('hex')}"`;
 }
 
-function withoutVigilSettings<T extends Record<string, unknown>>(settings: T): Record<string, unknown> {
+function withoutVigilSettings<T extends Record<string, unknown>>(
+  settings: T,
+): Record<string, unknown> {
   const copy = { ...settings };
   delete copy.realOriginMs;
   delete copy.vigil;
   return copy;
 }
 
-function withoutVigilSettlement<T extends Record<string, unknown>>(settlement: T): Record<string, unknown> {
+function withoutVigilSettlement<T extends Record<string, unknown>>(
+  settlement: T,
+): Record<string, unknown> {
   const copy = { ...settlement };
   delete copy.vigil;
   return copy;
