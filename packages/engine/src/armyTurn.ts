@@ -130,7 +130,15 @@ export function settleCampaign(draft: GameState, atMs: number, events: GameEvent
       { desfecho: battleOutcomeLabels[report.outcome] },
     );
     if (report.outcome === 'victory') {
-      clearThreatTile(draft, campaign.tile, campaignTexts.label, { battleId: id }, atMs, events);
+      clearThreatTile(
+        draft,
+        campaign.tile,
+        campaignTexts.label,
+        { battleId: id },
+        atMs,
+        events,
+        campaignTexts.tileCleared,
+      );
     }
   }
   if (campaign.report === null || campaign.returnsAtMs > atMs) return;

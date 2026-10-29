@@ -290,6 +290,7 @@ export function clearThreatTile(
   source: Record<string, string>,
   atMs: number,
   events: GameEvent[],
+  template?: string,
 ): boolean {
   const tile = Object.hasOwn(draft.map.tiles, tileId) ? draft.map.tiles[tileId] : undefined;
   if (tile === undefined || !tile.threatActive) {
@@ -305,6 +306,7 @@ export function clearThreatTile(
     'threatTileCleared',
     { tileId, ...source },
     { expedicao: label, lugar: tileWithArticle(draft, tileId) ?? '' },
+    template,
   );
   return true;
 }

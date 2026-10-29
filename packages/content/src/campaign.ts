@@ -6,6 +6,8 @@ export const campaignTexts = {
   away: 'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
   commanderRequired: 'falta um comandante livre numa ala com soldados',
   heroAway: 'está com o exército no caminho do Acampamento',
+  tileCleared:
+    'No {dia}º dia {daEstacao}, o exército de {feudo} limpou {lugar}. Dali já não sai quem ronde o feudo, até a virada do ano.',
   loot: 'Os sobreviventes trouxeram o saque.',
   noLoot: 'Os sobreviventes voltaram sem saque.',
   ready:

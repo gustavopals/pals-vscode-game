@@ -171,6 +171,17 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     expect(currentShape(back.state, '')).toBeNull();
   });
 
+  it('atribui a limpeza do Acampamento ao exército na Crônica', () => {
+    const at = advanceTo(attack(campaignYard()).state, arrival);
+    const cleared = at.events.filter((event) => event.type === 'threatTileCleared');
+    expect(cleared).toHaveLength(1);
+    expect(cleared[0]).toMatchObject({
+      text: 'No 1º dia da Primavera, o exército de Pedra Alta limpou o Acampamento de Saqueadores. Dali já não sai quem ronde o feudo, até a virada do ano.',
+      data: { tileId: 'raiderCamp', battleId: at.state.army.campaign!.report!.id },
+    });
+    expect(cleared[0]!.data).not.toHaveProperty('expeditionId');
+  });
+
   it('a morte do comandante em Rei de Ferro não deixa herói nem reserva órfã', () => {
     const start = campaignYard(0, false);
     start.settings.difficulty = 'ironKing';
