@@ -1,4 +1,4 @@
-import type { ViewState } from '@lotg/protocol';
+import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import {
   activeFormation,
@@ -30,6 +30,14 @@ export const ARMY_SECTION = 'army';
 
 /** O prefixo das linhas da árvore. */
 export const ARMY_NODE = 'army';
+
+/** O relato específico do Acampamento não repete a mesma batalha já contada neste lote. */
+export const isCampAssaultDuplicate = (event: GameEvent, events: readonly GameEvent[]): boolean =>
+  event.type === 'campAssaulted' &&
+  typeof event.data.battleId === 'string' &&
+  events.some(
+    (entry) => entry.type === 'battleFought' && entry.data.battleId === event.data.battleId,
+  );
 
 /** O Quartel está de pé. */
 export const hasBarracks = (army: Army): boolean => army.built;

@@ -545,3 +545,6 @@ A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comand
 
 **F-5. Prévia ofensiva do ataque ao Acampamento.** _(Proposta do agente; não lida pelo autor.)_
 O coordenador decidiu adiar a prévia ofensiva: `simulateBattle` entrega a defesa do feudo e uma prévia de ataque exige regra e contrato próprios no motor. A tela e a paleta agora identificam a simulação como **defesa do feudo**, com o aviso de que o ataque ainda não tem prévia. Fica para o autor decidir a prévia ofensiva do ataque ao Acampamento; o app não adapta percentuais, perdas nem fatores defensivos para representar esse ataque.
+
+**F-6. Nível dos avisos da sabotagem e da campanha.** _(Proposta do agente; não lida pelo autor.)_
+Os quatro desfechos (`hordeSabotaged`, `hordeAlerted`, `campAssaulted`, `armyReturned`) chegam em "Todas", seguindo as notícias de expedição e batalha e a cota existente. Os dois primeiros levam à Guilda e os outros, ao Exército. No Retorno, enfraquecer ondas e trazer os esquadrões de volta são ganhos; alertar a Horda e travar batalha são preço. O autor ainda pode decidir se o alerta da Horda merece aviso essencial. O relato do Acampamento só substitui a ausência de `battleFought` do mesmo identificador no lote, para a mesma batalha não aparecer duas vezes.

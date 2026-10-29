@@ -24,6 +24,7 @@ import {
   isEssential,
   isExpeditionEnd,
   isGuildEvent,
+  isArmyEvent,
   isRaidAlarm,
   isRaidOutcome,
   isRelief,
@@ -1121,5 +1122,35 @@ describe('a guerra nos avisos (V4E-T4)', () => {
         (entry) => entry.type,
       ),
     ).toEqual(['raidAnnounced']);
+  });
+});
+
+describe('sabotagem e campanha nos avisos (V4F-T3, revisão 4)', () => {
+  it.each(['hordeSabotaged', 'hordeAlerted', 'campAssaulted', 'armyReturned'] as const)(
+    '%s chega em Todas, com destino e ícone próprios',
+    (type) => {
+      const entry = event(type);
+      expect(decideNotifications(input({ level: 'all', events: [entry] })).show).toEqual([entry]);
+      expect(decideNotifications(input({ level: 'essential', events: [entry] })).show).toEqual([]);
+      expect(decideNotifications(input({ level: 'silent', events: [entry] })).show).toEqual([]);
+      const sabotage = type === 'hordeSabotaged' || type === 'hordeAlerted';
+      expect(isGuildEvent(entry)).toBe(sabotage);
+      expect(isArmyEvent(entry)).toBe(!sabotage);
+      expect(eventIcon(entry)).toBeDefined();
+    },
+  );
+
+  it('o relato do ataque não duplica battleFought, mas a volta avisa depois', () => {
+    const fought = { ...event('battleFought', 1), data: { battleId: 'battle-1' } };
+    const assault = { ...event('campAssaulted', 2), data: { battleId: 'battle-1' } };
+    const returned = { ...event('armyReturned', 3), data: { battleId: 'battle-1' } };
+    expect(
+      decideNotifications(input({ level: 'all', events: [fought, assault, returned] })).show,
+    ).toEqual([fought, returned]);
+    const other = { ...assault, data: { battleId: 'battle-2' } };
+    expect(decideNotifications(input({ level: 'all', events: [fought, other] })).show).toEqual([
+      fought,
+      other,
+    ]);
   });
 });
