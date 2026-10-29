@@ -79,7 +79,7 @@ export function completeSiegeByDifficulty(difficulty: DifficultyId) {
     state = step.state;
     const report = state.army.reports.at(-1)!;
     waves.push({
-      wave: state.siege.current,
+      wave: state.siege!.current,
       atMs,
       outcome: report.outcome,
       events: step.events,

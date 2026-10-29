@@ -937,7 +937,7 @@ Como V4B-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-f.md`; correçõ
 - [x] V4G-T2.6 Rescaldo: luto (−10 por 1 dia se houve mortos) ou festa (+15 se Gloriosa); reparos com desconto até o fim do inverno; a Primavera da Reconstrução (custos ×4/5 por 2 dias de jogo) depois da Queda; "nunca há game over".
 - [ ] V4G-T2.7 Protocolo 4: `pendingDecisions` com `siegeWave`; o SDK e o servidor; `CACHE_VERSION`; teste de igualdade de tipos.
 - [x] V4G-T2.8 **Revisão independente do motor do cerco antes da tela** (Apêndice A.4, com o relatório em `docs/reviews/v0.4-cerco.md`): determinismo, névoa, tempo real, o cerco com o jogador fora 30 dias, a migração no inverno.
-- [ ] V4G-T2.9 Propriedade: divisão de intervalo com o cerco inteiro dentro, cortado entre ondas, antes da decisão e depois dela; golden de um cerco completo por dificuldade; `--perf` com o cerco.
+- [x] V4G-T2.9 Propriedade: divisão de intervalo com o cerco inteiro dentro, cortado entre ondas, antes da decisão e depois dela; golden de um cerco completo por dificuldade; `--perf` com o cerco.
 - [ ] V4G-T2.10 Simulador: os bots salvam o Plano com a Defesa ativa e chamam a milícia quando a prévia da onda 3 dá menos de 50%; colunas e a tabela "Cerco" por célula.
 
 **Diversão:** "Passei a semana me preparando e valeu." O teste é o autor ler o resultado e saber o que fazer diferente no ano 2.
@@ -1374,7 +1374,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4F-T4 | | | | | |
 | V4F (integração) | | | | | |
 | V4G-T1 | | | | | |
-| V4G-T2 | | | | | |
+| V4G-T2 (T2.9) | 2026-10-29 | `3f8abab`, `942d135` e o desta linha | uma sessão (Gemini) | Propriedade e desempenho do Cerco (V4G-T2.9): (1) três testes de propriedade em `packages/engine/src/siege.property.test.ts` com fast-check provando exatidão estrita da divisão de intervalo (estado, eventos e RNG) com o cerco inteiro dentro do intervalo e cortes arbitrários entre ondas, antes e depois da decisão `siegeWave` (com troca de formação e reparo de emergência), e com o jogador ausente 30 dias reais atravessando o cerco, rescaldo e virada de ano; (2) golden `siege-by-difficulty.json` gravado com UPDATE_GOLDEN=1 conferindo os três resultados e eventos onda a onda para Camponês, Senhor e Rei de Ferro; (3) `--perf` executado com o cerco e registrado em `docs/balance-v0.4.md` §16; ajuste de população na Queda em `packages/sim-cli/src/perf.test.ts` (66 → 53 e 19 → 15 pela perda de 20% na Queda). Testes focados verdes, typecheck e lint código 0. | Suítes pesadas globais (`pnpm verify`, matriz completa, integração com banco e Playwright em navegador) não foram executadas por instrução de coordenação; T2.7 e T2.10 permanecem para as próximas etapas. |
 | V4G-T3 | | | | | |
 | V4G-T4 | | | | | |
 | V4G-T5 | | | | | |
