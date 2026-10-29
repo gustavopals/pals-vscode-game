@@ -1,4 +1,4 @@
-import { balance, siegeTexts, vigilRules, type UnitId } from '@lotg/content';
+import { balance, siegeTexts, vigilRules, type UnitId, WING_IDS } from '@lotg/content';
 
 import { availableUnits } from './campaign';
 import { applyBattleOutcome } from './battleOutcome';
@@ -98,9 +98,18 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     siege.deaths += casualty.lost;
   }
   siege.deaths += report.commanders.filter((c) => c.fate === 'died').length;
-  siege.breached ||= report.casualties.some(
+  const wingFellInBattle = resolution.rounds.some((r) =>
+    r.actions.some(
+      (a) =>
+        a.kind === 'attack' &&
+        a.notes.some((n) => n.kind === 'wingFell' && n.side === resolution.playerSide),
+    ),
+  );
+  const frontMissing = WING_IDS.some((wing) => defender.posts[wing].front === null);
+  const frontBreached = report.casualties.some(
     (c) => c.owner === 'player' && c.line === 'front' && c.lost >= c.start,
   );
+  siege.breached ||= frontMissing || frontBreached || wingFellInBattle;
   applyBattleOutcome(draft, report, atMs, events);
   draft.army.reports = [...draft.army.reports, report].slice(-balance.army.reportsKept);
   observeFormation(

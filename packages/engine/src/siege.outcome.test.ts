@@ -33,6 +33,23 @@ describe('Cerco: resultado e Queda', () => {
     expect(result.events.filter((e) => e.type === 'siegeWon')).toHaveLength(1);
     expect(result.events.filter((e) => e.type === 'siegeGlorious')).toHaveLength(0);
   });
+  it('ala sem tropa na frente impede Vitória Gloriosa mesmo que vença o cerco', () => {
+    const state = readySiege();
+    state.army.formations[0]!.posts.left.front = null;
+    const result = complete(state);
+    expect(result.state.siege!.result).toBe('victory');
+    expect(result.events.filter((e) => e.type === 'siegeGlorious')).toHaveLength(0);
+    expect(result.events.filter((e) => e.type === 'siegeWon')).toHaveLength(1);
+  });
+  it('ala com retaguarda aniquilada impede Vitória Gloriosa', () => {
+    const state = readySiege();
+    state.army.formations[0]!.posts.left.front = null;
+    state.army.formations[0]!.posts.left.back = { unit: 'archer', count: 1 };
+    const result = complete(state);
+    expect(result.state.siege!.result).toBe('victory');
+    expect(result.events.filter((e) => e.type === 'siegeGlorious')).toHaveLength(0);
+    expect(result.events.filter((e) => e.type === 'siegeWon')).toHaveLength(1);
+  });
   it('perder a primeira onda encerra o cerco, sem enfrentar as duas restantes', () => {
     const state = readySiege();
     state.army.units = { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 };
