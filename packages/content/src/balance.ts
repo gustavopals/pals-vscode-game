@@ -778,6 +778,19 @@ export type Balance = {
   readonly wall: WallDef;
   readonly horde: HordeMindDef;
   readonly omens: OmensDef;
+  readonly siege: {
+    readonly waveIntervalRealMs: number;
+    readonly fall: {
+      readonly resourcesLost: Ratio;
+      readonly populationLost: Ratio;
+      readonly buildingsDamaged: number;
+      readonly levelsLost: number;
+    };
+    readonly reconstruction: { readonly costFactor: Ratio; readonly days: number };
+    readonly mourning: { readonly morale: number; readonly days: number };
+    readonly feast: { readonly morale: number; readonly days: number };
+    readonly aftermathRepairFactor: Ratio;
+  };
 };
 
 /**
@@ -1402,6 +1415,21 @@ export const balance: Balance = {
       alertIncrease: { num: 1, den: 10 },
       guardIncreasePerAttempt: { num: 1, den: 10 },
     },
+  },
+  siege: {
+    waveIntervalRealMs: 60 * MINUTE_MS,
+    fall: {
+      resourcesLost: { num: 3, den: 10 },
+      populationLost: { num: 1, den: 5 },
+      buildingsDamaged: 2,
+      levelsLost: 2,
+    },
+    reconstruction: { costFactor: { num: 4, den: 5 }, days: 2 },
+    mourning: { morale: -10, days: 1 },
+    // Proposta G-9: mesma duração do luto; o ADR não quantifica a duração da festa.
+    feast: { morale: 15, days: 1 },
+    // Proposta G-9: desconto conservador de 20%, só no custo do reparo da muralha.
+    aftermathRepairFactor: { num: 4, den: 5 },
   },
   omens: {
     chancePercent: 35,

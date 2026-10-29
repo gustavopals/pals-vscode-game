@@ -547,3 +547,30 @@ As 3 h do catálogo (§9.3) são a campanha inteira: 90 min de jogo por trecho, 
 
 **F-4. Reserva e calendário.** _(Proposta do agente; não lida pelo autor.)_
 A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comandantes. Editar uma formação não muda a campanha; apagar a formação enviada é recusado até o retorno (`FORMATION_IN_CAMPAIGN`, correção da revisão de 2026-10-29). Soldados enviados continuam no total do Quartel, habitação e consumo até o retorno; as baixas são descontadas nesse retorno. Reservas não podem ser dispensadas, não defendem incursões e não entram na prévia defensiva. Comandantes usam o estado `campaign`, continuam recebendo soldo, não podem partir/equipar/ser dispensados; ferimento, experiência e desgaste são aplicados na chegada. A previsão da moral exclui a campanha para não antecipar sorteios; o soldo vencido é cobrado na volta, como nas expedições e escoltas. A batalha e a volta resolvem depois das expedições e antes das caravanas; uma incursão no mesmo instante da volta ainda enfrenta o feudo sem os que chegam. O estado efetivo passa de 38 para 39 (a referência antiga a 35 no roadmap não vale nesta base).
+
+
+## V4G-T2 — Motor do Cerco (2026-10-29)
+
+**G-6. Migração tardia e calendário das ondas.** _(Proposta do agente; não lida pelo autor.)_
+O passo efetivo é 39 → 40, sem sorteio ou prazo. Na primeira virada de outono/inverno
+a linha do tempo usa a preparação existente. Se a Vigília daquele inverno já passou,
+a primeira onda fica uma antecedência da Torre adiante (ou o mínimo da Vigília sem Torre),
+sem cobrar batalha retroativa; as outras esperam 60 min reais cada. Uma sequência que
+atravesse a primavera conserva o retrato das ondas, embora a Horda reinicie a memória anual.
+
+**G-7. Plano e comandos internos antes do protocolo 4.** _(Proposta do agente; não lida pelo autor.)_
+O Plano fica em `siege.plan`, sem segunda cópia em `army.battlePlan`. Campos nulos usam a
+Defesa ativa do instante da onda. Os tipos de ordens, recusas e decisão entre ondas ficam
+separados dos tipos públicos do protocolo 3; T2.7 os incorporará ao protocolo 4.
+
+**G-8. Empates e continuidade depois da Queda.** _(Proposta do agente; não lida pelo autor.)_
+Empates entre edifícios são resolvidos pela ordem fixa de `BUILDING_IDS`, com o Salão
+incluído. Nenhum nível fica negativo; os já erguidos conservam ao menos nível 1. Obras em
+curso dos edifícios atingidos são canceladas sem devolução, para não restaurarem o nível
+perdido na primeira conclusão. O reparo em curso é encerrado quando a muralha é destruída.
+
+**G-9. Rescaldo sem número aprovado.** _(Proposta do agente; não lida pelo autor.)_
+A festa dura um dia de jogo, como o luto; a Gloriosa usa festa mesmo com mortos. O reparo da
+muralha custa 4/5 da pedra e do ouro até acabar o inverno, sem reduzir o prazo. A reconstrução
+reduz os custos de novas obras por dois dias de jogo a partir da primavera, sem devolução de
+custos antigos nem desconto no treino, forja ou comércio. Números em `balance.siege`.

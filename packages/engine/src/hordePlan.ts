@@ -24,6 +24,7 @@ import {
   type SeenPost,
 } from './hordeMind';
 import { chance, nextInt } from './random';
+import { syncSiegeWaves } from './siege';
 import { watchtowerLevel } from './threat';
 import type { GameEvent, GameState, ScheduledRaid } from './types';
 
@@ -178,6 +179,7 @@ function prepareWaves(draft: GameState, atMs: number): void {
     generatedAtMs: atMs,
     waves,
   };
+  syncSiegeWaves(draft);
   // Um presságio antigo é um fato da Crônica. No painel só fica a informação da versão atual.
   draft.horde.omens = [];
 }
@@ -218,6 +220,7 @@ export function alertHordeFortress(
       increaseAlertedWave(wave1);
     }
   }
+  syncSiegeWaves(draft);
   // A informação da visão acompanha a composição; a frase já emitida continua histórica.
   draft.horde.omens = draft.horde.omens.filter((omen) => omen.wave !== 1);
   emit(events, draft, atMs, 'hordeAlerted', { expeditionId, modelId: 'sabotage' });
@@ -253,6 +256,7 @@ export function applyWaveSabotage(
       }
     }
   }
+  syncSiegeWaves(draft);
   draft.horde.omens = draft.horde.omens.filter((omen) => omen.wave !== waveNumber);
   emit(
     events,

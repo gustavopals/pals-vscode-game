@@ -796,6 +796,30 @@ const balanceFields = z.strictObject({
     formationNameMaxLength: positiveInt,
     reportsKept: positiveInt,
   }),
+  siege: z
+    .strictObject({
+      waveIntervalRealMs: positiveInt,
+      fall: z.strictObject({
+        resourcesLost: ratio,
+        populationLost: ratio,
+        buildingsDamaged: positiveInt,
+        levelsLost: positiveInt,
+      }),
+      reconstruction: z.strictObject({ costFactor: ratio, days: positiveInt }),
+      mourning: z.strictObject({ morale: z.number().int().negative(), days: positiveInt }),
+      feast: z.strictObject({ morale: positiveInt, days: positiveInt }),
+      aftermathRepairFactor: ratio,
+    })
+    .refine(
+      ({ fall, reconstruction, aftermathRepairFactor }) =>
+        [
+          fall.resourcesLost,
+          fall.populationLost,
+          reconstruction.costFactor,
+          aftermathRepairFactor,
+        ].every(({ num, den }) => num > 0 && num < den),
+      'perdas e descontos do cerco ficam estritamente entre zero e um',
+    ),
   // A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18).
   horde: z.strictObject({
     counterWeights: z.strictObject(
