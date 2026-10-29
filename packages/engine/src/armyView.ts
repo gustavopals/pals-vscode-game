@@ -109,6 +109,8 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
       blockedReason: blocked?.message ?? null,
     };
   });
+  const noFormationBlock =
+    assaultFormations.length === 0 ? attackCampBlock(state, undefined) : null;
   return {
     campaign:
       campaign === null
@@ -137,8 +139,9 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
       blockedReason: assaultFormations.some((formation) => formation.canAttack)
         ? null
         : (assaultFormations[0]?.blockedReason ??
-          attackCampBlock(state, undefined)?.message ??
-          null),
+          (noFormationBlock?.code === 'FORMATION_NOT_FOUND'
+            ? campaignTexts.formationRequired
+            : (noFormationBlock?.message ?? null))),
       formations: assaultFormations,
     },
     building: 'barracks',

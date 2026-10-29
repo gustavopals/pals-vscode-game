@@ -320,6 +320,21 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
       });
   });
 
+  it('pede para montar uma formação quando há Acampamento à vista e nenhuma formação salva', () => {
+    const inactive = accept(campaignYard(), command('setActiveFormation', { id: null })).state;
+    const state = accept(inactive, command('deleteFormation', { id: 'formation-1' })).state;
+    const before = JSON.stringify(state);
+    expect(deriveViewState(state, state.lastProcessedAt).army.campAssault).toMatchObject({
+      blockedReason: 'Monte e salve uma formação no Exército antes de ordenar o ataque.',
+      formations: [],
+    });
+    expect(JSON.stringify(state)).toBe(before);
+    state.settlement.buildings.watchtower = 0;
+    expect(deriveViewState(state, state.lastProcessedAt).army.campAssault.blockedReason).toBe(
+      'Não há Acampamento de Saqueadores ativo à vista para atacar.',
+    );
+  });
+
   it('a previsão da moral não resolve a campanha nem antecipa sorte, experiência ou baixas', () => {
     const { state } = attack(campaignYard());
     const ahead = stateAtNextMoraleTurn(state);

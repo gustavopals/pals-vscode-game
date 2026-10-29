@@ -17181,7 +17181,7 @@
         "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
         "travelSeconds": 1800,
         "totalSeconds": 3600,
-        "blockedReason": "Essa formação não está entre as salvas.",
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
         "formations": []
       },
       "building": "barracks",
@@ -18693,7 +18693,7 @@
         "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
         "travelSeconds": 1800,
         "totalSeconds": 3600,
-        "blockedReason": "Essa formação não está entre as salvas.",
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
         "formations": []
       },
       "building": "barracks",
@@ -20206,7 +20206,7 @@
         "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
         "travelSeconds": 1800,
         "totalSeconds": 3600,
-        "blockedReason": "Essa formação não está entre as salvas.",
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
         "formations": []
       },
       "building": "barracks",
@@ -21777,7 +21777,7 @@
         "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
         "travelSeconds": 1800,
         "totalSeconds": 3600,
-        "blockedReason": "Essa formação não está entre as salvas.",
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
         "formations": []
       },
       "building": "barracks",
@@ -46037,7 +46037,7 @@
         "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
         "travelSeconds": 5400,
         "totalSeconds": 10800,
-        "blockedReason": "Essa formação não está entre as salvas.",
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
         "formations": []
       },
       "building": "barracks",

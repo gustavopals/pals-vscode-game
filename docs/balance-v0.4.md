@@ -754,3 +754,8 @@ ativa (`FORMATION_IN_CAMPAIGN`; `canDelete: false`). O teste anterior aceitava a
 essa expectativa foi substituída por recusa nas fases de marcha e retorno, seguida
 da exclusão aceita após a volta. A prova da fotografia editada continua separada.
 Nenhuma faixa foi alterada ou remedida.
+
+A oferta sem formação salva agora pede para montá-la no Exército, preservando a
+recusa anterior quando não há Acampamento à vista. Golden da visão regravado com
+`UPDATE_GOLDEN=1`: diff lido, só cinco frases `campAssault.blockedReason` mudaram;
+nenhum número ou faixa mudou.

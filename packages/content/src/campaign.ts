@@ -15,6 +15,7 @@ export const campaignTexts = {
   noCamp: 'Não há Acampamento de Saqueadores ativo à vista para atacar.',
   armyAway: 'O exército já está em campanha: espere o retorno antes de ordenar outro ataque.',
   noSoldiers: 'A formação não tem soldados disponíveis para marchar.',
+  formationRequired: 'Monte e salve uma formação no Exército antes de ordenar o ataque.',
   formationInCampaign:
     'Essa formação está em campanha: espere o exército voltar antes de apagá-la.',
 } as const;
