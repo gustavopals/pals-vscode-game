@@ -230,19 +230,45 @@ describe('market.effects: a mesma cotação na visão e na negociação', () => 
     const result = choose(state, def).state;
     expect(result.market.prices).toEqual(state.market.prices);
     expect(result.market.quoteDay).toBe(state.market.quoteDay);
-    expect(quote(result, 'food')).toEqual({ buy: 3120, sell: 2652 });
-    expect(quote(result, 'iron')).toEqual({ buy: 9600, sell: 8160 });
-    expect(marketView(result, 3).prices[0]).toMatchObject({ buy: 3120, sell: 2652 });
-    expect(marketView(result, 3).prices[0]?.breakdown).toContain('Carta: A prova');
+    // Segunda junção: a correção de arbitragem adia os fatores para a próxima virada
+    // (docs/balance-v0.4.md, seção "Segunda junção"). A cotação intradiária fica intacta.
+    expect(quote(result, 'food')).toEqual({ buy: 2080, sell: 1768 });
+    expect(quote(result, 'iron')).toEqual({ buy: 8000, sell: 6800 });
+    const withoutEffects = cloneState(result);
+    withoutEffects.market.effects = [];
+    const active = advanceWithCards(result, WINTER + DAY, [def]).state;
+    const control = advanceWithCards(withoutEffects, WINTER + DAY, [def]).state;
+    expect(active.market.prices).toEqual(control.market.prices);
+    expect(active.market.quoteDay).toBe(control.market.quoteDay);
+    expect(active.rng).toEqual(control.rng);
+    // Comida: inverno × 6/5 × 5/4 = 39/20; ferro: apenas 6/5. Venda a 17/20,
+    // com um único arredondamento final, mesmo acima do teto do passeio.
+    const food = active.market.prices.food;
+    const iron = active.market.prices.iron;
+    const foodQuote = { buy: Math.ceil((food * 39) / 20), sell: Math.floor((food * 663) / 400) };
+    expect(quote(active, 'food')).toEqual(foodQuote);
+    expect(quote(active, 'food').buy).toBeGreaterThan(priceBounds('food').ceiling);
+    expect(quote(active, 'iron')).toEqual({
+      buy: Math.ceil((iron * 6) / 5),
+      sell: Math.floor((iron * 51) / 50),
+    });
+    expect(marketView(active, 3).prices[0]).toMatchObject(foodQuote);
+    expect(marketView(active, 3).prices[0]?.breakdown).toContain('Carta: A prova');
     expect(migrateState(JSON.parse(JSON.stringify(result)), { timeScale: 1 })).toEqual(result);
   });
 
-  it('vence no instante exato entre viradas e preserva a divisão de intervalo, os eventos e o gerador', () => {
+  it('vence na virada exata após a duração e preserva a divisão de intervalo, os eventos e o gerador', () => {
     const def = card([
       { type: 'marketPrice', resources: ['wood'], factor: { num: 6, den: 5 }, durationDays: 1 },
     ]);
     const start = choose(feud(), def).state;
-    const end = start.lastProcessedAt + DAY;
+    // Segunda junção: a duração conta do início na próxima virada, sem expiração intradiária
+    // (docs/balance-v0.4.md, seção "Segunda junção").
+    expect(start.market.effects[0]).toMatchObject({
+      fromMs: SUMMER + DAY,
+      untilMs: SUMMER + 2 * DAY,
+    });
+    const end = SUMMER + 2 * DAY;
     const before = advanceWithCards(start, end - 1, [def]);
     expect(nextEventAt(before.state)).toBe(end);
     expect(quote(before.state, 'wood').buy).toBeGreaterThan(before.state.market.prices.wood);

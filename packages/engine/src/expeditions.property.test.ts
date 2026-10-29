@@ -328,7 +328,11 @@ describe('a divisão de intervalo com expedições no caminho', () => {
                 expect(result.ok).toBe(false);
               }
               if (!result.ok) {
-                expect(result.code).toBe('TEAM_INVALID');
+                // Segunda junção: a sabotagem exige exatamente três heróis e tem recusa
+                // própria para tamanho (docs/balance-v0.4.md, seção "Segunda junção").
+                expect(result.code).toBe(
+                  offer.modelId === 'sabotage' && team.length !== 3 ? 'TEAM_SIZE' : 'TEAM_INVALID',
+                );
               }
             }
           }

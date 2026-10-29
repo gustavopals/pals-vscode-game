@@ -226,6 +226,15 @@ function statsBeforeVigil(state: { stats: Record<string, unknown> }): Record<str
   return rest;
 }
 
+/** Forma da Taverna antes do recrutador (36 → 37), nas comparações históricas. */
+function tavernBeforeExtraOffer(state: GameState): Record<string, unknown> {
+  // Segunda junção: projeta só o campo posterior, sem mudar a guarda ou os retratos antigos
+  // (docs/balance-v0.4.md, seção "Segunda junção").
+  const tavern: Record<string, unknown> = { ...state.guild.tavern };
+  delete tavern.extraOffer;
+  return tavern;
+}
+
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
   // Segunda junção: as comparações com versões antigas retiram só os campos posteriores
@@ -2431,8 +2440,13 @@ describe('a forma da versão atual', () => {
       'mais candidatos do que a maior lista da Taverna',
       (state) =>
         withOffer(state, () => {
-          state.ids.offer = 4;
-          state.guild.tavernOffers = [1, 2, 3, 4].map((n) => ({ ...OFFER, offerId: `offer-${n}` }));
+          // Segunda junção: o recrutador permite uma quarta oferta; cinco ultrapassam o teto
+          // atual (docs/balance-v0.4.md, seção "Segunda junção"). O teto histórico segue três.
+          state.ids.offer = 5;
+          state.guild.tavernOffers = [1, 2, 3, 4, 5].map((n) => ({
+            ...OFFER,
+            offerId: `offer-${n}`,
+          }));
         }),
     ],
     ['a lista de heróis que não é lista', (state) => (state.guild.heroes = {})],
@@ -4991,8 +5005,8 @@ describe('versão 15 → 16', () => {
     const fresh = migrated(named('state-v15-fresh.json'));
     expect(fresh.settlement.buildings.tavern).toBe(0);
     expect(fresh.guild.tavernOffers).toEqual([]);
-    expect(fresh.guild.tavern).toEqual(NO_TAVERN);
-    expect(newGame().guild.tavern).toEqual(NO_TAVERN);
+    expect(tavernBeforeExtraOffer(fresh)).toEqual(NO_TAVERN);
+    expect(tavernBeforeExtraOffer(newGame())).toEqual(NO_TAVERN);
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
 
@@ -5004,7 +5018,7 @@ describe('versão 15 → 16', () => {
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.settlement.buildings.tavern).toBe(0);
       expect(after.guild.tavernOffers).toStrictEqual([]);
-      expect(after.guild.tavern).toStrictEqual(NO_TAVERN);
+      expect(tavernBeforeExtraOffer(after)).toStrictEqual(NO_TAVERN);
       // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, herói, carta ou
       // incursão muda, ninguém ganha identificador e o gerador fica palavra por palavra como
       // estava (o fluxo `tavern` só nasce no primeiro sorteio, na inauguração).
@@ -5023,7 +5037,7 @@ describe('versão 15 → 16', () => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(withoutObjectives(atBoundary.events)).toEqual([]);
-      expect(atBoundary.state.guild.tavern).toEqual(NO_TAVERN);
+      expect(tavernBeforeExtraOffer(atBoundary.state)).toEqual(NO_TAVERN);
       // A moral de ninguém muda: o termo da Taverna só existe com ela erguida.
       const view = deriveViewState(state, state.lastProcessedAt);
       expect(view.morale.terms.map((term) => term.id)).not.toContain('tavern');
@@ -5038,7 +5052,7 @@ describe('versão 15 → 16', () => {
       const later = advanceTo(state, state.lastProcessedAt + month);
       expect(later.state.settlement.buildings.tavern).toBe(0);
       expect(later.state.guild.tavernOffers).toEqual([]);
-      expect(later.state.guild.tavern).toEqual(NO_TAVERN);
+      expect(tavernBeforeExtraOffer(later.state)).toEqual(NO_TAVERN);
       expect(later.state.ids.offer).toBeUndefined();
       expect(later.state.rng.tavern).toBeUndefined();
       expect(later.events.filter((event) => /^(heroHired|festival)/.test(event.type))).toEqual([]);
@@ -5056,7 +5070,7 @@ describe('versão 15 → 16', () => {
     expect(slow).toEqual(fast);
     expect(slow.migratedAtMs).toBe(20 * HOUR);
     expect(slow.guild.heroes.map((hero) => hero.name)).toEqual(['Brann']);
-    expect(slow.guild.tavern).toEqual(NO_TAVERN);
+    expect(tavernBeforeExtraOffer(slow)).toEqual(NO_TAVERN);
   });
 
   it('um estado da versão 15 que já traz os campos da 16 é recusado: não é da versão que diz', () => {

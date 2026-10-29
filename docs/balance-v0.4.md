@@ -1009,7 +1009,7 @@ os 56 v37 são protegidos por `FROZEN` e seus JSONs não foram alterados.
 Validação final: typecheck e lint com saída 0; 824 testes focados e mais dois
 testes filtrados (golden da visão e congelamento v37), todos verdes.
 
-## 19. Segunda junção (2026-10-28)
+## 19. Segunda junção (2026-10-28 a 2026-10-29)
 
 Branch `v4-juncao2`, sobre o main `7cbdad1`, sem publicação. Integra as treze
 cartas de `v4h-t1-avulsas` (nove do Mercado/Coroa e quatro encontros avulsos),
@@ -1043,6 +1043,29 @@ Nos testes históricos, o ajudante que reconstrói a forma antiga retira também
 `horde.sabotages`. O Mercado migrado esperado inclui `effects: []`; o teste de
 forma inválida passa a remover esse campo, em vez de usar uma lista vazia
 agora válida. Os passos antigos e suas guardas permanecem preservados.
+
+Na conferência completa de 2026-10-29, os testes de `council.effects.test.ts`
+passaram a verificar a cotação intacta na escolha e os fatores compostos somente
+na virada seguinte, comparando passeio, dia da cotação e RNG com uma cópia sem
+os fatores. A duração conta dessa virada, inclusive no teste do vencimento exato
+com estado, eventos e gerador iguais em um ou dois avanços. A propriedade de
+expedições mantém a equivalência entre visão e ordem e passa a exigir `TEAM_SIZE`
+somente para a sabotagem com tamanho diferente de três; as demais equipes
+inválidas continuam exigindo `TEAM_INVALID`. Nenhuma regra de produção foi alterada.
+
+As 64 falhas das expectativas de migração eram a Taverna comparada sem retirar
+`extraOffer` (62 casos) e quatro candidatos tratados como forma inválida (dois
+casos). O ajudante `tavernBeforeExtraOffer`, no molde de `statsBeforeVigil`, projeta
+somente o campo posterior nas comparações da versão 15 → 16. A lista inválida
+atual passa a ter cinco candidatos: quatro são permitidos desde o recrutador
+na versão 37; o limite histórico de três e as guardas antigas ficam intactos.
+
+Verificação: rodada completa de motor/conteúdo/protocolo com 112 arquivos,
+15.452 testes verdes, 67 falhas de expectativas e uma falha esperada (saída 1).
+Após os ajustes, os 71 testes focados passaram (saída 0), incluindo o congelamento
+dos retratos. Nenhum golden ou retrato adicional divergiu nessa conferência;
+`FROZEN` e os arquivos históricos não foram editados. O replay inteiro volta a
+rodar no `verify` final.
 
 ### 19.2 Método da matriz
 
