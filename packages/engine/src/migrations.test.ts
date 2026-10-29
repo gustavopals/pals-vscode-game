@@ -218,6 +218,9 @@ const LOG_FIELDS_V18 = [
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  delete copy.siege;
+  delete copy.settlement?.militia;
+  delete copy.settlement?.reconstructionUntilMs;
   delete copy.market?.effects;
   delete copy.settings.realOriginMs;
   delete copy.settings.vigil;
@@ -680,6 +683,66 @@ function fingerprint(text: string): string {
  * de ficar para trás (o teste abaixo diz quais faltam e qual é a impressão de cada um).
  */
 const FROZEN: Record<string, string> = {
+  // V4G-T2.1: os 59 retratos v39 foram conferidos antes da mudança de estado.
+  'state-v39-campaign-defeated.json': '766502bd',
+  'state-v39-campaign-marching.json': '6fe9892e',
+  'state-v39-campaign-returning.json': 'f7b7f30b',
+  'state-v39-caravan-escort.json': '1cb9a75f',
+  'state-v39-caravan.json': '404e6d58',
+  'state-v39-cold.json': '6672cabd',
+  'state-v39-construction.json': '191e3310',
+  'state-v39-council-encounters.json': '301ecebd',
+  'state-v39-council-hidden.json': 'c1a62f28',
+  'state-v39-council-risk.json': 'c1387890',
+  'state-v39-council.json': 'b1336fab',
+  'state-v39-crafts.json': '764465fe',
+  'state-v39-den-cleared.json': '986f0580',
+  'state-v39-expedition-crossroads.json': '41024521',
+  'state-v39-expedition-returning.json': '87b41f47',
+  'state-v39-expedition.json': '246a65a7',
+  'state-v39-famine-3x.json': '4cbc0f74',
+  'state-v39-famine-ended.json': '22e1a728',
+  'state-v39-famine-half.json': '611f5021',
+  'state-v39-famine-resumed.json': 'a584afee',
+  'state-v39-famine-smithy.json': '25f30672',
+  'state-v39-famine.json': '41764137',
+  'state-v39-fresh.json': '89431663',
+  'state-v39-guild.json': '7ab54eca',
+  'state-v39-hero-captured.json': '31370575',
+  'state-v39-hero-injured.json': '6fee841a',
+  'state-v39-hero-promised.json': '0020d9d6',
+  'state-v39-horde-omens-exact.json': '03823752',
+  'state-v39-horde-omens-partial.json': 'a759730a',
+  'state-v39-horde-omens-vague.json': '360bf9da',
+  'state-v39-housing-full.json': 'b113a55c',
+  'state-v39-iron-king-half.json': 'e5fe3677',
+  'state-v39-market-council-effects.json': 'd36285a1',
+  'state-v39-market-opening.json': 'a232fbf2',
+  'state-v39-market.json': 'c8303d1c',
+  'state-v39-master-waiting.json': '82ac9f2d',
+  'state-v39-masters.json': 'e760faf7',
+  'state-v39-migrated-3x.json': '6940d0ea',
+  'state-v39-migrated-iron-king-caravan.json': 'd3505c8d',
+  'state-v39-migrated-iron-king-half.json': 'e2c4d9a8',
+  'state-v39-migrated-peasant-3x.json': 'd80844c9',
+  'state-v39-morale.json': 'cc58c2ac',
+  'state-v39-objectives.json': '754ade82',
+  'state-v39-palisade.json': '8b8925a0',
+  'state-v39-peasant-3x.json': 'ee985ac8',
+  'state-v39-queues.json': 'bfdee32e',
+  'state-v39-raid-announced.json': 'b76fdfb7',
+  'state-v39-raid.json': '592c6951',
+  'state-v39-smithy-forging.json': '0d13cf77',
+  'state-v39-storage.json': '75d7b18b',
+  'state-v39-tavern-busy.json': '645a3351',
+  'state-v39-tavern.json': '1b57d5ed',
+  'state-v39-threat.json': '124aba91',
+  'state-v39-vigil-fixed-offset.json': 'ae4542ed',
+  'state-v39-wage-arrears-ended.json': 'e03a5fb8',
+  'state-v39-wage-arrears-resumed.json': 'aeb83886',
+  'state-v39-wage-arrears.json': 'b044457f',
+  'state-v39-warehouse-full.json': '7e13b0c8',
+  'state-v39-week-scripted.json': '58330170',
   // A base v38 já trazia estes 56 retratos v37 sem registro; arquivos preservados de 6964500.
   'state-v37-caravan-escort.json': '87d1aee6',
   'state-v37-caravan.json': 'bbffd629',

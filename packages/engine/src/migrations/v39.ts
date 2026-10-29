@@ -8,7 +8,7 @@ import {
   text,
   type Shape,
 } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { UNIT_IDS_V28 } from './v28';
 import { LINE_IDS_V29, UNIT_LINE_V29, WING_IDS_V29 } from './v29';
 import { battleReportV33 } from './v33';
@@ -203,4 +203,21 @@ export const stateV39: Shape = (value, path) => {
       return `${here}.report.commanders: comandante fora da campanha`;
   }
   return null;
+};
+
+/** V4G-T2: o roadmap previa 35 → 36; nesta base o passo efetivo é 39 → 40. */
+export const v39ToV40: MigrationStep = {
+  from: 39,
+  summary: 'Acrescenta cerco, milícia e reconstrução sem agendar nem sortear na fronteira.',
+  shape: stateV39,
+  migrate: (state) => ({
+    ...state,
+    schemaVersion: 40,
+    siege: null,
+    settlement: {
+      ...(state.settlement as StoredState),
+      militia: null,
+      reconstructionUntilMs: null,
+    },
+  }),
 };

@@ -1,0 +1,355 @@
+{
+  "atMs": 590400000,
+  "reports": [
+    {
+      "wave": 1,
+      "atMs": 590400000,
+      "outcome": "victory",
+      "ending": "annihilation",
+      "rounds": 2,
+      "casualties": [
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "back",
+          "unit": "archer",
+          "start": 8,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "horde",
+          "wing": "left",
+          "line": "front",
+          "unit": "raider",
+          "start": 12,
+          "lost": 12
+        },
+        {
+          "owner": "horde",
+          "wing": "center",
+          "line": "front",
+          "unit": "raider",
+          "start": 14,
+          "lost": 14
+        },
+        {
+          "owner": "horde",
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "start": 1,
+          "lost": 1
+        },
+        {
+          "owner": "horde",
+          "wing": "right",
+          "line": "front",
+          "unit": "raider",
+          "start": 11,
+          "lost": 11
+        },
+        {
+          "owner": "horde",
+          "wing": "right",
+          "line": "back",
+          "unit": "banditArcher",
+          "start": 2,
+          "lost": 2
+        }
+      ],
+      "wall": [
+        {
+          "wing": "left",
+          "start": 800,
+          "end": 741
+        },
+        {
+          "wing": "center",
+          "start": 800,
+          "end": 699
+        },
+        {
+          "wing": "right",
+          "start": 800,
+          "end": 756
+        }
+      ]
+    },
+    {
+      "wave": 2,
+      "atMs": 594000000,
+      "outcome": "victory",
+      "ending": "annihilation",
+      "rounds": 3,
+      "casualties": [
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "back",
+          "unit": "archer",
+          "start": 8,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "horde",
+          "wing": "left",
+          "line": "front",
+          "unit": "wolf",
+          "start": 15,
+          "lost": 15
+        },
+        {
+          "owner": "horde",
+          "wing": "center",
+          "line": "front",
+          "unit": "wolf",
+          "start": 27,
+          "lost": 27
+        },
+        {
+          "owner": "horde",
+          "wing": "right",
+          "line": "front",
+          "unit": "raider",
+          "start": 18,
+          "lost": 18
+        }
+      ],
+      "wall": [
+        {
+          "wing": "left",
+          "start": 741,
+          "end": 157
+        },
+        {
+          "wing": "center",
+          "start": 699,
+          "end": 699
+        },
+        {
+          "wing": "right",
+          "start": 756,
+          "end": 603
+        }
+      ]
+    },
+    {
+      "wave": 3,
+      "atMs": 597600000,
+      "outcome": "victory",
+      "ending": "chiefFell",
+      "rounds": 2,
+      "casualties": [
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "left",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "center",
+          "line": "back",
+          "unit": "archer",
+          "start": 8,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "front",
+          "unit": "shieldbearer",
+          "start": 20,
+          "lost": 0
+        },
+        {
+          "owner": "player",
+          "wing": "right",
+          "line": "back",
+          "unit": "archer",
+          "start": 6,
+          "lost": 0
+        },
+        {
+          "owner": "horde",
+          "wing": "left",
+          "line": "front",
+          "unit": "skeleton",
+          "start": 29,
+          "lost": 3
+        },
+        {
+          "owner": "horde",
+          "wing": "center",
+          "line": "front",
+          "unit": "warlord",
+          "start": 1,
+          "lost": 1
+        },
+        {
+          "owner": "horde",
+          "wing": "center",
+          "line": "back",
+          "unit": "shaman",
+          "start": 17,
+          "lost": 0
+        },
+        {
+          "owner": "horde",
+          "wing": "right",
+          "line": "front",
+          "unit": "skeleton",
+          "start": 28,
+          "lost": 3
+        },
+        {
+          "owner": "horde",
+          "wing": "right",
+          "line": "back",
+          "unit": "shaman",
+          "start": 6,
+          "lost": 0
+        }
+      ],
+      "wall": [
+        {
+          "wing": "left",
+          "start": 157,
+          "end": 0
+        },
+        {
+          "wing": "center",
+          "start": 699,
+          "end": 674
+        },
+        {
+          "wing": "right",
+          "start": 603,
+          "end": 387
+        }
+      ]
+    }
+  ],
+  "units": {
+    "spearman": 0,
+    "swordsman": 0,
+    "knight": 0,
+    "shieldbearer": 60,
+    "archer": 20
+  },
+  "wall": [
+    0,
+    674,
+    387
+  ],
+  "ids": {
+    "formation": 1,
+    "battle": 3
+  },
+  "rng": {
+    "horde": [
+      218174081,
+      4146577802,
+      230473749,
+      3955931765
+    ]
+  }
+}

@@ -557,7 +557,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 39;
+  schemaVersion: 40;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -612,6 +612,10 @@ export type GameState = {
      * frente da fila).
      */
     wallRepair: { untilMs: number; toHp: Record<WingId, number> } | null;
+    /** Aldeões temporariamente afastados dos ofícios, até a batalha marcada. */
+    militia: { count: number; untilMs: number } | null;
+    /** Fim do desconto da Primavera da Reconstrução; null antes de começar. */
+    reconstructionUntilMs: number | null;
     /** As obras planejadas, na ordem em que o jogador as pôs: é a ordem do início automático. */
     planned: PlannedConstruction[];
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
@@ -743,6 +747,8 @@ export type GameState = {
      */
     discovered: string[];
   };
+  /** Cerco do ano; as ondas acompanham a preparação da Horda até a primeira batalha. */
+  siege: SiegeState | null;
   /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
   horde: {
     scheduledRaids: ScheduledRaid[];
@@ -887,6 +893,23 @@ export type ArmyCampaign = {
   battleAtMs: number;
   returnsAtMs: number;
   report: BattleReport | null;
+};
+
+export type SiegeWaveNumber = 1 | 2 | 3;
+export type SiegeWave = NonNullable<GameState['horde']['wavePlan']>['waves'][number];
+export type SiegeState = {
+  year: number;
+  atMs: number;
+  waves: SiegeWave[];
+  /** Quantas ondas já foram enfrentadas. */
+  current: 0 | 1 | 2 | 3;
+  nextWaveAtMs: number | null;
+  plan: Record<SiegeWaveNumber, string | null>;
+  result: 'glorious' | 'victory' | 'fall' | null;
+  breached: boolean;
+  deaths: number;
+  endedAtMs: number | null;
+  aftermathUntilMs: number | null;
 };
 
 export type ArmyState = {

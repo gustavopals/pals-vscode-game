@@ -681,6 +681,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 36 | V4H-T1 | `market.effects`, vazio na migração 35 → 36 (`v35.ts`), com forma em `v36.ts`. Cada efeito guarda recurso, fator racional, prazo e rótulo. O passo não muda preço, carta, prazo existente nem gerador. Os retratos v35 ficam congelados; a previsão 36 → 37 do roadmap estava defasada nesta base. |
 | 37 | V4H-T1 (avulsas) | `guild.tavern.extraOffer` desligado no passo 36 → 37; participantes por identidade e nome em cartas e riscos com alvo. Próxima rotação admite até quatro ofertas. A guarda v36 e seus 55 retratos ficam congelados. O passo não cria encontro, prazo ou sorteio. |
 | 38 | V4F-T1 | Contadores de sabotagem da Fortaleza, zerados no passo 37 → 38. |
+| 40 | V4G-T2 | Cerco, milícia e reconstrução: passo efetivo 39 → 40 (o roadmap previa 35 → 36), com `siege`, `settlement.militia` e `settlement.reconstructionUntilMs` inicialmente nulos; a linha do tempo agenda na primeira virada de outono/inverno, sem sorteio ou prazo na migração. |
 | 39 | V4F-T2 | Campanha ofensiva do exército e estado `campaign` do herói; o passo 38 → 39 só acrescenta `army.campaign: null`, sem prazo ou sorteio. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.

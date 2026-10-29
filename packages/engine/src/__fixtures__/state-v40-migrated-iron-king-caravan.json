@@ -1,0 +1,251 @@
+{
+ "schemaVersion": 40,
+ "seed": "fixture-iron-king-half",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "ironKing",
+  "timeScale": 0.5,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": 119003,
+ "clock": {
+  "gameTimeMs": 17462304,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 17462304,
+ "rng": {
+  "market": [
+   1941660370,
+   197028452,
+   3614666478,
+   4022343771
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 282462,
+   "wood": 70000,
+   "stone": 300068,
+   "gold": 350000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 3158928,
+   "wood": 0,
+   "stone": 292608,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 6
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 0,
+   "quarry": 2,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 1,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 2,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [
+   {
+    "building": "lumberMill",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 8,
+   "lumberMill": 0,
+   "quarry": 8,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "lastFamine": null,
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null,
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "militia": null,
+  "reconstructionUntilMs": null
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "buildWatchtower",
+   "answerFirstCard"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "villagersRecruited": 1,
+  "caravansSent": 1
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 36000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 4,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ],
+  "lastFormationSeen": null,
+  "wavePlan": null,
+  "omens": [],
+  "sabotages": {
+   "attempts": 0,
+   "successes": 0,
+   "alerted": false
+  }
+ },
+ "ids": {
+  "caravan": 1
+ },
+ "guild": {
+  "heroes": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "arriving": [],
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null,
+   "extraOffer": false
+  },
+  "expeditions": [],
+  "reports": [],
+  "inventory": []
+ },
+ "market": {
+  "prices": {
+   "food": 1054,
+   "wood": 1240,
+   "stone": 2036,
+   "iron": 7540
+  },
+  "previousPrices": {
+   "food": 1034,
+   "wood": 1206,
+   "stone": 2000,
+   "iron": 7712
+  },
+  "quoteDay": 3,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": [
+   {
+    "id": "caravan-1",
+    "resource": "stone",
+    "amount": 150,
+    "unitPrice": 1989,
+    "arrivesAtMs": 29579003,
+    "escortHeroId": null
+   }
+  ],
+  "effects": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null,
+  "campaign": null
+ },
+ "siege": null
+}
