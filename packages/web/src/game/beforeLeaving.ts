@@ -466,6 +466,29 @@ function armyDefenseItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/** A incursão do mesmo instante da volta ainda encontra os esquadrões fora do feudo. */
+const raidBeforeReturn = (view: ViewState): boolean =>
+  view.army.campaign !== null &&
+  view.threat.incoming !== null &&
+  view.threat.incoming.inSeconds <= view.army.campaign.returnsInSeconds;
+
+const campaignLine = (campaign: NonNullable<ViewState['army']['campaign']>): string =>
+  `${campaign.text} Retorno em ${formatApprox(campaign.returnsInSeconds)}. Soldados e comandantes em campanha não defendem o feudo até retornarem.`;
+
+/** Sem incursão antes da volta, lembra a ausência sem inventar um ataque por trás da névoa. */
+function campaignItem(view: ViewState): LeavingItem | null {
+  const { campaign } = view.army;
+  if (campaign === null || raidBeforeReturn(view)) {
+    return null;
+  }
+  return {
+    id: 'army-campaign',
+    severity: 'warning',
+    text: campaignLine(campaign),
+    command: { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver o Exército' },
+  };
+}
+
 /**
  * A incursão que os vigias avistaram: chega antes de qualquer ausência, e por isso abre a lista.
  * A frase é a do servidor (o aviso e o que a Paliçada faz a este ataque), com o prazo; o botão é
@@ -480,16 +503,20 @@ function raidItem(view: ViewState): LeavingItem | null {
   // Com soldados e sem formação ativa, a incursão chega a um exército que não guarda o feudo: o
   // botão leva a ativar uma, que é o que muda o desfecho (V4E-T4.2).
   const unguarded = lacksDefense(view.army);
+  const away = raidBeforeReturn(view);
   const composition = incoming.compositionText === null ? '' : ` ${incoming.compositionText}`;
   return {
     id: 'raid',
-    severity: unguarded ? 'danger' : 'warning',
+    severity: unguarded || away ? 'danger' : 'warning',
     text:
       `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}.${composition} ` +
-      `${incoming.defenseText}${unguarded ? ' Nenhuma formação guarda o feudo: os soldados não lutam.' : ''}`,
-    command: unguarded
-      ? { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ativar uma formação' }
-      : defenseCommand(view),
+      `${incoming.defenseText}${unguarded ? ' Nenhuma formação guarda o feudo: os soldados não lutam.' : ''}` +
+      (away && view.army.campaign !== null ? ` ${campaignLine(view.army.campaign)}` : ''),
+    command: away
+      ? { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver o Exército' }
+      : unguarded
+        ? { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ativar uma formação' }
+        : defenseCommand(view),
   };
 }
 
@@ -878,6 +905,7 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     firewoodItem(view),
     wageItem(view),
     armyDefenseItem(view),
+    campaignItem(view),
     crossroadsItem(view),
     ...storageItems(view),
     queueItem(view),
