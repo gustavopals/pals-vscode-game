@@ -1,7 +1,7 @@
 # Lords of the Guild — Roadmap da v0.4 "Guerra e Cerco"
 
-> **Status em 2026-10-22:** v0.4 em desenvolvimento. Fases A e B concluídas; Quartel e formações implementados (V4C-T1 e T2), interface do Exército em integração (V4C-T3). O registro da §15 e [retomada-v0.4.md](retomada-v0.4.md) detalham o ponto atual. O lote 1 de regras foi aprovado no [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md); o lote 2 espera V4E-T0. A primeira publicação continua prevista para o fim da Fase E.\
-> **Versão do documento:** plano 0.2 (2026-10-15), com registro de execução atualizado em 2026-10-22.\
+> **Status em 2026-10-29:** segunda junção em `v4-juncao2`, sobre o main `7cbdad1`, estado **38**, protocolo **3**, sem publicação. Reúne a primeira junção da Fase E, as treze cartas adicionais do lote 2, `market.effects` com início na próxima virada e a sabotagem da Fortaleza revisada. O lote 2 do Conselho permanece parcial; o Cerco e o Lobo Branco continuam pendentes. O registro da §15 e [balance-v0.4.md, seção 19](balance-v0.4.md#19-segunda-junção-2026-10-28-a-2026-10-29) detalham a conferência.\
+> **Versão do documento:** plano 0.2 (2026-10-15), com registro de execução atualizado em 2026-10-29.\
 > **Base atual:** [GAME_DESIGN.md](../GAME_DESIGN.md) v0.9 e ADR 0019. Os apêndices propostos descrevem a base de planejamento; para o que já existe, consultar o registro e o código.\
 > **Vem de:** [roadmap-v0.3.md](roadmap-v0.3.md) (V3G-T5, §12 e §13.5); [relatorio-v0.3.md](relatorio-v0.3.md); [retomada-v0.3.md](retomada-v0.3.md); [pendencias-v0.3.md](pendencias-v0.3.md); [balance-v0.3.md](balance-v0.3.md) (seções 14 e 15); [architecture.md](architecture.md); ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)\
 > **Árvore conferida:** `main` local em `561b0ff` (um commit de documento à frente de `origin/main` = `c2cb21e`). **A v0.3.0 está em produção desde 2026-10-15, 19:54 UTC** (`c2cb21e`: estado **24**, protocolo **3**, pacotes em `0.3.0`); o job do arranque migrou e avançou 4 partidas sem falha. **O lote 2 do Conselho ficou fora da v0.3.0** (pendência F-3): o branch `wip/v3f-t1-lote2` (`2352e39`) está pela metade e não é verde. O que este plano diz do código foi conferido em `561b0ff` (Apêndice B.0)\
@@ -1330,6 +1330,16 @@ Tiradas do Registro (§12 do roadmap da v0.3), de [pendencias-v0.3.md](pendencia
 ---
 
 ## 15. Registro de execução
+
+**Segunda junção (`v4-juncao2`, 2026-10-29):**
+
+- [x] Conferir motor, conteúdo e protocolo; corrigir as expectativas da Taverna,
+  dos fatores de preço e da recusa de equipe da sabotagem (`969315b`). Retratos
+  históricos e `FROZEN` intactos; nenhuma regravação adicional necessária.
+- [ ] Remedir as três dificuldades e registrar as 72 linhas de base, as violações
+  anteriores, o Preguiçoso do Rápido e a Ameaça anual na seção “Segunda junção”.
+- [ ] Fechar `verify`, integração, build e navegador em sequência, com prioridade baixa.
+- [ ] Consolidar a evidência desta junção no Registro, sem juntar ao `main` ou publicar.
 
 Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito e desvios, e **o que não foi verificado**. Com trilhas em paralelo, cada fase ganha também uma linha "V4x (integração)".
 

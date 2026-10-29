@@ -1075,9 +1075,9 @@ e 3.000 partidas distintas (as janelas do Normal repetem a mesma partida).
 Comandos, sempre com prioridade baixa:
 
 ```bash
-nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > /tmp/v4-juncao2-matrix-peasant.csv 2> /tmp/v4-juncao2-matrix-peasant.md
-nice -n 19 pnpm -s sim -- --matrix --difficulty lord > /tmp/v4-juncao2-matrix-lord.csv 2> /tmp/v4-juncao2-matrix-lord.md
-nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > /tmp/v4-juncao2-matrix-ironKing.csv 2> /tmp/v4-juncao2-matrix-ironKing.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > /tmp/codex-juncao2-20261029/m-peasant.csv 2> /tmp/codex-juncao2-20261029/m-peasant.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord > /tmp/codex-juncao2-20261029/m-lord.csv 2> /tmp/codex-juncao2-20261029/m-lord.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > /tmp/codex-juncao2-20261029/m-ironKing.csv 2> /tmp/codex-juncao2-20261029/m-ironKing.md
 ```
 
 A motivação é a alteração intencional do sorteio pelas treze cartas novas, seus

@@ -55,8 +55,11 @@ function measured(
 
 /**
  * Linha de base medida: 50 sementes por célula, em cada dificuldade. As faixas saem daqui, pela
- * regra de `SLACK`. **A rodada de agora é a da resposta do autor à D-39 (2026-10-26), em
- * docs/balance-v0.4.md, seção 10**: as incursões do roteiro da guerra dos dias 25 e 37 são leves
+ * regra de `SLACK`. **A rodada atual é a Segunda junção (2026-10-29), em
+ * docs/balance-v0.4.md, seção 19**: treze cartas adicionais do lote 2, fatores de preço a
+ * partir da próxima virada, encontros de heróis e sabotagem da Fortaleza, sobre a junção
+ * da seção 16 (Fortaleza sem Ameaça, Vigília e objetivos 17 a 21). Nenhuma folga foi ampliada.
+ * Histórico: na resposta do autor à D-39 (2026-10-26), seção 10, as incursões dos dias 25 e 37 são leves
  * e não ferem ninguém (a do 61º fica como estava). Mudaram as 72 células; fome e frio seguem em
  * zero, e o Preguiçoso do Rápido volta perto da rodada da seção 8. A anterior é a das incursões
  * que viram batalha (V4E-T2), em docs/balance-v0.4.md, seção 9: toda incursão luta contra a Defesa ativa e a muralha, o roteiro
@@ -121,9 +124,9 @@ function measured(
  */
 // Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro
 // parados, e a maior sequência desperdiçando um recurso, em horas de jogo.
-// Junção da Fase E (2026-10-28): a Fortaleza sem Ameaça até o Cerco, a Hora da Vigília (V4G-T1) e
-// os objetivos 17 a 21 (V4H-T3); 50 sementes em cada dificuldade; docs/balance-v0.4.md, seção
-// "Junção da Fase E". A anterior é a da resposta do autor à D-43 (Fortaleza sem Ameaça).
+// Segunda junção (2026-10-29): 13 cartas adicionais do lote 2, market.effects a partir da
+// próxima virada e sabotagem; 50 sementes por célula nas três dificuldades. A medição, as
+// violações anteriores e os limites estão em docs/balance-v0.4.md, seção "Segunda junção".
 const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
   peasant: {
     'week/3/preguicoso': measured([36, 51], 5, 0, 0, 4250, 4250, 17436, 63),
