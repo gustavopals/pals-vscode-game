@@ -95,16 +95,34 @@ export function buildingLabelAt(building: BuildingId, level: number): string {
 }
 
 /** Custo, em unidades, de levar um edifício de `fromLevel` para o nível seguinte (GDD §6.2). */
-export function upgradeCost(building: BuildingId, fromLevel: number): ResourceAmounts {
+export function upgradeCost(
+  building: BuildingId,
+  fromLevel: number,
+  state?: GameState,
+): ResourceAmounts {
+  let cost: ResourceAmounts;
   const table = tableLevel(building, fromLevel + 1);
   if (table !== undefined) {
-    return { ...table.cost };
+    cost = { ...table.cost };
+  } else {
+    const { costFactor, costFactorByBuilding } = balance.construction;
+    const factor = costFactorByBuilding[building] ?? costFactor;
+    cost = {};
+    for (const [resource, base] of positiveEntries(buildings[building].baseCost)) {
+      cost[resource] = growRounded(base, factor, upgradeSteps(building, fromLevel));
+    }
   }
-  const { costFactor, costFactorByBuilding } = balance.construction;
-  const factor = costFactorByBuilding[building] ?? costFactor;
-  const cost: ResourceAmounts = {};
-  for (const [resource, base] of positiveEntries(buildings[building].baseCost)) {
-    cost[resource] = growRounded(base, factor, upgradeSteps(building, fromLevel));
+  if (
+    state !== undefined &&
+    state.settlement.reconstructionUntilMs !== null &&
+    state.lastProcessedAt < state.settlement.reconstructionUntilMs
+  ) {
+    const { num, den } = balance.siege.reconstruction.costFactor;
+    const discounted: ResourceAmounts = {};
+    for (const [resource, amount] of positiveEntries(cost)) {
+      discounted[resource] = Math.floor((amount * num) / den);
+    }
+    return discounted;
   }
   return cost;
 }
@@ -296,7 +314,7 @@ export function upgradeStillPossible(
   if (requirement !== null && !upgradeStillPossible(state, requirement.building, chain)) {
     return false;
   }
-  const beyond = costBeyondStorage(state, upgradeCost(building, fromLevel));
+  const beyond = costBeyondStorage(state, upgradeCost(building, fromLevel, state));
   return beyond === null || upgradeStillPossible(state, beyond.building, chain);
 }
 
@@ -319,7 +337,7 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   const def = buildings[building];
   const fromLevel = settlement.buildings[building];
   const targetLevel = fromLevel + 1;
-  const cost = upgradeCost(building, fromLevel);
+  const cost = upgradeCost(building, fromLevel, state);
   const missing = missingResources(state, cost) ?? {};
 
   let blocked: Rejection | null;

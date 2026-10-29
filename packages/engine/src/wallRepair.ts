@@ -1,7 +1,8 @@
-import { WING_IDS, wingPhrases, type WingId } from '@lotg/content';
+import { balance, WING_IDS, wingPhrases, type WingId } from '@lotg/content';
 
 import type { BattleReport } from './battleReport';
 import { emit } from './chronicle';
+import { seasonAt } from './clock';
 import { missingResources, payResources } from './construction';
 import { joinList } from './format';
 import { reject } from './rejections';
@@ -31,7 +32,22 @@ export function wallMissingHp(state: GameState): number {
 
 /** O reparo de tudo o que falta hoje: o custo e o prazo (`wallRepairQuote`). */
 export function currentRepairQuote(state: GameState): WallRepairQuote {
-  return wallRepairQuote(state.settlement.buildings.palisade, wallMissingHp(state));
+  const quote = wallRepairQuote(state.settlement.buildings.palisade, wallMissingHp(state));
+  if (
+    state.siege !== null &&
+    state.siege.endedAtMs !== null &&
+    state.siege.aftermathUntilMs !== null &&
+    state.lastProcessedAt < state.siege.aftermathUntilMs &&
+    seasonAt(state.lastProcessedAt).id === 'winter'
+  ) {
+    const { num, den } = balance.siege.aftermathRepairFactor;
+    return {
+      stone: Math.floor((quote.stone * num) / den),
+      gold: Math.floor((quote.gold * num) / den),
+      durationMs: quote.durationMs,
+    };
+  }
+  return quote;
 }
 
 /** Por que a ordem `repairWall` seria recusada agora (sem contar o recurso), ou `null`. */

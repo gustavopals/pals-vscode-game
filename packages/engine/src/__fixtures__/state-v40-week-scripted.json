@@ -49,17 +49,17 @@
  "settlement": {
   "name": "Pedra Alta do Norte",
   "resources": {
-   "food": 1254032,
-   "wood": 48139,
-   "stone": 731776,
-   "gold": 1205510,
+   "food": 1248936,
+   "wood": 40889,
+   "stone": 728448,
+   "gold": 1203341,
    "iron": 0
   },
   "accumulators": {
    "food": 3597222,
    "wood": 0,
    "stone": 262833,
-   "gold": 360228,
+   "gold": 532944,
    "iron": 0
   },
   "population": {
@@ -101,7 +101,7 @@
   },
   "wallRepair": null,
   "militia": null,
-  "reconstructionUntilMs": null,
+  "reconstructionUntilMs": 619200000,
   "planned": [],
   "recruitmentQueue": [],
   "famine": null,

@@ -115,7 +115,14 @@
   },
   "adaptation": [],
   "morale": 50,
-  "moraleEffects": [],
+  "moraleEffects": [
+   {
+    "id": "siegeFeast",
+    "label": "O feudo celebra a Vitória Gloriosa.",
+    "amount": 15,
+    "untilMs": 604800000
+   }
+  ],
   "injured": [],
   "masters": [],
   "mastersWaiting": [],

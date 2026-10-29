@@ -1,8 +1,11 @@
+import { balance } from '@lotg/content';
+
 import { settleHeroArrivals } from './arrivals';
 import { settleCaravans } from './caravanTurn';
 import { emit } from './chronicle';
 import {
   calendarAt,
+  DAY_MS,
   isDayBoundary,
   isSeasonBoundary,
   isYearBoundary,
@@ -61,6 +64,14 @@ function processCalendar(
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);
+    if (draft.siege?.result === 'fall') {
+      const durationMs = balance.siege.reconstruction.days * DAY_MS;
+      draft.settlement.reconstructionUntilMs = atMs + durationMs;
+      emit(events, draft, atMs, 'reconstructionStarted', {
+        year: date.year,
+        untilMs: draft.settlement.reconstructionUntilMs,
+      });
+    }
   }
   if (isSeasonBoundary(atMs)) {
     // A estação que acabou entra na conta das atravessadas sem frio, e a nova começa a dela.
@@ -171,6 +182,12 @@ export function processEventsAt(
     draft.settlement.militia = null;
     releaseExcessWorkers(draft);
     emit(events, draft, atMs, 'militiaDisbanded');
+  }
+  if (
+    draft.settlement.reconstructionUntilMs !== null &&
+    atMs >= draft.settlement.reconstructionUntilMs
+  ) {
+    draft.settlement.reconstructionUntilMs = null;
   }
   // A Taverna: o festival que acabou e a troca dos candidatos, com o sorteio dela. Depois de
   // tudo o que muda quem está no feudo neste instante (a obra que a ergue ou a amplia, o herói

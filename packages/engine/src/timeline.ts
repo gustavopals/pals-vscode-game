@@ -74,6 +74,12 @@ export function nextEventAt(state: GameState): number | null {
   if (state.settlement.militia !== null) {
     candidates.push(state.settlement.militia.untilMs);
   }
+  if (
+    state.settlement.reconstructionUntilMs !== null &&
+    state.lastProcessedAt < state.settlement.reconstructionUntilMs
+  ) {
+    candidates.push(state.settlement.reconstructionUntilMs);
+  }
   // Durante a fome a fila de recrutamento fica congelada.
   const nextRecruit = recruitmentQueue[0];
   if (nextRecruit !== undefined && !famine) {

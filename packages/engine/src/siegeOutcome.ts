@@ -1,6 +1,8 @@
-import { balance, BUILDING_IDS, RESOURCE_IDS } from '@lotg/content';
+import { balance, BUILDING_IDS, RESOURCE_IDS, siegeTexts } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { DAY_MS } from './clock';
+import { addMoraleEffect } from './morale';
 import { releaseExcessWorkers } from './population';
 import type { GameEvent, GameState } from './types';
 import { MILLI } from './units';
@@ -64,6 +66,21 @@ export function finishSiege(draft: GameState, atMs: number, events: GameEvent[])
   if (result === 'fall') Object.assign(data, applySiegeFall(draft, atMs));
   data.deaths = siege.deaths;
   delete draft.map.tiles.hordeFortress;
+  if (result === 'glorious') {
+    addMoraleEffect(draft, {
+      id: 'siegeFeast',
+      label: siegeTexts.aftermath.feast,
+      amount: balance.siege.feast.morale,
+      untilMs: atMs + balance.siege.feast.days * DAY_MS,
+    });
+  } else if (siege.deaths > 0) {
+    addMoraleEffect(draft, {
+      id: 'siegeMourning',
+      label: siegeTexts.aftermath.mourning,
+      amount: balance.siege.mourning.morale,
+      untilMs: atMs + balance.siege.mourning.days * DAY_MS,
+    });
+  }
   const stat =
     result === 'fall' ? 'siegesFallen' : result === 'glorious' ? 'siegesGlorious' : 'siegesWon';
   draft.stats[stat] = (draft.stats[stat] ?? 0) + 1;
