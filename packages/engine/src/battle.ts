@@ -250,12 +250,12 @@ type Squad = {
   residual: number;
 };
 
-function statsOf(owner: 'player' | 'horde', unit: string, line?: LineId): Stats {
+function statsOf(owner: 'player' | 'horde', unit: string): Stats {
   if (owner === 'player') {
     if (unit === 'militia') {
       return {
         ...pick(militiaUnit),
-        line: line ?? militiaUnit.line,
+        line: 'front',
         archetype: 'none',
         horde: null,
       };
@@ -318,7 +318,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
         if (!Number.isSafeInteger(post.count) || post.count < 1) {
           throw new Error(`Posto com quantidade inválida na batalha: ${wing}/${line}.`);
         }
-        const stats = statsOf(owner, post.unit, line);
+        const stats = statsOf(owner, post.unit);
         if (stats.line !== line) {
           throw new Error(`Unidade na linha errada na batalha: ${post.unit} em ${wing}/${line}.`);
         }

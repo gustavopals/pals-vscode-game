@@ -155,13 +155,10 @@ export type Defender = {
   readonly commanders: Record<WingId, BattleCommanderInput | null>;
 };
 
-const MILITIA_POST_PRIORITY: readonly { wing: WingId; line: LineId }[] = [
+export const MILITIA_POST_PRIORITY: readonly { wing: WingId; line: 'front' }[] = [
   { wing: 'center', line: 'front' },
   { wing: 'left', line: 'front' },
   { wing: 'right', line: 'front' },
-  { wing: 'center', line: 'back' },
-  { wing: 'left', line: 'back' },
-  { wing: 'right', line: 'back' },
 ];
 
 /**
