@@ -108,7 +108,9 @@ export function BattleReports(props: {
   }
   return (
     <section class="battle-reports" aria-labelledby={BATTLE_REPORTS_ANCHOR}>
-      <h3 id={BATTLE_REPORTS_ANCHOR} tabIndex={-1}>Relatórios de batalha</h3>
+      <h3 id={BATTLE_REPORTS_ANCHOR} tabIndex={-1}>
+        Relatórios de batalha
+      </h3>
       {props.reports.map((report) => (
         <BattleReport key={report.id} report={report} onAdjust={props.onAdjust} />
       ))}

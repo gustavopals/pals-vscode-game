@@ -4090,11 +4090,7 @@ export function createCommands(
       const kept = typeof arg === 'string' && reports.some((report) => report.id === arg);
       controller.navigate('army');
       env.reveal(
-        kept
-          ? battleReportAnchor(arg)
-          : reports.length > 0
-            ? BATTLE_REPORTS_ANCHOR
-            : ARMY_ANCHOR,
+        kept ? battleReportAnchor(arg) : reports.length > 0 ? BATTLE_REPORTS_ANCHOR : ARMY_ANCHOR,
       );
     }),
     hidden('lords.workersIncrease', step(1)),

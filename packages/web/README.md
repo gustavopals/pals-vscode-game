@@ -290,9 +290,9 @@ A aba Exército (fixa depois do Mercado) tem o Quartel (`components/BarracksPane
 - **Sabotagem e campanha no Retorno (V4F-T3).** `hordeSabotaged` é ganho, `hordeAlerted` é preço, ambos com botão para a Guilda; `armyReturned` registra a volta com botão para o Exército. `campAssaulted` conta o ataque quando o lote não tem `battleFought` do mesmo `battleId`. Os quatro eventos chegam em "Todas", com ações para a aba correspondente, e o mesmo filtro evita duplicar o aviso da batalha.
 - **Retorno e ficha.** `battleFought` entra em "O que exigiu um preço" (`game/returnReport.ts`, tópico `battle`, ação "Ajustar formação", que abre o Exército). A ficha do herói mostra `commanderText`.
 - **Relatórios de batalha** (V4D-T4.3; `components/BattleReport.tsx`): `army.reports` (do mais novo ao mais antigo, tudo em frase: fatores, rodadas, baixas, muralha, comandantes e experiência) em uma seção abaixo do Conselho de Guerra. "Ver relatório de batalha" na campanha envia `campaign.reportId` a `lords.openBattleReport`: abre a aba e leva página e foco ao título desse relatório; se ele já saiu da lista, leva ao título dos guardados. As rodadas são `<details>` (teclado nativo) e "Ajustar formação" carrega no editor a formação de `adjustFormationId` (a Defesa ativa, pendência D-10). O Conselho de Guerra fica logo abaixo do editor (`.formation-main`), junto do "Salvar".
-- **Falta (V4D-T4.4):** o cenário em navegador do relatório (rota `/__test/battle`).
+- **Navegador:** `13-formacoes.spec.ts` cobre o relatório de incursão (rota `/__test/battle`); `16-sabotagem-acampamento.spec.ts` acrescenta a campanha, os prazos e o foco no relatório identificado. Os nove cenários da Fase F foram escritos, mas não executados nesta revisão.
 
-Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px, a prévia do Conselho de Guerra pelo teclado).
+Em navegador: `tests/e2e/12-exercito.spec.ts` (treino), `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px, a prévia do Conselho de Guerra pelo teclado) e `16-sabotagem-acampamento.spec.ts` (sabotagem e Acampamento; nove cenários escritos sem execução nesta sessão).
 
 ## Ameaça e Torre de Vigia (GDD §8.2)
 

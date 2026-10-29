@@ -180,6 +180,33 @@ control.post('/__test/horde-quiet', async () => {
   return { ok: true };
 });
 
+/** Incursão anunciada com prazo escolhido pelo cenário da campanha; só existe neste servidor. */
+control.post('/__test/raid-in', async (request) => {
+  const { inSeconds } = request.body as { inSeconds: number };
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    state.horde.scheduledRaids = [
+      {
+        id: 'threat-1',
+        kind: 'threat',
+        enemy: 'raiders',
+        size: 'medium',
+        atMs:
+          state.lastProcessedAt +
+          Math.max(1, Math.round(inSeconds * 1000 * state.settings.timeScale)),
+        announcedAtMs: state.lastProcessedAt,
+        composition: [{ wing: 'center', line: 'front', unit: 'raider', count: 2 }],
+      },
+    ];
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
 /**
  * Põe um edifício de todos os feudos em um nível, sem obra: é como um teste da incursão tem a
  * Torre de Vigia ou a Paliçada de pé antes da hora dos lobos, sem jogar as dezenas de horas que

@@ -446,6 +446,8 @@ describe('atacar o acampamento (V4F-T3)', () => {
       return true;
     });
     await made.run('lords.attackCamp', { formationId: 'formation-1' });
-    expect(made.orders()).toEqual([{ type: 'attackCamp', payload: { formationId: 'formation-1' } }]);
+    expect(made.orders()).toEqual([
+      { type: 'attackCamp', payload: { formationId: 'formation-1' } },
+    ]);
   });
 });

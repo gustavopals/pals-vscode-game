@@ -196,12 +196,16 @@ describe('o ciclo de leitura e o fim do treino (V4C-T3.2)', () => {
 
 describe('a campanha em Antes de partir (V4F-T3, revisão 2)', () => {
   const campaign = armyCampaignView.army.campaign!;
+  const threat = threatIncomingView.threat;
+  if (!threat.known || threat.incoming === null) {
+    throw new Error('O cenário precisa de uma incursão conhecida na visão.');
+  }
   const withRaid = (inSeconds: number, phase = campaign.phase): ViewState => ({
     ...armyCampaignView,
     army: { ...armyCampaignView.army, campaign: { ...campaign, phase } },
     threat: {
-      ...threatIncomingView.threat,
-      incoming: { ...threatIncomingView.threat.incoming!, inSeconds },
+      ...threat,
+      incoming: { ...threat.incoming!, inSeconds },
     },
   });
 

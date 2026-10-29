@@ -1257,7 +1257,9 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
   describe('sabotagem e campanha (V4F-T3, revisão 4)', () => {
     it('o enfraquecimento das ondas é ganho e o alerta da Horda é preço, com ações para a Guilda', () => {
       const blocks = blocksOf(guildView, guildView, [
-        event('hordeSabotaged', 'A segunda onda foi enfraquecida.', { expeditionId: 'expedition-1' }),
+        event('hordeSabotaged', 'A segunda onda foi enfraquecida.', {
+          expeditionId: 'expedition-1',
+        }),
         event('hordeAlerted', 'A primeira onda virá reforçada.', { expeditionId: 'expedition-1' }),
       ]);
       expect(blocks.prospered).toEqual([
@@ -1278,7 +1280,10 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       const events = [
         event('battleFought', 'A batalha terminou com baixas.', { battleId: 'battle-1' }),
         event('campAssaulted', 'O exército enfrentou a paliçada.', { battleId: 'battle-1' }),
-        event('armyReturned', 'Os estandartes voltaram ao feudo.', { battleId: 'battle-1', lost: 2 }),
+        event('armyReturned', 'Os estandartes voltaram ao feudo.', {
+          battleId: 'battle-1',
+          lost: 2,
+        }),
       ];
       const blocks = blocksOf(guildView, guildView, events);
       expect(texts(blocks.cost)).toEqual(['A batalha terminou com baixas.']);
@@ -1292,7 +1297,9 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
 
     it('sem battleFought no lote, campAssaulted ainda conta o ataque; outra batalha não o apaga', () => {
       const earlier = event('battleFought', 'Outra batalha.', { battleId: 'battle-1' });
-      const assault = event('campAssaulted', 'O exército enfrentou a paliçada.', { battleId: 'battle-2' });
+      const assault = event('campAssaulted', 'O exército enfrentou a paliçada.', {
+        battleId: 'battle-2',
+      });
       expect(texts(blocksOf(guildView, guildView, [assault]).cost)).toEqual([assault.text]);
       const blocks = blocksOf(guildView, guildView, [earlier, assault]);
       expect(texts(blocks.cost)).toEqual(['Outra batalha.', assault.text]);
