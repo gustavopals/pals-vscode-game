@@ -1,4 +1,4 @@
-import { balance } from '@lotg/content';
+import { balance, siegeTexts } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -12,6 +12,7 @@ import type { GameEvent, ScheduledRaid } from './types';
 describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
   it('convoca milícia com cerco marcado dentro da antecedência da Torre e emite evento', () => {
     const state = readySiege();
+    state.army.formations[0]!.posts.center.front = null;
     const tower = state.settlement.buildings.watchtower;
     const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
     const now = state.siege!.nextWaveAtMs! - warning + 1000;
@@ -31,6 +32,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
 
   it('convoca milícia com incursão forte dentro da antecedência da Torre', () => {
     const state = siegeYard();
+    state.army.formations[0]!.posts.center.front = null;
     const tower = state.settlement.buildings.watchtower;
     const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
     const raidAt = 10 * HOUR;
@@ -102,8 +104,26 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     expect(rejectionLight?.code).toBe('MILITIA_NOT_ALLOWED');
   });
 
+  it('recusa NO_MILITIA_SLOT quando a formação que vai lutar tem todos os postos de frente preenchidos', () => {
+    const state = readySiege();
+    const tower = state.settlement.buildings.watchtower;
+    const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
+    const now = state.siege!.nextWaveAtMs! - warning + 1000;
+    state.lastProcessedAt = now;
+    state.clock.gameTimeMs = now;
+
+    // Em readySiege, formation-1 tem os 3 postos da frente preenchidos com 20 shieldbearers cada,
+    // e o exército tem 60 shieldbearers disponíveis.
+    const events: GameEvent[] = [];
+    const rejection = callMilitia(state, 10, now, events);
+    expect(rejection?.code).toBe('NO_MILITIA_SLOT');
+    expect(rejection?.message).toBe(siegeTexts.militiaNoSlot);
+    expect(state.settlement.militia).toBeNull();
+  });
+
   it('recusa INVALID_MILITIA_AMOUNT para quantidades inválidas, acima de 50% ou acima dos aptos', () => {
     const state = readySiege();
+    state.army.formations[0]!.posts.center.front = null;
     const tower = state.settlement.buildings.watchtower;
     const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
     const now = state.siege!.nextWaveAtMs! - warning + 1000;
@@ -129,6 +149,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
 
   it('afasta aldeões do trabalho ("não produzem") liberando trabalhadores excedentes', () => {
     const state = readySiege();
+    state.army.formations[0]!.posts.center.front = null;
     const tower = state.settlement.buildings.watchtower;
     const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
     const now = state.siege!.nextWaveAtMs! - warning + 1000;
@@ -195,12 +216,11 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     const now = state.siege!.nextWaveAtMs! - warning + 1000;
     state.lastProcessedAt = now;
     state.settlement.population.villagers = 6;
-    // Convoca 3 aldeões (50% de 6)
-    callMilitia(state, 3, now, []);
-
-    // Zera exército para que a defesa colapse e a milícia sofra todas as baixas
+    // Zera exército para liberar os postos e garantir que a defesa colapse
     state.army.units = { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 };
     state.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+    // Convoca 3 aldeões (50% de 6)
+    callMilitia(state, 3, now, []);
 
     const waveAt = state.siege!.nextWaveAtMs!;
     const afterWave = advanceTo(state, waveAt);

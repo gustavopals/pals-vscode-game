@@ -13,6 +13,7 @@ export const siegeTexts = {
     'A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.',
   militiaActive: 'A milícia já está convocada para uma batalha.',
   militiaAmount: 'Convoque até metade dos aldeões em condição de lutar.',
+  militiaNoSlot: 'A formação que vai lutar não tem posto livre para a milícia.',
   aftermath: {
     mourning: 'O feudo guarda luto pelos que tombaram.',
     feast: 'O feudo celebra a Vitória Gloriosa.',

@@ -1,8 +1,10 @@
 import { balance, siegeTexts } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { availableUnits } from './campaign';
 import { missingResources, payResources } from './construction';
 import { ableVillagers, releaseExcessWorkers } from './population';
+import { buildDefender, MILITIA_POST_PRIORITY } from './raidArmy';
 import { reject } from './rejections';
 import { waveDecisionOpen } from './siege';
 import { watchtowerLevel, watchtowerPerks, watchtowerWarningMs } from './threat';
@@ -157,6 +159,21 @@ export function callMilitia(
 
   const amount = count as number;
   const untilMs = Math.min(...qualifyingTimes);
+
+  const isSiege = siege !== null && siege.nextWaveAtMs === untilMs;
+  const waveNumber = isSiege ? ((siege.current + 1) as SiegeWaveNumber) : null;
+  const formationId =
+    isSiege && waveNumber !== null
+      ? siege.plan[waveNumber] ?? draft.army.activeFormationId
+      : draft.army.activeFormationId;
+  const formation = draft.army.formations.find((f) => f.id === formationId) ?? null;
+  const defender = buildDefender(formation, availableUnits(draft), () => null);
+  const hasFreeSlot = MILITIA_POST_PRIORITY.some(
+    (slot) => defender.posts[slot.wing][slot.line] === null,
+  );
+  if (!hasFreeSlot) {
+    return { code: 'NO_MILITIA_SLOT', message: siegeTexts.militiaNoSlot };
+  }
 
   draft.settlement.militia = { count: amount, untilMs };
   releaseExcessWorkers(draft);
