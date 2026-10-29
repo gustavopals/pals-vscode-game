@@ -35,6 +35,19 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     expect(next.events.filter((e) => e.type === 'siegeScheduled')).toHaveLength(0);
     expect(next.state.siege!.atMs).toBe(golden.atMs);
   });
+  it('não marca cerco tardio que cairia após o fim do inverno na migração', () => {
+    const state = siegeYard();
+    // Final do inverno do ano 1 (inverno vai de 144h a 168h), a 1 minuto do ano 2
+    const lateWinter = 168 * HOUR - 60_000;
+    state.lastProcessedAt = lateWinter;
+    state.clock.gameTimeMs = lateWinter;
+
+    const events: GameEvent[] = [];
+    scheduleSiege(state, lateWinter, events);
+
+    expect(state.siege).toBeNull();
+    expect(events.filter((e) => e.type === 'siegeScheduled')).toHaveLength(0);
+  });
   it.each([0.5, 1, 3])('as ondas esperam 60 min reais no ritmo %s, com decisão interna', (pace) => {
     const before = readySiege('lord', pace);
     expect(advanceTo(before, before.siege!.atMs - 1).state.siege!.current).toBe(0);
@@ -155,10 +168,11 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
   });
   it('migração tardia agenda no futuro e a visão não deixa escapar composição', () => {
     const before = siegeYard();
-    before.lastProcessedAt = WINTER + 23 * HOUR;
+    before.lastProcessedAt = WINTER + 13 * HOUR;
     before.clock.gameTimeMs = before.lastProcessedAt;
     scheduleSiege(before, before.lastProcessedAt, []);
     expect(before.siege!.atMs).toBeGreaterThan(before.lastProcessedAt);
+    expect(before.siege!.atMs).toBeLessThan(WINTER + 24 * HOUR);
     const copy = JSON.stringify(before);
     const view = deriveEngineViewState(before, before.lastProcessedAt);
     expect(JSON.stringify(before)).toBe(copy);

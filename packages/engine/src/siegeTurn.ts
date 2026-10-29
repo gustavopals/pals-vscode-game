@@ -32,6 +32,7 @@ export function scheduleSiege(draft: GameState, atMs: number, events: GameEvent[
   const perks = watchtowerPerks(watchtowerLevel(draft));
   const lead = perks === null ? vigilRules.minimumDelayMs : watchtowerWarningMs(draft, perks);
   const scheduled = intended > atMs ? intended : atMs + lead;
+  if (scheduled >= year * YEAR_MS) return;
   draft.siege = {
     year,
     atMs: scheduled,
