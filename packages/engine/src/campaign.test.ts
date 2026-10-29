@@ -20,7 +20,6 @@ import {
 import { nextEventAt } from './timeline';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
-import { previewInputFor } from './warCouncilOrders';
 
 const attack = (state: GameState) =>
   accept(state, command('attackCamp', { formationId: 'formation-1' }));
@@ -132,7 +131,8 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     ).state;
     const before = JSON.stringify(state);
     const result = apply(state, command('attackCamp', { formationId: 'formation-2' }));
-    const message = 'Edda comanda a Defesa ativa (Marcha do vale) e fica no feudo: troque ou desmarque a formação para ele partir.';
+    const message =
+      'Edda comanda a Defesa ativa (Marcha do vale) e fica no feudo: troque ou desmarque a formação para ele partir.';
     expect(result).toEqual({ ok: false, code: 'HERO_BUSY', message });
     expect(deriveViewState(state, state.lastProcessedAt).army.campAssault.formations).toEqual([
       { formationId: 'formation-1', canAttack: true, blockedReason: null },
@@ -140,10 +140,7 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     ]);
     expect(JSON.stringify(state)).toBe(before);
     const unmarked = accept(state, command('setActiveFormation', { id: null })).state;
-    const marched = accept(
-      unmarked,
-      command('attackCamp', { formationId: 'formation-2' }),
-    ).state;
+    const marched = accept(unmarked, command('attackCamp', { formationId: 'formation-2' })).state;
     expect(marched.army.campaign?.formationId).toBe('formation-2');
     expect(marched.guild.heroes[0]?.status).toBe('campaign');
   });
@@ -246,35 +243,81 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     expect(currentShape(back.state, '')).toBeNull();
   });
 
-  it('a incursão no meio e no instante da volta luta sem quem partiu; a prévia usa a mesma reserva', () => {
-    for (const raidAtMs of [HOUR, arrival * 2]) {
-      const { state } = attack(campaignYard());
-      raidAt(state, raidAtMs);
-      const preview = previewInputFor(state, state.army.formations[0]!);
+  it.each([HOUR, arrival * 2])(
+    'a incursão em %i ms luta sem quem partiu; a prévia executada usa a mesma reserva',
+    (raidAtMs) => {
+      const simulated = accept(
+        campaignYard(),
+        command('simulateBattle', { formationId: 'formation-1' }),
+      ).state;
       expect(
-        Object.values(preview.player.posts).every(
-          (post) => post.front === null && post.back === null,
-        ),
-      ).toBe(true);
-      const back = advanceTo(state, arrival * 2);
+        simulated.army.preview!.expectedLosses.reduce((sum, post) => sum + post.start, 0),
+      ).toBe(60);
+      const { state } = attack(simulated);
+      raidAt(state, raidAtMs);
+      const predicted = accept(state, command('simulateBattle', { formationId: 'formation-1' }));
+      expect(predicted.events.map((event) => event.type)).toEqual(['battleSimulated']);
+      expect(predicted.state.army.preview).toMatchObject({
+        formationId: 'formation-1',
+        runs: balance.battle.previewRuns,
+        wins: 0,
+        losses: balance.battle.previewRuns,
+        expectedLosses: [],
+      });
+      expect(predicted.state.rng).toEqual(state.rng);
+      expect(predicted.state.ids).toEqual(state.ids);
+      expect(deriveViewState(predicted.state, 0).army.preview?.warning).toContain('campanha');
+      const back = advanceTo(predicted.state, arrival * 2);
+      expect(back.state.army.reports.filter((report) => report.mode === 'defense')).toHaveLength(1);
       const defense = back.state.army.reports.find((report) => report.mode === 'defense')!;
+      expect(defense).toMatchObject({ foughtAtMs: raidAtMs, formationId: 'formation-1' });
       expect(defense.casualties.filter((post) => post.owner === 'player')).toHaveLength(0);
       expect(defense.commanders).toHaveLength(0);
-      expect(back.events.findIndex((event) => event.type === 'raidSuffered')).toBeLessThan(
-        back.events.findIndex((event) => event.type === 'armyReturned'),
+      const raid = back.events.find((event) => event.type === 'raidSuffered');
+      expect(raid).toMatchObject({ atMs: raidAtMs, data: { raidId: 'raid-campaign' } });
+      const returned = back.events.findIndex((event) => event.type === 'armyReturned');
+      expect(returned).toBeGreaterThanOrEqual(0);
+      expect(back.events.indexOf(raid!)).toBeLessThan(returned);
+      expect(back.state.horde.scheduledRaids.some((raid) => raid.id === 'raid-campaign')).toBe(
+        false,
       );
+      expect(back.state.army.campaign).toBeNull();
       expect(currentShape(back.state, '')).toBeNull();
-    }
-  });
+    },
+  );
 
   it('reserva a fotografia mesmo se o plano salvo é editado', () => {
     const { state } = attack(campaignYard());
     const snapshot = JSON.stringify(state.army.campaign?.formation);
-    state.army.formations[0]!.posts.center.front = { unit: 'swordsman', count: 1 };
+    const formation = state.army.formations[0]!;
+    const edited = accept(
+      state,
+      saveFormationOrder(formation.name, {
+        id: formation.id,
+        posts: {
+          ...formation.posts,
+          center: { ...formation.posts.center, front: { unit: 'swordsman', count: 1 } },
+        },
+        commanders: formation.commanders,
+      }),
+    );
+    expect(edited.events.map((event) => event.type)).toEqual(['formationSaved']);
+    expect(edited.state.army.formations[0]?.posts.center.front?.count).toBe(1);
+    expect(state.army.formations[0]?.posts.center.front?.count).toBe(15);
+    expect(edited.state.army.units).toEqual(state.army.units);
+    expect(edited.state.rng).toEqual(state.rng);
+    expect(edited.state.ids).toEqual(state.ids);
     // Apagar durante a marcha passa a ser recusado; a edição continua sem mover a reserva.
-    expect(JSON.stringify(state.army.campaign?.formation)).toBe(snapshot);
-    expect(currentShape(state, '')).toBeNull();
-    expect(advanceTo(state, arrival * 2).state.army.reports[0]?.outcome).toBe('victory');
+    expect(JSON.stringify(edited.state.army.campaign?.formation)).toBe(snapshot);
+    expect(currentShape(edited.state, '')).toBeNull();
+    const back = advanceTo(edited.state, arrival * 2).state;
+    const report = back.army.reports[0]!;
+    expect(report.outcome).toBe('victory');
+    expect(
+      report.casualties
+        .filter((post) => post.owner === 'player')
+        .reduce((sum, post) => sum + post.start, 0),
+    ).toBe(60);
   });
 
   it('recusa apagar a formação em campanha até o retorno, mesmo sem Defesa ativa', () => {
@@ -379,9 +422,25 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     const start = campaignYard();
     start.army.units.swordsman += 5;
     addHero(start, { name: 'Rolf', classId: 'archer', traits: ['loyal'] });
-    const { state } = attack(start);
+    const marching = attack(start).state;
+    const formation = marching.army.formations[0]!;
     // Uma edição do plano em casa não muda a fotografia que partiu.
-    state.army.formations[0]!.commanders.left = 'hero-2';
+    const edited = accept(
+      marching,
+      saveFormationOrder(formation.name, {
+        id: formation.id,
+        posts: formation.posts,
+        commanders: { ...formation.commanders, left: 'hero-2' },
+      }),
+    );
+    expect(edited.events.map((event) => event.type)).toEqual(['formationSaved']);
+    const { state } = edited;
+    expect(state.army.formations[0]?.commanders.left).toBe('hero-2');
+    expect(state.army.campaign?.formation.commanders).toEqual({
+      left: null,
+      center: 'hero-1',
+      right: null,
+    });
     raidAt(state, HOUR);
     const middle = advanceTo(state, HOUR);
     const defense = middle.state.army.reports[0]!;

@@ -759,3 +759,16 @@ A oferta sem formação salva agora pede para montá-la no Exército, preservand
 recusa anterior quando não há Acampamento à vista. Golden da visão regravado com
 `UPDATE_GOLDEN=1`: diff lido, só cinco frases `campAssault.blockedReason` mudaram;
 nenhum número ou faixa mudou.
+
+### Revisão V4F-T2 — provas pela ordem do jogador (2026-10-29)
+
+A prévia durante a campanha passa por `simulateBattle` e confere as simulações
+gravadas, o evento, a ausência de baixas previstas e a preservação do RNG. Cada
+incursão exige relatório, instante, `raidSuffered` presente e anterior a `armyReturned`.
+Os dois testes de edição passam por `saveFormation`, exigem `formationSaved` e
+conferem a fotografia e a tropa efetiva na batalha, sem alterar o plano diretamente.
+Três defeitos temporários confirmaram a força das provas: incluir a reserva na
+prévia, omitir `raidSuffered` e ignorar `saveFormation` durante a campanha produzem
+duas falhas cada (saída 1); as alterações temporárias foram removidas. A antiga
+comparação de índices aceitava `raidSuffered` ausente (`-1`). Nenhuma expectativa
+de regra foi afrouxada; nenhum número ou faixa foi alterado.
