@@ -64,7 +64,7 @@ function processCalendar(
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);
-    if (draft.siege?.result === 'fall') {
+    if (draft.siege?.result === 'fall' && draft.siege.year === date.year - 1) {
       const durationMs = balance.siege.reconstruction.days * DAY_MS;
       draft.settlement.reconstructionUntilMs = atMs + durationMs;
       emit(events, draft, atMs, 'reconstructionStarted', {

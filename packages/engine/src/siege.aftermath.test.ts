@@ -117,4 +117,22 @@ describe('V4G-T2.6 · Rescaldo e Reconstrução (GDD §11.4; ADR 0020, decisões
     expect(springTurn.events.some((e) => e.type === 'reconstructionStarted')).toBe(false);
     expect(springTurn.state.settlement.reconstructionUntilMs).toBeNull();
   });
+
+  it('não reativa a Primavera da Reconstrução em anos subsequentes sem Queda no ano anterior', () => {
+    const state = readySiege();
+    // Queda no Ano 1
+    state.siege!.result = 'fall';
+    state.siege!.year = 1;
+    state.siege!.endedAtMs = state.siege!.atMs;
+    state.siege!.aftermathUntilMs = 1 * YEAR_MS;
+
+    // Virada do Ano 2 para o Ano 3 (2 * YEAR_MS) sem cerco no Ano 2
+    state.lastProcessedAt = 2 * YEAR_MS - 1;
+    state.clock.gameTimeMs = state.lastProcessedAt;
+    state.settlement.reconstructionUntilMs = null;
+
+    const turn = advanceTo(state, 2 * YEAR_MS);
+    expect(turn.events.some((e) => e.type === 'reconstructionStarted')).toBe(false);
+    expect(turn.state.settlement.reconstructionUntilMs).toBeNull();
+  });
 });
