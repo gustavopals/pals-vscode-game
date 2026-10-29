@@ -171,6 +171,7 @@ describe('o relatório de batalha (V4D-T4.3)', () => {
     expect(shown).toContain('lanceiros, 1 de 5');
     expect(markup).toContain('<details');
     expect(markup).toContain('data-testid="battle-adjust"');
+    expect(markup).toMatch(/<h4 id="battle-report-battle-1-title" tabindex="-1">/);
   });
 
   it('sem formação para ajustar não há botão; sem relatório não há seção', () => {
@@ -224,6 +225,28 @@ describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
     const shown = text(markup);
     expect(shown).toContain('O exército tomou o caminho de volta ao feudo.');
     expect(markup).toContain('data-testid="campaign-see-report"');
+  });
+
+  it('Ver relatório envia o identificador da batalha, inclusive quando há outros relatórios', () => {
+    const calls: Array<[string, unknown]> = [];
+    const node = CampaignPanel({
+      campaign: { ...sampleCampaign, phase: 'returning', reportId: 'battle-7' },
+      elapsed: 0,
+      actions: { ...actions, run: (id, arg) => calls.push([id, arg]) },
+    });
+    const walk = (child: unknown): void => {
+      if (Array.isArray(child)) {
+        child.forEach(walk);
+      } else if (typeof child === 'object' && child !== null) {
+        const props = (child as { props?: Record<string, unknown> }).props;
+        if (props?.['data-testid'] === 'campaign-see-report') {
+          (props.onClick as () => void)();
+        }
+        walk(props?.children);
+      }
+    };
+    walk(node);
+    expect(calls).toEqual([['lords.openBattleReport', 'battle-7']]);
   });
 
   it('WarCouncilPanel exibe botão de atacar o acampamento e aviso de campanha', () => {

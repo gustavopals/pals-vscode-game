@@ -133,6 +133,8 @@ import {
   ARMY_ANCHOR,
   ARMY_ICON,
   ARMY_SECTION,
+  BATTLE_REPORTS_ANCHOR,
+  battleReportAnchor,
   batchAmount,
   disbandLine,
   offerOf,
@@ -4083,6 +4085,18 @@ export function createCommands(
       );
     }),
     hidden('lords.openReport', openReport),
+    hidden('lords.openBattleReport', (arg) => {
+      const reports = controller.view?.army.reports ?? [];
+      const kept = typeof arg === 'string' && reports.some((report) => report.id === arg);
+      controller.navigate('army');
+      env.reveal(
+        kept
+          ? battleReportAnchor(arg)
+          : reports.length > 0
+            ? BATTLE_REPORTS_ANCHOR
+            : ARMY_ANCHOR,
+      );
+    }),
     hidden('lords.workersIncrease', step(1)),
     hidden('lords.workersDecrease', step(-1)),
     hidden('lords.showCommands', () => env.openPalette()),

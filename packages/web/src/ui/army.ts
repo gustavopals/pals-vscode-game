@@ -8,6 +8,7 @@ import {
   remainingNow,
 } from './format';
 import { parseAmount } from './market';
+import { domId } from './expeditions';
 
 /**
  * O Quartel e o exército como texto (GDD §10.2; ADR 0019, decisão 7): o que a aba Exército, a
@@ -27,6 +28,9 @@ export const ARMY_ICON = 'organization';
 /** A âncora do painel do Quartel na aba Exército e o argumento de `lords.openPanel`. */
 export const ARMY_ANCHOR = 'army-title';
 export const ARMY_SECTION = 'army';
+export const BATTLE_REPORTS_ANCHOR = 'battle-reports-title';
+export const battleReportAnchor = (battleId: string): string =>
+  domId('battle-report', battleId, 'title');
 
 /** O prefixo das linhas da árvore. */
 export const ARMY_NODE = 'army';

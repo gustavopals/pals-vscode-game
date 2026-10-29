@@ -57,7 +57,7 @@ export function CampaignPanel(props: { campaign: Campaign; elapsed: number; acti
           <button
             type="button"
             data-testid="campaign-see-report"
-            onClick={() => props.actions.run('lords.openPanel', 'army')}
+            onClick={() => props.actions.run('lords.openBattleReport', campaign.reportId)}
           >
             <Icon name="book" /> Ver relatório de batalha
           </button>

@@ -77,6 +77,44 @@ describe('a paleta e os comandos do Quartel', () => {
     expect(controller.route).toBe('army');
     expect(revealed).toEqual(['army-title']);
   });
+
+  const report = (id: string): ViewState['army']['reports'][number] => ({
+    id,
+    mode: 'attack',
+    modeLabel: 'Ataque ao Acampamento',
+    outcome: 'victory',
+    outcomeLabel: 'Vitória',
+    ending: 'rout',
+    endingText: 'A Horda debandou.',
+    roundsCount: 1,
+    factors: [],
+    noFactorText: 'Nenhum fator se destacou.',
+    rounds: [],
+    casualties: [],
+    wall: [],
+    commanders: [],
+    adjustFormationId: null,
+  });
+
+  it('o relatório de batalha abre o Exército e revela o título do identificador pedido', async () => {
+    const { controller, run, revealed } = await setup({
+      ...armyIdleView,
+      army: { ...armyIdleView.army, reports: [report('battle-8'), report('battle-7')] },
+    });
+    controller.navigate('guild');
+    await run('lords.openBattleReport', 'battle-7');
+    expect(controller.route).toBe('army');
+    expect(revealed).toEqual(['battle-report-battle-7-title']);
+  });
+
+  it('um relatório já descartado leva ao título dos relatórios guardados', async () => {
+    const { run, revealed } = await setup({
+      ...armyIdleView,
+      army: { ...armyIdleView.army, reports: [report('battle-8')] },
+    });
+    await run('lords.openBattleReport', 'battle-7');
+    expect(revealed).toEqual(['battle-reports-title']);
+  });
 });
 
 describe('treinar', () => {
