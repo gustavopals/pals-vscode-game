@@ -42,7 +42,7 @@
   ]
  },
  "ids": {
-  "battle": 9,
+  "battle": 10,
   "hero": 1,
   "item": 1
  },
@@ -196,7 +196,117 @@
   "threat": 83,
   "discovered": []
  },
- "siege": null,
+ "siege": {
+  "year": 1,
+  "atMs": 590400000,
+  "waves": [
+   {
+    "number": 1,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "number": 2,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 15
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "count": 27
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "count": 18
+     }
+    ]
+   },
+   {
+    "number": 3,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "skeleton",
+      "count": 29
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "warlord",
+      "count": 1
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 17
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 28
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "count": 6
+     }
+    ]
+   }
+  ],
+  "current": 1,
+  "nextWaveAtMs": null,
+  "plan": {
+   "1": null,
+   "2": null,
+   "3": null
+  },
+  "result": "fall",
+  "breached": false,
+  "deaths": 0,
+  "endedAtMs": 590400000,
+  "aftermathUntilMs": 604800000
+ },
  "horde": {
   "scheduledRaids": [],
   "lastFormationSeen": null,
@@ -289,77 +399,6 @@
   "formations": [],
   "activeFormationId": null,
   "reports": [
-   {
-    "id": "battle-7",
-    "foughtAtMs": 504000000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 16,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "raider",
-      "start": 19,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 9,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 16,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
-      "lost": 0
-     }
-    ],
-    "wall": [
-     {
-      "wing": "left",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "center",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "right",
-      "start": 100,
-      "end": 100
-     }
-    ],
-    "commanders": [],
-    "log": []
-   },
    {
     "id": "battle-8",
     "foughtAtMs": 540000000,
@@ -501,6 +540,77 @@
     ],
     "commanders": [],
     "log": []
+   },
+   {
+    "id": "battle-10",
+    "foughtAtMs": 590400000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 12,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 14,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "start": 1,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 11,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 0
+     }
+    ],
+    "wall": [
+     {
+      "wing": "left",
+      "start": 100,
+      "end": 100
+     },
+     {
+      "wing": "center",
+      "start": 100,
+      "end": 100
+     },
+     {
+      "wing": "right",
+      "start": 100,
+      "end": 100
+     }
+    ],
+    "commanders": [],
+    "log": []
    }
   ],
   "preview": null
@@ -568,6 +678,7 @@
   "cardsDrawn:commonGranaryOutcome": 1,
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:firstRecruit": 1,
-  "cardsDrawn:collapsedWell": 1
+  "cardsDrawn:collapsedWell": 1,
+  "siegeWavesFought": 1
  }
 }

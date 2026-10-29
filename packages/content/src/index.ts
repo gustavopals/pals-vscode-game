@@ -160,3 +160,5 @@ export { enemies, prowlingTileOrder, raidSizes, startingTiles, tileTypes } from 
 export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';
 
 export { campaignTexts } from './campaign';
+
+export { siegeTexts } from './siege';

@@ -5,6 +5,7 @@ import { compositionWeights } from './hordeMind';
 import { settleHordeTiles, turnOmens } from './hordePlan';
 import { buildRaidComposition, raidSizeFor } from './raidArmy';
 import { markScriptedWarRaids, soundHowls } from './raids';
+import { scheduleSiege } from './siegeTurn';
 import { chance, nextInt } from './random';
 import { raidChancePercent, raidingEnemy, turnThreat } from './threat';
 import type { GameEvent, GameState } from './types';
@@ -38,6 +39,7 @@ export function turnHorde(draft: GameState, atMs: number, events: GameEvent[]): 
   }
   // A subida fecha o dia que acabou. O tile que nasce agora começa a somar no dia seguinte.
   settleHordeTiles(draft, atMs, events);
+  scheduleSiege(draft, atMs, events);
   soundHowls(draft, atMs, events);
   markScriptedWarRaids(draft, atMs);
   drawRaid(draft, atMs);

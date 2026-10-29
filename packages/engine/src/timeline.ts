@@ -1,3 +1,4 @@
+import { nextSiegeEventAt } from './siege';
 import { nextCampaignEventAt } from './campaign';
 import { nextCaravanArrivalAt } from './caravans';
 import { nextDayBoundary } from './clock';
@@ -43,6 +44,8 @@ export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
   const { constructionQueues, recruitmentQueue, famine } = state.settlement;
   const candidates = [nextDayBoundary(now)];
+  const siegeAt = nextSiegeEventAt(state);
+  if (siegeAt !== null) candidates.push(siegeAt);
   const marketEnds = nextMarketEffectAt(state);
   if (marketEnds !== null) candidates.push(marketEnds);
   const rehearsalMark = nextRehearsalMarkAt(state);

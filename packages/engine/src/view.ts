@@ -1,3 +1,4 @@
+import { siegeView } from './siegeView';
 import {
   balance,
   BUILDING_IDS,
@@ -498,5 +499,21 @@ export function deriveViewState(
     army: armyView(state, timeScale),
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),
+  };
+}
+
+/** Visão interna do motor do Cerco; T2.7 fará a transição pública para o protocolo 4. */
+export function deriveEngineViewState(
+  input: GameState,
+  gameTimeMs: number,
+  options: ViewOptions = {},
+): import('./types').EngineViewState {
+  const state = advanceTo(input, gameTimeMs).state;
+  const base = deriveViewState(state, gameTimeMs, options);
+  const siege = siegeView(state, options.timeScale ?? state.settings.timeScale);
+  return {
+    ...base,
+    siege: siege.siege,
+    pendingDecisions: [...base.pendingDecisions, ...siege.pendingDecisions],
   };
 }

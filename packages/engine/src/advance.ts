@@ -29,6 +29,7 @@ import { recoverHeroes, restoreTiles } from './outcomes';
 import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { announceRaids, recoverInjured, settleRaids } from './raids';
+import { settleSiege } from './siegeTurn';
 import { settleScarcity } from './scarcity';
 import { turnSeasonWatch } from './seasonWatch';
 import { cloneState } from './state';
@@ -164,6 +165,8 @@ export function processEventsAt(
   settleHeroArrivals(draft, atMs, events);
   finishAdaptations(draft, atMs);
   settleRaids(draft, atMs, events);
+  // O Cerco encontra as obras prontas e as incursões resolvidas, antes da volta das equipes.
+  settleSiege(draft, atMs, events);
   // A Taverna: o festival que acabou e a troca dos candidatos, com o sorteio dela. Depois de
   // tudo o que muda quem está no feudo neste instante (a obra que a ergue ou a amplia, o herói
   // que parte sem soldo, o que chega por carta): a lista nasce com o número de candidatos do
@@ -240,6 +243,8 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
   const blind: GameState = {
     ...state,
+    // A previsão não resolve ondas nem antecipa baixas ou efeitos do rescaldo.
+    siege: null,
     horde: { ...state.horde, scheduledRaids: [] },
     army: { ...state.army, campaign: null },
     guild: {

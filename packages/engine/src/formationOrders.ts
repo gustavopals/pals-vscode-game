@@ -75,6 +75,11 @@ export function deleteFormation(
   if (draft.army.campaign?.formationId === formation.id) {
     return reject('FORMATION_IN_CAMPAIGN');
   }
+  // O Plano volta à Defesa ativa quando uma formação secundária é apagada (G-7).
+  if (draft.siege !== null) {
+    for (const wave of [1, 2, 3] as const)
+      if (draft.siege.plan[wave] === formation.id) draft.siege.plan[wave] = null;
+  }
   draft.army.formations = draft.army.formations.filter((entry) => entry.id !== formation.id);
   // A prévia de uma formação apagada não tem mais de que falar (a guarda do estado a exige).
   if (draft.army.preview?.formationId === formation.id) {

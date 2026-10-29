@@ -805,3 +805,25 @@ linha precede `heroRecovered`. Não há morte nem captura por carta.
 incursões na ordem existente. Ela sorteia um candidato extra no fluxo `tavern`, com as
 mesmas exclusões de nomes e modelos, e apaga o marcador. As demais listas e o limite
 de contratação mantêm seus números.
+
+
+### Cerco na linha do tempo (V4G-T2.1–T2.3, estado 40)
+
+A primeira virada de outono/inverno marca `siege` com as ondas já preparadas. Alterações
+por observação ou sabotagem sincronizam seu retrato até a primeira onda. A Vigília é
+fixada na marcação; migração tardia recebe antecedência futura (proposta G-6), sem combate
+retroativo. `settleSiege` vem logo depois de `settleRaids`, antes da Taverna e das voltas de
+expedições/campanha: obras prontas e incursões daquele instante já contam, tropas que ainda
+não voltaram continuam fora. `nextSiegeEventAt` dá o instante próprio de cada onda.
+
+O prazo seguinte nasce no fim da onda anterior, convertendo 60 min reais pelo ritmo.
+A formação é `siege.plan[onda]` ou a Defesa ativa daquele instante; sem resposta a batalha
+acontece assim mesmo. Apagar uma formação secundária limpa suas referências no Plano.
+A muralha e as baixas persistem. O reparo de emergência paga pedra **e ouro** na hora,
+conforme o ADR 0020 (números da Muralha), e não é automático. Reparo normal em andamento
+continua bloqueando outro reparo. As previsões da moral excluem o Cerco, preservando a névoa.
+
+Os comandos `SiegeCommand`, as recusas `SiegeRejection` e `deriveEngineViewState` (interno
+a `view.ts`, com `siegeWave`) permitem testar o motor enquanto os contratos públicos do
+protocolo 3 continuam iguais. **T2.7** deve incorporar esses tipos, os campos da visão e as
+ordens no protocolo 4 e então ligar servidor/SDK/app. Não houve essa exposição nesta trilha.

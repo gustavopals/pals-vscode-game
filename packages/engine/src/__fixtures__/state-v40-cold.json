@@ -198,7 +198,117 @@
   "threat": 95,
   "discovered": []
  },
- "siege": null,
+ "siege": {
+  "year": 1,
+  "atMs": 590400000,
+  "waves": [
+   {
+    "number": 1,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "number": 2,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "wolf",
+      "count": 15
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "ogre",
+      "count": 27
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "count": 18
+     }
+    ]
+   },
+   {
+    "number": 3,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 29
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "warlord",
+      "count": 1
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 17
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 28
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "count": 6
+     }
+    ]
+   }
+  ],
+  "current": 0,
+  "nextWaveAtMs": 590400000,
+  "plan": {
+   "1": null,
+   "2": null,
+   "3": null
+  },
+  "result": null,
+  "breached": false,
+  "deaths": 0,
+  "endedAtMs": null,
+  "aftermathUntilMs": null
+ },
  "horde": {
   "scheduledRaids": [
    {

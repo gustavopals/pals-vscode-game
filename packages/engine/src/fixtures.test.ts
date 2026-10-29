@@ -1,6 +1,7 @@
 import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
+import { readySiege } from './siege.test-helpers';
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { housingCapacity } from './population';
@@ -85,6 +86,11 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'siege-scheduled': () => readySiege(),
+  'siege-between-waves': () => {
+    const state = readySiege();
+    return advanceTo(state, state.siege!.atMs).state;
+  },
   'campaign-marching': () =>
     accept(campaignYard(), command('attackCamp', { formationId: 'formation-1' })).state,
   'campaign-returning': () => {

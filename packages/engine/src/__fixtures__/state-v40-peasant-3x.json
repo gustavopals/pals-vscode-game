@@ -36,7 +36,7 @@
   ]
  },
  "ids": {
-  "battle": 22,
+  "battle": 24,
   "hero": 1
  },
  "settlement": {
@@ -197,7 +197,117 @@
   "threat": 50,
   "discovered": []
  },
- "siege": null,
+ "siege": {
+  "year": 2,
+  "atMs": 1166400000,
+  "waves": [
+   {
+    "number": 1,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 8
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 9
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 8
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "number": 2,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "ogre",
+      "count": 10
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 19
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 13
+     }
+    ]
+   },
+   {
+    "number": 3,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 20
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "warlord",
+      "count": 1
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 12
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 20
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "count": 4
+     }
+    ]
+   }
+  ],
+  "current": 1,
+  "nextWaveAtMs": null,
+  "plan": {
+   "1": null,
+   "2": null,
+   "3": null
+  },
+  "result": "fall",
+  "breached": false,
+  "deaths": 0,
+  "endedAtMs": 1166400000,
+  "aftermathUntilMs": 1209600000
+ },
  "horde": {
   "scheduledRaids": [],
   "lastFormationSeen": null,
@@ -289,7 +399,7 @@
   "activeFormationId": null,
   "reports": [
    {
-    "id": "battle-20",
+    "id": "battle-22",
     "foughtAtMs": 1166400000,
     "formationId": null,
     "mode": "defense",
@@ -303,14 +413,14 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 16,
+      "start": 8,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "blackKnight",
+      "unit": "raider",
       "start": 9,
       "lost": 0
      },
@@ -319,7 +429,7 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "start": 9,
+      "start": 1,
       "lost": 0
      },
      {
@@ -327,7 +437,7 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 16,
+      "start": 8,
       "lost": 0
      },
      {
@@ -335,7 +445,7 @@
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 3,
+      "start": 2,
       "lost": 0
      }
     ],
@@ -344,7 +454,7 @@
     "log": []
    },
    {
-    "id": "battle-21",
+    "id": "battle-23",
     "foughtAtMs": 1209600000,
     "formationId": null,
     "mode": "defense",
@@ -383,7 +493,7 @@
     "log": []
    },
    {
-    "id": "battle-22",
+    "id": "battle-24",
     "foughtAtMs": 1245600000,
     "formationId": null,
     "mode": "defense",
@@ -454,6 +564,7 @@
   "threatCrossed:70": 18,
   "vigilRehearsalMarked": 1,
   "seasonsSurvived:autumn": 2,
+  "siegeWavesFought": 2,
   "seasonsSurvived:winter": 2,
   "cardsDrawn:springSeeds": 1,
   "cardsDrawn:sawmillRest": 1,

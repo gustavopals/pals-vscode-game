@@ -1,5 +1,6 @@
 import { balance } from '@lotg/content';
 
+import { setBattlePlan, swapWaveFormation, emergencyRepair } from './siegeOrders';
 import { settleHeroArrivals } from './arrivals';
 import { emit } from './chronicle';
 import {
@@ -28,7 +29,16 @@ import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import { announceFilled, fullStores } from './storage';
 import { hireHero, holdFestival } from './tavernOrders';
-import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
+import type {
+  Command,
+  CommandResult,
+  GameEvent,
+  GameState,
+  Rejection,
+  SiegeCommand,
+  SiegeCommandResult,
+  SiegeRejection,
+} from './types';
 import { dismissHero } from './wages';
 import { announceRaids, markRehearsalAfterVigilChange } from './raids';
 
@@ -55,14 +65,20 @@ function renameSettlement(
 
 function dispatch(
   draft: GameState,
-  command: Command,
+  command: Command | SiegeCommand,
   nowMs: number,
   events: GameEvent[],
   context: CommandContext,
-): Rejection | null {
+): SiegeRejection | null {
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
+    case 'setBattlePlan':
+      return setBattlePlan(draft, payload.wave, payload.formationId, nowMs, events);
+    case 'swapWaveFormation':
+      return swapWaveFormation(draft, payload.formationId, nowMs, events);
+    case 'emergencyRepair':
+      return emergencyRepair(draft, nowMs, events);
     case 'setVigilHour': {
       const { hourLocal, timezone } = payload;
       const civil = context.vigil;
@@ -196,8 +212,20 @@ export function applyCommand(
   state: GameState,
   command: Command,
   nowMs: number,
+  context?: CommandContext,
+): CommandResult;
+export function applyCommand(
+  state: GameState,
+  command: SiegeCommand,
+  nowMs: number,
+  context?: CommandContext,
+): SiegeCommandResult;
+export function applyCommand(
+  state: GameState,
+  command: Command | SiegeCommand,
+  nowMs: number,
   context: CommandContext = {},
-): CommandResult {
+): SiegeCommandResult {
   if (state.lastProcessedAt !== nowMs) {
     throw new Error(
       `applyCommand exige o estado avançado até ${nowMs}, mas ele está em ${state.lastProcessedAt}.`,
@@ -208,7 +236,7 @@ export function applyCommand(
   const wasFull = fullStores(draft);
   const rejection = dispatch(draft, command, nowMs, events, context);
   if (rejection !== null) {
-    return { ok: false, code: rejection.code, message: rejection.message };
+    return { ok: false, ...rejection };
   }
   // O herói que a resposta a uma carta acabou de dar entra agora, e o que esperava lugar na
   // lista entra no lugar de quem foi dispensado.

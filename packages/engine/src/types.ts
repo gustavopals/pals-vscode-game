@@ -971,6 +971,50 @@ export type GameEvent = {
   data: Record<string, string | number>;
 };
 
+/** Contratos internos da T2.1–T2.6; a T2.7 os incorporará ao protocolo 4. */
+export type SiegeCommand =
+  | {
+      commandId: string;
+      type: 'setBattlePlan';
+      payload: { wave: SiegeWaveNumber; formationId: string | null };
+    }
+  | { commandId: string; type: 'swapWaveFormation'; payload: { formationId: string | null } }
+  | { commandId: string; type: 'emergencyRepair'; payload: Record<string, never> }
+  | { commandId: string; type: 'callMilitia'; payload: { count: number } };
+export type SiegeRejectionCode =
+  | 'SIEGE_NOT_SCHEDULED'
+  | 'SIEGE_STARTED'
+  | 'INVALID_WAVE'
+  | 'NO_WAVE_DECISION'
+  | 'MILITIA_NOT_ALLOWED'
+  | 'MILITIA_ACTIVE'
+  | 'INVALID_MILITIA_AMOUNT';
+export type SiegeRejection = Rejection | { code: SiegeRejectionCode; message: string };
+export type SiegeCommandResult =
+  { ok: true; state: GameState; events: GameEvent[] } | ({ ok: false } & SiegeRejection);
+export type SiegeWaveDecisionView = {
+  kind: 'siegeWave';
+  id: string;
+  title: string;
+  wave: SiegeWaveNumber;
+  expiresInSeconds: number;
+  options: Array<{ formationId: string | null; label: string; selected: boolean }>;
+};
+export type SiegeView = {
+  year: number;
+  scheduledInSeconds: number;
+  current: number;
+  nextWaveInSeconds: number | null;
+  plan: Record<SiegeWaveNumber, string | null>;
+  result: SiegeState['result'];
+  resultText: string | null;
+  waves: Array<{ number: SiegeWaveNumber; title: string; omens: string[] }>;
+};
+export type EngineViewState = Omit<ViewState, 'pendingDecisions'> & {
+  siege: SiegeView | null;
+  pendingDecisions: Array<PendingDecisionView | SiegeWaveDecisionView>;
+};
+
 export type Command =
   | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {

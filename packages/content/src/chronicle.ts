@@ -1,6 +1,10 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'siegeScheduled',
+  'siegeWaveFought',
+  'battlePlanSet',
+  'waveFormationSwapped',
   'armyMarched',
   'campAssaulted',
   'armyReturned',
@@ -202,6 +206,13 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  siegeScheduled:
+    'No {dia}º dia {daEstacao}, os vigias de {feudo} marcaram a Vigília do Cerco do Inverno.',
+  siegeWaveFought: 'No {dia}º dia {daEstacao}, {feudo} enfrentou {onda}: {desfecho}.',
+  battlePlanSet: 'No {dia}º dia {daEstacao}, {feudo} confiou {onda} a {formacao}.',
+  waveFormationSwapped:
+    'No {dia}º dia {daEstacao}, {feudo} trocou a defesa de {onda} para {formacao}.',
+
   armyMarched:
     'No {dia}º dia {daEstacao}, os estandartes de {feudo} partiram contra o Acampamento de Saqueadores. Os postos deixados para trás aguardam a volta.',
   campAssaulted:

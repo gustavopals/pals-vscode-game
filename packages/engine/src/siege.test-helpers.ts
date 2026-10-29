@@ -3,6 +3,7 @@ import { WING_IDS, type DifficultyId } from '@lotg/content';
 import { settleHordeTiles } from './hordePlan';
 import { AUTUMN, gameAt, HOUR } from './test-helpers';
 import type { Formation, GameState } from './types';
+import { scheduleSiege } from './siegeTurn';
 import { wallFullHp } from './wall';
 
 /** Cenário isolado: preparação real da Horda, sem Conselho, incursões ou produção. */
@@ -12,9 +13,7 @@ export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1): Gam
   state.settings.difficulty = difficulty;
   state.settings.timeScale = timeScale;
   state.council.nextDrawAtMs = Number.MAX_SAFE_INTEGER;
-  state.horde.scheduledRaids = [];
   state.map.threat = 0;
-  state.map.tiles = {};
   state.settlement.buildings.barracks = 8;
   state.settlement.buildings.palisade = 6;
   state.settlement.buildings.watchtower = 5;
@@ -50,3 +49,12 @@ export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1): Gam
 
 export const WINTER = 144 * HOUR;
 export const wingHp = (state: GameState) => WING_IDS.map((wing) => state.settlement.wall.hp[wing]);
+
+/** Instante imediatamente anterior à primeira onda, sem simular a economia do outono. */
+export function readySiege(difficulty: DifficultyId = 'lord', timeScale = 1): GameState {
+  const state = siegeYard(difficulty, timeScale);
+  scheduleSiege(state, state.lastProcessedAt, []);
+  state.lastProcessedAt = state.siege!.atMs - 1;
+  state.clock.gameTimeMs = state.lastProcessedAt;
+  return state;
+}
