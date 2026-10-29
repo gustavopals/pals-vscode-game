@@ -1831,6 +1831,49 @@ export function createCommands(
     (arg) => `simulate:${String(formationArg(arg).id ?? '')}`,
   );
 
+  /** A disponibilidade de marcha é relida depois de cada diálogo, inclusive a confirmação. */
+  const marchReady = (formationId: string) => {
+    const army = controller.view?.army;
+    if (army === undefined) {
+      return null;
+    }
+    const formation = army.formations.find((entry) => entry.id === formationId);
+    if (formation === undefined) {
+      controller.toast({
+        kind: 'info',
+        text: 'A formação já não existe. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return null;
+    }
+    const offer = army.campAssault.formations.find((entry) => entry.formationId === formationId);
+    if (army.campaign !== null || offer?.canAttack !== true) {
+      controller.toast({
+        kind: 'warning',
+        text:
+          army.campaign?.text ??
+          offer?.blockedReason ??
+          army.campAssault.blockedReason ??
+          'Esta formação não pode marchar agora. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return null;
+    }
+    return { army, formation };
+  };
+
+  /** Só a formação e a viagem conferidas; outras mudanças do feudo não invalidam a revisão. */
+  const assaultReview = ({ army, formation }: NonNullable<ReturnType<typeof marchReady>>) =>
+    JSON.stringify({
+      name: formation.name,
+      posts: formation.posts,
+      commanders: formation.commanders,
+      total: formation.total,
+      shortfall: formation.shortfall,
+      travelSeconds: army.campAssault.travelSeconds,
+      totalSeconds: army.campAssault.totalSeconds,
+    });
+
   /**
    * "Atacar o Acampamento…" (V4F-T3): a campanha ofensiva contra os saqueadores. O painel manda a
    * formação; a paleta pergunta qual, com a lista das que podem marchar. A confirmação avisa por
@@ -1905,36 +1948,24 @@ export function createCommands(
         return;
       }
 
-      const currentView = controller.view;
-      if (currentView === null) {
+      const current = marchReady(formationId);
+      if (current === null) {
         return;
       }
-      const formation = currentView.army.formations.find((f) => f.id === formationId);
-      if (formation === undefined) {
-        controller.toast({
-          kind: 'info',
-          text: 'A formação já não existe. Nada foi enviado.',
-          actions: [seeArmy],
-        });
-        return;
-      }
-
-      const assaultInfo = currentView.army.campAssault.formations.find(
-        (f) => f.formationId === formationId,
-      );
-      if (assaultInfo !== undefined && !assaultInfo.canAttack) {
-        controller.toast({
-          kind: 'warning',
-          text: assaultInfo.blockedReason ?? 'Esta formação não pode marchar agora.',
-          actions: [seeArmy],
-        });
-        return;
-      }
-
-      const durationText = formatApprox(currentView.army.campAssault.totalSeconds);
+      const reviewed = assaultReview(current);
+      const durationText = formatApprox(current.army.campAssault.totalSeconds);
       const confirmed = await dialogs.confirm({
         title: 'Atacar o Acampamento?',
-        detail: [`O feudo fica sem estes esquadrões por ${durationText}.`],
+        detail: [
+          `O feudo fica sem estes esquadrões por ${durationText}.`,
+          `Formação: ${current.formation.name}.`,
+          ...current.formation.posts.map(
+            (post) => `${post.wingLabel}, ${post.lineLabel}: ${post.text}`,
+          ),
+          ...current.formation.commanders
+            .filter((commander) => commander.heroId !== null)
+            .map((commander) => `${commander.wingLabel}: ${commander.heroName}`),
+        ],
         confirmLabel: 'Atacar o Acampamento',
         cancelLabel: 'Desistir',
       });
@@ -1947,6 +1978,18 @@ export function createCommands(
         return;
       }
 
+      const latest = marchReady(formationId);
+      if (latest === null) {
+        return;
+      }
+      if (assaultReview(latest) !== reviewed) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A formação ou o prazo da campanha mudou enquanto você decidia. Nada foi enviado: confira o ataque de novo.',
+          actions: [seeArmy],
+        });
+        return;
+      }
       await controller.attackCamp(formationId);
     },
     () => 'campaign',

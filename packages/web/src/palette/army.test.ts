@@ -342,4 +342,72 @@ describe('atacar o acampamento (V4F-T3)', () => {
     expect(toasts()).toContain('O exército segue para o Acampamento de Saqueadores.');
     expect(orders()).toEqual([]);
   });
+
+  it.each(['posts', 'commanders', 'duration', 'availability', 'deleted', 'campaign'] as const)(
+    'mudar %s com a confirmação aberta invalida o ataque',
+    async (change) => {
+      const made = await setup(readyView);
+      made.answers.push(async () => {
+        const army = structuredClone(readyView.army);
+        if (change === 'posts') {
+          army.formations[0]!.posts[0]!.count += 1;
+        } else if (change === 'commanders') {
+          army.formations[0]!.commanders[0]!.heroId = 'hero-2';
+          army.formations[0]!.commanders[0]!.heroName = 'Berta';
+        } else if (change === 'duration') {
+          army.campAssault.totalSeconds += 300;
+        } else if (change === 'availability') {
+          army.campAssault.formations[0]!.canAttack = false;
+          army.campAssault.formations[0]!.blockedReason = 'O comandante já partiu.';
+        } else if (change === 'deleted') {
+          army.formations = [];
+        } else {
+          army.campaign = {
+            formationId: 'formation-1',
+            formationName: 'Vanguarda',
+            tile: 'raiderCamp',
+            destination: 'Acampamento',
+            phase: 'marching',
+            text: 'O exército já está em campanha.',
+            battleInSeconds: 300,
+            returnsInSeconds: 600,
+            reportId: null,
+          };
+        }
+        made.api.state.view = { ...readyView, army };
+        made.api.state.stateVersion += 1;
+        await made.controller.session.syncNow();
+        return true;
+      });
+      await made.run('lords.attackCamp', { formationId: 'formation-1' });
+      expect(made.orders()).toEqual([]);
+      expect(made.toasts().join(' ')).toMatch(/Nada foi enviado|já partiu|já está em campanha/);
+    },
+  );
+
+  it('sem disponibilidade explícita da formação na visão, não pede confirmação nem envia', async () => {
+    const made = await setup({
+      ...readyView,
+      army: {
+        ...readyView.army,
+        campAssault: { ...readyView.army.campAssault, formations: [] },
+      },
+    });
+    made.answers.push(true);
+    await made.run('lords.attackCamp', { formationId: 'formation-1' });
+    expect(made.shown).toEqual([]);
+    expect(made.orders()).toEqual([]);
+  });
+
+  it('uma atualização sem mudança na formação ou na duração preserva a confirmação', async () => {
+    const made = await setup(readyView);
+    made.answers.push(async () => {
+      made.api.state.view = structuredClone(readyView);
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      return true;
+    });
+    await made.run('lords.attackCamp', { formationId: 'formation-1' });
+    expect(made.orders()).toEqual([{ type: 'attackCamp', payload: { formationId: 'formation-1' } }]);
+  });
 });
