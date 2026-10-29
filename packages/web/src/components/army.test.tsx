@@ -280,6 +280,9 @@ describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
       />,
     );
     expect(markup).toContain('data-testid="war-attack-camp"');
+    expect(text(markup)).toContain('Simular defesa do feudo');
+    expect(text(markup)).toContain('Prévia de defesa do feudo');
+    expect(text(markup)).toContain('O ataque ao Acampamento ainda não tem prévia.');
     expect(markup).toContain('data-testid="war-preview-warning"');
     expect(text(markup)).toContain(
       'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',

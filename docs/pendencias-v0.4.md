@@ -540,3 +540,8 @@ As 3 h do catálogo (§9.3) são a campanha inteira: 90 min de jogo por trecho, 
 
 **F-4. Reserva e calendário.** _(Proposta do agente; não lida pelo autor.)_
 A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comandantes. Editar/apagar uma formação não muda a campanha. Soldados enviados continuam no total do Quartel, habitação e consumo até o retorno; as baixas são descontadas nesse retorno. Reservas não podem ser dispensadas, não defendem incursões e não entram na prévia defensiva. Comandantes usam o estado `campaign`, continuam recebendo soldo, não podem partir/equipar/ser dispensados; ferimento, experiência e desgaste são aplicados na chegada. A previsão da moral exclui a campanha para não antecipar sorteios; o soldo vencido é cobrado na volta, como nas expedições e escoltas. A batalha e a volta resolvem depois das expedições e antes das caravanas; uma incursão no mesmo instante da volta ainda enfrenta o feudo sem os que chegam. O estado efetivo passa de 38 para 39 (a referência antiga a 35 no roadmap não vale nesta base).
+
+## V4F-T3 — Revisão da interface (2026-10-29)
+
+**F-5. Prévia ofensiva do ataque ao Acampamento.** _(Proposta do agente; não lida pelo autor.)_
+O coordenador decidiu adiar a prévia ofensiva: `simulateBattle` entrega a defesa do feudo e uma prévia de ataque exige regra e contrato próprios no motor. A tela e a paleta agora identificam a simulação como **defesa do feudo**, com o aviso de que o ataque ainda não tem prévia. Fica para o autor decidir a prévia ofensiva do ataque ao Acampamento; o app não adapta percentuais, perdas nem fatores defensivos para representar esse ataque.

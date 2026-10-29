@@ -55,7 +55,7 @@ async function setup(view: ViewState) {
 }
 
 describe('a paleta e os comandos do Quartel', () => {
-  it('a paleta tem os quatro comandos', async () => {
+  it('a paleta tem os comandos do Quartel e identifica a simulação como defesa', async () => {
     const { commands } = await setup(armyIdleView);
     expect(paletteItems(commands).map((item) => item.label)).toEqual(
       expect.arrayContaining([
@@ -63,6 +63,7 @@ describe('a paleta e os comandos do Quartel', () => {
         'Lords: Treinar soldados…',
         'Lords: Cancelar o treino…',
         'Lords: Dispensar soldados…',
+        'Lords: Simular defesa do feudo…',
       ]),
     );
   });

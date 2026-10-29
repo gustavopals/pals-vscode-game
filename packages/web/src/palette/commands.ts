@@ -1779,7 +1779,7 @@ export function createCommands(
   });
 
   /**
-   * "Simular batalha…" (V4D-T4): a prévia do Conselho de Guerra de uma formação salva. O painel
+   * "Simular defesa do feudo…" (V4D-T4): a prévia defensiva de uma formação salva. O painel
    * manda o `id`; a paleta pergunta qual. A formação é conferida de novo depois do diálogo.
    */
   const simulateBattle = oneAtATime(
@@ -1802,7 +1802,7 @@ export function createCommands(
         typeof record.id === 'string'
           ? record.id
           : await dialogs.pick<string>({
-              title: 'Simular batalha',
+              title: 'Simular defesa do feudo',
               placeholder: 'Qual formação?',
               items: view.army.formations.map((entry) => ({
                 icon: ARMY_ICON,
@@ -3798,7 +3798,7 @@ export function createCommands(
     },
     {
       id: 'lords.simulateBattle',
-      title: 'Simular batalha…',
+      title: 'Simular defesa do feudo…',
       palette: true,
       when: hasGame,
       run: simulateBattle,
