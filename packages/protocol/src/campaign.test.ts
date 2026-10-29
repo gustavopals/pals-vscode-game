@@ -26,7 +26,7 @@ describe('contrato da campanha ofensiva', () => {
         false,
       );
     }
-    for (const code of ['ARMY_AWAY', 'CAMP_NOT_FOUND', 'NO_SOLDIERS'])
+    for (const code of ['ARMY_AWAY', 'CAMP_NOT_FOUND', 'NO_SOLDIERS', 'FORMATION_IN_CAMPAIGN'])
       expect(RejectionCodeSchema.safeParse(code).success).toBe(true);
   });
 

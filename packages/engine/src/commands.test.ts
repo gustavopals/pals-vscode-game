@@ -247,12 +247,14 @@ describe('catálogo de recusas', () => {
   const atDoor = masterWaitingScenario();
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
+  const marching = accept(
+    campaignYard(),
+    command('attackCamp', { formationId: 'formation-1' }),
+  ).state;
+  const inactiveMarching = accept(marching, command('setActiveFormation', { id: null })).state;
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
-    ARMY_AWAY: [
-      accept(campaignYard(), command('attackCamp', { formationId: 'formation-1' })).state,
-      command('attackCamp', { formationId: 'formation-1' }),
-    ],
+    ARMY_AWAY: [marching, command('attackCamp', { formationId: 'formation-1' })],
     CAMP_NOT_FOUND: [rich, command('attackCamp', { formationId: 'formation-1' })],
     NO_SOLDIERS: [
       (() => {
@@ -395,6 +397,7 @@ describe('catálogo de recusas', () => {
     FORMATIONS_CAP: [formationYard(balance.army.formationsCap), saveFormationOrder('Mais uma')],
     INVALID_FORMATION: [yard, saveFormationOrder('   ')],
     FORMATION_ACTIVE: [formationYard(1, 0), command('deleteFormation', { id: 'formation-1' })],
+    FORMATION_IN_CAMPAIGN: [inactiveMarching, command('deleteFormation', { id: 'formation-1' })],
     WALL_REQUIRED: [rich, command('repairWall', {})],
     WALL_INTACT: [wallSite(2), command('repairWall', {})],
     WALL_REPAIRING: [
