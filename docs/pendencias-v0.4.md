@@ -551,12 +551,13 @@ A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comand
 
 ## V4G-T2 — Motor do Cerco (2026-10-29)
 
-**G-6. Migração tardia e calendário das ondas.** _(Proposta do agente; não lida pelo autor.)_
+**G-6. Migração tardia e calendário das ondas.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco b.)**
 O passo efetivo é 39 → 40, sem sorteio ou prazo. Na primeira virada de outono/inverno
 a linha do tempo usa a preparação existente. Se a Vigília daquele inverno já passou,
 a primeira onda fica uma antecedência da Torre adiante (ou o mínimo da Vigília sem Torre),
 sem cobrar batalha retroativa; as outras esperam 60 min reais cada. Uma sequência que
 atravesse a primavera conserva o retrato das ondas, embora a Horda reinicie a memória anual.
+**Decisão do coordenador:** se a primeira onda calculada pela migração tardia cairia após o término do inverno (`scheduled >= year * YEAR_MS`), o cerco não é marcado para aquele ano (`draft.siege = null`), impedindo que ondas ocorram fora do inverno (GDD §10).
 
 **G-7. Plano e comandos internos antes do protocolo 4.** _(Proposta do agente; não lida pelo autor.)_
 O Plano fica em `siege.plan`, sem segunda cópia em `army.battlePlan`. Campos nulos usam a
@@ -578,9 +579,42 @@ muralha custa 4/5 da pedra e do ouro até acabar o inverno, sem reduzir o prazo.
 reduz os custos de novas obras por dois dias de jogo a partir da primavera, sem devolução de
 custos antigos nem desconto no treino, forja ou comércio. Números em `balance.siege`.
 
-**G-10. Prioridade de alocação da milícia.** _(Proposta do agente; não lida pelo autor.)_
-A milícia convocada ocupa o primeiro posto vazio na ordem centro-frente, esquerda-frente,
-direita-frente, centro-trás, esquerda-trás e direita-trás. Como unidade de linha de frente
-(3/2/12, recebe ×5/4 de dano), sua prioridade absoluta são os postos vazios da frente; os
-postos da retaguarda são alternativa caso toda a frente esteja preenchida por tropas regulares.
-Ao fim da batalha correspondente, os sobreviventes são dissolvidos e retornam aos aldeões sem ofício.
+**G-10. Prioridade de alocação da milícia.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco a.)**
+A milícia convocada ocupa apenas postos vagos da linha de frente na ordem centro-frente,
+esquerda-frente e direita-frente (`center.front`, `left.front`, `right.front`). Como unidade de linha
+de frente de combate corpo-a-corpo (3/2/12, recebe ×5/4 de dano, sem projétil), ela não pode ser
+posicionada em postos de retaguarda (GDD §10.2). Se toda a frente estiver preenchida por tropas regulares,
+a milícia não ocupa postos de trás. Ao fim da batalha correspondente, os sobreviventes são dissolvidos
+e retornam aos aldeões sem ofício.
+
+
+### V4G-T2 — decisões e correções da revisão independente (2026-10-29)
+
+**G-11. Reembolso de cancelamento de obra sobre o custo efetivamente pago.** _(Decisão do coordenador.)_
+O reembolso ao cancelar uma construção ou melhoria em andamento devolve 80% (`balance.construction.cancelRefund`)
+do custo efetivamente pago (`costPaid` gravado no objeto da obra ativa), e não do custo de tabela atual.
+Isso impede que descontos temporários (como a Primavera da Reconstrução) gerem ganho de recursos ao iniciar
+uma obra com desconto e cancelá-la após o término do efeito. O campo opcional `costPaid?: ResourceAmounts`
+foi adicionado à interface `Construction` e validado na guarda do estado 40 (`stateV40` em `migrations/v40.ts`),
+sem necessidade de criar a versão 41 pois a v40 ainda não foi publicada. Adicionado teste de propriedade
+em `construction.test.ts` provando que nenhuma sequência de iniciar e cancelar obras gera recursos com a
+Reconstrução ativa ou expirada.
+
+**G-12. Critério de Vitória Gloriosa contra o Cerco.** _(Decisão do coordenador.)_
+A classificação como "Vitória Gloriosa" (`siege.result === 'glorious'`) exige que nenhuma ala defensora
+tenha caído em nenhuma das três ondas do cerco, nem que qualquer ala defensora tenha iniciado sem combatente
+na linha de frente (`frontMissing`). Se qualquer ala iniciar sem tropa na frente, ou se a linha de frente de
+qualquer ala for rompida (`frontBreached`), ou se a ala cair em combate (`wingFellInBattle` registrado nas notas
+de ação de ataque da rodada), o resultado do cerco é rebaixado no máximo para Vitória comum (`victory`).
+
+**G-13. Recusa de convocação de milícia sem postos livres.** _(Decisão do coordenador.)_
+A ordem `callMilitia` verifica antecipadamente se a formação que lutará na próxima batalha (seja a onda do cerco
+ou incursão iminente em `untilMs`) possui ao menos um posto livre na linha de frente. Se todos os postos de frente
+estiverem preenchidos por combatentes regulares, a ordem é recusada com código `NO_MILITIA_SLOT` e frase legível
+no conteúdo (`siegeTexts.militiaNoSlot`: "A formação que vai lutar não tem posto livre para a milícia."), sem
+debitar a produção dos aldeões convocados.
+
+**G-14. Escopo anual da Primavera da Reconstrução.** _(Decisão do coordenador.)_
+O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
+após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
+(`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.
