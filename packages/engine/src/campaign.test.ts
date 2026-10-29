@@ -15,6 +15,7 @@ import {
   HOUR,
   giveItem,
   MINUTE,
+  saveFormationOrder,
 } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { GameState } from './types';
@@ -117,6 +118,34 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     });
     expect(currentShape(state, '')).toBeNull();
     expect(nextEventAt(state)).toBeLessThanOrEqual(arrival);
+  });
+
+  it('o comandante da Defesa ativa não marcha por uma formação secundária', () => {
+    const start = campaignYard();
+    const formation = start.army.formations[0]!;
+    const state = accept(
+      start,
+      saveFormationOrder('Marcha secundária', {
+        posts: formation.posts,
+        commanders: formation.commanders,
+      }),
+    ).state;
+    const before = JSON.stringify(state);
+    const result = apply(state, command('attackCamp', { formationId: 'formation-2' }));
+    const message = 'Edda comanda a Defesa ativa (Marcha do vale) e fica no feudo: troque ou desmarque a formação para ele partir.';
+    expect(result).toEqual({ ok: false, code: 'HERO_BUSY', message });
+    expect(deriveViewState(state, state.lastProcessedAt).army.campAssault.formations).toEqual([
+      { formationId: 'formation-1', canAttack: true, blockedReason: null },
+      { formationId: 'formation-2', canAttack: false, blockedReason: message },
+    ]);
+    expect(JSON.stringify(state)).toBe(before);
+    const unmarked = accept(state, command('setActiveFormation', { id: null })).state;
+    const marched = accept(
+      unmarked,
+      command('attackCamp', { formationId: 'formation-2' }),
+    ).state;
+    expect(marched.army.campaign?.formationId).toBe('formation-2');
+    expect(marched.guild.heroes[0]?.status).toBe('campaign');
   });
 
   it('luta na chegada, limpa uma vez, traz saque e desconta as baixas só ao voltar', () => {

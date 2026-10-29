@@ -14,7 +14,7 @@ import {
   troopText,
 } from './army';
 import { availableUnits, formationCount } from './campaign';
-import { findFormation, nominationReason } from './formations';
+import { commandingBlock, findFormation, nominationReason } from './formations';
 import { canDepart } from './heroes';
 import { buildDefender } from './raidArmy';
 import { watchtowerLevel } from './threat';
@@ -254,6 +254,10 @@ export function attackCampBlock(state: GameState, formationId: unknown): Rejecti
         label: hero.name,
         remedy: nominationReason(hero) ?? formationTexts.heroInjured,
       });
+    }
+    if (formation.id !== state.army.activeFormationId) {
+      const blocked = commandingBlock(state, hero);
+      if (blocked !== null) return blocked;
     }
   }
   if (

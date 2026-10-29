@@ -543,6 +543,8 @@ em campanha é recusado até o retorno (`FORMATION_IN_CAMPAIGN`), também em `ca
 pode ser dispensado. O comandante usa `status: 'campaign'`, continua recebendo soldo e
 fica indisponível para expedição, escolta, equipamento e dispensa. A Defesa ativa pode
 ser enviada; os postos que ela não consegue preencher ficam vazios durante a ausência.
+Uma formação secundária não leva comandante da Defesa ativa (`HERO_BUSY`, frase da
+formação): é preciso trocar ou desmarcar a Defesa antes. Ordem e oferta usam a mesma recusa.
 
 A ida e a volta usam `balance.army.campaign.travelMs` em tempo de jogo. A chegada e o
 retorno têm instante próprio em `nextEventAt`, resolvidos por `settleCampaign` **depois

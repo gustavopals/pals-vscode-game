@@ -754,7 +754,9 @@ Resumo por rodada (colapsável) e, no topo, os **três fatores decisivos** calcu
 Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralha do lado do jogador e com a muralha (paliçada do acampamento) do lado inimigo. O exército viaja (tempo do tile, em tempo de jogo) e fica indisponível para defesa até voltar: outra decisão com custo.
 
 `[v0.4]` **V4F-T2:** o ataque ao Acampamento parte de uma formação salva e leva os postos
-que os soldados disponíveis preenchem, com ao menos um comandante livre. A tropa fica
+que os soldados disponíveis preenchem, com ao menos um comandante livre. Uma formação
+secundária não pode levar um comandante da Defesa ativa: troque ou desmarque a Defesa
+antes. A tropa fica
 reservada até voltar; editar a formação não muda quem está na estrada. Apagar a formação
 em campanha é recusado até o retorno (`FORMATION_IN_CAMPAIGN`). A batalha acontece
 na chegada, contra a paliçada e a guarnição da estação, sem a Torre do feudo. Vitória
