@@ -70,13 +70,21 @@
     "building": "lumberMill",
     "targetLevel": 2,
     "startedAtMs": 0,
-    "finishesAtMs": 300000
+    "finishesAtMs": 300000,
+    "costPaid": {
+     "wood": 100,
+     "stone": 50
+    }
    },
    {
     "building": "goldMine",
     "targetLevel": 2,
     "startedAtMs": 0,
-    "finishesAtMs": 480000
+    "finishesAtMs": 480000,
+    "costPaid": {
+     "wood": 120,
+     "stone": 80
+    }
    }
   ],
   "wall": {

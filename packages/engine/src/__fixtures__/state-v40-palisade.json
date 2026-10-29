@@ -77,7 +77,11 @@
     "building": "palisade",
     "targetLevel": 2,
     "startedAtMs": 29100000,
-    "finishesAtMs": 30900000
+    "finishesAtMs": 30900000,
+    "costPaid": {
+     "wood": 320,
+     "stone": 80
+    }
    },
    null
   ],

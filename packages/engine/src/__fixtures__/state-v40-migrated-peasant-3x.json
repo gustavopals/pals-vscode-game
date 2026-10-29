@@ -69,7 +69,12 @@
     "building": "townHall",
     "targetLevel": 2,
     "startedAtMs": 1304520777,
-    "finishesAtMs": 1305120777
+    "finishesAtMs": 1305120777,
+    "costPaid": {
+     "wood": 150,
+     "stone": 100,
+     "gold": 100
+    }
    },
    null
   ],

@@ -24,6 +24,7 @@ import type {
   RaidSizeId,
   WarRaidSizeId,
   Ratio,
+  ResourceAmounts,
   ResourceId,
   SeasonId,
   TileTypeId,
@@ -94,6 +95,7 @@ export type Construction = {
   targetLevel: number;
   startedAtMs: number;
   finishesAtMs: number;
+  costPaid?: ResourceAmounts;
 };
 
 /**

@@ -1,7 +1,9 @@
 import {
   boolean,
   exactObject,
+  keyedRecordOf,
   listOf,
+  listOfLength,
   literal,
   natural,
   nullable,
@@ -11,6 +13,8 @@ import {
   type Shape,
 } from './shape';
 import type { StoredState } from './step';
+import { RESOURCE_IDS_V25 } from './v25';
+import { BUILDING_IDS_V28 } from './v28';
 import { raidPostV33 } from './v33';
 import { stateV39 } from './v39';
 
@@ -20,6 +24,25 @@ const waveNumber: Shape = (value, path) =>
   [1, 2, 3].includes(value as number) ? null : `${path}: onda fora de 1 a 3`;
 const current: Shape = (value, path) =>
   [0, 1, 2, 3].includes(value as number) ? null : `${path}: onda atual fora de 0 a 3`;
+const amountsShape = keyedRecordOf(
+  (key) => RESOURCE_IDS_V25.includes(key),
+  'recurso válido',
+  natural,
+);
+const constructionV40: Shape = (value, path) => {
+  if (!object(value)) return `${path}: obra ausente`;
+  const { costPaid, ...rest } = value;
+  if (costPaid !== undefined) {
+    const invalid = amountsShape(costPaid, `${path}.costPaid`);
+    if (invalid !== null) return invalid;
+  }
+  return exactObject({
+    building: oneOf(BUILDING_IDS_V28),
+    targetLevel: natural,
+    startedAtMs: natural,
+    finishesAtMs: natural,
+  })(rest, path);
+};
 const wave: Shape = (value, path) => {
   if (!object(value)) return `${path}: onda ausente`;
   const { reductionPercent, ...rest } = value;
@@ -59,6 +82,11 @@ export const stateV40: Shape = (value, path) => {
     [siege, entry, 'siege'],
     [nullable(exactObject({ count: positive, untilMs: natural })), militia, 'settlement.militia'],
     [nullable(natural), reconstructionUntilMs, 'settlement.reconstructionUntilMs'],
+    [
+      listOfLength(2, nullable(constructionV40)),
+      value.settlement.constructionQueues,
+      'settlement.constructionQueues',
+    ],
   ];
   for (const [shape, field, key] of checks) {
     const invalid = shape(field, at(key));
@@ -67,7 +95,18 @@ export const stateV40: Shape = (value, path) => {
   // A Queda reduz o Quartel, sem matar sobreviventes nem apagar planos antes válidos (G-8).
   // A guarda congelada 39 ainda exige o teto antigo: só a fachada de validação recompõe o nível.
   const stats = value.stats as Record<string, number> | undefined;
-  let inheritedSettlement = settlement;
+  const cleanedQueues = Array.isArray(settlement.constructionQueues)
+    ? settlement.constructionQueues.map((slot) => {
+        if (!object(slot)) return slot;
+        const rest = { ...slot };
+        delete rest.costPaid;
+        return rest;
+      })
+    : settlement.constructionQueues;
+  let inheritedSettlement: StoredState = {
+    ...settlement,
+    constructionQueues: cleanedQueues,
+  };
   if (
     (stats?.siegesFallen ?? 0) > 0 &&
     object(value.army) &&
@@ -95,9 +134,9 @@ export const stateV40: Shape = (value, path) => {
     const level = settlement.buildings.barracks as number;
     if (level > 0 && Number.isSafeInteger(total) && total <= 80)
       inheritedSettlement = {
-        ...settlement,
+        ...inheritedSettlement,
         buildings: {
-          ...settlement.buildings,
+          ...(settlement.buildings as StoredState),
           barracks: Math.max(level, Math.ceil(total / 10), postLevel),
         },
       };

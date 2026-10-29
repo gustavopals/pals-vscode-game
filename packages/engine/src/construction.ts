@@ -416,6 +416,7 @@ export function startConstruction(
     startedAtMs: nowMs,
     // Com a muralha em reparo, a obra só corre depois dele (o reparo vem na frente da fila).
     finishesAtMs: nowMs + repairDelayMs(draft, nowMs) + quote.durationMs,
+    costPaid: quote.cost,
   };
   unplan(draft, building, quote.targetLevel);
   const stat = `constructionsStarted:${building}`;
@@ -480,8 +481,12 @@ export function finishConstructions(draft: GameState, atMs: number, events: Game
 }
 
 /** O que volta, em milésimos, ao cancelar a obra que parte de `fromLevel`: 80% do que foi pago. */
-export function cancelRefund(building: BuildingId, fromLevel: number): Record<ResourceId, number> {
-  const paid = upgradeCost(building, fromLevel);
+export function cancelRefund(
+  building: BuildingId,
+  fromLevel: number,
+  costPaid?: ResourceAmounts,
+): Record<ResourceId, number> {
+  const paid = costPaid ?? upgradeCost(building, fromLevel);
   const refundOf = (resource: ResourceId) =>
     scaleDown((paid[resource] ?? 0) * MILLI, balance.construction.cancelRefund);
   return {
@@ -512,8 +517,9 @@ export function cancelConstruction(
   if (index === -1) {
     return reject('NOT_IN_CONSTRUCTION', subjectOf(building));
   }
+  const slot = settlement.constructionQueues[index]!;
   const level = settlement.buildings[building];
-  const refund = cancelRefund(building, level);
+  const refund = cancelRefund(building, level, slot.costPaid);
   const gained: ResourceAmounts = {};
   const lost: ResourceAmounts = {};
   for (const resource of RESOURCE_IDS) {

@@ -69,7 +69,11 @@
     "building": "lumberMill",
     "targetLevel": 4,
     "startedAtMs": 1852620000,
-    "finishesAtMs": 1853295000
+    "finishesAtMs": 1853295000,
+    "costPaid": {
+     "wood": 256,
+     "stone": 128
+    }
    },
    null
   ],

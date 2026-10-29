@@ -70,7 +70,12 @@
     "building": "market",
     "targetLevel": 2,
     "startedAtMs": 124500000,
-    "finishesAtMs": 125850000
+    "finishesAtMs": 125850000,
+    "costPaid": {
+     "wood": 240,
+     "stone": 160,
+     "gold": 240
+    }
    },
    null
   ],

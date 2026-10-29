@@ -80,7 +80,11 @@
     "building": "warehouse",
     "targetLevel": 1,
     "startedAtMs": 255600000,
-    "finishesAtMs": 256200000
+    "finishesAtMs": 256200000,
+    "costPaid": {
+     "wood": 160,
+     "stone": 80
+    }
    },
    null
   ],

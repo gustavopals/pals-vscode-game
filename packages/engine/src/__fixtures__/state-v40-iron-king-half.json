@@ -70,7 +70,11 @@
     "building": "housing",
     "targetLevel": 2,
     "startedAtMs": 0,
-    "finishesAtMs": 240000
+    "finishesAtMs": 240000,
+    "costPaid": {
+     "wood": 80,
+     "stone": 20
+    }
    },
    null
   ],

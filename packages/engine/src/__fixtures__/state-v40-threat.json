@@ -77,7 +77,12 @@
     "building": "watchtower",
     "targetLevel": 2,
     "startedAtMs": 66000000,
-    "finishesAtMs": 67080000
+    "finishesAtMs": 67080000,
+    "costPaid": {
+     "wood": 192,
+     "stone": 192,
+     "gold": 80
+    }
    },
    null
   ],

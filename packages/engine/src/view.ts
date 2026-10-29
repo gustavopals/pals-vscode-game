@@ -8,6 +8,7 @@ import {
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
 } from '@lotg/content';
+import type { ResourceAmounts } from '@lotg/content';
 
 import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './clock';
@@ -163,8 +164,13 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
  * O que o cancelamento devolve agora, já com o limite do depósito: `amount` entra no estoque e
  * `lost` é o que não cabe e se perde.
  */
-function refundView(state: GameState, building: BuildingId, fromLevel: number) {
-  const refund = cancelRefund(building, fromLevel);
+function refundView(
+  state: GameState,
+  building: BuildingId,
+  fromLevel: number,
+  costPaid?: ResourceAmounts,
+) {
+  const refund = cancelRefund(building, fromLevel, costPaid);
   return RESOURCE_IDS.filter((resource) => refund[resource] > 0).map((resource) => {
     const stored = storable(state, resource, refund[resource]);
     return {
@@ -269,7 +275,7 @@ function activeView(
     progressPercent: Math.floor(
       ((now - slot.startedAtMs) * 100) / (slot.finishesAtMs - slot.startedAtMs),
     ),
-    refund: refundView(state, slot.building, slot.targetLevel - 1),
+    refund: refundView(state, slot.building, slot.targetLevel - 1, slot.costPaid),
   };
 }
 
