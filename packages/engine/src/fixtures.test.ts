@@ -86,6 +86,10 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'siege-ended': () => {
+    const state = readySiege();
+    return advanceTo(state, state.siege!.atMs + 2 * HOUR).state;
+  },
   'siege-scheduled': () => readySiege(),
   'siege-between-waves': () => {
     const state = readySiege();
@@ -835,7 +839,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
     // (V4E-T2.4) mudaram a semana.
     // V4G-T1: o ensaio na Vigília muda os sorteios depois dele (balance-v0.4.md §13).
-    expect(of('week-scripted').map.threat).toBe(83);
+    // V4G-T2.4: a Fortaleza some ao fim do cerco no dia 68 (-4 de Ameaça nos dois dias finais).
+    expect(of('week-scripted').map.threat).toBe(79);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;

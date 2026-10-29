@@ -64,7 +64,45 @@ export const stateV40: Shape = (value, path) => {
     const invalid = shape(field, at(key));
     if (invalid !== null) return invalid;
   }
-  const inherited = stateV39({ ...rest, schemaVersion: 39, settlement }, path);
+  // A Queda reduz o Quartel, sem matar sobreviventes nem apagar planos antes válidos (G-8).
+  // A guarda congelada 39 ainda exige o teto antigo: só a fachada de validação recompõe o nível.
+  const stats = value.stats as Record<string, number> | undefined;
+  let inheritedSettlement = settlement;
+  if (
+    (stats?.siegesFallen ?? 0) > 0 &&
+    object(value.army) &&
+    object(value.army.units) &&
+    object(settlement.buildings)
+  ) {
+    const army = value.army;
+    const total =
+      Object.values(army.units as Record<string, number>).reduce((sum, count) => sum + count, 0) +
+      (object(army.training) ? (army.training.amount as number) : 0);
+    const postLevel =
+      Array.isArray(army.formations) &&
+      army.formations.some(
+        (f) =>
+          object(f) &&
+          object(f.posts) &&
+          Object.values(f.posts).some(
+            (lines) =>
+              object(lines) &&
+              Object.values(lines).some((post) => object(post) && (post.count as number) > 20),
+          ),
+      )
+        ? 5
+        : 0;
+    const level = settlement.buildings.barracks as number;
+    if (level > 0 && Number.isSafeInteger(total) && total <= 80)
+      inheritedSettlement = {
+        ...settlement,
+        buildings: {
+          ...settlement.buildings,
+          barracks: Math.max(level, Math.ceil(total / 10), postLevel),
+        },
+      };
+  }
+  const inherited = stateV39({ ...rest, schemaVersion: 39, settlement: inheritedSettlement }, path);
   if (inherited !== null) return inherited;
   const now = value.lastProcessedAt as number;
   if (militia !== null) {

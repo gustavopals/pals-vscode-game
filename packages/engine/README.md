@@ -827,3 +827,17 @@ Os comandos `SiegeCommand`, as recusas `SiegeRejection` e `deriveEngineViewState
 a `view.ts`, com `siegeWave`) permitem testar o motor enquanto os contratos públicos do
 protocolo 3 continuam iguais. **T2.7** deve incorporar esses tipos, os campos da visão e as
 ordens no protocolo 4 e então ligar servidor/SDK/app. Não houve essa exposição nesta trilha.
+
+
+O resultado fecha na primeira derrota ou depois da terceira onda: Gloriosa quando nenhuma
+Frente caiu, Vitória com brecha, Queda quando a Horda venceu. A morte do chefe encerra a
+terceira onda imediatamente, emite `warlordSlain` e incrementa a estatística, sem guardar
+lista de Feitos. `siegeResult:<ano>` usa 0/1/2 para Queda/Vitória/Gloriosa (codificação de
+estatística; pontuação fica para a Crônica do Ano). A Fortaleza sai do mapa no fim.
+
+A Queda tira 30% de cada recurso em milésimos, 20% dos aldeões com piso de três, zera a
+muralha e reduz dois níveis dos dois edifícios de nível mais alto. Empates usam a ordem do
+conteúdo; a proposta G-8 conserva ao menos nível 1, cancela obras dos edifícios atingidos
+sem devolução e encerra o reparo da muralha. Mestres e heróis não entram na perda populacional.
+Sobreviventes e formações que ultrapassam o novo teto do Quartel continuam existindo; o
+treino novo exige vaga. A guarda v40 trata essa consequência sem alterar guardas antigas.

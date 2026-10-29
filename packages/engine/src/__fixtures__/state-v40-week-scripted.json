@@ -49,35 +49,35 @@
  "settlement": {
   "name": "Pedra Alta do Norte",
   "resources": {
-   "food": 1600000,
-   "wood": 44509,
-   "stone": 896446,
-   "gold": 1691194,
+   "food": 1254032,
+   "wood": 48139,
+   "stone": 731776,
+   "gold": 1205510,
    "iron": 0
   },
   "accumulators": {
    "food": 3597222,
    "wood": 0,
    "stone": 262833,
-   "gold": 3258516,
+   "gold": 360228,
    "iron": 0
   },
   "population": {
-   "villagers": 25
+   "villagers": 20
   },
   "workers": {
-   "farm": 8,
+   "farm": 7,
    "lumberMill": 6,
    "quarry": 4,
    "goldMine": 3
   },
   "buildings": {
-   "townHall": 4,
+   "townHall": 2,
    "farm": 3,
    "lumberMill": 4,
    "quarry": 4,
    "goldMine": 3,
-   "housing": 5,
+   "housing": 3,
    "granary": 2,
    "warehouse": 1,
    "watchtower": 2,
@@ -94,9 +94,9 @@
   ],
   "wall": {
    "hp": {
-    "left": 100,
-    "center": 100,
-    "right": 100
+    "left": 0,
+    "center": 0,
+    "right": 0
    }
   },
   "wallRepair": null,
@@ -112,9 +112,9 @@
   },
   "cold": null,
   "wasted": {
-   "food": 337,
+   "food": 729,
    "wood": 638,
-   "stone": 554,
+   "stone": 224,
    "gold": 0,
    "iron": 0
   },
@@ -156,8 +156,8 @@
     "origin": null
    },
    {
-    "instanceId": "commonGranaryPlanks-16",
-    "cardId": "commonGranaryPlanks",
+    "instanceId": "springSeeds-16",
+    "cardId": "springSeeds",
     "drawnAtMs": 604800000,
     "expiresAtMs": 691200000,
     "origin": null
@@ -171,7 +171,7 @@
    "commonGranary.gifted": true
   },
   "seenThisYear": [
-   "commonGranaryPlanks"
+   "springSeeds"
   ],
   "nextDrawAtMs": 633600000,
   "scheduled": [],
@@ -187,13 +187,9 @@
    "raiderCamp": {
     "type": "raiderCamp",
     "threatActive": true
-   },
-   "hordeFortress": {
-    "type": "hordeFortress",
-    "threatActive": false
    }
   },
-  "threat": 83,
+  "threat": 79,
   "discovered": []
  },
  "siege": {
@@ -303,7 +299,7 @@
   },
   "result": "fall",
   "breached": false,
-  "deaths": 0,
+  "deaths": 5,
   "endedAtMs": 590400000,
   "aftermathUntilMs": 604800000
  },
@@ -653,7 +649,7 @@
   "cardsExpired": 4,
   "cardsDrawn:woundedStranger": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5711337,
+  "wasted_food": 5566729,
   "coldSpellsThisSeason": 0,
   "campAppearedAtDay": 25,
   "constructionsStarted:goldMine": 2,
@@ -662,7 +658,7 @@
   "cardsDrawn:itinerantMerchant": 1,
   "cardsDrawn:fullGranary": 1,
   "threatCrossed:40": 2,
-  "wasted_stone": 2282554,
+  "wasted_stone": 2147224,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:moreMouths": 1,
   "seasonsSurvived:summer": 1,
@@ -671,7 +667,7 @@
   "threatCrossed:70": 7,
   "omens": 16,
   "raids_repelled": 6,
-  "cardsDrawn:commonGranaryPlanks": 2,
+  "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:commonGranaryShare": 1,
   "vigilRehearsalMarked": 1,
@@ -679,6 +675,9 @@
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:firstRecruit": 1,
   "cardsDrawn:collapsedWell": 1,
-  "siegeWavesFought": 1
+  "siegeWavesFought": 1,
+  "siegesFallen": 1,
+  "siegeResult:1": 0,
+  "cardsDrawn:springSeeds": 1
  }
 }

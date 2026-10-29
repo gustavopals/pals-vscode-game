@@ -9,6 +9,7 @@ import { seasonAt, yearOf, YEAR_MS } from './clock';
 import { nominationReason } from './formations';
 import { observeFormation } from './hordePlan';
 import { buildDefender, toHordePosts } from './raidArmy';
+import { finishSiege } from './siegeOutcome';
 import { preparedSiegeWaves, winterStartsAt } from './siege';
 import { watchtowerLevel, watchtowerPerks, watchtowerWarningMs } from './threat';
 import { realToGameMs } from './units';
@@ -93,6 +94,14 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     ),
     atMs,
   );
+  if (number === 3 && report.ending === 'chiefFell') {
+    draft.stats.warlordsSlain = (draft.stats.warlordsSlain ?? 0) + 1;
+    emit(events, draft, atMs, 'warlordSlain', {
+      year: siege.year,
+      battleId: report.id,
+      wave: number,
+    });
+  }
   siege.current = number;
   draft.stats.siegeWavesFought = (draft.stats.siegeWavesFought ?? 0) + 1;
   emit(
@@ -118,6 +127,7 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     siege.nextWaveAtMs = null;
     siege.endedAtMs = atMs;
     siege.aftermathUntilMs = siege.year * YEAR_MS;
+    finishSiege(draft, atMs, events);
   } else
     siege.nextWaveAtMs =
       atMs + realToGameMs(balance.siege.waveIntervalRealMs, draft.settings.timeScale);

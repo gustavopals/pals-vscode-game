@@ -567,7 +567,10 @@ separados dos tipos públicos do protocolo 3; T2.7 os incorporará ao protocolo 
 Empates entre edifícios são resolvidos pela ordem fixa de `BUILDING_IDS`, com o Salão
 incluído. Nenhum nível fica negativo; os já erguidos conservam ao menos nível 1. Obras em
 curso dos edifícios atingidos são canceladas sem devolução, para não restaurarem o nível
-perdido na primeira conclusão. O reparo em curso é encerrado quando a muralha é destruída.
+perdido na primeira conclusão. O reparo em curso é encerrado quando a muralha é destruída,
+liberando o tempo de espera das obras restantes. Sobreviventes e planos acima do novo teto do
+Quartel são preservados; o treino novo continua exigindo vaga. Estoques que excedam o depósito
+reduzido continuam consumíveis, sem ampliar os 30% de perda (o armazenamento já permite isso).
 
 **G-9. Rescaldo sem número aprovado.** _(Proposta do agente; não lida pelo autor.)_
 A festa dura um dia de jogo, como o luto; a Gloriosa usa festa mesmo com mortos. O reparo da
