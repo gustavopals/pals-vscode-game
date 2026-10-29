@@ -577,3 +577,10 @@ A festa dura um dia de jogo, como o luto; a Gloriosa usa festa mesmo com mortos.
 muralha custa 4/5 da pedra e do ouro até acabar o inverno, sem reduzir o prazo. A reconstrução
 reduz os custos de novas obras por dois dias de jogo a partir da primavera, sem devolução de
 custos antigos nem desconto no treino, forja ou comércio. Números em `balance.siege`.
+
+**G-10. Prioridade de alocação da milícia.** _(Proposta do agente; não lida pelo autor.)_
+A milícia convocada ocupa o primeiro posto vazio na ordem centro-frente, esquerda-frente,
+direita-frente, centro-trás, esquerda-trás e direita-trás. Como unidade de linha de frente
+(3/2/12, recebe ×5/4 de dano), sua prioridade absoluta são os postos vazios da frente; os
+postos da retaguarda são alternativa caso toda a frente esteja preenchida por tropas regulares.
+Ao fim da batalha correspondente, os sobreviventes são dissolvidos e retornam aos aldeões sem ofício.

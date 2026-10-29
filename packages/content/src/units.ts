@@ -106,6 +106,20 @@ export const units: Record<UnitId, UnitDef> = {
  */
 export const COUNTER_CYCLE: readonly UnitId[] = ['swordsman', 'spearman', 'knight', 'archer'];
 
+/**
+ * A unidade temporária de defesa convocada entre os aldeões (GDD §11.3; ADR 0020, decisão 21).
+ * Não é treinável pelo Quartel e não entra em `units` nem no ciclo de contra-ataques.
+ */
+export const militiaUnit = {
+  label: 'Miliciano',
+  pluralLabel: 'milicianos',
+  attack: 3,
+  defense: 2,
+  health: 12,
+  initiative: 2,
+  line: 'front' as const,
+};
+
 /** Frases do Quartel que não são da Crônica. Rascunho que o autor não leu. */
 export const unitTexts = {
   /** O Escudeiro: nem vantagem nem fraqueza. */

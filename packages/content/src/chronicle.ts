@@ -5,6 +5,8 @@ export const EVENT_TYPES = [
   'siegeGlorious',
   'siegeFell',
   'warlordSlain',
+  'militiaCalled',
+  'militiaDisbanded',
   'siegeScheduled',
   'siegeWaveFought',
   'battlePlanSet',
@@ -218,6 +220,8 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o Cerco trouxe a Queda. {feudo} sobrevive em ruínas; haverá outra primavera.',
   warlordSlain:
     'No {dia}º dia {daEstacao}, o Senhor da Guerra tombou diante de {feudo}. A Longa Noite terminou.',
+  militiaCalled: 'No {dia}º dia {daEstacao}, {feudo} convocou {quantidade} aldeões para a milícia.',
+  militiaDisbanded: 'No {dia}º dia {daEstacao}, a milícia de {feudo} foi desfeita.',
 
   siegeScheduled:
     'No {dia}º dia {daEstacao}, os vigias de {feudo} marcaram a Vigília do Cerco do Inverno.',

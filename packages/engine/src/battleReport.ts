@@ -70,7 +70,7 @@ export type BattleReportRound = {
   readonly round: number;
   readonly attacks: ReadonlyArray<{
     readonly actor: BattleReportPost;
-    readonly unit: UnitId | HordeUnitId;
+    readonly unit: UnitId | HordeUnitId | 'militia';
     readonly count: number;
     readonly target: BattleReportPost;
     readonly wall: number;
@@ -97,7 +97,7 @@ export type BattleReport = {
     readonly owner: BattleOwner;
     readonly wing: WingId;
     readonly line: LineId;
-    readonly unit: UnitId | HordeUnitId;
+    readonly unit: UnitId | HordeUnitId | 'militia';
     readonly start: number;
     readonly lost: number;
   }>;

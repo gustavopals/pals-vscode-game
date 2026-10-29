@@ -1,4 +1,4 @@
-import { balance, siegeTexts, vigilRules } from '@lotg/content';
+import { balance, siegeTexts, vigilRules, type UnitId } from '@lotg/content';
 
 import { availableUnits } from './campaign';
 import { applyBattleOutcome } from './battleOutcome';
@@ -8,6 +8,7 @@ import { emit } from './chronicle';
 import { seasonAt, yearOf, YEAR_MS } from './clock';
 import { nominationReason } from './formations';
 import { observeFormation } from './hordePlan';
+import { releaseExcessWorkers } from './population';
 import { buildDefender, toHordePosts } from './raidArmy';
 import { finishSiege } from './siegeOutcome';
 import { preparedSiegeWaves, winterStartsAt } from './siege';
@@ -61,10 +62,15 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
   const wave = siege.waves.find((w) => w.number === number)!;
   const formationId = siege.plan[number] ?? draft.army.activeFormationId;
   const formation = draft.army.formations.find((f) => f.id === formationId) ?? null;
-  const defender = buildDefender(formation, availableUnits(draft), (heroId) => {
-    const hero = draft.guild.heroes.find((h) => h.id === heroId);
-    return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
-  });
+  const defender = buildDefender(
+    formation,
+    availableUnits(draft),
+    (heroId) => {
+      const hero = draft.guild.heroes.find((h) => h.id === heroId);
+      return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
+    },
+    draft.settlement.militia?.count ?? 0,
+  );
   const { id, resolution } = fightBattle(draft, {
     mode: 'defense',
     player: defender,
@@ -77,6 +83,16 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
   applyWallDamage(draft, report, atMs, events);
   for (const casualty of report.casualties) {
     if (casualty.owner !== 'player') continue;
+    if (casualty.unit === 'militia') {
+      const lost = Math.min(
+        casualty.lost,
+        Math.max(0, draft.settlement.population.villagers - balance.morale.populationFloor),
+      );
+      draft.settlement.population.villagers -= lost;
+      releaseExcessWorkers(draft);
+      siege.deaths += lost;
+      continue;
+    }
     const unit = casualty.unit as keyof typeof draft.army.units;
     draft.army.units[unit] = Math.max(0, draft.army.units[unit] - casualty.lost);
     siege.deaths += casualty.lost;
@@ -90,10 +106,17 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
   observeFormation(
     draft,
     Object.values(defender.posts).flatMap((lines) =>
-      Object.values(lines).filter((p) => p !== null),
+      Object.values(lines).filter(
+        (p): p is { unit: UnitId; count: number } => p !== null && p.unit !== 'militia',
+      ),
     ),
     atMs,
   );
+  if (draft.settlement.militia !== null) {
+    draft.settlement.militia = null;
+    releaseExcessWorkers(draft);
+    emit(events, draft, atMs, 'militiaDisbanded');
+  }
   if (number === 3 && report.ending === 'chiefFell') {
     draft.stats.warlordsSlain = (draft.stats.warlordsSlain ?? 0) + 1;
     emit(events, draft, atMs, 'warlordSlain', {

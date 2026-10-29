@@ -795,6 +795,11 @@ const balanceFields = z.strictObject({
     formationNameMinLength: positiveInt,
     formationNameMaxLength: positiveInt,
     reportsKept: positiveInt,
+    militia: z.strictObject({
+      maxShare: ratio,
+      unit: z.literal('militia'),
+      takesDamage: ratio,
+    }),
   }),
   siege: z
     .strictObject({

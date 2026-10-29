@@ -1,6 +1,6 @@
 import { balance } from '@lotg/content';
 
-import { setBattlePlan, swapWaveFormation, emergencyRepair } from './siegeOrders';
+import { setBattlePlan, swapWaveFormation, emergencyRepair, callMilitia } from './siegeOrders';
 import { settleHeroArrivals } from './arrivals';
 import { emit } from './chronicle';
 import {
@@ -79,6 +79,8 @@ function dispatch(
       return swapWaveFormation(draft, payload.formationId, nowMs, events);
     case 'emergencyRepair':
       return emergencyRepair(draft, nowMs, events);
+    case 'callMilitia':
+      return callMilitia(draft, payload.count, nowMs, events);
     case 'setVigilHour': {
       const { hourLocal, timezone } = payload;
       const civil = context.vigil;

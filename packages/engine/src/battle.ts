@@ -4,6 +4,7 @@ import {
   heroClasses,
   hordeUnits,
   LINE_IDS,
+  militiaUnit,
   units,
   WING_IDS,
   type Archetype,
@@ -44,7 +45,7 @@ export type BattleInput = {
   /** `defense`: a Horda ataca o feudo (muralha e torres valem); `attack`: o jogador ataca. */
   readonly mode: 'defense' | 'attack';
   readonly player: {
-    readonly posts: BattlePosts<UnitId>;
+    readonly posts: BattlePosts<UnitId | 'militia'>;
     readonly commanders: Record<WingId, BattleCommanderInput | null>;
   };
   readonly horde: { readonly posts: BattlePosts<HordeUnitId> };
@@ -71,7 +72,7 @@ export type BattleFactorKind = 'counter' | 'aura' | 'flank' | 'cover';
 /** Um golpe em um esquadrão, com as frações da conta (para o golden e para a atribuição). */
 export type BattleHit = {
   readonly target: BattlePost;
-  readonly targetUnit: UnitId | HordeUnitId;
+  readonly targetUnit: UnitId | HordeUnitId | 'militia';
   readonly targetCount: number;
   /** O dano que chega ao esquadrão antes da defesa. */
   readonly raw: Ratio;
@@ -110,12 +111,12 @@ export type BattleAction =
   | {
       readonly kind: 'attack';
       readonly actor: BattlePost;
-      readonly unit: UnitId | HordeUnitId;
+      readonly unit: UnitId | HordeUnitId | 'militia';
       readonly count: number;
       readonly attack: number;
       /** O esquadrão que o ataque mirou (antes da muralha e dos Escudeiros). */
       readonly target: BattlePost;
-      readonly targetUnit: UnitId | HordeUnitId;
+      readonly targetUnit: UnitId | HordeUnitId | 'militia';
       readonly targetCount: number;
       readonly luck: number;
       readonly factors: ReadonlyArray<{ readonly kind: BattleFactorKind; readonly value: Ratio }>;
@@ -149,7 +150,7 @@ export type BattleAction =
 
 export type BattleSquadState = {
   readonly post: BattlePost;
-  readonly unit: UnitId | HordeUnitId;
+  readonly unit: UnitId | HordeUnitId | 'militia';
   readonly count: number;
   readonly residual: number;
 };
@@ -242,15 +243,23 @@ type Squad = {
   readonly owner: 'player' | 'horde';
   readonly wing: WingId;
   readonly line: LineId;
-  readonly unit: UnitId | HordeUnitId;
+  readonly unit: UnitId | HordeUnitId | 'militia';
   readonly stats: Stats;
   readonly initial: number;
   count: number;
   residual: number;
 };
 
-function statsOf(owner: 'player' | 'horde', unit: string): Stats {
+function statsOf(owner: 'player' | 'horde', unit: string, line?: LineId): Stats {
   if (owner === 'player') {
+    if (unit === 'militia') {
+      return {
+        ...pick(militiaUnit),
+        line: line ?? militiaUnit.line,
+        archetype: 'none',
+        horde: null,
+      };
+    }
     const def = units[unit as UnitId];
     if (def === undefined) {
       throw new Error(`Unidade desconhecida na batalha: ${unit}.`);
@@ -309,7 +318,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
         if (!Number.isSafeInteger(post.count) || post.count < 1) {
           throw new Error(`Posto com quantidade inválida na batalha: ${wing}/${line}.`);
         }
-        const stats = statsOf(owner, post.unit);
+        const stats = statsOf(owner, post.unit, line);
         if (stats.line !== line) {
           throw new Error(`Unidade na linha errada na batalha: ${post.unit} em ${wing}/${line}.`);
         }
@@ -318,7 +327,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
           owner,
           wing,
           line,
-          unit: post.unit as UnitId | HordeUnitId,
+          unit: post.unit as UnitId | HordeUnitId | 'militia',
           stats,
           initial: post.count,
           count: post.count,
@@ -428,6 +437,9 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       effective = floorOf(maxOf(sub(raw, absorbed), mul(raw, rules.minDamage)));
     } else {
       effective = floorOf(raw);
+    }
+    if (target.unit === balance.army.militia.unit) {
+      effective = floorOf(mul(frac(effective), balance.army.militia.takesDamage));
     }
     const residualBefore = target.residual;
     const pool = effective + residualBefore;

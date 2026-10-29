@@ -1,9 +1,11 @@
-import { siegeTexts } from '@lotg/content';
+import { balance, siegeTexts } from '@lotg/content';
 
 import { emit } from './chronicle';
 import { missingResources, payResources } from './construction';
+import { ableVillagers, releaseExcessWorkers } from './population';
 import { reject } from './rejections';
 import { waveDecisionOpen } from './siege';
+import { watchtowerLevel, watchtowerPerks, watchtowerWarningMs } from './threat';
 import { wallFullHp } from './wall';
 import { currentRepairQuote, wallRepairBlocked } from './wallRepair';
 import type { GameEvent, GameState, SiegeRejection, SiegeWaveNumber } from './types';
@@ -94,5 +96,71 @@ export function emergencyRepair(
     spent_gold: quote.gold,
     palisadeLevel: draft.settlement.buildings.palisade,
   });
+  return null;
+}
+
+/**
+ * Convocação da milícia de aldeões (GDD §11.3; ADR 0020, decisão 21).
+ * Permitida somente quando houver incursão forte ou cerco/onda marcados dentro da antecedência da Torre de Vigia.
+ * Até 50% dos aldeões (limitados aos aldeões aptos).
+ */
+export function callMilitia(
+  draft: GameState,
+  count: unknown,
+  nowMs: number,
+  events: GameEvent[],
+): SiegeRejection | null {
+  if (draft.settlement.militia !== null) {
+    return { code: 'MILITIA_ACTIVE', message: siegeTexts.militiaActive };
+  }
+
+  const tower = watchtowerLevel(draft);
+  const perks = watchtowerPerks(tower);
+  if (perks === null) {
+    return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
+  }
+
+  const warningMs = watchtowerWarningMs(draft, perks);
+  const deadline = nowMs + warningMs;
+  const qualifyingTimes: number[] = [];
+
+  for (const raid of draft.horde.scheduledRaids) {
+    if (raid.size === 'strong' && raid.atMs >= nowMs && raid.atMs <= deadline) {
+      qualifyingTimes.push(raid.atMs);
+    }
+  }
+
+  const siege = draft.siege;
+  if (
+    siege !== null &&
+    siege.result === null &&
+    siege.nextWaveAtMs !== null &&
+    siege.nextWaveAtMs >= nowMs &&
+    siege.nextWaveAtMs <= deadline
+  ) {
+    qualifyingTimes.push(siege.nextWaveAtMs);
+  }
+
+  if (qualifyingTimes.length === 0) {
+    return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
+  }
+
+  const totalVillagers = draft.settlement.population.villagers;
+  const maxShare = balance.army.militia.maxShare;
+  const maxByVillagers = Math.floor((totalVillagers * maxShare.num) / maxShare.den);
+  const maxAble = ableVillagers(draft);
+  const maxAllowed = Math.min(maxByVillagers, maxAble);
+
+  if (!Number.isSafeInteger(count) || (count as number) < 1 || (count as number) > maxAllowed) {
+    return { code: 'INVALID_MILITIA_AMOUNT', message: siegeTexts.militiaAmount };
+  }
+
+  const amount = count as number;
+  const untilMs = Math.min(...qualifyingTimes);
+
+  draft.settlement.militia = { count: amount, untilMs };
+  releaseExcessWorkers(draft);
+  draft.stats.militiaCalled = (draft.stats.militiaCalled ?? 0) + amount;
+  emit(events, draft, nowMs, 'militiaCalled', { count: amount }, { quantidade: amount });
   return null;
 }

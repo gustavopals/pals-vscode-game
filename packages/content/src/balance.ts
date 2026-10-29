@@ -608,6 +608,11 @@ export type ArmyDef = {
   readonly formationNameMaxLength: number;
   /** Quantos relatórios de batalha o exército guarda (`army.reports`, V4D-T1.6). */
   readonly reportsKept: number;
+  readonly militia: {
+    readonly maxShare: Ratio;
+    readonly unit: 'militia';
+    readonly takesDamage: Ratio;
+  };
 };
 
 /**
@@ -1372,6 +1377,11 @@ export const balance: Balance = {
     formationNameMaxLength: 30,
     // V4D-T1.6: os três relatórios de batalha mais recentes, como os de expedição.
     reportsKept: 3,
+    militia: {
+      maxShare: { num: 1, den: 2 },
+      unit: 'militia',
+      takesDamage: { num: 5, den: 4 },
+    },
   },
   // GDD §10.1 a §10.4 e ADR 0019, decisão 11 (os fatores do GDD em fração). Propostas do agente
   // (V4D-T1.3, por aprovar): o dano do Mago (20), a experiência do comandante (40, metade na

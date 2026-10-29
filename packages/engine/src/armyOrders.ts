@@ -220,7 +220,7 @@ function departingFormation(state: GameState, formation: Formation): Formation {
   return {
     id: formation.id,
     name: formation.name,
-    posts: player.posts,
+    posts: player.posts as unknown as Formation['posts'],
     commanders: Object.fromEntries(
       WING_IDS.map((wing) => [
         wing,
