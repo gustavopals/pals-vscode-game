@@ -311,3 +311,13 @@ São 59 retratos v39; os 56 v38 e os 56 v37 herdados foram congelados sem altera
 As propostas F-3 e F-4 estão nas pendências; o texto é rascunho que o autor não leu.
 A tela é da V4F-T3. Simulador, matriz, integração, navegador e verify inteiro ficaram
 para o coordenador por instrução desta sessão. Nenhum push ou publicação.
+
+
+**Revisão V4F-T2 em 2026-10-29:** a sabotagem corrigida foi mesclada mantendo o estado 39
+e os retratos v38/v39. O ataque explica o ferimento do comandante e a oferta sem
+formação pede para montá-la; a limpeza usa frase do exército. A formação em campanha
+não pode ser apagada (`FORMATION_IN_CAMPAIGN`, também em `canDelete`). Uma formação
+secundária não leva comandante da Defesa ativa. Os testes de reserva executam
+`simulateBattle`, incursões e `saveFormation`. A proposta de saída da sabotagem foi
+renumerada para F-5, preservando F-3/F-4 do Acampamento. Validação e limites no Registro
+V4F-T2 do roadmap; suítes pesadas seguem com o coordenador, sem push ou publicação.

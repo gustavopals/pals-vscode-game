@@ -772,3 +772,13 @@ prévia, omitir `raidSuffered` e ignorar `saveFormation` durante a campanha prod
 duas falhas cada (saída 1); as alterações temporárias foram removidas. A antiga
 comparação de índices aceitava `raidSuffered` ausente (`-1`). Nenhuma expectativa
 de regra foi afrouxada; nenhum número ou faixa foi alterado.
+
+Fechamento focado desta revisão: 1.209 testes em 23 arquivos, mais 93 comandos
+(95 no bloco com dois testes de protocolo repetidos) e uma conferência filtrada
+dos retratos congelados: 1.303 testes distintos, todos com saída 0. Houve falhas
+vermelhas para cada correção de comportamento; as provas reescritas também foram
+conferidas com os três defeitos temporários descritos acima. A comparação dos status
+da v18 passou a excluir `campaign` (v39), assim como já excluía `escort` (v22), sem
+alterar a guarda congelada. Typecheck e lint passaram após corrigir a cobertura
+exaustiva da nova recusa. Matriz, simulador, integração, navegador e verify ficaram
+com o coordenador, conforme instrução desta sessão; `bands.ts` permanece intocado.
