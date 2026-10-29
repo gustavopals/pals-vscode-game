@@ -222,13 +222,14 @@ describe('faixas a partir da linha de base medida', () => {
     // desperdiçando sobe de 30 para 33 h de jogo.
     // Junção: 72–84 aldeões e até 5.069 de pedra; aplique a mesma folga de 10%/5%
     // (docs/balance-v0.4.md, seção 16). O ouro máximo e a sequência continuam iguais.
+    // Segunda junção (docs/balance-v0.4.md, seção 19): 71–84 aldeões (faixa de 63 a 93),
+    // até 5.439 de pedra e 110.380 de ouro parado com as treze cartas e a sabotagem.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 64, max: 93 },
+      villagers: { min: 63, max: 93 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      // Revisão da V4E-T3 (seção 12): o ouro parado subia a 111.974 e a pedra a 5.200.
-      surplusMax: { wood: 5_460, stone: 5_323, gold: 113_133 },
+      surplusMax: { wood: 5_460, stone: 5_439, gold: 110_380 },
       wasteStreakMax: 35,
     });
   });

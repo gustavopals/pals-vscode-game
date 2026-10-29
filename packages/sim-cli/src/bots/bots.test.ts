@@ -2117,11 +2117,12 @@ describe('os bots jogando contra o motor', () => {
   // Os objetivos da v0.3 que cada bot cumpre em um ano de jogo, por ritmo. No ritmo Rápido o
   // ano é curto: o econômico não chega ao Mercado, e o preguiçoso não chega nem à Guilda.
   const withoutExpedition = ['welcomeFirstHero', 'buildGuild', 'sellSurplus'];
-  // Desde a D-39 o econômico do ritmo 1 não chega à venda no Mercado nesta semente: o Mercado
-  // fica para depois de outras obras.
+  // Desde a D-39 o econômico do ritmo 1 não chegava à venda no Mercado nesta semente: o Mercado
+  // ficava para depois de outras obras. Na Segunda junção (docs/balance-v0.4.md, seção 19), com
+  // os novos sorteios e cartas, o econômico no ritmo 1 volta a cumprir os três objetivos.
   const V03_REACHED: Record<string, Partial<Record<number, string[]>>> = {
     economico: {
-      1: withoutExpedition.slice(0, 2),
+      1: withoutExpedition,
       3: withoutExpedition.slice(0, 2),
       0.5: withoutExpedition,
     },

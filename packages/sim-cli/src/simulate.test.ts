@@ -377,9 +377,11 @@ describe('CSV de uma partida', () => {
     // incursão caem em outras viradas, e a última do ano sai em outro dia (não investigado além disso).
     // Na junção da Fase E (a Vigília muda a hora do ensaio do dia 6, e os objetivos 17 a 21 o
     // caminho de obras) o ano termina em 57.
-    expect(summary.threat).toEqual({ final: 57, max: 100, watchtower: 4 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): com 13 novas cartas do lote 2 e a sabotagem,
+    // o ano termina em 50.
+    expect(summary.threat).toEqual({ final: 50, max: 100, watchtower: 4 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 57 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 50 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(

@@ -214,7 +214,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // seção 8) o capitão veterano entrega um sétimo herói em algumas sementes do Normal e do
     // Rápido: de seis a sete. Com as do roteiro dos dias 25 e 37 leves e sem ferido (D-39;
     // seção 10), em alguma semente chegam os dois de carta com a casa cheia: de seis a oito.
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 8 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): o novo sorteio de cartas mantém a semana
+    // do Rápido com seis a sete heróis (nenhuma semente acumula os dois de carta com a casa cheia).
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -238,12 +240,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de seis a sete.
     // Junção: os heróis de carta podem chegar acima do limite da Taverna; de seis a oito
     // (docs/balance-v0.4.md, seção 16), sem mudar a política de contratação.
-    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 8 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de seis a sete heróis com o sorteio das treze cartas.
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 7 });
     // Com os objetivos 11 a 16 (V3F-T2) o Explorador do Tranquilo ergue a Guilda e o Mercado
     // que eles apontam, e na pior das 50 sementes termina a semana só com a heroína da carta.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a cinco.
     // D-39 (seção 10): de um a cinco.
-    expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de um a quatro heróis com o novo sorteio de cartas.
+    expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 4 });
     // No ano do Rápido o cofre não paga o contrato em uma semente (V4E-T1): de um a três.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a três.
     // D-39 (seção 10): de um a três. Junção da Fase E (objetivos 17 a 21 e Vigília): de dois a três.
@@ -251,7 +255,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de quatro a sete.
     // Junção da Fase E (seção 16.2: a Vigília e os objetivos 17 a 21): de seis a oito.
-    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 8 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de seis a sete com o novo sorteio de cartas.
+    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 7 });
     // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1); com a política
     // mínima de guerra (V4C-T1.8), seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de seis a sete.
@@ -264,7 +269,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // D-39 (seção 10): de 25 a 27.
     expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
     // V4E-T1: de 51 a 63 (era até 59): a Muralha e a Torre entram na fila antes da Taverna.
-    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 63 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de 51 a 60 com o novo sorteio de cartas.
+    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 60 });
     // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
     // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97); com os
     // objetivos 11 a 16 (V3F-T2), na hora 103.
@@ -473,8 +479,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Junção: 114 dos mesmos 1.000 registros terminam em ≥80 (48 em ≥90); a Vigília muda
     // os instantes e os sorteios após o ensaio. Guarde os valores exatos, sem aumentar uma
     // tolerância; a comparação com as seções 9/10 está em balance-v0.4.md, seção 16.
+    // Segunda junção (docs/balance-v0.4.md, seção 19): 135 dos 1.000 registros terminam em ≥80
+    // com as treze cartas adicionais do lote 2 e o sorteio novo.
     expect(Math.max(...finals)).toBe(100);
-    expect(finals.filter((value) => value >= 80).length).toBe(114);
+    expect(finals.filter((value) => value >= 80).length).toBe(135);
     expect(Math.min(...finals)).toBeLessThan(balance.threat.raidChanceAbove);
   });
 
@@ -526,10 +534,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de cinco a oito repelidas, e a Ameaça no fim entre 22 e 99 (com os dois tiles da
     // V4E-T3 ela ia de 49 a 100; antes deles, de 28 a 63).
     expect(year?.suffered).toEqual({ min: 2, max: 2 });
-    expect(year?.repelled).toEqual({ min: 5, max: 8 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de seis a oito repelidas nas 50 sementes.
+    expect(year?.repelled).toEqual({ min: 6, max: 8 });
     // Junção: a Vigília desloca a descarga da Ameaça e os sorteios; intervalo medido das
     // mesmas 50 sementes (docs/balance-v0.4.md, seção 16).
-    expect(year?.threatFinal).toEqual({ min: 29, max: 100 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): intervalo medido de 22 a 100.
+    expect(year?.threatFinal).toEqual({ min: 22, max: 100 });
   });
 
   it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo e em nenhuma dificuldade', () => {
@@ -579,7 +589,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de 57 a 71 na medida, faixa de 51 a 79, e o Salão no nível 7.
     // D-39 (seção 10): de 54 a 70 na medida, faixa de 48 a 77, e o Salão no nível 6.
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor à D-43, 2026-10-27; docs/balance-v0.4.md, seção 13): de 54 a 68 na medida, faixa de 48 a 75.
-    expect(band?.villagers).toEqual({ min: 48, max: 75 });
+    // Segunda junção (docs/balance-v0.4.md, seção 19): de 56 a 68 na medida, faixa de 50 a 75.
+    expect(band?.villagers).toEqual({ min: 50, max: 75 });
     expect(band?.townHallMin).toBe(6);
     expect(band?.famineHoursMax).toBe(0);
   });
