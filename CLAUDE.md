@@ -286,6 +286,16 @@ V4H-T1 continuam pendentes. Há 56 retratos v37; os v35 e v36 estão intactos em
 testes pesados, a cobertura do simulador e o verify inteiro são do coordenador nesta divisão
 de trabalho.
 
+**V4F-T1 em 2026-10-28, branch `v4f-t1-sabotagem`: estado 38, protocolo 3.**
+A sabotagem da Fortaleza existe no motor e na visão, com jornada completa de seis
+horas, três heróis e até três envios por ano no outono. Reduções e alerta usam
+o total da onda com restos determinísticos e conservam a conta na regeneração.
+Presságios afetados são descartados, sem reescrever a Crônica; a régua acompanha
+os reforços da guarda. Os 56 retratos v37 estão em `FROZEN`, sem alterar os JSONs.
+A revisão corrigiu nove achados e confirmou/corrigiu a exceção por descoberta.
+A validação desta trilha usa só typecheck, lint e testes focados; suítes pesadas,
+integração e navegador ficam com o coordenador. O Cerco não foi implementado.
+
 
 **V4F-T2 em 2026-10-28, branch `v4f-t2-acampamento`: estado 39, protocolo 3.**
 A base já traz a sabotagem da V4F-T1 (estado 38). `attackCamp { formationId }` reserva os

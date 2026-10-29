@@ -26,6 +26,18 @@ export const stateV38: Shape = (value, path) => {
   // Limpa campos opcionais das ondas que a forma anterior não conhecia
   let strippedHorde = oldHorde;
   if (object(oldHorde.wavePlan) && Array.isArray(oldHorde.wavePlan.waves)) {
+    for (const [index, wave] of oldHorde.wavePlan.waves.entries()) {
+      if (object(wave) && Object.hasOwn(wave, 'reductionPercent')) {
+        // Limite da forma v38, independente de futuras mudanças no conteúdo.
+        const invalid = natural(
+          wave.reductionPercent,
+          at(`horde.wavePlan.waves.${index}.reductionPercent`),
+        );
+        if (invalid !== null) return invalid;
+        if ((wave.reductionPercent as number) > 45)
+          return `${at(`horde.wavePlan.waves.${index}.reductionPercent`)}: redução acima de 45`;
+      }
+    }
     const waves = oldHorde.wavePlan.waves.map((w) => {
       if (object(w) && Object.hasOwn(w, 'reductionPercent')) {
         const { reductionPercent, ...rest } = w;

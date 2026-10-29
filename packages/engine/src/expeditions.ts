@@ -251,6 +251,13 @@ export function outcomeOf(power: number, luck: number, difficulty: number): Expe
   return reaches(rules.outcome.setback) ? 'setback' : 'disaster';
 }
 
+/** Dificuldade efetiva da tentativa: a resolução e o trecho visível usam a mesma conta. */
+export function effectiveTrialDifficulty(base: number, modelId: string, attempt: number): number {
+  if (modelId !== 'sabotage') return base;
+  const { num, den } = balance.horde.sabotage.guardIncreasePerAttempt;
+  return Math.floor((base * (den + Math.max(0, attempt - 1) * num)) / den);
+}
+
 /** O poder de uma equipe contra a prova de um nó, em milésimos (`teamPower`). */
 export function powerAgainst(
   team: readonly Hero[],
@@ -351,7 +358,7 @@ export function destinationBlock(state: GameState, modelId: unknown): Rejection 
   if (model === null) {
     return reject('EXPEDITION_LOCKED');
   }
-  if (model.id === 'sabotage' && !state.map.discovered.includes('sabotage')) {
+  if (model.id === 'sabotage') {
     if (seasonAt(state.clock.gameTimeMs).id !== 'autumn') {
       return reject('SABOTAGE_SEASON');
     }

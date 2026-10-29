@@ -496,24 +496,27 @@
  "sabotage": {
   "variant": "C",
   "events": [
-   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Sabotagem da Fortaleza. A equipe: Edda, Rolf e Isolda.",
-   "expeditionNodeResolved: No 1º dia da Primavera, Rolf fixou ganchos de escalada no trecho quebrado da muralha, permitindo à equipe sabotar as defesas da primeira onda sem ruído.",
-   "hordeSabotaged: No 1º dia da Primavera, a expedição de Pedra Alta sabotou as defesas da Fortaleza: a primeira onda da Horda foi enfraquecida.",
-   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionNodeFailed: No 2º dia da Primavera, cascos pesados atingiram Isolda: os estábulos da segunda onda foram desfeitos, mas os heróis saíram pisoteados. Um Clérigo teria dispersado o bando com uma prece vigorosa.",
-   "heroInjured: No 2º dia da Primavera, Isolda sofreu um ferimento leve em \"Sabotagem da Fortaleza\". Termina a jornada, mas depois precisa de descanso.",
-   "expeditionAtCrossroads: No 2º dia da Primavera, a expedição \"Sabotagem da Fortaleza\" parou em uma encruzilhada: A galeria das masmorras. A equipe espera a palavra do senhor de Pedra Alta.",
-   "expeditionPathChosen: No 2º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Sabotagem da Fortaleza\": esvaziar os tonéis de óleo.",
-   "expeditionNodeResolved: No 2º dia da Primavera, Edda misturou areia nos barris de óleo, inutilizando os projéteis flamejantes da terceira onda.",
-   "hordeSabotaged: No 2º dia da Primavera, a expedição de Pedra Alta sabotou as defesas da Fortaleza: a terceira onda da Horda foi enfraquecida.",
-   "heroLeveledUp: No 2º dia da Primavera, Edda aprendeu com a estrada: chegou ao nível 2.",
-   "heroLeveledUp: No 2º dia da Primavera, Rolf aprendeu com a estrada: chegou ao nível 2.",
-   "heroLeveledUp: No 2º dia da Primavera, Isolda aprendeu com a estrada: chegou ao nível 2.",
-   "heroRecovered: No 3º dia da Primavera, Isolda sarou das feridas e já pode partir de Pedra Alta outra vez.",
-   "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
-   "expeditionNodeFailed: No 3º dia da Primavera, ondas de choque místicas abalaram Isolda: o xamã bateu em retirada deixando planos da terceira onda, mas os heróis saíram atordoados. A prova pedia mais do que a equipe tinha: gente mais calejada.",
-   "heroInjured: No 3º dia da Primavera, Rolf sofreu um ferimento leve em \"Sabotagem da Fortaleza\". Termina a jornada, mas depois precisa de descanso.",
-   "expeditionReturned: No 3º dia da Primavera, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionSent: No 1º dia do Outono, partiu de Pedra Alta uma expedição: Sabotagem da Fortaleza. A equipe: Edda, Rolf e Isolda.",
+   "expeditionNodeResolved: No 1º dia do Outono, Rolf fixou ganchos de escalada no trecho quebrado da muralha, permitindo à equipe sabotar as defesas da primeira onda sem ruído.",
+   "hordeSabotaged: No 1º dia do Outono, a expedição de Pedra Alta sabotou as defesas da Fortaleza: a primeira onda da Horda foi enfraquecida.",
+   "dayStarted: Amanhece o 2º dia do Outono em Pedra Alta.",
+   "expeditionNodeFailed: No 2º dia do Outono, cascos pesados atingiram Isolda: os estábulos da segunda onda foram desfeitos, mas os heróis saíram pisoteados. Um Clérigo teria dispersado o bando com uma prece vigorosa.",
+   "heroInjured: No 2º dia do Outono, Isolda sofreu um ferimento leve em \"Sabotagem da Fortaleza\". Termina a jornada, mas depois precisa de descanso.",
+   "expeditionAtCrossroads: No 2º dia do Outono, a expedição \"Sabotagem da Fortaleza\" parou em uma encruzilhada: A galeria das masmorras. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 2º dia do Outono, o senhor de Pedra Alta mandou dizer à expedição \"Sabotagem da Fortaleza\": esvaziar os tonéis de óleo.",
+   "expeditionNodeResolved: No 2º dia do Outono, Edda misturou areia nos barris de óleo, inutilizando os projéteis flamejantes da terceira onda.",
+   "hordeSabotaged: No 2º dia do Outono, a expedição de Pedra Alta sabotou as defesas da Fortaleza: a terceira onda da Horda foi enfraquecida.",
+   "heroLeveledUp: No 2º dia do Outono, Edda aprendeu com a estrada: chegou ao nível 2.",
+   "heroLeveledUp: No 2º dia do Outono, Rolf aprendeu com a estrada: chegou ao nível 2.",
+   "heroLeveledUp: No 2º dia do Outono, Isolda aprendeu com a estrada: chegou ao nível 2.",
+   "heroRecovered: No 3º dia do Outono, Isolda sarou das feridas e já pode partir de Pedra Alta outra vez.",
+   "dayStarted: Amanhece o 3º dia do Outono em Pedra Alta.",
+   "expeditionNodeFailed: No 3º dia do Outono, ondas de choque místicas abalaram Isolda: o xamã bateu em retirada deixando planos da terceira onda, mas os heróis saíram atordoados. A prova pedia mais do que a equipe tinha: gente mais calejada.",
+   "heroInjured: No 3º dia do Outono, Rolf sofreu um ferimento leve em \"Sabotagem da Fortaleza\". Termina a jornada, mas depois precisa de descanso.",
+   "expeditionNodeResolved: No 3º dia do Outono, a expedição de Pedra Alta atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.",
+   "heroRecovered: No 4º dia do Outono, Rolf sarou das feridas e já pode partir de Pedra Alta outra vez.",
+   "dayStarted: Amanhece o 4º dia do Outono em Pedra Alta.",
+   "expeditionReturned: No 4º dia do Outono, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -527,7 +530,7 @@
    "log": [
     {
      "title": "O parapeito ruído da muralha",
-     "text": "No 1º dia da Primavera, Rolf fixou ganchos de escalada no trecho quebrado da muralha, permitindo à equipe sabotar as defesas da primeira onda sem ruído.",
+     "text": "No 1º dia do Outono, Rolf fixou ganchos de escalada no trecho quebrado da muralha, permitindo à equipe sabotar as defesas da primeira onda sem ruído.",
      "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
@@ -538,7 +541,7 @@
     },
     {
      "title": "Os estábulos da matilha",
-     "text": "No 2º dia da Primavera, cascos pesados atingiram Isolda: os estábulos da segunda onda foram desfeitos, mas os heróis saíram pisoteados. Um Clérigo teria dispersado o bando com uma prece vigorosa.",
+     "text": "No 2º dia do Outono, cascos pesados atingiram Isolda: os estábulos da segunda onda foram desfeitos, mas os heróis saíram pisoteados. Um Clérigo teria dispersado o bando com uma prece vigorosa.",
      "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
@@ -558,7 +561,7 @@
     },
     {
      "title": "O depósito de óleo e breu",
-     "text": "No 2º dia da Primavera, Edda misturou areia nos barris de óleo, inutilizando os projéteis flamejantes da terceira onda. Trouxe 33 de ouro.",
+     "text": "No 2º dia do Outono, Edda misturou areia nos barris de óleo, inutilizando os projéteis flamejantes da terceira onda. Trouxe 33 de ouro.",
      "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [
@@ -572,7 +575,7 @@
     },
     {
      "title": "O santuário dos totens",
-     "text": "No 3º dia da Primavera, ondas de choque místicas abalaram Isolda: o xamã bateu em retirada deixando planos da terceira onda, mas os heróis saíram atordoados. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 26 de ouro.",
+     "text": "No 3º dia do Outono, ondas de choque místicas abalaram Isolda: o xamã bateu em retirada deixando planos da terceira onda, mas os heróis saíram atordoados. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 26 de ouro.",
      "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
@@ -582,8 +585,17 @@
      "lessonText": "A prova pedia mais do que a equipe tinha: gente mais calejada."
     },
     {
+     "title": "A saída da Fortaleza",
+     "text": "No 3º dia do Outono, a expedição de Pedra Alta atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
      "title": "O retorno pelas sombras",
-     "text": "No 3º dia da Primavera, a expedição de Pedra Alta escapou pelas sombras da mata e retornou da Fortaleza da Horda.",
+     "text": "No 4º dia do Outono, a expedição de Pedra Alta escapou pelas sombras da mata e retornou da Fortaleza da Horda.",
      "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],

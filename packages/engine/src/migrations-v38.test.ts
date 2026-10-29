@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { currentShape, migrateState, StateMigrationError } from './migrations';
 import { stateV38 } from './migrations/v38';
 import { stateV37, v37ToV38 } from './migrations/v37';
-import { quietGame } from './test-helpers';
+import { settleHordeTiles } from './hordePlan';
+import { AUTUMN, gameAt, quietGame } from './test-helpers';
 
 const fixtures = import.meta.glob<string>('./__fixtures__/state-v37-*.json', {
   query: '?raw',
@@ -35,6 +36,22 @@ describe('37 → 38: contadores de sabotagem da Fortaleza (V4F-T1.2)', () => {
       expect(migrateState(loaded, { timeScale: 1 })).toBe(loaded);
     },
   );
+
+  it('valida reductionPercent como inteiro de 0 a 45 antes de delegar à v37', () => {
+    const state = gameAt(AUTUMN);
+    settleHordeTiles(state, AUTUMN, []);
+    for (const valid of [undefined, 0, 15, 30, 45]) {
+      const copy = JSON.parse(JSON.stringify(state));
+      if (valid !== undefined) copy.horde.wavePlan.waves[0].reductionPercent = valid;
+      expect(currentShape(copy, '')).toBeNull();
+    }
+    for (const invalid of ['15', -1, 1.5, {}, null, 46]) {
+      const copy = JSON.parse(JSON.stringify(state));
+      copy.horde.wavePlan.waves[0].reductionPercent = invalid;
+      expect(currentShape(copy, ''), String(invalid)).not.toBeNull();
+      expect(() => migrateState(copy, { timeScale: 1 })).toThrow(StateMigrationError);
+    }
+  });
 
   it('recusa contadores ausentes ou com formato inválido', () => {
     const state = quietGame();

@@ -681,6 +681,56 @@ Goldens e retratos regravados com `UPDATE_GOLDEN=1` e diff conferido:
   foram gravados (incluindo `council-encounters` com `extraOffer: true`, risco pendente com
   participante e duelo na mesa).
 
+## Revisão V4F-T1 — sabotagem (2026-10-28)
+
+Por decisão do coordenador, cada onda usa o total de base da dificuldade,
+com a redução acumulada `min(45, 15 × sucessos nessa onda)`. O total reduzido
+é truncado uma vez; os postos recebem sua parte e os restos na ordem fixa
+ala/linha. O Xamã e o Senhor da Guerra mantêm o efetivo fixo exigido pelo conteúdo.
+Redução e regeneração compartilham a conta, sem novo campo persistido ou sorteio.
+Em Senhor, três sucessos levam os totais 40/60/81 a 22/33/44. Testes focados
+provam as três reduções, o teto e a distribuição idêntica após regenerar.
+Nenhuma faixa do simulador foi alterada ou remedida; matriz e suítes pesadas
+ficam com o coordenador, conforme a divisão desta revisão.
+
+O alerta também trunca uma vez sobre o total da onda atual e distribui os
+restos na ordem fixa: Camponês 28 → 30, Senhor 40 → 44. Não acumula novos
+alertas. Após três reduções em Senhor, 22 → 24 com alerta, tanto ao reduzir
+uma onda alertada quanto ao alertar uma onda reduzida ou regenerá-la.
+
+As seis horas do ADR 0020/17 são cumpridas com um trecho de saída de uma hora,
+sem prova ou recompensa, após o Xamã. O limite estrutural aumenta de cinco para
+seis nós temporizados; o teste desse limite passa a recusar sete nós e mantém
+as recusas de duração por nó acima de 60 min. Não houve afrouxamento de regra
+de desfecho. O golden da calibragem muda só na sabotagem: nove provas passam
+de ferimento a captura e a duração passa de 300 para 360 min, reduzindo os
+ganhos por hora. O golden do relatório acrescenta a saída e os eventos da hora
+adicional. Ambos foram regravados com `UPDATE_GOLDEN=1` e os diffs conferidos.
+
+A suspeita da descoberta foi confirmada por quatro recusas que antes eram
+contornadas. `map.discovered` deixa de isentar a sabotagem da estação e do teto
+anual. Os testes do catálogo passam a usar o outono para esse modelo, sem
+fabricar a descoberta; os demais destinos conservam seu cenário. O golden do
+relatório foi regravado com `UPDATE_GOLDEN=1`: diff conferido, só a estação da
+sabotagem muda de Primavera para Outono.
+
+Os testes antigos de captura e morte passaram sem produzir Desastre; exigir
+o evento fez ambos falharem. Os cenários agora garantem Desastre mesmo com
+a melhor sorte e exigem ferimento grave em Camponês, captura em Senhor e
+morte em Rei de Ferro, além do aumento exato da onda. O teste de redução
+exige o total exato. Três viagens completas verificam 15/30/45%, recusam a
+quarta e validam a guarda após cada etapa, incluindo a revelação do Xamã.
+A divisão de intervalo conserva exatamente estado, eventos e RNG nos ritmos
+0,5/1/3. O teste da dificuldade já exige régua e desfecho nas três tentativas.
+Não há teste com Cerco porque essa mecânica ainda não existe nesta trilha.
+
+No golden da visão, a única diferença é `durationSeconds` da sabotagem de
+18.000 para 21.600, correspondente às seis horas aprovadas. Regravado com
+`UPDATE_GOLDEN=1`, diff conferido. Os 56 retratos v38 permanecem idênticos;
+os 56 v37 são protegidos por `FROZEN` e seus JSONs não foram alterados.
+Validação final: typecheck e lint com saída 0; 824 testes focados e mais dois
+testes filtrados (golden da visão e congelamento v37), todos verdes.
+
 
 ### V4F-T2 — suporte à paliçada inimiga (2026-10-28)
 
