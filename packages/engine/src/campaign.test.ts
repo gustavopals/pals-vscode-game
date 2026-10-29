@@ -69,7 +69,27 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     const injured = campaignYard();
     injured.guild.heroes[0]!.status = 'injured';
     injured.guild.heroes[0]!.injury = { severity: 'light', untilMs: HOUR };
-    expect(refuse(injured)).toBe('HERO_BUSY');
+    expect(refuse(injured)).toBe('HERO_UNAVAILABLE');
+  });
+
+  it('explica o ferimento do comandante na recusa e na oferta de ataque', () => {
+    const state = campaignYard();
+    const hero = state.guild.heroes[0]!;
+    hero.status = 'injured';
+    hero.injury = { severity: 'light', untilMs: HOUR };
+    const before = JSON.stringify(state);
+    const result = apply(state, command('attackCamp', { formationId: 'formation-1' }));
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'HERO_UNAVAILABLE',
+      message: `${hero.name} não pode partir agora: ainda se recupera de um ferimento.`,
+    });
+    if (result.ok) throw new Error('O comandante ferido não pode marchar.');
+    expect(deriveViewState(state, state.lastProcessedAt).army.campAssault).toMatchObject({
+      blockedReason: result.message,
+      formations: [{ formationId: 'formation-1', canAttack: false, blockedReason: result.message }],
+    });
+    expect(JSON.stringify(state)).toBe(before);
   });
 
   it('reserva só os postos disponíveis, leva os comandantes e não sorteia na ordem', () => {

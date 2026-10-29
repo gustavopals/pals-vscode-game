@@ -1,4 +1,4 @@
-import { balance, campaignTexts, units, WING_IDS } from '@lotg/content';
+import { balance, campaignTexts, formationTexts, units, WING_IDS } from '@lotg/content';
 
 import {
   armyCap,
@@ -14,7 +14,7 @@ import {
   troopText,
 } from './army';
 import { availableUnits, formationCount } from './campaign';
-import { findFormation } from './formations';
+import { findFormation, nominationReason } from './formations';
 import { canDepart } from './heroes';
 import { buildDefender } from './raidArmy';
 import { watchtowerLevel } from './threat';
@@ -249,7 +249,12 @@ export function attackCampBlock(state: GameState, formationId: unknown): Rejecti
     if (heroId === null) continue;
     const hero = state.guild.heroes.find((entry) => entry.id === heroId);
     if (hero === undefined) return reject('HERO_NOT_FOUND');
-    if (!canDepart(hero) || hero.injury !== null) return reject('HERO_BUSY', { label: hero.name });
+    if (!canDepart(hero) || hero.injury !== null) {
+      return reject('HERO_UNAVAILABLE', {
+        label: hero.name,
+        remedy: nominationReason(hero) ?? formationTexts.heroInjured,
+      });
+    }
   }
   if (
     WING_IDS.filter((wing) => departing.commanders[wing] !== null).length <
