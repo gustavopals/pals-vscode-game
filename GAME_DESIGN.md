@@ -755,7 +755,8 @@ Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralh
 
 `[v0.4]` **V4F-T2:** o ataque ao Acampamento parte de uma formação salva e leva os postos
 que os soldados disponíveis preenchem, com ao menos um comandante livre. A tropa fica
-reservada até voltar; editar a formação não muda quem está na estrada. A batalha acontece
+reservada até voltar; editar a formação não muda quem está na estrada. Apagar a formação
+em campanha é recusado até o retorno (`FORMATION_IN_CAMPAIGN`). A batalha acontece
 na chegada, contra a paliçada e a guarnição da estação, sem a Torre do feudo. Vitória
 limpa o tile (−30 de Ameaça) e traz saque ao voltar; derrota ou o limite de 12 rodadas
 fazem o exército recuar. Baixas são descontadas no retorno, e o Acampamento volta na

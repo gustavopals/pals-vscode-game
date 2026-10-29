@@ -58,7 +58,7 @@ export function saveFormation(
   return null;
 }
 
-/** `deleteFormation { id }`: a Defesa ativa não se apaga (`FORMATION_ACTIVE`). */
+/** `deleteFormation { id }`: a Defesa ativa e a formação em campanha não se apagam. */
 export function deleteFormation(
   draft: GameState,
   id: unknown,
@@ -71,6 +71,9 @@ export function deleteFormation(
   }
   if (draft.army.activeFormationId === formation.id) {
     return reject('FORMATION_ACTIVE');
+  }
+  if (draft.army.campaign?.formationId === formation.id) {
+    return reject('FORMATION_IN_CAMPAIGN');
   }
   draft.army.formations = draft.army.formations.filter((entry) => entry.id !== formation.id);
   // A prévia de uma formação apagada não tem mais de que falar (a guarda do estado a exige).

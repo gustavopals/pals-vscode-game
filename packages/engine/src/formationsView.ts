@@ -63,7 +63,7 @@ export function formationViews(state: GameState): FormationView[] {
         missing,
       })),
       shortfallText: shortfallText(state, formation),
-      canDelete: active?.id !== formation.id,
+      canDelete: active?.id !== formation.id && state.army.campaign?.formationId !== formation.id,
       previewStale: previewIsStale(state, formation),
     };
   });

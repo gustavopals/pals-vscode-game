@@ -746,3 +746,11 @@ antiga ficou mais explícita ao subir o estado. Os 56 retratos v37 da base não 
 registro em `FROZEN`; foram acrescentadas as impressões sem mudar um retrato ou hash
 anterior. Nenhuma faixa do simulador mudou. Permanecem propostas as guarnições e o saque;
 a medição e a política do bot estão com o coordenador.
+
+### Revisão V4F-T2 — exclusão durante a campanha (2026-10-29)
+
+A formação enviada não pode ser apagada até o retorno, mesmo desmarcada como Defesa
+ativa (`FORMATION_IN_CAMPAIGN`; `canDelete: false`). O teste anterior aceitava apagá-la:
+essa expectativa foi substituída por recusa nas fases de marcha e retorno, seguida
+da exclusão aceita após a volta. A prova da fotografia editada continua separada.
+Nenhuma faixa foi alterada ou remedida.

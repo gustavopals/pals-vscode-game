@@ -258,6 +258,7 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   INVALID_FORMATION: ({ note = 'A formação não serve.' }) => note,
   FORMATION_ACTIVE: () =>
     'Essa é a Defesa ativa: marque outra formação, ou nenhuma, antes de apagá-la.',
+  FORMATION_IN_CAMPAIGN: () => campaignTexts.formationInCampaign,
   // A muralha (V4E-T1): o reparo pede a Paliçada erguida, alguma ala ferida e nenhum reparo em
   // curso.
   WALL_REQUIRED: () => 'Sem Paliçada não há muralha para reparar.',

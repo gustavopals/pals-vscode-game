@@ -238,15 +238,39 @@ describe('ataque ao Acampamento (V4F-T2)', () => {
     }
   });
 
-  it('reserva a fotografia mesmo se o plano salvo é editado ou apagado', () => {
+  it('reserva a fotografia mesmo se o plano salvo é editado', () => {
     const { state } = attack(campaignYard());
     const snapshot = JSON.stringify(state.army.campaign?.formation);
     state.army.formations[0]!.posts.center.front = { unit: 'swordsman', count: 1 };
-    const inactive = accept(state, command('setActiveFormation', { id: null })).state;
-    const deleted = accept(inactive, command('deleteFormation', { id: 'formation-1' })).state;
-    expect(JSON.stringify(deleted.army.campaign?.formation)).toBe(snapshot);
-    expect(currentShape(deleted, '')).toBeNull();
-    expect(advanceTo(deleted, arrival * 2).state.army.reports[0]?.outcome).toBe('victory');
+    // Apagar durante a marcha passa a ser recusado; a edição continua sem mover a reserva.
+    expect(JSON.stringify(state.army.campaign?.formation)).toBe(snapshot);
+    expect(currentShape(state, '')).toBeNull();
+    expect(advanceTo(state, arrival * 2).state.army.reports[0]?.outcome).toBe('victory');
+  });
+
+  it('recusa apagar a formação em campanha até o retorno, mesmo sem Defesa ativa', () => {
+    const marching = accept(
+      attack(campaignYard()).state,
+      command('setActiveFormation', { id: null }),
+    ).state;
+    const returning = advanceTo(marching, arrival).state;
+    for (const state of [marching, returning]) {
+      const before = JSON.stringify(state);
+      expect(apply(state, command('deleteFormation', { id: 'formation-1' }))).toEqual({
+        ok: false,
+        code: 'FORMATION_IN_CAMPAIGN',
+        message: 'Essa formação está em campanha: espere o exército voltar antes de apagá-la.',
+      });
+      expect(deriveViewState(state, state.lastProcessedAt).army.formations[0]?.canDelete).toBe(
+        false,
+      );
+      expect(JSON.stringify(state)).toBe(before);
+    }
+    const back = advanceTo(returning, arrival * 2).state;
+    expect(deriveViewState(back, back.lastProcessedAt).army.formations[0]?.canDelete).toBe(true);
+    expect(
+      accept(back, command('deleteFormation', { id: 'formation-1' })).state.army.formations,
+    ).toHaveLength(0);
   });
 
   it('o Acampamento limpo volta na virada do ano e volta a somar ameaça', () => {
