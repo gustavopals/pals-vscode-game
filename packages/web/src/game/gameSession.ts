@@ -244,6 +244,11 @@ export function guildDeadlines(view: ViewState): number[] {
     forgeDeadline(view.smithy),
     // O fim do lote no pátio do Quartel: é quando os soldados entram e o pátio fica livre.
     trainingDeadline(view.army),
+    // A campanha muda de fase na batalha e termina no retorno. Na volta, o zero da batalha
+    // resolvida é um estado persistente, não um novo prazo para o ciclo de leitura.
+    view.army.campaign?.phase === 'marching'
+      ? view.army.campaign.battleInSeconds
+      : view.army.campaign?.returnsInSeconds,
   ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
 }
 

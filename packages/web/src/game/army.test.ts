@@ -175,6 +175,23 @@ describe('o ciclo de leitura e o fim do treino (V4C-T3.2)', () => {
     expect(guildDeadlines(armyTrainingView)).toContain(training?.endsInSeconds);
     expect(guildDeadlines(armyIdleView)).not.toContain(null);
   });
+
+  it('a campanha espera a batalha na marcha e o retorno na volta; ignora o zero já resolvido', () => {
+    const campaign = armyCampaignView.army.campaign!;
+    const marching = guildDeadlines(armyCampaignView);
+    expect(marching).toContain(campaign.battleInSeconds);
+    expect(marching).not.toContain(campaign.returnsInSeconds);
+    const returning: ViewState = {
+      ...armyCampaignView,
+      army: {
+        ...armyCampaignView.army,
+        campaign: { ...campaign, phase: 'returning', battleInSeconds: 0, returnsInSeconds: 5 },
+      },
+    };
+    expect(guildDeadlines(returning)).toContain(5);
+    expect(guildDeadlines(returning)).not.toContain(0);
+    expect(guildDeadlines(armyIdleView)).not.toContain(campaign.battleInSeconds);
+  });
 });
 
 describe('a campanha em Antes de partir (V4F-T3, revisão 2)', () => {

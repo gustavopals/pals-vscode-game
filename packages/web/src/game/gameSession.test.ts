@@ -20,6 +20,7 @@ import {
   OfflineError,
 } from './gameSession';
 import { pendingItems } from './returnReport';
+import { armyCampaignView } from '../test-helpers';
 
 const view = golden.initial as unknown as ViewState;
 /** Um cache gravado agora por esta versão do app. */
@@ -127,6 +128,46 @@ afterEach(() => {
 });
 
 describe('cadência', () => {
+  it('lê ao vencer a batalha e o retorno da campanha, sem repetir o zero da batalha resolvida', async () => {
+    const { session, state } = setup();
+    const campaign = armyCampaignView.army.campaign!;
+    state.view = {
+      ...armyCampaignView,
+      army: {
+        ...armyCampaignView.army,
+        campaign: { ...campaign, battleInSeconds: 5, returnsInSeconds: 12 },
+      },
+    };
+    // A antecipação por prazo só acontece com a aba à vista.
+    session.setVisible(true);
+    await session.start(target);
+    expect(state.calls.view).toBe(1);
+    state.etag = 'W/"b"';
+    state.view = {
+      ...state.view,
+      army: {
+        ...state.view.army,
+        campaign: { ...campaign, phase: 'returning', battleInSeconds: 0, returnsInSeconds: 5 },
+      },
+    };
+    await vi.advanceTimersByTimeAsync(5999);
+    expect(state.calls.view).toBe(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(2);
+    expect(session.view?.army.campaign?.phase).toBe('returning');
+
+    state.etag = 'W/"c"';
+    state.view = { ...state.view, army: { ...state.view.army, campaign: null } };
+    await vi.advanceTimersByTimeAsync(5999);
+    expect(state.calls.view).toBe(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(3);
+    expect(session.view?.army.campaign).toBeNull();
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(state.calls.view).toBe(3);
+    session.stop();
+  });
+
   it('30 s com o painel visível e 2 min com ele oculto', async () => {
     const { session, state } = setup();
     await session.start(target);
