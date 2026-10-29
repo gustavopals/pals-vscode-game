@@ -990,7 +990,8 @@ export type SiegeRejectionCode =
   | 'NO_WAVE_DECISION'
   | 'MILITIA_NOT_ALLOWED'
   | 'MILITIA_ACTIVE'
-  | 'INVALID_MILITIA_AMOUNT';
+  | 'INVALID_MILITIA_AMOUNT'
+  | 'NO_MILITIA_SLOT';
 export type SiegeRejection = Rejection | { code: SiegeRejectionCode; message: string };
 export type SiegeCommandResult =
   { ok: true; state: GameState; events: GameEvent[] } | ({ ok: false } & SiegeRejection);

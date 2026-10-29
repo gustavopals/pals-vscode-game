@@ -164,7 +164,7 @@ export function callMilitia(
   const waveNumber = isSiege ? ((siege.current + 1) as SiegeWaveNumber) : null;
   const formationId =
     isSiege && waveNumber !== null
-      ? siege.plan[waveNumber] ?? draft.army.activeFormationId
+      ? (siege.plan[waveNumber] ?? draft.army.activeFormationId)
       : draft.army.activeFormationId;
   const formation = draft.army.formations.find((f) => f.id === formationId) ?? null;
   const defender = buildDefender(formation, availableUnits(draft), () => null);

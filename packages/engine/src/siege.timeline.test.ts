@@ -9,7 +9,7 @@ import { readySiege, siegeYard, WINTER } from './siege.test-helpers';
 import { DAY, HOUR } from './test-helpers';
 import { deriveEngineViewState, deriveViewState } from './view';
 import { currentRepairQuote } from './wallRepair';
-import type { GameState, SiegeCommand } from './types';
+import type { GameEvent, GameState, SiegeCommand } from './types';
 
 const order = (state: GameState, command: SiegeCommand) =>
   applyCommand(state, command, state.lastProcessedAt);
