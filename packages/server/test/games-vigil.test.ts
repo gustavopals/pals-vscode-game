@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import type { GameState } from '@lotg/engine';
+import { CURRENT_SCHEMA_VERSION, type GameState } from '@lotg/engine';
 import type { CommandAccepted } from '@lotg/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -114,7 +114,7 @@ describe('Hora da Vigília nas partidas (V4G-T1)', () => {
     expect(response.status).toBe(200);
     expect(response.body.view.settlement.vigil.warning).toContain('UTC');
     const loaded = await row(player.game.id);
-    expect(loaded.state.schemaVersion).toBe(37);
+    expect(loaded.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(loaded.state.settings.realOriginMs).toBe(loaded.created_at.getTime());
     expect(loaded.state.settings.vigil.utcOffsetMinutes).toBe(0);
     expect(loaded.state.settings.vigil.timezoneResolved).toBe(false);
