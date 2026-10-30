@@ -2338,7 +2338,7 @@ export const responderCerco: Policy = {
     const active = current.army.formations.find((entry) => entry.isActive);
     if (active !== undefined && current.siege !== null && current.siege.current === 0) {
       for (const wave of [1, 2, 3] as const) {
-        if (current.siege.plan[wave] !== active.id) {
+        if (current.siege?.plan[wave] !== active.id) {
           current = await act('setBattlePlan', { wave, formationId: active.id });
         }
       }
