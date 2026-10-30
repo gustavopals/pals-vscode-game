@@ -136,11 +136,23 @@ Os testes ficam em `test/games-migration.test.ts`: gravam linhas com `schema_ver
 O esquema vive em `src/db/schema.ts`. Depois de mudá-lo:
 
 ```bash
-pnpm --filter @lotg/server db:generate -- --name <nome>   # escreve o SQL em deploy/migrations
+pnpm --filter @lotg/server db:generate --name <nome>      # escreve o SQL em deploy/migrations (sem "--": o drizzle-kit recusa)
 pnpm db:migrate                                            # aplica no banco de dev
 ```
 
 O servidor aplica as migrações pendentes no arranque, dentro de `pg_advisory_lock(727)`, então várias réplicas podem subir juntas. Migrações devem ser compatíveis com a versão anterior do código (expandir, depois contrair).
+
+A `0001_ranking_listed` (ADR 0021) acrescenta `accounts.ranking_listed`, com padrão `true`: as contas que já existem entram no ranking.
+
+## Estatísticas e ranking (ADR 0021)
+
+`src/stats/service.ts` e `src/routes/stats.ts`. Só leitura do estado **gravado**: nenhuma partida é avançada e nenhuma regra de jogo roda; os campos saem do JSON de `games.state` com `coalesce(…, 0)`, porque o estado gravado pode ser de uma versão anterior.
+
+- `GET /v1/stats` (autenticada): `kingdom` (contas, feudos ativos, ativos em 7 dias por `last_seen_at`, e as somas de ouro, aldeões, incursões repelidas e sofridas e expedições enviadas), `ranking` (os 10 primeiros por ouro, `floor(milésimos / 1000)`, e a linha do jogador no fim quando ele está fora deles), `rankedFiefs` e `me` (a preferência, a posição e as estatísticas do feudo dele, lidas na hora). Só o nome do feudo e o ouro saem de outro jogador; nada da conta.
+- `GET` e `PUT /v1/me/ranking` (`{ listed }`, zod `RankingPreferenceSchema`): a saída do ranking vale para todos os feudos da conta.
+- **Cache:** os totais e a lista ordenada ficam 60 s na memória da instância (`STATS_CACHE_MS`, por `AppContext`); a frente do ranking é conferida contra a preferência e a exclusão de agora a cada leitura, e `PUT /me/ranking` esquece a consulta guardada (`forgetStats`). Um relógio que volta também a invalida, e o servidor de teste do navegador a esquece no `/__test/reset`.
+- **Fora da conta:** contas excluídas, partidas arquivadas e contas de teste do `sim-cli` (nome de exibição começando com "Bot ", como em `deploy/analytics/ops.sql`).
+- Teste: `test/stats.test.ts`.
 
 ## Build e imagem
 

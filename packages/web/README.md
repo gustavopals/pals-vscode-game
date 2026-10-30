@@ -291,6 +291,14 @@ A aba Exército (fixa depois do Mercado) tem o Quartel (`components/BarracksPane
 
 Em navegador: `tests/e2e/12-exercito.spec.ts` (treino) e `13-formacoes.spec.ts` (editor, Defesa, comandante, três temas e 720 px, a prévia do Conselho de Guerra pelo teclado).
 
+## O Reino: estatísticas e ranking (ADR 0021)
+
+A aba Reino (`tabs/Kingdom.tsx`, `#/reino`) é da conta, não do feudo: fecha como Crônica, Preferências e Sobre, e abre também sem feudo. Chega-se a ela pela paleta (`lords.openKingdom`) e pela linha "Reino: estatísticas e ranking" da conta, na árvore. Mostra os totais em cartões, o ranking de ouro (posição, nome do feudo, ouro; a linha do jogador com o destaque da seleção, `aria-current` e "(seu feudo)", nunca só pela cor) e "Minhas estatísticas", com a posição. O texto e os números formatados ficam em `ui/kingdom.ts`; o app só mostra o que `GET /v1/stats` trouxe.
+
+- `controller.stats` (`Loadable`) é lido ao abrir a aba e, com ela à vista, a cada ciclo bem-sucedido das leituras do feudo (`session.onCycle`), no máximo uma vez por minuto (`STATS_EVERY_MS`). Fora da aba, nada é lido. "Atualizar" (`lords.refreshKingdom`) lê na hora.
+- A opção "Mostrar meu feudo no ranking" fica nas Preferências (`controller.rankingListed`, lido de `GET /me/ranking` ao abrir a aba); `controller.setRankingListed` manda o `PUT`, desfaz a marca se falhar e relê o Reino.
+- Testes: `tabs/kingdom.test.tsx` e, em navegador, `tests/e2e/15-reino.spec.ts` (teclado, paleta, saída do ranking, três temas e 720 px; com `KINGDOM_SHOTS_DIR` ele grava as capturas da aba).
+
 ## Ameaça e Torre de Vigia (GDD §8.2)
 
 A Torre de Vigia compra informação. Sem ela, o servidor **não manda** o número da Ameaça, a tendência, as origens, os tiles nem a incursão marcada: `ViewState.threat` é uma união de duas formas fechadas, e o app confere `threat.known` antes de procurar qualquer número. O app não conhece quanto a Ameaça sobe por dia, as marcas da Crônica, a chance de uma incursão nem a antecedência do aviso. As frases de ligação e as escolhas de apresentação ficam em `ui/threat.ts`.
