@@ -618,3 +618,21 @@ debitar a produção dos aldeões convocados.
 O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
 após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
 (`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.
+
+
+## V4H-T2 — O lote 3 do Conselho (2026-10-30)
+
+**H-5. Estado 41 e bônus do Conselho.** _(Proposta do agente; não lida pelo autor.)_
+Os bônus temporários concedidos pelas cartas do lote 3 (`smithsDaughter`, `warCouncil`, etc.) são guardados em `council.bonuses`:
+`smithySpeed` (fator `{ num, den }` e `untilMs`), `smithyBatch` (armas extras `extra` e `untilMs`), `repairDiscount`
+(desconto em pontos e `untilMs`) e `revealedRaidId` (id da incursão futura revelada).
+A migração 40 → 41 inicializa esses campos em `null` sem disparar eventos ou alterar sorteios.
+Ao registrar uma forja em `draft.settlement.forge`, `extra` só é incluído se for maior que 0, preservando a
+forma padrão quando não há bônus ativo.
+
+**H-6. Opções dinâmicas e infinitivos no lote 3.** _(Proposta do agente; não lida pelo autor.)_
+As fichas aprovadas pelo autor de `northernCrows` ("Erguer a Torre de Vigia ao Nv3" e "Não dar importância")
+e `raidersAskPassage` ("Mandá-los embora") foram aceitas respeitando a literalidade das fichas aprovadas §§10.2 e 10.5.
+A carta `siegeEve` usa abertura narrativa específica na Crônica ("Na véspera do cerco, ") aprovada expressamente
+na ficha §11.5, sem a fórmula de dia do calendário.
+Opções que disparam obras dinâmicas (`startBuilding`, `repairWall`) não são classificadas como opções sem custo (`isFree`).

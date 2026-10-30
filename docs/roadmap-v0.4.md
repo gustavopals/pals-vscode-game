@@ -1051,9 +1051,9 @@ Como V4E-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-g.md`; correçõ
 **Trilha:** conteúdo.
 **Entregáveis:** `packages/content/src/cards/**` (**novos** `smithsDaughter.ts`, `war.ts`, as roteirizadas), `council.test.ts`, `docs/content-v0.4.md`, seção 5; goldens e retratos regravados.
 
-- [ ] V4H-T2.1 A lista proposta da §16.3, apresentada ao autor em lotes de cinco.
-- [ ] V4H-T2.2 Cada traço novo e cada mecânica da v0.4 com ao menos uma opção que o use; nenhuma carta pede o que o feudo não pode ter.
-- [ ] V4H-T2.3 Cobertura por estação e por posse; o inventário das 60.
+- [x] V4H-T2.1 A lista proposta da §16.3, apresentada ao autor em lotes de cinco.
+- [x] V4H-T2.2 Cada traço novo e cada mecânica da v0.4 com ao menos uma opção que o use; nenhuma carta pede o que o feudo não pode ter.
+- [x] V4H-T2.3 Cobertura por estação e por posse; o inventário das 60.
 
 **Verificação:** como V4H-T1.
 
@@ -1380,7 +1380,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4G-T5 | | | | | |
 | V4G (integração e segunda publicação) | | | | | |
 | V4H-T1 | 2026-10-28 | `7d760d7`, `c58342d`, `24199ce`, `b902b00` (`v4h-t1-cartas`) e `b5c009c`, `adffa9c`, `303b79b` e o desta linha (`v4h-t1-avulsas`) | duas trilhas: Codex (`v4h-t1-cartas`, e início de `v4h-t1-avulsas`) e subagente Gemini (`v4h-t1-avulsas`) | **Parcial no roadmap; escopos Mercado/Coroa e quatro avulsas concluídos (43 cartas no catálogo).** Nove cartas transcritas de §§4.4, 5.1–5.5 e 6.1–6.3 aprovados (estado **35 → 36**) e quatro avulsas de §§7.3–7.5 e 8.1 (`passingRecruiter`, `gamblingDebt`, `squareDuel`, `wanderingHealer`, estado **36 → 37**: `guild.tavern.extraOffer` e `heroes` em `council.pending`/`delayed`, passo `v36ToV37` e guarda `stateV37`). Efeitos `tavernExtraOffer`, `injureHero` e `healHero` e requisitos `heroPresent` (1 ou 2) e `injuredHero` com testes; 55 retratos v36 congelados em `FROZEN` e 56 retratos v37 gravados; goldens regravados só com `UPDATE_GOLDEN=1` e diff conferido. **Verificação em `v4h-t1-avulsas`:** 12 arquivos focados (395 testes) saída **0**; `pnpm typecheck` saída **0**; `pnpm lint` saída **0**. Expectativas de versão da integração sincronizadas para 37 por leitura. Ajustes editoriais e diffs em `balance-v0.4.md` §§14–15; propostas H-1 a H-4 nas pendências | **Simulador, cobertura em 50 sementes, replay completo de `migrations.test.ts` e verify inteiro ficaram para o coordenador.** Integração e navegador não executados; sem build, publicação ou push. `bands.ts` intocado. T1.1 e demais fichas/ganchos de T1.2–T1.4 (cadeias de mercadores/Lobo Branco/aprendiz) não concluídos nesta trilha |
-| V4H-T2 | | | | | |
+| V4H-T2 | 2026-10-30 | `d070484`, `24c1000` e o desta linha | duas sessões (Codex e Gemini) | As 13 cartas aprovadas do lote 3 transcritas fielmente das fichas (§§9–11 de docs/content-v0.4.md) com as duas já existentes completando o catálogo de 60 cartas; estado 40 → 41 com bônus de Conselho (`council.bonuses`), passo `v40ToV41`, migração e 63 retratos congelados v41; novos efeitos e requisitos de guerra, forja e muralha implementados e testados; goldens e fixtures regravados com UPDATE_GOLDEN=1 e diffs conferidos. Testes focados do Conselho (content e engine), migração, scenario e fixtures verdes; typecheck e lint código 0. | O simulador (`sim-cli`, bot e bands), a cobertura em 50 sementes e o `pnpm verify` integral ficaram para o coordenador conforme instrução. Integração, e2e, matriz e suítes pesadas não foram executadas. |
 | V4H-T3 | | | | | |
 | V4H-T4 | | | | | |
 | V4H-T5 | | | | | |
