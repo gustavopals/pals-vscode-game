@@ -26,7 +26,10 @@ describe('Cerco: estado 39 → 40', () => {
     });
     expect(stateV40(after, '')).toBeNull();
     expect(JSON.stringify(before)).toBe(copy);
-    expect(migrateState(after, { timeScale: before.settings.timeScale })).toMatchObject({ ...after, schemaVersion: 41 });
+    expect(migrateState(after, { timeScale: before.settings.timeScale })).toMatchObject({
+      ...after,
+      schemaVersion: 41,
+    });
   });
   it('exige os campos novos e recusa cerco incompleto', () => {
     const state = newGame();

@@ -373,15 +373,6 @@
   },
   {
    "hour": 108,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "palisadePromisePlea-9",
-    "optionId": "show"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 108,
    "type": "recruitVillagers",
    "payload": {
     "quantity": 1
@@ -393,15 +384,6 @@
    "type": "startConstruction",
    "payload": {
     "building": "lumberMill"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 120,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "commonGranaryPlanks-10",
-    "optionId": "cede"
    },
    "result": "accepted"
   },
@@ -425,8 +407,8 @@
    "hour": 132,
    "type": "answerCard",
    "payload": {
-    "instanceId": "commonGranaryShare-12",
-    "optionId": "reserve"
+    "instanceId": "commonGranaryPlanks-11",
+    "optionId": "cede"
    },
    "result": "accepted"
   },
@@ -451,8 +433,8 @@
    "hour": 144,
    "type": "answerCard",
    "payload": {
-    "instanceId": "commonGranaryOutcome-13",
-    "optionId": "leave"
+    "instanceId": "commonGranaryShare-12",
+    "optionId": "reserve"
    },
    "result": "accepted"
   },
@@ -486,6 +468,15 @@
    "payload": {
     "building": "lumberMill",
     "count": 4
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 150,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "commonGranaryOutcome-14",
+    "optionId": "leave"
    },
    "result": "accepted"
   },
@@ -549,15 +540,6 @@
   },
   {
    "hour": 163,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "collapsedWell-15",
-    "optionId": "wait"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 163,
    "type": "setWorkers",
    "payload": {
     "building": "lumberMill",
@@ -571,7 +553,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -656,6 +638,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [
       {
        "building": "farm",
@@ -696,6 +680,12 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
        "instanceId": "neighborsWatch-1",
@@ -732,6 +722,7 @@
      "threat": 24,
      "discovered": []
     },
+    "siege": null,
     "horde": {
      "scheduledRaids": [
       {
@@ -746,7 +737,12 @@
      ],
      "lastFormationSeen": null,
      "wavePlan": null,
-     "omens": []
+     "omens": [],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [],
@@ -788,6 +784,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -829,7 +826,7 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -916,6 +913,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -957,6 +956,12 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
        "instanceId": "woundedStranger-4",
@@ -1011,11 +1016,17 @@
      "threat": 0,
      "discovered": []
     },
+    "siege": null,
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
      "wavePlan": null,
-     "omens": []
+     "omens": [],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [],
@@ -1057,6 +1068,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -1211,7 +1223,7 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1300,6 +1312,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -1341,6 +1355,12 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
        "instanceId": "itinerantMerchant-6",
@@ -1391,11 +1411,17 @@
      "threat": 13,
      "discovered": []
     },
+    "siege": null,
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
      "wavePlan": null,
-     "omens": []
+     "omens": [],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [
@@ -1466,6 +1492,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -1680,9 +1707,9 @@
   },
   {
    "day": 4,
-   "eventsSoFar": 186,
+   "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1706,10 +1733,10 @@
     "lastProcessedAt": 345600000,
     "rng": {
      "council": [
-      845307708,
-      2683357386,
-      2089125457,
-      4056628392
+      2809947739,
+      3951327387,
+      3540571658,
+      2124038652
      ],
      "horde": [
       1173057308,
@@ -1783,6 +1810,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
@@ -1821,6 +1850,12 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
        "instanceId": "moreMouths-8",
@@ -1830,8 +1865,8 @@
        "origin": null
       },
       {
-       "instanceId": "palisadePromisePlea-9",
-       "cardId": "palisadePromisePlea",
+       "instanceId": "northernCrows-9",
+       "cardId": "northernCrows",
        "drawnAtMs": 345600000,
        "expiresAtMs": 432000000,
        "origin": null
@@ -1851,7 +1886,7 @@
       "itinerantMerchant",
       "fullGranary",
       "moreMouths",
-      "palisadePromisePlea"
+      "northernCrows"
      ],
      "nextDrawAtMs": 374400000,
      "scheduled": [],
@@ -1879,6 +1914,117 @@
      },
      "threat": 61,
      "discovered": []
+    },
+    "siege": {
+     "year": 1,
+     "atMs": 590400000,
+     "waves": [
+      {
+       "number": 1,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 12
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "count": 14
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 1
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "count": 11
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "count": 2
+        }
+       ]
+      },
+      {
+       "number": 2,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 15
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "wolf",
+         "count": 27
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "wolf",
+         "count": 18
+        }
+       ]
+      },
+      {
+       "number": 3,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "skeleton",
+         "count": 29
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "warlord",
+         "count": 1
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 17
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "count": 28
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "shaman",
+         "count": 6
+        }
+       ]
+      }
+     ],
+     "current": 0,
+     "nextWaveAtMs": 590400000,
+     "plan": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "result": null,
+     "breached": false,
+     "deaths": 0,
+     "endedAtMs": null,
+     "aftermathUntilMs": null
     },
     "horde": {
      "scheduledRaids": [],
@@ -1983,7 +2129,12 @@
        }
       ]
      },
-     "omens": []
+     "omens": [],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [
@@ -2054,6 +2205,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -2268,16 +2420,16 @@
      "constructionsStarted:palisade": 1,
      "cardsDrawn:moreMouths": 1,
      "seasonsSurvived:summer": 1,
-     "cardsDrawn:palisadePromisePlea": 1,
+     "cardsDrawn:northernCrows": 1,
      "fortressAppearedAtDay": 49
     }
    }
   },
   {
    "day": 5,
-   "eventsSoFar": 239,
+   "eventsSoFar": 237,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2301,10 +2453,10 @@
     "lastProcessedAt": 432000000,
     "rng": {
      "council": [
-      1391307144,
-      574158740,
-      3708594227,
-      2685841525
+      845307708,
+      2683357386,
+      2089125457,
+      4056628392
      ],
      "horde": [
       3583471666,
@@ -2313,10 +2465,10 @@
       516465920
      ],
      "morale": [
-      3881588205,
-      3039749652,
-      1225820957,
-      2933432022
+      1963695365,
+      762819907,
+      1839371436,
+      3869336588
      ]
     },
     "ids": {
@@ -2330,7 +2482,7 @@
       "food": 1000000,
       "wood": 1000000,
       "stone": 1000000,
-      "gold": 1291615,
+      "gold": 1279261,
       "iron": 0
      },
      "accumulators": {
@@ -2378,6 +2530,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -2388,9 +2542,9 @@
      },
      "cold": null,
      "wasted": {
-      "food": 27,
-      "wood": 395,
-      "stone": 131,
+      "food": 59,
+      "wood": 923,
+      "stone": 291,
       "gold": 0,
       "iron": 0
      },
@@ -2408,7 +2562,14 @@
      },
      "adaptation": [],
      "morale": 60,
-     "moraleEffects": [],
+     "moraleEffects": [
+      {
+       "id": "card:northernCrows-9",
+       "label": "Carta: Os corvos do norte",
+       "amount": 5,
+       "untilMs": 446400000
+      }
+     ],
      "injured": [],
      "masters": [],
      "mastersWaiting": [],
@@ -2416,27 +2577,25 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
-       "instanceId": "commonGranaryPlanks-10",
-       "cardId": "commonGranaryPlanks",
+       "instanceId": "harvestFeast-10",
+       "cardId": "harvestFeast",
        "drawnAtMs": 403200000,
        "expiresAtMs": 489600000,
-       "origin": null
-      },
-      {
-       "instanceId": "apprenticesTable-11",
-       "cardId": "apprenticesTable",
-       "drawnAtMs": 432000000,
-       "expiresAtMs": 518400000,
        "origin": null
       }
      ],
      "flags": {
       "thawBridge.piers": true,
       "itinerant.heardOfMarket": true,
-      "routine.moreMouths": true,
-      "palisadePromise.kept": true
+      "routine.moreMouths": true
      },
      "seenThisYear": [
       "neighborsWatch",
@@ -2447,9 +2606,8 @@
       "itinerantMerchant",
       "fullGranary",
       "moreMouths",
-      "palisadePromisePlea",
-      "commonGranaryPlanks",
-      "apprenticesTable"
+      "northernCrows",
+      "harvestFeast"
      ],
      "nextDrawAtMs": 460800000,
      "scheduled": [],
@@ -2457,7 +2615,8 @@
      "expired": [
       "neighborsWatch-1",
       "itinerantMerchant-6",
-      "fullGranary-7"
+      "fullGranary-7",
+      "northernCrows-9"
      ]
     },
     "map": {
@@ -2477,6 +2636,117 @@
      },
      "threat": 100,
      "discovered": []
+    },
+    "siege": {
+     "year": 1,
+     "atMs": 590400000,
+     "waves": [
+      {
+       "number": 1,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 12
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "count": 14
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 1
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "count": 11
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "count": 2
+        }
+       ]
+      },
+      {
+       "number": 2,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 15
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "wolf",
+         "count": 27
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "wolf",
+         "count": 18
+        }
+       ]
+      },
+      {
+       "number": 3,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "skeleton",
+         "count": 29
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "warlord",
+         "count": 1
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 17
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "count": 28
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "shaman",
+         "count": 6
+        }
+       ]
+      }
+     ],
+     "current": 0,
+     "nextWaveAtMs": 590400000,
+     "plan": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "result": null,
+     "breached": false,
+     "deaths": 0,
+     "endedAtMs": null,
+     "aftermathUntilMs": null
     },
     "horde": {
      "scheduledRaids": [
@@ -2663,7 +2933,12 @@
        "text": "Fogueiras demais acendem nas colinas: a Horda trará muitos saqueadores.",
        "reveals": []
       }
-     ]
+     ],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [
@@ -2734,6 +3009,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -2951,12 +3227,12 @@
     "stats": {
      "constructionsStarted:housing": 3,
      "villagersRecruited": 18,
-     "cardsDrawn": 11,
+     "cardsDrawn": 10,
      "cardsDrawn:neighborsWatch": 1,
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 2,
      "cardsDrawn:thawBridgePlea": 1,
-     "cardsAnswered": 6,
+     "cardsAnswered": 5,
      "constructionsStarted:farm": 1,
      "plansMarkedAuto": 1,
      "constructionsStarted:quarry": 3,
@@ -2964,37 +3240,36 @@
      "cardsDrawn:thawBridgeSlab": 1,
      "raids_suffered": 3,
      "constructionsStarted:warehouse": 1,
-     "cardsExpired": 3,
+     "cardsExpired": 4,
      "cardsDrawn:woundedStranger": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 1906027,
+     "wasted_food": 1823059,
      "coldSpellsThisSeason": 0,
      "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
-     "wasted_wood": 1863395,
+     "wasted_wood": 1845923,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:fullGranary": 1,
      "threatCrossed:40": 2,
-     "wasted_stone": 1224131,
+     "wasted_stone": 1202291,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:moreMouths": 1,
      "seasonsSurvived:summer": 1,
-     "cardsDrawn:palisadePromisePlea": 1,
+     "cardsDrawn:northernCrows": 1,
      "fortressAppearedAtDay": 49,
      "threatCrossed:70": 2,
      "omens": 5,
      "raids_repelled": 1,
-     "cardsDrawn:commonGranaryPlanks": 1,
-     "cardsDrawn:apprenticesTable": 1
+     "cardsDrawn:harvestFeast": 1
     }
    }
   },
   {
    "day": 6,
-   "eventsSoFar": 296,
+   "eventsSoFar": 293,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3018,10 +3293,10 @@
     "lastProcessedAt": 518400000,
     "rng": {
      "council": [
-      1391307144,
-      574158740,
-      3708594227,
-      2685841525
+      1549380446,
+      3507949991,
+      2943765869,
+      3752006513
      ],
      "horde": [
       2797220659,
@@ -3030,10 +3305,10 @@
       548758718
      ],
      "morale": [
-      3881588205,
-      3039749652,
-      1225820957,
-      2933432022
+      1963695365,
+      762819907,
+      1839371436,
+      3869336588
      ]
     },
     "ids": {
@@ -3045,9 +3320,9 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 1600000,
-      "wood": 1000000,
+      "wood": 998955,
       "stone": 1000000,
-      "gold": 1701609,
+      "gold": 1691315,
       "iron": 0
      },
      "accumulators": {
@@ -3095,6 +3370,8 @@
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": null,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -3105,9 +3382,9 @@
      },
      "cold": null,
      "wasted": {
-      "food": 588,
-      "wood": 638,
-      "stone": 871,
+      "food": 526,
+      "wood": 747,
+      "stone": 671,
       "gold": 0,
       "iron": 0
      },
@@ -3133,27 +3410,38 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
-       "instanceId": "commonGranaryOutcome-13",
-       "cardId": "commonGranaryOutcome",
+       "instanceId": "commonGranaryShare-12",
+       "cardId": "commonGranaryShare",
        "drawnAtMs": 489600000,
        "expiresAtMs": 576000000,
        "origin": {
-        "cardId": "commonGranaryShare",
-        "optionId": "reserve",
-        "instanceId": "commonGranaryShare-12"
+        "cardId": "commonGranaryPlanks",
+        "optionId": "cede",
+        "instanceId": "commonGranaryPlanks-11"
        }
+      },
+      {
+       "instanceId": "hordeDeserter-13",
+       "cardId": "hordeDeserter",
+       "drawnAtMs": 518400000,
+       "expiresAtMs": 604800000,
+       "origin": null
       }
      ],
      "flags": {
       "thawBridge.piers": true,
       "itinerant.heardOfMarket": true,
       "routine.moreMouths": true,
-      "palisadePromise.kept": true,
       "commonGranary.open": true,
-      "commonGranary.supported": true,
-      "commonGranary.reserved": true
+      "commonGranary.supported": true
      },
      "seenThisYear": [
       "neighborsWatch",
@@ -3164,11 +3452,11 @@
       "itinerantMerchant",
       "fullGranary",
       "moreMouths",
-      "palisadePromisePlea",
+      "northernCrows",
+      "harvestFeast",
       "commonGranaryPlanks",
-      "apprenticesTable",
       "commonGranaryShare",
-      "commonGranaryOutcome"
+      "hordeDeserter"
      ],
      "nextDrawAtMs": 547200000,
      "scheduled": [],
@@ -3177,7 +3465,8 @@
       "neighborsWatch-1",
       "itinerantMerchant-6",
       "fullGranary-7",
-      "apprenticesTable-11"
+      "northernCrows-9",
+      "harvestFeast-10"
      ]
     },
     "map": {
@@ -3197,6 +3486,117 @@
      },
      "threat": 83,
      "discovered": []
+    },
+    "siege": {
+     "year": 1,
+     "atMs": 590400000,
+     "waves": [
+      {
+       "number": 1,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 12
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "count": 14
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 1
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "count": 11
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "count": 2
+        }
+       ]
+      },
+      {
+       "number": 2,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 15
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "wolf",
+         "count": 27
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "wolf",
+         "count": 18
+        }
+       ]
+      },
+      {
+       "number": 3,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "skeleton",
+         "count": 29
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "warlord",
+         "count": 1
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 17
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "count": 28
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "shaman",
+         "count": 6
+        }
+       ]
+      }
+     ],
+     "current": 0,
+     "nextWaveAtMs": 590400000,
+     "plan": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "result": null,
+     "breached": false,
+     "deaths": 0,
+     "endedAtMs": null,
+     "aftermathUntilMs": null
     },
     "horde": {
      "scheduledRaids": [
@@ -3391,7 +3791,12 @@
        "text": "Os cães uivam para o cemitério: a Horda trará os mortos.",
        "reveals": []
       }
-     ]
+     ],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [
@@ -3462,6 +3867,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -3716,7 +4122,7 @@
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 3,
      "cardsDrawn:thawBridgePlea": 1,
-     "cardsAnswered": 8,
+     "cardsAnswered": 6,
      "constructionsStarted:farm": 2,
      "plansMarkedAuto": 2,
      "constructionsStarted:quarry": 3,
@@ -3724,41 +4130,41 @@
      "cardsDrawn:thawBridgeSlab": 1,
      "raids_suffered": 3,
      "constructionsStarted:warehouse": 1,
-     "cardsExpired": 4,
+     "cardsExpired": 5,
      "cardsDrawn:woundedStranger": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 4969588,
+     "wasted_food": 4906526,
      "coldSpellsThisSeason": 0,
      "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 2,
-     "wasted_wood": 1972638,
+     "wasted_wood": 1959747,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:fullGranary": 1,
      "threatCrossed:40": 2,
-     "wasted_stone": 1890871,
+     "wasted_stone": 1872671,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:moreMouths": 1,
      "seasonsSurvived:summer": 1,
-     "cardsDrawn:palisadePromisePlea": 1,
+     "cardsDrawn:northernCrows": 1,
      "fortressAppearedAtDay": 49,
      "threatCrossed:70": 5,
      "omens": 10,
      "raids_repelled": 4,
+     "cardsDrawn:harvestFeast": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
-     "cardsDrawn:apprenticesTable": 1,
-     "cardsDrawn:commonGranaryShare": 1,
      "vigilRehearsalMarked": 1,
-     "cardsDrawn:commonGranaryOutcome": 1,
-     "seasonsSurvived:autumn": 1
+     "cardsDrawn:commonGranaryShare": 1,
+     "seasonsSurvived:autumn": 1,
+     "cardsDrawn:hordeDeserter": 1
     }
    }
   },
   {
    "day": 7,
-   "eventsSoFar": 360,
+   "eventsSoFar": 358,
    "state": {
-    "schemaVersion": 37,
+    "schemaVersion": 41,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3782,10 +4188,10 @@
     "lastProcessedAt": 604800000,
     "rng": {
      "council": [
-      254088279,
-      2199138813,
-      2636224978,
-      936507135
+      1549380446,
+      3507949991,
+      2943765869,
+      3752006513
      ],
      "horde": [
       1019401662,
@@ -3794,49 +4200,49 @@
       797501813
      ],
      "morale": [
-      3881588205,
-      3039749652,
-      1225820957,
-      2933432022
+      1963695365,
+      762819907,
+      1839371436,
+      3869336588
      ]
     },
     "ids": {
-     "battle": 9,
+     "battle": 10,
      "hero": 1,
      "item": 1
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 1600000,
-      "wood": 44509,
-      "stone": 896446,
-      "gold": 1691194,
+      "food": 1248936,
+      "wood": 40889,
+      "stone": 708448,
+      "gold": 1193560,
       "iron": 0
      },
      "accumulators": {
-      "food": 3597222,
+      "food": 2277318,
       "wood": 0,
-      "stone": 262833,
-      "gold": 3258516,
+      "stone": 1738257,
+      "gold": 3592656,
       "iron": 0
      },
      "population": {
-      "villagers": 25
+      "villagers": 20
      },
      "workers": {
-      "farm": 8,
+      "farm": 7,
       "lumberMill": 6,
       "quarry": 4,
       "goldMine": 3
      },
      "buildings": {
-      "townHall": 4,
+      "townHall": 2,
       "farm": 3,
       "lumberMill": 4,
       "quarry": 4,
       "goldMine": 3,
-      "housing": 5,
+      "housing": 3,
       "granary": 2,
       "warehouse": 1,
       "watchtower": 2,
@@ -3853,12 +4259,14 @@
      ],
      "wall": {
       "hp": {
-       "left": 100,
-       "center": 100,
-       "right": 100
+       "left": 0,
+       "center": 0,
+       "right": 0
       }
      },
      "wallRepair": null,
+     "militia": null,
+     "reconstructionUntilMs": 619200000,
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
@@ -3869,9 +4277,9 @@
      },
      "cold": null,
      "wasted": {
-      "food": 337,
-      "wood": 638,
-      "stone": 554,
+      "food": 226,
+      "wood": 747,
+      "stone": 388,
       "gold": 0,
       "iron": 0
      },
@@ -3888,12 +4296,12 @@
       "goldMine": 1
      },
      "adaptation": [],
-     "morale": 50,
+     "morale": 60,
      "moraleEffects": [
       {
-       "id": "card:collapsedWell-15:later",
-       "label": "Carta: O poço entulhado",
-       "amount": -10,
+       "id": "card:hordeDeserter-13",
+       "label": "Carta: O desertor",
+       "amount": 5,
        "untilMs": 619200000
       }
      ],
@@ -3904,19 +4312,18 @@
      "forge": null
     },
     "council": {
+     "bonuses": {
+      "smithySpeed": null,
+      "smithyBatch": null,
+      "repairDiscount": null,
+      "revealedRaidId": null
+     },
      "pending": [
       {
-       "instanceId": "firstRecruit-14",
+       "instanceId": "firstRecruit-15",
        "cardId": "firstRecruit",
        "drawnAtMs": 547200000,
        "expiresAtMs": 633600000,
-       "origin": null
-      },
-      {
-       "instanceId": "commonGranaryPlanks-16",
-       "cardId": "commonGranaryPlanks",
-       "drawnAtMs": 604800000,
-       "expiresAtMs": 691200000,
        "origin": null
       }
      ],
@@ -3924,16 +4331,15 @@
       "thawBridge.piers": true,
       "itinerant.heardOfMarket": true,
       "routine.moreMouths": true,
-      "palisadePromise.kept": true,
       "commonGranary.gifted": true
      },
-     "seenThisYear": [
-      "commonGranaryPlanks"
-     ],
+     "seenThisYear": [],
      "nextDrawAtMs": 633600000,
      "scheduled": [],
      "delayed": [],
-     "expired": []
+     "expired": [
+      "hordeDeserter-13"
+     ]
     },
     "map": {
      "tiles": {
@@ -3944,20 +4350,132 @@
       "raiderCamp": {
        "type": "raiderCamp",
        "threatActive": true
-      },
-      "hordeFortress": {
-       "type": "hordeFortress",
-       "threatActive": false
       }
      },
-     "threat": 83,
+     "threat": 79,
      "discovered": []
+    },
+    "siege": {
+     "year": 1,
+     "atMs": 590400000,
+     "waves": [
+      {
+       "number": 1,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 12
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "count": 14
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 1
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "count": 11
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "count": 2
+        }
+       ]
+      },
+      {
+       "number": 2,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "count": 15
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "wolf",
+         "count": 27
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "wolf",
+         "count": 18
+        }
+       ]
+      },
+      {
+       "number": 3,
+       "composition": [
+        {
+         "wing": "left",
+         "line": "front",
+         "unit": "skeleton",
+         "count": 29
+        },
+        {
+         "wing": "center",
+         "line": "front",
+         "unit": "warlord",
+         "count": 1
+        },
+        {
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "count": 17
+        },
+        {
+         "wing": "right",
+         "line": "front",
+         "unit": "blackKnight",
+         "count": 28
+        },
+        {
+         "wing": "right",
+         "line": "back",
+         "unit": "shaman",
+         "count": 6
+        }
+       ]
+      }
+     ],
+     "current": 1,
+     "nextWaveAtMs": null,
+     "plan": {
+      "1": null,
+      "2": null,
+      "3": null
+     },
+     "result": "fall",
+     "breached": true,
+     "deaths": 5,
+     "endedAtMs": 590400000,
+     "aftermathUntilMs": 604800000
     },
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
      "wavePlan": null,
-     "omens": []
+     "omens": [],
+     "sabotages": {
+      "attempts": 0,
+      "successes": 0,
+      "alerted": false
+     }
     },
     "guild": {
      "heroes": [
@@ -4028,6 +4546,7 @@
      "caravans": []
     },
     "army": {
+     "campaign": null,
      "units": {
       "spearman": 0,
       "swordsman": 0,
@@ -4039,77 +4558,6 @@
      "formations": [],
      "activeFormationId": null,
      "reports": [
-      {
-       "id": "battle-7",
-       "foughtAtMs": 504000000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "raider",
-         "start": 16,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 19,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 9,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 16,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 3,
-         "lost": 0
-        }
-       ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
-       "commanders": [],
-       "log": []
-      },
       {
        "id": "battle-8",
        "foughtAtMs": 540000000,
@@ -4251,6 +4699,77 @@
        ],
        "commanders": [],
        "log": []
+      },
+      {
+       "id": "battle-10",
+       "foughtAtMs": 590400000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "start": 12,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "start": 14,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "shaman",
+         "start": 1,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "start": 11,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 2,
+         "lost": 0
+        }
+       ],
+       "wall": [
+        {
+         "wing": "left",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "center",
+         "start": 100,
+         "end": 100
+        },
+        {
+         "wing": "right",
+         "start": 100,
+         "end": 100
+        }
+       ],
+       "commanders": [],
+       "log": []
       }
      ],
      "preview": null
@@ -4277,12 +4796,12 @@
     "stats": {
      "constructionsStarted:housing": 4,
      "villagersRecruited": 21,
-     "cardsDrawn": 16,
+     "cardsDrawn": 15,
      "cardsDrawn:neighborsWatch": 1,
      "constructionsStarted:townHall": 3,
      "constructionsStarted:lumberMill": 3,
      "cardsDrawn:thawBridgePlea": 1,
-     "cardsAnswered": 10,
+     "cardsAnswered": 8,
      "constructionsStarted:farm": 2,
      "plansMarkedAuto": 3,
      "constructionsStarted:quarry": 4,
@@ -4290,35 +4809,38 @@
      "cardsDrawn:thawBridgeSlab": 1,
      "raids_suffered": 3,
      "constructionsStarted:warehouse": 1,
-     "cardsExpired": 4,
+     "cardsExpired": 6,
      "cardsDrawn:woundedStranger": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 5711337,
+     "wasted_food": 5492226,
      "coldSpellsThisSeason": 0,
      "campAppearedAtDay": 25,
      "constructionsStarted:goldMine": 2,
      "constructionsStarted:granary": 2,
-     "wasted_wood": 1972638,
+     "wasted_wood": 1959747,
      "cardsDrawn:itinerantMerchant": 1,
      "cardsDrawn:fullGranary": 1,
      "threatCrossed:40": 2,
-     "wasted_stone": 2282554,
+     "wasted_stone": 2123388,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:moreMouths": 1,
      "seasonsSurvived:summer": 1,
-     "cardsDrawn:palisadePromisePlea": 1,
+     "cardsDrawn:northernCrows": 1,
      "fortressAppearedAtDay": 49,
      "threatCrossed:70": 7,
      "omens": 16,
      "raids_repelled": 6,
-     "cardsDrawn:commonGranaryPlanks": 2,
-     "cardsDrawn:apprenticesTable": 1,
-     "cardsDrawn:commonGranaryShare": 1,
+     "cardsDrawn:harvestFeast": 1,
+     "cardsDrawn:commonGranaryPlanks": 1,
      "vigilRehearsalMarked": 1,
-     "cardsDrawn:commonGranaryOutcome": 1,
+     "cardsDrawn:commonGranaryShare": 1,
      "seasonsSurvived:autumn": 1,
+     "cardsDrawn:hordeDeserter": 1,
+     "cardsDrawn:commonGranaryOutcome": 1,
      "cardsDrawn:firstRecruit": 1,
-     "cardsDrawn:collapsedWell": 1
+     "siegeWavesFought": 1,
+     "siegesFallen": 1,
+     "siegeResult:1": 0
     }
    }
   }
@@ -6046,11 +6568,11 @@
   {
    "type": "cardDrawn",
    "atMs": 345600000,
-   "text": "No 1º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.",
+   "text": "No 1º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Os corvos do norte.",
    "data": {
-    "cardId": "palisadePromisePlea",
-    "instanceId": "palisadePromisePlea-9",
-    "source": "draw"
+    "cardId": "northernCrows",
+    "instanceId": "northernCrows-9",
+    "source": "scripted"
    }
   },
   {
@@ -6058,6 +6580,15 @@
    "atMs": 345600000,
    "text": "No 1º dia do Outono, estandartes surgiram ao norte de Pedra Alta do Norte: a Fortaleza da Horda se prepara para o inverno.",
    "data": {}
+  },
+  {
+   "type": "siegeScheduled",
+   "atMs": 345600000,
+   "text": "No 1º dia do Outono, os vigias de Pedra Alta do Norte marcaram a Vigília do Cerco do Inverno.",
+   "data": {
+    "year": 1,
+    "atMs": 590400000
+   }
   },
   {
    "type": "constructionStarted",
@@ -6290,18 +6821,6 @@
    }
   },
   {
-   "type": "cardAnswered",
-   "atMs": 388800000,
-   "text": "No 7º dia do Outono, o senhor de Pedra Alta do Norte levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.",
-   "data": {
-    "cardId": "palisadePromisePlea",
-    "instanceId": "palisadePromisePlea-9",
-    "optionId": "show",
-    "morale": 20,
-    "moraleDays": 3
-   }
-  },
-  {
    "type": "recruitmentStarted",
    "atMs": 388800000,
    "text": "No 7º dia do Outono, o Salão mandou chamar novos aldeões: 1.",
@@ -6367,17 +6886,6 @@
    }
   },
   {
-   "type": "moraleBandChanged",
-   "atMs": 396000000,
-   "text": "No 8º dia do Outono, o povo de Pedra Alta do Norte anda de cabeça erguida. Fala-se do feudo nas estradas.",
-   "data": {
-    "morale": 80,
-    "band": "proud",
-    "previousMorale": 60,
-    "previousBand": "content"
-   }
-  },
-  {
    "type": "threatRose",
    "atMs": 396000000,
    "text": "No 8º dia do Outono, os vigias de Pedra Alta do Norte tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 74.",
@@ -6389,7 +6897,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 396306146,
+   "atMs": 396335303,
    "text": "No 8º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -6401,10 +6909,10 @@
   {
    "type": "storageWasted",
    "atMs": 403200000,
-   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 271 de comida e 80 de pedra.",
+   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 243 de comida e 73 de pedra.",
    "data": {
-    "wasted_food": 271,
-    "wasted_stone": 80
+    "wasted_food": 243,
+    "wasted_stone": 73
    }
   },
   {
@@ -6418,20 +6926,20 @@
   {
    "type": "cardDrawn",
    "atMs": 403200000,
-   "text": "No 9º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Tábuas para as reservas.",
+   "text": "No 9º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: A colheita de todos.",
    "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-10",
+    "cardId": "harvestFeast",
+    "instanceId": "harvestFeast-10",
     "source": "draw"
    }
   },
   {
    "type": "storageWasted",
    "atMs": 410400000,
-   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 274 de comida e 84 de pedra.",
+   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 247 de comida e 76 de pedra.",
    "data": {
-    "wasted_food": 274,
-    "wasted_stone": 84
+    "wasted_food": 247,
+    "wasted_stone": 76
    }
   },
   {
@@ -6453,10 +6961,10 @@
   {
    "type": "storageWasted",
    "atMs": 417600000,
-   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 277 de comida e 84 de pedra.",
+   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 249 de comida e 77 de pedra.",
    "data": {
-    "wasted_food": 277,
-    "wasted_stone": 84
+    "wasted_food": 249,
+    "wasted_stone": 77
    }
   },
   {
@@ -6465,17 +6973,6 @@
    "text": "Amanhece o 11º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 59
-   }
-  },
-  {
-   "type": "moraleBandChanged",
-   "atMs": 417600000,
-   "text": "No 11º dia do Outono, o orgulho de Pedra Alta do Norte arrefeceu. O povo segue contente, e só.",
-   "data": {
-    "morale": 60,
-    "band": "content",
-    "previousMorale": 80,
-    "previousBand": "proud"
    }
   },
   {
@@ -6513,7 +7010,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 427834069,
+   "atMs": 429891212,
    "text": "No 12º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -6525,10 +7022,10 @@
   {
    "type": "storageWasted",
    "atMs": 432000000,
-   "text": "No 12º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 256 de comida, 35 de madeira e 77 de pedra.",
+   "text": "No 12º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 256 de comida, 17 de madeira e 77 de pedra.",
    "data": {
     "wasted_food": 256,
-    "wasted_wood": 35,
+    "wasted_wood": 17,
     "wasted_stone": 77
    }
   },
@@ -6541,13 +7038,16 @@
    }
   },
   {
-   "type": "cardDrawn",
+   "type": "cardExpired",
    "atMs": 432000000,
-   "text": "No 13º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: A mesa dos aprendizes.",
+   "text": "No 13º dia do Outono, sem palavra do senhor, o conselho de Pedra Alta do Norte não deu importância aos corvos. O povo agradeceu o sossego e fechou as janelas mais cedo.",
    "data": {
-    "cardId": "apprenticesTable",
-    "instanceId": "apprenticesTable-11",
-    "source": "draw"
+    "cardId": "northernCrows",
+    "instanceId": "northernCrows-9",
+    "optionId": "ignore",
+    "difficulty": "lord",
+    "morale": 5,
+    "moraleDays": 2
    }
   },
   {
@@ -6559,19 +7059,6 @@
     "enemy": "wolves",
     "warning": "sized",
     "size": "strong"
-   }
-  },
-  {
-   "type": "cardAnswered",
-   "atMs": 432000000,
-   "text": "No 13º dia do Outono, o senhor de Pedra Alta do Norte cedeu madeira das obras ao celeiro. Os moradores pregaram tábuas até o anoitecer.",
-   "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-10",
-    "optionId": "cede",
-    "spent_wood": 40,
-    "morale": 5,
-    "moraleDays": 3
    }
   },
   {
@@ -6685,19 +7172,6 @@
    }
   },
   {
-   "type": "cardDrawn",
-   "atMs": 446400000,
-   "text": "No 15º dia do Outono, a madeira cedida ao celeiro de Pedra Alta do Norte virou prateleira, e o conselho voltou ao assunto: A vez de repartir.",
-   "data": {
-    "cardId": "commonGranaryShare",
-    "instanceId": "commonGranaryShare-12",
-    "source": "continuation",
-    "previousCardId": "commonGranaryPlanks",
-    "previousOptionId": "cede",
-    "previousInstanceId": "commonGranaryPlanks-10"
-   }
-  },
-  {
    "type": "storageFilled",
    "atMs": 449146976,
    "text": "No 15º dia do Outono, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
@@ -6728,10 +7202,10 @@
   {
    "type": "storageWasted",
    "atMs": 460800000,
-   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 275 de comida e 78 de pedra.",
+   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 268 de comida e 76 de pedra.",
    "data": {
-    "wasted_food": 275,
-    "wasted_stone": 78
+    "wasted_food": 268,
+    "wasted_stone": 76
    }
   },
   {
@@ -6740,6 +7214,16 @@
    "text": "Amanhece o 17º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 65
+   }
+  },
+  {
+   "type": "cardDrawn",
+   "atMs": 460800000,
+   "text": "No 17º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Tábuas para as reservas.",
+   "data": {
+    "cardId": "commonGranaryPlanks",
+    "instanceId": "commonGranaryPlanks-11",
+    "source": "draw"
    }
   },
   {
@@ -6763,7 +7247,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 466336502,
+   "atMs": 461798354,
    "text": "No 17º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -6775,11 +7259,11 @@
   {
    "type": "storageWasted",
    "atMs": 468000000,
-   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 272 de comida, 14 de madeira e 76 de pedra.",
+   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 271 de comida, 53 de madeira e 77 de pedra.",
    "data": {
-    "wasted_food": 272,
-    "wasted_wood": 14,
-    "wasted_stone": 76
+    "wasted_food": 271,
+    "wasted_wood": 53,
+    "wasted_stone": 77
    }
   },
   {
@@ -6822,11 +7306,11 @@
   {
    "type": "storageWasted",
    "atMs": 475200000,
-   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 275 de comida, 61 de madeira e 77 de pedra.",
+   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 275 de comida, 61 de madeira e 76 de pedra.",
    "data": {
     "wasted_food": 275,
     "wasted_wood": 61,
-    "wasted_stone": 77
+    "wasted_stone": 76
    }
   },
   {
@@ -6858,11 +7342,14 @@
   {
    "type": "cardAnswered",
    "atMs": 475200000,
-   "text": "No 19º dia do Outono, o senhor de Pedra Alta do Norte mandou guardar cada saco para o frio. Não houve festa nem queixa.",
+   "text": "No 19º dia do Outono, o senhor de Pedra Alta do Norte cedeu madeira das obras ao celeiro. Os moradores pregaram tábuas até o anoitecer.",
    "data": {
-    "cardId": "commonGranaryShare",
-    "instanceId": "commonGranaryShare-12",
-    "optionId": "reserve"
+    "cardId": "commonGranaryPlanks",
+    "instanceId": "commonGranaryPlanks-11",
+    "optionId": "cede",
+    "spent_wood": 40,
+    "morale": 5,
+    "moraleDays": 3
    }
   },
   {
@@ -6932,7 +7419,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 487706449,
+   "atMs": 487583043,
    "text": "No 20º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -6944,10 +7431,10 @@
   {
    "type": "storageWasted",
    "atMs": 489600000,
-   "text": "No 20º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 335 de comida e 20 de pedra.",
+   "text": "No 20º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 344 de comida e 22 de pedra.",
    "data": {
-    "wasted_food": 335,
-    "wasted_stone": 20
+    "wasted_food": 344,
+    "wasted_stone": 22
    }
   },
   {
@@ -6967,25 +7454,36 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 489600000,
+   "text": "No 21º dia do Outono, sem palavra do senhor, o conselho de Pedra Alta do Norte mandou guardar a colheita inteira. Não houve festa; trabalhou-se em silêncio.",
+   "data": {
+    "cardId": "harvestFeast",
+    "instanceId": "harvestFeast-10",
+    "optionId": "store",
+    "difficulty": "lord"
+   }
+  },
+  {
    "type": "cardDrawn",
    "atMs": 489600000,
-   "text": "No 21º dia do Outono, o saco guardado para o frio seguia fechado em Pedra Alta do Norte, e as famílias vieram ao conselho: O que ficou da escolha.",
+   "text": "No 21º dia do Outono, a madeira cedida ao celeiro de Pedra Alta do Norte virou prateleira, e o conselho voltou ao assunto: A vez de repartir.",
    "data": {
-    "cardId": "commonGranaryOutcome",
-    "instanceId": "commonGranaryOutcome-13",
+    "cardId": "commonGranaryShare",
+    "instanceId": "commonGranaryShare-12",
     "source": "continuation",
-    "previousCardId": "commonGranaryShare",
-    "previousOptionId": "reserve",
-    "previousInstanceId": "commonGranaryShare-12"
+    "previousCardId": "commonGranaryPlanks",
+    "previousOptionId": "cede",
+    "previousInstanceId": "commonGranaryPlanks-11"
    }
   },
   {
    "type": "storageWasted",
    "atMs": 496800000,
-   "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 339 de comida e 76 de pedra.",
+   "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 348 de comida e 78 de pedra.",
    "data": {
-    "wasted_food": 339,
-    "wasted_stone": 76
+    "wasted_food": 348,
+    "wasted_stone": 78
    }
   },
   {
@@ -7010,10 +7508,10 @@
   {
    "type": "storageWasted",
    "atMs": 504000000,
-   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 342 de comida e 76 de pedra.",
+   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 352 de comida e 78 de pedra.",
    "data": {
-    "wasted_food": 342,
-    "wasted_stone": 76
+    "wasted_food": 352,
+    "wasted_stone": 78
    }
   },
   {
@@ -7081,23 +7579,11 @@
    }
   },
   {
-   "type": "storageFilled",
-   "atMs": 514900998,
-   "text": "No 24º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
-   "data": {
-    "resource": "wood",
-    "building": "warehouse",
-    "level": 1,
-    "cap": 1000
-   }
-  },
-  {
    "type": "storageWasted",
    "atMs": 518400000,
-   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 350 de comida, 34 de madeira e 76 de pedra.",
+   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 350 de comida e 76 de pedra.",
    "data": {
     "wasted_food": 350,
-    "wasted_wood": 34,
     "wasted_stone": 76
    }
   },
@@ -7118,26 +7604,23 @@
    }
   },
   {
-   "type": "cardExpired",
+   "type": "cardDrawn",
    "atMs": 518400000,
-   "text": "No 1º dia do Inverno, sem palavra do senhor, os rapazes de Pedra Alta do Norte ficaram aprendendo de longe. Os velhos seguiram no trabalho, com plateia.",
+   "text": "No 1º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: O desertor.",
    "data": {
-    "cardId": "apprenticesTable",
-    "instanceId": "apprenticesTable-11",
-    "optionId": "watch",
-    "difficulty": "lord"
+    "cardId": "hordeDeserter",
+    "instanceId": "hordeDeserter-13",
+    "source": "scripted"
    }
   },
   {
    "type": "cardAnswered",
    "atMs": 518400000,
-   "text": "No 1º dia do Inverno, o senhor de Pedra Alta do Norte deixou a colheita com quem a plantou. Falou-se disso em cada casa.",
+   "text": "No 1º dia do Inverno, o senhor de Pedra Alta do Norte mandou guardar cada saco para o frio. Não houve festa nem queixa.",
    "data": {
-    "cardId": "commonGranaryOutcome",
-    "instanceId": "commonGranaryOutcome-13",
-    "optionId": "leave",
-    "morale": 10,
-    "moraleDays": 3
+    "cardId": "commonGranaryShare",
+    "instanceId": "commonGranaryShare-12",
+    "optionId": "reserve"
    }
   },
   {
@@ -7180,9 +7663,9 @@
   {
    "type": "storageWasted",
    "atMs": 532800000,
-   "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 85 de comida.",
+   "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 79 de comida.",
    "data": {
-    "wasted_food": 85
+    "wasted_food": 79
    }
   },
   {
@@ -7202,6 +7685,19 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 532800000,
+   "text": "No 3º dia do Inverno, o saco guardado para o frio seguia fechado em Pedra Alta do Norte, e as famílias vieram ao conselho: O que ficou da escolha.",
+   "data": {
+    "cardId": "commonGranaryOutcome",
+    "instanceId": "commonGranaryOutcome-14",
+    "source": "continuation",
+    "previousCardId": "commonGranaryShare",
+    "previousOptionId": "reserve",
+    "previousInstanceId": "commonGranaryShare-12"
+   }
+  },
+  {
    "type": "raidAnnounced",
    "atMs": 532800000,
    "text": "No 3º dia do Inverno, os vigias de Pedra Alta do Norte deram o alarme: lobos a caminho. Contam uma alcateia inteira.",
@@ -7215,9 +7711,9 @@
   {
    "type": "storageWasted",
    "atMs": 540000000,
-   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
+   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 78 de comida.",
    "data": {
-    "wasted_food": 84
+    "wasted_food": 78
    }
   },
   {
@@ -7266,6 +7762,18 @@
    }
   },
   {
+   "type": "cardAnswered",
+   "atMs": 540000000,
+   "text": "No 4º dia do Inverno, o senhor de Pedra Alta do Norte deixou a colheita com quem a plantou. Falou-se disso em cada casa.",
+   "data": {
+    "cardId": "commonGranaryOutcome",
+    "instanceId": "commonGranaryOutcome-14",
+    "optionId": "leave",
+    "morale": 10,
+    "moraleDays": 3
+   }
+  },
+  {
    "type": "constructionStarted",
    "atMs": 540000000,
    "text": "No 4º dia do Inverno, os pedreiros começaram a erguer as Habitações ao 5º nível.",
@@ -7308,9 +7816,9 @@
   {
    "type": "storageWasted",
    "atMs": 547200000,
-   "text": "No 4º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
+   "text": "No 4º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 78 de comida.",
    "data": {
-    "wasted_food": 84
+    "wasted_food": 78
    }
   },
   {
@@ -7327,7 +7835,7 @@
    "text": "No 5º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: O primeiro recruta.",
    "data": {
     "cardId": "firstRecruit",
-    "instanceId": "firstRecruit-14",
+    "instanceId": "firstRecruit-15",
     "source": "scripted"
    }
   },
@@ -7352,9 +7860,9 @@
   {
    "type": "storageWasted",
    "atMs": 554400000,
-   "text": "No 5º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 78 de comida.",
+   "text": "No 5º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
    "data": {
-    "wasted_food": 78
+    "wasted_food": 84
    }
   },
   {
@@ -7368,9 +7876,9 @@
   {
    "type": "storageWasted",
    "atMs": 561600000,
-   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 78 de comida.",
+   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
    "data": {
-    "wasted_food": 78
+    "wasted_food": 84
    }
   },
   {
@@ -7393,7 +7901,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 562143152,
+   "atMs": 562357015,
    "text": "No 7º dia do Inverno, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -7429,9 +7937,9 @@
   {
    "type": "storageWasted",
    "atMs": 568800000,
-   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 65 de pedra.",
+   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 66 de pedra.",
    "data": {
-    "wasted_stone": 65
+    "wasted_stone": 66
    }
   },
   {
@@ -7443,10 +7951,22 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 575757728,
+   "text": "No 8º dia do Inverno, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
+   "data": {
+    "resource": "food",
+    "building": "granary",
+    "level": 2,
+    "cap": 1600
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 576000000,
-   "text": "No 8º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 70 de pedra.",
+   "text": "No 8º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 3 de comida e 70 de pedra.",
    "data": {
+    "wasted_food": 3,
     "wasted_stone": 70
    }
   },
@@ -7456,16 +7976,6 @@
    "text": "Amanhece o 9º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 81
-   }
-  },
-  {
-   "type": "cardDrawn",
-   "atMs": 576000000,
-   "text": "No 9º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: O poço entulhado.",
-   "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-15",
-    "source": "draw"
    }
   },
   {
@@ -7480,29 +7990,18 @@
    }
   },
   {
-   "type": "storageFilled",
-   "atMs": 576337679,
-   "text": "No 9º dia do Inverno, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
-   "data": {
-    "resource": "food",
-    "building": "granary",
-    "level": 2,
-    "cap": 1600
-   }
-  },
-  {
    "type": "coldStarted",
-   "atMs": 580651962,
+   "atMs": 577284378,
    "text": "No 9º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta do Norte. O frio entrou nas casas.",
    "data": {}
   },
   {
    "type": "storageWasted",
    "atMs": 583200000,
-   "text": "No 9º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 61 de comida e 65 de pedra.",
+   "text": "No 9º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 52 de comida e 58 de pedra.",
    "data": {
-    "wasted_food": 61,
-    "wasted_stone": 65
+    "wasted_food": 52,
+    "wasted_stone": 58
    }
   },
   {
@@ -7562,30 +8061,20 @@
    }
   },
   {
-   "type": "cardAnswered",
-   "atMs": 586800000,
-   "text": "No 10º dia do Inverno, o senhor de Pedra Alta do Norte deixou o poço como estava. O povo seguiu descendo ao riacho.",
-   "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-15",
-    "optionId": "wait"
-   }
-  },
-  {
    "type": "coldEnded",
    "atMs": 586800000,
    "text": "No 10º dia do Inverno, as lareiras voltaram a arder em Pedra Alta do Norte. O frio passou.",
    "data": {
     "reason": "firewood",
-    "sinceMs": 580651962
+    "sinceMs": 577284378
    }
   },
   {
    "type": "storageWasted",
    "atMs": 590400000,
-   "text": "No 10º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 49 de comida e 57 de pedra.",
+   "text": "No 10º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 50 de comida e 57 de pedra.",
    "data": {
-    "wasted_food": 49,
+    "wasted_food": 50,
     "wasted_stone": 57
    }
   },
@@ -7627,12 +8116,49 @@
    }
   },
   {
-   "type": "storageWasted",
-   "atMs": 597600000,
-   "text": "No 11º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 73 de comida e 70 de pedra.",
+   "type": "battleFought",
+   "atMs": 590400000,
+   "text": "No 11º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
-    "wasted_food": 73,
-    "wasted_stone": 70
+    "battleId": "battle-10",
+    "playerLost": 0,
+    "hordeLost": 0,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0
+   }
+  },
+  {
+   "type": "siegeWaveFought",
+   "atMs": 590400000,
+   "text": "No 11º dia do Inverno, Pedra Alta do Norte enfrentou Os Saqueadores: Queda.",
+   "data": {
+    "year": 1,
+    "wave": 1,
+    "battleId": "battle-10",
+    "outcome": "defeat",
+    "formationId": ""
+   }
+  },
+  {
+   "type": "siegeFell",
+   "atMs": 590400000,
+   "text": "No 11º dia do Inverno, o Cerco trouxe a Queda. Pedra Alta do Norte sobrevive em ruínas; haverá outra primavera.",
+   "data": {
+    "year": 1,
+    "waves": 1,
+    "deaths": 5,
+    "lost_food": 480,
+    "lost_wood": 6.37,
+    "lost_stone": 300,
+    "lost_gold": 481.586,
+    "lost_iron": 0,
+    "villagersLost": 5,
+    "building1": "housing",
+    "levelsLost1": 2,
+    "building2": "townHall",
+    "levelsLost2": 2
    }
   },
   {
@@ -7652,21 +8178,8 @@
    }
   },
   {
-   "type": "cardEffectApplied",
-   "atMs": 597600000,
-   "text": "No 12º dia do Inverno, o poço de Pedra Alta do Norte desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.",
-   "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-15",
-    "optionId": "wait",
-    "lost_stone": 20,
-    "morale": -10,
-    "moraleDays": 3
-   }
-  },
-  {
    "type": "constructionAutoStarted",
-   "atMs": 602281573,
+   "atMs": 602444756,
    "text": "No 12º dia do Inverno, com as reservas cheias, os pedreiros começaram sozinhos a erguer a Mina de Ouro ao 3º nível.",
    "data": {
     "building": "goldMine",
@@ -7677,20 +8190,11 @@
   },
   {
    "type": "constructionFinished",
-   "atMs": 603361573,
+   "atMs": 603524756,
    "text": "No 12º dia do Inverno, os pedreiros ergueram a Mina de Ouro ao 3º nível.",
    "data": {
     "building": "goldMine",
     "level": 3
-   }
-  },
-  {
-   "type": "storageWasted",
-   "atMs": 604800000,
-   "text": "No 12º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 72 de comida e 65 de pedra.",
-   "data": {
-    "wasted_food": 72,
-    "wasted_stone": 65
    }
   },
   {
@@ -7699,6 +8203,15 @@
    "text": "Começa o ano 2 da Casa de Pedra Alta do Norte.",
    "data": {
     "year": 2
+   }
+  },
+  {
+   "type": "reconstructionStarted",
+   "atMs": 604800000,
+   "text": "No 1º dia da Primavera, começou a Primavera da Reconstrução em Pedra Alta do Norte. O custo das novas obras cai temporariamente.",
+   "data": {
+    "year": 2,
+    "untilMs": 619200000
    }
   },
   {
@@ -7718,13 +8231,16 @@
    }
   },
   {
-   "type": "cardDrawn",
+   "type": "cardExpired",
    "atMs": 604800000,
-   "text": "No 1º dia da Primavera, quem ficou com a colheita em Pedra Alta do Norte veio de martelo na mão oferecer o conserto do celeiro: Tábuas para as reservas.",
+   "text": "No 1º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta do Norte expulsou o desertor da Horda. Ele tomou a estrada do sul sem uma palavra.",
    "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-16",
-    "source": "draw"
+    "cardId": "hordeDeserter",
+    "instanceId": "hordeDeserter-13",
+    "optionId": "expel",
+    "difficulty": "lord",
+    "morale": 5,
+    "moraleDays": 2
    }
   }
  ]

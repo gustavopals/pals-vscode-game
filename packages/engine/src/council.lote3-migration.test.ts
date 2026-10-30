@@ -4,7 +4,11 @@ import { currentShape, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { settings } from './test-helpers';
 
-const frozen = import.meta.glob<string>('./__fixtures__/state-v40-smithy-forging.json', { query: '?raw', import: 'default', eager: true });
+const frozen = import.meta.glob<string>('./__fixtures__/state-v40-smithy-forging.json', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
 const old = () => JSON.parse(Object.values(frozen)[0]!);
 
 describe('passo 40 → 41 do lote 3', () => {

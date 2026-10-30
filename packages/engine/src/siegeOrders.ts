@@ -123,7 +123,9 @@ export function callMilitia(
     return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
   }
 
-  const warningMs = fromCouncil ? Math.max(0, (draft.siege?.atMs ?? nowMs) - nowMs) : watchtowerWarningMs(draft, perks!);
+  const warningMs = fromCouncil
+    ? Math.max(0, (draft.siege?.atMs ?? nowMs) - nowMs)
+    : watchtowerWarningMs(draft, perks!);
   const deadline = nowMs + warningMs;
   const qualifyingTimes: number[] = [];
 

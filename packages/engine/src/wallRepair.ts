@@ -91,13 +91,21 @@ function damagedWings(state: GameState): WingId[] {
  * ordem: sem Paliçada (`WALL_REQUIRED`), com reparo em curso (`WALL_REPAIRING`), sem nada a
  * reparar (`WALL_INTACT`) e o recurso que falta (`INSUFFICIENT_RESOURCES`). Não há cancelamento.
  */
-export function repairWall(draft: GameState, nowMs: number, events: GameEvent[], costFactor: Ratio = { num: 1, den: 1 }): Rejection | null {
+export function repairWall(
+  draft: GameState,
+  nowMs: number,
+  events: GameEvent[],
+  costFactor: Ratio = { num: 1, den: 1 },
+): Rejection | null {
   const blocked = wallRepairBlocked(draft);
   if (blocked !== null) {
     return blocked;
   }
   const quote = currentRepairQuote(draft);
-  const cost = { stone: Math.floor(quote.stone * costFactor.num / costFactor.den), gold: Math.floor(quote.gold * costFactor.num / costFactor.den) };
+  const cost = {
+    stone: Math.floor((quote.stone * costFactor.num) / costFactor.den),
+    gold: Math.floor((quote.gold * costFactor.num) / costFactor.den),
+  };
   const missing = missingResources(draft, cost);
   if (missing !== null) {
     return reject('INSUFFICIENT_RESOURCES', { missing });

@@ -1,4 +1,10 @@
-import { armyHasRoom, inAftermath, councilWarLock, applyCouncilWarEffect, councilOptionCost } from './councilWar';
+import {
+  armyHasRoom,
+  inAftermath,
+  councilWarLock,
+  applyCouncilWarEffect,
+  councilOptionCost,
+} from './councilWar';
 import { sightedRaid } from './threat';
 import { wallMissingHp } from './wallRepair';
 import {
@@ -132,9 +138,14 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
     return true;
   }
   const { settlement, council } = state;
-  if (requires.tile !== undefined && !Object.values(state.map.tiles).some((tile) => tile.type === requires.tile && tile.threatActive)) return false;
+  if (
+    requires.tile !== undefined &&
+    !Object.values(state.map.tiles).some((tile) => tile.type === requires.tile && tile.threatActive)
+  )
+    return false;
   if (requires.wallDamaged && wallMissingHp(state) === 0) return false;
-  if (requires.activeRaid && (state.army.activeFormationId === null || sightedRaid(state) === null)) return false;
+  if (requires.activeRaid && (state.army.activeFormationId === null || sightedRaid(state) === null))
+    return false;
   if (requires.phase === 'aftermath' && !inAftermath(state)) return false;
   if (requires.armyRoom !== undefined && !armyHasRoom(state, requires.armyRoom)) return false;
   if (
@@ -226,7 +237,9 @@ export function scriptedCard(state: GameState, atMs: number, catalog: Catalog): 
       (card) =>
         card.scripted !== undefined &&
         scriptedDue(state, card.scripted, atMs) &&
-        (card.recurring === true ? !state.council.seenThisYear.includes(card.id) && !isPending(state, card.id) : timesDrawn(state, card.id) === 0) &&
+        (card.recurring === true
+          ? !state.council.seenThisYear.includes(card.id) && !isPending(state, card.id)
+          : timesDrawn(state, card.id) === 0) &&
         meetsRequirements(state, card, atMs),
     ) ?? null
   );
@@ -244,7 +257,14 @@ function scriptedDue(
 ): boolean {
   if ('atGameDay' in scripted) return scripted.atGameDay <= gameDayAt(atMs);
   if ('onHallLevel' in scripted) return state.settlement.buildings.townHall >= scripted.onHallLevel;
-  if ('beforeSiege' in scripted) return state.siege !== null && state.siege.year === yearOf(atMs) && state.siege.current === 0 && state.siege.result === null && atMs < state.siege.atMs;
+  if ('beforeSiege' in scripted)
+    return (
+      state.siege !== null &&
+      state.siege.year === yearOf(atMs) &&
+      state.siege.current === 0 &&
+      state.siege.result === null &&
+      atMs < state.siege.atMs
+    );
   const wanted = 'atSeasonStart' in scripted ? scripted.atSeasonStart : scripted.atSeasonEnd;
   let days = 0;
   for (const season of balance.calendar.seasons) {
@@ -308,7 +328,10 @@ export function deliverCard(
     cardId: card.id,
     ...(heroes.length === 0 ? {} : { heroes }),
     drawnAtMs: atMs,
-    expiresAtMs: card.scripted !== undefined && 'beforeSiege' in card.scripted ? Math.min(atMs + expiryMs(draft), draft.siege!.atMs) : atMs + expiryMs(draft),
+    expiresAtMs:
+      card.scripted !== undefined && 'beforeSiege' in card.scripted
+        ? Math.min(atMs + expiryMs(draft), draft.siege!.atMs)
+        : atMs + expiryMs(draft),
     origin:
       'source' in origin
         ? null
@@ -557,7 +580,12 @@ export function applyEffects(
         break;
       }
       case 'addSoldiers': {
-        const granted = effect.fromPopulation === false ? (armyHasRoom(draft, effect.amount) ? effect.amount : 0) : grantSoldiers(draft, effect.unit, effect.amount);
+        const granted =
+          effect.fromPopulation === false
+            ? armyHasRoom(draft, effect.amount)
+              ? effect.amount
+              : 0
+            : grantSoldiers(draft, effect.unit, effect.amount);
         if (effect.fromPopulation === false) draft.army.units[effect.unit] += granted;
         if (granted > 0) {
           outcome.soldiers.push({ unit: effect.unit, amount: granted });

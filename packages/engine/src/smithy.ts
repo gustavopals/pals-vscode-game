@@ -45,11 +45,16 @@ export function smithyLevel(state: GameState): number {
  * acima do 1 somando `speedPerLevel` à produção. É uma conta só, com um arredondamento para
  * baixo, e o tempo é fixado quando o lote começa: subir o Ferreiro depois não o encurta.
  */
-export function forgeDurationMs(level: number, amount: number, factor = { num: 1, den: 1 }): number {
+export function forgeDurationMs(
+  level: number,
+  amount: number,
+  factor = { num: 1, den: 1 },
+): number {
   const { perWeaponMs, speedPerLevel } = balance.smithy;
   const steps = Math.max(0, level - 1);
   return Math.floor(
-    (amount * perWeaponMs * speedPerLevel.den * factor.den) / ((speedPerLevel.den + steps * speedPerLevel.num) * factor.num),
+    (amount * perWeaponMs * speedPerLevel.den * factor.den) /
+      ((speedPerLevel.den + steps * speedPerLevel.num) * factor.num),
   );
 }
 
@@ -140,9 +145,13 @@ export function repairDurationMs(points: number): number {
 /** Bônus lidos na encomenda: expirar não altera um lote já pago. */
 export function smithySpeedFactor(state: GameState): { num: number; den: number } {
   const bonus = state.council.bonuses.smithySpeed;
-  return bonus !== null && bonus.untilMs > state.lastProcessedAt ? bonus.factor : { num: 1, den: 1 };
+  return bonus !== null && bonus.untilMs > state.lastProcessedAt
+    ? bonus.factor
+    : { num: 1, den: 1 };
 }
 export function smithyBatchExtra(state: GameState, amount: number): number {
   const bonus = state.council.bonuses.smithyBatch;
-  return bonus !== null && bonus.untilMs > state.lastProcessedAt ? Math.max(0, Math.min(bonus.extra, balance.smithy.batchMax - amount)) : 0;
+  return bonus !== null && bonus.untilMs > state.lastProcessedAt
+    ? Math.max(0, Math.min(bonus.extra, balance.smithy.batchMax - amount))
+    : 0;
 }

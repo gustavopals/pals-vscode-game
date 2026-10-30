@@ -93,6 +93,12 @@ describe('o catálogo de teste', () => {
 describe('estado inicial do Conselho', () => {
   it('nasce vazio, com a primeira audiência 4 dias de jogo depois da fundação', () => {
     expect(newGame().council).toEqual({
+      bonuses: {
+        smithySpeed: null,
+        smithyBatch: null,
+        repairDiscount: null,
+        revealedRaidId: null,
+      },
       pending: [],
       flags: {},
       seenThisYear: [],
@@ -388,6 +394,9 @@ describe('carta roteirizada', () => {
       ['woundedStranger', { atGameDay: 13 }],
       ['itinerantMerchant', { atGameDay: 20 }],
       ['firstRecruit', { onHallLevel: 4 }],
+      ['northernCrows', { atSeasonStart: 'autumn', year: 1 }],
+      ['hordeDeserter', { atSeasonEnd: 'autumn', year: 1 }],
+      ['siegeEve', { beforeSiege: true }],
     ]);
   });
 });

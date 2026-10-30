@@ -332,12 +332,21 @@ function queueRejection(state: GameState): Rejection {
  * depósito e, por último, o recurso. As planejadas olham os mesmos motivos em outra ordem
  * (`planWait`, em `planned.ts`), com os mesmos testes.
  */
-export function upgradeQuote(state: GameState, building: BuildingId, costFactor: Ratio = { num: 1, den: 1 }): UpgradeQuote {
+export function upgradeQuote(
+  state: GameState,
+  building: BuildingId,
+  costFactor: Ratio = { num: 1, den: 1 },
+): UpgradeQuote {
   const { settlement } = state;
   const def = buildings[building];
   const fromLevel = settlement.buildings[building];
   const targetLevel = fromLevel + 1;
-  const cost = Object.fromEntries(positiveEntries(upgradeCost(building, fromLevel, state)).map(([id, amount]) => [id, Math.floor(amount * costFactor.num / costFactor.den)]));
+  const cost = Object.fromEntries(
+    positiveEntries(upgradeCost(building, fromLevel, state)).map(([id, amount]) => [
+      id,
+      Math.floor((amount * costFactor.num) / costFactor.den),
+    ]),
+  );
   const missing = missingResources(state, cost) ?? {};
 
   let blocked: Rejection | null;

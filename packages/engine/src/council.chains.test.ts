@@ -978,6 +978,8 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     // Neste ano o pedido não volta (já saiu). No seguinte, volta, e com outro texto.
     expect(pleaIsEligible(withdrawn.state, 8 * DAY)).toBe(false);
     const nextYear = advanceTo(withdrawn.state, YEAR + DAY).state;
+    // Com o Cerco (V4G), a Queda danifica o Salão; restabelece o nível 3 para testar o Conselho no ano seguinte.
+    nextYear.settlement.buildings.townHall = 3;
     expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(true);
     const again = dealt(nextYear, 'palisadePromisePlea');
     expect(shown(again.state, 'palisadePromisePlea')?.text).toBe(
@@ -1017,6 +1019,8 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     expect(state.settlement.moraleEffects).toEqual([]);
     // No ano seguinte os aldeões pedem de novo, com o texto de sempre: nada foi prometido.
     const nextYear = advanceTo(explained.state, YEAR + DAY).state;
+    // Com o Cerco (V4G), a Queda danifica o Salão; restabelece o nível 3 para testar o Conselho no ano seguinte.
+    nextYear.settlement.buildings.townHall = 3;
     expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(true);
     expect(
       shown(dealt(nextYear, 'palisadePromisePlea').state, 'palisadePromisePlea')?.text,

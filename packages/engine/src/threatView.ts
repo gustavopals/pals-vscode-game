@@ -45,7 +45,6 @@ import {
   threatSources,
   watchtowerLevel,
   watchtowerPerks,
-  watchtowerWarningMs,
 } from './threat';
 import type {
   BuildingId,
@@ -619,7 +618,10 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
     costText: incomingCostText(state, raid.enemy, sizes, timeScale, raidInjures(raid)),
     // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
     defenseText: incomingDefenseText(palisadeAtRaid(state, raid.atMs), sizes),
-    compositionText: incomingCompositionText(raid, state.council.bonuses.revealedRaidId === raid.id ? { ...perks, composition: 'exact' } : perks),
+    compositionText: incomingCompositionText(
+      raid,
+      state.council.bonuses.revealedRaidId === raid.id ? { ...perks, composition: 'exact' } : perks,
+    ),
   };
 }
 

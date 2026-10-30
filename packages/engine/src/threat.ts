@@ -232,4 +232,3 @@ export function sightedRaid(state: GameState): ScheduledRaid | null {
     .sort((a, b) => a.atMs - b.atMs);
   return raid ?? null;
 }
-

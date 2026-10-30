@@ -54,7 +54,12 @@ function smithyText(state: GameState): string {
   if (level > 0) {
     const speed = smithySpeedFactor(state);
     const extra = smithyBatchExtra(state, 1);
-    const bonus = [speed.num === speed.den ? '' : `× ${decimal(speed.num / speed.den)} (a filha do ferreiro)`, extra === 0 ? '' : `+${extra} arma por lote, até ${rules.batchMax}`].filter(Boolean).join('; ');
+    const bonus = [
+      speed.num === speed.den ? '' : `× ${decimal(speed.num / speed.den)} (a filha do ferreiro)`,
+      extra === 0 ? '' : `+${extra} arma por lote, até ${rules.batchMax}`,
+    ]
+      .filter(Boolean)
+      .join('; ');
     return `${label} Nv${level}: ${costPerWeaponText}, em lotes de até ${rules.batchMax}.${bonus === '' ? '' : ` ${bonus}.`}`;
   }
   const townHall = requires.townHall;
@@ -197,7 +202,9 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
             amount: forge.kind === 'weapons' ? forge.amount + (forge.extra ?? 0) : forge.points,
             label:
               forge.kind === 'weapons'
-                ? fillText(equipmentTexts.forgeWeapons, { armas: weaponsText(forge.amount + (forge.extra ?? 0)) })
+                ? fillText(equipmentTexts.forgeWeapons, {
+                    armas: weaponsText(forge.amount + (forge.extra ?? 0)),
+                  })
                 : fillText(equipmentTexts.forgeRepair, {
                     item: itemDefOf(forge.item)?.label ?? 'um item',
                     pontos: plural(forge.points, 'ponto', 'pontos'),
@@ -212,7 +219,10 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
             cancelLabel: forge.kind === 'weapons' ? `Cancelar (devolve ${refundPercent()}%)` : '',
           },
     repairOffer: repairOffer(state, timeScale),
-    perWeaponSeconds: level > 0 ? realSecondsCeil(forgeDurationMs(level, 1, smithySpeedFactor(state)), timeScale) : 0,
+    perWeaponSeconds:
+      level > 0
+        ? realSecondsCeil(forgeDurationMs(level, 1, smithySpeedFactor(state)), timeScale)
+        : 0,
     offer: {
       maxAmount: maxAmount(state),
       options: Array.from({ length: rules.batchMax }, (_, index) => {
@@ -220,14 +230,22 @@ export function smithyView(state: GameState, timeScale: number): SmithyView {
         return {
           amount,
           costText: `${batchCostText(amount)}${smithyBatchExtra(state, amount) === 0 ? '' : `; rende ${amount + smithyBatchExtra(state, amount)} armas`}`,
-          seconds: level > 0 ? realSecondsCeil(forgeDurationMs(level, amount, smithySpeedFactor(state)), timeScale) : 0,
+          seconds:
+            level > 0
+              ? realSecondsCeil(forgeDurationMs(level, amount, smithySpeedFactor(state)), timeScale)
+              : 0,
           affordable: missingResources(state, forgeCost(amount)) === null,
         };
       }),
       batchMax: rules.batchMax,
       costText: costPerWeaponText,
       batchSeconds:
-        level > 0 ? realSecondsCeil(forgeDurationMs(level, rules.batchMax, smithySpeedFactor(state)), timeScale) : 0,
+        level > 0
+          ? realSecondsCeil(
+              forgeDurationMs(level, rules.batchMax, smithySpeedFactor(state)),
+              timeScale,
+            )
+          : 0,
       blockedReason:
         level > 0 && settlement.forge === null && maxAmount(state) === 0
           ? `O estoque não paga nem uma arma: ela pede ${costPerWeaponText.replace(' por arma', '')}.`

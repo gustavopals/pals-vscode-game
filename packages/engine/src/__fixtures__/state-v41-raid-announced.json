@@ -1,0 +1,717 @@
+{
+ "schemaVersion": 41,
+ "seed": "fixture-raid-announced",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 353220000,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 353220000,
+ "rng": {
+  "council": [
+   3652662601,
+   775434766,
+   552653019,
+   4145674390
+  ],
+  "horde": [
+   1658547236,
+   2039543369,
+   647698065,
+   2168442764
+  ]
+ },
+ "ids": {
+  "battle": 3,
+  "hero": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 500000,
+   "wood": 500000,
+   "stone": 105000,
+   "gold": 203767,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 1500000,
+   "wood": 0,
+   "stone": 0,
+   "gold": -1200000,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 2,
+   "palisade": 1,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "militia": null,
+  "reconstructionUntilMs": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 6109,
+   "wood": 3396,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "bonuses": {
+   "smithySpeed": null,
+   "smithyBatch": null,
+   "repairDiscount": null,
+   "revealedRaidId": null
+  },
+  "pending": [
+   {
+    "instanceId": "sawmillRest-6",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 288000000,
+    "expiresAtMs": 374400000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "itinerant.heardOfMarket": true
+  },
+  "seenThisYear": [
+   "kingsTax",
+   "thawBridgePlea",
+   "woundedStranger",
+   "itinerantMerchant",
+   "refugeesAtGates",
+   "sawmillRest"
+  ],
+  "nextDrawAtMs": 374400000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "kingsTax-1",
+   "thawBridgePlea-2",
+   "woundedStranger-3",
+   "itinerantMerchant-4",
+   "refugeesAtGates-5"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   },
+   "raiderCamp": {
+    "type": "raiderCamp",
+    "threatActive": true
+   },
+   "hordeFortress": {
+    "type": "hordeFortress",
+    "threatActive": true
+   }
+  },
+  "threat": 70,
+  "discovered": []
+ },
+ "siege": {
+  "year": 1,
+  "atMs": 590400000,
+  "waves": [
+   {
+    "number": 1,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "count": 12
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 14
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 1
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 11
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 2
+     }
+    ]
+   },
+   {
+    "number": 2,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "ogre",
+      "count": 15
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "count": 27
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "count": 18
+     }
+    ]
+   },
+   {
+    "number": 3,
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 29
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "warlord",
+      "count": 1
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 17
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "skeleton",
+      "count": 28
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "shaman",
+      "count": 6
+     }
+    ]
+   }
+  ],
+  "current": 0,
+  "nextWaveAtMs": 590400000,
+  "plan": {
+   "1": null,
+   "2": null,
+   "3": null
+  },
+  "result": null,
+  "breached": false,
+  "deaths": 0,
+  "endedAtMs": null,
+  "aftermathUntilMs": null
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "threat-4",
+    "atMs": 360000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "composition": [
+     {
+      "wing": "left",
+      "line": "front",
+      "unit": "blackKnight",
+      "count": 3
+     },
+     {
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "count": 7
+     },
+     {
+      "wing": "center",
+      "line": "back",
+      "unit": "shaman",
+      "count": 3
+     },
+     {
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "count": 6
+     },
+     {
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "count": 1
+     }
+    ],
+    "announcedAtMs": 352800000
+   }
+  ],
+  "lastFormationSeen": null,
+  "wavePlan": {
+   "year": 1,
+   "revision": 1,
+   "generatedAtMs": 345600000,
+   "waves": [
+    {
+     "number": 1,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "raider",
+       "count": 12
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "raider",
+       "count": 14
+      },
+      {
+       "wing": "center",
+       "line": "back",
+       "unit": "shaman",
+       "count": 1
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "raider",
+       "count": 11
+      },
+      {
+       "wing": "right",
+       "line": "back",
+       "unit": "banditArcher",
+       "count": 2
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "ogre",
+       "count": 15
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "wolf",
+       "count": 27
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "wolf",
+       "count": 18
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "composition": [
+      {
+       "wing": "left",
+       "line": "front",
+       "unit": "blackKnight",
+       "count": 29
+      },
+      {
+       "wing": "center",
+       "line": "front",
+       "unit": "warlord",
+       "count": 1
+      },
+      {
+       "wing": "center",
+       "line": "back",
+       "unit": "shaman",
+       "count": 17
+      },
+      {
+       "wing": "right",
+       "line": "front",
+       "unit": "skeleton",
+       "count": 28
+      },
+      {
+       "wing": "right",
+       "line": "back",
+       "unit": "shaman",
+       "count": 6
+      }
+     ]
+    }
+   ]
+  },
+  "omens": [
+   {
+    "atMs": 352800000,
+    "revision": 1,
+    "clarity": "vague",
+    "wave": 3,
+    "text": "A terra treme ao anoitecer: a Horda trará muitos cavaleiros.",
+    "reveals": []
+   }
+  ],
+  "sabotages": {
+   "attempts": 0,
+   "successes": 0,
+   "alerted": false
+  }
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "warrior",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "loyal"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 230400000,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "extraOffer": false,
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "effects": [],
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "campaign": null,
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [
+   {
+    "id": "battle-1",
+    "foughtAtMs": 108000000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "wolf",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "wolf",
+      "start": 10,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "wolf",
+      "start": 7,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-2",
+    "foughtAtMs": 172800000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-3",
+    "foughtAtMs": 259200000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   }
+  ],
+  "preview": null
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "answerFirstCard"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 6,
+  "cardsDrawn:kingsTax": 1,
+  "wasted_food": 3292109,
+  "cardsDrawn:thawBridgePlea": 1,
+  "wasted_wood": 1771396,
+  "raids_repelled": 3,
+  "cardsExpired": 5,
+  "cardsDrawn:woundedStranger": 1,
+  "coldSpellsThisSeason": 0,
+  "cardsDrawn:itinerantMerchant": 1,
+  "campAppearedAtDay": 25,
+  "threatCrossed:40": 2,
+  "cardsDrawn:refugeesAtGates": 1,
+  "cardsDrawn:sawmillRest": 1,
+  "seasonsSurvived:summer": 1,
+  "fortressAppearedAtDay": 49,
+  "threatCrossed:70": 1,
+  "omens": 1
+ }
+}

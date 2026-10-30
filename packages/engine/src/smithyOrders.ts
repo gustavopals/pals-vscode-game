@@ -57,10 +57,11 @@ export function forgeWeapons(
     return reject('INSUFFICIENT_RESOURCES', { missing });
   }
   payResources(draft, cost);
+  const extra = smithyBatchExtra(draft, amount);
   draft.settlement.forge = {
     kind: 'weapons',
     amount,
-    extra: smithyBatchExtra(draft, amount),
+    ...(extra > 0 ? { extra } : {}),
     startedAtMs: nowMs,
     endsAtMs: nowMs + forgeDurationMs(level, amount, smithySpeedFactor(draft)),
   };
