@@ -2,6 +2,7 @@ import { type ChroniclePlaceholder, chronicleTemplates } from '@lotg/content';
 
 import { calendarAt, ofSeason, seasonWithArticle } from './clock';
 import type { GameEvent, GameEventType, GameState } from './types';
+import { recordYearEvent } from './yearStats';
 
 type PhraseParams = Partial<Record<ChroniclePlaceholder, string | number>>;
 
@@ -45,5 +46,6 @@ export function emit(
   params: PhraseParams = {},
   template?: string,
 ): void {
+  recordYearEvent(state, type, data);
   events.push({ type, atMs, text: narrate(type, state, atMs, params, template), data });
 }

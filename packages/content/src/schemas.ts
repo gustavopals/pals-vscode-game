@@ -801,6 +801,15 @@ const balanceFields = z.strictObject({
       takesDamage: ratio,
     }),
   }),
+  score: z.strictObject({
+    populationMax: nonNegInt,
+    battlesWon: nonNegInt,
+    expeditions: nonNegInt,
+    cards: nonNegInt,
+    siegeVictory: nonNegInt,
+    siegeGlorious: nonNegInt,
+    feat: nonNegInt,
+  }),
   siege: z
     .strictObject({
       waveIntervalRealMs: positiveInt,

@@ -162,3 +162,5 @@ export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';
 export { campaignTexts } from './campaign';
 
 export { siegeTexts } from './siege';
+export { feats, featRules, yearChronicleTexts } from './feats';
+export type { FeatId } from './feats';

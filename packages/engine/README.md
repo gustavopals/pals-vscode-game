@@ -111,6 +111,21 @@ A fome congela a fila de recrutamento e recusa ordens novas; a produção cai pa
 
 ## Estações, lenha e frio
 
+### Fecho anual (V4G-T3)
+
+Na virada anual, `processCalendar` emite `yearEnded` depois de `restoreTiles` e
+antes da subida da Ameaça. `yearEnd.ts` calcula estatísticas, resultado do cerco,
+pontuação e os seis Feitos sem sorteio. A população máxima usa `inhabitants`;
+`yearStats.ts` conta batalhas reais, envios de expedição, cartas resolvidas e
+acontecimentos dos Feitos na emissão dos eventos. O ensaio e a primeira onda
+registram os efetivos que permitem conferir A Finta.
+
+Os pesos e textos ficam no conteúdo (`balance.score`, `feats.ts`). `stats` já é
+um mapa aberto: os contadores `chronicle:*` são zerados ao fechar o ano, e o
+documento completo fica nos eventos, sem lista nova no estado ou migração.
+Partidas que já passaram da virada não recebem fecho retroativo. Critérios e
+pesos ainda não definidos pelo autor: propostas G-15/G-16 nas pendências.
+
 Os números são os de `balance.calendar.seasons[].effects` e `balance.winter` (GDD §4.1; [ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 13 e 13a). O motor não conhece o nome de estação nenhuma: lê os efeitos da que está em vigor em `lastProcessedAt`.
 
 - **Produção.** O fator da estação é um dos fatores de `productionFactors` e vale a partir do instante exato da virada: toda virada de dia já é um evento da linha do tempo, então nenhum trecho atravessa uma estação.

@@ -47,6 +47,7 @@ import type {
 } from './types';
 import { MILLI } from './units';
 import { vigilAt } from './vigil';
+import { recordYearRehearsal } from './yearStats';
 
 /**
  * As incursões (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20): a do roteiro do ano 1, o
@@ -417,6 +418,9 @@ function fightRaid(
     },
     draft.settlement.militia?.count ?? 0,
   );
+  if (warRaids.scripted.some((entry) => entry.rehearsal && entry.id === raid.id)) {
+    recordYearRehearsal(draft, defender.posts);
+  }
   const { id, resolution } = fightBattle(draft, {
     mode: 'defense',
     player: defender,
