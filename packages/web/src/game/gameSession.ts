@@ -600,6 +600,10 @@ export class GameSession {
       // O prazo de cada carta do Conselho (é quando ela sai da mesa e a Crônica conta o que o
       // conselho fez) e a próxima audiência, que pode trazer outra.
       ...view.council.pending.map((card) => card.expiresInSeconds),
+      ...view.pendingDecisions
+        .filter((decision) => decision.kind === 'siegeWave')
+        .map((decision) => decision.expiresInSeconds),
+      view.siege?.nextWaveInSeconds,
       view.council.nextAudienceInSeconds,
       // A chegada da incursão que os vigias avistaram (é quando a Crônica conta o desfecho) e o
       // instante em que o próximo ferido sara e volta ao ofício.

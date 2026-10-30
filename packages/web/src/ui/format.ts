@@ -624,8 +624,7 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       title: `Soldo em atraso em ${name}`,
     };
   }
-  // As decisões pendentes são as cartas do Conselho e as encruzilhadas de expedição, juntas:
-  // a linha conta as duas e traz o prazo da que vence primeiro; o clique leva à aba dela.
+  // A linha conta cartas, encruzilhadas e ondas do Cerco e leva à aba do menor prazo.
   const decisions = [...view.pendingDecisions].sort(
     (a, b) => a.expiresInSeconds - b.expiresInSeconds,
   );
@@ -636,7 +635,8 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
     );
     const cards = cardDecisions(view).length;
-    const crossroads = decisions.length - cards;
+    const crossroads = crossroadsDecisions(view).length;
+    const siege = decisions.filter((decision) => decision.kind === 'siegeWave').length;
     const where = [
       ...(cards === 0
         ? []
@@ -648,13 +648,14 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
               ? 'A equipe espera na encruzilhada, na aba Guilda.'
               : 'As equipes esperam na encruzilhada, na aba Guilda.',
           ]),
+      ...(siege === 0 ? [] : ['A decisão entre ondas está na aba Hoje.']),
     ];
     return {
       bar: {
-        // O ícone é o do assunto que vence primeiro: a carta ou a encruzilhada.
-        text: `$(${soonest.kind === 'card' ? 'law' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
         tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
-        target: soonest.kind === 'card' ? 'council' : 'guild',
+        target:
+          soonest.kind === 'card' ? 'council' : soonest.kind === 'siegeWave' ? 'today' : 'guild',
       },
       title: null,
     };

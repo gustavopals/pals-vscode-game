@@ -25,6 +25,34 @@ import { memoryStore } from './services/store';
 /** O `ViewState` de exemplo dos testes: o golden do motor (importar `@lotg/engine` é barrado). */
 export const goldenView = golden.afterFirstAllocation as unknown as ViewState;
 export const initialView = golden.initial as unknown as ViewState;
+/** Uma decisão pública entre ondas, sem a tela completa do Cerco (V4G-T2.7). */
+export const siegeWaveView: ViewState = {
+  ...initialView,
+  siege: {
+    year: 1,
+    scheduledInSeconds: 0,
+    current: 1,
+    nextWaveInSeconds: 3600,
+    plan: { 1: null, 2: null, 3: null },
+    result: null,
+    resultText: null,
+    waves: [
+      { number: 1, title: 'Primeira onda', omens: [] },
+      { number: 2, title: 'Segunda onda', omens: [] },
+      { number: 3, title: 'Terceira onda', omens: [] },
+    ],
+  },
+  pendingDecisions: [
+    {
+      kind: 'siegeWave',
+      id: 'siege-1-2',
+      title: 'Entre ondas',
+      wave: 2,
+      expiresInSeconds: 3600,
+      options: [{ formationId: null, label: 'Defesa ativa', selected: true }],
+    },
+  ],
+};
 /** O outono a quatro horas do inverno, com lenha que não chega: a conta vem em `nextSeason`. */
 export const autumnView = golden.autumnBeforeWinter as unknown as ViewState;
 /** O inverno sem madeira nenhuma: o frio. */
