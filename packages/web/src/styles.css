@@ -1418,9 +1418,14 @@ progress::-webkit-progress-value {
   gap: 8px;
 }
 
+/* As mesmas linhas das outras páginas de documento (`.document li`), sem marcador por cima. */
 .news-entry ul {
-  padding-left: 20px;
-  list-style: disc;
+  padding-left: 0;
+  list-style: none;
+}
+
+.news-entry li {
+  padding-left: 0;
 }
 
 .news-draft-note {
@@ -1428,7 +1433,7 @@ progress::-webkit-progress-value {
   border-left: 2px solid var(--vscode-editorWarning-foreground);
 }
 
-#news-title:focus {
+#news-title:focus-visible {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: 3px;
 }
