@@ -13,6 +13,7 @@ import {
   type CommandType,
   type GameEvent,
   type ReturnReport,
+  type StatsResponse,
   type VersionResponse,
   type ViewState,
 } from '@lotg/protocol';
@@ -179,6 +180,9 @@ export type AttemptOptions = {
 };
 
 /** Um documento carregado sob demanda (Crônica, dados do servidor). */
+/** O Reino lê `/stats` no máximo uma vez por este intervalo (ADR 0021). */
+export const STATS_EVERY_MS = 60_000;
+
 export type Loadable<T> =
   | { status: 'idle' }
   | { status: 'loading' }
@@ -233,6 +237,16 @@ export class Controller {
   toasts: Toast[] = [];
   chronicleDocument: Loadable<string> = { status: 'idle' };
   server: Loadable<VersionResponse> = { status: 'idle' };
+  /** A aba Reino: os totais, o ranking de ouro e o jogador (`GET /stats`, ADR 0021). */
+  stats: Loadable<StatsResponse> = { status: 'idle' };
+  /**
+   * Se os feudos da conta aparecem no ranking (`GET /me/ranking`), para as Preferências; `null`
+   * enquanto não foi lido. `rankingSaving` marca a mudança a caminho do servidor.
+   */
+  rankingListed: boolean | null = null;
+  rankingSaving = false;
+  /** Quando a última leitura de `/stats` saiu: no máximo uma por minuto (`STATS_EVERY_MS`). */
+  private statsReadAt = Number.NEGATIVE_INFINITY;
   /**
    * As opções de nova partida (`GET /catalog`): dificuldades, ritmos e o que vem marcado. Sem
    * elas (sem ligação, servidor de uma versão anterior), as boas-vindas ficam como na v0.1 e o
@@ -344,6 +358,7 @@ export class Controller {
       this.session.onReturnReport((report) => this.reportArrived(report)),
       this.session.onReturnWhileOpen((report) => this.reportArrivedWhileOpen(report)),
       this.session.onProblem((error) => this.problemArrived(error)),
+      this.session.onCycle(() => this.refreshStatsIfShown()),
     ];
   }
 
@@ -430,6 +445,7 @@ export class Controller {
   setVisible(visible: boolean): void {
     this.visible = visible;
     this.session.setVisible(visible);
+    this.refreshStatsIfShown();
   }
 
   /** O navegador avisou que a rede voltou: sincroniza na hora, sem esperar o recuo. */
@@ -540,6 +556,12 @@ export class Controller {
     if (route === 'about' && this.server.status !== 'ready') {
       void this.loadServerInfo();
     }
+    if (route === 'kingdom') {
+      void this.loadStats();
+    }
+    if (route === 'settings') {
+      void this.loadRankingPreference();
+    }
     this.loadCatalogIfShown();
     this.changes.emit();
   }
@@ -603,6 +625,12 @@ export class Controller {
       }
       this.chronicle = [];
       this.councilLog = EMPTY_COUNCIL_LOG;
+      // O Reino e a preferência do ranking são da conta: outra conta (ou outro feudo) lê de novo.
+      this.stats = { status: 'idle' };
+      this.statsReadAt = Number.NEGATIVE_INFINITY;
+      if (leftAccount) {
+        this.rankingListed = null;
+      }
       this.chronicleDocument = { status: 'idle' };
       this.report = null;
       this.unseen = 0;
@@ -636,6 +664,9 @@ export class Controller {
       this.route = this.defaultRoute();
     }
     this.loadCatalogIfShown();
+    if (state.kind !== 'signedOut' && this.route === 'kingdom') {
+      void this.loadStats();
+    }
     this.changes.emit();
   }
 
@@ -2056,5 +2087,99 @@ export class Controller {
       this.server = { status: 'error', message: describeError(error).message };
     }
     this.changes.emit();
+  }
+
+  // --- Reino: estatísticas e ranking (ADR 0021) ------------------------------------
+
+  /**
+   * Com a aba Reino aberta e à vista, a leitura de `/stats` acompanha o ciclo das leituras do
+   * feudo, no máximo uma vez por minuto (o servidor guarda a consulta pelo mesmo minuto). Fora
+   * dela, nada é lido.
+   */
+  private refreshStatsIfShown(): void {
+    if (
+      this.route === 'kingdom' &&
+      this.visible &&
+      this.now() - this.statsReadAt >= STATS_EVERY_MS
+    ) {
+      void this.loadStats();
+    }
+  }
+
+  /** Lê os totais do reino, o ranking e o que é do jogador. `force` ignora o minuto. */
+  async loadStats(force = false): Promise<void> {
+    if (this.account.state.kind === 'signedOut' || this.stats.status === 'loading') {
+      return;
+    }
+    if (!force && this.stats.status === 'ready' && this.now() - this.statsReadAt < STATS_EVERY_MS) {
+      return;
+    }
+    this.statsReadAt = this.now();
+    if (this.stats.status !== 'ready') {
+      this.stats = { status: 'loading' };
+      this.changes.emit();
+    }
+    try {
+      const value = await this.client.getStats();
+      this.stats = { status: 'ready', value };
+      this.rankingListed = value.me.listed;
+    } catch (error) {
+      if (this.stats.status !== 'ready') {
+        this.stats = { status: 'error', message: describeError(error).message };
+      }
+    }
+    this.changes.emit();
+  }
+
+  /** Lê se a conta está no ranking, para a opção das Preferências. */
+  async loadRankingPreference(): Promise<void> {
+    if (this.account.state.kind === 'signedOut' || this.rankingSaving) {
+      return;
+    }
+    try {
+      const { listed } = await this.client.getRankingPreference();
+      if (!this.rankingSaving) {
+        this.rankingListed = listed;
+        this.changes.emit();
+      }
+    } catch (error) {
+      this.log(`Preferência do ranking não lida: ${describeError(error).message}`);
+    }
+  }
+
+  /**
+   * Sai do ranking de ouro ou volta a ele. Vale para todos os feudos da conta, na hora; o
+   * Reino aberto lê de novo para mostrar a lista sem o feudo.
+   */
+  async setRankingListed(listed: boolean): Promise<void> {
+    if (this.account.state.kind === 'signedOut' || this.rankingSaving) {
+      return;
+    }
+    const before = this.rankingListed;
+    this.rankingSaving = true;
+    this.rankingListed = listed;
+    this.changes.emit();
+    try {
+      const saved = await this.client.setRankingListed(listed);
+      this.rankingListed = saved.listed;
+      this.toast({
+        kind: 'info',
+        text: saved.listed
+          ? 'Seu feudo voltou ao ranking de ouro.'
+          : 'Seu feudo saiu do ranking de ouro. Os totais do reino continuam anônimos.',
+      });
+    } catch (error) {
+      this.rankingListed = before;
+      this.toast({
+        kind: 'error',
+        text: `Não deu para mudar o ranking: ${describeError(error).message}`,
+      });
+    } finally {
+      this.rankingSaving = false;
+      this.changes.emit();
+    }
+    if (this.stats.status === 'ready' || this.route === 'kingdom') {
+      await this.loadStats(true);
+    }
   }
 }

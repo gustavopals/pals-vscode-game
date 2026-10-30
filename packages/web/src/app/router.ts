@@ -8,6 +8,7 @@ export const ROUTES = [
   'market',
   'army',
   'chronicle',
+  'kingdom',
   'settings',
   'about',
 ] as const;
@@ -24,7 +25,8 @@ export const GAME_ROUTES: readonly Route[] = [
   'chronicle',
 ];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
-export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'settings', 'about'];
+/** O Reino (estatísticas e ranking, ADR 0021) é da conta, e não do feudo: abre também sem um. */
+export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'kingdom', 'settings', 'about'];
 
 const PATHS: Record<Route, string> = {
   welcome: 'boas-vindas',
@@ -35,6 +37,7 @@ const PATHS: Record<Route, string> = {
   market: 'mercado',
   army: 'exercito',
   chronicle: 'cronica',
+  kingdom: 'reino',
   settings: 'preferencias',
   about: 'sobre',
 };
@@ -48,6 +51,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   market: 'Mercado',
   army: 'Exército',
   chronicle: 'Crônica',
+  kingdom: 'Reino',
   settings: 'Preferências',
   about: 'Sobre',
 };
@@ -61,6 +65,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   market: 'tag',
   army: 'organization',
   chronicle: 'book',
+  kingdom: 'graph',
   settings: 'gear',
   about: 'info',
 };

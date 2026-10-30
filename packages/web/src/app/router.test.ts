@@ -140,8 +140,8 @@ describe('visibleTabs', () => {
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
 
-  it('só Crônica, Preferências e Sobre podem ser fechadas', () => {
-    expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'settings']);
+  it('só Crônica, Reino, Preferências e Sobre podem ser fechadas', () => {
+    expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'kingdom', 'settings']);
     expect([...GAME_ROUTES].sort()).toEqual([
       'army',
       'chronicle',

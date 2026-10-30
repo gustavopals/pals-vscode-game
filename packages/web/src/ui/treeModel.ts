@@ -835,6 +835,7 @@ function accountNode(account: AccountState, githubAvailable: boolean): TreeNode 
       'lords.generateRecoveryCode',
       'key',
     ),
+    action('kingdom', 'Reino: estatísticas e ranking', 'lords.openKingdom', 'graph'),
     action('privacy', 'Privacidade', 'lords.privacy', 'lock'),
     action('signOut', 'Sair desta máquina', 'lords.signOut', 'sign-out'),
     action('delete', 'Excluir conta…', 'lords.deleteAccount', 'trash'),
