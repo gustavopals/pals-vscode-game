@@ -1730,7 +1730,7 @@ describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', ()
       // Ninguém mandou erguer o Mercado: nada dele acontece sozinho, por mais dias que passem.
       expect(row.state.settlement.buildings.market).toBe(0);
       // O ferro do Mercado (V4B-T1, versão 25) é conferido no motor; aqui, o resto.
-      expect(withoutIron(row.state.market)).toEqual(NO_MARKET);
+      expect(withoutIron(beforeSecondJoin(row.state).market)).toEqual(NO_MARKET);
       expect(row.state.rng.market).toBeUndefined();
       expect(
         await countRows(app.pool, 'game_events', `game_id = '${game.id}' and kind like 'market%'`),

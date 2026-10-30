@@ -404,6 +404,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
       lastFormationSeen: null,
       wavePlan: null,
       omens: [],
+      // Segunda junção, estado 38: a migração não inventa tentativas de sabotagem.
+      sabotages: { attempts: 0, successes: 0, alerted: false },
     });
     expect(row.state.settlement.buildings.watchtower).toBe(0);
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);

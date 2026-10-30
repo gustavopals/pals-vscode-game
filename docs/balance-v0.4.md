@@ -1044,6 +1044,13 @@ Nos testes históricos, o ajudante que reconstrói a forma antiga retira também
 forma inválida passa a remover esse campo, em vez de usar uma lista vazia
 agora válida. Os passos antigos e suas guardas permanecem preservados.
 
+No servidor, `beforeSecondJoin` faz a mesma projeção nas comparações históricas,
+inclusive a do Mercado ainda por construir depois do job; o retrato de Ameaça
+da versão 8 passa a esperar os contadores de sabotagem zerados. A releitura usa
+`CURRENT_SCHEMA_VERSION`, sem fixar 37. Integração e navegador não foram rodados
+neste fechamento: os bancos estão fora do ar, sem Docker. A leitura dos testes
+em `tests/e2e` não encontrou comparações de estado histórico a ajustar.
+
 Na conferência completa de 2026-10-29, os testes de `council.effects.test.ts`
 passaram a verificar a cotação intacta na escolha e os fatores compostos somente
 na virada seguinte, comparando passeio, dia da cotação e RNG com uma cópia sem
