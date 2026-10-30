@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> **Segunda junção da v0.4 (2026-10-28): estado 38, protocolo 3.**
+> **Segunda junção da v0.4 (2026-10-28 a 2026-10-30): estado 38, protocolo 3.**
 > Branch local `v4-juncao2`, sobre `7cbdad1`, sem junção ao main ou publicação.
 > Integra as treze cartas abaixo e a sabotagem da Fortaleza. A medição e os
 > registros desta junção estão em `docs/balance-v0.4.md`, seção 19, “Segunda junção”.

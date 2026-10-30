@@ -1198,6 +1198,13 @@ e o Curandeiro errante (requisitos de heróis livres/feridos). Seus ramos são
 cobertos pelos testes do motor; uma carta nova fora dessa lista precisa
 aparecer na simulação, mesmo quando depende de flag.
 
+Entre as sorteáveis independentes, o Mapa rasgado (peso 1) aparece em 10 das
+50 partidas do Normal e o Mercador Misterioso em cinco (exige Guilda e Mercado
+no verão). Seus pisos passam a 10 e 5; as demais mantêm 15. A Ponte abre em
+37 partidas, com 30 segundas cartas e 30 desfechos, justificando o piso de
+abertura em 35 em vez de 40. O Celeiro abre em 47 partidas. São os mesmos
+perfis e sementes; as treze cartas adicionais disputam as audiências.
+
 No Normal, o Celeiro tem 33 ocorrências da segunda carta e 27 desfechos
 (eram 30 desfechos antes destas cartas). A conferência passa a ligar cada
 desfecho à instância anterior: se ele ainda não chegou, a segunda carta deve
@@ -1205,7 +1212,8 @@ estar na mesa com prazo aberto ou seu desfecho deve estar agendado; um
 desfecho já devido só pode esperar com a mesa cheia. A mesma prova vale
 para a Ponte e para os dois ritmos, nas 100 partidas. Retirou-se a tolerância
 global de seis perdas do WIP; as contagens 33/27 ficam exatas, junto da
-contabilidade de cada continuação. No Rápido, sete sementes abrem o Celeiro.
+contabilidade de cada continuação. No Rápido, sete sementes recebem a segunda
+carta do Celeiro e uma chega ao desfecho dentro da janela.
 
 As seis sementes são `pedra-alta-010`, `018`, `021`, `023`, `029` e `036`.
 Em todas, a abertura chega na hora 152, a resposta ocorre na 156 e a segunda
@@ -1213,3 +1221,26 @@ carta chega na 160, com prazo até 184. A janela termina na 168 antes da
 visita seguinte; não há desfecho agendado porque a segunda carta ainda não
 foi respondida. O teste prolonga essas mesmas partidas até a hora 180:
 a visita da 168 responde à segunda carta e o desfecho chega na 172.
+
+### 19.7 Verificação do fechamento (2026-10-30)
+
+- Simulador completo: saída **0**, **19 arquivos / 376 testes**, antes da regressão
+  adicional que prolonga as seis sementes do Celeiro.
+- Cobertura e contratos Mercado/Coroa, após essa regressão: saída **0**,
+  **2 arquivos / 37 testes**. A prova do Boicote do WIP havia falhado por receber
+  a roteirizada primeiro; o cenário corrigido passa com o catálogo inteiro.
+- Lint e typecheck de todos os pacotes: saída **0**. A primeira tentativa de
+  repassar `--maxWorkers=2` pelo script terminou em **1** porque `pnpm test`
+  interpretou a opção como sua, antes do Vitest. O comando completo foi repetido
+  com o limite suportado pela versão instalada:
+
+```bash
+VITEST_MAX_WORKERS=2 nice -n 19 pnpm verify
+```
+
+Os processos dos dois workers foram conferidos com prioridade 19. Integração
+e navegador não executados: bancos fora do ar, sem Docker. Os ajustes dos
+testes históricos do servidor foram feitos por leitura e entram no typecheck;
+a execução contra PostgreSQL permanece pendente. Build e validação manual
+não foram executados neste fechamento. Nenhuma junção ao `main`, publicação
+ou `push`.
