@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { nextDayBoundary } from './clock';
-import { eligibleCards } from './council';
+import { DRAW_INTERVAL_MS, eligibleCards } from './council';
 import { quote, quoteOf } from './market';
 import { migrateState } from './migrations';
 import { cloneState } from './state';
@@ -27,8 +27,12 @@ import { createInitialState } from './state';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
 
-function feud(difficulty: DifficultyId = 'lord', atMs = SUMMER + DAY / 3): GameState {
-  const state = createInitialState('market-crown', { ...settings, difficulty, timeScale: 1 });
+function feud(
+  difficulty: DifficultyId = 'lord',
+  atMs = SUMMER + DAY / 3,
+  seed = 'market-crown',
+): GameState {
+  const state = createInitialState(seed, { ...settings, difficulty, timeScale: 1 });
   state.lastProcessedAt = atMs;
   state.clock.gameTimeMs = atMs;
   state.settlement.buildings = {
@@ -124,7 +128,7 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
   it('prender → largar permite sortear o Boicote no outono, sem agendá-lo como continuação', () => {
     // Segunda junção (docs/balance-v0.4.md, seção 19): zero nos bots não pode esconder
     // uma carta inalcançável. A flag vem da escolha real, e a chegada vem da audiência.
-    const start = feud();
+    const start = feud('lord', SUMMER + DAY / 3, 'merchant-boycott-14');
     expect(eligibleCards(start, AUTUMN, councilCards).map((card) => card.id)).not.toContain(
       'merchantBoycott',
     );
@@ -137,14 +141,24 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
     const dropped = choose(lead.state, 'merchantLead', 'drop').state;
     expect(dropped.council.flags['merchant.hostile']).toBe(true);
     expect(dropped.council.scheduled).toEqual([]);
-    // Isola o sorteio entre cartas já vistas; não injeta a carta nem a hostilidade.
-    dropped.council.seenThisYear = councilCards
-      .filter((card) => card.id !== 'merchantBoycott')
-      .map((card) => card.id);
+    expect(eligibleCards(dropped, AUTUMN, councilCards).map((card) => card.id)).toContain(
+      'merchantBoycott',
+    );
+    // As duas roteirizadas devidas vêm antes do sorteio. Resolve-as pelo caminho real,
+    // sem marcar cartas como vistas nem suprimir as recorrentes do catálogo completo.
     dropped.council.nextDrawAtMs = AUTUMN;
-    const drawn = advanceTo(dropped, AUTUMN);
+    const stranger = choose(advanceTo(dropped, AUTUMN).state, 'woundedStranger', 'shelter').state;
+    const itinerant = choose(
+      advanceTo(stranger, AUTUMN + DRAW_INTERVAL_MS).state,
+      'itinerantMerchant',
+      'wait',
+    ).state;
+    const drawn = advanceTo(itinerant, AUTUMN + 2 * DRAW_INTERVAL_MS);
     expect(drawn.events.filter((event) => event.type === 'cardDrawn')).toMatchObject([
-      { atMs: AUTUMN, data: { cardId: 'merchantBoycott', source: 'draw' } },
+      {
+        atMs: AUTUMN + 2 * DRAW_INTERVAL_MS,
+        data: { cardId: 'merchantBoycott', source: 'draw' },
+      },
     ]);
     expect(drawn.state.council.pending.map((card) => card.cardId)).toEqual(['merchantBoycott']);
   });

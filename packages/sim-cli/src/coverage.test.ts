@@ -30,28 +30,6 @@ const fast = measureCoverage(fastRuns);
 if (process.env.SHOW_COVERAGE !== undefined) {
   console.log(formatCoverage('Ritmo Normal (um ano em 7 dias), 2 visitas por dia', normal));
   console.log(formatCoverage('Ritmo Rápido (um ano em 56 horas), 2 visitas por dia', fast));
-  for (const run of normalRuns) {
-    const granary = run.events.filter((event) =>
-      String(event.data.cardId).startsWith('commonGranary'),
-    );
-    if (
-      granary.some(
-        (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryShare',
-      ) &&
-      !granary.some(
-        (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryOutcome',
-      )
-    ) {
-      console.log(
-        JSON.stringify({
-          seed: run.options.seed,
-          granary,
-          pending: run.finalState.council.pending,
-          scheduled: run.finalState.council.scheduled,
-        }),
-      );
-    }
-  }
 }
 
 /**
@@ -140,7 +118,10 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     }
   });
 
-  it('todas as cartas do catálogo aparecem em alguma partida, as continuações também', () => {
+  it('mantém todo o catálogo no relatório e explicita os ramos que o Regular não abre', () => {
+    for (const coverage of [normal, fast]) {
+      expect(coverage.byCard.map((row) => row.cardId)).toEqual(councilCards.map((card) => card.id));
+    }
     for (const row of normal.byCard) {
       if (neverOpened.includes(row.cardId)) {
         // No dia em que um bot aprender a prometer, prender forasteiros, contratar ou ferir heróis, estas passam a aparecer.
@@ -171,12 +152,16 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       // Segunda junção (docs/balance-v0.4.md, seção 19): 40 → 35 com as treze cartas adicionais disputando a mesa (37 em 50 na Ponte).
       expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(35);
       expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(25);
-      // Quem abre a cadeia chega ao desfecho dentro do ano: as continuações vêm em 2 dias.
+      // As continuações vêm em 2 dias depois da resposta, respeitando o lugar na mesa.
       // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
       // do ano não alcança o desfecho antes da última leitura (2 de 35 no Celeiro Comum): a
       // regra é "chega, salvo a que abre perto do fim", e não mais "chega em toda semente".
       expect(runsOf(normal, ending), ending).toBeLessThanOrEqual(runsOf(normal, middle));
     }
+    // Segunda junção (docs/balance-v0.4.md, seção 19): 33 segundas cartas e 27 desfechos.
+    // As seis restantes são conferidas por ocorrência abaixo, sem tolerância de perdas.
+    expect(runsOf(normal, 'commonGranaryShare')).toBe(33);
+    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(27);
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
     // Desde os objetivos da v0.2 (V2E-T4) a folga do começo vai para a Torre de Vigia e para o
@@ -228,6 +213,40 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
           }
         }
       }
+    }
+  });
+
+  it('os seis Celeiros abertos no fim do ano recebem o desfecho depois da visita seguinte', async () => {
+    // Segunda junção (docs/balance-v0.4.md, seção 19): a queda de 30 para 27 desfechos
+    // é o corte da janela na hora 168. Prolongar as mesmas partidas deve concluir as seis.
+    const late = normalRuns.filter(
+      (run) =>
+        run.events.some(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryShare',
+        ) &&
+        !run.events.some(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryOutcome',
+        ),
+    );
+    expect(late.map((run) => run.options.seed)).toEqual(
+      ['010', '018', '021', '023', '029', '036'].map((suffix) => `pedra-alta-${suffix}`),
+    );
+    for (const run of late) {
+      const middle = run.finalState.council.pending.find(
+        (card) => card.cardId === 'commonGranaryShare',
+      );
+      expect(middle, run.options.seed).toMatchObject({
+        drawnAtMs: 160 * 3_600_000,
+        expiresAtMs: 184 * 3_600_000,
+      });
+      const extended = await simulate({ ...run.options, hours: 180 });
+      const ending = extended.events.find(
+        (event) =>
+          event.type === 'cardDrawn' &&
+          event.data.cardId === 'commonGranaryOutcome' &&
+          event.data.previousInstanceId === middle?.instanceId,
+      );
+      expect(ending?.atMs, run.options.seed).toBe(172 * 3_600_000);
     }
   });
 

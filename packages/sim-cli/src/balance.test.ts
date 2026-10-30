@@ -56,16 +56,16 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.cells.flatMap((cell) => cell.violations)).toEqual([]);
   });
 
-  it('a linha de base de Senhor confere sem folga (V3B-T2.4, V4E-JUNCAO)', () => {
+  it('a linha de base de Senhor confere sem folga (V3B-T2.4, V4-JUNCAO2)', () => {
     // A faixa aceita 5% ou 10% de folga; isto, nenhuma. É o que prova que uma tarefa que não
     // era para mexer na economia (a fundação da v0.3: identidades, fluxos por entidade, o bot
     // explorador, as colunas reservadas) não mexeu em nenhum número medido. Quando uma mecânica
     // muda a economia de propósito, este teste falha junto com as faixas, e a linha de base é
     // atualizada como um golden (cabeçalho de `MEASURED`, em bands.ts).
     for (const cell of matrix.cells) {
-      // Junção da Fase E: os objetivos e a Vigília já integram a base nas três dificuldades.
+      // Segunda junção: as treze cartas e a sabotagem integram a base nas três dificuldades.
       // Compare diretamente com MEASURED, sem o delta temporário da V4H-T3 nem folga extra
-      // (docs/balance-v0.4.md, seção 16).
+      // (docs/balance-v0.4.md, seção 19).
       const expected = baselineFor(cell.key);
       const { villagers, townHall, famineHours, coldHours, surplus, wasteStreakWorst } =
         cell.measure;

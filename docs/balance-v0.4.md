@@ -1159,6 +1159,7 @@ distintas). Nenhuma folga, custo, recompensa ou política foi alterada neste fec
 ### 19.4 O Preguiçoso do Rápido em Senhor
 
 Na célula de um ano de jogo no ritmo Rápido (3×, 56 h reais), o perfil Preguiçoso em Senhor:
+
 - **População:** fixa em 16 aldeões em todas as 50 sementes (faixa medida [16, 16], faixa com slack 14 a 18; população mínima de 7 aldeões durante o ano).
 - **Salão:** fecha o ano no nível 2 a 3 (Nv2 erguido na hora 29, Nv3 alcançado entre a hora 53 e não alcançado em parte das sementes; Nv4 não é iniciado). Celeiro sai na hora 31 e Armazém na 33.
 - **Incursões e feridos:** sofre de 8 a 9 incursões, repele de 0 a 1 e tem de 0 a 2 anunciadas pela Torre (que sai na hora 50 a —). Sofre de 7 a 14 feridos no ano, perdendo de 691 a 1.020 de comida e de 572 a 939 de madeira levadas pelos atacantes.
@@ -1168,8 +1169,47 @@ Na célula de um ano de jogo no ritmo Rápido (3×, 56 h reais), o perfil Pregui
 ### 19.5 Ameaça no fim do ano
 
 Ao fim de um ano de jogo (168 h de jogo), a Ameaça em Senhor fecha nos seguintes intervalos:
+
 - **Rápido 3×:** Preguiçoso de 29 a 85; Regular de 32 a 100; Dedicado de 29 a 100; Explorador de 32 a 100.
 - **Normal 1×:** Preguiçoso de 22 a 99; Regular de 22 a 100; Dedicado de 29 a 85; Explorador de 10 a 92.
 - **Tranquilo 0,5×:** Preguiçoso de 22 a 99; Regular de 22 a 99; Dedicado de 22 a 100; Explorador de 21 a 73.
 
-No conjunto dos 1.000 registros de Senhor com ao menos um ano de jogo (as semanas do Rápido e do Normal mais as três janelas de um ano, quatro perfis; o Normal está contado duas vezes), 135 partidas terminam com Ameaça final ≥ 80 (eram 114 antes do novo sorteio), e 48 terminam com Ameaça final ≥ 90. A Ameaça máxima alcança 100 em várias partidas durante as invasões e eventos de acampamento. Na partida padrão monitorada pelo simulador (`pedra-alta-golden`), a Ameaça final encerra em 50 (máxima 100, Torre de Vigia Nv4).
+No conjunto dos 1.000 registros de Senhor com ao menos um ano de jogo (as semanas do Rápido e do Normal mais as três janelas de um ano, quatro perfis; o Normal está contado duas vezes), 135 registros terminam com Ameaça final ≥ 80 (eram 114 antes do novo sorteio), e 48 terminam com Ameaça final ≥ 90. A Ameaça máxima alcança 100 em várias partidas durante as invasões e eventos de acampamento. Na partida padrão monitorada pelo simulador (`pedra-alta-golden`), a Ameaça final encerra em 50 (máxima 100, Torre de Vigia Nv4).
+
+### 19.6 Cobertura do Conselho e o Celeiro Comum
+
+`merchantBoycott` tem peso 2, mas não abre uma cadeia sozinha: exige Mercado,
+outono ou inverno e `merchant.hostile`, criada pela escolha `imprison` de
+`mysteriousMerchant`. É um ramo sorteável da cadeia do mercador, e não uma
+continuação agendada. Os bots atuais compram o mapa com folga ou escolhem
+`refuse`, a opção gratuita sem perda imediata; não prendem e não criam a flag.
+Seu zero permanece explícito no relatório das 50 sementes, que inclui todas
+as 43 cartas. O teste do motor percorre **prender → largar → audiência de
+outono**, sem injetar hostilidade ou agendar o Boicote, e exige `source: 'draw'`.
+O cenário do WIP ignorava a prioridade das roteirizadas e falhou: chegou a
+Estrangeira ferida. A prova corrigida usa `merchant-boycott-14`, acolhe a
+Estrangeira, responde ao Mercador itinerante e chega ao Boicote na terceira
+audiência, com o catálogo completo, sem manipular vistos ou gerador.
+Não se alterou o peso, o requisito nem a política para fazê-lo aparecer.
+
+As outras exceções do perfil Regular também permanecem listadas: os dois
+desdobramentos da Promessa da Paliçada (o bot não promete), o Duelo na praça
+e o Curandeiro errante (requisitos de heróis livres/feridos). Seus ramos são
+cobertos pelos testes do motor; uma carta nova fora dessa lista precisa
+aparecer na simulação, mesmo quando depende de flag.
+
+No Normal, o Celeiro tem 33 ocorrências da segunda carta e 27 desfechos
+(eram 30 desfechos antes destas cartas). A conferência passa a ligar cada
+desfecho à instância anterior: se ele ainda não chegou, a segunda carta deve
+estar na mesa com prazo aberto ou seu desfecho deve estar agendado; um
+desfecho já devido só pode esperar com a mesa cheia. A mesma prova vale
+para a Ponte e para os dois ritmos, nas 100 partidas. Retirou-se a tolerância
+global de seis perdas do WIP; as contagens 33/27 ficam exatas, junto da
+contabilidade de cada continuação. No Rápido, sete sementes abrem o Celeiro.
+
+As seis sementes são `pedra-alta-010`, `018`, `021`, `023`, `029` e `036`.
+Em todas, a abertura chega na hora 152, a resposta ocorre na 156 e a segunda
+carta chega na 160, com prazo até 184. A janela termina na 168 antes da
+visita seguinte; não há desfecho agendado porque a segunda carta ainda não
+foi respondida. O teste prolonga essas mesmas partidas até a hora 180:
+a visita da 168 responde à segunda carta e o desfecho chega na 172.
