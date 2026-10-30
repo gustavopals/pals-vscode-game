@@ -47,6 +47,24 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
     expect(crossroadsDecisions(siegeWaveView)).toEqual([]);
   });
 
+  it('mostra a expiração iminente da onda na barra sob frio ou fome', () => {
+    const coldSiege: typeof siegeWaveView = {
+      ...siegeWaveView,
+      winter: { cold: { text: 'Frio extremo no feudo.' } } as unknown as typeof siegeWaveView.winter,
+    };
+    const bar = statusBar({
+      ...input,
+      view: coldSiege,
+      elapsedSeconds: 300,
+    });
+    expect(bar.text).toMatch(/^\$\(flame\) Frio em .* · \$\(shield\) onda 2: 55 min$/);
+    expect(bar.alarm).toBe(true);
+    expect(bar.target).toBe('today');
+    expect(bar.tooltip).toContain('Frio extremo no feudo.');
+    expect(bar.tooltip).toContain('"Entre ondas"');
+    expect(bar.tooltip).toContain('A decisão entre ondas está na aba Hoje.');
+  });
+
   it('mantém a onda entre as decisões do Relatório de Retorno', () => {
     expect(pendingItems(siegeWaveView, 60)).toContainEqual({
       topic: 'siegeWave:siege-1-2',
