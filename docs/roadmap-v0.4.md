@@ -1379,6 +1379,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4I-T3 | | | | | |
 | V4I-T4 | | | | | |
 | V4I-T5 | | | | | |
+| Novidades — fora do plano, pedido direto do autor | 2026-10-30 | WIP `ec36f2b`, `a12ffb5`, `6129607` e o desta linha | retomada do WIP | Aba `#/novidades`, paleta `lords.openNews`, menu Conta e Sobre; crônicas v0.1 a v0.4 em palavras, guerra como rascunho (N-1); selo de leitura por conta, tolerante a falhas e sincronizado entre abas (N-2). **Saída 0:** 865 testes focados em 13 arquivos do app (incluindo HTML, bundle e temas; `nice -n 19`, `--maxWorkers=2`), `pnpm lint`, `pnpm typecheck`, uma rodada de `pnpm build` e somente `15-novidades.spec.ts` (1/1, Chromium: paleta, foco, Enter no menu, selo entre abas e ao recarregar, contraste nos três temas e sem rolagem horizontal em 720 px). README atualizado | Sem suíte geral, matriz, integração, capturas, publicação, Firefox, Safari, leitor de tela ou leitura editorial do autor. A v0.4 continua sem publicação; conferir escopo e data antes de promover o rascunho |
 | Lançamento da v0.4.0 | | | | | |
 
 ---

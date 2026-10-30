@@ -663,6 +663,11 @@ describe('ações das abas', () => {
     click(ChronicleTab({ document: { status: 'ready', value: '# Crônica' }, actions: recording }));
     click(ChronicleTab({ document: { status: 'error', message: 'falhou' }, actions: recording }));
     click(AboutTab({ server: { status: 'idle' }, actions: recording }));
-    expect(ran).toEqual(['lords.downloadChronicle', 'lords.openChronicle', 'lords.privacy']);
+    expect(ran).toEqual([
+      'lords.downloadChronicle',
+      'lords.openChronicle',
+      'lords.openNews',
+      'lords.privacy',
+    ]);
   });
 });
