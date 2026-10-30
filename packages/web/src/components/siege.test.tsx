@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { buildReturnReport, pendingItems } from '../game/returnReport';
 import { initialView, siegeWaveView } from '../test-helpers';
 import { cardDecisions, crossroadsDecisions, documentTitle, statusBar } from '../ui/format';
+import { buildTree } from '../ui/treeModel';
 import { Today } from './Today';
 
 const noop = () => {};
@@ -83,5 +84,57 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
     );
     expect(html).toContain('Cerco: “Entre ondas”');
     expect(html).toContain('expira em 59 min');
+  });
+
+  it('reflete siegeWave no nó Hoje da árvore de navegação', () => {
+    const account = {
+      kind: 'anonymous' as const,
+      accountId: 'acc-1',
+      displayName: 'Gustavo',
+      hasRecoveryCode: false,
+      gameId: 'game-1',
+    };
+    const online = { kind: 'online' as const };
+    const offline = { kind: 'offline' as const, retryInMs: 5000, attempt: 1 };
+    const tree = buildTree({
+      view: siegeWaveView,
+      account,
+      connection: online,
+      chronicle: [],
+      unseen: 0,
+      elapsedSeconds: 60,
+    });
+    const today = tree.find((node) => node.id === 'today');
+    expect(today).toBeDefined();
+    expect(today?.description).toBe('● 1 decisão pendente');
+    expect(today?.command).toEqual({ id: 'lords.openPanel', args: ['today'] });
+
+    const offlineTree = buildTree({
+      view: siegeWaveView,
+      account,
+      connection: offline,
+      chronicle: [],
+      unseen: 0,
+      elapsedSeconds: 60,
+    });
+    const offlineToday = offlineTree.find((node) => node.id === 'today');
+    expect(offlineToday?.description).not.toContain('decisão');
+
+    const multipleView: typeof siegeWaveView = {
+      ...siegeWaveView,
+      pendingDecisions: [
+        ...siegeWaveView.pendingDecisions,
+        { kind: 'card', id: 'card-1', title: 'Carta', expiresInSeconds: 3600 },
+      ],
+    };
+    const multiTree = buildTree({
+      view: multipleView,
+      account,
+      connection: online,
+      chronicle: [],
+      unseen: 0,
+      elapsedSeconds: 60,
+    });
+    expect(multiTree.find((node) => node.id === 'today')?.description).toBe('● 2 decisões pendentes');
   });
 });
