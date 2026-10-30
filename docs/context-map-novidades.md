@@ -2,6 +2,8 @@
 
 Pedido direto do autor, fora do plano da v0.4. Base: `7cbdad1`, branch `novidades`.
 Mapa conferido antes da implementação, em 2026-10-30.
+Retomado e revisado após o WIP `ec36f2b`: rota, árvore, comandos, armazenamento e padrões
+de foco conferidos no código. A execução segue pelo pedido direto do autor.
 
 ## Arquivos a alterar
 
