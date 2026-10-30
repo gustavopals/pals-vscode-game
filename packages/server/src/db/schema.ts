@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   bigint,
+  boolean,
   index,
   integer,
   jsonb,
@@ -40,6 +41,8 @@ export const accounts = pgTable(
     createdAt: instant('created_at').notNull(),
     lastSeenAt: instant('last_seen_at').notNull(),
     deletedAt: instant('deleted_at'),
+    /** Os feudos da conta aparecem no ranking de ouro de `GET /v1/stats` (ADR 0021). */
+    rankingListed: boolean('ranking_listed').notNull().default(true),
   },
   (table) => [index('accounts_deleted_at_idx').on(table.deletedAt)],
 );

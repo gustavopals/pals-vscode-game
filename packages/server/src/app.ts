@@ -15,6 +15,7 @@ import { registerCatalogRoutes } from './routes/catalog';
 import { registerGameRoutes } from './routes/games';
 import { registerHealthRoutes } from './routes/health';
 import { registerMeRoutes } from './routes/me';
+import { registerStatsRoutes } from './routes/stats';
 import { registerVersionRoutes } from './routes/version';
 
 export type AppDeps = {
@@ -88,6 +89,7 @@ export async function buildApp(deps: AppDeps) {
       registerCatalogRoutes(api, ctx);
       registerAuthRoutes(api, ctx);
       registerMeRoutes(api, ctx);
+      registerStatsRoutes(api, ctx);
       registerGameRoutes(api, ctx);
     },
     { prefix: API_PREFIX },

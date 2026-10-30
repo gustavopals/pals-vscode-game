@@ -124,7 +124,7 @@ type CallOptions = {
 /** Faz uma chamada HTTP à API em memória e devolve status, cabeçalhos e corpo já interpretado. */
 export async function call<T = unknown>(
   target: TestApp | App,
-  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   path: string,
   options: CallOptions = {},
 ): Promise<Reply<T>> {

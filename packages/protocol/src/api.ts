@@ -320,3 +320,70 @@ export const VersionResponseSchema = z.strictObject({
   }),
 });
 export type VersionResponse = z.infer<typeof VersionResponseSchema>;
+
+// --- Estatísticas e ranking (ADR 0021) ---------------------------------------
+
+const count = z.number().int().nonnegative();
+
+/** `GET` e `PUT /v1/me/ranking`: se os feudos da conta aparecem no ranking de ouro. */
+export const RankingPreferenceSchema = z.strictObject({ listed: z.boolean() });
+export type RankingPreference = z.infer<typeof RankingPreferenceSchema>;
+
+/** Uma linha do ranking de ouro: só o nome do feudo e o ouro dele, nada da conta. */
+export const RankingEntrySchema = z.strictObject({
+  /** 1 é o feudo com mais ouro; no empate, o mais antigo fica na frente. */
+  position: z.number().int().positive(),
+  settlementName: z.string(),
+  /** Unidades inteiras de ouro do estado gravado (não avançado para a leitura). */
+  gold: z.number().int(),
+  /** A linha é do feudo de quem lê. */
+  mine: z.boolean(),
+});
+export type RankingEntry = z.infer<typeof RankingEntrySchema>;
+
+/** O que o estado gravado de um feudo diz dele; um campo que a versão do estado não tem é 0. */
+export const FiefStatsSchema = z.strictObject({
+  settlementName: z.string(),
+  gold: z.number().int(),
+  villagers: count,
+  soldiers: count,
+  heroes: count,
+  raidsRepelled: count,
+  raidsSuffered: count,
+  expeditionsSent: count,
+  constructionsStarted: count,
+  /** Dias reais desde a fundação. */
+  daysReigning: count,
+});
+export type FiefStats = z.infer<typeof FiefStatsSchema>;
+
+/**
+ * `GET /v1/stats`: os totais do reino (anônimos, de todas as contas que jogam), os primeiros do
+ * ranking de ouro (só quem não saiu dele) e o que é do próprio jogador. Os totais e o ranking
+ * vêm de uma consulta guardada por um minuto (`generatedAt`); a parte do jogador é de agora.
+ */
+export const StatsResponseSchema = z.strictObject({
+  generatedAt: isoDate,
+  kingdom: z.strictObject({
+    accounts: count,
+    fiefs: count,
+    /** Contas com alguma requisição nos últimos 7 dias reais. */
+    activeLastWeek: count,
+    gold: z.number().int(),
+    villagers: count,
+    raidsRepelled: count,
+    raidsSuffered: count,
+    expeditionsSent: count,
+  }),
+  /** Os 10 primeiros e, se o jogador está listado e fora deles, a linha dele no fim. */
+  ranking: z.array(RankingEntrySchema),
+  /** Quantos feudos estão no ranking. */
+  rankedFiefs: count,
+  me: z.strictObject({
+    listed: z.boolean(),
+    /** A posição no ranking (ou a que o feudo teria, se a conta saiu dele); `null` sem feudo. */
+    position: z.number().int().positive().nullable(),
+    fief: FiefStatsSchema.nullable(),
+  }),
+});
+export type StatsResponse = z.infer<typeof StatsResponseSchema>;
