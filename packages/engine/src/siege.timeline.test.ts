@@ -125,6 +125,17 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
       }),
     ).toMatchObject({ ok: false, code: 'SIEGE_STARTED' });
   });
+  it('se a formação configurada no plano foi apagada, a visão marca a opção padrão', () => {
+    const state = wave(readySiege()).state;
+    state.siege!.plan[2] = 'formation-deleted';
+    const view = deriveViewState(state, state.lastProcessedAt);
+    const decision = view.pendingDecisions.find((d) => d.kind === 'siegeWave');
+    expect(decision).toBeDefined();
+    const selected = decision!.options.find((o) => o.selected);
+    expect(selected).toBeDefined();
+    expect(selected?.formationId).toBeNull();
+    expect(selected?.label).toBe('Usar a Defesa ativa');
+  });
   it('o dano persiste, sem reparo automático; o reparo de emergência paga pedra e ouro', () => {
     const first = wave(readySiege()).state;
     const quote = currentRepairQuote(first);

@@ -46,7 +46,7 @@ describe('Cerco: a preparação da Horda é a composição definitiva', () => {
     revealWaveThree(state, state.lastProcessedAt, []);
     const before = JSON.stringify(state.rng);
     const view = deriveViewState(state, state.lastProcessedAt);
-    expect('siege' in view).toBe(false);
+    expect(view.siege).toBeNull();
     expect(JSON.stringify(view)).not.toContain('wavePlan');
     expect(JSON.stringify(state.rng)).toBe(before);
     expect(state.horde.omens[0]!.reveals).toEqual(preparedSiegeWaves(state)[2]!.composition);

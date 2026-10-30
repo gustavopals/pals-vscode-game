@@ -33,26 +33,33 @@ export function siegeView(
     },
     pendingDecisions: !waveDecisionOpen(state)
       ? []
-      : [
-          {
-            kind: 'siegeWave',
-            id: `siege-${entry.year}-${next}`,
-            title: siegeTexts.decision,
-            wave: next,
-            expiresInSeconds: until(entry.nextWaveAtMs!),
-            options: [
-              {
-                formationId: null,
-                label: siegeTexts.defaultFormation,
-                selected: entry.plan[next] === null,
-              },
-              ...state.army.formations.map((f) => ({
-                formationId: f.id,
-                label: f.name,
-                selected: entry.plan[next] === f.id,
-              })),
-            ],
-          },
-        ],
+      : (() => {
+          const nextPlanned = entry.plan[next];
+          const selectedId =
+            nextPlanned !== null && state.army.formations.some((f) => f.id === nextPlanned)
+              ? nextPlanned
+              : null;
+          return [
+            {
+              kind: 'siegeWave' as const,
+              id: `siege-${entry.year}-${next}`,
+              title: siegeTexts.decision,
+              wave: next,
+              expiresInSeconds: until(entry.nextWaveAtMs!),
+              options: [
+                {
+                  formationId: null,
+                  label: siegeTexts.defaultFormation,
+                  selected: selectedId === null,
+                },
+                ...state.army.formations.map((f) => ({
+                  formationId: f.id,
+                  label: f.name,
+                  selected: selectedId === f.id,
+                })),
+              ],
+            },
+          ];
+        })(),
   };
 }
