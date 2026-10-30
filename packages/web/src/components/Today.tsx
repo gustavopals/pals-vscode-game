@@ -274,20 +274,21 @@ function PendingDecisions(props: {
                   </p>
                   {siege ? (
                     <p class="muted">{decision.options.find((option) => option.selected)?.label}</p>
-                  ) : (
-                    <button
-                      type="button"
-                      aria-label={`${crossroads ? 'Escolher caminho' : 'Decidir'}: ${decision.title}`}
-                      disabled={crossroads && !props.online}
-                      onClick={() =>
-                        crossroads
+                  ) : null}
+                  <button
+                    type="button"
+                    aria-label={`${siege ? 'Exército' : crossroads ? 'Escolher caminho' : 'Decidir'}: ${decision.title}`}
+                    disabled={crossroads && !props.online}
+                    onClick={() =>
+                      siege
+                        ? props.actions.run('lords.openPanel', 'army')
+                        : crossroads
                           ? props.actions.run('lords.chooseExpeditionPath', decision.id)
                           : props.actions.run('lords.openPanel', 'council')
-                      }
-                    >
-                      {crossroads ? 'Escolher caminho' : 'Decidir'}
-                    </button>
-                  )}
+                    }
+                  >
+                    {siege ? 'Exército' : crossroads ? 'Escolher caminho' : 'Decidir'}
+                  </button>
                 </li>
               );
             })}

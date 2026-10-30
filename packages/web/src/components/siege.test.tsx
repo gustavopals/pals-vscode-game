@@ -29,6 +29,8 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
       expect(html).toContain('Cerco: “Entre ondas”');
       expect(html).toContain('expira em 59 min');
       expect(html).toContain('Defesa ativa');
+      expect(html).toContain('aria-label="Exército: Entre ondas"');
+      expect(html).toContain('>Exército</button>');
       expect(html).not.toContain('Conselho: “Entre ondas”');
       expect(html).not.toContain('Escolher caminho');
       expect(html).not.toContain('aria-label="Decidir: Entre ondas"');
@@ -70,6 +72,7 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
       topic: 'siegeWave:siege-1-2',
       text: 'Cerco: “Entre ondas” · expira em 59 min.',
       severity: 'warning',
+      action: { command: 'lords.openPanel', arg: 'army', label: 'Exército' },
     });
   });
 

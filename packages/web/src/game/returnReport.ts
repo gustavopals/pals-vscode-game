@@ -198,6 +198,7 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       text: `Cerco: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
       topic: `siegeWave:${decision.id}`,
       ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
+      action: { command: 'lords.openPanel', arg: 'army', label: 'Exército' },
     }));
   const cards = cardDecisions(view).map((decision): ReturnReportItem => {
     const follows = view.council.pending.find((card) => card.instanceId === decision.id)
