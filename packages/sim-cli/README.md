@@ -164,6 +164,9 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `market_volume_used_percent` | **Medida**, por amostra: o negociado sobre o volume que o Mercado ofereceu, em por cento com uma casa. O oferecido é a soma, pelos dias de jogo com o Mercado de pé, do volume do dia dos três recursos, amostrada ao fim de cada hora real. Vazia enquanto não há Mercado. É o sinal de "Mercado sem uso" | V3E-T1 |
 | `caravans_sent`, `caravans_ambushed` | **Medidas.** Caravanas enviadas e, das que chegaram, as emboscadas, contadas dos eventos `caravanSent` e `caravanAmbushed`, acumuladas | V3E-T2 |
 | `masters` | **Medida.** Mestres que moram no feudo naquela hora, lidos da visão (`masters.length`; quem espera à porta não conta); na matriz, os do fim da partida | V3E-T3 |
+| `siege_result` | **Medida.** `glorious`, `victory` ou `fall` para o cerco guardado no estado; vazio enquanto ele não terminou ou não foi marcado. Um novo cerco marcado volta a deixá-la vazia | V4G-T2.10 |
+| `waves_won` | **Medida.** Ondas vencidas em todos os cercos da partida, acumuladas, inclusive quando houve Queda numa onda posterior | V4G-T2.10 |
+| `militia_called` | **Medida.** Aldeões convocados, somados em todas as convocações; não é a quantidade de ordens nem de milicianos ainda ativos | V4G-T2.10 |
 
 O resumo, na saída de erro, não ganhou linha nenhuma para a Guilda: cada mecânica acrescenta a sua quando existir. Ele traz:
 
@@ -246,6 +249,8 @@ O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, seme
 O comando sai com código 1 se alguma partida ficar fora da faixa. **As três dificuldades têm faixa** desde a rodada de balanceamento da Fase C (V2C-T7): `--difficulty peasant` e `--difficulty ironKing` conferem as partidas contra a linha de base da própria dificuldade.
 
 **As sementes trabalham desde o Conselho (V2D-T1).** A moral só sorteia com 80 ou mais (o colono) ou com 25 ou menos (a partida), e os feudos dos bots vivem entre 35 e 60; até a Fase C, por isso, as 50 sementes davam a mesma partida. Com o Conselho, a carta que chega em cada audiência depende da semente, e as células passaram a ter faixa de verdade. Desde o primeiro lote de cartas (V2D-T2) o bot econômico paga as opções das cartas quando tem folga, e cada semente dá uma partida diferente: a população do Regular no ritmo Normal vai de 64 a 72. Um teste confere que as sementes divergem (`matrix.test.ts`).
+
+A tabela **Cerco** de cada janela tem uma linha por célula (ritmo e perfil), com cercos encerrados, vitórias (incluindo as Gloriosas), Gloriosas, Quedas, ondas vencidas/enfrentadas e aldeões convocados. Soma todos os anos e sementes: uma semana no ritmo Rápido pode conter vários cercos. Uma célula que ainda não chegou ao cerco mostra zeros. O resumo avulso traz as mesmas contagens. Nesta tarefa as faixas de `bands.ts` ficam intactas; a remedição será feita na junção.
 
 ### Faixas
 

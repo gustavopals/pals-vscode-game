@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { type Band, bandFor, cellKey, checkBand, SLACK } from './bands';
 import type { Summary } from './report';
+import { noSieges } from './simulate';
 
 const band: Band = {
   villagers: { min: 23, max: 29 },
@@ -16,6 +17,7 @@ const band: Band = {
 /** Uma partida dentro da faixa, com o que cada teste trocar. */
 function summary(overrides: Partial<Summary> = {}): Summary {
   return {
+    siege: noSieges(),
     hours: 168,
     villagers: 26,
     villagersMin: 5,

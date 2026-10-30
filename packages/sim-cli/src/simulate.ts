@@ -126,6 +126,8 @@ export type HourRow = {
   /** Presságios recebidos, acumulados, e o dia de jogo da aparição mais recente da Fortaleza. */
   omens: number;
   fortressDay: number | null;
+  /** Cerco atual e contagens acumuladas da partida, lidas do estado pelo medidor. */
+  siege: SiegeCounts;
   /**
    * O Conselho até aqui, contado dos eventos: as cartas que chegaram (por sorteio ou como
    * continuação), as que o bot respondeu e as que expiraram sem resposta.
@@ -182,6 +184,29 @@ export type SimulationResult = {
 
 type CommandCounts = { accepted: number; refused: Record<string, number> };
 export type CardCounts = { seen: number; answered: number; expired: number };
+export type SiegeCounts = {
+  result: NonNullable<GameState['siege']>['result'];
+  /** Vitórias incluem as Gloriosas. */
+  won: number;
+  glorious: number;
+  fallen: number;
+  wavesFought: number;
+  wavesWon: number;
+  /** Aldeões convocados, somados em todas as convocações. */
+  militiaCalled: number;
+};
+
+export function noSieges(): SiegeCounts {
+  return {
+    result: null,
+    won: 0,
+    glorious: 0,
+    fallen: 0,
+    wavesFought: 0,
+    wavesWon: 0,
+    militiaCalled: 0,
+  };
+}
 export type RaidCounts = {
   suffered: number;
   repelled: number;
@@ -581,6 +606,15 @@ function rowAt(
     threat: state.map.threat,
     omens: state.stats.omens ?? 0,
     fortressDay: state.stats.fortressAppearedAtDay ?? null,
+    siege: {
+      result: state.siege?.result ?? null,
+      won: state.stats.siegesWon ?? 0,
+      glorious: state.stats.siegesGlorious ?? 0,
+      fallen: state.stats.siegesFallen ?? 0,
+      wavesFought: state.stats.siegeWavesFought ?? 0,
+      wavesWon: state.stats.siegeWavesWon ?? 0,
+      militiaCalled: state.stats.militiaCalled ?? 0,
+    },
     cards: { ...cards },
     raids: { ...raids, lost: { ...raids.lost } },
     objectives: view.objectives.filter((objective) => objective.status === 'completed').length,

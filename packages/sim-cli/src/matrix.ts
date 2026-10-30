@@ -270,6 +270,8 @@ export type MatrixCell = {
   market: MarketTotals;
   /** Os Mestres da célula, somados nas sementes: ver `MasterTotals`. */
   masters: MasterTotals;
+  /** Resultados e convocações do Cerco somados em todos os anos e sementes da célula. */
+  siege: SiegeTotals;
   /** `null` quando não há faixa para a célula (outra dificuldade, ritmo fora do conteúdo). */
   band: Band | null;
   /** Uma frase por problema, com quantas sementes o tiveram; vazio quando a célula está dentro. */
@@ -364,6 +366,54 @@ export type MasterTotals = {
   firstAtHour: number | null;
   idleHours: number;
 };
+
+export type SiegeTotals = Omit<Summary['siege'], 'result'>;
+
+/** Usa os acumulados da partida: uma janela de vários anos pode conter vários cercos. */
+export function siegeTotalsOf(summaries: readonly Summary[]): SiegeTotals {
+  const totals: SiegeTotals = {
+    won: 0,
+    glorious: 0,
+    fallen: 0,
+    wavesFought: 0,
+    wavesWon: 0,
+    militiaCalled: 0,
+  };
+  for (const { siege } of summaries) {
+    for (const key of Object.keys(totals) as Array<keyof SiegeTotals>) {
+      totals[key] += siege[key];
+    }
+  }
+  return totals;
+}
+
+/** Uma linha por célula, inclusive quando a janela ainda não alcançou o primeiro cerco. */
+export function siegeTable(
+  cells: ReadonlyArray<Pick<MatrixCell, 'paceLabel' | 'profile' | 'siege'>>,
+): string {
+  return table(
+    [
+      'Ritmo',
+      'Perfil',
+      'Cercos encerrados',
+      'Vitórias (inclui Gloriosas)',
+      'Gloriosas',
+      'Quedas',
+      'Ondas vencidas / enfrentadas',
+      'Aldeões convocados',
+    ],
+    cells.map(({ paceLabel, profile, siege }) => [
+      paceLabel,
+      profile.label,
+      formatInt(siege.won + siege.fallen),
+      formatInt(siege.won),
+      formatInt(siege.glorious),
+      formatInt(siege.fallen),
+      `${formatInt(siege.wavesWon)} / ${formatInt(siege.wavesFought)}`,
+      formatInt(siege.militiaCalled),
+    ]),
+  );
+}
 
 function masterTotalsOf(summaries: Summary[]): MasterTotals {
   const totals: MasterTotals = {
@@ -865,6 +915,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
           expeditions: expeditionTotalsOf(profile, summaries),
           market: marketTotalsOf(summaries),
           masters: masterTotalsOf(summaries),
+          siege: siegeTotalsOf(summaries),
           band,
           violations: band === null ? [] : violationsOf(key, band, summaries, seeds),
         });
@@ -1249,6 +1300,7 @@ export function formatMatrix(result: MatrixResult): string {
         ? []
         : [`### Especulação: ${window.label.toLowerCase()}\n\n${speculationTable(cells) ?? ''}`]),
       `### Mestres: ${window.label.toLowerCase()}\n\n${mastersTable(cells)}`,
+      `### Cerco: ${window.label.toLowerCase()}\n\n${siegeTable(cells)}`,
     ].join('\n\n');
   });
 
