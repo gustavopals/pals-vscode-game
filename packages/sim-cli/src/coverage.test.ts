@@ -22,12 +22,36 @@ const year = (timeScale: number) =>
       }),
     ),
   );
-const normal = measureCoverage(await year(1));
-const fast = measureCoverage(await year(3));
+const normalRuns = await year(1);
+const fastRuns = await year(3);
+const normal = measureCoverage(normalRuns);
+const fast = measureCoverage(fastRuns);
 
 if (process.env.SHOW_COVERAGE !== undefined) {
   console.log(formatCoverage('Ritmo Normal (um ano em 7 dias), 2 visitas por dia', normal));
   console.log(formatCoverage('Ritmo Rápido (um ano em 56 horas), 2 visitas por dia', fast));
+  for (const run of normalRuns) {
+    const granary = run.events.filter((event) =>
+      String(event.data.cardId).startsWith('commonGranary'),
+    );
+    if (
+      granary.some(
+        (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryShare',
+      ) &&
+      !granary.some(
+        (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryOutcome',
+      )
+    ) {
+      console.log(
+        JSON.stringify({
+          seed: run.options.seed,
+          granary,
+          pending: run.finalState.council.pending,
+          scheduled: run.finalState.council.scheduled,
+        }),
+      );
+    }
+  }
 }
 
 /**
@@ -151,11 +175,7 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
       // do ano não alcança o desfecho antes da última leitura (2 de 35 no Celeiro Comum): a
       // regra é "chega, salvo a que abre perto do fim", e não mais "chega em toda semente".
-      // Segunda junção (docs/balance-v0.4.md, seção 19): com 13 novas cartas do lote 2 disputando a mesa,
-      // a cadeia do Celeiro Comum cai de 30 para 27 sementes concluídas (6 de 33 não chegam antes do fim);
-      // tolerância ampliada de -3 para -6.
       expect(runsOf(normal, ending), ending).toBeLessThanOrEqual(runsOf(normal, middle));
-      expect(runsOf(normal, ending), ending).toBeGreaterThanOrEqual(runsOf(normal, middle) - 6);
     }
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
@@ -172,6 +192,43 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // docs/balance-v0.4.md, seção 13): quatro, como depois da D-39.
     // Segunda junção (docs/balance-v0.4.md, seção 19): 7 das 50 sementes abrem a cadeia no ritmo Rápido com o novo sorteio de cartas.
     expect(runsOf(fast, 'commonGranaryShare')).toBe(7);
+  });
+
+  it('cada continuação sem desfecho no fim do ano permanece na mesa ou agendada, sem se perder', () => {
+    // Segunda junção (docs/balance-v0.4.md, seção 19): substitui a tolerância global
+    // do WIP pela contabilidade de cada ocorrência, nas 100 partidas dos dois ritmos.
+    for (const run of [...normalRuns, ...fastRuns]) {
+      for (const [middle, ending] of [
+        ['commonGranaryShare', 'commonGranaryOutcome'],
+        ['thawBridgeSlab', 'thawBridgeCrossing'],
+      ]) {
+        const council = run.finalState.council;
+        for (const drawn of run.events.filter(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === middle,
+        )) {
+          const context = `${run.options.timeScale}× ${run.options.seed}: ${middle}`;
+          const delivered = run.events.some(
+            (event) =>
+              event.type === 'cardDrawn' &&
+              event.data.cardId === ending &&
+              event.data.previousInstanceId === drawn.data.instanceId,
+          );
+          if (delivered) continue;
+          const pending = council.pending.find((card) => card.instanceId === drawn.data.instanceId);
+          if (pending !== undefined) {
+            expect(pending.expiresAtMs, context).toBeGreaterThan(run.finalState.lastProcessedAt);
+          } else {
+            const scheduled = council.scheduled.find(
+              (card) => card.cardId === ending && card.previousInstanceId === drawn.data.instanceId,
+            );
+            expect(scheduled, context).toBeDefined();
+            if (scheduled !== undefined && scheduled.atMs <= run.finalState.lastProcessedAt) {
+              expect(council.pending, context).toHaveLength(2);
+            }
+          }
+        }
+      }
+    }
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {

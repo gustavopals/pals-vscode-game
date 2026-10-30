@@ -121,6 +121,34 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
     ).not.toContain('merchantBoycott');
   });
 
+  it('prender → largar permite sortear o Boicote no outono, sem agendá-lo como continuação', () => {
+    // Segunda junção (docs/balance-v0.4.md, seção 19): zero nos bots não pode esconder
+    // uma carta inalcançável. A flag vem da escolha real, e a chegada vem da audiência.
+    const start = feud();
+    expect(eligibleCards(start, AUTUMN, councilCards).map((card) => card.id)).not.toContain(
+      'merchantBoycott',
+    );
+    const jailed = choose(
+      dealt(start, 'mysteriousMerchant').state,
+      'mysteriousMerchant',
+      'imprison',
+    );
+    const lead = continueTo(jailed.state, 'merchantLead');
+    const dropped = choose(lead.state, 'merchantLead', 'drop').state;
+    expect(dropped.council.flags['merchant.hostile']).toBe(true);
+    expect(dropped.council.scheduled).toEqual([]);
+    // Isola o sorteio entre cartas já vistas; não injeta a carta nem a hostilidade.
+    dropped.council.seenThisYear = councilCards
+      .filter((card) => card.id !== 'merchantBoycott')
+      .map((card) => card.id);
+    dropped.council.nextDrawAtMs = AUTUMN;
+    const drawn = advanceTo(dropped, AUTUMN);
+    expect(drawn.events.filter((event) => event.type === 'cardDrawn')).toMatchObject([
+      { atMs: AUTUMN, data: { cardId: 'merchantBoycott', source: 'draw' } },
+    ]);
+    expect(drawn.state.council.pending.map((card) => card.cardId)).toEqual(['merchantBoycott']);
+  });
+
   it.each(['buy', 'imprison'] as const)(
     '%s → largar fecha o ramo e só conserva a hostilidade quando houve prisão',
     (first) => {

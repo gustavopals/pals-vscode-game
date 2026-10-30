@@ -1009,7 +1009,7 @@ os 56 v37 são protegidos por `FROZEN` e seus JSONs não foram alterados.
 Validação final: typecheck e lint com saída 0; 824 testes focados e mais dois
 testes filtrados (golden da visão e congelamento v37), todos verdes.
 
-## 19. Segunda junção (2026-10-28 a 2026-10-29)
+## 19. Segunda junção (2026-10-28 a 2026-10-30)
 
 Branch `v4-juncao2`, sobre o main `7cbdad1`, sem publicação. Integra as treze
 cartas de `v4h-t1-avulsas` (nove do Mercado/Coroa e quatro encontros avulsos),
@@ -1089,56 +1089,65 @@ na faixa; `MEASURED` recebe as linhas emitidas pelo CLI desta rodada.
 
 ### 19.3 O que saiu da faixa antes de regravar
 
-Antes da regravação de `MEASURED`, a simulação de 50 sementes com as novas cartas
-e o sorteio novo acusou as seguintes violações das faixas anteriores:
+Conferência das 72 linhas emitidas na rodada de 2026-10-29 (`b92b8b8`) contra
+a `MEASURED` anterior (`53d3691`), aplicando a mesma folga: 10% na população e
+5% nos tetos, com arredondamento igual a `bandOf`. Cada par abaixo é **medida nova /
+limite anterior**; população e Salão violam o piso, as demais grandezas violam o teto.
+As janelas `week/1` e `year/1` repetem a mesma partida e aparecem juntas.
+Esta conferência corrige a lista preliminar do WIP `53fcece`, que omitia violações
+de Senhor e atribuía outras a valores ainda dentro da faixa.
 
-- **Camponês (`m-peasant.md`):**
-  - `week/3/regular`: 33 h de jogo seguidas desperdiçando madeira (limite 32 h).
-  - `week/3/dedicado`: 27 h seguidas desperdiçando madeira (limite 26 h).
-  - `week/1/preguicoso`: excedente de madeira 765 (limite 542) e de pedra 3.265 (limite 2.961).
-  - `week/1/regular`: excedente de ouro 17.444 (limite 15.267).
-  - `week/1/dedicado`: excedente de pedra até 3.356 (limite 3.001) e de madeira 5.309 (limite 4.725).
-  - `week/0.5/dedicado`: excedente de ouro 1.279 (limite 1.228) e de madeira 1.880 (limite 1.766).
-  - `year/3/regular`: 18 h seguidas desperdiçando pedra (limite 16 h).
-  - `year/3/dedicado`: excedente de madeira 4.250 (limite 3.910), pedra 1.979 (limite 1.845), população 39 (faixa 41 a 68) e Salão Nv5 (mínimo Nv6) na semente `pedra-alta-028`.
-  - `year/3/explorador`: excedente de madeira 1.264 (limite 1.206).
-  - `year/1/preguicoso`: repete `week/1` (madeira 765 e pedra 3.265).
-  - `year/1/regular`: repete `week/1` (ouro 17.444).
-  - `year/1/dedicado`: repete `week/1` (pedra até 3.356 e madeira 5.309).
-  - `year/0.5/preguicoso`: excedente de madeira 5.750 (limite 4.463) e de pedra 2.513 (limite 1.627).
-  - `year/0.5/dedicado`: excedente de pedra 2.576 (limite 2.364).
+**Camponês**
 
-- **Senhor (`m-lord.md`):**
-  - `week/3/explorador`: excedente de madeira 4.924 (limite 4.829).
-  - `week/1/preguicoso`: excedente de pedra 2.435 (limite 2.324, em 5 sementes).
-  - `week/1/regular`: excedente de madeira até 4.000 (limite 2.900, em 3 sementes).
-  - `week/1/dedicado`: excedente de madeira 3.416 (limite 3.345).
-  - `week/1/explorador`: excedente de ouro 14.514 (limite 14.457).
-  - `week/0.5/regular`: 3 h seguidas desperdiçando madeira (limite 2,5 h).
-  - `year/1/preguicoso`: repete `week/1` (pedra 2.435).
-  - `year/1/regular`: repete `week/1` (madeira até 4.000).
-  - `year/1/dedicado`: repete `week/1` (madeira 3.416).
-  - `year/1/explorador`: repete `week/1` (ouro 14.514).
-  - `year/0.5/preguicoso`: excedente de pedra 2.016 (limite 1.470, em 3 sementes).
-  - `year/0.5/regular`: excedente de ouro 6.245 (limite 5.991).
+| Célula | Medida nova / limite anterior |
+|---|---|
+| `week/3/regular` | sequência desperdiçando (h de jogo) 33 / 32 |
+| `week/3/dedicado` | sequência desperdiçando (h de jogo) 27 / 26 |
+| `week/1 e year/1: preguicoso` | madeira parada 765 / 542; pedra parada 3265 / 2961 |
+| `week/1 e year/1: regular` | ouro parado 17444 / 15267 |
+| `week/1 e year/1: dedicado` | madeira parada 5309 / 4725; pedra parada 3356 / 3001 |
+| `week/0.5/dedicado` | madeira parada 1880 / 1766; ouro parado 1279 / 1228 |
+| `year/3/regular` | sequência desperdiçando (h de jogo) 18 / 16 |
+| `year/3/dedicado` | população mínima 39 / 41; Salão mínimo 5 / 6; madeira parada 4250 / 3910; pedra parada 1979 / 1845 |
+| `year/3/explorador` | madeira parada 1264 / 1206 |
+| `year/0.5/preguicoso` | madeira parada 5750 / 4463; pedra parada 2513 / 1627 |
+| `year/0.5/dedicado` | pedra parada 2576 / 2364 |
 
-- **Rei de Ferro (`m-ironKing.md`):**
-  - `week/3/regular`: excedente de ouro até 119.430 (limite 112.218, em 3 sementes).
-  - `week/3/explorador`: 39 h seguidas desperdiçando madeira (limite 38 h).
-  - `week/1/preguicoso`: excedente de madeira 1.237 (limite 470) e 36 h seguidas desperdiçando pedra (limite 32 h).
-  - `week/1/regular`: excedente de pedra até 2.887 (limite 2.643).
-  - `week/1/explorador`: população 47 (faixa 49 a 74), Salão Nv5 (mínimo Nv6) e ouro 16.473 (limite 14.695) na semente `pedra-alta-013`; excedente de madeira até 3.199 (limite 2.721).
-  - `week/0.5/regular`: excedente de ouro 1.157 (limite 1.094).
-  - `week/0.5/explorador`: excedente de pedra 890 (limite 692).
-  - `year/3/dedicado`: ouro 9.023 (limite 7.927).
-  - `year/1`: repete as violações de `week/1`.
-  - `year/0.5/preguicoso`: excedente de madeira até 2.474 (limite 1.634, em 4 sementes).
-  - `year/0.5/regular`: pedra 3.573 (limite 3.475).
-  - `year/0.5/dedicado`: madeira 2.774 (limite 2.553) e pedra 2.649 (limite 2.239).
-  - `year/0.5/explorador`: pedra 3.680 (limite 3.343).
+**Senhor**
 
-Fome e frio continuam estritamente em zero em todas as 3.600 partidas medidas.
-As linhas de base atualizadas foram incorporadas em `MEASURED` (`packages/sim-cli/src/bands.ts`).
+| Célula | Medida nova / limite anterior |
+|---|---|
+| `week/3/explorador` | madeira parada 4924 / 4829 |
+| `week/1 e year/1: preguicoso` | pedra parada 2435 / 2324 |
+| `week/1 e year/1: regular` | madeira parada 4000 / 2900; pedra parada 2587 / 2243 |
+| `week/1 e year/1: dedicado` | pedra parada 2768 / 2742 |
+| `week/0.5/regular` | sequência desperdiçando (h de jogo) 3 / 2 |
+| `week/0.5/explorador` | madeira parada 1406 / 1132 |
+| `year/3/regular` | Salão mínimo 4 / 5; madeira parada 553 / 548; sequência desperdiçando (h de jogo) 6 / 4 |
+| `year/3/dedicado` | pedra parada 1743 / 1700 |
+| `year/0.5/preguicoso` | pedra parada 2016 / 1470 |
+| `year/0.5/regular` | Salão mínimo 6 / 7 |
+| `year/0.5/explorador` | madeira parada 4677 / 3969; pedra parada 3058 / 2667 |
+
+**Rei de Ferro**
+
+| Célula | Medida nova / limite anterior |
+|---|---|
+| `week/3/regular` | ouro parado 119430 / 112218 |
+| `week/3/explorador` | sequência desperdiçando (h de jogo) 39 / 38 |
+| `week/1 e year/1: preguicoso` | madeira parada 1237 / 470; sequência desperdiçando (h de jogo) 36 / 32 |
+| `week/1 e year/1: regular` | pedra parada 2887 / 2643 |
+| `week/1 e year/1: explorador` | população mínima 47 / 49; Salão mínimo 5 / 6; madeira parada 3199 / 2721; ouro parado 16473 / 14695 |
+| `week/0.5/regular` | ouro parado 1157 / 1094 |
+| `week/0.5/explorador` | pedra parada 890 / 692 |
+| `year/3/dedicado` | ouro parado 9023 / 7927 |
+| `year/0.5/preguicoso` | madeira parada 2474 / 1634 |
+| `year/0.5/regular` | pedra parada 3573 / 3475 |
+| `year/0.5/dedicado` | madeira parada 2774 / 2553; pedra parada 2649 / 2239 |
+| `year/0.5/explorador` | pedra parada 3680 / 3343 |
+
+Fome e frio continuam em zero nos 3.600 registros da medição (3.000 partidas
+distintas). Nenhuma folga, custo, recompensa ou política foi alterada neste fechamento.
 
 ### 19.4 O Preguiçoso do Rápido em Senhor
 
@@ -1146,7 +1155,7 @@ Na célula de um ano de jogo no ritmo Rápido (3×, 56 h reais), o perfil Pregui
 - **População:** fixa em 16 aldeões em todas as 50 sementes (faixa medida [16, 16], faixa com slack 14 a 18; população mínima de 7 aldeões durante o ano).
 - **Salão:** fecha o ano no nível 2 a 3 (Nv2 erguido na hora 29, Nv3 alcançado entre a hora 53 e não alcançado em parte das sementes; Nv4 não é iniciado). Celeiro sai na hora 31 e Armazém na 33.
 - **Incursões e feridos:** sofre de 8 a 9 incursões, repele de 0 a 1 e tem de 0 a 2 anunciadas pela Torre (que sai na hora 50 a —). Sofre de 7 a 14 feridos no ano, perdendo de 691 a 1.020 de comida e de 572 a 939 de madeira levadas pelos atacantes.
-- **Objetivos:** conclui de 9 a 11 objetivos (dos 16 possíveis), iniciando de 11 a 17 obras que começam sozinhas.
+- **Objetivos:** conclui de 9 a 11 objetivos (dos 21 possíveis), iniciando de 11 a 17 obras que começam sozinhas.
 - **Fome e frio:** 0 horas; moral mínima em 50 (sem horas de moral baixa e sem deserções).
 
 ### 19.5 Ameaça no fim do ano
@@ -1156,4 +1165,4 @@ Ao fim de um ano de jogo (168 h de jogo), a Ameaça em Senhor fecha nos seguinte
 - **Normal 1×:** Preguiçoso de 22 a 99; Regular de 22 a 100; Dedicado de 29 a 85; Explorador de 10 a 92.
 - **Tranquilo 0,5×:** Preguiçoso de 22 a 99; Regular de 22 a 99; Dedicado de 22 a 100; Explorador de 21 a 73.
 
-No conjunto dos 1.000 registros de um ano ou mais (todas as dificuldades e perfis com 1 ano+), 135 partidas terminam com Ameaça final ≥ 80 (eram 114 antes do novo sorteio), e 48 terminam com Ameaça final ≥ 90. A Ameaça máxima alcança 100 em várias partidas durante as invasões e eventos de acampamento. Na partida padrão monitorada pelo simulador (`pedra-alta-golden`), a Ameaça final encerra em 50 (máxima 100, Torre de Vigia Nv4).
+No conjunto dos 1.000 registros de Senhor com ao menos um ano de jogo (as semanas do Rápido e do Normal mais as três janelas de um ano, quatro perfis; o Normal está contado duas vezes), 135 partidas terminam com Ameaça final ≥ 80 (eram 114 antes do novo sorteio), e 48 terminam com Ameaça final ≥ 90. A Ameaça máxima alcança 100 em várias partidas durante as invasões e eventos de acampamento. Na partida padrão monitorada pelo simulador (`pedra-alta-golden`), a Ameaça final encerra em 50 (máxima 100, Torre de Vigia Nv4).
