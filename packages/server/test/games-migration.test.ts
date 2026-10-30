@@ -67,7 +67,7 @@ describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
       expect(reply.status).toBe(200);
       expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
       const row = await rowOf(server, game.id);
-      expect(row).toMatchObject({ schemaVersion: 35, stateVersion: 8 });
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       expect(row.state).toMatchObject({
         settlement: before.settlement,
         rng: before.rng,
@@ -146,8 +146,28 @@ function withoutVigilSettings<T extends Record<string, unknown>>(
   return copy;
 }
 
+/** Projeta os campos dos estados 36–38 ao comparar retratos anteriores à segunda junção. */
+function beforeSecondJoin<T>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as {
+    market?: Record<string, unknown>;
+    guild?: { tavern?: Record<string, unknown> };
+    council?: {
+      pending?: Array<Record<string, unknown>>;
+      delayed?: Array<Record<string, unknown>>;
+    };
+    horde?: Record<string, unknown>;
+  };
+  delete copy.market?.effects;
+  delete copy.guild?.tavern?.extraOffer;
+  delete copy.horde?.sabotages;
+  for (const entry of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
+    delete entry.heroes;
+  }
+  return copy as T;
+}
+
 function beforeMasters<T>(state: T): T {
-  const copy = withoutIron(JSON.parse(JSON.stringify(state))) as {
+  const copy = withoutIron(beforeSecondJoin(state)) as {
     settlement?: {
       masters?: unknown;
       mastersWaiting?: unknown;

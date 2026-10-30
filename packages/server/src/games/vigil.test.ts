@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+import { CURRENT_SCHEMA_VERSION } from '@lotg/engine';
+
 import type { GameRow } from '../db/schema';
 import { loadGame } from './repository';
 import { describe, expect, it } from 'vitest';
@@ -70,6 +72,9 @@ describe('contexto civil da linha ao migrar', () => {
     expect(migrated.state.horde.scheduledRaids).toEqual(
       (raw as unknown as { horde: { scheduledRaids: unknown } }).horde.scheduledRaids,
     );
-    expect(loadGame({ ...row, state: migrated.state, schemaVersion: 37 }).migratedFrom).toBeNull();
+    expect(
+      loadGame({ ...row, state: migrated.state, schemaVersion: CURRENT_SCHEMA_VERSION })
+        .migratedFrom,
+    ).toBeNull();
   });
 });
