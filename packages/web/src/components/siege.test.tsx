@@ -53,7 +53,9 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
   it('mostra a expiração iminente da onda na barra sob frio ou fome', () => {
     const coldSiege: typeof siegeWaveView = {
       ...siegeWaveView,
-      winter: { cold: { text: 'Frio extremo no feudo.' } } as unknown as typeof siegeWaveView.winter,
+      winter: {
+        cold: { text: 'Frio extremo no feudo.' },
+      } as unknown as typeof siegeWaveView.winter,
     };
     const bar = statusBar({
       ...input,
@@ -135,6 +137,8 @@ describe('compatibilidade mínima do Cerco com o protocolo 4', () => {
       unseen: 0,
       elapsedSeconds: 60,
     });
-    expect(multiTree.find((node) => node.id === 'today')?.description).toBe('● 2 decisões pendentes');
+    expect(multiTree.find((node) => node.id === 'today')?.description).toBe(
+      '● 2 decisões pendentes',
+    );
   });
 });

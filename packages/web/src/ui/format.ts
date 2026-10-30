@@ -552,8 +552,7 @@ function withNearCrossroads(
   }
   const isCrossroads = near.decision.kind === 'crossroads';
   const icon = isCrossroads ? 'git-compare' : 'shield';
-  const label =
-    near.decision.kind === 'crossroads' ? 'encruzilhada' : `onda ${near.decision.wave}`;
+  const label = near.decision.kind === 'crossroads' ? 'encruzilhada' : `onda ${near.decision.wave}`;
   const where = isCrossroads
     ? 'A equipe espera na encruzilhada, na aba Guilda.'
     : 'A decisão entre ondas está na aba Hoje.';
@@ -562,8 +561,7 @@ function withNearCrossroads(
     bar: {
       ...topic.bar,
       text: `${topic.bar.text} · $(${icon}) ${label}: ${formatApprox(near.left)}`,
-      tooltip:
-        `${topic.bar.tooltip} "${near.decision.title}": a espera acaba em ${formatApprox(near.left)}. ${where}`,
+      tooltip: `${topic.bar.tooltip} "${near.decision.title}": a espera acaba em ${formatApprox(near.left)}. ${where}`,
       // A incursão mantém o clique dela (a defesa tem prazo também); nos outros estados, a
       // escolha é o que vence primeiro, e o clique leva a ela.
       ...(topic.bar.alarm === true
