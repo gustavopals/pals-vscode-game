@@ -876,3 +876,13 @@ formatação dos três arquivos da retomada: saída **0**. A convocação por pr
 onda 3 ainda depende do contrato registrado em G-16; não foi fingida com a prévia
 de incursão existente. Nenhum `verify`, teste global, matriz, integração ou navegador
 foi executado nesta trilha.
+
+Contrato adicional do simulador: **7/7** testes selecionados passaram (saída **0**)
+em `bots/bots.test.ts` e `simulate.test.ts`: composição dos bots, limite de leitura
+da visão e cabeçalho/ordem das colunas. Os outros 163 testes desses arquivos ficaram
+fora do filtro; nenhuma matriz é executada por esse comando.
+
+```bash
+nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/siege-report.test.ts --maxWorkers=2
+nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/bots/bots.test.ts packages/sim-cli/src/simulate.test.ts --maxWorkers=2 -t 'bot honesto|um bot é uma lista|cabeçalho|colunas das mecânicas'
+```
