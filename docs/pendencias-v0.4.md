@@ -535,3 +535,18 @@ aprovados e **remedir na junção** com a Ameaça da Fortaleza em zero até o Ce
 decidir ajuste de custo, recompensa ou progressão. `MEASURED` ficou intacta; os desvios
 continuam visíveis na matriz completa. O portão só amostra as três primeiras sementes
 nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 015 e 047.
+
+### Estatísticas e ranking (fora do plano, 2026-10-30)
+
+Pedido direto do autor; decisões no [ADR 0021](decisions/0021-estatisticas-e-ranking.md).
+
+- **ST-1 (do autor): a política de privacidade precisa citar o ranking.** O nome do feudo e o
+  ouro dele ficam à vista de todos os jogadores na aba Reino, a não ser que a conta saia do
+  ranking nas Preferências; os totais do reino são agregados e contam todas as contas. O texto
+  da política é do autor (CLAUDE.md, regra 7) e não foi mexido.
+- **ST-2 (proposta): nome de feudo ofensivo.** O ranking mostra o nome escolhido pelo jogador,
+  sem moderação. Hoje não há como o autor tirar um nome da lista além de editar o banco; uma
+  ferramenta de operação (ou a saída forçada de uma conta) fica para quando for preciso.
+- **ST-3 (proposta): pontos.** O pedido falava em "pontos"; a pontuação do jogo é a da Crônica do
+  Ano (decisão 22 do ADR 0020), que ainda não existe. Quando existir, o ranking pode ganhar uma
+  segunda coluna ou uma segunda lista.
