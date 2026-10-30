@@ -1640,7 +1640,7 @@ export const CouncilOptionSchema = z
       (value) =>
         value === 'Erguer a Torre de Vigia ao Nv3' ||
         value === 'Não dar importância' ||
-        /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la))(?:\s[^\d.]*)?$/u.test(
+        /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la|los|las))(?:\s[^\d.]*)?$/u.test(
           value,
         ),
       'verbo no infinitivo, sem números',
@@ -1778,14 +1778,29 @@ export const CouncilCardSchema = z
     // V4H-T2: preservar as fichas aprovadas; as demais cartas mantêm os limites editoriais.
     const count = sentenceCount(card.text);
     if (count < 2 || count > (card.id === 'northernCrows' ? 5 : 4)) {
-      context.addIssue({ code: 'custom', message: 'a situação tem de 2 a 4 frases', path: ['text'] });
+      context.addIssue({
+        code: 'custom',
+        message: 'a situação tem de 2 a 4 frases',
+        path: ['text'],
+      });
     }
     if (card.options.length > 3 && card.id !== 'afterTheStorm') {
-      context.addIssue({ code: 'custom', message: 'quatro opções só no Rescaldo aprovado', path: ['options'] });
+      context.addIssue({
+        code: 'custom',
+        message: 'quatro opções só no Rescaldo aprovado',
+        path: ['options'],
+      });
     }
     for (const option of card.options) {
-      if (['Erguer a Torre de Vigia ao Nv3', 'Não dar importância'].includes(option.label) && card.id !== 'northernCrows') {
-        context.addIssue({ code: 'custom', message: 'exceção editorial exclusiva dos corvos', path: ['options'] });
+      if (
+        ['Erguer a Torre de Vigia ao Nv3', 'Não dar importância'].includes(option.label) &&
+        card.id !== 'northernCrows'
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'exceção editorial exclusiva dos corvos',
+          path: ['options'],
+        });
       }
     }
     const ids = card.options.map((option) => option.id);
@@ -1799,7 +1814,11 @@ export const CouncilCardSchema = z
       const path = ['autoResolve', difficulty];
       if (option === undefined) {
         context.addIssue({ code: 'custom', message: 'opção automática inexistente', path });
-      } else if (option.cost !== undefined || option.weaponsCost !== undefined || option.requires !== undefined) {
+      } else if (
+        option.cost !== undefined ||
+        option.weaponsCost !== undefined ||
+        option.requires !== undefined
+      ) {
         context.addIssue({
           code: 'custom',
           message: 'opção automática com custo ou requisito',

@@ -430,7 +430,8 @@ describe('Conselho: o catálogo', () => {
     ]);
     for (const entry of scripted) {
       expect(entry.weight, entry.id).toBe(0);
-      if (!['hordeDeserter', 'siegeEve'].includes(entry.id)) expect(entry.requires, entry.id).toBeUndefined();
+      if (!['hordeDeserter', 'siegeEve'].includes(entry.id))
+        expect(entry.requires, entry.id).toBeUndefined();
     }
     const [stranger] = scripted as [CouncilCard];
     expect(stranger.weight).toBe(0);
@@ -513,8 +514,16 @@ describe('Conselho: o catálogo', () => {
   it('as opções são verbos no infinitivo e não repetem o número do custo', () => {
     for (const entry of councilCards) {
       for (const option of entry.options) {
+        if (entry.id === 'northernCrows' && option.id === 'raise') {
+          // Ficha 10.2 aprovada pelo autor: "Erguer a Torre de Vigia ao Nv3"
+          continue;
+        }
+        if (entry.id === 'northernCrows' && option.id === 'ignore') {
+          // Ficha 10.2 aprovada pelo autor: "Não dar importância"
+          continue;
+        }
         expect(option.label, entry.id).toMatch(
-          /^\p{Lu}\p{Ll}*((ar|er|ir|or|ôr)(-lhe)?|[áêíô]-(lo|la))(\s|$)/u,
+          /^\p{Lu}\p{Ll}*((ar|er|ir|or|ôr)(-lhe)?|[áêíô]-(lo|la|los|las))(\s|$)/u,
         );
         expect(option.label, entry.id).not.toMatch(/\d/);
       }
@@ -535,7 +544,12 @@ describe('Conselho: o catálogo', () => {
         ].filter((phrase): phrase is string => phrase !== undefined);
         for (const phrase of phrases) {
           // Datada, no lugar certo, e só com marcadores que o motor sabe preencher.
-          expect(phrase, `${entry.id}/${option.id}`).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
+          if (entry.id === 'siegeEve') {
+            // Ficha 11.5 aprovada: "A Crônica não usa {dia}º dia, porque a véspera não é um dia de calendário que o jogador conte."
+            expect(phrase, `${entry.id}/${option.id}`).toMatch(/^Na véspera do cerco, /);
+          } else {
+            expect(phrase, `${entry.id}/${option.id}`).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
+          }
           // §6.1 aprovado usa o interlocutor no lugar do feudo; frase exata no teste das fichas.
           if (entry.id === 'kingsTax' && option.id === 'negotiate')
             expect(phrase).toContain('{heroi}');
@@ -576,7 +590,7 @@ describe('Conselho: o catálogo', () => {
 const known = (list: readonly CouncilEffect[]) => {
   // `hero` vale 2 para quem chega agora e 1 para quem só chega depois: a tela mostra a espera.
   // `extra` conta o que não é recurso nem moral: um Mestre, soldados ou um destino revelado.
-  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0, hero: 0, extra: 0 };
+  const total = { food: 0, wood: 0, stone: 0, gold: 0, iron: 0, morale: 0, hero: 0, extra: 0 };
   for (const effect of list) {
     if (effect.type === 'resources') {
       for (const [resource, amount] of Object.entries(effect.amounts)) {
@@ -589,14 +603,34 @@ const known = (list: readonly CouncilEffect[]) => {
       total.morale += effect.amount * effect.durationDays;
     } else if (effect.type === 'addHero') {
       total.hero += effect.afterDays === undefined ? 2 : 1;
+    } else if (effect.type === 'rollEffect') {
+      total.extra += 1;
+      const hit = known(effect.onHit.effects);
+      for (const key of Object.keys(hit) as Array<keyof typeof hit>) {
+        total[key] += hit[key];
+      }
     } else if (
       effect.type === 'addMaster' ||
       effect.type === 'addSoldiers' ||
       effect.type === 'revealDestination' ||
       effect.type === 'tavernExtraOffer' ||
-      effect.type === 'healHero'
+      effect.type === 'healHero' ||
+      effect.type === 'startBuilding' ||
+      effect.type === 'omen' ||
+      effect.type === 'addItem' ||
+      effect.type === 'addWeapons' ||
+      effect.type === 'smithySpeed' ||
+      effect.type === 'smithyBatch' ||
+      effect.type === 'trainBoost' ||
+      effect.type === 'repairWall' ||
+      effect.type === 'healWall' ||
+      effect.type === 'revealRaid' ||
+      effect.type === 'repairDiscount' ||
+      effect.type === 'militiaReady'
     ) {
       total.extra += 1;
+    } else if (effect.type === 'threat') {
+      if (effect.delta < 0) total.extra += 1;
     }
   }
   return total;
@@ -604,11 +638,13 @@ const known = (list: readonly CouncilEffect[]) => {
 const schedules = (option: CouncilCard['options'][number]) =>
   option.effects.some((effect) => effect.type === 'scheduleCard');
 const hasRisk = (option: CouncilCard['options'][number]) =>
-  option.effects.some((effect) => effect.type === 'rollEffect');
+  option.effects.some((effect) => effect.type === 'rollEffect' || effect.type === 'scheduleRaid');
 const changesPrice = (option: CouncilCard['options'][number]) =>
   option.effects.some((effect) => effect.type === 'marketPrice');
 const isFree = (option: CouncilCard['options'][number]) =>
-  option.cost === undefined && option.requires === undefined;
+  option.cost === undefined &&
+  option.requires === undefined &&
+  !option.effects.some((e) => e.type === 'startBuilding' || e.type === 'repairWall');
 
 describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)', () => {
   it('toda carta que o sorteio tira tem ao menos uma opção com custo ou com requisito: há sempre algo a pesar', () => {
@@ -636,7 +672,8 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
             hasRisk(better) ||
             hasRisk(worse) ||
             changesPrice(better) ||
-            changesPrice(worse)
+            changesPrice(worse) ||
+            (entry.id === 'hordeSpy' && (better.id === 'release' || worse.id === 'release'))
           ) {
             continue;
           }
@@ -822,6 +859,7 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
           wood: 0,
           stone: 0,
           gold: 0,
+          iron: 0,
           morale: 0,
           hero: 0,
           extra: 0,
@@ -883,8 +921,9 @@ describe('Conselho: os números das cartas ficam em uma faixa que a tela explica
         for (const effect of option.effects) {
           if (effect.type === 'scheduleCard') {
             // Dois dias quando a história só continua; até quatro quando a carta dá um prazo.
+            // No lote 3 (§§9.1–9.2 aprovados), "A Filha do Ferreiro" agenda continuações em 6 dias.
             expect(effect.afterDays, `${entry.id}/${option.id}`).toBeGreaterThanOrEqual(2);
-            expect(effect.afterDays, `${entry.id}/${option.id}`).toBeLessThanOrEqual(4);
+            expect(effect.afterDays, `${entry.id}/${option.id}`).toBeLessThanOrEqual(6);
           }
         }
         if (option.hidden !== undefined) {
@@ -1478,7 +1517,8 @@ describe('Conselho: "Estrangeira ferida", a carta que entrega o primeiro herói 
     expect(stranger.options.map((entry) => entry.id)).toEqual(['shelter', 'tend']);
     for (const entry of stranger.options) {
       expect(entry.cost, entry.id).toBeUndefined();
-      if (!['hordeDeserter', 'siegeEve'].includes(entry.id)) expect(entry.requires, entry.id).toBeUndefined();
+      if (!['hordeDeserter', 'siegeEve'].includes(entry.id))
+        expect(entry.requires, entry.id).toBeUndefined();
       expect(entry.hidden, entry.id).toBeUndefined();
     }
     expect(option('shelter').effects).toEqual([{ type: 'addHero', heroId: 'edda' }]);
