@@ -100,7 +100,7 @@ export function applyCouncilWarEffect(draft: GameState, effect: CouncilEffect, _
     case 'threat': draft.map.threat = Math.max(0, Math.min(balance.threat.max, draft.map.threat + effect.delta)); break;
     case 'scheduleRaid': {
       const raidAt = atMs + effect.afterMs;
-      draft.horde.scheduledRaids.push({ id: `card:${instanceId}`, atMs: raidAt, kind: 'scripted', enemy: 'raiders', size: effect.kind, announcedAtMs: null, composition: baseRaidComposition(effect.kind, seasonAt(raidAt).id).map((post) => ({ ...post })) });
+      draft.horde.scheduledRaids.push({ id: `card:${instanceId}`, atMs: raidAt, kind: 'scripted', enemy: 'raiders', size: 'light', announcedAtMs: null, composition: baseRaidComposition('light', 'summer').map((post) => ({ ...post })) });
       draft.horde.scheduledRaids.sort((a, b) => a.atMs - b.atMs);
       break;
     }

@@ -44,14 +44,6 @@ export const itemRarities: Record<
 
 /** **Na ordem de `ITEM_IDS`.** */
 export const items: Record<ItemId, ItemDef> = {
-  lordsSword: {
-    label: 'Espada do Senhor',
-    text: 'Tem o fio limpo e o peso certo, e o pai, ao lado, não disse nada, que é o seu jeito de dizer muito.',
-    slot: 'weapon',
-    rarity: 'rare',
-    power: { num: 28, den: 25 },
-    value: 120,
-  },
   huntingSpear: {
     label: 'Lança de caça',
     text: 'Haste de freixo e ponta larga, feita para javali e boa para o resto.',
@@ -147,6 +139,14 @@ export const items: Record<ItemId, ItemDef> = {
     rarity: 'epic',
     power: { num: 23, den: 20 },
     value: 250,
+  },
+  lordsSword: {
+    label: 'Espada do Senhor',
+    text: 'Tem o fio limpo e o peso certo, e o pai, ao lado, não disse nada, que é o seu jeito de dizer muito.',
+    slot: 'weapon',
+    rarity: 'rare',
+    power: { num: 28, den: 25 },
+    value: 120,
   },
 };
 

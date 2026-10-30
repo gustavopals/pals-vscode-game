@@ -182,6 +182,7 @@ describe('o equipamento (ADR 0018, decisão 15)', () => {
       'trackerHorn',
       'travelerMedal',
       'captainChain',
+      'lordsSword',
     ]);
     expect(Object.keys(items)).toEqual([...ITEM_IDS]);
   });
@@ -201,13 +202,15 @@ describe('o equipamento (ADR 0018, decisão 15)', () => {
       const rarities = ITEM_IDS.filter((id) => items[id].slot === slot).map(
         (id) => items[id].rarity,
       );
-      expect(rarities, slot).toEqual([...ITEM_RARITY_IDS]);
+      // V4H-T2 §9.3: a espada da cadeia é uma segunda arma rara, sem alterar a escada antiga.
+      expect(rarities, slot).toEqual(slot === 'weapon' ? [...ITEM_RARITY_IDS, 'rare'] : [...ITEM_RARITY_IDS]);
     }
   });
 
   it('uma raridade maior soma mais poder e vale mais ouro, e ninguém passa de 15%', () => {
     for (const slot of ITEM_SLOT_IDS) {
-      const ladder = ITEM_IDS.filter((id) => items[id].slot === slot).map((id) => items[id]);
+      // A espada exclusiva da carta tem a mesma potência e valor da Lâmina de Vel'Thar.
+      const ladder = ITEM_IDS.filter((id) => id !== 'lordsSword' && items[id].slot === slot).map((id) => items[id]);
       for (const [index, item] of ladder.entries()) {
         const previous = ladder[index - 1];
         if (previous !== undefined) {
@@ -217,6 +220,10 @@ describe('o equipamento (ADR 0018, decisão 15)', () => {
         expect(ratioOf(item.power)).toBeLessThanOrEqual(1.15);
       }
     }
+  });
+
+  it('a Espada do Senhor é a arma rara aprovada, equivalente à Lâmina de Vel’Thar', () => {
+    expect(items.lordsSword).toMatchObject({ slot: 'weapon', rarity: 'rare', power: items.veltharBlade.power, value: 120 });
   });
 
   it('nada de desgaste, reparo, venda ou versão futura no item', () => {

@@ -133,7 +133,7 @@ describe('Conselho: o catálogo', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
     // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
     // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
-    expect(councilCards).toHaveLength(43);
+    expect(councilCards).toHaveLength(56);
     expect(councilCards.slice(0, 22).map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -181,6 +181,19 @@ describe('Conselho: o catálogo', () => {
       ['gamblingDebt', 'A dívida de jogo'],
       ['squareDuel', 'Duelo na praça'],
       ['wanderingHealer', 'O curandeiro errante'],
+      ['smithsDaughter', 'A Filha do Ferreiro'],
+      ['temperingSecret', 'O segredo da têmpera'],
+      ['lordsSword', 'A espada do Senhor'],
+      ['passingMercenaries', 'Mercenários de passagem'],
+      ['smuggledIron', 'Ferro de contrabando'],
+      ['northernCrows', 'Os corvos do norte'],
+      ['hordeDeserter', 'O desertor'],
+      ['hordeSpy', 'O espião da Horda'],
+      ['raidersAskPassage', 'Saqueadores pedem passagem'],
+      ['crackedWall', 'A muralha rachada'],
+      ['warCouncil', 'Conselho de Guerra'],
+      ['afterTheStorm', 'Depois da tempestade'],
+      ['siegeEve', 'A véspera'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -251,6 +264,19 @@ describe('Conselho: o catálogo', () => {
       gamblingDebt: ['cover', 'leave'],
       squareDuel: ['allow', 'train', 'forbid'],
       wanderingHealer: ['pay', 'herbs', 'wait'],
+      smithsDaughter: ['teach', 'tradition'],
+      temperingSecret: ['pay', 'keep'],
+      lordsSword: ['blade', 'arms'],
+      passingMercenaries: ['hire', 'train', 'refuse'],
+      smuggledIron: ['buy', 'half', 'refuse'],
+      northernCrows: ['raise', 'ask', 'ignore'],
+      hordeDeserter: ['buy', 'question', 'expel'],
+      hordeSpy: ['interrogate', 'hang', 'release'],
+      raidersAskPassage: ['pay', 'risk', 'wait'],
+      crackedWall: ['repair', 'patch', 'wait'],
+      warCouncil: ['listen', 'hear', 'leave'],
+      afterTheStorm: ['mourn', 'feast', 'rebuild', 'leave'],
+      siegeEve: ['feast', 'vigil', 'rest'],
     });
     expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf', 'osbert']);
   });
@@ -366,6 +392,20 @@ describe('Conselho: o catálogo', () => {
       'tavernExtraOffer',
       'injureHero',
       'healHero',
+      'smithySpeed',
+      'smithyBatch',
+      'addItem',
+      'addWeapons',
+      'trainBoost',
+      'startBuilding',
+      'omen',
+      'threat',
+      'scheduleRaid',
+      'repairWall',
+      'healWall',
+      'revealRaid',
+      'repairDiscount',
+      'militiaReady',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -384,10 +424,13 @@ describe('Conselho: o catálogo', () => {
       ['woundedStranger', { atGameDay: 13 }],
       ['itinerantMerchant', { atGameDay: 20 }],
       ['firstRecruit', { onHallLevel: 4 }],
+      ['northernCrows', { atSeasonStart: 'autumn', year: 1 }],
+      ['hordeDeserter', { atSeasonEnd: 'autumn', year: 1 }],
+      ['siegeEve', { beforeSiege: true }],
     ]);
     for (const entry of scripted) {
       expect(entry.weight, entry.id).toBe(0);
-      expect(entry.requires, entry.id).toBeUndefined();
+      if (!['hordeDeserter', 'siegeEve'].includes(entry.id)) expect(entry.requires, entry.id).toBeUndefined();
     }
     const [stranger] = scripted as [CouncilCard];
     expect(stranger.weight).toBe(0);
@@ -1435,7 +1478,7 @@ describe('Conselho: "Estrangeira ferida", a carta que entrega o primeiro herói 
     expect(stranger.options.map((entry) => entry.id)).toEqual(['shelter', 'tend']);
     for (const entry of stranger.options) {
       expect(entry.cost, entry.id).toBeUndefined();
-      expect(entry.requires, entry.id).toBeUndefined();
+      if (!['hordeDeserter', 'siegeEve'].includes(entry.id)) expect(entry.requires, entry.id).toBeUndefined();
       expect(entry.hidden, entry.id).toBeUndefined();
     }
     expect(option('shelter').effects).toEqual([{ type: 'addHero', heroId: 'edda' }]);
@@ -1572,7 +1615,7 @@ describe('Conselho: o schema de uma carta', () => {
     expect(CouncilCardSchema.safeParse(sample).error).toBeUndefined();
   });
 
-  it('recusa carta com uma opção só, com quatro, com ids repetidos ou com campo a mais', () => {
+  it('recusa carta com uma opção só, com quatro sem aprovação, com ids repetidos ou com campo a mais', () => {
     const [open, wait] = sample.options;
     expect(parses({ options: [wait] })).toBe(false);
     expect(parses({ options: [open, wait, { ...wait, id: 'a' }, { ...wait, id: 'b' }] })).toBe(
@@ -1629,7 +1672,8 @@ describe('Conselho: o schema de uma carta', () => {
     expect(effects([{ type: 'addUnit', unit: 'militia' }])).toBe(false);
     expect(effects([{ type: 'resources', amounts: {} }])).toBe(false);
     expect(effects([{ type: 'resources', amounts: { food: 0 } }])).toBe(false);
-    expect(effects([{ type: 'resources', amounts: { iron: 5 } }])).toBe(false);
+    // V4H-T2 §9.5: o ferro aprovado do contrabando entra por carta.
+    expect(effects([{ type: 'resources', amounts: { iron: 5 } }])).toBe(true);
     expect(effects([{ type: 'morale', amount: 0, durationDays: 1 }])).toBe(false);
     expect(effects([{ type: 'morale', amount: 5, durationDays: 0 }])).toBe(false);
     expect(effects([{ type: 'scheduleCard', cardId: 'sample', afterDays: 0 }])).toBe(false);

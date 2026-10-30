@@ -81,7 +81,7 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
   });
 
   it('as quatro avulsas novas: contagens exatas por estação, Taverna, heróis livres e feridos', () => {
-    const avulsas = CATALOG.slice(39);
+    const avulsas = CATALOG.slice(39, 43);
     const counts = (tavern: number, freeHeroes: number, injured: boolean) =>
       balance.calendar.seasons.map((season) => {
         const at = SEASON_START[season.id] + DAY;

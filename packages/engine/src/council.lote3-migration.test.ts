@@ -1,14 +1,11 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { currentShape, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { settings } from './test-helpers';
 
-const old = () =>
-  JSON.parse(
-    readFileSync(new URL('./__fixtures__/state-v40-smithy-forging.json', import.meta.url), 'utf8'),
-  );
+const frozen = import.meta.glob<string>('./__fixtures__/state-v40-smithy-forging.json', { query: '?raw', import: 'default', eager: true });
+const old = () => JSON.parse(Object.values(frozen)[0]!);
 
 describe('passo 40 → 41 do lote 3', () => {
   it('preserva lote, prazos, gerador e identidades, sem alterar a entrada', () => {
