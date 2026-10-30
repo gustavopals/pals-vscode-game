@@ -80,7 +80,10 @@ export function kingdomTiles(kingdom: StatsResponse['kingdom']): KingdomTile[] {
   ];
 }
 
-/** A frase da posição do jogador, sob o título "Minhas estatísticas". */
+/**
+ * A frase da posição do jogador, sob o título "Minhas estatísticas". No ranking, ela vem depois
+ * do selo com a posição ("2º") e não a repete.
+ */
 export function positionText(stats: StatsResponse): string {
   const { me, rankedFiefs } = stats;
   if (me.position === null) {
@@ -89,7 +92,8 @@ export function positionText(stats: StatsResponse): string {
   if (!me.listed) {
     return `Seu feudo está fora do ranking. Nele, seria o ${ordinal(me.position)} em ouro.`;
   }
-  return `${ordinal(me.position)} em ouro, entre ${plural(rankedFiefs, 'feudo', 'feudos')} do ranking.`;
+  // A posição em si vem no selo ao lado (`ordinal`); a frase diz o resto.
+  return `em ouro, entre ${plural(rankedFiefs, 'feudo', 'feudos')} do ranking.`;
 }
 
 export type FiefFact = { id: string; icon: string; label: string; value: string };
@@ -102,10 +106,16 @@ export function fiefFacts(fief: FiefStats): FiefFact[] {
     { id: 'soldiers', icon: 'organization', label: 'Soldados', value: whole(fief.soldiers) },
     { id: 'heroes', icon: 'star-full', label: 'Heróis', value: whole(fief.heroes) },
     {
-      id: 'raids',
+      id: 'raidsRepelled',
       icon: 'shield',
-      label: 'Incursões',
-      value: `${whole(fief.raidsRepelled)} repelidas · ${whole(fief.raidsSuffered)} sofridas`,
+      label: 'Incursões repelidas',
+      value: whole(fief.raidsRepelled),
+    },
+    {
+      id: 'raidsSuffered',
+      icon: 'flame',
+      label: 'Incursões sofridas',
+      value: whole(fief.raidsSuffered),
     },
     {
       id: 'expeditions',

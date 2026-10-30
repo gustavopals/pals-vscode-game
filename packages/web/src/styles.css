@@ -2043,6 +2043,8 @@ table.ranking tr.ranking-mine td:first-child {
   font-variant-numeric: tabular-nums;
   color: var(--vscode-badge-foreground);
   background: var(--vscode-badge-background);
+  /* No alto contraste o selo não tem fundo próprio: a borda o desenha. */
+  border: 1px solid var(--vscode-contrastBorder);
 }
 
 .kingdom-fief-name {

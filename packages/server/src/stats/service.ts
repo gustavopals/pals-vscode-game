@@ -74,7 +74,8 @@ const toNumber = (value: string | number | null | undefined): number => Number(v
 async function snapshot(ctx: AppContext): Promise<Snapshot> {
   const now = ctx.clock().getTime();
   const cached = caches.get(ctx);
-  if (cached !== undefined && now - cached.atMs < STATS_CACHE_MS) {
+  // Um relógio que voltou (outro servidor, um teste) também invalida a consulta guardada.
+  if (cached !== undefined && now >= cached.atMs && now - cached.atMs < STATS_CACHE_MS) {
     return cached;
   }
   const since = new Date(now - ACTIVE_WINDOW_MS);

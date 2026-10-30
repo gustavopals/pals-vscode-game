@@ -93,7 +93,7 @@ function Mine(props: { stats: StatsResponse; actions: Actions }) {
         <Icon name="person" /> Minhas estatísticas
       </h2>
       <p class="kingdom-position">
-        {stats.me.position === null ? null : (
+        {stats.me.position === null || !stats.me.listed ? null : (
           <span class="kingdom-position-badge">{ordinal(stats.me.position)}</span>
         )}
         <span>{positionText(stats)}</span>

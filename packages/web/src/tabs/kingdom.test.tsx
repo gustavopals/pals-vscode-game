@@ -50,7 +50,7 @@ describe('apresentação do Reino (ui/kingdom)', () => {
 
   it('a posição do jogador: no ranking, fora dele e sem feudo', () => {
     const stats = statsFixture();
-    expect(positionText(stats)).toBe('2º em ouro, entre 3 feudos do ranking.');
+    expect(positionText(stats)).toBe('em ouro, entre 3 feudos do ranking.');
     expect(positionText({ ...stats, me: { ...stats.me, listed: false } })).toBe(
       'Seu feudo está fora do ranking. Nele, seria o 2º em ouro.',
     );
@@ -66,7 +66,8 @@ describe('apresentação do Reino (ui/kingdom)', () => {
       Aldeões: '24',
       Soldados: '12',
       Heróis: '3',
-      Incursões: '4 repelidas · 1 sofridas',
+      'Incursões repelidas': '4',
+      'Incursões sofridas': '1',
       'Expedições enviadas': '9',
       'Obras começadas': '17',
       Reinado: '12 dias',
@@ -103,7 +104,9 @@ describe('aba Reino', () => {
     );
     expect(markup).toContain('1.254.300');
     expect(markup).toContain('Minhas estatísticas');
-    expect(markup).toContain('2º em ouro, entre 3 feudos do ranking.');
+    expect(markup).toMatch(
+      /kingdom-position-badge">2º<\/span><span>em ouro, entre 3 feudos do ranking\./,
+    );
     expect(markup).toContain('até\n1 hora atrás'.replace('\n', ' '));
     // Nenhum estilo embutido (CSP) e nenhum identificador de conta.
     expect(markup).not.toContain('style=');

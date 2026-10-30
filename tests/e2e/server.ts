@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { buildApp } from '../../packages/server/src/app';
 import { runJobsOnce } from '../../packages/server/src/jobs/scheduler';
+import { forgetStats } from '../../packages/server/src/stats/service';
 import { testConfig } from '../../packages/server/test/helpers/app';
 import { createTestPool, resetTestDb, truncateAll } from '../../packages/server/test/helpers/db';
 import { fakeGithub } from '../../packages/server/test/helpers/github';
@@ -54,6 +55,8 @@ control.post('/__test/reset', async () => {
   await truncateAll(pool);
   offsetMs = 0;
   github.reset();
+  // O Reino guardado (ADR 0021) era do mundo anterior.
+  forgetStats(ctx);
   return { ok: true };
 });
 
