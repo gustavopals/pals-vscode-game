@@ -32,6 +32,10 @@ import {
   HealthResponseSchema,
   ListGamesResponseSchema,
   PROTOCOL_VERSION,
+  type RankingPreference,
+  RankingPreferenceSchema,
+  type StatsResponse,
+  StatsResponseSchema,
   TokenPairSchema,
   type VersionResponse,
   VersionResponseSchema,
@@ -402,6 +406,24 @@ export function createClient(options: ClientOptions) {
       await tokenStore.clear();
       return response;
     },
+
+    /**
+     * Os totais do reino, o ranking de ouro e as estatísticas do jogador (ADR 0021). Os totais e
+     * o ranking vêm de uma consulta que o servidor guarda por um minuto (`generatedAt`).
+     */
+    getStats: (): Promise<StatsResponse> => get(StatsResponseSchema, '/stats'),
+
+    /** Se os feudos desta conta aparecem no ranking de ouro. */
+    getRankingPreference: (): Promise<RankingPreference> =>
+      get(RankingPreferenceSchema, '/me/ranking'),
+
+    /** Sai do ranking de ouro (`false`) ou volta a ele; vale para todos os feudos da conta. */
+    setRankingListed: (listed: boolean): Promise<RankingPreference> =>
+      json(RankingPreferenceSchema, 'PUT', '/me/ranking', {
+        auth: true,
+        retry: true,
+        body: { listed },
+      }),
 
     listGames: async (): Promise<GameSummary[]> =>
       (await get(ListGamesResponseSchema, '/games')).games,

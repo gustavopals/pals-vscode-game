@@ -668,6 +668,40 @@ describe('demais chamadas', () => {
     ]);
   });
 
+  it('lê as estatísticas e muda a saída do ranking (ADR 0021)', async () => {
+    const stats = {
+      generatedAt: '2026-10-30T12:00:00.000Z',
+      kingdom: {
+        accounts: 3,
+        fiefs: 2,
+        activeLastWeek: 2,
+        gold: 100,
+        villagers: 10,
+        raidsRepelled: 1,
+        raidsSuffered: 0,
+        expeditionsSent: 4,
+      },
+      ranking: [{ position: 1, settlementName: 'Pedra Alta', gold: 100, mine: true }],
+      rankedFiefs: 1,
+      me: { listed: true, position: 1, fief: null },
+    };
+    const { client, calls } = setup((call) => {
+      if (call.path === '/stats') {
+        return { status: 200, body: stats };
+      }
+      return { status: 200, body: { listed: call.method !== 'PUT' } };
+    });
+    expect(await client.getStats()).toEqual(stats);
+    expect(await client.getRankingPreference()).toEqual({ listed: true });
+    expect(await client.setRankingListed(false)).toEqual({ listed: false });
+    expect(calls.map((call) => [call.method, call.path, call.body])).toEqual([
+      ['GET', '/stats', undefined],
+      ['GET', '/me/ranking', undefined],
+      ['PUT', '/me/ranking', { listed: false }],
+    ]);
+    expect(calls[2]?.headers.authorization).toBe('Bearer jwt-velho');
+  });
+
   it('valida as respostas contra o protocolo quando pedido', async () => {
     const client = createClient({
       baseUrl: 'http://servidor',
