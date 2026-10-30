@@ -642,3 +642,9 @@ exige estritamente mais de 3/5, ambos os exércitos não vazios e vitória no ce
 Trocar apenas nome ou comandante não conta. Redução de efetivo entre o ensaio e
 o cerco conta; perdas nas ondas seguintes não mudam o retrato. Sem ensaio
 registrado naquele ano, o Feito não é concedido.
+
+**G-17. Não inclusão de 'Avançar para o Degelo'.** _(Decisão 22 do ADR 0020 confirmada.)_
+Conforme a decisão 22 do ADR 0020 e o GDD §11.4, a mecânica "Avançar para o Degelo"
+não entra no jogo. O servidor é o relógio autoritativo e o calendário é sincronizado
+para todos os jogadores, preservando a semana de 7 dias reais no ritmo normal.
+Não há ordem que antecipe o fim do inverno ou pule o rescaldo.

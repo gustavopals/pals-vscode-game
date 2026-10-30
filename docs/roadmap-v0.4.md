@@ -972,7 +972,7 @@ pnpm -s sim -- --perf
 
 - [x] V4G-T3.1 O evento `yearEnded` na virada do ano (depois de `restoreTiles`, antes de a Ameaça subir), com população máxima, batalhas, expedições, cartas, o resultado do cerco, a pontuação e os Feitos do ano, calculados no motor de `stats` sem sorteio.
 - [x] V4G-T3.2 A rota do servidor monta o Markdown com os modelos do Apêndice E (seções por estação, as linhas da Crônica do ano, o cerco, a tabela de estatísticas, a pontuação, os Feitos); só com o que o jogador podia saber (as linhas já filtradas).
-- [ ] V4G-T3.3 "Avançar para o Degelo": pela decisão 22 (recomendado **não entrar**: o servidor é o relógio e o calendário é o mesmo para quem joga; a alternativa é uma ordem que encerra o inverno só para aquele feudo, e muda a semana de 7 dias).
+- [x] V4G-T3.3 "Avançar para o Degelo": pela decisão 22 (recomendado **não entrar**: o servidor é o relógio e o calendário é o mesmo para quem joga; a alternativa é uma ordem que encerra o inverno só para aquele feudo, e muda a semana de 7 dias).
 - [ ] V4G-T3.4 Testes: golden do Markdown de um ano com cerco vencido e um com Queda; a integração do endpoint; o ano 2 sem a Crônica do 1 duplicada.
 
 **Verificação:** `pnpm --filter @lotg/engine test -- chronicle calendar`; `TEST_DATABASE_URL=… pnpm test:integration chronicle`.
