@@ -1236,6 +1236,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -2506,6 +2507,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -3813,6 +3815,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -5274,6 +5277,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -6733,6 +6737,36 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 45000,
+      "current": 0,
+      "nextWaveInSeconds": 45000,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -8366,6 +8400,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -9837,6 +9872,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -11304,6 +11340,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -12762,6 +12799,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -14318,6 +14356,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -15857,6 +15896,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -17358,6 +17398,38 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -18870,6 +18942,38 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -20443,6 +20547,38 @@
         }
       ]
     },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 58800,
+      "current": 0,
+      "nextWaveInSeconds": 58800,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -21955,6 +22091,38 @@
       "preview": null,
       "reports": []
     },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -23459,6 +23627,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -24946,6 +25115,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -26435,6 +26605,7 @@
         }
       ]
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -27711,6 +27882,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -29256,6 +29428,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -30865,6 +31038,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -32536,6 +32710,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -34298,6 +34473,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -36068,6 +36244,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -37814,6 +37991,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -39756,6 +39934,36 @@
       "preview": null,
       "reports": []
     },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 223200,
+      "current": 0,
+      "nextWaveInSeconds": 223200,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
+    },
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -41508,6 +41716,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -43060,6 +43269,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -44601,6 +44811,36 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 65998,
+      "current": 0,
+      "nextWaveInSeconds": 65998,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -46210,6 +46450,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -47923,6 +48164,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -49329,6 +49571,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [
       {
         "id": "master-1",
@@ -50849,6 +51092,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [
       {
         "id": "master-1",
@@ -52357,6 +52601,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -53817,6 +54062,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,

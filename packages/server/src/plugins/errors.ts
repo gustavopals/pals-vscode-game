@@ -84,7 +84,7 @@ export function registerErrorHandling(app: FastifyInstance): void {
 
   // Um cliente de outra versão do protocolo recebe uma mensagem amigável em vez de erros
   // estranhos. O caso de todo dia é a aba aberta desde antes de uma publicação: desde o
-  // protocolo 2 a visão traz as cartas do Conselho, que o app antigo não sabe ler (ADR 0014).
+  // protocolo 4 a visão traz `siegeWave`, que o app do protocolo 3 não sabe ler (V4G-T2.7).
   app.addHook('onRequest', async (request) => {
     const sent = request.headers[HEADERS.protocol];
     if (sent !== undefined && sent !== String(PROTOCOL_VERSION)) {

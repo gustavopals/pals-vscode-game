@@ -2,6 +2,7 @@ import {
   balance,
   buildings,
   campaignTexts,
+  siegeTexts,
   PRODUCTION_BUILDING_IDS,
   type ResourceAmounts,
 } from '@lotg/content';
@@ -56,6 +57,14 @@ export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} $
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
+  SIEGE_NOT_SCHEDULED: () => siegeTexts.notScheduled,
+  SIEGE_STARTED: () => siegeTexts.started,
+  INVALID_WAVE: () => siegeTexts.invalidWave,
+  NO_WAVE_DECISION: () => siegeTexts.noDecision,
+  MILITIA_NOT_ALLOWED: () => siegeTexts.militiaNotAllowed,
+  MILITIA_ACTIVE: () => siegeTexts.militiaActive,
+  INVALID_MILITIA_AMOUNT: () => siegeTexts.militiaAmount,
+  NO_MILITIA_SLOT: () => siegeTexts.militiaNoSlot,
   INVALID_VIGIL: () => 'Escolha uma hora de 0 a 23 e um fuso que o servidor consiga resolver.',
   UNKNOWN_COMMAND: () => 'O feudo não conhece essa ordem.',
   INVALID_BUILDING: () => 'Esse edifício não existe no feudo.',

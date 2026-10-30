@@ -359,6 +359,7 @@ export function deriveViewState(
   const atTurn = stateAtNextMoraleTurn(state);
   const council = councilView(state, timeScale);
   const guild = guildView(state, timeScale, outlook);
+  const siege = siegeView(state, timeScale);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
   // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
   // e a da lenha da estação que vem.
@@ -493,33 +494,23 @@ export function deriveViewState(
     winter: winterView(state, firewood),
     objectives: objectivesView(state, timeScale),
     council: council.council,
-    // As cartas e as encruzilhadas, do prazo mais curto ao mais longo; no empate, a carta antes.
-    pendingDecisions: [...council.pendingDecisions, ...guild.pendingDecisions].sort(
-      (a, b) => a.expiresInSeconds - b.expiresInSeconds,
-    ),
+    // Cartas, encruzilhadas e ondas, do prazo mais curto ao mais longo; no empate, carta antes.
+    pendingDecisions: [
+      ...council.pendingDecisions,
+      ...guild.pendingDecisions,
+      ...siege.pendingDecisions,
+    ].sort((a, b) => a.expiresInSeconds - b.expiresInSeconds),
     threat: threatView(state, timeScale),
     guild: guild.guild,
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
     smithy: smithyView(state, timeScale),
     army: armyView(state, timeScale),
+    siege: siege.siege,
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),
   };
 }
 
-/** Visão interna do motor do Cerco; T2.7 fará a transição pública para o protocolo 4. */
-export function deriveEngineViewState(
-  input: GameState,
-  gameTimeMs: number,
-  options: ViewOptions = {},
-): import('./types').EngineViewState {
-  const state = advanceTo(input, gameTimeMs).state;
-  const base = deriveViewState(state, gameTimeMs, options);
-  const siege = siegeView(state, options.timeScale ?? state.settings.timeScale);
-  return {
-    ...base,
-    siege: siege.siege,
-    pendingDecisions: [...base.pendingDecisions, ...siege.pendingDecisions],
-  };
-}
+/** Alias mantido para os consumidores do motor anteriores ao protocolo 4. */
+export const deriveEngineViewState = deriveViewState;

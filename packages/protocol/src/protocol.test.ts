@@ -2485,8 +2485,8 @@ describe('contratos da API', () => {
     expect(API_ERROR_STATUS.COMMAND_ID_CONFLICT).toBe(409);
     expect(API_ERROR_STATUS.SESSION_REVOKED).toBe(401);
     expect(API_ERROR_STATUS.UPGRADE_REQUIRED).toBe(426);
-    // 3 desde as expedições: a encruzilhada entrou em `pendingDecisions` (V3D-T1.10).
-    expect(PROTOCOL_VERSION).toBe(3);
+    // 4 desde o Cerco: `siegeWave` entrou em `pendingDecisions` (V4G-T2.7).
+    expect(PROTOCOL_VERSION).toBe(4);
   });
 });
 

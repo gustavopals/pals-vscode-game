@@ -29,16 +29,7 @@ import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import { announceFilled, fullStores } from './storage';
 import { hireHero, holdFestival } from './tavernOrders';
-import type {
-  Command,
-  CommandResult,
-  GameEvent,
-  GameState,
-  Rejection,
-  SiegeCommand,
-  SiegeCommandResult,
-  SiegeRejection,
-} from './types';
+import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 import { dismissHero } from './wages';
 import { announceRaids, markRehearsalAfterVigilChange } from './raids';
 
@@ -65,11 +56,11 @@ function renameSettlement(
 
 function dispatch(
   draft: GameState,
-  command: Command | SiegeCommand,
+  command: Command,
   nowMs: number,
   events: GameEvent[],
   context: CommandContext,
-): SiegeRejection | null {
+): Rejection | null {
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
@@ -214,20 +205,8 @@ export function applyCommand(
   state: GameState,
   command: Command,
   nowMs: number,
-  context?: CommandContext,
-): CommandResult;
-export function applyCommand(
-  state: GameState,
-  command: SiegeCommand,
-  nowMs: number,
-  context?: CommandContext,
-): SiegeCommandResult;
-export function applyCommand(
-  state: GameState,
-  command: Command | SiegeCommand,
-  nowMs: number,
   context: CommandContext = {},
-): SiegeCommandResult {
+): CommandResult {
   if (state.lastProcessedAt !== nowMs) {
     throw new Error(
       `applyCommand exige o estado avançado até ${nowMs}, mas ele está em ${state.lastProcessedAt}.`,

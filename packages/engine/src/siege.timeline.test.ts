@@ -48,7 +48,7 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     expect(state.siege).toBeNull();
     expect(events.filter((e) => e.type === 'siegeScheduled')).toHaveLength(0);
   });
-  it.each([0.5, 1, 3])('as ondas esperam 60 min reais no ritmo %s, com decisão interna', (pace) => {
+  it.each([0.5, 1, 3])('as ondas esperam 60 min reais no ritmo %s, com decisão pública', (pace) => {
     const before = readySiege('lord', pace);
     expect(advanceTo(before, before.siege!.atMs - 1).state.siege!.current).toBe(0);
     let state = wave(before).state;
@@ -60,11 +60,8 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
       wave: 2,
       expiresInSeconds: 3600,
     });
-    expect(
-      deriveViewState(state, state.lastProcessedAt).pendingDecisions.some(
-        (d) => (d.kind as string) === 'siegeWave',
-      ),
-    ).toBe(false);
+    // Desde T2.7, o contrato público do protocolo 4 inclui a mesma decisão do motor.
+    expect(deriveViewState(state, state.lastProcessedAt)).toEqual(view);
     state = wave(state).state;
     expect(state.siege!.current).toBe(2);
     expect(state.siege!.nextWaveAtMs).toBe(first + 2 * HOUR * pace);

@@ -823,10 +823,12 @@ A muralha e as baixas persistem. O reparo de emergência paga pedra **e ouro** n
 conforme o ADR 0020 (números da Muralha), e não é automático. Reparo normal em andamento
 continua bloqueando outro reparo. As previsões da moral excluem o Cerco, preservando a névoa.
 
-Os comandos `SiegeCommand`, as recusas `SiegeRejection` e `deriveEngineViewState` (interno
-a `view.ts`, com `siegeWave`) permitem testar o motor enquanto os contratos públicos do
-protocolo 3 continuam iguais. **T2.7** deve incorporar esses tipos, os campos da visão e as
-ordens no protocolo 4 e então ligar servidor/SDK/app. Não houve essa exposição nesta trilha.
+Desde **T2.7**, o protocolo **4** inclui as quatro ordens do Cerco em `Command`, suas
+recusas em `RejectionCode`, `siege` em `ViewState` e a decisão `siegeWave` em
+`pendingDecisions`, ordenada junto das cartas e encruzilhadas por prazo real.
+`deriveViewState` é a porta pública usada pelo servidor. `deriveEngineViewState` e
+`EngineViewState` permanecem como aliases para os consumidores do motor anteriores à
+T2.7; não há uma segunda visão nem uma segunda lista de decisões.
 
 
 O resultado fecha na primeira derrota ou depois da terceira onda: Gloriosa quando nenhuma

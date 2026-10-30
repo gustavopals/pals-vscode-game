@@ -973,7 +973,7 @@ export type GameEvent = {
   data: Record<string, string | number>;
 };
 
-/** Contratos internos da T2.1–T2.6; a T2.7 os incorporará ao protocolo 4. */
+/** Ordens do Cerco, incorporadas ao contrato público no protocolo 4 (T2.7). */
 export type SiegeCommand =
   | {
       commandId: string;
@@ -992,9 +992,8 @@ export type SiegeRejectionCode =
   | 'MILITIA_ACTIVE'
   | 'INVALID_MILITIA_AMOUNT'
   | 'NO_MILITIA_SLOT';
-export type SiegeRejection = Rejection | { code: SiegeRejectionCode; message: string };
-export type SiegeCommandResult =
-  { ok: true; state: GameState; events: GameEvent[] } | ({ ok: false } & SiegeRejection);
+export type SiegeRejection = Rejection;
+export type SiegeCommandResult = CommandResult;
 export type SiegeWaveDecisionView = {
   kind: 'siegeWave';
   id: string;
@@ -1013,12 +1012,11 @@ export type SiegeView = {
   resultText: string | null;
   waves: Array<{ number: SiegeWaveNumber; title: string; omens: string[] }>;
 };
-export type EngineViewState = Omit<ViewState, 'pendingDecisions'> & {
-  siege: SiegeView | null;
-  pendingDecisions: Array<PendingDecisionView | SiegeWaveDecisionView>;
-};
+/** Alias mantido para os consumidores do motor anteriores à T2.7. */
+export type EngineViewState = ViewState;
 
 export type Command =
+  | SiegeCommand
   | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {
       commandId: string;
@@ -1257,6 +1255,14 @@ export const REJECTION_CODES = [
   'SABOTAGE_SEASON',
   'SABOTAGE_LIMIT',
   'TEAM_SIZE',
+  'SIEGE_NOT_SCHEDULED',
+  'SIEGE_STARTED',
+  'INVALID_WAVE',
+  'NO_WAVE_DECISION',
+  'MILITIA_NOT_ALLOWED',
+  'MILITIA_ACTIVE',
+  'INVALID_MILITIA_AMOUNT',
+  'NO_MILITIA_SLOT',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1607,6 +1613,7 @@ export type CouncilView = {
  * expedição parada em uma encruzilhada (`id` é o da expedição).
  */
 export type PendingDecisionView =
+  | SiegeWaveDecisionView
   | { kind: 'card'; id: string; title: string; expiresInSeconds: number }
   | { kind: 'crossroads'; id: string; title: string; expiresInSeconds: number };
 
@@ -3001,6 +3008,8 @@ export type ViewState = {
   smithy: SmithyView;
   /** O Quartel e o exército: os soldados, o lote em treino e o que uma ordem de treino pode pedir. */
   army: ArmyView;
+  /** Data, plano, ondas conhecidas e resultado do Cerco, sem composição escondida. */
+  siege: SiegeView | null;
   /** Os Mestres do feudo, na ordem em que entraram (GDD §5.4; ADR 0018, decisão 18). */
   masters: MasterView[];
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */
