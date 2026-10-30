@@ -1,10 +1,10 @@
 import {
   applyCommand,
   createInitialState,
-  deriveViewState,
+  deriveEngineViewState as deriveViewState,
   type Command,
   type GameState,
-  type ViewState,
+  type EngineViewState as ViewState,
 } from '@lotg/engine';
 import { describe, expect, it } from 'vitest';
 

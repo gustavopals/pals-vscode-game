@@ -1,11 +1,9 @@
 import { balance, UNIT_IDS, type UnitId } from '@lotg/content';
 import {
   advanceTo,
-  applyCommand,
   type BuildingId,
-  type Command,
   createInitialState,
-  deriveViewState,
+  deriveEngineViewState as deriveViewState,
   type DifficultyId,
   type GameEvent,
   type GameState,
@@ -13,12 +11,13 @@ import {
   type MoraleBandId,
   type ResourceId,
   type SeasonId,
-  type ViewState,
+  type EngineViewState as ViewState,
 } from '@lotg/engine';
 
 import { botFor, strategies, type StrategyName } from './bots';
 import { nothingLeftToBuild } from './bots/policies';
 import type { Act, Bot } from './bots/types';
+import { applySimCommand, type SimCommand as Command } from './engine';
 
 const HOUR_MS = 3_600_000;
 const HOURS_PER_REAL_DAY = 24;
@@ -680,7 +679,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const order: Act = async (type, payload) => {
     commandCount += 1;
     const command = { commandId: `${seed}-${commandCount}`, type, payload } as Command;
-    const result = applyCommand(state, command, state.lastProcessedAt);
+    const result = applySimCommand(state, command, state.lastProcessedAt);
     if (result.ok) {
       state = result.state;
       events.push(...result.events);

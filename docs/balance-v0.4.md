@@ -816,3 +816,20 @@ Cada linha representa um único `advanceTo` do instante de saída ao de retorno,
    - Feudo de 2 dias (bot econômico): 18 aldeões (1d), 12 (7d) e 4 (30d).
    - Feudo de 7 dias (bot econômico): 66 aldeões (1d), 44 (7d) e 13 (30d).
    - Ao atravessar o Cerco do Inverno em ausência de 3 dias reais (108 dias de jogo no ritmo 3×, ano 1), o bot econômico sofre Queda por não possuir tropas suficientes configuradas para o cerco. A penalidade determinística de 20% da população na Queda (`balance.siege.fall.populationLost`) reduz a população de 19 para 15 no feudo de 2 dias e de 66 para 53 no feudo de 7 dias, conforme registrado e ajustado em `packages/sim-cli/src/perf.test.ts`.
+
+
+## 17. O Cerco no simulador (V4G-T2.10, 2026-10-30)
+
+O WIP `cdc3749` só importava a política do cerco, sem executá-la, e misturava os tipos
+da visão ampliada com os do protocolo 3. O primeiro passo liga a política a todos os bots,
+depois da formação (ou da finta do militar), e usa a visão ampliada no simulador local.
+O Plano acompanha a Defesa ativa até o início do cerco; nas visitas entre ondas, o bot
+repara quando a oferta permite e ajusta apenas a próxima formação. A cadência de visitas
+permanece a do perfil (G-15 em `pendencias-v0.4.md`). O modo remoto conserva a visão
+do protocolo disponível até a junção com T2.7.
+
+Validação do passo 1: **8/8** testes focados em `bots/cerco.test.ts`, saída **0**, com
+`nice -n 19` e `--maxWorkers=2`; typecheck do sim-cli, saída **0**. O typecheck inicial
+do WIP havia falhado, saída **2**, por incompatibilidades de tipos e comandos.
+Nenhuma expectativa de regra foi afrouxada. **`MEASURED` e `bands.ts` permanecem intactos:
+a remedição das faixas fica para a junção**, conforme instrução do autor.

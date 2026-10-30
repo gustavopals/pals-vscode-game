@@ -11,6 +11,7 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartasSemGastar,
+  responderCerco,
   seguirObjetivos,
   treinarMinimo,
 } from './policies';
@@ -46,6 +47,7 @@ export const preguicosoPolicies: readonly Policy[] = [
   recrutar,
   treinarMinimo,
   montarFormacao,
+  responderCerco,
   responderCartasSemGastar,
   comidaPrimeiro,
   ocuparLivres,

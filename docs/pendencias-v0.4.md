@@ -618,3 +618,13 @@ debitar a produção dos aldeões convocados.
 O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
 após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
 (`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.
+
+
+**G-15. Resposta simples dos bots entre ondas.** _(Proposta do agente; não lida pelo autor.)_
+Na V4G-T2.10, todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação
+(ou da finta do militar) e atualizam o Plano enquanto o cerco não começou. Em uma visita
+entre ondas, fazem o reparo de emergência se `repairOffer.canRepair` permite e trocam apenas
+a formação da próxima onda pela Defesa ativa, se diferente. Não há visita extra para o
+cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o Plano existente.
+A ponte local do simulador usa a visão ampliada e as ordens internas do motor até a T2.7
+unificar o protocolo; no remoto, a visão de protocolo 3 continua sem cerco.
