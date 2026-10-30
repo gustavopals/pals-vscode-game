@@ -242,6 +242,13 @@ export const ChronicleMarkdownQuerySchema = z.strictObject({
 });
 export type ChronicleMarkdownQuery = z.infer<typeof ChronicleMarkdownQuerySchema>;
 
+/** `GET /games/:id/years/:year/chronicle.md`: parâmetros de rota para a Crônica do Ano. */
+export const YearChronicleParamsSchema = z.strictObject({
+  id: z.string().uuid(),
+  year: z.coerce.number().int().min(1),
+});
+export type YearChronicleParams = z.infer<typeof YearChronicleParamsSchema>;
+
 /** As últimas linhas da Crônica, da mais antiga para a mais recente. */
 export const ChronicleResponseSchema = z.strictObject({ entries: z.array(GameEventSchema) });
 export type ChronicleResponse = z.infer<typeof ChronicleResponseSchema>;

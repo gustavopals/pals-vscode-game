@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /** Os seis Feitos anuais da v0.4 (GDD, Apêndice E). Sem Legado ou bônus de poder. */
 export const feats = [
   { id: 'firstWinter', label: 'Primeiro Inverno', description: 'Sobreviver ao Cerco do Inverno.' },
@@ -22,6 +24,20 @@ export const featRules = {
   feintChangedShare: { num: 3, den: 5 },
   sabotagesPerYear: 3,
 } as const;
+
+export const YearEndedDataSchema = z.strictObject({
+  year: z.number().int().nonnegative(),
+  populationMax: z.number().int().nonnegative(),
+  battles: z.number().int().nonnegative(),
+  battlesWon: z.number().int().nonnegative(),
+  expeditions: z.number().int().nonnegative(),
+  cards: z.number().int().nonnegative(),
+  siegeResult: z.enum(['none', 'victory', 'glorious', 'fall']),
+  score: z.number().int().nonnegative(),
+  feats: z.string(),
+});
+
+export type YearEndedData = z.infer<typeof YearEndedDataSchema>;
 
 /** Apresentação do documento anual; as frases dos acontecimentos vêm dos próprios eventos. */
 export const yearChronicleTexts = {
