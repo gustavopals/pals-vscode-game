@@ -535,3 +535,23 @@ aprovados e **remedir na junção** com a Ameaça da Fortaleza em zero até o Ce
 decidir ajuste de custo, recompensa ou progressão. `MEASURED` ficou intacta; os desvios
 continuam visíveis na matriz completa. O portão só amostra as três primeiras sementes
 nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 015 e 047.
+
+### Novidades — pedido direto do autor (2026-10-30)
+
+**N-1. Confirmar a crônica da v0.4 na publicação.** _(Proposta do agente; não lida pelo autor.)_
+`packages/web/src/news/entries.ts` prepara a entrada "Guerra e Cerco" como `draft`, com
+comentário explícito. **2026-10-30 é a data da redação, não da publicação.** A página a
+identifica como "Em preparação" e avisa que seu escopo depende de confirmação. Sabotagem,
+ataque ao Acampamento, Cerco e cartas ainda não publicadas não são anunciados como disponíveis.
+Antes de publicar, conferir cada frase contra o que realmente vai ao ar, retirar o que
+ficar para depois, trocar a data pela publicação e só então mudar o status para `published`.
+O selo ignora rascunhos, mesmo se o servidor já informar `0.4.0`.
+
+**N-2. Leitura local e fim da sessão.** _(Proposta do agente; não lida pelo autor.)_
+A marca `lords.newsSeen:<accountId>` considera a última entrada publicada compatível com
+`GET /v1/version`, sem substituir esse dado pela versão compilada do app. Só a aba Novidades
+desenhada e à vista marca a leitura; rascunhos não a avançam. A marca sobrevive ao recarregar,
+é separada por conta e acompanha outras abas. Segue a limpeza de dados da conta ao sair,
+excluir ou perder a sessão: quem entrar de novo pode receber o selo outra vez. Sem acesso
+ao armazenamento, a leitura vale na memória até fechar a aba. A página continua legível
+quando a consulta de versão falha, sem afirmar qual versão está no reino.
