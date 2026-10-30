@@ -842,6 +842,7 @@ describe('EditorTabs', () => {
       tabs: Route[];
       active: Route;
       hasNews: boolean;
+      unreadNews: boolean;
       pendingCards: number;
     }> = {},
   ) =>
@@ -877,6 +878,13 @@ describe('EditorTabs', () => {
     for (const label of ['Hoje', 'Feudo', 'Crônica', 'Preferências']) {
       expect(markup).toContain(label);
     }
+  });
+
+  it('Novidades tem rótulo, selo em palavra e fechamento próprio', () => {
+    const markup = render({ tabs: ['fief', 'news'], active: 'fief', unreadNews: true });
+    expect(markup).toContain('Novidades<span class="chip">novo</span>');
+    expect(markup).toContain('Fechar a aba Novidades');
+    expect(render({ tabs: ['fief', 'news'], unreadNews: false })).not.toContain('novo</span>');
   });
 
   it('só a aba ativa entra na ordem do Tab', () => {

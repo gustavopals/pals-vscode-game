@@ -1400,6 +1400,39 @@ progress::-webkit-progress-value {
   margin-top: 20px;
 }
 
+.news {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+.news-entry {
+  margin-top: 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.news-entry h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.news-entry ul {
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.news-draft-note {
+  padding: 8px 12px;
+  border-left: 2px solid var(--vscode-editorWarning-foreground);
+}
+
+#news-title:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 3px;
+}
+
 .document p {
   margin: 6px 0;
 }

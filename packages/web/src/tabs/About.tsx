@@ -5,7 +5,11 @@ import type { Actions } from '../components/actions';
 import { APP_NAME, APP_VERSION } from '../version';
 
 /** "Sobre": versão do app, do servidor e do conteúdo de jogo (`GET /v1/version`). */
-export function AboutTab(props: { server: Loadable<VersionResponse>; actions: Actions }) {
+export function AboutTab(props: {
+  server: Loadable<VersionResponse>;
+  actions: Actions;
+  unreadNews?: boolean;
+}) {
   const { server } = props;
   return (
     <div class="document">
@@ -38,6 +42,11 @@ export function AboutTab(props: { server: Loadable<VersionResponse>; actions: Ac
           </>
         )}
       </dl>
+      <p>
+        <button type="button" class="link" onClick={() => props.actions.run('lords.openNews')}>
+          Novidades {props.unreadNews ? <span class="chip">novo</span> : null}
+        </button>
+      </p>
       <p>
         <button type="button" class="link" onClick={() => props.actions.run('lords.privacy')}>
           Privacidade

@@ -3882,6 +3882,15 @@ export function createCommands(
     },
     { id: 'lords.privacy', title: 'Privacidade', palette: true, run: privacy },
     { id: 'lords.openSettings', title: 'Preferências', palette: true, run: go('settings') },
+    {
+      id: 'lords.openNews',
+      title: 'Novidades',
+      palette: true,
+      run: () => {
+        controller.navigate('news');
+        env.reveal('news-title');
+      },
+    },
     { id: 'lords.about', title: 'Sobre', palette: true, run: go('about') },
     // Usados pela árvore, pela barra de status e pelos avisos; não aparecem na paleta.
     hidden('lords.openPanel', (arg) => {

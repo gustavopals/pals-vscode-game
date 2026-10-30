@@ -15,6 +15,7 @@ import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
 import { MarketTab } from '../tabs/Market';
+import { NewsTab } from '../tabs/News';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
 import { keptReports } from '../ui/expeditions';
@@ -87,7 +88,15 @@ function TabContent(props: {
         />
       );
     case 'about':
-      return <AboutTab server={controller.server} actions={actions} />;
+      return (
+        <AboutTab
+          server={controller.server}
+          actions={actions}
+          unreadNews={controller.hasUnreadNews}
+        />
+      );
+    case 'news':
+      return <NewsTab serverVersion={controller.serverVersion} />;
     case 'chronicle':
       return (
         <ChronicleTab
@@ -206,6 +215,7 @@ export function Workbench(props: {
   const elapsed = useElapsedSeconds(controller.viewReceivedAt);
   const account = controller.account.state;
   const signedIn = account.kind !== 'signedOut';
+  const accountId = account.kind === 'signedOut' ? null : account.accountId;
   const title = controller.title(elapsed);
   // As decisões à espera: sem ligação a visão é a guardada, e as cartas dela não são anunciadas.
   const decisions =
@@ -217,6 +227,11 @@ export function Workbench(props: {
     document.title = title;
   }, [title]);
 
+  // A aba já está desenhada. Uma abertura em segundo plano só conta quando voltar à vista.
+  useLayoutEffect(() => {
+    void controller.markNewsRead();
+  }, [controller, controller.route, controller.visible, controller.serverVersion, accountId]);
+
   const nodes = buildTree({
     view: controller.view,
     account,
@@ -225,6 +240,7 @@ export function Workbench(props: {
     unseen: controller.unseen,
     elapsedSeconds: elapsed,
     githubAvailable: controller.githubAvailable,
+    unreadNews: controller.hasUnreadNews,
   });
 
   const run = (id: string, arg?: unknown) => {
@@ -265,6 +281,7 @@ export function Workbench(props: {
           tabs={controller.tabs}
           active={controller.route}
           hasNews={controller.report !== null}
+          unreadNews={controller.hasUnreadNews}
           pendingCards={controller.view?.council.pending.length ?? 0}
           onSelect={(route) => controller.navigate(route)}
           onClose={(route) => controller.closeTab(route)}

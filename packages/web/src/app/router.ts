@@ -9,6 +9,7 @@ export const ROUTES = [
   'army',
   'chronicle',
   'settings',
+  'news',
   'about',
 ] as const;
 export type Route = (typeof ROUTES)[number];
@@ -24,7 +25,7 @@ export const GAME_ROUTES: readonly Route[] = [
   'chronicle',
 ];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
-export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'settings', 'about'];
+export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'settings', 'news', 'about'];
 
 const PATHS: Record<Route, string> = {
   welcome: 'boas-vindas',
@@ -36,6 +37,7 @@ const PATHS: Record<Route, string> = {
   army: 'exercito',
   chronicle: 'cronica',
   settings: 'preferencias',
+  news: 'novidades',
   about: 'sobre',
 };
 
@@ -49,6 +51,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   army: 'Exército',
   chronicle: 'Crônica',
   settings: 'Preferências',
+  news: 'Novidades',
   about: 'Sobre',
 };
 
@@ -62,6 +65,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   army: 'organization',
   chronicle: 'book',
   settings: 'gear',
+  news: 'megaphone',
   about: 'info',
 };
 

@@ -1,4 +1,5 @@
 import { STORAGE_PREFIX, TOKENS_KEY } from './browserStore';
+import { NEWS_SEEN_PREFIX } from '../news/readState';
 
 /** O que outra aba mudou no armazenamento, no que interessa a esta. */
 export type TabChange =
@@ -6,7 +7,8 @@ export type TabChange =
   | { kind: 'signedOut' }
   /** Outra aba entrou em uma conta, trocou de conta ou fundou outro feudo. */
   | { kind: 'account' }
-  | { kind: 'preferences' };
+  | { kind: 'preferences' }
+  | { kind: 'newsRead'; accountId: string };
 
 export const PREFERENCES_KEY = `${STORAGE_PREFIX}preferences`;
 const ACCOUNT_KEY_PREFIX = `${STORAGE_PREFIX}account:`;
@@ -31,6 +33,9 @@ export function classifyStorageEvent(event: {
   }
   if (event.key === PREFERENCES_KEY) {
     return { kind: 'preferences' };
+  }
+  if (event.key.startsWith(NEWS_SEEN_PREFIX)) {
+    return { kind: 'newsRead', accountId: event.key.slice(NEWS_SEEN_PREFIX.length) };
   }
   return null;
 }

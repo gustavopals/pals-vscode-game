@@ -269,6 +269,7 @@ describe('itens da paleta (paletteItems)', () => {
         'Lords: Privacidade',
         'Lords: Preferências',
         'Lords: Sobre',
+        'Lords: Novidades',
       ]),
     );
     for (const hidden of [
@@ -420,6 +421,15 @@ describe('itens da paleta (paletteItems)', () => {
     expect(search('ALOCAR')).toEqual(['Lords: Alocar trabalhadores']);
     expect(search('dragão')).toEqual([]);
     expect(search('   ')).toHaveLength(paletteItems(commands).length);
+  });
+
+  it('Novidades abre pela paleta sem precisar de conta e pede foco no título', async () => {
+    const { controller, commands, browser } = await setup({ signedIn: false });
+    const command = commands.find((item) => item.id === 'lords.openNews');
+    expect(command?.palette).toBe(true);
+    await command?.run();
+    expect(controller.route).toBe('news');
+    expect(browser.revealed).toEqual(['news-title']);
   });
 
   it('abrir a paleta mostra os comandos de agora e executa o escolhido', async () => {

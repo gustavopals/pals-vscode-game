@@ -99,6 +99,8 @@ export type TreeNode = {
   id: string;
   label: string;
   description?: string;
+  /** Selo editorial curto, sempre em palavras. */
+  badge?: string;
   tooltip?: string;
   /** Nome de um codicon. */
   icon?: string;
@@ -134,6 +136,7 @@ export type TreeInput = {
   elapsedSeconds: number;
   /** O servidor tem o vínculo GitHub ligado. Sem isto, "Vincular ao GitHub" não aparece. */
   githubAvailable?: boolean;
+  unreadNews?: boolean;
 };
 
 const DESCRIPTION_MAX = 60;
@@ -809,7 +812,11 @@ function chronicleNode(chronicle: GameEvent[]): TreeNode {
   };
 }
 
-function accountNode(account: AccountState, githubAvailable: boolean): TreeNode {
+function accountNode(
+  account: AccountState,
+  githubAvailable: boolean,
+  unreadNews: boolean,
+): TreeNode {
   if (account.kind === 'signedOut') {
     return {
       id: 'account',
@@ -836,6 +843,11 @@ function accountNode(account: AccountState, githubAvailable: boolean): TreeNode 
       'key',
     ),
     action('privacy', 'Privacidade', 'lords.privacy', 'lock'),
+    {
+      ...action('news', 'Novidades', 'lords.openNews', 'megaphone'),
+      ...(unreadNews ? { badge: 'novo' } : {}),
+    },
+    action('about', 'Sobre', 'lords.about', 'info'),
     action('signOut', 'Sair desta máquina', 'lords.signOut', 'sign-out'),
     action('delete', 'Excluir conta…', 'lords.deleteAccount', 'trash'),
   );
@@ -872,7 +884,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         icon: 'home',
         command: { id: 'lords.openPanel' },
       },
-      accountNode(account, input.githubAvailable ?? true),
+      accountNode(account, input.githubAvailable ?? true, input.unreadNews ?? false),
       settings,
     ];
   }
@@ -963,7 +975,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
       ],
     },
     chronicleNode(input.chronicle),
-    accountNode(account, input.githubAvailable ?? true),
+    accountNode(account, input.githubAvailable ?? true, input.unreadNews ?? false),
     settings,
   ];
 }
