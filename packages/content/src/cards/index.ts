@@ -1,3 +1,5 @@
+import { smithsDaughter, temperingSecret, lordsSword } from './smithsDaughter';
+import { passingMercenaries, smuggledIron, northernCrows, hordeDeserter, hordeSpy, raidersAskPassage, crackedWall, warCouncil, afterTheStorm, siegeEve } from './war';
 import type { CouncilCard } from '../council';
 import { commonGranaryOutcome, commonGranaryPlanks, commonGranaryShare } from './commonGranary';
 import {
@@ -105,4 +107,17 @@ export const councilCards: readonly CouncilCard[] = [
   gamblingDebt,
   squareDuel,
   wanderingHealer,
+  smithsDaughter,
+  temperingSecret,
+  lordsSword,
+  passingMercenaries,
+  smuggledIron,
+  northernCrows,
+  hordeDeserter,
+  hordeSpy,
+  raidersAskPassage,
+  crackedWall,
+  warCouncil,
+  afterTheStorm,
+  siegeEve,
 ];

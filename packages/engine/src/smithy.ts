@@ -45,11 +45,11 @@ export function smithyLevel(state: GameState): number {
  * acima do 1 somando `speedPerLevel` à produção. É uma conta só, com um arredondamento para
  * baixo, e o tempo é fixado quando o lote começa: subir o Ferreiro depois não o encurta.
  */
-export function forgeDurationMs(level: number, amount: number): number {
+export function forgeDurationMs(level: number, amount: number, factor = { num: 1, den: 1 }): number {
   const { perWeaponMs, speedPerLevel } = balance.smithy;
   const steps = Math.max(0, level - 1);
   return Math.floor(
-    (amount * perWeaponMs * speedPerLevel.den) / (speedPerLevel.den + steps * speedPerLevel.num),
+    (amount * perWeaponMs * speedPerLevel.den * factor.den) / ((speedPerLevel.den + steps * speedPerLevel.num) * factor.num),
   );
 }
 
@@ -104,14 +104,15 @@ export function finishForge(draft: GameState, atMs: number, events: GameEvent[])
     );
     return;
   }
-  settlement.weapons += forge.amount;
+  const yielded = forge.amount + (forge.extra ?? 0);
+  settlement.weapons += yielded;
   emit(
     events,
     draft,
     atMs,
     'weaponsForged',
-    { amount: forge.amount, weapons: settlement.weapons },
-    { armas: weaponsText(forge.amount) },
+    { amount: yielded, weapons: settlement.weapons },
+    { armas: weaponsText(yielded) },
   );
 }
 
@@ -134,4 +135,14 @@ export function repairIronCost(item: Item, points = repairPoints(item)): number 
 /** O tempo de jogo de um reparo de `points` pontos: fixo por ponto, sem efeito do nível do Ferreiro. */
 export function repairDurationMs(points: number): number {
   return points * balance.equipment.repair.msPerPoint;
+}
+
+/** Bônus lidos na encomenda: expirar não altera um lote já pago. */
+export function smithySpeedFactor(state: GameState): { num: number; den: number } {
+  const bonus = state.council.bonuses.smithySpeed;
+  return bonus !== null && bonus.untilMs > state.lastProcessedAt ? bonus.factor : { num: 1, den: 1 };
+}
+export function smithyBatchExtra(state: GameState, amount: number): number {
+  const bonus = state.council.bonuses.smithyBatch;
+  return bonus !== null && bonus.untilMs > state.lastProcessedAt ? Math.max(0, Math.min(bonus.extra, balance.smithy.batchMax - amount)) : 0;
 }

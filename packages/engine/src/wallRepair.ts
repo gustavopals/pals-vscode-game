@@ -1,4 +1,4 @@
-import { balance, WING_IDS, wingPhrases, type WingId } from '@lotg/content';
+import { balance, WING_IDS, wingPhrases, type Ratio, type WingId } from '@lotg/content';
 
 import type { BattleReport } from './battleReport';
 import { emit } from './chronicle';
@@ -40,7 +40,11 @@ export function currentRepairQuote(state: GameState): WallRepairQuote {
     state.lastProcessedAt < state.siege.aftermathUntilMs &&
     seasonAt(state.lastProcessedAt).id === 'winter'
   ) {
-    const { num, den } = balance.siege.aftermathRepairFactor;
+    const base = balance.siege.aftermathRepairFactor;
+    const bonus = state.council.bonuses.repairDiscount;
+    const points = bonus !== null && bonus.untilMs > state.lastProcessedAt ? bonus.points : 0;
+    const den = base.den * 100;
+    const num = Math.max(0, base.num * 100 - points * base.den);
     return {
       stone: Math.floor((quote.stone * num) / den),
       gold: Math.floor((quote.gold * num) / den),
@@ -87,13 +91,13 @@ function damagedWings(state: GameState): WingId[] {
  * ordem: sem Paliçada (`WALL_REQUIRED`), com reparo em curso (`WALL_REPAIRING`), sem nada a
  * reparar (`WALL_INTACT`) e o recurso que falta (`INSUFFICIENT_RESOURCES`). Não há cancelamento.
  */
-export function repairWall(draft: GameState, nowMs: number, events: GameEvent[]): Rejection | null {
+export function repairWall(draft: GameState, nowMs: number, events: GameEvent[], costFactor: Ratio = { num: 1, den: 1 }): Rejection | null {
   const blocked = wallRepairBlocked(draft);
   if (blocked !== null) {
     return blocked;
   }
   const quote = currentRepairQuote(draft);
-  const cost = { stone: quote.stone, gold: quote.gold };
+  const cost = { stone: Math.floor(quote.stone * costFactor.num / costFactor.den), gold: Math.floor(quote.gold * costFactor.num / costFactor.den) };
   const missing = missingResources(draft, cost);
   if (missing !== null) {
     return reject('INSUFFICIENT_RESOURCES', { missing });
@@ -116,8 +120,8 @@ export function repairWall(draft: GameState, nowMs: number, events: GameEvent[])
     nowMs,
     'wallRepairStarted',
     {
-      spent_stone: quote.stone,
-      spent_gold: quote.gold,
+      spent_stone: cost.stone,
+      spent_gold: cost.gold,
       durationMs: quote.durationMs,
       untilMs: nowMs + quote.durationMs,
       missingHp: wallMissingHp(draft),

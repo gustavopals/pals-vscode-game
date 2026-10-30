@@ -111,6 +111,7 @@ export function callMilitia(
   count: unknown,
   nowMs: number,
   events: GameEvent[],
+  fromCouncil = false,
 ): SiegeRejection | null {
   if (draft.settlement.militia !== null) {
     return { code: 'MILITIA_ACTIVE', message: siegeTexts.militiaActive };
@@ -118,16 +119,16 @@ export function callMilitia(
 
   const tower = watchtowerLevel(draft);
   const perks = watchtowerPerks(tower);
-  if (perks === null) {
+  if (perks === null && !fromCouncil) {
     return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
   }
 
-  const warningMs = watchtowerWarningMs(draft, perks);
+  const warningMs = fromCouncil ? Math.max(0, (draft.siege?.atMs ?? nowMs) - nowMs) : watchtowerWarningMs(draft, perks!);
   const deadline = nowMs + warningMs;
   const qualifyingTimes: number[] = [];
 
   for (const raid of draft.horde.scheduledRaids) {
-    if (raid.size === 'strong' && raid.atMs >= nowMs && raid.atMs <= deadline) {
+    if (!fromCouncil && raid.size === 'strong' && raid.atMs >= nowMs && raid.atMs <= deadline) {
       qualifyingTimes.push(raid.atMs);
     }
   }

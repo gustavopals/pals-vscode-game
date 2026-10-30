@@ -4,6 +4,8 @@ import { emit } from './chronicle';
 import { amountsData, missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import {
+  smithySpeedFactor,
+  smithyBatchExtra,
   forgeCost,
   forgeDurationMs,
   forgeRefundMilli,
@@ -58,8 +60,9 @@ export function forgeWeapons(
   draft.settlement.forge = {
     kind: 'weapons',
     amount,
+    extra: smithyBatchExtra(draft, amount),
     startedAtMs: nowMs,
-    endsAtMs: nowMs + forgeDurationMs(level, amount),
+    endsAtMs: nowMs + forgeDurationMs(level, amount, smithySpeedFactor(draft)),
   };
   emit(
     events,

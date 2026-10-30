@@ -1509,6 +1509,33 @@ const nonZeroInt = z
   .refine((value) => value !== 0, 'zero não é efeito');
 
 const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
+  z.strictObject({ type: z.literal('smithySpeed'), factor: ratio, durationDays: positiveInt }),
+  z.strictObject({ type: z.literal('smithyBatch'), extra: positiveInt, durationDays: positiveInt }),
+  z.strictObject({ type: z.literal('addItem'), itemId: z.enum(ITEM_IDS) }),
+  z.strictObject({ type: z.literal('addWeapons'), amount: positiveInt }),
+  z.strictObject({ type: z.literal('trainBoost'), factor: ratio }),
+  z.strictObject({
+    type: z.literal('startBuilding'),
+    building: buildingId,
+    level: positiveInt,
+    discount: ratio,
+  }),
+  z.strictObject({
+    type: z.literal('omen'),
+    wave: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+    clarity: z.union([z.literal(1), z.literal(3), z.literal(5)]),
+  }),
+  z.strictObject({ type: z.literal('threat'), delta: nonZeroInt }),
+  z.strictObject({
+    type: z.literal('scheduleRaid'),
+    kind: z.literal('weak'),
+    afterMs: positiveInt,
+  }),
+  z.strictObject({ type: z.literal('repairWall'), discount: ratio }),
+  z.strictObject({ type: z.literal('healWall'), fraction: ratio }),
+  z.strictObject({ type: z.literal('revealRaid') }),
+  z.strictObject({ type: z.literal('repairDiscount'), points: positiveInt.max(100) }),
+  z.strictObject({ type: z.literal('militiaReady') }),
   z.strictObject({ type: z.literal('tavernExtraOffer') }),
   z.strictObject({ type: z.literal('injureHero'), kind: z.literal('light') }),
   z.strictObject({ type: z.literal('healHero'), mode: z.enum(['full', 'half']) }),
@@ -1516,9 +1543,7 @@ const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
     type: z.literal('resources'),
     amounts: z
       .partialRecord(resourceId, nonZeroInt)
-      .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso')
-      // O ferro não chega por carta (V4B-T1; ADR 0019, decisão 3).
-      .refine((amounts) => !Object.hasOwn(amounts, 'iron'), 'ferro em carta do Conselho'),
+      .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso'),
   }),
   z.strictObject({
     type: z.literal('resourcesPercent'),
@@ -1554,7 +1579,12 @@ const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
     type: z.literal('revealDestination'),
     modelId: z.enum(EXPEDITION_MODEL_IDS).optional(),
   }),
-  z.strictObject({ type: z.literal('addSoldiers'), unit: z.enum(UNIT_IDS), amount: positiveInt }),
+  z.strictObject({
+    type: z.literal('addSoldiers'),
+    unit: z.enum(UNIT_IDS),
+    amount: positiveInt,
+    fromPopulation: z.literal(false).optional(),
+  }),
 ]);
 
 const rollChance = z
@@ -1606,8 +1636,12 @@ export const CouncilOptionSchema = z
     id: identifier,
     // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
     // dizendo o mesmo número.
-    label: label.regex(
-      /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la))(?:\s[^\d.]*)?$/u,
+    label: label.refine(
+      (value) =>
+        value === 'Erguer a Torre de Vigia ao Nv3' ||
+        /^\p{Lu}\p{Ll}*(?:(?:ar|er|ir|or|ôr)(?:-lhe)?|[áêíô]-(?:lo|la))(?:\s[^\d.]*)?$/u.test(
+          value,
+        ),
       'verbo no infinitivo, sem números',
     ),
     requires: z
@@ -1621,10 +1655,16 @@ export const CouncilOptionSchema = z
         resources: resourceAmounts.optional(),
         soldierRoom: positiveInt.optional(),
         rosterRoom: z.literal(true).optional(),
+        armyRoom: positiveInt.optional(),
+        training: z.literal(true).optional(),
+        commanderTrait: z.enum(HERO_TRAIT_IDS).optional(),
+        siegeCasualties: z.literal(true).optional(),
+        siegeWon: z.literal(true).optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
     cost: resourceAmounts.optional(),
+    weaponsCost: positiveInt.optional(),
     effects,
     hint: sentence,
     hidden: z
@@ -1696,6 +1736,11 @@ export const CouncilCardSchema = z
         resourcesAbove: resourceAmounts.optional(),
         heroPresent: positiveInt.max(2).optional(),
         injuredHero: z.literal(true).optional(),
+        tile: z.enum(TILE_TYPE_IDS).optional(),
+        wallDamaged: z.literal(true).optional(),
+        activeRaid: z.literal(true).optional(),
+        phase: z.literal('aftermath').optional(),
+        armyRoom: positiveInt.optional(),
       })
       .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
       .optional(),
@@ -1703,6 +1748,9 @@ export const CouncilCardSchema = z
       .union([
         z.strictObject({ atGameDay: positiveInt }),
         z.strictObject({ onHallLevel: positiveInt }),
+        z.strictObject({ atSeasonStart: z.enum(SEASON_IDS), year: positiveInt }),
+        z.strictObject({ atSeasonEnd: z.enum(SEASON_IDS), year: positiveInt }),
+        z.strictObject({ beforeSiege: z.literal(true) }),
       ])
       .optional(),
     autoResolve: z.strictObject(
@@ -1712,7 +1760,7 @@ export const CouncilCardSchema = z
       >,
     ),
     autoResolveIfUnlocked: identifier.optional(),
-    options: z.array(CouncilOptionSchema).min(2).max(3),
+    options: z.array(CouncilOptionSchema).min(2).max(4),
     variants: z
       .array(
         z.strictObject({
