@@ -628,3 +628,15 @@ a formação da próxima onda pela Defesa ativa, se diferente. Não há visita e
 cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o Plano existente.
 A ponte local do simulador usa a visão ampliada e as ordens internas do motor até a T2.7
 unificar o protocolo; no remoto, a visão de protocolo 3 continua sem cerco.
+
+**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Proposta do agente; não lida pelo autor.)_
+Na base `61cdb70`, `simulateBattle` recebe apenas `formationId`: a prévia supõe uma
+incursão, sem alvo de onda. `siege.waves` traz número, título e presságios, sem
+percentual de vitória. A visão também não oferece o máximo convocável, o prazo e a
+disponibilidade da milícia. Portanto a convocação da T2.10 depende de o motor expor
+uma prévia identificada como onda 3 e a oferta de convocação (quantidade máxima e
+se a ordem seria aceita agora, incluindo milícia ativa, antecedência e posto vago).
+Proposta conservadora: completar esses campos no motor/visão na junção e consumi-los
+no bot; não tratar a prévia de incursão como se fosse da onda 3, nem ler composição
+oculta, duplicar regras de convocação no simulador ou provocar ordens recusadas para
+descobrir os limites. A pendência foi levada ao coordenador na retomada de 2026-10-30.

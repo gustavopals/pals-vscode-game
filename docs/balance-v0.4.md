@@ -833,3 +833,46 @@ Validação do passo 1: **8/8** testes focados em `bots/cerco.test.ts`, saída *
 do WIP havia falhado, saída **2**, por incompatibilidades de tipos e comandos.
 Nenhuma expectativa de regra foi afrouxada. **`MEASURED` e `bands.ts` permanecem intactos:
 a remedição das faixas fica para a junção**, conforme instrução do autor.
+
+Retomada após `61cdb70`: revisados os campos de `simulate.ts`, as três colunas no fim
+dos CSVs (`siege_result`, `waves_won`, `militia_called`), o resumo e a tabela **Cerco**
+por célula e janela em `matrix.ts`. Os contadores usam os acumulados de `state.stats`,
+inclusive quando a janela atravessa vários anos; Gloriosas contam também como vitórias.
+O resultado é o do cerco guardado, vazio antes do desfecho ou ao marcar o cerco seguinte.
+`militia_called` soma aldeões convocados, não ordens. O teste avulso de um ano usa agora
+o Militar no Normal com quatro visitas/dia para provar também que houve Plano salvo
+nas três ondas antes da batalha: o cenário Rápido com duas visitas/dia não chega a montar
+formação antes da Queda. Nenhuma expectativa de balanceamento foi afrouxada.
+
+**Partidas avulsas, Node 22.22.3, motor 0.3.0, estado 40, conteúdo `f82fa6dc6fa6c8bd`,
+Senhor, semente `pedra-alta-001`:**
+
+| Ritmo | Estratégia | Visitas/dia | Horas reais | Cercos encerrados | Ondas vencidas/enfrentadas | Resultado | Aldeões no ano 2 | Comandos aceitos/recusados |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 3× | militar | 2 | 56 | 1 | 0/1 | Queda | 22 | 72/0 |
+| 1× | militar | 4 | 168 | 1 | 0/1 | Queda | 48 | 233/0 |
+
+Ambas terminaram na primavera do ano 2, sem fome ou frio, com saída **0**. São provas
+do percurso e do relatório; não medem taxa de vitória nem validam a meta de 65–80%.
+
+```bash
+export PATH=/home/g_pals/.nvm/versions/node/v22.22.3/bin:$PATH
+set -o pipefail
+nice -n 19 pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy militar | tail -4
+nice -n 19 pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 1 --strategy militar --sessions-per-day 4 | tail -2
+```
+
+**Divergência preexistente preservada:** na primeira rodada focada, `bands.test.ts`
+teve **9/10** testes verdes (saída **1** na rodada conjunta de 24 testes: **23/24**).
+A expectativa antiga de `wasteStreakMax` é **32**, enquanto `bandFor` devolve **35**
+para `week/3/regular`; `bands.ts` é idêntico ao de `cdc3749`. Não foi alterada a
+expectativa nem a faixa. A remedição e a atualização coerente desse teste ficam para
+a junção, conforme a divisão de trabalho. Os testes do bot do cerco e do relatório
+nessa rodada passaram (**8/8** e **6/6**, respectivamente).
+
+Após reforçar a prova do Plano, `siege-report.test.ts` passou de novo (**6/6**, saída
+**0**, `nice -n 19`, `--maxWorkers=2`). `pnpm typecheck` e `pnpm lint`: saída **0**;
+formatação dos três arquivos da retomada: saída **0**. A convocação por prévia da
+onda 3 ainda depende do contrato registrado em G-16; não foi fingida com a prévia
+de incursão existente. Nenhum `verify`, teste global, matriz, integração ou navegador
+foi executado nesta trilha.

@@ -15,11 +15,11 @@ import { noSieges, simulate } from './simulate';
 // Uma partida avulsa de um ano; nenhuma matriz ou remedição é executada neste arquivo.
 const year = await simulate({
   seed: 'pedra-alta-001',
-  days: 3,
-  hours: 56,
-  timeScale: 3,
+  days: 7,
+  hours: 168,
+  timeScale: 1,
   strategy: 'militar',
-  sessionsPerDay: 2,
+  sessionsPerDay: 4,
 });
 const summary = summarize(year);
 
@@ -33,8 +33,11 @@ const emptyMatrix: MatrixResult = {
 };
 
 describe('medição do Cerco (V4G-T2.10)', () => {
-  it('atravessa um ano com cerco encerrado e mantém o bot vivo após a Queda', () => {
-    expect(year.rows).toHaveLength(56);
+  it('salva o Plano, atravessa um ano com cerco e mantém o bot vivo após a Queda', () => {
+    expect(year.rows).toHaveLength(168);
+    const plans = year.events.filter(({ type }) => type === 'battlePlanSet');
+    expect(new Set(plans.map(({ data }) => data.wave))).toEqual(new Set([1, 2, 3]));
+    expect(year.finalState.siege?.plan[1]).toEqual(expect.any(String));
     expect(year.events.filter(({ type }) => type === 'siegeScheduled')).toHaveLength(1);
     expect(year.events.filter(({ type }) => type === 'siegeFell')).toHaveLength(1);
     const waves = year.events.filter(({ type }) => type === 'siegeWaveFought');
@@ -71,10 +74,10 @@ describe('medição do Cerco (V4G-T2.10)', () => {
       runs: [
         {
           window: 'year',
-          timeScale: 3,
-          profile: MILITARY_PROFILE,
+          timeScale: year.options.timeScale ?? 1,
+          profile: { ...MILITARY_PROFILE, sessionsPerDay: year.options.sessionsPerDay },
           seed: year.options.seed,
-          realHours: 56,
+          realHours: year.rows.length,
           summary,
         },
       ],
