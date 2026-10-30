@@ -113,7 +113,6 @@
   "forge": {
    "kind": "weapons",
    "amount": 4,
-   "extra": 0,
    "startedAtMs": 1200000,
    "endsAtMs": 2509090
   }
