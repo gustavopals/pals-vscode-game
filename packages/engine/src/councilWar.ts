@@ -254,7 +254,7 @@ export function applyCouncilWarEffect(
         enemy: 'raiders',
         size: 'light',
         announcedAtMs: null,
-        composition: baseRaidComposition('light', 'summer').map((post) => ({ ...post })),
+        composition: baseRaidComposition('light', seasonAt(raidAt).id).map((post) => ({ ...post })),
       });
       draft.horde.scheduledRaids.sort((a, b) => a.atMs - b.atMs);
       break;
