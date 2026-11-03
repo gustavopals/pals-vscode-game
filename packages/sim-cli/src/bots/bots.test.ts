@@ -7,9 +7,9 @@ import {
   type BuildingId,
   type Command,
   createInitialState,
-  deriveViewState,
+  deriveEngineViewState as deriveViewState,
   type ResourceId,
-  type ViewState,
+  type EngineViewState as ViewState,
 } from '@lotg/engine';
 import { describe, expect, it } from 'vitest';
 
@@ -46,13 +46,14 @@ import {
   recrutar,
   responderCartas,
   responderCartasSemGastar,
+  responderCerco,
   seguirObjetivos,
 } from './policies';
 import { type Act, botOf, type Policy } from './types';
 
 const HOUR_MS = 3_600_000;
 
-type Order = { type: Command['type']; payload: unknown };
+type Order = { type: Parameters<Act>[0]; payload: unknown };
 
 /** A visão de um feudo recém-criado: 5 aldeões sem ofício, comida caindo. */
 function freshView(timeScale = 1): ViewState {
@@ -191,6 +192,7 @@ describe('um bot é uma lista de políticas', () => {
       treinarMinimo,
       // A Defesa ativa (V4E-T2.7, decisão 25): toda incursão é batalha.
       montarFormacao,
+      responderCerco,
       responderCartas,
       // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
@@ -215,6 +217,7 @@ describe('um bot é uma lista de políticas', () => {
       recrutar,
       treinarMinimo,
       montarFormacao,
+      responderCerco,
       responderCartasSemGastar,
       comidaPrimeiro,
       ocuparLivres,

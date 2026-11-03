@@ -83,6 +83,7 @@ export const economicoPolicies: readonly Policy[] = [
   recrutar,
   treinarMinimo,
   montarFormacao,
+  responderCerco,
   responderCartas,
   alocarPorDemanda,
   alocarMestre,

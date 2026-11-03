@@ -14,7 +14,7 @@ import { botOf, type Bot, type Policy } from './types';
  * **Monta uma formação com o que tem e a ativa** (V4C-T2; `montarFormacao`), sem comandante: desde
  * a V4E-T2.7 a política vem do econômico, logo depois do treino.
  * Na V4E-T3, usa uma isca de arqueiros em incursão forte visível do outono e volta à
- * defesa no inverno. Plano, sabotagem e milícia entram nas fases seguintes. **Não tem faixa de balanceamento** (a rodada padrão
+ * defesa no inverno. Na V4G-T2.10, herda o Plano e a resposta entre ondas. **Não tem faixa de balanceamento** (a rodada padrão
  * continua com os três perfis do econômico); roda a pedido (`--strategy militar`,
  * `--matrix --profile militar`), como o `ousado`. Como todo bot, só lê o `ViewState`.
  */

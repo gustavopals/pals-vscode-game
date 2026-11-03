@@ -19,7 +19,9 @@ import {
   type MasterCounts,
   noExpeditions,
   noMarket,
+  noSieges,
   type RaidCounts,
+  type SiegeCounts,
   realHoursOf,
   type SimulationResult,
 } from './simulate';
@@ -282,6 +284,17 @@ const MECHANIC_COLUMNS = [
     task: 'V4E-T3',
     meaning: 'Dia de jogo em que a Fortaleza da Horda apareceu; vazio antes',
   },
+  {
+    name: 'siege_result',
+    task: 'V4G-T2.10',
+    meaning: 'Resultado do cerco atual: glorious, victory ou fall; vazio antes do desfecho',
+  },
+  { name: 'waves_won', task: 'V4G-T2.10', meaning: 'Ondas do cerco vencidas, acumuladas' },
+  {
+    name: 'militia_called',
+    task: 'V4G-T2.10',
+    meaning: 'Aldeões convocados para a milícia, somados em todas as convocações',
+  },
 ] as const;
 
 /** Quantas das colunas das mecânicas são da v0.2: as primeiras, que não mudam de lugar. */
@@ -312,6 +325,15 @@ const MEASURED_COLUMNS: Partial<
   // A Ameaça, lida do estado (a visão só a mostra com a Torre de Vigia): a daquela hora e, na
   // matriz, a maior da partida.
   threat: { hour: (row) => row.threat, run: (summary) => summary.threat.max },
+  siege_result: {
+    hour: (row) => row.siege.result ?? '',
+    run: (summary) => summary.siege.result ?? '',
+  },
+  waves_won: { hour: (row) => row.siege.wavesWon, run: (summary) => summary.siege.wavesWon },
+  militia_called: {
+    hour: (row) => row.siege.militiaCalled,
+    run: (summary) => summary.siege.militiaCalled,
+  },
   omens: { hour: (row) => row.omens, run: (summary) => summary.omens },
   fortress_day: {
     hour: (row) => row.fortressDay ?? '',
@@ -511,6 +533,7 @@ export function toCsv(rows: HourRow[]): string {
 
 /** O que uma partida simulada mediu. As horas são reais, uma amostra ao fim de cada hora. */
 export type Summary = {
+  siege: SiegeCounts;
   omens: number;
   fortressDay: number | null;
   hours: number;
@@ -712,6 +735,7 @@ export function summarize(result: SimulationResult): Summary {
     number
   >;
   return {
+    siege: { ...(last?.siege ?? noSieges()) },
     hours: rows.length,
     villagers: last?.villagers ?? 0,
     villagersMin: rows.reduce(
@@ -1067,6 +1091,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     councilLine(summary),
     threatLine(summary),
     raidsLine(summary),
+    `Cerco: ${summary.siege.won + summary.siege.fallen} encerrados · ${summary.siege.won} vitórias (${summary.siege.glorious} gloriosas) · ${summary.siege.fallen} quedas · ${summary.siege.wavesWon} de ${summary.siege.wavesFought} ondas vencidas · ${summary.siege.militiaCalled} aldeões convocados`,
     guildLine(summary),
     marketLine(summary),
     mastersLine(summary),

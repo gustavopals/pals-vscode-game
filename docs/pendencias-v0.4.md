@@ -731,3 +731,26 @@ O coordenador decidiu adiar a prévia ofensiva: `simulateBattle` entrega a defes
 
 **F-6. Nível dos avisos da sabotagem e da campanha.** _(Proposta do agente; não lida pelo autor.)_
 Os quatro desfechos (`hordeSabotaged`, `hordeAlerted`, `campAssaulted`, `armyReturned`) chegam em "Todas", seguindo as notícias de expedição e batalha e a cota existente. Os dois primeiros levam à Guilda e os outros, ao Exército. No Retorno, enfraquecer ondas e trazer os esquadrões de volta são ganhos; alertar a Horda e travar batalha são preço. O autor ainda pode decidir se o alerta da Horda merece aviso essencial. O relato do Acampamento só substitui a ausência de `battleFought` do mesmo identificador no lote, para a mesma batalha não aparecer duas vezes.
+
+## V4G-T2.10 — Simulador
+
+**G-15. Resposta simples dos bots entre ondas.** _(Proposta do agente; não lida pelo autor.)_
+Na V4G-T2.10, todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação
+(ou da finta do militar) e atualizam o Plano enquanto o cerco não começou. Em uma visita
+entre ondas, fazem o reparo de emergência se `repairOffer.canRepair` permite e trocam apenas
+a formação da próxima onda pela Defesa ativa, se diferente. Não há visita extra para o
+cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o Plano existente.
+A ponte local do simulador usa a visão ampliada e as ordens internas do motor até a T2.7
+unificar o protocolo; no remoto, a visão de protocolo 3 continua sem cerco.
+
+**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Proposta do agente; não lida pelo autor.)_
+Na base `61cdb70`, `simulateBattle` recebe apenas `formationId`: a prévia supõe uma
+incursão, sem alvo de onda. `siege.waves` traz número, título e presságios, sem
+percentual de vitória. A visão também não oferece o máximo convocável, o prazo e a
+disponibilidade da milícia. Portanto a convocação da T2.10 depende de o motor expor
+uma prévia identificada como onda 3 e a oferta de convocação (quantidade máxima e
+se a ordem seria aceita agora, incluindo milícia ativa, antecedência e posto vago).
+Proposta conservadora: completar esses campos no motor/visão na junção e consumi-los
+no bot; não tratar a prévia de incursão como se fosse da onda 3, nem ler composição
+oculta, duplicar regras de convocação no simulador ou provocar ordens recusadas para
+descobrir os limites. A pendência foi levada ao coordenador na retomada de 2026-10-30.

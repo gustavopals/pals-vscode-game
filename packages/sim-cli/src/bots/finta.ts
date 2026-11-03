@@ -1,4 +1,4 @@
-import type { Command, ViewState } from '@lotg/engine';
+import type { Command, EngineViewState as ViewState } from '@lotg/engine';
 
 import { montarFormacao } from './policies';
 import type { Policy } from './types';

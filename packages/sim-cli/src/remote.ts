@@ -105,7 +105,7 @@ export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
         view = error.details.view;
         stateVersion = error.details.stateVersion;
       }
-      return view;
+      return { siege: null, ...view };
     };
 
     while (performance.now() < deadline) {
@@ -118,7 +118,8 @@ export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
       etag = read.etag;
       lastSeq = (await client.getEvents(game.id, lastSeq)).lastSeq;
       if (view !== null) {
-        await bot(view, act);
+        // O protocolo 3 ainda não expõe o cerco; a T2.7 substitui esta ponte.
+        await bot({ siege: null, ...view }, act);
       }
       totals.cycles += 1;
       const rest = options.pollMs - (performance.now() - cycleStartedAt);

@@ -83,6 +83,12 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 
 Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem ofício até a seguinte.
 
+**O Cerco (V4G-T2.10).** Todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação (ou da finta do militar). Enquanto o cerco não começa, o Plano acompanha a Defesa ativa. Em uma visita entre ondas, fazem reparo de emergência quando a oferta permite e trocam a próxima formação pela ativa se necessário. As visitas continuam na cadência do perfil. Nesta trilha o simulador local usa a visão ampliada do motor; o modo remoto espera a T2.7 expor o cerco pelo protocolo.
+
+A convocação automática da milícia ainda depende da prévia da onda 3 e da oferta de
+convocação na visão (G-16 de `docs/pendencias-v0.4.md`). A prévia atual de
+`simulateBattle` tem como alvo uma incursão; o bot não a trata como prévia do cerco.
+
 **O bot sabe quando volta.** Um jogador sabe de quanto em quanto tempo abre o jogo; o bot econômico (e o explorador, que parte dele) recebe esse prazo de quem o monta (`botFor(strategy, sessionsPerDay)`, em `src/bots/index.ts`: 24 horas divididas pelas sessões do dia) e arruma o feudo para ele. Não é informação do jogo: é o hábito do perfil. `strategies.economico`, sem mais nada, é o de duas visitas por dia (12 h); o modo remoto usa esse. O preguiçoso decide o mínimo e não olha o relógio.
 
 **Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As estações (V2C-T1) trouxeram `guardar lenha`, o armazenamento (V2C-T2), `ampliar o estoque`, e a segunda fila com o início automático (V2C-T5), `planejar automáticas`. A troca de ofício (V2C-T3) não trouxe uma política nova: mudou `alocar por demanda`, que era quem trocava todo mundo de ofício a cada visita. A moral (V2C-T4) também não: mudou `recrutar`, que passou a deixar uma cama vazia (ver abaixo). O Conselho trouxe `responder a carta` (V2D-T1), que desde o primeiro lote de cartas (V2D-T2) paga as opções quando há folga, e `responder a carta sem gastar`, a do preguiçoso. A Ameaça (V2E-T1) trouxe `erguer a Torre`, e a incursão de lobos (V2E-T3), `erguer a Paliçada`; ela também mudou as políticas de alocação, que passaram a não contar com os feridos.
@@ -162,6 +168,9 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `market_volume_used_percent` | **Medida**, por amostra: o negociado sobre o volume que o Mercado ofereceu, em por cento com uma casa. O oferecido é a soma, pelos dias de jogo com o Mercado de pé, do volume do dia dos três recursos, amostrada ao fim de cada hora real. Vazia enquanto não há Mercado. É o sinal de "Mercado sem uso" | V3E-T1 |
 | `caravans_sent`, `caravans_ambushed` | **Medidas.** Caravanas enviadas e, das que chegaram, as emboscadas, contadas dos eventos `caravanSent` e `caravanAmbushed`, acumuladas | V3E-T2 |
 | `masters` | **Medida.** Mestres que moram no feudo naquela hora, lidos da visão (`masters.length`; quem espera à porta não conta); na matriz, os do fim da partida | V3E-T3 |
+| `siege_result` | **Medida.** `glorious`, `victory` ou `fall` para o cerco guardado no estado; vazio enquanto ele não terminou ou não foi marcado. Um novo cerco marcado volta a deixá-la vazia | V4G-T2.10 |
+| `waves_won` | **Medida.** Ondas vencidas em todos os cercos da partida, acumuladas, inclusive quando houve Queda numa onda posterior | V4G-T2.10 |
+| `militia_called` | **Medida.** Aldeões convocados, somados em todas as convocações; não é a quantidade de ordens nem de milicianos ainda ativos | V4G-T2.10 |
 
 O resumo, na saída de erro, não ganhou linha nenhuma para a Guilda: cada mecânica acrescenta a sua quando existir. Ele traz:
 
@@ -244,6 +253,8 @@ O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, seme
 O comando sai com código 1 se alguma partida ficar fora da faixa. **As três dificuldades têm faixa** desde a rodada de balanceamento da Fase C (V2C-T7): `--difficulty peasant` e `--difficulty ironKing` conferem as partidas contra a linha de base da própria dificuldade.
 
 **As sementes trabalham desde o Conselho (V2D-T1).** A moral só sorteia com 80 ou mais (o colono) ou com 25 ou menos (a partida), e os feudos dos bots vivem entre 35 e 60; até a Fase C, por isso, as 50 sementes davam a mesma partida. Com o Conselho, a carta que chega em cada audiência depende da semente, e as células passaram a ter faixa de verdade. Desde o primeiro lote de cartas (V2D-T2) o bot econômico paga as opções das cartas quando tem folga, e cada semente dá uma partida diferente: a população do Regular no ritmo Normal vai de 64 a 72. Um teste confere que as sementes divergem (`matrix.test.ts`).
+
+A tabela **Cerco** de cada janela tem uma linha por célula (ritmo e perfil), com cercos encerrados, vitórias (incluindo as Gloriosas), Gloriosas, Quedas, ondas vencidas/enfrentadas e aldeões convocados. Soma todos os anos e sementes: uma semana no ritmo Rápido pode conter vários cercos. Uma célula que ainda não chegou ao cerco mostra zeros. O resumo avulso traz as mesmas contagens. Nesta tarefa as faixas de `bands.ts` ficam intactas; a remedição será feita na junção.
 
 ### Faixas
 

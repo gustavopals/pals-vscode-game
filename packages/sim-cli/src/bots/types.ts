@@ -1,4 +1,6 @@
-import type { Command, EngineViewState as ViewState } from '@lotg/engine';
+import type { EngineViewState as ViewState } from '@lotg/engine';
+
+import type { SimCommand as Command } from '../engine';
 
 /**
  * Dá uma ordem e devolve a visão resultante; numa recusa, a visão volta igual.

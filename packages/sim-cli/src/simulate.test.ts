@@ -44,7 +44,7 @@ import {
   type Command,
   createInitialState,
   CURRENT_SCHEMA_VERSION,
-  deriveViewState,
+  deriveEngineViewState as deriveViewState,
   ENGINE_VERSION,
   type GameState,
 } from '@lotg/engine';
@@ -86,7 +86,7 @@ const HEADER =
   'outcomes_full_success,outcomes_success,outcomes_setback,outcomes_disaster,' +
   'crossroads_by_player,crossroads_by_stance,hero_idle_hours,' +
   'traded_food,traded_wood,traded_stone,market_volume_used_percent,' +
-  'caravans_sent,caravans_ambushed,masters,omens,fortress_day';
+  'caravans_sent,caravans_ambushed,masters,omens,fortress_day,siege_result,waves_won,militia_called';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -173,6 +173,9 @@ describe('CSV de uma partida', () => {
       'masters',
       'omens',
       'fortress_day',
+      'siege_result',
+      'waves_won',
+      'militia_called',
     ]);
     // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
     // dos objetivos (V2E-T4) já nasceu medida. As da Guilda (roadmap da v0.3, V3B-T2.2) vêm

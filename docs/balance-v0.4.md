@@ -1330,3 +1330,73 @@ Cada linha representa um único `advanceTo` do instante de saída ao de retorno,
    - Feudo de 2 dias (bot econômico): 18 aldeões (1d), 12 (7d) e 4 (30d).
    - Feudo de 7 dias (bot econômico): 66 aldeões (1d), 44 (7d) e 13 (30d).
    - Ao atravessar o Cerco do Inverno em ausência de 3 dias reais (108 dias de jogo no ritmo 3×, ano 1), o bot econômico sofre Queda por não possuir tropas suficientes configuradas para o cerco. A penalidade determinística de 20% da população na Queda (`balance.siege.fall.populationLost`) reduz a população de 19 para 15 no feudo de 2 dias e de 66 para 53 no feudo de 7 dias, conforme registrado e ajustado em `packages/sim-cli/src/perf.test.ts`.
+
+
+## 17. O Cerco no simulador (V4G-T2.10, 2026-10-30)
+
+O WIP `cdc3749` só importava a política do cerco, sem executá-la, e misturava os tipos
+da visão ampliada com os do protocolo 3. O primeiro passo liga a política a todos os bots,
+depois da formação (ou da finta do militar), e usa a visão ampliada no simulador local.
+O Plano acompanha a Defesa ativa até o início do cerco; nas visitas entre ondas, o bot
+repara quando a oferta permite e ajusta apenas a próxima formação. A cadência de visitas
+permanece a do perfil (G-15 em `pendencias-v0.4.md`). O modo remoto conserva a visão
+do protocolo disponível até a junção com T2.7.
+
+Validação do passo 1: **8/8** testes focados em `bots/cerco.test.ts`, saída **0**, com
+`nice -n 19` e `--maxWorkers=2`; typecheck do sim-cli, saída **0**. O typecheck inicial
+do WIP havia falhado, saída **2**, por incompatibilidades de tipos e comandos.
+Nenhuma expectativa de regra foi afrouxada. **`MEASURED` e `bands.ts` permanecem intactos:
+a remedição das faixas fica para a junção**, conforme instrução do autor.
+
+Retomada após `61cdb70`: revisados os campos de `simulate.ts`, as três colunas no fim
+dos CSVs (`siege_result`, `waves_won`, `militia_called`), o resumo e a tabela **Cerco**
+por célula e janela em `matrix.ts`. Os contadores usam os acumulados de `state.stats`,
+inclusive quando a janela atravessa vários anos; Gloriosas contam também como vitórias.
+O resultado é o do cerco guardado, vazio antes do desfecho ou ao marcar o cerco seguinte.
+`militia_called` soma aldeões convocados, não ordens. O teste avulso de um ano usa agora
+o Militar no Normal com quatro visitas/dia para provar também que houve Plano salvo
+nas três ondas antes da batalha: o cenário Rápido com duas visitas/dia não chega a montar
+formação antes da Queda. Nenhuma expectativa de balanceamento foi afrouxada.
+
+**Partidas avulsas, Node 22.22.3, motor 0.3.0, estado 40, conteúdo `f82fa6dc6fa6c8bd`,
+Senhor, semente `pedra-alta-001`:**
+
+| Ritmo | Estratégia | Visitas/dia | Horas reais | Cercos encerrados | Ondas vencidas/enfrentadas | Resultado | Aldeões no ano 2 | Comandos aceitos/recusados |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 3× | militar | 2 | 56 | 1 | 0/1 | Queda | 22 | 72/0 |
+| 1× | militar | 4 | 168 | 1 | 0/1 | Queda | 48 | 233/0 |
+
+Ambas terminaram na primavera do ano 2, sem fome ou frio, com saída **0**. São provas
+do percurso e do relatório; não medem taxa de vitória nem validam a meta de 65–80%.
+
+```bash
+export PATH=/home/g_pals/.nvm/versions/node/v22.22.3/bin:$PATH
+set -o pipefail
+nice -n 19 pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy militar | tail -4
+nice -n 19 pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 1 --strategy militar --sessions-per-day 4 | tail -2
+```
+
+**Divergência preexistente preservada:** na primeira rodada focada, `bands.test.ts`
+teve **9/10** testes verdes (saída **1** na rodada conjunta de 24 testes: **23/24**).
+A expectativa antiga de `wasteStreakMax` é **32**, enquanto `bandFor` devolve **35**
+para `week/3/regular`; `bands.ts` é idêntico ao de `cdc3749`. Não foi alterada a
+expectativa nem a faixa. A remedição e a atualização coerente desse teste ficam para
+a junção, conforme a divisão de trabalho. Os testes do bot do cerco e do relatório
+nessa rodada passaram (**8/8** e **6/6**, respectivamente).
+
+Após reforçar a prova do Plano, `siege-report.test.ts` passou de novo (**6/6**, saída
+**0**, `nice -n 19`, `--maxWorkers=2`). `pnpm typecheck` e `pnpm lint`: saída **0**;
+formatação dos três arquivos da retomada: saída **0**. A convocação por prévia da
+onda 3 ainda depende do contrato registrado em G-16; não foi fingida com a prévia
+de incursão existente. Nenhum `verify`, teste global, matriz, integração ou navegador
+foi executado nesta trilha.
+
+Contrato adicional do simulador: **7/7** testes selecionados passaram (saída **0**)
+em `bots/bots.test.ts` e `simulate.test.ts`: composição dos bots, limite de leitura
+da visão e cabeçalho/ordem das colunas. Os outros 163 testes desses arquivos ficaram
+fora do filtro; nenhuma matriz é executada por esse comando.
+
+```bash
+nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/siege-report.test.ts --maxWorkers=2
+nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/bots/bots.test.ts packages/sim-cli/src/simulate.test.ts --maxWorkers=2 -t 'bot honesto|um bot é uma lista|cabeçalho|colunas das mecânicas'
+```
