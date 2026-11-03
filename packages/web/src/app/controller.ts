@@ -1803,6 +1803,23 @@ export class Controller {
     return this.guildOrder('wall', 'repairWall', {}, 'aos pedreiros');
   }
 
+  setBattlePlan(wave: 1 | 2 | 3, formationId: string | null): Promise<boolean> {
+    return this.guildOrder(
+      `siege:plan:${wave}`,
+      'setBattlePlan',
+      { wave, formationId },
+      'ao Cerco',
+    );
+  }
+
+  swapWaveFormation(formationId: string | null): Promise<boolean> {
+    return this.guildOrder('siege:swap', 'swapWaveFormation', { formationId }, 'ao Cerco');
+  }
+
+  emergencyRepair(): Promise<boolean> {
+    return this.guildOrder('wall', 'emergencyRepair', {}, 'aos pedreiros');
+  }
+
   /**
    * Manda treinar um lote de soldados no Quartel (GDD §10.2). A trava é a do treino, e o treino e
    * o cancelamento dividem a intenção (`intentOf`): é um lote por vez.

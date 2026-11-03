@@ -618,3 +618,29 @@ debitar a produção dos aldeões convocados.
 O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
 após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
 (`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.
+
+### V4G-T4 — limites da visão na interface (2026-11-03)
+
+**G-15. Milícia sem oferta pública.** _(Proposta do agente; não lida pelo autor.)_
+O protocolo 4 desta base não oferece quantidade máxima, disponibilidade, motivo de bloqueio,
+custo em braços ou milícia ativa no `ViewState`. A tela não calcula metade da população nem
+deduz a antecedência da Torre. A convocação e sua confirmação ficam pendentes da oferta do
+motor; não há botão que envie uma ordem às cegas. Nenhuma mudança no motor nesta trilha.
+
+**G-16. Relatório por onda e rescaldo completos.** _(Proposta do agente; não lida pelo autor.)_
+`siege.waves` oferece número, título e presságios; não oferece resultado individual,
+`battleId`, formação efetivamente usada ou baixas. `army.reports` não identifica ano/onda.
+Exibir progresso com `current`, relatórios guardados sem atribuição inventada e os efeitos
+atuais da moral/muralha é possível; o vínculo persistente por onda fica pendente. Também
+faltam `rescaldoText`, seu prazo, o prazo do desconto e o resumo das perdas da Queda na visão.
+Não deduzir festa/luto pelo texto nem escrever percentuais no cliente. O reparo de emergência
+usa pedra/ouro da oferta pública de reparo da muralha: os dois comandos usam
+`currentRepairQuote` nesta base; a emergência é imediata e exige nova conferência se o custo
+ou a decisão mudar.
+
+**G-17. Crônica do Ano e verificação visual adiadas.** _(Proposta do agente; não lida pelo autor.)_
+O branch `v4g-t4-tela` parte de `7875e0b`, sem V4G-T3. A aba anual, pontuação, Feitos e download
+do Markdown anual ficam para a integração dessa tarefa. A Crônica existente continua acessível.
+Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
+feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
+três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
