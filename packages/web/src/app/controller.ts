@@ -1694,6 +1694,7 @@ export class Controller {
     payload: Extract<Command, { type: T }>['payload'],
     where = 'à Guilda',
     stillValid?: () => boolean,
+    invalidText?: string,
   ): Promise<boolean> {
     const options: AttemptOptions = {
       intents: intentsOf(type, payload),
@@ -1708,12 +1709,14 @@ export class Controller {
     let done = false;
     const attempted = await this.attempt(async () => {
       done = false;
-      // A retentativa conserva o recibo, mas uma intenção entre ondas não pode alcançar outra
-      // onda (o payload público não carrega a onda). Também não paga um orçamento já alterado.
+      // A retentativa conserva o recibo, mas uma intenção com validade (como a decisão entre ondas
+      // ou um orçamento conferido) avisa e não reenvia se o contexto já mudou.
       if (stillValid !== undefined && !stillValid()) {
         this.toast({
           kind: 'warning',
-          text: 'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
+          text:
+            invalidText ??
+            'A ordem antiga já não é válida e não foi reenviada. Confira o estado atual.',
         });
         return;
       }
@@ -1879,13 +1882,19 @@ export class Controller {
         this.view?.siege?.current === 0 &&
         this.view.siege.result === null &&
         this.view.siege.scheduledInSeconds > (this.now() - this.viewReceivedAt) / 1000,
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
     );
   }
 
   swapWaveFormation(formationId: string | null): Promise<boolean> {
     const decision = this.view === null ? undefined : waveDecision(this.view);
-    return this.guildOrder('siege:swap', 'swapWaveFormation', { formationId }, 'ao Cerco', () =>
-      this.sameWave(decision?.id),
+    return this.guildOrder(
+      'siege:swap',
+      'swapWaveFormation',
+      { formationId },
+      'ao Cerco',
+      () => this.sameWave(decision?.id),
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
     );
   }
 
@@ -1896,16 +1905,23 @@ export class Controller {
       view === null || decision === undefined
         ? null
         : emergencySignature(decision, view.threat.defense.wall.repairOffer);
-    return this.guildOrder('wall', 'emergencyRepair', {}, 'aos pedreiros', () => {
-      const now = this.view;
-      const current = now === null ? undefined : waveDecision(now);
-      return (
-        this.sameWave(decision?.id) &&
-        now !== null &&
-        current !== undefined &&
-        emergencySignature(current, now.threat.defense.wall.repairOffer) === quote
-      );
-    });
+    return this.guildOrder(
+      'wall',
+      'emergencyRepair',
+      {},
+      'aos pedreiros',
+      () => {
+        const now = this.view;
+        const current = now === null ? undefined : waveDecision(now);
+        return (
+          this.sameWave(decision?.id) &&
+          now !== null &&
+          current !== undefined &&
+          emergencySignature(current, now.threat.defense.wall.repairOffer) === quote
+        );
+      },
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
+    );
   }
 
   private sameWave(id: string | undefined): boolean {
