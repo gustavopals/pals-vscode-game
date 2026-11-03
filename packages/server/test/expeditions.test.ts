@@ -458,15 +458,15 @@ describe('depois do prazo de 12 h reais, a Postura já decidiu', () => {
   });
 });
 
-describe('protocolo 3: o app antigo não sabe ler a encruzilhada (QA-14)', () => {
-  it('o cliente do protocolo 2 recebe 426 com o aviso de recarregar, em leitura e em ordem; o do 3 é atendido', async () => {
-    expect(PROTOCOL_VERSION).toBe(3);
+describe('protocolo 4: o app antigo não sabe ler a encruzilhada (QA-14)', () => {
+  it('o cliente do protocolo 2 recebe 426 com o aviso de recarregar, em leitura e em ordem; o do 4 é atendido', async () => {
+    expect(PROTOCOL_VERSION).toBe(4);
     const { player, gameId, crossroads } = await toCrossroads('Filipa');
     const old = { [PROTOCOL]: '2' };
     const expected = {
       code: 'UPGRADE_REQUIRED',
       message: 'Há uma versão nova do jogo. Recarregue a página.',
-      details: { protocol: 3 },
+      details: { protocol: 4 },
     };
     const read = await call<ApiError>(server, 'GET', `/games/${gameId}/view`, {
       token: player.token,
@@ -493,6 +493,6 @@ describe('protocolo 3: o app antigo não sabe ler a encruzilhada (QA-14)', () =>
       [PROTOCOL]: String(PROTOCOL_VERSION),
     });
     expect(current.status).toBe(200);
-    expect((await call<{ protocol: number }>(server, 'GET', '/version')).body.protocol).toBe(3);
+    expect((await call<{ protocol: number }>(server, 'GET', '/version')).body.protocol).toBe(4);
   });
 });

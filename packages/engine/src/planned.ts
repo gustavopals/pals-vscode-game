@@ -49,8 +49,8 @@ export type PlanWait =
   | { reason: 'queue' };
 
 /** O custo de uma planejada, em unidades: o da obra que leva o edifício ao nível dela. */
-export function planCost(plan: PlannedConstruction): ResourceAmounts {
-  return upgradeCost(plan.building, plan.targetLevel - 1);
+export function planCost(plan: PlannedConstruction, state?: GameState): ResourceAmounts {
+  return upgradeCost(plan.building, plan.targetLevel - 1, state);
 }
 
 /**
@@ -78,7 +78,7 @@ export function planWait(state: GameState, plan: PlannedConstruction): PlanWait 
   if (requirement !== null) {
     return { reason: 'gate', requirement };
   }
-  const cost = upgradeCost(building, level);
+  const cost = upgradeCost(building, level, state);
   const beyond = costBeyondStorage(state, cost);
   if (beyond !== null) {
     return { reason: 'capacity', beyond };

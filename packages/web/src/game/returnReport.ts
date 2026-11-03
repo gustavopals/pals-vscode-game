@@ -192,6 +192,14 @@ export function costAction(
  * botões de "Antes de partir".
  */
 export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportItem[] {
+  const waves = view.pendingDecisions
+    .filter((decision) => decision.kind === 'siegeWave')
+    .map((decision): ReturnReportItem => ({
+      text: `Cerco: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
+      topic: `siegeWave:${decision.id}`,
+      ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
+      action: { command: 'lords.openPanel', arg: 'army', label: 'Exército' },
+    }));
   const cards = cardDecisions(view).map((decision): ReturnReportItem => {
     const follows = view.council.pending.find((card) => card.instanceId === decision.id)
       ?.followsFrom?.text;
@@ -241,7 +249,7 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       severity: item.severity,
       action: toAction(item.command),
     }));
-  return [...crossroads, ...cards, ...works];
+  return [...waves, ...crossroads, ...cards, ...works];
 }
 
 /**

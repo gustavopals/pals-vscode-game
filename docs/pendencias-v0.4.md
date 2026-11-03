@@ -604,7 +604,7 @@ encurtar a jornada para 300 min foi retirada; não constituía aprovação para 
 O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
 
 
-**F-3. Trecho de saída da Fortaleza para completar as seis horas.** _(Proposta do agente; não lida pelo autor.)_
+**F-5. Trecho de saída da Fortaleza para completar as seis horas.** _(Proposta do agente; não lida pelo autor.)_
 A jornada completa mantém as quatro provas de uma hora e o retorno de uma hora,
 acrescentando um trecho sem prova (`escape`) de uma hora entre o Xamã e o retorno.
 O teto estrutural passa de cinco para seis nós temporizados; cada nó continua
@@ -643,3 +643,83 @@ desenhada e à vista marca a leitura; rascunhos não a avançam. A marca sobrevi
 excluir ou perder a sessão: quem entrar de novo pode receber o selo outra vez. Sem acesso
 ao armazenamento, a leitura vale na memória até fechar a aba. A página continua legível
 quando a consulta de versão falha, sem afirmar qual versão está no reino.
+
+
+## V4F-T2 — Ataque ao Acampamento (2026-10-28)
+
+**F-3. Viagem, guarnição e saque.** _(Proposta do agente; não lida pelo autor.)_
+As 3 h do catálogo (§9.3) são a campanha inteira: 90 min de jogo por trecho, sem bônus sazonal de expedição. A guarnição é a da estação da chegada, sem sorteio e sem astúcia: saqueadores nas três frentes (4/6/4 na primavera, 6/8/6 no verão, 8/10/8 no outono, 10/12/10 no inverno), com 2/3/4/5 arqueiros bandidos no centro. A paliçada tem 60 HP por ala (Nv1). A vitória traz 40 comida, 30 madeira e 50 ouro no retorno, respeitando depósito e desperdício. Os números estão em `balance.army.campaign` e ainda pedem medição pelo coordenador. O tile precisa estar conhecido pela Torre (a lista de tiles segue a névoa de §8.2). O requisito de um herói do catálogo é um comandante livre em ala preenchida; a falta usa `HERO_UNAVAILABLE` com frase própria.
+
+**F-4. Reserva e calendário.** _(Proposta do agente; não lida pelo autor.)_
+A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comandantes. Editar uma formação não muda a campanha; apagar a formação enviada é recusado até o retorno (`FORMATION_IN_CAMPAIGN`, correção da revisão de 2026-10-29). Soldados enviados continuam no total do Quartel, habitação e consumo até o retorno; as baixas são descontadas nesse retorno. Reservas não podem ser dispensadas, não defendem incursões e não entram na prévia defensiva. Comandantes usam o estado `campaign`, continuam recebendo soldo, não podem partir/equipar/ser dispensados; ferimento, experiência e desgaste são aplicados na chegada. A previsão da moral exclui a campanha para não antecipar sorteios; o soldo vencido é cobrado na volta, como nas expedições e escoltas. A batalha e a volta resolvem depois das expedições e antes das caravanas; uma incursão no mesmo instante da volta ainda enfrenta o feudo sem os que chegam. O estado efetivo passa de 38 para 39 (a referência antiga a 35 no roadmap não vale nesta base).
+
+
+## V4G-T2 — Motor do Cerco (2026-10-29)
+
+**G-6. Migração tardia e calendário das ondas.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco b.)**
+O passo efetivo é 39 → 40, sem sorteio ou prazo. Na primeira virada de outono/inverno
+a linha do tempo usa a preparação existente. Se a Vigília daquele inverno já passou,
+a primeira onda fica uma antecedência da Torre adiante (ou o mínimo da Vigília sem Torre),
+sem cobrar batalha retroativa; as outras esperam 60 min reais cada. Uma sequência que
+atravesse a primavera conserva o retrato das ondas, embora a Horda reinicie a memória anual.
+**Decisão do coordenador:** se a primeira onda calculada pela migração tardia cairia após o término do inverno (`scheduled >= year * YEAR_MS`), o cerco não é marcado para aquele ano (`draft.siege = null`), impedindo que ondas ocorram fora do inverno (GDD §10).
+
+**G-7. Plano e comandos internos antes do protocolo 4.** _(Proposta do agente; não lida pelo autor.)_
+O Plano fica em `siege.plan`, sem segunda cópia em `army.battlePlan`. Campos nulos usam a
+Defesa ativa do instante da onda. Os tipos de ordens, recusas e decisão entre ondas ficam
+separados dos tipos públicos do protocolo 3; T2.7 os incorporará ao protocolo 4.
+
+**G-8. Empates e continuidade depois da Queda.** _(Proposta do agente; não lida pelo autor.)_
+Empates entre edifícios são resolvidos pela ordem fixa de `BUILDING_IDS`, com o Salão
+incluído. Nenhum nível fica negativo; os já erguidos conservam ao menos nível 1. Obras em
+curso dos edifícios atingidos são canceladas sem devolução, para não restaurarem o nível
+perdido na primeira conclusão. O reparo em curso é encerrado quando a muralha é destruída,
+liberando o tempo de espera das obras restantes. Sobreviventes e planos acima do novo teto do
+Quartel são preservados; o treino novo continua exigindo vaga. Estoques que excedam o depósito
+reduzido continuam consumíveis, sem ampliar os 30% de perda (o armazenamento já permite isso).
+
+**G-9. Rescaldo sem número aprovado.** _(Proposta do agente; não lida pelo autor.)_
+A festa dura um dia de jogo, como o luto; a Gloriosa usa festa mesmo com mortos. O reparo da
+muralha custa 4/5 da pedra e do ouro até acabar o inverno, sem reduzir o prazo. A reconstrução
+reduz os custos de novas obras por dois dias de jogo a partir da primavera, sem devolução de
+custos antigos nem desconto no treino, forja ou comércio. Números em `balance.siege`.
+
+**G-10. Prioridade de alocação da milícia.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco a.)**
+A milícia convocada ocupa apenas postos vagos da linha de frente na ordem centro-frente,
+esquerda-frente e direita-frente (`center.front`, `left.front`, `right.front`). Como unidade de linha
+de frente de combate corpo-a-corpo (3/2/12, recebe ×5/4 de dano, sem projétil), ela não pode ser
+posicionada em postos de retaguarda (GDD §10.2). Se toda a frente estiver preenchida por tropas regulares,
+a milícia não ocupa postos de trás. Ao fim da batalha correspondente, os sobreviventes são dissolvidos
+e retornam aos aldeões sem ofício.
+
+
+### V4G-T2 — decisões e correções da revisão independente (2026-10-29)
+
+**G-11. Reembolso de cancelamento de obra sobre o custo efetivamente pago.** _(Decisão do coordenador.)_
+O reembolso ao cancelar uma construção ou melhoria em andamento devolve 80% (`balance.construction.cancelRefund`)
+do custo efetivamente pago (`costPaid` gravado no objeto da obra ativa), e não do custo de tabela atual.
+Isso impede que descontos temporários (como a Primavera da Reconstrução) gerem ganho de recursos ao iniciar
+uma obra com desconto e cancelá-la após o término do efeito. O campo opcional `costPaid?: ResourceAmounts`
+foi adicionado à interface `Construction` e validado na guarda do estado 40 (`stateV40` em `migrations/v40.ts`),
+sem necessidade de criar a versão 41 pois a v40 ainda não foi publicada. Adicionado teste de propriedade
+em `construction.test.ts` provando que nenhuma sequência de iniciar e cancelar obras gera recursos com a
+Reconstrução ativa ou expirada.
+
+**G-12. Critério de Vitória Gloriosa contra o Cerco.** _(Decisão do coordenador.)_
+A classificação como "Vitória Gloriosa" (`siege.result === 'glorious'`) exige que nenhuma ala defensora
+tenha caído em nenhuma das três ondas do cerco, nem que qualquer ala defensora tenha iniciado sem combatente
+na linha de frente (`frontMissing`). Se qualquer ala iniciar sem tropa na frente, ou se a linha de frente de
+qualquer ala for rompida (`frontBreached`), ou se a ala cair em combate (`wingFellInBattle` registrado nas notas
+de ação de ataque da rodada), o resultado do cerco é rebaixado no máximo para Vitória comum (`victory`).
+
+**G-13. Recusa de convocação de milícia sem postos livres.** _(Decisão do coordenador.)_
+A ordem `callMilitia` verifica antecipadamente se a formação que lutará na próxima batalha (seja a onda do cerco
+ou incursão iminente em `untilMs`) possui ao menos um posto livre na linha de frente. Se todos os postos de frente
+estiverem preenchidos por combatentes regulares, a ordem é recusada com código `NO_MILITIA_SLOT` e frase legível
+no conteúdo (`siegeTexts.militiaNoSlot`: "A formação que vai lutar não tem posto livre para a milícia."), sem
+debitar a produção dos aldeões convocados.
+
+**G-14. Escopo anual da Primavera da Reconstrução.** _(Decisão do coordenador.)_
+O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
+após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
+(`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.

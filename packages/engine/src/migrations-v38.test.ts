@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { currentShape, migrateState, StateMigrationError } from './migrations';
+import { stateV38 } from './migrations/v38';
 import { stateV37, v37ToV38 } from './migrations/v37';
 import { settleHordeTiles } from './hordePlan';
 import { AUTUMN, gameAt, quietGame } from './test-helpers';
@@ -26,9 +27,11 @@ describe('37 → 38: contadores de sabotagem da Fortaleza (V4F-T1.2)', () => {
           sabotages: { attempts: 0, successes: 0, alerted: false },
         },
       });
-      expect(currentShape(after, '')).toBeNull();
+      // O passo termina na v38; a campanha só entra no passo seguinte, sem mudar esta prova.
+      expect(stateV38(after, '')).toBeNull();
       expect(JSON.stringify(before)).toBe(JSON.stringify(JSON.parse(raw)));
       const loaded = migrateState(before, { timeScale: 1 });
+      expect(currentShape(loaded, '')).toBeNull();
       expect(loaded.migratedAtMs).toBe(before.lastProcessedAt);
       expect(migrateState(loaded, { timeScale: 1 })).toBe(loaded);
     },

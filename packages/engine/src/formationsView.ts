@@ -1,5 +1,6 @@
 import { balance, lineLabels, UNIT_IDS, units, WING_IDS, wingLabels } from '@lotg/content';
 
+import { availableUnits, campaignWarning } from './campaign';
 import { troopText } from './army';
 import {
   activeFormation,
@@ -62,7 +63,7 @@ export function formationViews(state: GameState): FormationView[] {
         missing,
       })),
       shortfallText: shortfallText(state, formation),
-      canDelete: active?.id !== formation.id,
+      canDelete: active?.id !== formation.id && state.army.campaign?.formationId !== formation.id,
       previewStale: previewIsStale(state, formation),
     };
   });
@@ -70,6 +71,7 @@ export function formationViews(state: GameState): FormationView[] {
 
 export function formationEditorView(state: GameState): FormationEditorView {
   return {
+    warning: campaignWarning(state),
     postMax: postMax(state),
     formationsCap: balance.army.formationsCap,
     canSaveNew: state.army.formations.length < balance.army.formationsCap,
@@ -80,7 +82,7 @@ export function formationEditorView(state: GameState): FormationEditorView {
       id,
       label: units[id].label,
       line: units[id].line,
-      available: state.army.units[id],
+      available: availableUnits(state)[id],
     })),
     heroes: state.guild.heroes.map((hero) => ({
       heroId: hero.id,

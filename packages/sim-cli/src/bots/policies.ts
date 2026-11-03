@@ -2327,3 +2327,45 @@ async function trySpreadFormation(
 
 /** A política mínima de guerra dos bots da rodada padrão: Lanceiros e Arqueiros. */
 export const treinarMinimo: Policy = treinarSoldados(['spearman', 'archer']);
+
+/**
+ * O Cerco no simulador (V4G-T2.10; GDD §10.8 e §11.2):
+ * 1. Salva o Plano de Batalha com a Defesa ativa para as três ondas antes do início do cerco.
+ * 2. Entre ondas (decisão siegeWave), faz reparo de emergência se a muralha foi danificada
+ *    e os recursos permitem, e garante que a formação da onda seguinte é a Defesa ativa.
+ */
+export const responderCerco: Policy = {
+  name: 'responder ao cerco',
+  run: async (view, act) => {
+    let current = view;
+
+    // 1. Salvar o Plano de Batalha com a Defesa ativa
+    const active = current.army.formations.find((entry) => entry.isActive);
+    if (active !== undefined && current.siege !== null && current.siege.current === 0) {
+      for (const wave of [1, 2, 3] as const) {
+        if (current.siege?.plan[wave] !== active.id) {
+          current = await act('setBattlePlan', { wave, formationId: active.id });
+        }
+      }
+    }
+
+    // 2. Responder à decisão entre ondas (siegeWave)
+    const decision = current.pendingDecisions.find(
+      (d): d is Extract<typeof d, { kind: 'siegeWave' }> => d.kind === 'siegeWave',
+    );
+    if (decision !== undefined) {
+      // Reparo de emergência se a muralha foi danificada e pode ser reparada
+      const wall = current.threat.defense.wall;
+      if (wall.repairOffer.canRepair && (wall.repairOffer.stone > 0 || wall.repairOffer.gold > 0)) {
+        current = await act('emergencyRepair', {});
+      }
+
+      // Troca a formação se a planejada para a próxima onda não for a ativa
+      if (active !== undefined && current.siege?.plan[decision.wave] !== active.id) {
+        current = await act('swapWaveFormation', { formationId: active.id });
+      }
+    }
+
+    return current;
+  },
+};

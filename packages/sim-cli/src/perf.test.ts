@@ -38,8 +38,14 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
         (measure) => measure.scenario === scenario && measure.absenceDays === days,
       )?.villagers;
     expect(villagers('novo', 3)).toBe(3);
-    expect(villagers('meio', 3)).toBeGreaterThan(15);
-    expect(villagers('fim', 3)).toBeGreaterThan(60);
+    // Na v0.2 sem Cerco, o feudo de 2 dias mantinha > 15 aldeões. Na v0.4, o Cerco do inverno
+    // (V4G-T2) com Queda consome 20% da população na ausência de 3 dias reais (108 dias de jogo,
+    // atravessando o inverno): 19 aldeões caem para 15 (medido: 15; docs/balance-v0.4.md §16).
+    expect(villagers('meio', 3)).toBeGreaterThanOrEqual(15);
+    // Na v0.2 sem Cerco, o feudo de 7 dias mantinha > 60 aldeões. Na v0.4, o Cerco do inverno
+    // (V4G-T2) com Queda consome 20% da população na ausência de 3 dias reais: 66 aldeões caem
+    // para 53 (medido: 53; docs/balance-v0.4.md §16).
+    expect(villagers('fim', 3)).toBeGreaterThanOrEqual(50);
   });
 
   it('o estado é pequeno e a visão é várias vezes maior do que ele', () => {

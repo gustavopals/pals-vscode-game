@@ -1,6 +1,20 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'siegeWon',
+  'siegeGlorious',
+  'siegeFell',
+  'warlordSlain',
+  'militiaCalled',
+  'militiaDisbanded',
+  'reconstructionStarted',
+  'siegeScheduled',
+  'siegeWaveFought',
+  'battlePlanSet',
+  'waveFormationSwapped',
+  'armyMarched',
+  'campAssaulted',
+  'armyReturned',
   'vigilChanged',
   'dayStarted',
   'seasonChanged',
@@ -173,6 +187,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'herois',
   'no',
   'desfecho',
+  'retorno',
   'postura',
   'saque',
   'item',
@@ -198,6 +213,33 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  siegeWon:
+    'No {dia}º dia {daEstacao}, {feudo} resistiu ao Cerco do Inverno: Vitória, apesar das brechas.',
+  siegeGlorious:
+    'No {dia}º dia {daEstacao}, {feudo} venceu o Cerco do Inverno sem ala rompida: Vitória Gloriosa.',
+  siegeFell:
+    'No {dia}º dia {daEstacao}, o Cerco trouxe a Queda. {feudo} sobrevive em ruínas; haverá outra primavera.',
+  warlordSlain:
+    'No {dia}º dia {daEstacao}, o Senhor da Guerra tombou diante de {feudo}. A Longa Noite terminou.',
+  militiaCalled: 'No {dia}º dia {daEstacao}, {feudo} convocou {quantidade} aldeões para a milícia.',
+  militiaDisbanded: 'No {dia}º dia {daEstacao}, a milícia de {feudo} foi desfeita.',
+  reconstructionStarted:
+    'No {dia}º dia {daEstacao}, começou a Primavera da Reconstrução em {feudo}. O custo das novas obras cai temporariamente.',
+
+  siegeScheduled:
+    'No {dia}º dia {daEstacao}, os vigias de {feudo} marcaram a Vigília do Cerco do Inverno.',
+  siegeWaveFought: 'No {dia}º dia {daEstacao}, {feudo} enfrentou {onda}: {desfecho}.',
+  battlePlanSet: 'No {dia}º dia {daEstacao}, {feudo} confiou {onda} a {formacao}.',
+  waveFormationSwapped:
+    'No {dia}º dia {daEstacao}, {feudo} trocou a defesa de {onda} para {formacao}.',
+
+  armyMarched:
+    'No {dia}º dia {daEstacao}, os estandartes de {feudo} partiram contra o Acampamento de Saqueadores. Os postos deixados para trás aguardam a volta.',
+  campAssaulted:
+    'No {dia}º dia {daEstacao}, o exército de {feudo} enfrentou a paliçada dos saqueadores: {desfecho}.',
+  armyReturned:
+    'No {dia}º dia {daEstacao}, os estandartes de {feudo} voltaram do Acampamento. {retorno}',
+
   vigilChanged:
     'No {dia}º dia {daEstacao}, o senhor de {feudo} mudou a Hora da Vigília. Os acontecimentos já marcados mantiveram sua hora.',
   dayStarted: 'Amanhece o {dia}º dia {daEstacao} em {feudo}.',

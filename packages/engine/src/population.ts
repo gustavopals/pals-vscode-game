@@ -27,8 +27,8 @@ export function assignedWorkers(state: GameState): number {
  * mora e come no feudo, mas não é braço de ofício nenhum até sarar.
  */
 export function ableVillagers(state: GameState): number {
-  const { population, injured } = state.settlement;
-  return population.villagers - injured.length;
+  const { population, injured, militia } = state.settlement;
+  return Math.max(0, population.villagers - injured.length - (militia?.count ?? 0));
 }
 
 /** Aldeões sem ofício e em condição de trabalhar: derivado, nunca persistido. */

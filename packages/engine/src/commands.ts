@@ -1,5 +1,6 @@
 import { balance } from '@lotg/content';
 
+import { setBattlePlan, swapWaveFormation, emergencyRepair, callMilitia } from './siegeOrders';
 import { settleHeroArrivals } from './arrivals';
 import { emit } from './chronicle';
 import {
@@ -18,7 +19,7 @@ import { assignMaster } from './masterOrders';
 import { settlePlanned } from './planned';
 import { repairItem } from './repairOrders';
 import { cancelForge, forgeWeapons } from './smithyOrders';
-import { cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
+import { attackCamp, cancelTraining, disbandSoldiers, trainSoldiers } from './armyOrders';
 import { deleteFormation, saveFormation, setActiveFormation } from './formationOrders';
 import { simulateBattle } from './warCouncilOrders';
 import { repairWall } from './wallRepair';
@@ -63,6 +64,14 @@ function dispatch(
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
+    case 'setBattlePlan':
+      return setBattlePlan(draft, payload.wave, payload.formationId, nowMs, events);
+    case 'swapWaveFormation':
+      return swapWaveFormation(draft, payload.formationId, nowMs, events);
+    case 'emergencyRepair':
+      return emergencyRepair(draft, nowMs, events);
+    case 'callMilitia':
+      return callMilitia(draft, payload.count, nowMs, events);
     case 'setVigilHour': {
       const { hourLocal, timezone } = payload;
       const civil = context.vigil;
@@ -152,6 +161,8 @@ function dispatch(
       return forgeWeapons(draft, payload.amount, nowMs, events);
     case 'cancelForge':
       return cancelForge(draft, nowMs, events);
+    case 'attackCamp':
+      return attackCamp(draft, payload.formationId, nowMs, events);
     case 'trainSoldiers':
       return trainSoldiers(draft, payload.unit, payload.amount, nowMs, events);
     case 'cancelTraining':
@@ -206,7 +217,7 @@ export function applyCommand(
   const wasFull = fullStores(draft);
   const rejection = dispatch(draft, command, nowMs, events, context);
   if (rejection !== null) {
-    return { ok: false, code: rejection.code, message: rejection.message };
+    return { ok: false, ...rejection };
   }
   // O herói que a resposta a uma carta acabou de dar entra agora, e o que esperava lugar na
   // lista entra no lugar de quem foi dispensado.

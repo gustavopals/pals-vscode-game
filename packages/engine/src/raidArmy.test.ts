@@ -209,6 +209,24 @@ describe('o defensor', () => {
     expect(JSON.stringify(formation)).toBe(before);
     expect(JSON.stringify(army)).toBe(armyBefore);
   });
+
+  it('a milícia só ocupa postos da linha de frente e nunca é posicionada na retaguarda', () => {
+    const fullFront: Formation = {
+      id: 'full-front',
+      name: 'Linha de Frente Completa',
+      posts: {
+        left: { front: { unit: 'spearman', count: 10 }, back: null },
+        center: { front: { unit: 'spearman', count: 10 }, back: null },
+        right: { front: { unit: 'spearman', count: 10 }, back: null },
+      },
+      commanders: { left: null, center: null, right: null },
+    };
+    const army = { ...none(), spearman: 30 };
+    const defender = buildDefender(fullFront, army, () => null, 15);
+    expect(defender.posts.center.back).toBeNull();
+    expect(defender.posts.left.back).toBeNull();
+    expect(defender.posts.right.back).toBeNull();
+  });
 });
 
 describe('o que custa perder, na proporção do que passou', () => {

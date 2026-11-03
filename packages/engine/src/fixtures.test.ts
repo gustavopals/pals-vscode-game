@@ -1,6 +1,7 @@
 import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
+import { readySiege } from './siege.test-helpers';
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { housingCapacity } from './population';
@@ -8,6 +9,8 @@ import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
   AUTUMN,
+  campaignYard,
+  accept,
   gameAt,
   caravanEscortScenario,
   caravanOrder,
@@ -83,6 +86,31 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'siege-ended': () => {
+    const state = readySiege();
+    return advanceTo(state, state.siege!.atMs + 2 * HOUR).state;
+  },
+  'siege-scheduled': () => readySiege(),
+  'siege-between-waves': () => {
+    const state = readySiege();
+    return advanceTo(state, state.siege!.atMs).state;
+  },
+  'campaign-marching': () =>
+    accept(campaignYard(), command('attackCamp', { formationId: 'formation-1' })).state,
+  'campaign-returning': () => {
+    const state = accept(
+      campaignYard(),
+      command('attackCamp', { formationId: 'formation-1' }),
+    ).state;
+    return advanceTo(state, state.army.campaign!.battleAtMs).state;
+  },
+  'campaign-defeated': () => {
+    const state = accept(
+      campaignYard(0, false),
+      command('attackCamp', { formationId: 'formation-1' }),
+    ).state;
+    return advanceTo(state, state.army.campaign!.battleAtMs).state;
+  },
   'market-council-effects': () => {
     const start = dealt(marketDayScenario(), 'royalCaravan').state;
     return play(start, [
@@ -809,9 +837,10 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ]);
     expect(of('fresh').horde).toEqual(threat.horde);
     // 70 até o estado 32: a composição no fluxo `horde` e as incursões-batalha do roteiro
-    // (V4E-T2.4) mudaram a semana; 67 até a Fortaleza deixar de somar Ameaça (resposta do autor
-    // de 2026-10-27). Com a Vigília: 50 (balance-v0.4.md, seção 16).
-    expect(of('week-scripted').map.threat).toBe(50);
+    // (V4E-T2.4) mudaram a semana.
+    // V4G-T1: o ensaio na Vigília muda os sorteios depois dele (balance-v0.4.md §13).
+    // V4G-T2.4: a Fortaleza some ao fim do cerco no dia 68 (-4 de Ameaça nos dois dias finais).
+    expect(of('week-scripted').map.threat).toBe(79);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;

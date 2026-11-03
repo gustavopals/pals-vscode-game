@@ -21,6 +21,9 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'ARMY_AWAY',
+  'CAMP_NOT_FOUND',
+  'NO_SOLDIERS',
   'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
@@ -80,6 +83,7 @@ export const REJECTION_CODES = [
   'FORMATIONS_CAP',
   'INVALID_FORMATION',
   'FORMATION_ACTIVE',
+  'FORMATION_IN_CAMPAIGN',
   'BARRACKS_REQUIRED',
   'TRAINING_BUSY',
   'ARMY_LIMIT',
@@ -95,6 +99,14 @@ export const REJECTION_CODES = [
   'SABOTAGE_SEASON',
   'SABOTAGE_LIMIT',
   'TEAM_SIZE',
+  'SIEGE_NOT_SCHEDULED',
+  'SIEGE_STARTED',
+  'INVALID_WAVE',
+  'NO_WAVE_DECISION',
+  'MILITIA_NOT_ALLOWED',
+  'MILITIA_ACTIVE',
+  'INVALID_MILITIA_AMOUNT',
+  'NO_MILITIA_SLOT',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -401,7 +413,8 @@ const CouncilSchema = z.strictObject({
 
 /**
  * Uma decisão à espera do jogador, uma união fechada por `kind`: uma carta do Conselho (`id` é o
- * `instanceId`) ou uma expedição parada em uma encruzilhada (`id` é o da expedição). Um tipo
+ * `instanceId`), uma expedição na encruzilhada (`id` é o da expedição) ou a próxima onda do
+ * Cerco (`siegeWave`, desde o protocolo 4). Um tipo
  * novo de decisão sobe o protocolo: o app que não o conhece recusaria a visão inteira.
  */
 const PendingDecisionSchema = z.discriminatedUnion('kind', [
@@ -417,7 +430,43 @@ const PendingDecisionSchema = z.discriminatedUnion('kind', [
     title: z.string(),
     expiresInSeconds: z.number(),
   }),
+  z.strictObject({
+    kind: z.literal('siegeWave'),
+    id: z.string(),
+    title: z.string(),
+    wave: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    expiresInSeconds: z.number(),
+    options: z.array(
+      z.strictObject({
+        formationId: z.string().nullable(),
+        label: z.string(),
+        selected: z.boolean(),
+      }),
+    ),
+  }),
 ]);
+
+/** Somente os fatos públicos do Cerco; a composição permanece sob névoa. */
+const SiegeSchema = z.strictObject({
+  year: z.number(),
+  scheduledInSeconds: z.number(),
+  current: z.number(),
+  nextWaveInSeconds: z.number().nullable(),
+  plan: z.strictObject({
+    1: z.string().nullable(),
+    2: z.string().nullable(),
+    3: z.string().nullable(),
+  }),
+  result: z.enum(['glorious', 'victory', 'fall']).nullable(),
+  resultText: z.string().nullable(),
+  waves: z.array(
+    z.strictObject({
+      number: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+      title: z.string(),
+      omens: z.array(z.string()),
+    }),
+  ),
+});
 
 /**
  * Um item, como a tela o mostra: o nome, a frase, o espaço, a raridade e o que soma, em
@@ -814,6 +863,32 @@ const SmithySchema = z.strictObject({
 const unitId = z.enum(UNIT_IDS);
 
 const ArmySchema = z.strictObject({
+  campaign: z
+    .strictObject({
+      formationId: z.string(),
+      formationName: z.string(),
+      tile: z.string(),
+      destination: z.string(),
+      phase: z.enum(['marching', 'returning']),
+      text: z.string(),
+      battleInSeconds: z.number(),
+      returnsInSeconds: z.number(),
+      reportId: z.string().nullable(),
+    })
+    .nullable(),
+  campAssault: z.strictObject({
+    text: z.string(),
+    travelSeconds: z.number(),
+    totalSeconds: z.number(),
+    blockedReason: z.string().nullable(),
+    formations: z.array(
+      z.strictObject({
+        formationId: z.string(),
+        canAttack: z.boolean(),
+        blockedReason: z.string().nullable(),
+      }),
+    ),
+  }),
   /** O edifício do Quartel: é o que `startConstruction` recebe. */
   building: buildingId,
   built: z.boolean(),
@@ -913,6 +988,7 @@ const ArmySchema = z.strictObject({
     }),
   ),
   editor: z.strictObject({
+    warning: z.string().nullable(),
     postMax: z.number(),
     formationsCap: z.number(),
     canSaveNew: z.boolean(),
@@ -939,6 +1015,7 @@ const ArmySchema = z.strictObject({
   /** A última prévia do Conselho de Guerra (V4D-T2); `null` até a primeira. */
   preview: z
     .strictObject({
+      warning: z.string().nullable(),
       formationId: z.string(),
       runs: z.number(),
       /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */
@@ -1553,6 +1630,7 @@ export const ViewStateSchema = z.strictObject({
   smithy: SmithySchema,
   /** O Quartel e o exército: os soldados, o lote em treino e o que uma ordem de treino pode pedir. */
   army: ArmySchema,
+  siege: SiegeSchema.nullable(),
   /** Os Mestres do feudo, na ordem em que entraram. */
   masters: z.array(MasterSchema),
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

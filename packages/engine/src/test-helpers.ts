@@ -2355,3 +2355,35 @@ export function advanceWithCards(
 ): { state: GameState; events: GameEvent[] } {
   return advanceWith(state, gameTimeMs, processEventsWith(catalog));
 }
+
+/** Campanha preparada no pátio: guarnição de primavera; Conselho e Horda calados. */
+export function campaignYard(atMs = 0, strong = true, seed = 'campanha-acampamento'): GameState {
+  let state = barracksYard(
+    atMs,
+    (draft) => {
+      draft.seed = seed;
+      draft.settlement.buildings.watchtower = 1;
+      draft.map.tiles.raiderCamp = { type: 'raiderCamp', threatActive: true };
+      draft.map.threat = 70;
+      draft.army.units.swordsman = strong ? 45 : 1;
+      draft.army.units.archer = strong ? 15 : 0;
+      addHero(draft, { name: 'Edda', gender: 'f', classId: 'warrior', traits: ['loyal'] });
+    },
+    { level: 8 },
+  );
+  const posts = emptyPosts();
+  if (strong) {
+    posts.left.front = { unit: 'swordsman', count: 15 };
+    posts.right.front = { unit: 'swordsman', count: 15 };
+    posts.center.back = { unit: 'archer', count: 15 };
+  }
+  posts.center.front = { unit: 'swordsman', count: strong ? 15 : 1 };
+  state = accept(
+    state,
+    saveFormationOrder('Marcha do vale', {
+      posts,
+      commanders: { left: null, center: 'hero-1', right: null },
+    }),
+  ).state;
+  return accept(state, command('setActiveFormation', { id: 'formation-1' })).state;
+}

@@ -13,8 +13,10 @@ export const PROTOCOL_PACKAGE_VERSION = '0.3.0';
  *   recusaria a visão inteira ao ver uma, e por isso recebe o 426. O `ViewState` ganhou os
  *   campos da Guilda dos Aventureiros (`guild.built`, `available`, `expeditions`, `reports`), e
  *   os comandos, `sendExpedition` e `chooseExpeditionPath`.
+ * - **4:** o Cerco (V4G-T2.7). A decisão entre ondas (`kind: 'siegeWave'`) amplia a união
+ *   fechada de `pendingDecisions`; o app do protocolo 3 não sabe lê-la e recebe 426.
  */
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 
 export const API_PREFIX = '/v1';
 

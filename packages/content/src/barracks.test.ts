@@ -42,6 +42,12 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
       formationNameMinLength: 1,
       formationNameMaxLength: 30,
       reportsKept: 3,
+      campaign: balance.army.campaign,
+      militia: {
+        maxShare: { num: 1, den: 2 },
+        unit: 'militia',
+        takesDamage: { num: 5, den: 4 },
+      },
     });
   });
 

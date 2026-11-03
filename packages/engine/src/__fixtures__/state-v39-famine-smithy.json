@@ -1,0 +1,240 @@
+{
+ "schemaVersion": 39,
+ "seed": "fixture-famine-smithy",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 33600321,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 33600321,
+ "rng": {
+  "morale": [
+   4180739085,
+   2222900658,
+   4209952303,
+   2123976726
+  ]
+ },
+ "ids": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 0,
+   "wood": 253309,
+   "stone": 65000,
+   "gold": 250000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 1365228,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 25
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 3,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 1,
+   "barracks": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": {
+   "sinceMs": 2160000,
+   "carriedMs": 0,
+   "deserted": 0
+  },
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 16,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 14,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "firstRecruit-1",
+    "cardId": "firstRecruit",
+    "drawnAtMs": 28800000,
+    "expiresAtMs": 288000000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "firstRecruit"
+  ],
+  "nextDrawAtMs": 57600000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 8,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ],
+  "lastFormationSeen": null,
+  "wavePlan": null,
+  "omens": [],
+  "sabotages": {
+   "attempts": 0,
+   "successes": 0,
+   "alerted": false
+  }
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "extraOffer": false,
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "effects": [],
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "campaign": null,
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null
+ },
+ "objectives": {
+  "active": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers"
+  ],
+  "completed": []
+ },
+ "stats": {
+  "cardsDrawn": 1,
+  "cardsDrawn:firstRecruit": 1
+ }
+}

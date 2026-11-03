@@ -1,3 +1,4 @@
+import { siegeView } from './siegeView';
 import {
   balance,
   BUILDING_IDS,
@@ -7,6 +8,7 @@ import {
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
 } from '@lotg/content';
+import type { ResourceAmounts } from '@lotg/content';
 
 import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './clock';
@@ -162,8 +164,13 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
  * O que o cancelamento devolve agora, já com o limite do depósito: `amount` entra no estoque e
  * `lost` é o que não cabe e se perde.
  */
-function refundView(state: GameState, building: BuildingId, fromLevel: number) {
-  const refund = cancelRefund(building, fromLevel);
+function refundView(
+  state: GameState,
+  building: BuildingId,
+  fromLevel: number,
+  costPaid?: ResourceAmounts,
+) {
+  const refund = cancelRefund(building, fromLevel, costPaid);
   return RESOURCE_IDS.filter((resource) => refund[resource] > 0).map((resource) => {
     const stored = storable(state, resource, refund[resource]);
     return {
@@ -268,7 +275,7 @@ function activeView(
     progressPercent: Math.floor(
       ((now - slot.startedAtMs) * 100) / (slot.finishesAtMs - slot.startedAtMs),
     ),
-    refund: refundView(state, slot.building, slot.targetLevel - 1),
+    refund: refundView(state, slot.building, slot.targetLevel - 1, slot.costPaid),
   };
 }
 
@@ -352,6 +359,7 @@ export function deriveViewState(
   const atTurn = stateAtNextMoraleTurn(state);
   const council = councilView(state, timeScale);
   const guild = guildView(state, timeScale, outlook);
+  const siege = siegeView(state, timeScale);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
   // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
   // e a da lenha da estação que vem.
@@ -486,17 +494,23 @@ export function deriveViewState(
     winter: winterView(state, firewood),
     objectives: objectivesView(state, timeScale),
     council: council.council,
-    // As cartas e as encruzilhadas, do prazo mais curto ao mais longo; no empate, a carta antes.
-    pendingDecisions: [...council.pendingDecisions, ...guild.pendingDecisions].sort(
-      (a, b) => a.expiresInSeconds - b.expiresInSeconds,
-    ),
+    // Cartas, encruzilhadas e ondas, do prazo mais curto ao mais longo; no empate, carta antes.
+    pendingDecisions: [
+      ...council.pendingDecisions,
+      ...guild.pendingDecisions,
+      ...siege.pendingDecisions,
+    ].sort((a, b) => a.expiresInSeconds - b.expiresInSeconds),
     threat: threatView(state, timeScale),
     guild: guild.guild,
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
     smithy: smithyView(state, timeScale),
     army: armyView(state, timeScale),
+    siege: siege.siege,
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),
   };
 }
+
+/** Alias mantido para os consumidores do motor anteriores ao protocolo 4. */
+export const deriveEngineViewState = deriveViewState;

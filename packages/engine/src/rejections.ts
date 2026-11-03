@@ -1,4 +1,11 @@
-import { balance, buildings, PRODUCTION_BUILDING_IDS, type ResourceAmounts } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  campaignTexts,
+  siegeTexts,
+  PRODUCTION_BUILDING_IDS,
+  type ResourceAmounts,
+} from '@lotg/content';
 
 import { joinList, thousands } from './format';
 import type { Rejection, RejectionCode } from './types';
@@ -50,6 +57,14 @@ export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} $
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
+  SIEGE_NOT_SCHEDULED: () => siegeTexts.notScheduled,
+  SIEGE_STARTED: () => siegeTexts.started,
+  INVALID_WAVE: () => siegeTexts.invalidWave,
+  NO_WAVE_DECISION: () => siegeTexts.noDecision,
+  MILITIA_NOT_ALLOWED: () => siegeTexts.militiaNotAllowed,
+  MILITIA_ACTIVE: () => siegeTexts.militiaActive,
+  INVALID_MILITIA_AMOUNT: () => siegeTexts.militiaAmount,
+  NO_MILITIA_SLOT: () => siegeTexts.militiaNoSlot,
   INVALID_VIGIL: () => 'Escolha uma hora de 0 a 23 e um fuso que o servidor consiga resolver.',
   UNKNOWN_COMMAND: () => 'O feudo não conhece essa ordem.',
   INVALID_BUILDING: () => 'Esse edifício não existe no feudo.',
@@ -252,6 +267,7 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   INVALID_FORMATION: ({ note = 'A formação não serve.' }) => note,
   FORMATION_ACTIVE: () =>
     'Essa é a Defesa ativa: marque outra formação, ou nenhuma, antes de apagá-la.',
+  FORMATION_IN_CAMPAIGN: () => campaignTexts.formationInCampaign,
   // A muralha (V4E-T1): o reparo pede a Paliçada erguida, alguma ala ferida e nenhum reparo em
   // curso.
   WALL_REQUIRED: () => 'Sem Paliçada não há muralha para reparar.',
@@ -266,6 +282,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       ? `Um Mestre só trabalha em edifício produtivo: ${PRODUCTION_PLACES}.`
       : `${label}: esse edifício ainda não foi erguido, e o Mestre não tem onde trabalhar.`,
   // A Sabotagem da Fortaleza (V4F-T1; GDD §9.5).
+  ARMY_AWAY: () => campaignTexts.armyAway,
+  CAMP_NOT_FOUND: () => campaignTexts.noCamp,
+  NO_SOLDIERS: () => campaignTexts.noSoldiers,
   SABOTAGE_SEASON: () => 'A sabotagem da Fortaleza só pode ser feita durante o outono.',
   SABOTAGE_LIMIT: ({ count = balance.horde.sabotage.maxPerYear }) =>
     `A Fortaleza só pode ser sabotada até ${count} vezes por ano.`,

@@ -1,8 +1,9 @@
-import { balance, BUILDING_IDS, buildings } from '@lotg/content';
+import { balance, BUILDING_IDS, buildings, objectives, RESOURCE_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { upgradeCost, upgradeDurationMs, upgradeQuote } from './construction';
+import { cloneState } from './state';
 import { housingCapacity } from './population';
 import {
   accept,
@@ -137,7 +138,13 @@ describe('iniciar', () => {
     const { state, events } = accept(newGame(), command('startConstruction', { building: 'farm' }));
     expect(state.settlement.resources).toMatchObject({ wood: 40_000, gold: 210_000 });
     expect(state.settlement.constructionQueues).toEqual([
-      { building: 'farm', targetLevel: 2, startedAtMs: 0, finishesAtMs: 5 * MINUTE },
+      {
+        building: 'farm',
+        targetLevel: 2,
+        startedAtMs: 0,
+        finishesAtMs: 5 * MINUTE,
+        costPaid: { wood: 80, gold: 40 },
+      },
       null,
     ]);
     expect(state.settlement.buildings.farm).toBe(1);
@@ -257,6 +264,7 @@ describe('obras e estações (GDD §4.1)', () => {
         targetLevel: 2,
         startedAtMs: WINTER,
         finishesAtMs: WINTER + 6 * MINUTE,
+        costPaid: { wood: 80, stone: 20 },
       },
       null,
     ]);
@@ -351,6 +359,81 @@ describe('cancelar', () => {
     const cancelled = accept(started, command('cancelConstruction', { building: 'housing' })).state;
     expect(cancelled.settlement.resources.wood).toBe(400_000 - 328_000 + 30_000 + 262_400);
     expect(cancelled.settlement.resources.stone).toBe(400_000 - 82_000 + 65_600);
+  });
+
+  it('o reembolso de obra iniciada na Reconstrução devolve 80% do que foi efetivamente pago com desconto', () => {
+    const state = gameWith((draft) => {
+      draft.settlement.resources = {
+        food: 400_000,
+        wood: 400_000,
+        stone: 400_000,
+        gold: 400_000,
+        iron: 0,
+      };
+      draft.settlement.buildings = { ...draft.settlement.buildings, townHall: 4, housing: 4 };
+      draft.settlement.reconstructionUntilMs = draft.lastProcessedAt + 2 * DAY;
+    });
+    // Habitações 4→5 sem desconto: 328 madeira e 82 pedra.
+    // Com reconstrução (4/5): 262 madeira (Math.floor(328*4/5)) e 65 pedra (Math.floor(82*4/5)).
+    // Reembolso de 80% sobre o pago: 262 * 0.8 = 209.600 milésimos madeira; 65 * 0.8 = 52.000 milésimos pedra.
+    // Iniciar cumpre objetivo de Habitações (+30.000 madeira).
+    const started = accept(state, command('startConstruction', { building: 'housing' })).state;
+    const cancelled = accept(started, command('cancelConstruction', { building: 'housing' })).state;
+    expect(cancelled.settlement.resources.wood).toBe(400_000 - 262_000 + 30_000 + 209_600);
+    expect(cancelled.settlement.resources.stone).toBe(400_000 - 65_000 + 52_000);
+  });
+
+  it('propriedade: nenhuma sequência de começar e cancelar obras gera recurso durante ou após a Reconstrução', () => {
+    for (const building of BUILDING_IDS) {
+      const state = gameWith((draft) => {
+        draft.settlement.resources = {
+          food: 10_000_000,
+          wood: 10_000_000,
+          stone: 10_000_000,
+          gold: 10_000_000,
+          iron: 10_000_000,
+        };
+        draft.settlement.buildings = {
+          townHall: 5,
+          housing: 4,
+          farm: 3,
+          lumberMill: 3,
+          quarry: 3,
+          goldMine: 3,
+          granary: 3,
+          warehouse: 3,
+          palisade: 3,
+          watchtower: 3,
+          tavern: 3,
+          guild: 3,
+          market: 3,
+          smithy: 3,
+          barracks: 3,
+        };
+        draft.settlement.reconstructionUntilMs = draft.lastProcessedAt + 2 * DAY;
+        draft.objectives = { active: [], completed: objectives.map((o) => o.id) };
+      });
+
+      // 1. Inicia na reconstrução e cancela na reconstrução
+      const start1 = accept(state, command('startConstruction', { building }));
+      const cancel1 = accept(start1.state, command('cancelConstruction', { building })).state;
+      for (const res of RESOURCE_IDS) {
+        expect(cancel1.settlement.resources[res]).toBeLessThanOrEqual(
+          state.settlement.resources[res],
+        );
+      }
+
+      // 2. Inicia na reconstrução, a reconstrução expira, e então cancela
+      const start2 = accept(state, command('startConstruction', { building }));
+      const expired = cloneState(start2.state);
+      expired.settlement.reconstructionUntilMs = null;
+      const cancel2 = accept(expired, command('cancelConstruction', { building })).state;
+      for (const res of RESOURCE_IDS) {
+        expect(cancel2.settlement.resources[res]).toBeLessThanOrEqual(
+          state.settlement.resources[res],
+        );
+      }
+    }
   });
 
   it('a recusa concorda com o edifício: o verbo vai no plural quando o artigo do conteúdo é plural', () => {

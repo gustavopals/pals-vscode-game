@@ -419,12 +419,14 @@ describe('as regras fora dos sete cenários', () => {
     expect(wolf?.flank).toBe(false);
   });
 
-  it('em ataque, as 12 rodadas fazem o atacante recuar, e a muralha e as torres não contam', () => {
+  it('em ataque sem paliçada, as 12 rodadas fazem o atacante recuar, sem as torres do feudo', () => {
     const resolution = resolveBattle(
       battle(
         { center: { front: ['shieldbearer', 16] } },
         { center: { front: ['blackKnight', 10] } },
-        { mode: 'attack', wall: { center: 100 }, watchtowerLevel: 5 },
+        // V4F-T2: wall agora é a paliçada inimiga; o teste do limite de rodadas usa campo aberto.
+        // A proteção ofensiva e a ausência da Torre são provadas em battle.camp.test.ts.
+        { mode: 'attack', wall: {}, watchtowerLevel: 5 },
       ),
       EVEN_LUCK,
     );

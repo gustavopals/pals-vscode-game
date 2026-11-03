@@ -753,6 +753,21 @@ Resumo por rodada (colapsável) e, no topo, os **três fatores decisivos** calcu
 
 Atacar um Acampamento de Saqueadores ou um Covil usa o mesmo sistema, sem muralha do lado do jogador e com a muralha (paliçada do acampamento) do lado inimigo. O exército viaja (tempo do tile, em tempo de jogo) e fica indisponível para defesa até voltar: outra decisão com custo.
 
+`[v0.4]` **V4F-T2:** o ataque ao Acampamento parte de uma formação salva e leva os postos
+que os soldados disponíveis preenchem, com ao menos um comandante livre. Uma formação
+secundária não pode levar um comandante da Defesa ativa: troque ou desmarque a Defesa
+antes. A tropa fica
+reservada até voltar; editar a formação não muda quem está na estrada. Apagar a formação
+em campanha é recusado até o retorno (`FORMATION_IN_CAMPAIGN`). A batalha acontece
+na chegada, contra a paliçada e a guarnição da estação, sem a Torre do feudo. Vitória
+limpa o tile (−30 de Ameaça) e traz saque ao voltar; derrota ou o limite de 12 rodadas
+fazem o exército recuar. Baixas são descontadas no retorno, e o Acampamento volta na
+virada do ano. Incursões no caminho, inclusive no instante da volta, são enfrentadas sem
+quem partiu. O Covil continua sendo a expedição da Guilda (§9.3). Viagem, guarnição e
+saque são as propostas F-3/F-4 de [pendências da v0.4](docs/pendencias-v0.4.md), ainda
+não lidas pelo autor, com números em `balance.army.campaign`.
+
+
 ---
 
 ## 11. O Cerco do Inverno, a Crônica do Ano e o Legado

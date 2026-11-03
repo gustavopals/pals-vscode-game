@@ -1244,3 +1244,89 @@ testes históricos do servidor foram feitos por leitura e entram no typecheck;
 a execução contra PostgreSQL permanece pendente. Build e validação manual
 não foram executados neste fechamento. Nenhuma junção ao `main`, publicação
 ou `push`.
+
+
+### V4F-T2 — suporte à paliçada inimiga (2026-10-28)
+
+`resolveBattle` passa a tratar `wall` como muralha do defensor nos dois modos. Em ataque a paliçada protege a Horda; a Torre do feudo continua ausente. O teste antigo de recuo após 12 rodadas fornecia uma muralha que era ignorada: agora usa campo aberto para conservar a prova exata do limite; `battle.camp.test.ts` prova separadamente a absorção pela paliçada e a atribuição à Horda. Nenhuma faixa do simulador foi alterada. Viagem, guarnição e saque são propostas F-3; medição, simulador e verify inteiro ficam para o coordenador nesta divisão de trabalho.
+
+
+A verificação da V4F-T2 cobriu também o recuo efetivo em 12 rodadas (dez Escudeiros na
+ala central, sem limpar o tile ou trazer saque), o comandante morto em Rei de Ferro,
+a defesa com soldados que ficaram em casa, o soldo devido no retorno e a previsão sem
+sortear a campanha. A adaptação do teste histórico da migração 37 → 38 passou a conferir
+`stateV38(after)` e, depois da cadeia inteira, `currentShape(loaded)`: a prova da forma
+antiga ficou mais explícita ao subir o estado. Os 56 retratos v37 da base não tinham
+registro em `FROZEN`; foram acrescentadas as impressões sem mudar um retrato ou hash
+anterior. Nenhuma faixa do simulador mudou. Permanecem propostas as guarnições e o saque;
+a medição e a política do bot estão com o coordenador.
+
+### Revisão V4F-T2 — exclusão durante a campanha (2026-10-29)
+
+A formação enviada não pode ser apagada até o retorno, mesmo desmarcada como Defesa
+ativa (`FORMATION_IN_CAMPAIGN`; `canDelete: false`). O teste anterior aceitava apagá-la:
+essa expectativa foi substituída por recusa nas fases de marcha e retorno, seguida
+da exclusão aceita após a volta. A prova da fotografia editada continua separada.
+Nenhuma faixa foi alterada ou remedida.
+
+A oferta sem formação salva agora pede para montá-la no Exército, preservando a
+recusa anterior quando não há Acampamento à vista. Golden da visão regravado com
+`UPDATE_GOLDEN=1`: diff lido, só cinco frases `campAssault.blockedReason` mudaram;
+nenhum número ou faixa mudou.
+
+### Revisão V4F-T2 — provas pela ordem do jogador (2026-10-29)
+
+A prévia durante a campanha passa por `simulateBattle` e confere as simulações
+gravadas, o evento, a ausência de baixas previstas e a preservação do RNG. Cada
+incursão exige relatório, instante, `raidSuffered` presente e anterior a `armyReturned`.
+Os dois testes de edição passam por `saveFormation`, exigem `formationSaved` e
+conferem a fotografia e a tropa efetiva na batalha, sem alterar o plano diretamente.
+Três defeitos temporários confirmaram a força das provas: incluir a reserva na
+prévia, omitir `raidSuffered` e ignorar `saveFormation` durante a campanha produzem
+duas falhas cada (saída 1); as alterações temporárias foram removidas. A antiga
+comparação de índices aceitava `raidSuffered` ausente (`-1`). Nenhuma expectativa
+de regra foi afrouxada; nenhum número ou faixa foi alterado.
+
+Fechamento focado desta revisão: 1.209 testes em 23 arquivos, mais 93 comandos
+(95 no bloco com dois testes de protocolo repetidos) e uma conferência filtrada
+dos retratos congelados: 1.303 testes distintos, todos com saída 0. Houve falhas
+vermelhas para cada correção de comportamento; as provas reescritas também foram
+conferidas com os três defeitos temporários descritos acima. A comparação dos status
+da v18 passou a excluir `campaign` (v39), assim como já excluía `escort` (v22), sem
+alterar a guarda congelada. Typecheck e lint passaram após corrigir a cobertura
+exaustiva da nova recusa. Matriz, simulador, integração, navegador e verify ficaram
+com o coordenador, conforme instrução desta sessão; `bands.ts` permanece intocado.
+
+## 16. Desempenho e custo do Cerco em ausências longas (V4G-T2.9, 2026-10-29)
+
+Medição realizada com `nice -n 19 pnpm -s sim -- --perf` no branch `v4g-t2-cerco`, estado **40**, conteúdo `f82fa6dc6fa6c8bd`, ritmo 3×, Node v22.22.3, Linux x64 (9 repetições por medida).
+
+Cada linha representa um único `advanceTo` do instante de saída ao de retorno, seguido de `deriveViewState`.
+
+| Feudo | Ausência (dias reais) | Viradas de dia de jogo | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Eventos emitidos | Estado (bytes) | Visão (bytes) | Habitantes na volta |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Feudo novo, sem nenhuma ordem | 1 | 36 | 1,9 | 2,2 | 1,0 | 52 | 4.880 | 30.168 | 4 |
+| Feudo novo, sem nenhuma ordem | 7 | 252 | 9,0 | 10,5 | 1,2 | 502 | 6.834 | 31.912 | 3 |
+| Feudo novo, sem nenhuma ordem | 30 | 1.080 | 25,0 | 26,4 | 0,9 | 2.185 | 8.404 | 32.268 | 3 |
+| Feudo de 2 dias reais (bot econômico) | 1 | 36 | 2,1 | 3,0 | 1,4 | 105 | 7.514 | 37.693 | 18 |
+| Feudo de 2 dias reais (bot econômico) | 7 | 252 | 9,7 | 11,6 | 1,3 | 736 | 10.653 | 41.054 | 12 |
+| Feudo de 2 dias reais (bot econômico) | 30 | 1.080 | 35,5 | 38,1 | 1,0 | 3.227 | 10.209 | 40.285 | 4 |
+| Feudo de 7 dias reais (bot econômico) | 1 | 36 | 1,7 | 2,2 | 1,5 | 99 | 10.671 | 50.806 | 66 |
+| Feudo de 7 dias reais (bot econômico) | 7 | 252 | 9,3 | 10,6 | 1,2 | 760 | 10.796 | 49.680 | 44 |
+| Feudo de 7 dias reais (bot econômico) | 30 | 1.080 | 33,0 | 37,9 | 1,5 | 3.346 | 13.555 | 54.073 | 13 |
+
+### Análise e impacto do Cerco
+
+1. **Tempo de avanço (`advanceTo`):**
+   - 1 dia real (36 dias de jogo): mediana entre 1,7 e 2,1 ms (máximo 3,0 ms).
+   - 7 dias reais (252 dias de jogo): mediana entre 9,0 e 9,7 ms (máximo 11,6 ms).
+   - 30 dias reais (1.080 dias de jogo, atravessando mais de 12 anos de calendário e múltiplos cercos com suas três ondas): 25,0 ms no feudo novo, 35,5 ms no feudo de 2 dias e 33,0 ms no feudo de 7 dias (máximo 37,9 ms).
+   - Comparado com a medição da seção 7.2 (v29), onde o feudo de 7 dias levava 54,6 ms na mediana (78,4 ms na pior), o motor atual no estado 40 apresentou tempo inferior e estável, bem abaixo do teto operacional de 80 ms.
+2. **Tamanho de estado e visão:**
+   - Estado: varia de 4.880 bytes (feudo novo, 1 dia) a 13.555 bytes (feudo de 7 dias após 30 dias reais). O aumento no feudo de 7 dias decorre da retenção dos três relatórios de batalha (`army.reports`), do objeto `siege` com histórico do ano, contadores estatísticos (`warlordsSlain`, `siegeWavesFought`, `siegeWavesWon`), milícia e reconstrução.
+   - Visão: varia de 30.168 a 54.073 bytes, permanecendo controlada e compatível com as expectativas de rede (abaixo de 55 kB no pico de 30 dias).
+3. **Evolução da população:**
+   - Feudo novo sem ordens desce até o piso de 3 aldeões por escassez.
+   - Feudo de 2 dias (bot econômico): 18 aldeões (1d), 12 (7d) e 4 (30d).
+   - Feudo de 7 dias (bot econômico): 66 aldeões (1d), 44 (7d) e 13 (30d).
+   - Ao atravessar o Cerco do Inverno em ausência de 3 dias reais (108 dias de jogo no ritmo 3×, ano 1), o bot econômico sofre Queda por não possuir tropas suficientes configuradas para o cerco. A penalidade determinística de 20% da população na Queda (`balance.siege.fall.populationLost`) reduz a população de 19 para 15 no feudo de 2 dias e de 66 para 53 no feudo de 7 dias, conforme registrado e ajustado em `packages/sim-cli/src/perf.test.ts`.

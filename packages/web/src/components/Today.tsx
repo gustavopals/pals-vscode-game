@@ -251,6 +251,7 @@ function PendingDecisions(props: {
               // A encruzilhada de uma expedição diz o prazo e o que a Postura fará sem resposta,
               // na frase do servidor; "Escolher caminho" abre a lista das opções.
               const crossroads = decision.kind === 'crossroads';
+              const siege = decision.kind === 'siegeWave';
               const posture = crossroads
                 ? view.guild.expeditions.find((expedition) => expedition.id === decision.id)
                     ?.crossroads?.postureText
@@ -261,23 +262,32 @@ function PendingDecisions(props: {
                   class={soon ? 'leaving-item leaving-warning' : 'leaving-item leaving-info'}
                 >
                   <p>
-                    <Icon name={soon ? 'warning' : crossroads ? CROSSROADS_ICON : 'law'} />{' '}
+                    <Icon
+                      name={
+                        soon ? 'warning' : siege ? 'shield' : crossroads ? CROSSROADS_ICON : 'law'
+                      }
+                    />{' '}
                     {soon ? <span class="sr-only">Atenção: </span> : null}
-                    {crossroads ? 'Guilda' : 'Conselho'}: “{decision.title}” ·{' '}
+                    {siege ? 'Cerco' : crossroads ? 'Guilda' : 'Conselho'}: “{decision.title}” ·{' '}
                     <span class="decision-deadline">{cardDeadline(decision, elapsed)}</span>
                     {posture === undefined ? null : <span class="muted">. {posture}</span>}
                   </p>
+                  {siege ? (
+                    <p class="muted">{decision.options.find((option) => option.selected)?.label}</p>
+                  ) : null}
                   <button
                     type="button"
-                    aria-label={`${crossroads ? 'Escolher caminho' : 'Decidir'}: ${decision.title}`}
+                    aria-label={`${siege ? 'Exército' : crossroads ? 'Escolher caminho' : 'Decidir'}: ${decision.title}`}
                     disabled={crossroads && !props.online}
                     onClick={() =>
-                      crossroads
-                        ? props.actions.run('lords.chooseExpeditionPath', decision.id)
-                        : props.actions.run('lords.openPanel', 'council')
+                      siege
+                        ? props.actions.run('lords.openPanel', 'army')
+                        : crossroads
+                          ? props.actions.run('lords.chooseExpeditionPath', decision.id)
+                          : props.actions.run('lords.openPanel', 'council')
                     }
                   >
-                    {crossroads ? 'Escolher caminho' : 'Decidir'}
+                    {siege ? 'Exército' : crossroads ? 'Escolher caminho' : 'Decidir'}
                   </button>
                 </li>
               );

@@ -526,13 +526,13 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
 }
 
 /**
- * A encruzilhada de prazo perto (`CROSSROADS_NEAR_SECONDS`) não some atrás do estado que segura
- * a linha (a incursão, a fome, o frio, o soldo em atraso): divide a linha com ele. É a única
- * decisão que outra coisa toma pelo jogador em minutos, e um atraso de soldo que dura horas a
- * esconderia até o fim. A linha continua sendo a do estado, com o tom dele; a encruzilhada
- * entra depois, com o ícone dela e o tempo que falta, e o clique passa a levar à aba Guilda,
- * onde está a escolha (menos na incursão, que mantém o clique para a defesa). As cartas do
- * Conselho não entram: o prazo delas é de um dia.
+ * A encruzilhada ou decisão entre ondas de prazo perto (`CROSSROADS_NEAR_SECONDS`) não some atrás
+ * do estado que segura a linha (a incursão, a fome, o frio, o soldo em atraso): divide a linha com ele.
+ * São decisões com prazo curto que outra coisa toma pelo jogador em minutos, e um atraso de soldo que
+ * dura horas as esconderia até o fim. A linha continua sendo a do estado, com o tom dele; a decisão
+ * entra depois, com o ícone dela e o tempo que falta, e o clique passa a levar à aba correspondente
+ * (Guilda para encruzilhada, Hoje para onda; menos na incursão, que mantém o clique para a defesa).
+ * As cartas do Conselho não entram: o prazo delas é de um dia.
  */
 function withNearCrossroads(
   topic: StatusTopic,
@@ -540,7 +540,7 @@ function withNearCrossroads(
   elapsedSeconds: number,
 ): StatusTopic {
   const [near] = view.pendingDecisions
-    .filter((decision) => decision.kind === 'crossroads')
+    .filter((decision) => decision.kind === 'crossroads' || decision.kind === 'siegeWave')
     .map((decision) => ({
       decision,
       left: remainingNow(decision.expiresInSeconds, elapsedSeconds),
@@ -550,17 +550,23 @@ function withNearCrossroads(
   if (near === undefined) {
     return topic;
   }
+  const isCrossroads = near.decision.kind === 'crossroads';
+  const icon = isCrossroads ? 'git-compare' : 'shield';
+  const label = near.decision.kind === 'crossroads' ? 'encruzilhada' : `onda ${near.decision.wave}`;
+  const where = isCrossroads
+    ? 'A equipe espera na encruzilhada, na aba Guilda.'
+    : 'A decisão entre ondas está na aba Hoje.';
   return {
     ...topic,
     bar: {
       ...topic.bar,
-      text: `${topic.bar.text} · $(git-compare) encruzilhada: ${formatApprox(near.left)}`,
-      tooltip:
-        `${topic.bar.tooltip} "${near.decision.title}": a espera acaba em ${formatApprox(near.left)}. ` +
-        'A equipe espera na encruzilhada, na aba Guilda.',
+      text: `${topic.bar.text} · $(${icon}) ${label}: ${formatApprox(near.left)}`,
+      tooltip: `${topic.bar.tooltip} "${near.decision.title}": a espera acaba em ${formatApprox(near.left)}. ${where}`,
       // A incursão mantém o clique dela (a defesa tem prazo também); nos outros estados, a
       // escolha é o que vence primeiro, e o clique leva a ela.
-      ...(topic.bar.alarm === true ? { target: 'guild' as const } : {}),
+      ...(topic.bar.alarm === true
+        ? { target: isCrossroads ? ('guild' as const) : ('today' as const) }
+        : {}),
     },
   };
 }
@@ -624,8 +630,7 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       title: `Soldo em atraso em ${name}`,
     };
   }
-  // As decisões pendentes são as cartas do Conselho e as encruzilhadas de expedição, juntas:
-  // a linha conta as duas e traz o prazo da que vence primeiro; o clique leva à aba dela.
+  // A linha conta cartas, encruzilhadas e ondas do Cerco e leva à aba do menor prazo.
   const decisions = [...view.pendingDecisions].sort(
     (a, b) => a.expiresInSeconds - b.expiresInSeconds,
   );
@@ -636,7 +641,8 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
     );
     const cards = cardDecisions(view).length;
-    const crossroads = decisions.length - cards;
+    const crossroads = crossroadsDecisions(view).length;
+    const siege = decisions.filter((decision) => decision.kind === 'siegeWave').length;
     const where = [
       ...(cards === 0
         ? []
@@ -648,13 +654,14 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
               ? 'A equipe espera na encruzilhada, na aba Guilda.'
               : 'As equipes esperam na encruzilhada, na aba Guilda.',
           ]),
+      ...(siege === 0 ? [] : ['A decisão entre ondas está na aba Hoje.']),
     ];
     return {
       bar: {
-        // O ícone é o do assunto que vence primeiro: a carta ou a encruzilhada.
-        text: `$(${soonest.kind === 'card' ? 'law' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
         tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
-        target: soonest.kind === 'card' ? 'council' : 'guild',
+        target:
+          soonest.kind === 'card' ? 'council' : soonest.kind === 'siegeWave' ? 'today' : 'guild',
       },
       title: null,
     };

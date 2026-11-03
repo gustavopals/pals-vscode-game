@@ -237,8 +237,9 @@ function tavernBeforeExtraOffer(state: GameState): Record<string, unknown> {
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
-  // Segunda junção: as comparações com versões antigas retiram só os campos posteriores
-  // (docs/balance-v0.4.md, seção "Segunda junção").
+  delete copy.siege;
+  delete copy.settlement?.militia;
+  delete copy.settlement?.reconstructionUntilMs;
   delete copy.market?.effects;
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
@@ -710,6 +711,67 @@ function fingerprint(text: string): string {
 // Segunda junção: v35 conserva os bytes do main; v36/v37 foram regravados após integrar
 // cartas, objetivos e Vigília (docs/balance-v0.4.md, seção "Segunda junção").
 const FROZEN: Record<string, string> = {
+  // V4G-T2.1: os 59 retratos v39 foram conferidos antes da mudança de estado.
+  'state-v39-campaign-defeated.json': '766502bd',
+  'state-v39-campaign-marching.json': '6fe9892e',
+  'state-v39-campaign-returning.json': 'f7b7f30b',
+  'state-v39-caravan-escort.json': '1cb9a75f',
+  'state-v39-caravan.json': '404e6d58',
+  'state-v39-cold.json': '6672cabd',
+  'state-v39-construction.json': '191e3310',
+  'state-v39-council-encounters.json': '301ecebd',
+  'state-v39-council-hidden.json': 'c1a62f28',
+  'state-v39-council-risk.json': 'c1387890',
+  'state-v39-council.json': 'b1336fab',
+  'state-v39-crafts.json': '764465fe',
+  'state-v39-den-cleared.json': '986f0580',
+  'state-v39-expedition-crossroads.json': '41024521',
+  'state-v39-expedition-returning.json': '87b41f47',
+  'state-v39-expedition.json': '246a65a7',
+  'state-v39-famine-3x.json': '4cbc0f74',
+  'state-v39-famine-ended.json': '22e1a728',
+  'state-v39-famine-half.json': '611f5021',
+  'state-v39-famine-resumed.json': 'a584afee',
+  'state-v39-famine-smithy.json': '25f30672',
+  'state-v39-famine.json': '41764137',
+  'state-v39-fresh.json': '89431663',
+  'state-v39-guild.json': '7ab54eca',
+  'state-v39-hero-captured.json': '31370575',
+  'state-v39-hero-injured.json': '6fee841a',
+  'state-v39-hero-promised.json': '0020d9d6',
+  'state-v39-horde-omens-exact.json': '03823752',
+  'state-v39-horde-omens-partial.json': 'a759730a',
+  'state-v39-horde-omens-vague.json': '360bf9da',
+  'state-v39-housing-full.json': 'b113a55c',
+  'state-v39-iron-king-half.json': 'e5fe3677',
+  'state-v39-market-council-effects.json': 'd36285a1',
+  'state-v39-market-opening.json': 'a232fbf2',
+  'state-v39-market.json': 'c8303d1c',
+  'state-v39-master-waiting.json': '82ac9f2d',
+  'state-v39-masters.json': 'e760faf7',
+  'state-v39-migrated-3x.json': '6940d0ea',
+  'state-v39-migrated-iron-king-caravan.json': 'd3505c8d',
+  'state-v39-migrated-iron-king-half.json': 'e2c4d9a8',
+  'state-v39-migrated-peasant-3x.json': 'd80844c9',
+  'state-v39-morale.json': 'cc58c2ac',
+  'state-v39-objectives.json': '754ade82',
+  'state-v39-palisade.json': '8b8925a0',
+  'state-v39-peasant-3x.json': 'ee985ac8',
+  'state-v39-queues.json': 'bfdee32e',
+  'state-v39-raid-announced.json': 'b76fdfb7',
+  'state-v39-raid.json': '592c6951',
+  'state-v39-smithy-forging.json': '0d13cf77',
+  'state-v39-storage.json': '75d7b18b',
+  'state-v39-tavern-busy.json': '645a3351',
+  'state-v39-tavern.json': '1b57d5ed',
+  'state-v39-threat.json': '124aba91',
+  'state-v39-vigil-fixed-offset.json': 'ae4542ed',
+  'state-v39-wage-arrears-ended.json': 'e03a5fb8',
+  'state-v39-wage-arrears-resumed.json': 'aeb83886',
+  'state-v39-wage-arrears.json': 'b044457f',
+  'state-v39-warehouse-full.json': '7e13b0c8',
+  'state-v39-week-scripted.json': '58330170',
+  // Terceira junção: v37 e v38 preservam os bytes de a38a74a, com os hashes correspondentes.
   'state-v37-caravan-escort.json': 'c7b7f603',
   'state-v37-caravan.json': 'a165d1b2',
   'state-v37-cold.json': 'af2b7e2c',
@@ -766,6 +828,62 @@ const FROZEN: Record<string, string> = {
   'state-v37-wage-arrears.json': '185955ee',
   'state-v37-warehouse-full.json': '7373d427',
   'state-v37-week-scripted.json': 'b30f4d8f',
+  'state-v38-caravan-escort.json': '8550f0cc',
+  'state-v38-caravan.json': '64c60f41',
+  'state-v38-cold.json': 'a09a01bd',
+  'state-v38-construction.json': 'f2709df0',
+  'state-v38-council-encounters.json': 'd4aff032',
+  'state-v38-council-hidden.json': '1e17f04b',
+  'state-v38-council-risk.json': '9d075595',
+  'state-v38-council.json': '3e22b646',
+  'state-v38-crafts.json': '0829a999',
+  'state-v38-den-cleared.json': '93463c9d',
+  'state-v38-expedition-crossroads.json': 'd7c3371a',
+  'state-v38-expedition-returning.json': '69c67172',
+  'state-v38-expedition.json': '78852d18',
+  'state-v38-famine-3x.json': '92a42f22',
+  'state-v38-famine-ended.json': '85549628',
+  'state-v38-famine-half.json': '8fa95cff',
+  'state-v38-famine-resumed.json': 'f6299aa2',
+  'state-v38-famine-smithy.json': '6a1e3702',
+  'state-v38-famine.json': '98b75743',
+  'state-v38-fresh.json': '613409c7',
+  'state-v38-guild.json': '06ab9070',
+  'state-v38-hero-captured.json': '70def4ce',
+  'state-v38-hero-injured.json': '0da4e19d',
+  'state-v38-hero-promised.json': '363e36e8',
+  'state-v38-horde-omens-exact.json': 'e0dde9fc',
+  'state-v38-horde-omens-partial.json': '36840b5c',
+  'state-v38-horde-omens-vague.json': '856d3484',
+  'state-v38-housing-full.json': '0e89c8b6',
+  'state-v38-iron-king-half.json': '479d2eaf',
+  'state-v38-market-council-effects.json': '62ec91b9',
+  'state-v38-market-opening.json': 'c264be65',
+  'state-v38-market.json': '5ed74fdb',
+  'state-v38-master-waiting.json': '2d31cf88',
+  'state-v38-masters.json': '76801eae',
+  'state-v38-migrated-3x.json': '4efb593c',
+  'state-v38-migrated-iron-king-caravan.json': '6a0ba213',
+  'state-v38-migrated-iron-king-half.json': 'ada9adc2',
+  'state-v38-migrated-peasant-3x.json': 'de92ee11',
+  'state-v38-morale.json': '928191ad',
+  'state-v38-objectives.json': 'b7c130e2',
+  'state-v38-palisade.json': '68fd16a2',
+  'state-v38-peasant-3x.json': '7243c76b',
+  'state-v38-queues.json': 'b8ee346a',
+  'state-v38-raid-announced.json': '61ead86d',
+  'state-v38-raid.json': '7d402baf',
+  'state-v38-smithy-forging.json': 'b8caaa4e',
+  'state-v38-storage.json': 'a9624def',
+  'state-v38-tavern-busy.json': '0840b920',
+  'state-v38-tavern.json': 'c6d136dc',
+  'state-v38-threat.json': 'e5cb854f',
+  'state-v38-vigil-fixed-offset.json': '65475e7b',
+  'state-v38-wage-arrears-ended.json': 'aecaa9a2',
+  'state-v38-wage-arrears-resumed.json': '84df40ca',
+  'state-v38-wage-arrears.json': 'ba012d07',
+  'state-v38-warehouse-full.json': '77815d70',
+  'state-v38-week-scripted.json': '0df0a4d4',
   'state-v36-caravan-escort.json': 'f0437027',
   'state-v36-caravan.json': 'e4108c94',
   'state-v36-cold.json': '3ad110d4',
@@ -2663,8 +2781,16 @@ describe('a forma da versão atual', () => {
     expect(HERO_ARRIVING_CAP_V15).toBe(balance.heroes.arrivingCap);
     // Os estados de herói desta versão: no feudo e em expedição (versão 17), em recuperação e
     // em cativeiro (versão 18), e na escolta de uma caravana (versão 22).
-    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured', 'escort']);
-    expect(HERO_STATUS_IDS_V22).toEqual([...HERO_STATUS_IDS]);
+    // A guarda v22 permanece congelada: campaign só existe a partir da v39 (V4F-T2).
+    expect(HERO_STATUS_IDS).toEqual([
+      'idle',
+      'expedition',
+      'injured',
+      'captured',
+      'escort',
+      'campaign',
+    ]);
+    expect(HERO_STATUS_IDS_V22).toEqual(HERO_STATUS_IDS.filter((id) => id !== 'campaign'));
     expect(CARAVAN_SLOTS_CAP_V22).toBe(Math.max(...balance.market.caravan.slotsByLevel));
   });
 

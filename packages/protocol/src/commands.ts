@@ -300,8 +300,38 @@ export const SimulateBattleCommandSchema = command(
   z.strictObject({ formationId: z.string().min(1).max(64) }),
 );
 
+export const AttackCampCommandSchema = command(
+  'attackCamp',
+  z.strictObject({ formationId: z.string().min(1).max(64) }),
+);
+
 /** Repara a muralha (V4E-T1): o reparo entra na frente das obras e termina junto delas. */
 export const RepairWallCommandSchema = command('repairWall', z.strictObject({}));
+
+/** Plano por onda; `null` usa a Defesa ativa. A disponibilidade é validada pelo motor. */
+export const SetBattlePlanCommandSchema = command(
+  'setBattlePlan',
+  z.strictObject({
+    wave: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    formationId: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE).nullable(),
+  }),
+);
+
+/** Troca a formação da próxima onda enquanto a decisão está aberta. */
+export const SwapWaveFormationCommandSchema = command(
+  'swapWaveFormation',
+  z.strictObject({
+    formationId: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE).nullable(),
+  }),
+);
+
+/** Reparo imediato entre ondas; custo e prazo são conferidos pelo motor. */
+export const EmergencyRepairCommandSchema = command('emergencyRepair', z.strictObject({}));
+
+export const CallMilitiaCommandSchema = command(
+  'callMilitia',
+  z.strictObject({ count: z.number().int().min(-1_000_000).max(1_000_000) }),
+);
 
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
@@ -335,7 +365,12 @@ export const CommandSchema = z.discriminatedUnion('type', [
   DeleteFormationCommandSchema,
   SetActiveFormationCommandSchema,
   SimulateBattleCommandSchema,
+  AttackCampCommandSchema,
   RepairWallCommandSchema,
+  SetBattlePlanCommandSchema,
+  SwapWaveFormationCommandSchema,
+  EmergencyRepairCommandSchema,
+  CallMilitiaCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

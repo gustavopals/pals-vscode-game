@@ -24,6 +24,7 @@ import type {
   RaidSizeId,
   WarRaidSizeId,
   Ratio,
+  ResourceAmounts,
   ResourceId,
   SeasonId,
   TileTypeId,
@@ -94,6 +95,7 @@ export type Construction = {
   targetLevel: number;
   startedAtMs: number;
   finishesAtMs: number;
+  costPaid?: ResourceAmounts;
 };
 
 /**
@@ -567,7 +569,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 38;
+  schemaVersion: 40;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -622,6 +624,10 @@ export type GameState = {
      * frente da fila).
      */
     wallRepair: { untilMs: number; toHp: Record<WingId, number> } | null;
+    /** Aldeões temporariamente afastados dos ofícios, até a batalha marcada. */
+    militia: { count: number; untilMs: number } | null;
+    /** Fim do desconto da Primavera da Reconstrução; null antes de começar. */
+    reconstructionUntilMs: number | null;
     /** As obras planejadas, na ordem em que o jogador as pôs: é a ordem do início automático. */
     planned: PlannedConstruction[];
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
@@ -753,6 +759,8 @@ export type GameState = {
      */
     discovered: string[];
   };
+  /** Cerco do ano; as ondas acompanham a preparação da Horda até a primeira batalha. */
+  siege: SiegeState | null;
   /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
   horde: {
     scheduledRaids: ScheduledRaid[];
@@ -888,7 +896,36 @@ export type Formation = {
   commanders: Record<WingId, string | null>;
 };
 
+/** Campanha única; os postos são os que partiram, independentes da formação salva. */
+export type ArmyCampaign = {
+  formationId: string;
+  formation: Formation;
+  tile: string;
+  departsAtMs: number;
+  battleAtMs: number;
+  returnsAtMs: number;
+  report: BattleReport | null;
+};
+
+export type SiegeWaveNumber = 1 | 2 | 3;
+export type SiegeWave = NonNullable<GameState['horde']['wavePlan']>['waves'][number];
+export type SiegeState = {
+  year: number;
+  atMs: number;
+  waves: SiegeWave[];
+  /** Quantas ondas já foram enfrentadas. */
+  current: 0 | 1 | 2 | 3;
+  nextWaveAtMs: number | null;
+  plan: Record<SiegeWaveNumber, string | null>;
+  result: 'glorious' | 'victory' | 'fall' | null;
+  breached: boolean;
+  deaths: number;
+  endedAtMs: number | null;
+  aftermathUntilMs: number | null;
+};
+
 export type ArmyState = {
+  campaign: ArmyCampaign | null;
   units: Record<UnitId, number>;
   training: TrainingBatch | null;
   /** As formações salvas, na ordem em que foram criadas; até `balance.army.formationsCap`. */
@@ -946,7 +983,50 @@ export type GameEvent = {
   data: Record<string, string | number>;
 };
 
+/** Ordens do Cerco, incorporadas ao contrato público no protocolo 4 (T2.7). */
+export type SiegeCommand =
+  | {
+      commandId: string;
+      type: 'setBattlePlan';
+      payload: { wave: SiegeWaveNumber; formationId: string | null };
+    }
+  | { commandId: string; type: 'swapWaveFormation'; payload: { formationId: string | null } }
+  | { commandId: string; type: 'emergencyRepair'; payload: Record<string, never> }
+  | { commandId: string; type: 'callMilitia'; payload: { count: number } };
+export type SiegeRejectionCode =
+  | 'SIEGE_NOT_SCHEDULED'
+  | 'SIEGE_STARTED'
+  | 'INVALID_WAVE'
+  | 'NO_WAVE_DECISION'
+  | 'MILITIA_NOT_ALLOWED'
+  | 'MILITIA_ACTIVE'
+  | 'INVALID_MILITIA_AMOUNT'
+  | 'NO_MILITIA_SLOT';
+export type SiegeRejection = Rejection;
+export type SiegeCommandResult = CommandResult;
+export type SiegeWaveDecisionView = {
+  kind: 'siegeWave';
+  id: string;
+  title: string;
+  wave: SiegeWaveNumber;
+  expiresInSeconds: number;
+  options: Array<{ formationId: string | null; label: string; selected: boolean }>;
+};
+export type SiegeView = {
+  year: number;
+  scheduledInSeconds: number;
+  current: number;
+  nextWaveInSeconds: number | null;
+  plan: Record<SiegeWaveNumber, string | null>;
+  result: SiegeState['result'];
+  resultText: string | null;
+  waves: Array<{ number: SiegeWaveNumber; title: string; omens: string[] }>;
+};
+/** Alias mantido para os consumidores do motor anteriores à T2.7. */
+export type EngineViewState = ViewState;
+
 export type Command =
+  | SiegeCommand
   | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {
       commandId: string;
@@ -1087,6 +1167,7 @@ export type Command =
       };
     }
   /** Apaga uma formação salva; a Defesa ativa não se apaga (desative ou troque antes). */
+  | { commandId: string; type: 'attackCamp'; payload: { formationId: string } }
   | { commandId: string; type: 'deleteFormation'; payload: { id: string } }
   /** Marca a Defesa ativa; `id: null` a desmarca. */
   | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } }
@@ -1106,6 +1187,9 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'ARMY_AWAY',
+  'CAMP_NOT_FOUND',
+  'NO_SOLDIERS',
   'INVALID_VIGIL',
   'UNKNOWN_COMMAND',
   'INVALID_BUILDING',
@@ -1165,6 +1249,7 @@ export const REJECTION_CODES = [
   'FORMATIONS_CAP',
   'INVALID_FORMATION',
   'FORMATION_ACTIVE',
+  'FORMATION_IN_CAMPAIGN',
   'BARRACKS_REQUIRED',
   'TRAINING_BUSY',
   'ARMY_LIMIT',
@@ -1180,6 +1265,14 @@ export const REJECTION_CODES = [
   'SABOTAGE_SEASON',
   'SABOTAGE_LIMIT',
   'TEAM_SIZE',
+  'SIEGE_NOT_SCHEDULED',
+  'SIEGE_STARTED',
+  'INVALID_WAVE',
+  'NO_WAVE_DECISION',
+  'MILITIA_NOT_ALLOWED',
+  'MILITIA_ACTIVE',
+  'INVALID_MILITIA_AMOUNT',
+  'NO_MILITIA_SLOT',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1531,6 +1624,7 @@ export type CouncilView = {
  * expedição parada em uma encruzilhada (`id` é o da expedição).
  */
 export type PendingDecisionView =
+  | SiegeWaveDecisionView
   | { kind: 'card'; id: string; title: string; expiresInSeconds: number }
   | { kind: 'crossroads'; id: string; title: string; expiresInSeconds: number };
 
@@ -2371,6 +2465,24 @@ export type SmithyView = {
  * prontos: o app não calcula nada. `foodPerHour` é o consumo de cada soldado por hora real.
  */
 export type ArmyView = {
+  campaign: {
+    formationId: string;
+    formationName: string;
+    tile: string;
+    destination: string;
+    phase: 'marching' | 'returning';
+    text: string;
+    battleInSeconds: number;
+    returnsInSeconds: number;
+    reportId: string | null;
+  } | null;
+  campAssault: {
+    text: string;
+    travelSeconds: number;
+    totalSeconds: number;
+    blockedReason: string | null;
+    formations: Array<{ formationId: string; canAttack: boolean; blockedReason: string | null }>;
+  };
   /** Frases públicas dos presságios atuais; sem a composição escondida ou a memória. */
   /** A onda de que o presságio fala; `null` no vago, que não diz qual é. */
   omens: Array<{ text: string; wave: 1 | 2 | 3 | null }>;
@@ -2498,6 +2610,8 @@ export type ArmyReportView = {
 
 /** A prévia do Conselho de Guerra na visão: percentuais inteiros e frases prontas. */
 export type ArmyPreviewView = {
+  /** A prévia defensiva exclui os soldados e comandantes em campanha. */
+  warning: string | null;
   formationId: string;
   /** Quantas batalhas a prévia rodou. */
   runs: number;
@@ -2575,6 +2689,8 @@ export type FormationView = {
 
 /** O que o editor de formação oferece (GDD §13.4). */
 export type FormationEditorView = {
+  /** Aviso da reserva em campanha; null com todos no feudo. */
+  warning: string | null;
   /** O máximo de soldados por posto no Quartel de agora. */
   postMax: number;
   /** Quantas formações cabem, e se ainda cabe uma nova. */
@@ -2903,6 +3019,8 @@ export type ViewState = {
   smithy: SmithyView;
   /** O Quartel e o exército: os soldados, o lote em treino e o que uma ordem de treino pode pedir. */
   army: ArmyView;
+  /** Data, plano, ondas conhecidas e resultado do Cerco, sem composição escondida. */
+  siege: SiegeView | null;
   /** Os Mestres do feudo, na ordem em que entraram (GDD §5.4; ADR 0018, decisão 18). */
   masters: MasterView[];
   /** Os Mestres que chegaram e esperam uma vaga nas casas. */

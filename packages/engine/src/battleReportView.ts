@@ -4,6 +4,7 @@ import {
   heroClasses,
   hordeUnits,
   lineLabels,
+  militiaUnit,
   units,
   wingLabels,
   type HordeUnitId,
@@ -21,7 +22,10 @@ import type { ArmyReportView, GameState } from './types';
  * experiência dos comandantes.
  */
 
-const unitLabel = (unit: UnitId | HordeUnitId, count: number): string => {
+const unitLabel = (unit: UnitId | HordeUnitId | 'militia', count: number): string => {
+  if (unit === 'militia') {
+    return count === 1 ? militiaUnit.label.toLowerCase() : militiaUnit.pluralLabel;
+  }
   const def = unit in units ? units[unit as UnitId] : hordeUnits[unit as HordeUnitId];
   return count === 1 ? def.label.toLowerCase() : def.pluralLabel;
 };

@@ -132,9 +132,8 @@ describe('cabeçalhos e sessão', () => {
     ]);
     expect(calls[1]?.headers.authorization).toBeUndefined();
     expect(calls[1]?.headers['x-lords-protocol']).toBe(String(PROTOCOL_VERSION));
-    // O protocolo 2 é o do Conselho (o app sabe ler cartas); o 3, o das expedições (sabe ler a
-    // encruzilhada entre as decisões pendentes). É o número que o servidor confere.
-    expect(PROTOCOL_VERSION).toBe(3);
+    // O protocolo 4 inclui a decisão entre ondas do Cerco; é o número que o servidor confere.
+    expect(PROTOCOL_VERSION).toBe(4);
   });
 
   it('com validação ligada, um catálogo fora do contrato é recusado', async () => {
@@ -436,6 +435,19 @@ describe('getView', () => {
 describe('sendCommand', () => {
   const accepted = { view, events: [], stateVersion: '4', staleView: false };
 
+  it('envia as quatro ordens do Cerco com o protocolo 4 e preserva a identidade', async () => {
+    const commands: Command[] = [
+      { ...order, type: 'setBattlePlan', payload: { wave: 2, formationId: null } },
+      { ...order, type: 'swapWaveFormation', payload: { formationId: 'formation-1' } },
+      { ...order, type: 'emergencyRepair', payload: {} },
+      { ...order, type: 'callMilitia', payload: { count: 5 } },
+    ];
+    const { client, calls } = setup(() => ({ status: 200, body: accepted }));
+    for (const command of commands) await client.sendCommand(gameId, command);
+    expect(calls.map((call) => call.body)).toEqual(commands);
+    expect(calls.map((call) => call.headers['x-lords-protocol'])).toEqual(['4', '4', '4', '4']);
+  });
+
   it('envia a ordem e a versão conhecida, e devolve o resultado', async () => {
     const { client, calls } = setup(() => ({ status: 200, body: accepted }));
     const result = await client.sendCommand(gameId, order, { stateVersion: '3' });
@@ -579,7 +591,7 @@ describe('erros', () => {
       body: {
         code: 'UPGRADE_REQUIRED',
         message: 'Há uma versão nova do jogo. Recarregue a página.',
-        details: { protocol: 3 },
+        details: { protocol: 4 },
       },
     }));
     await expect(client.version()).rejects.toMatchObject({

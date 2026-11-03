@@ -4,6 +4,7 @@ import {
   heroClasses,
   hordeUnits,
   LINE_IDS,
+  militiaUnit,
   units,
   WING_IDS,
   type Archetype,
@@ -44,11 +45,11 @@ export type BattleInput = {
   /** `defense`: a Horda ataca o feudo (muralha e torres valem); `attack`: o jogador ataca. */
   readonly mode: 'defense' | 'attack';
   readonly player: {
-    readonly posts: BattlePosts<UnitId>;
+    readonly posts: BattlePosts<UnitId | 'militia'>;
     readonly commanders: Record<WingId, BattleCommanderInput | null>;
   };
   readonly horde: { readonly posts: BattlePosts<HordeUnitId> };
-  /** A vida da muralha em cada ala (só em defesa; a ala ausente não tem muralha). */
+  /** A vida da muralha do defensor em cada ala (do Acampamento em ataque). */
   readonly wall: Partial<Record<WingId, number>>;
   /** O nível da Torre de Vigia (as torres atiram a partir de `balance.battle.towers.fromLevel`). */
   readonly watchtowerLevel: number;
@@ -71,7 +72,7 @@ export type BattleFactorKind = 'counter' | 'aura' | 'flank' | 'cover';
 /** Um golpe em um esquadrão, com as frações da conta (para o golden e para a atribuição). */
 export type BattleHit = {
   readonly target: BattlePost;
-  readonly targetUnit: UnitId | HordeUnitId;
+  readonly targetUnit: UnitId | HordeUnitId | 'militia';
   readonly targetCount: number;
   /** O dano que chega ao esquadrão antes da defesa. */
   readonly raw: Ratio;
@@ -110,12 +111,12 @@ export type BattleAction =
   | {
       readonly kind: 'attack';
       readonly actor: BattlePost;
-      readonly unit: UnitId | HordeUnitId;
+      readonly unit: UnitId | HordeUnitId | 'militia';
       readonly count: number;
       readonly attack: number;
       /** O esquadrão que o ataque mirou (antes da muralha e dos Escudeiros). */
       readonly target: BattlePost;
-      readonly targetUnit: UnitId | HordeUnitId;
+      readonly targetUnit: UnitId | HordeUnitId | 'militia';
       readonly targetCount: number;
       readonly luck: number;
       readonly factors: ReadonlyArray<{ readonly kind: BattleFactorKind; readonly value: Ratio }>;
@@ -149,7 +150,7 @@ export type BattleAction =
 
 export type BattleSquadState = {
   readonly post: BattlePost;
-  readonly unit: UnitId | HordeUnitId;
+  readonly unit: UnitId | HordeUnitId | 'militia';
   readonly count: number;
   readonly residual: number;
 };
@@ -242,7 +243,7 @@ type Squad = {
   readonly owner: 'player' | 'horde';
   readonly wing: WingId;
   readonly line: LineId;
-  readonly unit: UnitId | HordeUnitId;
+  readonly unit: UnitId | HordeUnitId | 'militia';
   readonly stats: Stats;
   readonly initial: number;
   count: number;
@@ -251,6 +252,14 @@ type Squad = {
 
 function statsOf(owner: 'player' | 'horde', unit: string): Stats {
   if (owner === 'player') {
+    if (unit === 'militia') {
+      return {
+        ...pick(militiaUnit),
+        line: 'front',
+        archetype: 'none',
+        horde: null,
+      };
+    }
     const def = units[unit as UnitId];
     if (def === undefined) {
       throw new Error(`Unidade desconhecida na batalha: ${unit}.`);
@@ -318,7 +327,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
           owner,
           wing,
           line,
-          unit: post.unit as UnitId | HordeUnitId,
+          unit: post.unit as UnitId | HordeUnitId | 'militia',
           stats,
           initial: post.count,
           count: post.count,
@@ -343,15 +352,13 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
 
   const defense = input.mode === 'defense';
   const wall: Partial<Record<WingId, number>> = {};
-  if (defense) {
-    for (const wing of WING_IDS) {
-      const hp = input.wall[wing];
-      if (hp !== undefined) {
-        if (!Number.isSafeInteger(hp) || hp < 0) {
-          throw new Error(`Muralha com vida inválida na batalha: ${wing}.`);
-        }
-        wall[wing] = hp;
+  for (const wing of WING_IDS) {
+    const hp = input.wall[wing];
+    if (hp !== undefined) {
+      if (!Number.isSafeInteger(hp) || hp < 0) {
+        throw new Error(`Muralha com vida inválida na batalha: ${wing}.`);
       }
+      wall[wing] = hp;
     }
   }
   const wallStart = { ...wall };
@@ -430,6 +437,9 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       effective = floorOf(maxOf(sub(raw, absorbed), mul(raw, rules.minDamage)));
     } else {
       effective = floorOf(raw);
+    }
+    if (target.unit === balance.army.militia.unit) {
+      effective = floorOf(mul(frac(effective), balance.army.militia.takesDamage));
     }
     const residualBefore = target.residual;
     const pool = effective + residualBefore;
@@ -549,9 +559,9 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     if (aim.flank) {
       factors.push({ kind: 'flank', value: rules.flank });
     }
-    const wallHp = defense ? wall[aim.wing] : undefined;
-    if (defense && isRanged(squad)) {
-      if (squad.owner === 'player') {
+    const wallHp = wall[aim.wing];
+    if (isRanged(squad)) {
+      if (squad.side === 'D') {
         const own = wall[squad.wing];
         if (own !== undefined && own > 0) {
           factors.push({ kind: 'cover', value: rules.wall.coverFactor });
@@ -570,13 +580,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
     const hits: BattleHit[] = [];
     let wallHit: Extract<BattleAction, { kind: 'attack' }>['wall'] = null;
     let toTroops = raw;
-    if (
-      defense &&
-      squad.owner === 'horde' &&
-      !isRanged(squad) &&
-      wallHp !== undefined &&
-      wallHp > 0
-    ) {
+    if (squad.side === 'A' && !isRanged(squad) && wallHp !== undefined && wallHp > 0) {
       const share = squad.stats.horde?.ignoresWallHalf === true ? rules.wall.ignoresHalfShare : ONE;
       const damage = floorOf(mul(raw, share));
       const after = Math.max(0, wallHp - damage);

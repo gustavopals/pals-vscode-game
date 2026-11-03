@@ -205,6 +205,7 @@ export const heroStatuses: Record<HeroStatusId, { readonly label: string }> = {
   injured: { label: 'Em recuperação' },
   captured: { label: 'Em cativeiro' },
   escort: { label: 'Em escolta' },
+  campaign: { label: 'Em campanha' },
 };
 
 /** Como a ficha chama cada gravidade de ferimento. */

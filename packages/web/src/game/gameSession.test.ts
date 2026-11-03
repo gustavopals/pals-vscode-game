@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import { memoryStore } from '../services/store';
+import { siegeWaveView } from '../test-helpers';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import {
   CACHE_VERSION,
@@ -127,6 +128,27 @@ afterEach(() => {
 });
 
 describe('cadência', () => {
+  it('lê a decisão siegeWave no protocolo 4 e consulta de novo no prazo real', async () => {
+    const { session, state } = setup();
+    state.view = {
+      ...siegeWaveView,
+      pendingDecisions: siegeWaveView.pendingDecisions.map((decision) => ({
+        ...decision,
+        expiresInSeconds: 5,
+      })),
+      siege: { ...siegeWaveView.siege!, nextWaveInSeconds: 5 },
+    };
+    await session.start(target);
+    session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.view).toEqual(state.view);
+    const before = state.calls.view;
+    await vi.advanceTimersByTimeAsync(5_999);
+    expect(state.calls.view).toBe(before);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(before + 1);
+    session.stop();
+  });
   it('30 s com o painel visível e 2 min com ele oculto', async () => {
     const { session, state } = setup();
     await session.start(target);
@@ -718,8 +740,17 @@ describe('cache', () => {
       // '2.2' é a do app do protocolo 2, de antes das expedições: a visão dele não tinha os
       // campos da Guilda dos Aventureiros nem a encruzilhada entre as decisões (protocolo 3).
       expect(CACHE_VERSION).not.toBe('1.2');
-      expect(CACHE_VERSION).toBe('3.2');
-      for (const version of [undefined, '1.1', '1.2', '2.2', `${PROTOCOL_VERSION + 1}.2`, 2]) {
+      // '3.2' não sabe ler a decisão entre ondas do Cerco (protocolo 4).
+      expect(CACHE_VERSION).toBe('4.2');
+      for (const version of [
+        undefined,
+        '1.1',
+        '1.2',
+        '2.2',
+        '3.2',
+        `${PROTOCOL_VERSION + 1}.2`,
+        2,
+      ]) {
         const stale = { ...cachedNow(), ...(version === undefined ? {} : { version }) };
         if (version === undefined) {
           delete (stale as Partial<GameCache>).version;
@@ -756,26 +787,29 @@ describe('cache', () => {
       }
     });
 
-    it('o cache do app do protocolo 2 é descartado pela marca, e o cursor dos eventos fica (QA-14)', async () => {
-      // A aba aberta desde antes das expedições recebe 426 e recarrega; o app novo encontra o
-      // cache antigo: a visão guardada não é exibida, mas a partida não volta inteira como
-      // novidade.
-      const cached = { ...cachedNow(), version: '2.2', lastSeq: 3 } as unknown as GameCache;
-      const { session, state, seen, store } = setup(cached);
-      state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
-      state.fail = new NetworkError('fora');
-      await session.start(target);
-      expect(session.view).toBeNull();
-      expect(seen.views).toEqual([]);
-      state.fail = null;
-      await session.syncNow();
-      expect(session.view).toEqual(view);
-      expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
-      const saved = store.get<GameCache>(cacheKey(target));
-      expect(saved?.version).toBe(CACHE_VERSION);
-      expect(saved?.lastSeq).toBe(4);
-      session.stop();
-    });
+    it.each(['2.2', '3.2'])(
+      'o cache %s é descartado pela marca, e o cursor dos eventos fica',
+      async (version) => {
+        // A aba com protocolo antigo recebe 426 e recarrega; o app novo encontra o
+        // cache antigo: a visão guardada não é exibida, mas a partida não volta inteira como
+        // novidade.
+        const cached = { ...cachedNow(), version, lastSeq: 3 } as unknown as GameCache;
+        const { session, state, seen, store } = setup(cached);
+        state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
+        state.fail = new NetworkError('fora');
+        await session.start(target);
+        expect(session.view).toBeNull();
+        expect(seen.views).toEqual([]);
+        state.fail = null;
+        await session.syncNow();
+        expect(session.view).toEqual(view);
+        expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
+        const saved = store.get<GameCache>(cacheKey(target));
+        expect(saved?.version).toBe(CACHE_VERSION);
+        expect(saved?.lastSeq).toBe(4);
+        session.stop();
+      },
+    );
 
     it('com a marca atual e a forma atual, o cache é exibido', async () => {
       const { session, state, seen } = setup(cachedNow());

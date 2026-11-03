@@ -294,6 +294,8 @@ describe('API pública', () => {
       'advanceTo',
       'applyCommand',
       'createInitialState',
+      // Alias do motor provisório do Cerco, mantido para o simulador ao publicar o protocolo 4.
+      'deriveEngineViewState',
       'deriveViewState',
       'migrateState',
       'nextEventAt',

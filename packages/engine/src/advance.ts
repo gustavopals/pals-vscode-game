@@ -1,8 +1,11 @@
+import { balance } from '@lotg/content';
+
 import { settleHeroArrivals } from './arrivals';
 import { settleCaravans } from './caravanTurn';
 import { emit } from './chronicle';
 import {
   calendarAt,
+  DAY_MS,
   isDayBoundary,
   isSeasonBoundary,
   isYearBoundary,
@@ -13,7 +16,7 @@ import {
 import { finishConstructions } from './construction';
 import { finishWallRepair } from './wallRepair';
 import { finishForge } from './smithy';
-import { finishTraining } from './armyTurn';
+import { finishTraining, settleCampaign } from './armyTurn';
 import { CATALOG, type Catalog, turnCouncilYear } from './council';
 import { drawCard, settleCouncil } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
@@ -27,8 +30,9 @@ import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
 import { recoverHeroes, restoreTiles } from './outcomes';
 import { hasStartablePlan, settlePlanned } from './planned';
-import { finishRecruitments } from './population';
+import { finishRecruitments, releaseExcessWorkers } from './population';
 import { announceRaids, recoverInjured, settleRaids } from './raids';
+import { settleSiege } from './siegeTurn';
 import { settleScarcity } from './scarcity';
 import { turnSeasonWatch } from './seasonWatch';
 import { cloneState } from './state';
@@ -60,6 +64,14 @@ function processCalendar(
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);
+    if (draft.siege?.result === 'fall' && draft.siege.year === date.year - 1) {
+      const durationMs = balance.siege.reconstruction.days * DAY_MS;
+      draft.settlement.reconstructionUntilMs = atMs + durationMs;
+      emit(events, draft, atMs, 'reconstructionStarted', {
+        year: date.year,
+        untilMs: draft.settlement.reconstructionUntilMs,
+      });
+    }
   }
   if (isSeasonBoundary(atMs)) {
     // A estação que acabou entra na conta das atravessadas sem frio, e a nova começa a dela.
@@ -164,6 +176,19 @@ export function processEventsAt(
   settleHeroArrivals(draft, atMs, events);
   finishAdaptations(draft, atMs);
   settleRaids(draft, atMs, events);
+  // O Cerco encontra as obras prontas e as incursões resolvidas, antes da volta das equipes.
+  settleSiege(draft, atMs, events);
+  if (draft.settlement.militia !== null && atMs >= draft.settlement.militia.untilMs) {
+    draft.settlement.militia = null;
+    releaseExcessWorkers(draft);
+    emit(events, draft, atMs, 'militiaDisbanded');
+  }
+  if (
+    draft.settlement.reconstructionUntilMs !== null &&
+    atMs >= draft.settlement.reconstructionUntilMs
+  ) {
+    draft.settlement.reconstructionUntilMs = null;
+  }
   // A Taverna: o festival que acabou e a troca dos candidatos, com o sorteio dela. Depois de
   // tudo o que muda quem está no feudo neste instante (a obra que a ergue ou a amplia, o herói
   // que parte sem soldo, o que chega por carta): a lista nasce com o número de candidatos do
@@ -177,6 +202,8 @@ export function processEventsAt(
   // Antes das planejadas, dos objetivos e da conta do ouro: o saque que entra agora já paga a
   // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
   settleExpeditions(draft, atMs, events);
+  // O exército chega e volta após as expedições; a incursão deste instante já foi resolvida.
+  settleCampaign(draft, atMs, events);
   // As caravanas que chegam, na ordem do identificador, com a emboscada de quem foi sem escolta
   // sorteada no fluxo de cada uma. Depois das obras (a Torre de Vigia que fica pronta neste
   // instante já baixa o risco) e da virada do dia (o preço que andou agora não muda o da
@@ -230,12 +257,18 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * **As caravanas na estrada ficam de fora**, pela mesma razão: a chegada de uma sem escolta
  * sorteia a emboscada. Na cópia nenhuma chega, o ouro delas não entra e quem escolta continua
  * fora: a previsão da moral não conta com a volta de um herói Devoto antes da virada.
+ *
+ * A campanha também fica de fora: a chegada sorteia a batalha. As tropas continuam contando
+ * no consumo e os comandantes continuam fora, sem antecipar baixas, saque ou retorno.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
   const blind: GameState = {
     ...state,
+    // A previsão não resolve ondas nem antecipa baixas ou efeitos do rescaldo.
+    siege: null,
     horde: { ...state.horde, scheduledRaids: [] },
+    army: { ...state.army, campaign: null },
     guild: {
       ...state.guild,
       tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS },

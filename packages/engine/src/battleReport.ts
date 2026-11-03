@@ -70,7 +70,7 @@ export type BattleReportRound = {
   readonly round: number;
   readonly attacks: ReadonlyArray<{
     readonly actor: BattleReportPost;
-    readonly unit: UnitId | HordeUnitId;
+    readonly unit: UnitId | HordeUnitId | 'militia';
     readonly count: number;
     readonly target: BattleReportPost;
     readonly wall: number;
@@ -97,7 +97,7 @@ export type BattleReport = {
     readonly owner: BattleOwner;
     readonly wing: WingId;
     readonly line: LineId;
-    readonly unit: UnitId | HordeUnitId;
+    readonly unit: UnitId | HordeUnitId | 'militia';
     readonly start: number;
     readonly lost: number;
   }>;
@@ -178,7 +178,8 @@ export function buildBattleReport(
     }
   };
 
-  let hordeRaw = 0;
+  const wallOwner: BattleOwner = resolution.playerSide === 'D' ? 'player' : 'horde';
+  let attackerRaw = 0;
   let wallTaken = 0;
   const log: BattleReportRound[] = resolution.rounds.map((round) => {
     const attacks: Array<BattleReportRound['attacks'][number]> = [];
@@ -200,8 +201,8 @@ export function buildBattleReport(
         continue;
       }
       const owner = ownerOf(action.actor.side);
-      if (owner === 'horde') {
-        hordeRaw += floorOf(action.raw);
+      if (owner !== wallOwner) {
+        attackerRaw += floorOf(action.raw);
       }
       for (const factor of action.factors) {
         if (factor.kind !== 'cover') {
@@ -217,7 +218,7 @@ export function buildBattleReport(
       const wall = action.wall === null ? 0 : action.wall.before - action.wall.after;
       if (wall > 0) {
         wallTaken += wall;
-        credit('wallAbsorbed', 'player', wall, action.wall?.wing ?? null, round.round);
+        credit('wallAbsorbed', wallOwner, wall, action.wall?.wing ?? null, round.round);
       }
       if (owner === 'horde') {
         credit(
@@ -265,8 +266,8 @@ export function buildBattleReport(
       wing: entry.wings.size === 1 ? entry.wing : null,
       round: entry.round,
       percent:
-        entry.factor === 'wallAbsorbed' && hordeRaw > 0
-          ? Math.floor((100 * wallTaken) / hordeRaw)
+        entry.factor === 'wallAbsorbed' && attackerRaw > 0
+          ? Math.floor((100 * wallTaken) / attackerRaw)
           : null,
     }));
 

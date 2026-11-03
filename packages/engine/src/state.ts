@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 38,
+    schemaVersion: 40,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -61,6 +61,8 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       constructionQueues: Array.from({ length: balance.construction.queues }, () => null),
       wall: { hp: wallFullHp(levels.palisade) },
       wallRepair: null,
+      militia: null,
+      reconstructionUntilMs: null,
       planned: [],
       recruitmentQueue: [],
       famine: null,
@@ -102,6 +104,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       discovered: [],
     },
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
+    siege: null,
     horde: {
       scheduledRaids: scriptedRaidsAfter(0),
       lastFormationSeen: null,
@@ -135,6 +138,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // Nenhum soldado, nenhum lote no Quartel (que nasce no nível 0).
     army: {
+      campaign: null,
       units: Object.fromEntries(UNIT_IDS.map((id) => [id, 0])) as Record<UnitId, number>,
       training: null,
       formations: [],

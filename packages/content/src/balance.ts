@@ -4,6 +4,7 @@ import type {
   EnemyId,
   ExpeditionOutcomeId,
   HeroAttributeId,
+  HordeUnitId,
   HeroCaptureRuleId,
   InjurySeverityId,
   LineId,
@@ -570,6 +571,22 @@ export type SmithyDef = {
  * estão em `units.ts`.
  */
 export type ArmyDef = {
+  /** Campanha ofensiva (V4F-T2): tempo de cada trecho, vida por ala e guarnição da chegada. */
+  readonly campaign: {
+    readonly travelMs: number;
+    readonly campWall: number;
+    readonly minCommanders: number;
+    readonly campGarrison: Record<
+      SeasonId,
+      ReadonlyArray<{
+        readonly wing: WingId;
+        readonly line: LineId;
+        readonly unit: HordeUnitId;
+        readonly count: number;
+      }>
+    >;
+    readonly loot: ResourceAmounts;
+  };
   /** O limite de soldados por nível do Quartel (`10 × nível`). */
   readonly capPerLevel: number;
   /**
@@ -591,6 +608,11 @@ export type ArmyDef = {
   readonly formationNameMaxLength: number;
   /** Quantos relatórios de batalha o exército guarda (`army.reports`, V4D-T1.6). */
   readonly reportsKept: number;
+  readonly militia: {
+    readonly maxShare: Ratio;
+    readonly unit: 'militia';
+    readonly takesDamage: Ratio;
+  };
 };
 
 /**
@@ -761,6 +783,19 @@ export type Balance = {
   readonly wall: WallDef;
   readonly horde: HordeMindDef;
   readonly omens: OmensDef;
+  readonly siege: {
+    readonly waveIntervalRealMs: number;
+    readonly fall: {
+      readonly resourcesLost: Ratio;
+      readonly populationLost: Ratio;
+      readonly buildingsDamaged: number;
+      readonly levelsLost: number;
+    };
+    readonly reconstruction: { readonly costFactor: Ratio; readonly days: number };
+    readonly mourning: { readonly morale: number; readonly days: number };
+    readonly feast: { readonly morale: number; readonly days: number };
+    readonly aftermathRepairFactor: Ratio;
+  };
 };
 
 /**
@@ -1296,6 +1331,39 @@ export const balance: Balance = {
   // ADR 0019, decisão 7: limite de 10 por nível do Quartel, treino 5% mais rápido por nível,
   // lotes de até 10 e 1,5 de comida por soldado por hora de jogo.
   army: {
+    // Proposta F-3: 3 h ao todo (ida e volta), paliçada Nv1 por ala, saque fixo sem sorteio.
+    campaign: {
+      travelMs: 90 * 60_000,
+      campWall: 60,
+      minCommanders: 1,
+      campGarrison: {
+        spring: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 4 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 6 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 2 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 4 },
+        ],
+        summer: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 6 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 8 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 3 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 6 },
+        ],
+        autumn: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 8 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 10 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 4 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 8 },
+        ],
+        winter: [
+          { wing: 'left', line: 'front', unit: 'raider', count: 10 },
+          { wing: 'center', line: 'front', unit: 'raider', count: 12 },
+          { wing: 'center', line: 'back', unit: 'banditArcher', count: 5 },
+          { wing: 'right', line: 'front', unit: 'raider', count: 10 },
+        ],
+      },
+      loot: { food: 40, wood: 30, gold: 50 },
+    },
     capPerLevel: 10,
     trainingSpeedPerLevel: { num: 1, den: 20 },
     batchMax: 10,
@@ -1309,6 +1377,11 @@ export const balance: Balance = {
     formationNameMaxLength: 30,
     // V4D-T1.6: os três relatórios de batalha mais recentes, como os de expedição.
     reportsKept: 3,
+    militia: {
+      maxShare: { num: 1, den: 2 },
+      unit: 'militia',
+      takesDamage: { num: 5, den: 4 },
+    },
   },
   // GDD §10.1 a §10.4 e ADR 0019, decisão 11 (os fatores do GDD em fração). Propostas do agente
   // (V4D-T1.3, por aprovar): o dano do Mago (20), a experiência do comandante (40, metade na
@@ -1352,6 +1425,21 @@ export const balance: Balance = {
       alertIncrease: { num: 1, den: 10 },
       guardIncreasePerAttempt: { num: 1, den: 10 },
     },
+  },
+  siege: {
+    waveIntervalRealMs: 60 * MINUTE_MS,
+    fall: {
+      resourcesLost: { num: 3, den: 10 },
+      populationLost: { num: 1, den: 5 },
+      buildingsDamaged: 2,
+      levelsLost: 2,
+    },
+    reconstruction: { costFactor: { num: 4, den: 5 }, days: 2 },
+    mourning: { morale: -10, days: 1 },
+    // Proposta G-9: mesma duração do luto; o ADR não quantifica a duração da festa.
+    feast: { morale: 15, days: 1 },
+    // Proposta G-9: desconto conservador de 20%, só no custo do reparo da muralha.
+    aftermathRepairFactor: { num: 4, den: 5 },
   },
   omens: {
     chancePercent: 35,

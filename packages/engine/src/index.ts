@@ -10,7 +10,7 @@ export {
 export { nextEventAt } from './timeline';
 export { advanceTo } from './advance';
 export { applyCommand, type CommandContext } from './commands';
-export { deriveViewState, type ViewOptions } from './view';
+export { deriveEngineViewState, deriveViewState, type ViewOptions } from './view';
 export { REJECTION_CODES } from './types';
 export type {
   ActiveConstructionView,
@@ -24,6 +24,7 @@ export type {
   CouncilView,
   DifficultyId,
   EnemyId,
+  EngineViewState,
   FirewoodView,
   FoodForecastView,
   GameEvent,
@@ -58,6 +59,8 @@ export type {
   ResourceId,
   ScheduledRaid,
   SeasonId,
+  SiegeView,
+  SiegeWaveDecisionView,
   TavernOffer,
   TavernOfferView,
   TavernView,

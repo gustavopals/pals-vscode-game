@@ -151,15 +151,22 @@ export function toHordePosts(composition: readonly RaidPost[]): BattlePosts<Hord
 
 /** O defensor de uma batalha: os postos do jogador e o comandante de cada ala. */
 export type Defender = {
-  readonly posts: BattlePosts<UnitId>;
+  readonly posts: BattlePosts<UnitId | 'militia'>;
   readonly commanders: Record<WingId, BattleCommanderInput | null>;
 };
+
+export const MILITIA_POST_PRIORITY: readonly { wing: WingId; line: 'front' }[] = [
+  { wing: 'center', line: 'front' },
+  { wing: 'left', line: 'front' },
+  { wing: 'right', line: 'front' },
+];
 
 /**
  * O defensor a partir da Defesa ativa: cada posto leva o que o exército tem da unidade, na ordem
  * fixa dos postos (um plano pode pedir mais do que há: o que falta fica de fora, e o posto que
  * ficou sem ninguém fica vazio). **Sem formação ativa, não há ninguém**: a batalha roda só com a
- * muralha e as torres (ADR 0019, decisão 14). `classOf` devolve a classe de um herói que pode
+ * muralha e as torres (ADR 0019, decisão 14), exceto se houver milícia convocada, que ocupa o
+ * primeiro posto vazio na ordem de prioridade. `classOf` devolve a classe de um herói que pode
  * comandar e `null` para quem não pode (ferido, em cativeiro, que já não serve): a ala fica sem
  * comandante.
  */
@@ -167,34 +174,42 @@ export function buildDefender(
   formation: Formation | null,
   army: Readonly<Record<UnitId, number>>,
   classOf: (heroId: string) => HeroClassId | null,
+  militiaCount: number = 0,
 ): Defender {
   const posts = Object.fromEntries(
     WING_IDS.map((wing) => [wing, Object.fromEntries(LINE_IDS.map((line) => [line, null]))]),
   ) as unknown as {
-    [W in WingId]: { [L in LineId]: { unit: UnitId; count: number } | null };
+    [W in WingId]: { [L in LineId]: { unit: UnitId | 'militia'; count: number } | null };
   };
   const commanders = Object.fromEntries(WING_IDS.map((wing) => [wing, null])) as Record<
     WingId,
     BattleCommanderInput | null
   >;
-  if (formation === null) {
-    return { posts, commanders };
-  }
-  const left: Record<string, number> = { ...army };
-  for (const { wing, line, post } of postEntries(formation)) {
-    if (post === null) {
-      continue;
+  if (formation !== null) {
+    const left: Record<string, number> = { ...army };
+    for (const { wing, line, post } of postEntries(formation)) {
+      if (post === null) {
+        continue;
+      }
+      const count = Math.min(post.count, left[post.unit] ?? 0);
+      if (count > 0) {
+        posts[wing][line] = { unit: post.unit, count };
+        left[post.unit] = (left[post.unit] ?? 0) - count;
+      }
     }
-    const count = Math.min(post.count, left[post.unit] ?? 0);
-    if (count > 0) {
-      posts[wing][line] = { unit: post.unit, count };
-      left[post.unit] = (left[post.unit] ?? 0) - count;
+    for (const wing of WING_IDS) {
+      const heroId = formation.commanders[wing];
+      const heroClass = heroId === null ? null : classOf(heroId);
+      commanders[wing] = heroId !== null && heroClass !== null ? { heroId, heroClass } : null;
     }
   }
-  for (const wing of WING_IDS) {
-    const heroId = formation.commanders[wing];
-    const heroClass = heroId === null ? null : classOf(heroId);
-    commanders[wing] = heroId !== null && heroClass !== null ? { heroId, heroClass } : null;
+  if (militiaCount > 0) {
+    for (const slot of MILITIA_POST_PRIORITY) {
+      if (posts[slot.wing][slot.line] === null) {
+        posts[slot.wing][slot.line] = { unit: 'militia', count: militiaCount };
+        break;
+      }
+    }
   }
   return { posts, commanders };
 }

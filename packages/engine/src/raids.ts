@@ -12,9 +12,11 @@ import {
   raidTemplates,
   type Ratio,
   type ScriptedRaidDef,
+  type UnitId,
   vigilRules,
 } from '@lotg/content';
 
+import { availableUnits } from './campaign';
 import { applyBattleOutcome } from './battleOutcome';
 import { buildBattleReport } from './battleReport';
 import { fightBattle } from './battleTurn';
@@ -406,10 +408,15 @@ function fightRaid(
   const composition = raid.composition ?? baseRaidComposition(raid.size, seasonAt(raid.atMs).id);
   const { army } = draft;
   const formation = army.formations.find((entry) => entry.id === army.activeFormationId) ?? null;
-  const defender = buildDefender(formation, army.units, (heroId) => {
-    const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
-    return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
-  });
+  const defender = buildDefender(
+    formation,
+    availableUnits(draft),
+    (heroId) => {
+      const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
+      return hero === undefined || nominationReason(hero) !== null ? null : hero.classId;
+    },
+    draft.settlement.militia?.count ?? 0,
+  );
   const { id, resolution } = fightBattle(draft, {
     mode: 'defense',
     player: defender,
@@ -424,6 +431,15 @@ function fightRaid(
   let left = 0;
   for (const casualty of report.casualties) {
     if (casualty.owner === 'player') {
+      if (casualty.unit === 'militia') {
+        const lost = Math.min(
+          casualty.lost,
+          Math.max(0, draft.settlement.population.villagers - balance.morale.populationFloor),
+        );
+        draft.settlement.population.villagers -= lost;
+        releaseExcessWorkers(draft);
+        continue;
+      }
       const unit = casualty.unit as keyof typeof army.units;
       army.units[unit] = Math.max(0, army.units[unit] - casualty.lost);
       continue;
@@ -437,10 +453,17 @@ function fightRaid(
   observeFormation(
     draft,
     Object.values(defender.posts).flatMap((lines) =>
-      Object.values(lines).filter((post) => post !== null),
+      Object.values(lines).filter(
+        (post): post is { unit: UnitId; count: number } => post !== null && post.unit !== 'militia',
+      ),
     ),
     atMs,
   );
+  if (draft.settlement.militia !== null) {
+    draft.settlement.militia = null;
+    releaseExcessWorkers(draft);
+    emit(events, draft, atMs, 'militiaDisbanded');
+  }
   if (report.outcome !== 'defeat' || start <= 0 || left <= 0) {
     return { num: 0, den: 1 };
   }

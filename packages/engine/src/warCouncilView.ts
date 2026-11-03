@@ -7,6 +7,7 @@ import {
   wingLocatives,
 } from '@lotg/content';
 
+import { campaignWarning } from './campaign';
 import { formationSignature } from './warCouncilOrders';
 import { fillText } from './format';
 import type { ArmyPreview, ArmyPreviewView, Formation, GameState } from './types';
@@ -64,6 +65,7 @@ export function armyPreviewView(state: GameState): ArmyPreviewView | null {
   }
   const winsPercent = percent(preview.wins, preview.runs);
   return {
+    warning: campaignWarning(state),
     formationId: preview.formationId,
     runs: preview.runs,
     winsPercent,

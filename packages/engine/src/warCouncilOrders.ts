@@ -12,6 +12,7 @@ import {
   type WingId,
 } from '@lotg/content';
 
+import { availableUnits } from './campaign';
 import { barracksLevel, barracksRequiresText } from './army';
 import type { BattleCommanderInput, BattlePosts } from './battle';
 import { emit } from './chronicle';
@@ -51,10 +52,13 @@ export function formationSignature(state: GameState, formation: Formation): numb
         }),
       ),
       WING_IDS.map((wing) => formation.commanders[wing]),
-      used.map((unit) => [unit, state.army.units[unit]]),
+      used.map((unit) => [unit, availableUnits(state)[unit]]),
       watchtowerLevel(state),
       WING_IDS.map((wing) => state.settlement.wall.hp[wing]),
       publicEnemyKnowledge(state),
+      ...(state.army.campaign === null
+        ? []
+        : [Object.values(state.army.campaign.formation.commanders)]),
     ]),
   );
 }
@@ -64,7 +68,7 @@ export function formationSignature(state: GameState, formation: Formation): numb
  * os soldados que há, posto a posto, na ordem fixa dos postos; o posto sem ninguém fica vazio.
  */
 function filledPosts(state: GameState, formation: Formation): BattlePosts<UnitId> {
-  const left = { ...state.army.units };
+  const left = availableUnits(state);
   const posts = {} as BattlePosts<UnitId>;
   for (const wing of WING_IDS) {
     posts[wing] = { front: null, back: null };

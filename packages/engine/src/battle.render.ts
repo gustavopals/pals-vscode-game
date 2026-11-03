@@ -1,5 +1,6 @@
 import {
   hordeUnits,
+  militiaUnit,
   units,
   type HordeUnitId,
   type Ratio,
@@ -24,14 +25,26 @@ export const fmt = (value: Ratio): string =>
 const postText = (post: BattlePost): string =>
   `${post.side}-${WING_LETTER[post.wing]}${post.line === 'front' ? 'F' : 'B'}`;
 
-const labelOf = (unit: UnitId | HordeUnitId): string =>
-  unit in units ? units[unit as UnitId].label : hordeUnits[unit as HordeUnitId].label;
+const labelOf = (unit: UnitId | HordeUnitId | 'militia'): string =>
+  unit === 'militia'
+    ? militiaUnit.label
+    : unit in units
+      ? units[unit as UnitId].label
+      : hordeUnits[unit as HordeUnitId].label;
 
-const healthOf = (unit: UnitId | HordeUnitId): number =>
-  unit in units ? units[unit as UnitId].health : hordeUnits[unit as HordeUnitId].health;
+const healthOf = (unit: UnitId | HordeUnitId | 'militia'): number =>
+  unit === 'militia'
+    ? militiaUnit.health
+    : unit in units
+      ? units[unit as UnitId].health
+      : hordeUnits[unit as HordeUnitId].health;
 
-const defenseOf = (unit: UnitId | HordeUnitId): number =>
-  unit in units ? units[unit as UnitId].defense : hordeUnits[unit as HordeUnitId].defense;
+const defenseOf = (unit: UnitId | HordeUnitId | 'militia'): number =>
+  unit === 'militia'
+    ? militiaUnit.defense
+    : unit in units
+      ? units[unit as UnitId].defense
+      : hordeUnits[unit as HordeUnitId].defense;
 
 const sub = (a: Ratio, b: Ratio): Ratio => reduce(a.num * b.den - b.num * a.den, a.den * b.den);
 const mul = (a: Ratio, b: Ratio): Ratio => reduce(a.num * b.num, a.den * b.den);

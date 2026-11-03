@@ -1058,6 +1058,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -1178,6 +1186,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -1227,6 +1236,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -2319,6 +2329,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -2439,6 +2457,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -2488,6 +2507,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -3617,6 +3637,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -3737,6 +3765,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -3786,6 +3815,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -5145,6 +5175,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -5265,6 +5303,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -5314,6 +5353,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -6672,6 +6712,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -6792,6 +6840,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -6840,6 +6889,36 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 45000,
+      "current": 0,
+      "nextWaveInSeconds": 45000,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -8371,6 +8450,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -8491,6 +8578,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -8540,6 +8628,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -9909,6 +9998,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -10029,6 +10126,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -10078,6 +10176,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -11443,6 +11542,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -11563,6 +11670,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -11612,6 +11720,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -12968,6 +13077,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -13088,6 +13205,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -13137,6 +13255,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -14591,6 +14710,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -14711,6 +14838,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -14760,6 +14888,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -16197,6 +16326,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -16317,6 +16454,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -16366,6 +16504,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -17760,6 +17899,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [
         {
@@ -17885,6 +18032,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -17933,6 +18081,38 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -19338,6 +19518,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [
         {
@@ -19463,6 +19651,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -19511,6 +19700,38 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -20917,6 +21138,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [
         {
@@ -21042,6 +21271,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -21147,6 +21377,38 @@
           "wall": [],
           "commanders": [],
           "adjustFormationId": null
+        }
+      ]
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 58800,
+      "current": 0,
+      "nextWaveInSeconds": 58800,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
         }
       ]
     },
@@ -22554,6 +22816,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [
         {
@@ -22679,6 +22949,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -22727,6 +22998,38 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 62140,
+      "current": 0,
+      "nextWaveInSeconds": 62140,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": [
+            "A terra treme ao anoitecer: a Horda trará muitos cavaleiros."
+          ]
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -24130,6 +24433,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -24250,6 +24561,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -24299,6 +24611,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -25589,6 +25902,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -25709,6 +26030,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -25777,6 +26099,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -27032,6 +27355,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -27152,6 +27483,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -27257,6 +27589,7 @@
         }
       ]
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -28355,6 +28688,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -28475,6 +28816,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -28524,6 +28866,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -29960,6 +30303,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -30080,6 +30431,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -30136,6 +30488,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -31630,6 +31983,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -31750,6 +32111,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -31812,6 +32174,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -33368,6 +33731,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -33488,6 +33859,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -33550,6 +33922,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -35197,6 +35570,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -35317,6 +35698,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -35379,6 +35761,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -37028,6 +37411,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 10800,
+        "totalSeconds": 21600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -37148,6 +37539,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -37216,6 +37608,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -38847,6 +39240,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -38967,6 +39368,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -39029,6 +39431,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -40850,6 +41253,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -40970,6 +41381,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -41037,6 +41449,36 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 223200,
+      "current": 0,
+      "nextWaveInSeconds": 223200,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -42675,6 +43117,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 10800,
+        "totalSeconds": 21600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -42795,6 +43245,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -42857,6 +43308,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -44307,6 +44759,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -44427,6 +44887,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -44476,6 +44937,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -45916,6 +46378,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -46036,6 +46506,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -46084,6 +46555,36 @@
       },
       "preview": null,
       "reports": []
+    },
+    "siege": {
+      "year": 1,
+      "scheduledInSeconds": 65998,
+      "current": 0,
+      "nextWaveInSeconds": 65998,
+      "plan": {
+        "1": null,
+        "2": null,
+        "3": null
+      },
+      "result": null,
+      "resultText": null,
+      "waves": [
+        {
+          "number": 1,
+          "title": "Os Saqueadores",
+          "omens": []
+        },
+        {
+          "number": 2,
+          "title": "As Feras",
+          "omens": []
+        },
+        {
+          "number": 3,
+          "title": "A Longa Noite",
+          "omens": []
+        }
+      ]
     },
     "masters": [],
     "mastersWaiting": {
@@ -47591,6 +48092,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Monte e salve uma formação no Exército antes de ordenar o ataque.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -47711,6 +48220,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -47760,6 +48270,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -49358,6 +49869,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -49478,6 +49997,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -49540,6 +50060,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -50844,6 +51365,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -50964,6 +51493,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -51013,6 +51543,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [
       {
         "id": "master-1",
@@ -52431,6 +52962,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 1800,
+        "totalSeconds": 3600,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -52551,6 +53090,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -52600,6 +53140,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [
       {
         "id": "master-1",
@@ -54006,6 +54547,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -54126,6 +54675,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -54175,6 +54725,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
@@ -55533,6 +56084,14 @@
       }
     },
     "army": {
+      "campaign": null,
+      "campAssault": {
+        "text": "O exército viaja até o Acampamento, enfrenta a paliçada e volta. Enquanto isso, os esquadrões enviados não defendem o feudo.",
+        "travelSeconds": 5400,
+        "totalSeconds": 10800,
+        "blockedReason": "Não há Acampamento de Saqueadores ativo à vista para atacar.",
+        "formations": []
+      },
       "building": "barracks",
       "omens": [],
       "built": false,
@@ -55653,6 +56212,7 @@
       ],
       "formations": [],
       "editor": {
+        "warning": null,
         "postMax": 20,
         "formationsCap": 5,
         "canSaveNew": true,
@@ -55702,6 +56262,7 @@
       "preview": null,
       "reports": []
     },
+    "siege": null,
     "masters": [],
     "mastersWaiting": {
       "count": 0,
