@@ -1893,3 +1893,146 @@ table.army-units td.num {
   margin: 4px 0 8px;
   padding-left: 20px;
 }
+
+/* O Cerco usa a mesma folha da bancada, com o plano lado a lado quando há espaço. */
+.siege-panel {
+  padding: 20px;
+  border: 1px solid var(--vscode-panel-border);
+  border-top: 3px solid var(--vscode-focusBorder);
+  background: var(--vscode-editor-background);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.siege-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.siege-heading h2 {
+  margin: 0;
+  font-size: 1.15em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--vscode-foreground);
+}
+
+.siege-eyebrow {
+  margin-bottom: 4px;
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.siege-state {
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  font-weight: 600;
+}
+
+.siege-fallen .siege-state {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.siege-countdown {
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.siege-decision,
+.siege-aftermath {
+  padding: 14px;
+  margin-top: 14px;
+  border: 1px solid var(--vscode-focusBorder);
+}
+
+.siege-decision h3,
+.siege-aftermath h3 {
+  margin: 0 0 8px;
+  color: var(--vscode-foreground);
+  font-size: 1em;
+}
+
+.siege-waves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+}
+
+.siege-wave {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.siege-wave-next {
+  border-color: var(--vscode-focusBorder);
+}
+
+.siege-wave-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.siege-wave-number {
+  display: inline-flex;
+  flex: 0 0 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vscode-panel-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.siege-wave-title h3 {
+  margin: 0;
+  color: var(--vscode-foreground);
+  font-size: 1em;
+}
+
+.siege-wave-status {
+  font-size: 0.9em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.siege-wave-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.siege-wave-plan select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.siege-wave-plan button {
+  align-self: start;
+}
+
+.siege-omens {
+  padding-left: 18px;
+  margin: 4px 0 0;
+}
+
+@media (max-width: 760px) {
+  .siege-panel {
+    padding: 12px;
+  }
+
+  .siege-waves {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

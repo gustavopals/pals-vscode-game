@@ -90,6 +90,7 @@ import {
   objectiveTreeLine,
 } from './objectives';
 import { ARMY_ICON, ARMY_NODE, ARMY_SECTION, armyTreeLine } from './army';
+import { planFormation, SIEGE_SECTION, siegeSummary, waveDecision } from './siege';
 import { SMITHY_ICON, SMITHY_NODE, SMITHY_SECTION, smithyTreeLine } from './smithy';
 import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
 import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
@@ -671,10 +672,42 @@ function armyNode(view: ViewState, elapsedSeconds: number): TreeNode {
   return {
     id: ARMY_NODE,
     label: 'Exército',
-    description: armyTreeLine(army, elapsedSeconds),
+    description: [armyTreeLine(army, elapsedSeconds), siegeSummary(view, elapsedSeconds)]
+      .filter((line) => line !== null)
+      .join(' · '),
     tooltip: [army.text, army.training?.cancelRefundText].filter((line) => line != null).join('\n'),
     icon: ARMY_ICON,
     command: { id: 'lords.openPanel', args: [ARMY_SECTION] },
+    ...(view.siege === null
+      ? {}
+      : {
+          expanded: true,
+          children: [
+            {
+              id: 'siege',
+              label: 'Cerco do Inverno',
+              description: siegeSummary(view, elapsedSeconds) ?? '',
+              icon: 'shield',
+              command: { id: 'lords.openPanel', args: [SIEGE_SECTION] },
+              ...(waveDecision(view) === undefined
+                ? {}
+                : {
+                    action: {
+                      command: 'lords.swapWaveFormation',
+                      label: 'Trocar formação entre ondas',
+                      text: 'Trocar',
+                    },
+                  }),
+              children: view.siege.waves.map((wave) => ({
+                id: `siege:wave:${wave.number}`,
+                label: `${wave.number} · ${wave.title}`,
+                description: planFormation(view, view.siege!.plan[wave.number]),
+                icon: wave.number <= view.siege!.current ? 'check' : 'shield',
+                command: { id: 'lords.openPanel', args: [SIEGE_SECTION] },
+              })),
+            },
+          ],
+        }),
     ...(army.built
       ? {
           contextValue: `lords.army${training ? 'Training' : ''}${soldiers ? 'Soldiers' : ''}`,
@@ -883,7 +916,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
   const offline = input.connection.kind === 'offline';
   // O que "Antes de partir" tem a dizer, para quem está em outra aba: quantos itens e, se algum
   // é mais que sugestão, o sinal de alerta. O clique leva à aba Hoje, onde estão os botões.
-  const leaving = beforeLeaving(view);
+  const leaving = beforeLeaving(view, [], input.elapsedSeconds);
   const pressing = leaving.some((item) => item.severity !== 'info');
   // As decisões pendentes passam na frente (GDD §13.2: "● 2 decisões"), com as novidades ao lado.
   // Sem ligação a visão é a guardada, e a carta dela pode já ter saído da mesa: não é anunciada.

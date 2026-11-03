@@ -36,6 +36,7 @@ import {
   sellShortcut,
 } from '../ui/market';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
+import { SIEGE_SECTION, siegeSummary, waveDeadline, waveDecision } from '../ui/siege';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -869,9 +870,32 @@ function idleItem(view: ViewState): LeavingItem | null {
  * "Decisões pendentes", na mesma aba, a encruzilhada continua no topo. O Relatório de Retorno
  * tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
-export function leavingItems(view: ViewState): LeavingItem[] {
+export function leavingItems(view: ViewState, elapsedSeconds = 0): LeavingItem[] {
+  const wave = waveDecision(view);
+  const siege = view.siege;
+  const siegeItem: LeavingItem | null =
+    wave !== undefined
+      ? {
+          id: `siegeWave:${wave.id}`,
+          severity: 'danger',
+          text: `${waveDeadline(wave, elapsedSeconds)}. Sem nova ordem, vale ${wave.options.find((option) => option.selected)?.label ?? 'o Plano de Batalha'}.`,
+          command: { id: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Ver a próxima onda' },
+        }
+      : siege !== null &&
+          siege.result === null &&
+          siege.current === 0 &&
+          siege.waves.some((entry) => siege.plan[entry.number] === null)
+        ? {
+            id: 'siege:plan',
+            severity: 'warning',
+            text: `${siegeSummary(view, elapsedSeconds)}. Há ondas usando a Defesa ativa como padrão; confira o Plano antes de partir.`,
+            command: { id: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Preparar o Plano' },
+          }
+        : null;
   return [
+    ...(wave === undefined ? [] : [siegeItem]),
     raidItem(view),
+    ...(wave === undefined ? [siegeItem] : []),
     wallItem(view),
     threatItem(view),
     foodItem(view),
@@ -900,12 +924,16 @@ export function leavingItems(view: ViewState): LeavingItem[] {
  * as encruzilhadas uma a uma (`crossroads:<expedição>`), todas: com alguma lá, a linha delas
  * não se repete aqui.
  */
-export function beforeLeaving(view: ViewState, skip: readonly string[] = []): LeavingItem[] {
+export function beforeLeaving(
+  view: ViewState,
+  skip: readonly string[] = [],
+  elapsedSeconds = 0,
+): LeavingItem[] {
   const crossroadsCovered = skip.some((topic) => topic.startsWith('crossroads:'));
   // A gravidade vem antes da posição no corte: ele nunca tira um alerta para manter uma
   // informação. Quem fica sai na ordem de `leavingItems`, que é a da urgência de cada assunto.
   const rank = (item: LeavingItem) => SEVERITY_ORDER.indexOf(item.severity);
-  const items = leavingItems(view).filter(
+  const items = leavingItems(view, elapsedSeconds).filter(
     (item) => !skip.includes(item.id) && !(item.id === 'crossroads' && crossroadsCovered),
   );
   const kept = new Set([...items].sort((a, b) => rank(a) - rank(b)).slice(0, MAX_LEAVING_ITEMS));

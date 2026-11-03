@@ -1,6 +1,12 @@
 import type { ViewState } from '@lotg/protocol';
 
-import { activeFormation, formatApprox, formatNumber, remainingNow } from './format';
+import {
+  activeFormation,
+  formatApprox,
+  formatNumber,
+  formatRemaining,
+  remainingNow,
+} from './format';
 
 export type Siege = NonNullable<ViewState['siege']>;
 export type Wave = Siege['waves'][number]['number'];
@@ -38,7 +44,7 @@ export function siegeSummary(view: ViewState, elapsed = 0): string | null {
   const decision = waveDecision(view);
   if (decision !== undefined) return waveDeadline(decision, elapsed);
   if (siege.current > 0) return `Cerco · ${siege.current} ondas enfrentadas`;
-  return `Cerco em ${formatApprox(remainingNow(siege.scheduledInSeconds, elapsed))}`;
+  return `Cerco em ${formatRemaining(remainingNow(siege.scheduledInSeconds, elapsed))}`;
 }
 
 type RepairOffer = ViewState['threat']['defense']['wall']['repairOffer'];

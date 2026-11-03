@@ -133,4 +133,79 @@ describe('o Plano e a decisão entre ondas', () => {
     );
     expect(intentOf('emergencyRepair', {})).toBe(intentOf('repairWall', {}));
   });
+  it('a decisão que avança com a lista aberta fecha a pergunta e não troca a onda seguinte', async () => {
+    const made = await setup(siegeWaveView);
+    made.answers.push(async () => {
+      made.api.state.view = {
+        ...siegeWaveView,
+        pendingDecisions: siegeWaveView.pendingDecisions.map((entry) => ({
+          ...entry,
+          id: 'siege-1-3',
+          wave: 3 as const,
+        })),
+      };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      return 0;
+    });
+    await made.run('lords.swapWaveFormation');
+    expect(made.orders()).toEqual([]);
+    expect(made.toasts()).toContain(
+      'O Cerco mudou ou o prazo acabou: nada foi enviado. Confira a próxima onda.',
+    );
+  });
+  it('outra aba muda o plano com a pergunta aberta: nenhuma ordem antiga o sobrescreve', async () => {
+    const made = await setup(scheduled);
+    made.answers.push(async () => {
+      made.api.state.view = { ...scheduled, siege: { ...scheduled.siege!, current: 1 } };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      return 0;
+    });
+    await made.run('lords.setBattlePlan', { wave: 1 });
+    expect(made.orders()).toEqual([]);
+  });
+  it('a confirmação do reparo perde a validade quando o preço ou a decisão mudam', async () => {
+    for (const change of ['price', 'wave'] as const) {
+      const made = await setup(repairable);
+      made.answers.push(async () => {
+        made.api.state.view =
+          change === 'price'
+            ? {
+                ...repairable,
+                threat: {
+                  ...repairable.threat,
+                  defense: {
+                    ...repairable.threat.defense,
+                    wall: {
+                      ...repairable.threat.defense.wall,
+                      repairOffer: { ...repairable.threat.defense.wall.repairOffer, stone: 999 },
+                    },
+                  },
+                },
+              }
+            : { ...repairable, pendingDecisions: [] };
+        made.api.state.stateVersion += 1;
+        await made.controller.session.syncNow();
+        return true;
+      });
+      await made.run('lords.emergencyRepair');
+      expect(made.orders()).toEqual([]);
+      expect(made.toasts()).toContain(
+        'O Cerco mudou ou o prazo acabou: nada foi enviado. Confira a próxima onda.',
+      );
+    }
+  });
+  it('trocar de conta com a lista aberta não envia a decisão ao outro feudo', async () => {
+    const made = await setup(siegeWaveView);
+    made.answers.push(async () => {
+      await made.controller.signOut();
+      return 0;
+    });
+    await made.run('lords.swapWaveFormation');
+    expect(made.orders()).toEqual([]);
+    expect(made.toasts()).toContain(
+      'A sessão terminou, ou o feudo mudou, com a troca de formação em aberto: nada foi enviado.',
+    );
+  });
 });

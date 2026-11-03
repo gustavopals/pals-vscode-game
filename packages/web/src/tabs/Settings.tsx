@@ -19,6 +19,7 @@ export type GameSettings = {
   /** O que a dificuldade muda, em uma frase; `null` se o servidor ainda não a mandou. */
   difficultyAbout: string | null;
   vigil?: { hourLocal: number; timezone: string; text: string; warning: string | null };
+  siegeText?: string | null;
 };
 
 /**
@@ -147,6 +148,11 @@ export function SettingsTab(props: {
           <>
             <p class="muted hint">{props.game.vigil.text}</p>
             <p>Fuso do feudo: {props.game.vigil.timezone}</p>
+            {props.game.siegeText == null ? null : (
+              <p>
+                <span class="codicon codicon-shield" aria-hidden="true" /> {props.game.siegeText}
+              </p>
+            )}
             {props.game.vigil.warning === null ? null : (
               <p role="status">{props.game.vigil.warning}</p>
             )}

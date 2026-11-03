@@ -10,6 +10,7 @@ import { difficultyDescription } from '../game/newGame';
 import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
 import { ArmyTab } from '../tabs/Army';
+import { siegeSummary } from '../ui/siege';
 import { ChronicleTab } from '../tabs/Chronicle';
 import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
@@ -75,6 +76,7 @@ function TabContent(props: {
                   difficultyLabel: view.settlement.difficultyLabel,
                   paceLabel: view.settlement.paceLabel,
                   vigil: view.settlement.vigil,
+                  siegeText: view.siege?.result === null ? siegeSummary(view, elapsed) : null,
                   difficultyAbout: difficultyDescription(
                     controller.newGameOptions,
                     view.settlement.difficulty,

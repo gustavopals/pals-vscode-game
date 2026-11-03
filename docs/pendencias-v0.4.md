@@ -644,3 +644,13 @@ do Markdown anual ficam para a integração dessa tarefa. A Crônica existente c
 Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
 feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
 três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
+
+**G-18. Prioridade e padrão do Plano.** _(Proposta do agente; não lida pelo autor.)_
+A decisão entre ondas abre “Antes de partir” e o bloco de decisões do Retorno. A lembrança
+de preparar um Cerco ainda não iniciado vem depois da incursão iminente, sem tirar a fome,
+o frio ou o soldo da prioridade da barra; o Cerco marcado fica abaixo das decisões pendentes
+e acima dos depósitos/obras. `null` significa Defesa ativa e não distingue escolha explícita
+de ausência de escolha: o aviso diz “Há ondas usando a Defesa ativa como padrão”, sem chamar
+o Plano de inválido. Sem resumo persistente por onda, a tela diz “Enfrentada”, não “Vencida”.
+Como `swapWaveFormation` e `emergencyRepair` não levam onda no payload, a retentativa conserva
+o `commandId`, mas deixa de enviar se a decisão avançar; no reparo, se a cotação mudar também.

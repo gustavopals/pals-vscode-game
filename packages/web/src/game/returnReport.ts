@@ -14,6 +14,7 @@ import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
+import { SIEGE_SECTION, waveDeadline } from '../ui/siege';
 import {
   isObjectiveCompleted,
   objectivesCompleted,
@@ -64,7 +65,11 @@ function total(events: GameEvent[], key: string): number {
  * na frase do evento, em "custou".
  */
 function cutOf(events: GameEvent[], id: string): number {
-  return total(events, `lost_${id}`);
+  // A Queda tira do estoque: não é recompensa cortada pelo depósito.
+  return total(
+    events.filter((event) => event.type !== 'siegeFell'),
+    `lost_${id}`,
+  );
 }
 
 /** O número e a faixa da moral de uma visão, como o relatório os guarda. */
@@ -146,6 +151,9 @@ export function costAction(
     // A batalha já foi travada: o que se faz é ajustar a formação para a próxima.
     return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ajustar formação' };
   }
+  if (topic === 'siege') {
+    return { command: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Ver o rescaldo' };
+  }
   if (topic === 'wall') {
     // A muralha que o item "Antes de partir" já oferece reparar tem o botão acima; sem ele (já
     // refeita, ou o reparo em curso), o painel da Ameaça mostra a vida de cada ala.
@@ -195,10 +203,10 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
   const waves = view.pendingDecisions
     .filter((decision) => decision.kind === 'siegeWave')
     .map((decision): ReturnReportItem => ({
-      text: `Cerco: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
+      text: `Cerco: “${decision.title}” · ${waveDeadline(decision, elapsedSeconds)}. Sem nova ordem, vale ${decision.options.find((option) => option.selected)?.label ?? 'o Plano de Batalha'}.`,
       topic: `siegeWave:${decision.id}`,
-      ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
-      action: { command: 'lords.openPanel', arg: 'army', label: 'Exército' },
+      severity: 'danger',
+      action: { command: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Ver a próxima onda' },
     }));
   const cards = cardDecisions(view).map((decision): ReturnReportItem => {
     const follows = view.council.pending.find((card) => card.instanceId === decision.id)
@@ -277,6 +285,13 @@ function moraleFell(event: GameEvent): boolean {
 /** Em que bloco um evento cai, e com que assunto; `null` para o que não é desfecho. */
 function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string } | null {
   switch (event.type) {
+    case 'siegeGlorious':
+    case 'siegeWon':
+    case 'warlordSlain':
+    case 'reconstructionStarted':
+      return { block: 'prospered', topic: 'siege' };
+    case 'siegeFell':
+      return { block: 'cost', topic: 'siege' };
     // A obra concluída, o edifício erguido e a planejada que começou sozinha: o feudo trabalhou
     // sem o senhor.
     case 'constructionFinished':
@@ -737,7 +752,12 @@ export function buildReturnReport(
           const spent = total(events, `spent_${row.id}`);
           const received = total(events, `gained_${row.id}`);
           const cut = cutOf(events, row.id);
-          const raided = total(events, `raided_${row.id}`);
+          const raided =
+            total(events, `raided_${row.id}`) +
+            total(
+              events.filter((event) => event.type === 'siegeFell'),
+              `lost_${row.id}`,
+            );
           const wasted = Math.max(
             cut,
             tidy(

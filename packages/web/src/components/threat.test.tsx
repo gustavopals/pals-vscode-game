@@ -773,7 +773,7 @@ describe('a incursão na aba Hoje (GDD §2.3, §8.2 e critério 4 da §16.2)', (
     // A pedra e o ouro ficaram: um traço, e não um zero a ser lido.
     expect(cells(page, 'Pedra')[5]).toBe('—');
     expect(cells(page, 'Ouro')[5]).toBe('—');
-    expect(text(page)).toContain('Levado é o que as incursões tiraram do estoque.');
+    expect(text(page)).toContain('Levado é o que as incursões e a Queda tiraram do estoque.');
     // A perda é dita com o tom de aviso e com o sinal: nunca só pela cor.
     expect(page).toContain('<td class="num warning">−30</td>');
   });
