@@ -836,3 +836,12 @@ forma do estado. Na primeira onda consome-se esse registro e confere-se novament
 aptidão, posto e 25% da população atual: vale o menor entre o preparado e o limite
 atual, sem duplicar milícia que o jogador convocou por outra ordem. O registro é
 apagado mesmo se o posto deixou de estar livre; não passa para outra onda ou ano.
+
+
+**J3-5. Custo em armas dos mercenários.** _(Proposta do agente; não lida pelo autor.)_
+Confirmado que a falta de armas resulta em `OPTION_LOCKED`, com motivo legível
+“requer 5 armas no estoque”. Armas não são um recurso do contrato `ResourceCostView`,
+e a ficha exige estoque de armas para contratar. Mantém-se a regra e registra-se
+para o autor a proposta de apresentar também o custo e a quantidade que falta,
+em campo próprio da visão, sem tratá-las como recurso negociável. Nenhuma mudança
+de protocolo ou forma foi antecipada nesta junção.
