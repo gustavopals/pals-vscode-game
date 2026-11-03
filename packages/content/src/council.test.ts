@@ -1610,8 +1610,7 @@ describe('Conselho: "Estrangeira ferida", a carta que entrega o primeiro herói 
     expect(stranger.options.map((entry) => entry.id)).toEqual(['shelter', 'tend']);
     for (const entry of stranger.options) {
       expect(entry.cost, entry.id).toBeUndefined();
-      if (!['hordeDeserter', 'siegeEve'].includes(entry.id))
-        expect(entry.requires, entry.id).toBeUndefined();
+      expect(entry.requires, entry.id).toBeUndefined();
       expect(entry.hidden, entry.id).toBeUndefined();
     }
     expect(option('shelter').effects).toEqual([{ type: 'addHero', heroId: 'edda' }]);
