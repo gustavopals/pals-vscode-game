@@ -7,6 +7,8 @@ import type { GameEventType, GameState } from './types';
 /** Contadores do ano corrente: o mapa aberto de estatísticas já existe no estado 40. */
 export const YEAR_STAT_PREFIX = 'chronicle:';
 
+const COMBATANT_IDS = [...UNIT_IDS, 'militia'] as const;
+
 export function yearStat(state: GameState, key: string): number {
   return state.stats[`${YEAR_STAT_PREFIX}${key}`] ?? 0;
 }
@@ -62,7 +64,7 @@ export function recordYearRehearsal(
   for (const wing of WING_IDS)
     for (const line of LINE_IDS) {
       const post = posts[wing][line];
-      for (const unit of UNIT_IDS) {
+      for (const unit of COMBATANT_IDS) {
         state.stats[`${YEAR_STAT_PREFIX}rehearsal:${wing}:${line}:${unit}`] =
           post?.unit === unit ? post.count : 0;
       }
@@ -77,7 +79,7 @@ export function recordYearFeint(state: GameState, posts: BattlePosts<UnitId | 'm
   for (const wing of WING_IDS)
     for (const line of LINE_IDS) {
       const post = posts[wing][line];
-      for (const unit of UNIT_IDS) {
+      for (const unit of COMBATANT_IDS) {
         const previous = yearStat(state, `rehearsal:${wing}:${line}:${unit}`);
         const current = post?.unit === unit ? post.count : 0;
         before += previous;

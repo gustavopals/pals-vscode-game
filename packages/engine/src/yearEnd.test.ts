@@ -148,3 +148,22 @@ describe('A Finta: estritamente mais de 60% dos postos efetivos do ensaio', () =
     expect(yearStat(state, 'feint')).toBe(0);
   });
 });
+
+describe('A Finta inclui a milícia nos postos', () => {
+  it('registra milícia e reconhece a troca de ala, sem ignorar um exército só de aldeões', () => {
+    const state = newGame();
+    const empty = { front: null, back: null };
+    recordYearRehearsal(state, {
+      left: { front: { unit: 'militia', count: 10 }, back: null },
+      center: empty,
+      right: empty,
+    });
+    expect(yearStat(state, 'rehearsal:left:front:militia')).toBe(10);
+    recordYearFeint(state, {
+      left: empty,
+      center: { front: { unit: 'militia', count: 10 }, back: null },
+      right: empty,
+    });
+    expect(yearStat(state, 'feint')).toBe(1);
+  });
+});
