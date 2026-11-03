@@ -1289,3 +1289,111 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     expect(view(withdrawn.state).palisadeLevel).toBe(1);
   });
 });
+
+describe('A Filha do Ferreiro, de ponta a ponta', () => {
+  function opened(difficulty: DifficultyId) {
+    const state = feud(difficulty, 3, SUMMER);
+    state.settlement.buildings.smithy = 1;
+    state.settlement.resources.iron = 200_000;
+    return dealt(state, 'smithsDaughter').state;
+  }
+
+  for (const difficulty of DIFFICULTY_IDS) {
+    it.each(['blade', 'arms', 'expire'])(
+      `${difficulty}: aprender → pagar → %s entrega uma só recompensa`,
+      (ending) => {
+        const taught = choose(opened(difficulty), 'smithsDaughter', 'teach');
+        expect(taught.state.settlement.resources.iron).toBe(160_000);
+        expect(taught.state.council.bonuses.smithySpeed).toEqual({
+          factor: { num: 6, den: 5 },
+          untilMs: SUMMER + 12 * DAY,
+        });
+        const secret = advanceTo(taught.state, SUMMER + 6 * DAY);
+        expect(eventsOfType(secret.events, 'cardDrawn')).toMatchObject([
+          {
+            data: {
+              cardId: 'temperingSecret',
+              source: 'continuation',
+              previousCardId: 'smithsDaughter',
+              previousOptionId: 'teach',
+            },
+          },
+        ]);
+        expect(shown(secret.state, 'temperingSecret')?.followsFrom?.text).toContain(
+          'A Filha do Ferreiro',
+        );
+        const paid = choose(secret.state, 'temperingSecret', 'pay');
+        expect(paid.state.settlement.resources.iron).toBe(100_000);
+        expect(paid.state.council.bonuses.smithyBatch).toEqual({
+          extra: 1,
+          untilMs: SUMMER + 21 * DAY,
+        });
+        const sword = advanceTo(paid.state, SUMMER + 12 * DAY);
+        expect(eventsOfType(sword.events, 'cardDrawn')).toMatchObject([
+          {
+            data: {
+              cardId: 'lordsSword',
+              source: 'continuation',
+              previousCardId: 'temperingSecret',
+              previousOptionId: 'pay',
+            },
+          },
+        ]);
+        const final =
+          ending === 'expire'
+            ? advanceTo(
+                sword.state,
+                sword.state.council.pending.find((card) => card.cardId === 'lordsSword')!
+                  .expiresAtMs,
+              )
+            : choose(sword.state, 'lordsSword', ending);
+        const result = ending === 'blade' ? 'blade' : 'arms';
+        expect(final.state.guild.inventory.map((item) => item.defId)).toEqual(
+          result === 'blade' ? ['lordsSword'] : [],
+        );
+        expect(final.state.settlement.weapons).toBe(result === 'arms' ? 8 : 0);
+        expect(final.state.council.flags['smithsDaughter.learning']).toBeUndefined();
+        expect(final.state.council.flags['smithsDaughter.tempered']).toBeUndefined();
+        expect(final.state.council.scheduled).toEqual([]);
+        expect(cardEvents(final.events)).toMatchObject([
+          {
+            type: ending === 'expire' ? 'cardExpired' : 'cardAnswered',
+            data: { cardId: 'lordsSword', optionId: result },
+          },
+        ]);
+        expect(advanceTo(final.state, final.state.lastProcessedAt).events).toEqual([]);
+      },
+    );
+
+    it.each(['tradition', 'expire'])(
+      `${difficulty}: %s fecha a entrada sem continuação`,
+      (answer) => {
+        const state = opened(difficulty);
+        const final =
+          answer === 'expire'
+            ? advanceTo(state, state.council.pending[0]!.expiresAtMs)
+            : choose(state, 'smithsDaughter', answer);
+        expect(final.state.council.flags['smithsDaughter.tradition']).toBe(true);
+        expect(final.state.council.scheduled).toEqual([]);
+        expect(final.state.settlement.resources.iron).toBe(200_000);
+      },
+    );
+
+    it.each(['keep', 'expire'])(
+      `${difficulty}: %s guarda o ferro e encerra a segunda carta`,
+      (answer) => {
+        const taught = choose(opened(difficulty), 'smithsDaughter', 'teach');
+        const secret = advanceTo(taught.state, SUMMER + 6 * DAY);
+        const final =
+          answer === 'expire'
+            ? advanceTo(secret.state, secret.state.council.pending[0]!.expiresAtMs)
+            : choose(secret.state, 'temperingSecret', answer);
+        expect(final.state.council.flags['smithsDaughter.learning']).toBeUndefined();
+        expect(final.state.council.scheduled).toEqual([]);
+        expect(final.state.settlement.resources.iron).toBe(160_000);
+        expect(final.state.guild.inventory).toEqual([]);
+        expect(final.state.settlement.weapons).toBe(0);
+      },
+    );
+  }
+});
