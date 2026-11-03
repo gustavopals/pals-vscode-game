@@ -253,9 +253,11 @@
   "completed": []
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 3,
   "cardsDrawn:masonsMeal": 1,
   "cardsAnswered": 3,
+  "chronicle:cards": 3,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:woundedStranger": 1
  }

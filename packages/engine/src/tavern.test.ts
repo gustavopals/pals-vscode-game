@@ -10,6 +10,7 @@ import { cloneState } from './state';
 import { bargainer, festivalHeldThisSeason, hirePrice, offersPerRotation } from './tavern';
 import {
   accept,
+  quietSiege,
   addHero,
   AUTUMN,
   command,
@@ -233,6 +234,8 @@ describe('a rotação dos candidatos (ADR 0017, decisão 4)', () => {
       );
       const taken = new Set([...state.guild.heroes.map((hero) => hero.name), 'Rolf']);
       for (let turn = 1; turn <= 40; turn += 1) {
+        // Isola a rotação: a Queda não reduz a Taverna durante a prova de nomes.
+        quietSiege(state);
         state = advanceTo(state, state.guild.tavern.nextRotationAtMs ?? 0).state;
         const offers = state.guild.tavernOffers;
         expect(offers).toHaveLength(3);

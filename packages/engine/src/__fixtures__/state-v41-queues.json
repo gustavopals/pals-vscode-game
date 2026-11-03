@@ -275,6 +275,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:lumberMill": 1,
   "constructionsStarted:goldMine": 1,
   "plansMarkedAuto": 2

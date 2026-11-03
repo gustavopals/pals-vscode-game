@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { DAY_MS, nextSeasonBoundary, seasonAfter, seasonAt } from './clock';
 import { applyCommand } from './commands';
-import { command, gameAt, YEAR } from './test-helpers';
+import { command, gameAtPeace as gameAt, YEAR } from './test-helpers';
 import type { GameEvent, GameState } from './types';
 import { deriveViewState } from './view';
 

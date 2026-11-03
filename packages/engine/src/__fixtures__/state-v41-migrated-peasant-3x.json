@@ -145,6 +145,7 @@
  "stats": {
   "constructionsStarted:housing": 1,
   "vigilRehearsalMarked": 1,
+  "chronicle:populationMax": 5,
   "wasted_food": 553265,
   "wasted_wood": 140887,
   "cardsDrawn": 1,

@@ -152,7 +152,7 @@
     "threatActive": true
    }
   },
-  "threat": 6,
+  "threat": 4,
   "discovered": []
  },
  "siege": {
@@ -1085,13 +1085,22 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 110,
   "campAppearedAtDay": 49,
   "fortressAppearedAtDay": 49,
   "omens": 1,
+  "chronicle:feint": 0,
+  "chronicle:battles": 1,
+  "chronicle:battlesWon": 1,
   "siegeWavesFought": 1,
   "siegeWavesWon": 1
  }

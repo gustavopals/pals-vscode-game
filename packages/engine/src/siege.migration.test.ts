@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentShape, migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape, migrateState } from './migrations';
 import { v39ToV40 } from './migrations/v39';
 import { stateV40 } from './migrations/v40';
 import { newGame } from './test-helpers';
@@ -28,7 +28,9 @@ describe('Cerco: estado 39 → 40', () => {
     expect(JSON.stringify(before)).toBe(copy);
     expect(migrateState(after, { timeScale: before.settings.timeScale })).toMatchObject({
       ...after,
-      schemaVersion: 41,
+      // O passo seguinte mantém os dados e registra sua própria fronteira de migração.
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      migratedAtMs: after.lastProcessedAt,
     });
   });
   it('exige os campos novos e recusa cerco incompleto', () => {

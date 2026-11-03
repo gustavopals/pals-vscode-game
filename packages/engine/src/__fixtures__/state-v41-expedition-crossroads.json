@@ -405,13 +405,20 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:guild": 1,
   "expeditionsSent:patrol": 1,
   "expeditionsSent": 2,
+  "chronicle:expeditions": 2,
   "expeditionsReturned": 1,
   "expeditionsReturned:patrol": 1,
   "expeditionsSent:oldForest": 2

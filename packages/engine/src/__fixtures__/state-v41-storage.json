@@ -385,6 +385,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 4,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_food": 824321,
@@ -392,8 +393,10 @@
   "wasted_wood": 807410,
   "constructionsStarted:townHall": 1,
   "constructionsStarted:granary": 1,
+  "chronicle:battles": 2,
   "raids_suffered": 2,
   "cardsExpired": 3,
+  "chronicle:cards": 3,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
   "cardsDrawn:itinerantMerchant": 1,

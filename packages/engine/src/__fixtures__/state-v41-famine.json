@@ -292,13 +292,16 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:housing": 1,
   "cardsDrawn": 3,
   "cardsDrawn:springNews": 1,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_wood": 387896,
+  "chronicle:battles": 1,
   "raids_suffered": 1,
   "cardsExpired": 2,
+  "chronicle:cards": 2,
   "cardsDrawn:woundedStranger": 1
  }
 }

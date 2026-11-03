@@ -224,5 +224,7 @@
    "townHallLevel2"
   ]
  },
- "stats": {}
+ "stats": {
+  "chronicle:populationMax": 25
+ }
 }

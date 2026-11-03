@@ -93,8 +93,20 @@ describe('segunda fila de obras (GDD §6.3)', () => {
       command('startConstruction', { building: 'quarry' }),
     ]);
     expect(state.settlement.constructionQueues).toEqual([
-      { building: 'farm', targetLevel: 2, startedAtMs: 0, finishesAtMs: 5 * MINUTE },
-      { building: 'quarry', targetLevel: 2, startedAtMs: 0, finishesAtMs: 6 * MINUTE },
+      {
+        building: 'farm',
+        targetLevel: 2,
+        startedAtMs: 0,
+        finishesAtMs: 5 * MINUTE,
+        costPaid: { wood: 80, gold: 40 },
+      },
+      {
+        building: 'quarry',
+        targetLevel: 2,
+        startedAtMs: 0,
+        finishesAtMs: 6 * MINUTE,
+        costPaid: { wood: 120, gold: 30 },
+      },
     ]);
     expect(events.map((event) => event.type)).toEqual([
       'constructionStarted',
@@ -400,6 +412,8 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
       targetLevel: 2,
       startedAtMs: 0,
       finishesAtMs: 5 * MINUTE,
+      // O desconto de reconstrução exige guardar o custo efetivamente pago.
+      costPaid: { wood: 100, stone: 50 },
     });
     expect(state.settlement.planned).toEqual([]);
     // E conta para o que conta uma obra iniciada por ordem.

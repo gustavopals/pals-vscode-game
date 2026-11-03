@@ -388,12 +388,19 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
   "expeditionsSent:wolfDen": 2,
+  "chronicle:populationMax": 5,
   "expeditionsSent": 1,
+  "chronicle:expeditions": 1,
   "crossroadsChosen": 1,
   "tilesCleared": 1,
   "expeditionsReturned": 1,

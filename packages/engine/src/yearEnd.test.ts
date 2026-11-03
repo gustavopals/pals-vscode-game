@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { emit } from './chronicle';
 import { DAY_MS, YEAR_MS } from './clock';
-import { migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { cloneState } from './state';
 import { gameAt, newGame } from './test-helpers';
 import type { GameEvent } from './types';
@@ -31,7 +31,7 @@ describe('Crônica do Ano no motor (V4G-T3.1)', () => {
     );
     expect(advanceTo(advanced.state, YEAR_MS).events).toEqual([]);
     expect(state).toEqual(before);
-    expect(advanced.state.schemaVersion).toBe(40);
+    expect(advanced.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(migrateState(JSON.parse(JSON.stringify(advanced.state)), { timeScale: 1 })).toEqual(
       advanced.state,
     );

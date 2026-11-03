@@ -20,7 +20,7 @@ import {
   dealt,
   eventsOfType,
   FED_MORALE,
-  gameAt,
+  gameAtPeace as gameAt,
   gameWith,
   HOUR,
   laterObjectivesScenario,
@@ -682,11 +682,13 @@ describe('objetivo: atravesse o inverno sem passar frio', () => {
     const { state, events } = advanceTo(almost.state, YEAR);
     expect(events.map((event) => event.type)).toEqual([
       'yearStarted',
+      // V4G-T3: o fecho anual precede a estação e o amanhecer.
+      'yearEnded',
       'seasonChanged',
       'dayStarted',
       'objectiveCompleted',
     ]);
-    expect(events[3]).toMatchObject({
+    expect(events.find((event) => event.type === 'objectiveCompleted')).toMatchObject({
       atMs: YEAR,
       data: { objective: 'surviveWinterWithoutCold', morale: 15, moraleDays: 1 },
     });

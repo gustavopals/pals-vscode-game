@@ -24,6 +24,7 @@ import {
   newGame,
   play,
   quietCouncil,
+  quietSiege,
   raidInSightScenario,
   refuse,
   starve,
@@ -1944,6 +1945,8 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
       let lowestThreat = 100;
       let highestThreat = 0;
       for (let at = DAY / 2; at <= 2 * YEAR; at += DAY / 2) {
+        // A prova isola as incursões dos lobos, sem perdas do Cerco em cada ano.
+        if (state.siege?.year !== state.clock.year) quietSiege(state);
         const step = advanceTo(state, at);
         state = step.state;
         events.push(...step.events);

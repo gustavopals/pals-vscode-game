@@ -164,7 +164,7 @@
     "threatActive": true
    }
   },
-  "threat": 28,
+  "threat": 24,
   "discovered": []
  },
  "siege": {
@@ -422,7 +422,8 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "fromMs": 367200000,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    },
    {
@@ -431,7 +432,8 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "fromMs": 367200000,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    },
    {
@@ -440,7 +442,8 @@
      "num": 11,
      "den": 10
     },
-    "untilMs": 385207890,
+    "fromMs": 367200000,
+    "untilMs": 388800000,
     "label": "Carta: A caravana real"
    }
   ],
@@ -498,10 +501,16 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:market": 1,
   "campAppearedAtDay": 47,
   "coldSpellsThisSeason": 0,
@@ -510,6 +519,7 @@
   "bought_stone": 35,
   "cardsDrawn": 1,
   "cardsDrawn:royalCaravan": 1,
-  "cardsAnswered": 1
+  "cardsAnswered": 1,
+  "chronicle:cards": 1
  }
 }

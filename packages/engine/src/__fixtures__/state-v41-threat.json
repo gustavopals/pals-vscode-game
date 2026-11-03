@@ -261,6 +261,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:watchtower": 2,
   "wasted_food": 497614,
   "cardsDrawn": 2,

@@ -227,6 +227,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 8,
   "constructionsStarted:housing": 1,
   "villagersRecruited": 3,
   "constructionsStarted:townHall": 1

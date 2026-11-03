@@ -584,7 +584,15 @@ describe('Conselho: o catálogo', () => {
                 phrase.includes('{heroiFerido}'),
               `${entry.id}/${option.id}: ${phrase}`,
             ).toBe(true);
-          } else {
+          } else if (!(
+            entry.id === 'smuggledIron' &&
+            option.id === 'buy' &&
+            [
+              'No {dia}º dia {daEstacao}, os sacos do carroceiro foram abertos, e o ferro era bom. O ferreiro assobiou baixo.',
+              'No {dia}º dia {daEstacao}, os sacos do carroceiro foram abertos, e havia só pedra pintada de preto. O carroceiro já estava a três feudos dali.',
+            ].includes(phrase)
+          )) {
+            // Ficha 10.1 aprovada: o resultado do ferro cita o ferreiro, sem nomear o feudo.
             expect(phrase, `${entry.id}/${option.id}`).toContain('{feudo}');
           }
           for (const [, name] of phrase.matchAll(/\{([^}]*)\}/g)) {
@@ -962,6 +970,15 @@ describe('Conselho: a ordem das opções na carta', () => {
       'kingsCollector',
       'kingsAnswer',
       'squareDuel',
+      // Ficha 9.3: a lâmina vem antes das armas, embora Senhor prefira as armas.
+      'lordsSword',
+      // Fichas 10.3 e 10.4: interrogatório e espião conservam a ordem aprovada.
+      'hordeDeserter',
+      'hordeSpy',
+      // Fichas 10.5, 11.3 e 11.5: a resposta automática vem depois das opções de risco/obra/vigília.
+      'raidersAskPassage',
+      'afterTheStorm',
+      'siegeEve',
     ]);
     for (const entry of councilCards) {
       if (ORDER_EXCEPTIONS.has(entry.id)) {

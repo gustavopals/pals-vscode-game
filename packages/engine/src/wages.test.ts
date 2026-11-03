@@ -122,7 +122,12 @@ describe('soldo: consumo contínuo de ouro (GDD §9.1; ADR 0017, decisão 3)', (
     expect(gold?.breakdown).not.toMatch(/soldo/);
     expect(gold?.depletesInSeconds).toBeNull();
     const later = advanceTo(start, 400 * HOUR);
-    expect(later.state.settlement.resources.gold).toBe(10_000);
+    // Sem soldo, o ouro só muda pela perda discreta da Queda, nunca por consumo contínuo.
+    const lost = later.events.reduce(
+      (sum, event) => sum + (event.type === 'siegeFell' ? Number(event.data.lost_gold) * 1000 : 0),
+      0,
+    );
+    expect(later.state.settlement.resources.gold).toBe(10_000 - lost);
     expect(guildEvents(later.events)).toEqual([]);
   });
 
@@ -848,7 +853,9 @@ describe('ler não gasta nada', () => {
       deriveViewState(state, state.lastProcessedAt);
       deriveViewState(state, state.lastProcessedAt + 5 * HOUR, { timeScale: 1 });
       expect(JSON.stringify(state)).toBe(frozen);
-      expect(state.ids).toEqual({ hero: 3 });
+      // O avanço pode ter criado batalhas; as leituras preservam todos os contadores.
+      expect(state.ids).toEqual(JSON.parse(frozen).ids);
+      expect(state.ids.hero).toBe(3);
     }
   });
 

@@ -391,7 +391,13 @@ describe('desperdício contado', () => {
     expect(eventsOfType(events, 'storageWasted')[0]?.text).toBe(
       'No 12º dia do Inverno, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 30 de comida.',
     );
-    expect(types(events)).toEqual(['storageWasted', 'yearStarted', 'seasonChanged', 'dayStarted']);
+    expect(types(events)).toEqual([
+      'storageWasted',
+      'yearStarted',
+      'yearEnded',
+      'seasonChanged',
+      'dayStarted',
+    ]);
   });
 
   it('o ouro nunca enche nem se perde', () => {
@@ -747,7 +753,13 @@ describe('construir o Celeiro e o Armazém', () => {
     const started = accept(hall2(), command('startConstruction', { building: 'granary' }));
     expect(started.state.settlement.resources).toMatchObject({ wood: 290_000, stone: 220_000 });
     expect(started.state.settlement.constructionQueues).toEqual([
-      { building: 'granary', targetLevel: 1, startedAtMs: 0, finishesAtMs: 10 * MINUTE },
+      {
+        building: 'granary',
+        targetLevel: 1,
+        startedAtMs: 0,
+        finishesAtMs: 10 * MINUTE,
+        costPaid: { wood: 160, stone: 80 },
+      },
       null,
     ]);
     expect(started.events).toEqual([

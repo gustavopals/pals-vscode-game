@@ -299,10 +299,12 @@
   "completed": []
  },
  "stats": {
+  "chronicle:populationMax": 40,
   "cardsDrawn": 2,
   "cardsDrawn:sawmillRest": 1,
   "cardsDrawn:neighborsWatch": 1,
   "wasted_wood": 291104,
+  "chronicle:battles": 1,
   "raids_suffered": 1
  }
 }

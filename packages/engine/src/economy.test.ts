@@ -528,6 +528,8 @@ describe('mestria e experiência do ofício (GDD §5.3 e §5.4)', () => {
       const { state, events } = advanceTo(start, YEAR);
       expect(events.map((event) => event.type)).toEqual([
         'yearStarted',
+        // V4G-T3: o fecho anual precede a estação e o amanhecer.
+        'yearEnded',
         'seasonChanged',
         'dayStarted',
         'craftMastered',
@@ -582,7 +584,8 @@ describe('mestria e experiência do ofício (GDD §5.3 e §5.4)', () => {
     }
     expect(stepped).toStrictEqual(direct.state);
     expect(events).toStrictEqual(direct.events);
-    expect(eventsOfType(direct.events, 'craftMastered')).toHaveLength(2);
+    // O Cerco muda os braços sobreviventes: três mestrias nos 30 dias, com divisão exata acima.
+    expect(eventsOfType(direct.events, 'craftMastered')).toHaveLength(3);
   });
 });
 

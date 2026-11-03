@@ -255,6 +255,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:housing": 1
  }
 }

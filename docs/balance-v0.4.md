@@ -1449,15 +1449,17 @@ o catálogo completo é `merchant-boycott-6`. Nenhum efeito aprovado foi reescri
 
 ### 20.2 Retratos e goldens
 
-Os bytes de todos os retratos preexistentes em `a38a74a` permanecem intactos, assim
-como todas as entradas preexistentes de `FROZEN`. Os retratos atuais v41 são
-regravados com `UPDATE_GOLDEN=1`. Dois retratos novos das trilhas, v39/v40 de
-`market-council-effects`, antecediam a correção intradiária do Mercado: faltava
-`fromMs` e o fim era calculado desde a escolha. Foram reconstituídos a partir do
-retrato v38 válido do main pelos passos reais 38 → 39 → 40, com as guardas conferidas
-e regravação por snapshot; só esses dois hashes novos foram corrigidos. O teste
-`junction.portraits.test.ts` preserva essa prova. Os efeitos agora vão da próxima
-virada, 367.200.000 ms, a 388.800.000 ms, iguais aos do retrato v38 de origem.
+Todos os retratos anteriores à v41 e a tabela `FROZEN` permanecem intactos.
+Os retratos atuais v41 foram regravados com `UPDATE_GOLDEN=1`, com o diff conferido:
+contadores anuais, objetivos do catálogo completo, sorteios posteriores e efeitos do
+Cerco. Os goldens acompanham o Cerco real e a correção da névoa dos presságios.
+Dois retratos congelados v39/v40 de `market-council-effects` vieram das trilhas
+antes da correção intradiária do Mercado. Um teste reproduziu a recusa de ambos por
+`fromMs` ausente. Só a entrada desses dois passos admite a variante histórica:
+o início assume a fronteira já processada, como no passo 36 → 37, e o fim existente
+é preservado. A forma atual continua exigindo `fromMs`; fatores inválidos continuam
+recusados. `junction.portraits.test.ts` prova migração, pureza e essas recusas sem
+reescrever retrato nem hash.
 
 A propriedade das caravanas revelou uma recusa real de estado após a Queda: o Mercado
 reduzido podia ter mais cargas em curso e volume negociado que seu novo teto. A guarda

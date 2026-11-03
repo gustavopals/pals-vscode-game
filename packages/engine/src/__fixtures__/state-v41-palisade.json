@@ -264,7 +264,9 @@
  "stats": {
   "cardsDrawn": 3,
   "cardsDrawn:palisadePromisePlea": 1,
+  "chronicle:populationMax": 5,
   "cardsAnswered": 2,
+  "chronicle:cards": 2,
   "constructionsStarted:palisade": 2,
   "wasted_food": 145679,
   "cardsDrawn:thawBridgePlea": 1,

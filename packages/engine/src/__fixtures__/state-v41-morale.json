@@ -314,7 +314,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
@@ -324,6 +329,7 @@
   "cardsDrawn:northernCrows": 1,
   "cardsDrawn:hordeDeserter": 1,
   "cardsDrawn:siegeEve": 1,
+  "chronicle:populationMax": 23,
   "campAppearedAtDay": 26,
   "wasted_food": 529548,
   "wasted_wood": 463728,

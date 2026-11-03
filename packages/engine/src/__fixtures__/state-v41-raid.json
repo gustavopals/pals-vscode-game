@@ -295,11 +295,13 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 2,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_food": 719644,
   "cardsDrawn:springSeeds": 1,
   "wasted_wood": 148724,
+  "chronicle:battles": 1,
   "raids_suffered": 1
  }
 }

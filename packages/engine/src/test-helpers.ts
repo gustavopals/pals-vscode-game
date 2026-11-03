@@ -30,6 +30,8 @@ import { deliverMaster } from './masterTurn';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { nextId } from './ids';
+import { settleHordeTiles } from './hordePlan';
+import { scheduleSiege } from './siegeTurn';
 import {
   chance,
   dropStream,
@@ -104,6 +106,32 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     quietCouncil(draft);
     quietHorde(draft);
     edit(draft);
+  });
+}
+
+/**
+ * Isola contas de estação adiando o Cerco deste ano, como quietHorde adia incursões.
+ * As ondas vêm da preparação real em uma cópia; o estado continua válido. Cenários de
+ * guerra e os retratos de partida usam gameAt/advanceTo normais, com combate real.
+ */
+export function quietSiege(draft: GameState): void {
+  const probe = cloneState(draft);
+  probe.siege = null;
+  probe.horde.wavePlan = null;
+  const autumn = Math.floor(draft.lastProcessedAt / YEAR) * YEAR + AUTUMN;
+  settleHordeTiles(probe, autumn, []);
+  scheduleSiege(probe, autumn, []);
+  // scheduleSiege preenche o campo; o compilador não acompanha a mutação feita pela chamada.
+  const prepared = (probe as GameState).siege;
+  if (prepared === null) throw new Error('A preparação do cenário não marcou o Cerco.');
+  draft.siege = { ...prepared, atMs: 1000 * YEAR, nextWaveAtMs: 1000 * YEAR };
+}
+
+/** gameAt com o Cerco adiado: a previsão de comida/lenha não inclui perdas em batalha. */
+export function gameAtPeace(atMs: number, edit: (draft: GameState) => void = () => {}): GameState {
+  return gameAt(atMs, (draft) => {
+    edit(draft);
+    quietSiege(draft);
   });
 }
 
@@ -1377,7 +1405,10 @@ export function laterObjectivesScenario(start: GameState): {
 /** Roteiro que cumpre os dez objetivos da v0.2, na ordem, em uma partida nova: um ano de jogo. */
 export function allObjectivesScenario(): { state: GameState; events: GameEvent[] } {
   const first = objectivesScenario();
-  const later = laterObjectivesScenario(first.state);
+  // O roteiro dos dez objetivos mede economia e frio, sem a perda discreta da Queda.
+  const peaceful = cloneState(first.state);
+  quietSiege(peaceful);
+  const later = laterObjectivesScenario(peaceful);
   return { state: later.state, events: [...first.events, ...later.events] };
 }
 

@@ -1260,9 +1260,9 @@ describe('o Covil de Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () =
     const autumnEnd = advanceTo(summerEnd.state, WINTER);
     expect(raidsIn(autumnEnd.events).length).toBeGreaterThan(0);
     expect(autumnEnd.state.map.tiles.wolfDen?.threatActive).toBe(false);
-    // A Fortaleza continua ativa no inverno, mesmo com o Covil limpo.
+    // Com o Cerco encerrado a Fortaleza é removida, independentemente do Covil.
     const autumn = advanceTo(autumnEnd.state, YEAR - 1);
-    expect(autumn.state.map.tiles.hordeFortress?.threatActive).toBe(true);
+    expect(autumn.state.map.tiles.hordeFortress).toBeUndefined();
     const turned = advanceTo(autumn.state, YEAR);
     expect(turned.state.map.tiles.wolfDen?.threatActive).toBe(true);
     expect(ofType(turned.events, 'threatTileRestored')).toMatchObject([

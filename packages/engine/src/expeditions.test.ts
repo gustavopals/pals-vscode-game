@@ -1034,7 +1034,8 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
       const { arrivedAt } = fork;
       // Ouro para o soldo do mês inteiro: o que se prova aqui é a expedição, não o atraso.
       const state = cloneState(fork.state);
-      state.settlement.resources.gold = 50_000_000;
+      // A reserva cobre também as perdas de 30% em cada Queda dos vários anos do mês.
+      state.settlement.resources.gold = 1_000_000_000_000;
       const month = Math.round(30 * 24 * HOUR * timeScale);
       const away = advanceTo(state, arrivedAt + month);
       const mine = ofExpeditions(away.events);

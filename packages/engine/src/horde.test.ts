@@ -103,7 +103,8 @@ describe('a Horda ligada à partida (V4E-T3)', () => {
     expect(next.horde.lastFormationSeen).toBeNull();
     expect(next.horde.omens).toEqual([]);
     expect(next.horde.wavePlan).toBeNull();
-    expect(next.map.tiles.hordeFortress?.threatActive).toBe(false);
+    // O Cerco remove a Fortaleza ao terminar, antes da virada anual.
+    expect(next.map.tiles.hordeFortress).toBeUndefined();
     expect(next.map.tiles.raiderCamp?.threatActive).toBe(true);
   });
 

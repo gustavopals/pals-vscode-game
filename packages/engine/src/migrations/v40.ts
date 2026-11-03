@@ -13,6 +13,7 @@ import {
   type Shape,
 } from './shape';
 import type { MigrationStep, StoredState } from './step';
+import { legacyMarketEffects } from './legacyMarket';
 import { RESOURCE_IDS_V25 } from './v25';
 import { BUILDING_IDS_V28 } from './v28';
 import { raidPostV33 } from './v33';
@@ -241,9 +242,9 @@ export const stateV40: Shape = (value, path) => {
 export const v40ToV41: MigrationStep = {
   from: 40,
   summary: 'Acrescenta os bônus do Conselho sem alterar lotes ou prazos existentes.',
-  shape: stateV40,
+  shape: (value, path) => stateV40(legacyMarketEffects(value), path),
   migrate: (state) => ({
-    ...state,
+    ...(legacyMarketEffects(state) as StoredState),
     schemaVersion: 41,
     council: {
       ...(state.council as StoredState),

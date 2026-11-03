@@ -181,7 +181,7 @@
     "threatActive": true
    }
   },
-  "threat": 70,
+  "threat": 68,
   "discovered": []
  },
  "siege": {
@@ -695,13 +695,17 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 6,
   "cardsDrawn:kingsTax": 1,
   "wasted_food": 3292109,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_wood": 1771396,
+  "chronicle:battles": 3,
   "raids_repelled": 3,
+  "lastRaidRepelledBattle": 3,
   "cardsExpired": 5,
+  "chronicle:cards": 5,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 0,
   "cardsDrawn:itinerantMerchant": 1,
@@ -711,7 +715,6 @@
   "cardsDrawn:sawmillRest": 1,
   "seasonsSurvived:summer": 1,
   "fortressAppearedAtDay": 49,
-  "threatCrossed:70": 1,
   "omens": 1
  }
 }

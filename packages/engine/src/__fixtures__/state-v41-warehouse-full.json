@@ -222,6 +222,7 @@
   "completed": []
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "wasted_wood": 52758,
   "wasted_stone": 21149
  }

@@ -311,6 +311,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 1,
   "cardsDrawn:collapsedWell": 1
  }

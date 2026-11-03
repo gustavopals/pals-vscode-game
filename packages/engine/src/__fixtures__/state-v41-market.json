@@ -155,7 +155,7 @@
     "threatActive": true
    }
   },
-  "threat": 28,
+  "threat": 24,
   "discovered": []
  },
  "siege": {
@@ -461,10 +461,16 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:market": 1,
   "campAppearedAtDay": 47,
   "coldSpellsThisSeason": 0,

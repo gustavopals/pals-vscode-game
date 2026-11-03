@@ -128,7 +128,7 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
   it('prender → largar permite sortear o Boicote no outono, sem agendá-lo como continuação', () => {
     // Segunda junção (docs/balance-v0.4.md, seção 19): zero nos bots não pode esconder
     // uma carta inalcançável. A flag vem da escolha real, e a chegada vem da audiência.
-    const start = feud('lord', SUMMER + DAY / 3, 'merchant-boycott-14');
+    const start = feud('lord', SUMMER + DAY / 3, 'merchant-boycott-6');
     expect(eligibleCards(start, AUTUMN, councilCards).map((card) => card.id)).not.toContain(
       'merchantBoycott',
     );
@@ -144,7 +144,7 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
     expect(eligibleCards(dropped, AUTUMN, councilCards).map((card) => card.id)).toContain(
       'merchantBoycott',
     );
-    // As duas roteirizadas devidas vêm antes do sorteio. Resolve-as pelo caminho real,
+    // As três roteirizadas devidas vêm antes do sorteio (lote 3: corvos do norte). Resolve-as pelo caminho real,
     // sem marcar cartas como vistas nem suprimir as recorrentes do catálogo completo.
     dropped.council.nextDrawAtMs = AUTUMN;
     const stranger = choose(advanceTo(dropped, AUTUMN).state, 'woundedStranger', 'shelter').state;
@@ -153,10 +153,15 @@ describe('O Mercador Misterioso, de ponta a ponta', () => {
       'itinerantMerchant',
       'wait',
     ).state;
-    const drawn = advanceTo(itinerant, AUTUMN + 2 * DRAW_INTERVAL_MS);
+    const crows = choose(
+      advanceTo(itinerant, AUTUMN + 2 * DRAW_INTERVAL_MS).state,
+      'northernCrows',
+      'ignore',
+    ).state;
+    const drawn = advanceTo(crows, AUTUMN + 3 * DRAW_INTERVAL_MS);
     expect(drawn.events.filter((event) => event.type === 'cardDrawn')).toMatchObject([
       {
-        atMs: AUTUMN + 2 * DRAW_INTERVAL_MS,
+        atMs: AUTUMN + 3 * DRAW_INTERVAL_MS,
         data: { cardId: 'merchantBoycott', source: 'draw' },
       },
     ]);

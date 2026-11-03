@@ -249,6 +249,7 @@
   "completed": []
  },
  "stats": {
+  "chronicle:populationMax": 12,
   "cardsDrawn": 1,
   "cardsDrawn:springSeeds": 1
  }

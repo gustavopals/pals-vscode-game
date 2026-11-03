@@ -143,6 +143,7 @@
  },
  "stats": {
   "constructionsStarted:housing": 1,
+  "chronicle:populationMax": 6,
   "villagersRecruited": 1,
   "wasted_food": 135350,
   "cardsDrawn": 1,

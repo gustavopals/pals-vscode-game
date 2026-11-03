@@ -107,7 +107,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 18706,
+   "food": 18016,
    "wood": 0,
    "stone": 0,
    "gold": 0,
@@ -201,7 +201,7 @@
     "threatActive": true
    }
   },
-  "threat": 95,
+  "threat": 87,
   "discovered": []
  },
  "siege": {
@@ -319,7 +319,7 @@
   "scheduledRaids": [
    {
     "id": "threat-8",
-    "atMs": 547200000,
+    "atMs": 554400000,
     "kind": "threat",
     "enemy": "wolves",
     "size": "strong",
@@ -543,7 +543,7 @@
   "reports": [
    {
     "id": "battle-5",
-    "foughtAtMs": 424800000,
+    "foughtAtMs": 432000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -598,7 +598,7 @@
    },
    {
     "id": "battle-6",
-    "foughtAtMs": 460800000,
+    "foughtAtMs": 468000000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -720,13 +720,16 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "constructionsStarted:quarry": 1,
-  "wasted_food": 8782706,
+  "wasted_food": 8781016,
   "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:springSeeds": 1,
+  "chronicle:battles": 7,
   "raids_suffered": 7,
   "cardsExpired": 8,
+  "chronicle:cards": 8,
   "cardsDrawn:woundedStranger": 1,
   "coldSpellsThisSeason": 1,
   "cardsDrawn:itinerantMerchant": 1,
@@ -741,6 +744,36 @@
   "cardsDrawn:apprenticesTable": 1,
   "vigilRehearsalMarked": 1,
   "cardsDrawn:dampFirewood": 1,
+  "chronicle:rehearsal:left:front:spearman": 0,
+  "chronicle:rehearsal:left:front:swordsman": 0,
+  "chronicle:rehearsal:left:front:archer": 0,
+  "chronicle:rehearsal:left:front:knight": 0,
+  "chronicle:rehearsal:left:front:shieldbearer": 0,
+  "chronicle:rehearsal:left:back:spearman": 0,
+  "chronicle:rehearsal:left:back:swordsman": 0,
+  "chronicle:rehearsal:left:back:archer": 0,
+  "chronicle:rehearsal:left:back:knight": 0,
+  "chronicle:rehearsal:left:back:shieldbearer": 0,
+  "chronicle:rehearsal:center:front:spearman": 0,
+  "chronicle:rehearsal:center:front:swordsman": 0,
+  "chronicle:rehearsal:center:front:archer": 0,
+  "chronicle:rehearsal:center:front:knight": 0,
+  "chronicle:rehearsal:center:front:shieldbearer": 0,
+  "chronicle:rehearsal:center:back:spearman": 0,
+  "chronicle:rehearsal:center:back:swordsman": 0,
+  "chronicle:rehearsal:center:back:archer": 0,
+  "chronicle:rehearsal:center:back:knight": 0,
+  "chronicle:rehearsal:center:back:shieldbearer": 0,
+  "chronicle:rehearsal:right:front:spearman": 0,
+  "chronicle:rehearsal:right:front:swordsman": 0,
+  "chronicle:rehearsal:right:front:archer": 0,
+  "chronicle:rehearsal:right:front:knight": 0,
+  "chronicle:rehearsal:right:front:shieldbearer": 0,
+  "chronicle:rehearsal:right:back:spearman": 0,
+  "chronicle:rehearsal:right:back:swordsman": 0,
+  "chronicle:rehearsal:right:back:archer": 0,
+  "chronicle:rehearsal:right:back:knight": 0,
+  "chronicle:rehearsal:right:back:shieldbearer": 0,
   "seasonsSurvived:autumn": 1,
   "cardsDrawn:hordeDeserter": 1
  }

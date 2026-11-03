@@ -243,6 +243,7 @@
   "completed": []
  },
  "stats": {
+  "chronicle:populationMax": 25,
   "cardsDrawn": 1,
   "cardsDrawn:firstRecruit": 1
  }

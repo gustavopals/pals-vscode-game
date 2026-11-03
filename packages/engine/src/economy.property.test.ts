@@ -11,7 +11,7 @@ import {
   command,
   councilInSession,
   DAY,
-  gameAt,
+  gameAtPeace as gameAt,
   HOUR,
   MINUTE,
   newGame,
@@ -557,7 +557,13 @@ describe('invariante de divisão de intervalo', { timeout: 120_000 }, () => {
           start.settlement.population.villagers +
             count('villagerArrived') -
             count('villagerLeft') -
-            count('villagerDeserted'),
+            count('villagerDeserted') -
+            // A Queda é a nova perda populacional fora dos eventos individuais.
+            direct.events.reduce(
+              (sum, event) =>
+                sum + (event.type === 'siegeFell' ? Number(event.data.villagersLost) : 0),
+              0,
+            ),
         );
         if (scenario.difficulty === 'peasant') {
           expect(count('villagerDeserted')).toBe(0);

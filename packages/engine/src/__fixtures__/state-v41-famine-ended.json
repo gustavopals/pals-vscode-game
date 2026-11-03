@@ -265,6 +265,7 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 14,
   "cardsDrawn": 2,
   "cardsDrawn:springSeeds": 1,
   "cardsDrawn:sawmillRest": 1

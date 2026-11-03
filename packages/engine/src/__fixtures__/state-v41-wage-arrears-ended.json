@@ -333,11 +333,14 @@
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "cardsDrawn": 2,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_food": 806376,
   "cardsDrawn:masonsMeal": 1,
+  "chronicle:battles": 1,
   "raids_suffered": 1,
-  "cardsExpired": 1
+  "cardsExpired": 1,
+  "chronicle:cards": 1
  }
 }

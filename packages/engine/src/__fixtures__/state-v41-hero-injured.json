@@ -412,12 +412,19 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 5,
   "expeditionsSent:oldForest": 2,
   "expeditionsSent": 1,
+  "chronicle:expeditions": 1,
   "crossroadsChosen": 1,
   "heroesInjured": 1,
   "wasted_wood": 47000,

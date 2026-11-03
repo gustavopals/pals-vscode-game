@@ -237,6 +237,14 @@ function tavernBeforeExtraOffer(state: GameState): Record<string, unknown> {
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  // Terceira junção: comparações com formas anteriores removem só os campos posteriores.
+  delete copy.army?.campaign;
+  delete copy.council?.bonuses;
+  if (copy.settlement?.forge !== null && copy.settlement?.forge !== undefined)
+    delete copy.settlement.forge.extra;
+  for (const queue of copy.settlement?.constructionQueues ?? []) {
+    if (queue !== null) delete queue.costPaid;
+  }
   delete copy.siege;
   delete copy.settlement?.militia;
   delete copy.settlement?.reconstructionUntilMs;
@@ -3123,6 +3131,7 @@ describe('a forma da versão atual', () => {
   it('aceita o Conselho com cartas na mesa, flags, continuações, efeitos à espera e expiradas', () => {
     const state = JSON.parse(JSON.stringify(newGame())) as Draft;
     state.council = {
+      ...state.council,
       pending: [
         {
           instanceId: 'alms-1',

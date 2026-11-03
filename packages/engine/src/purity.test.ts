@@ -231,6 +231,8 @@ describe('pureza do motor', () => {
       './arrivals.ts',
       './battleTurn.ts',
       './caravanOrders.ts',
+      // V4H-T2: a recompensa addItem cria o item na resolução da carta, nunca na visão.
+      './councilWar.ts',
       './expeditionOrders.ts',
       './expeditionTurn.ts',
       './formationOrders.ts',

@@ -840,7 +840,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // (V4E-T2.4) mudaram a semana.
     // V4G-T1: o ensaio na Vigília muda os sorteios depois dele (balance-v0.4.md §13).
     // V4G-T2.4: a Fortaleza some ao fim do cerco no dia 68 (-4 de Ameaça nos dois dias finais).
-    expect(of('week-scripted').map.threat).toBe(79);
+    // Terceira junção: catálogo completo e Cerco; medição em balance-v0.4.md §20.
+    expect(of('week-scripted').map.threat).toBe(50);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;

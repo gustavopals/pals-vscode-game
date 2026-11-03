@@ -32,6 +32,12 @@ describe('V4G-T2.6 · Rescaldo e Reconstrução (GDD §11.4; ADR 0020, decisões
     expect(state.market.caravans).toHaveLength(2);
     expect(state.market.tradedToday.wood).toBe(900);
     expect(currentShape(state, '')).toBeNull();
+    const withoutFall = cloneState(state);
+    delete withoutFall.stats.siegesFallen;
+    expect(currentShape(withoutFall, '')).not.toBeNull();
+    const excessive = cloneState(state);
+    excessive.market.tradedToday.wood = 1001;
+    expect(currentShape(excessive, '')).not.toBeNull();
   });
 
   it('aplica festa (+15 por 1 dia) na Vitória Gloriosa', () => {

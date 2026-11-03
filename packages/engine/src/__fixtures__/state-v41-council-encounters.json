@@ -361,10 +361,16 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 7,
   "constructionsStarted:tavern": 1,
   "campAppearedAtDay": 32,
   "threatCrossed:40": 1,
@@ -372,6 +378,7 @@
   "cardsDrawn": 3,
   "cardsDrawn:passingRecruiter": 1,
   "cardsAnswered": 2,
+  "chronicle:cards": 2,
   "cardsDrawn:gamblingDebt": 1,
   "cardsDrawn:squareDuel": 1
  }

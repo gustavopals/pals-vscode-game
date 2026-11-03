@@ -9,6 +9,7 @@ import {
   type Shape,
 } from './shape';
 import type { MigrationStep, StoredState } from './step';
+import { legacyMarketEffects } from './legacyMarket';
 import { UNIT_IDS_V28 } from './v28';
 import { LINE_IDS_V29, UNIT_LINE_V29, WING_IDS_V29 } from './v29';
 import { battleReportV33 } from './v33';
@@ -209,9 +210,9 @@ export const stateV39: Shape = (value, path) => {
 export const v39ToV40: MigrationStep = {
   from: 39,
   summary: 'Acrescenta cerco, milícia e reconstrução sem agendar nem sortear na fronteira.',
-  shape: stateV39,
+  shape: (value, path) => stateV39(legacyMarketEffects(value), path),
   migrate: (state) => ({
-    ...state,
+    ...(legacyMarketEffects(state) as StoredState),
     schemaVersion: 40,
     siege: null,
     settlement: {

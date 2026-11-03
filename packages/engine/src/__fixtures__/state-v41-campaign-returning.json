@@ -1164,10 +1164,18 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
+  "chronicle:populationMax": 80,
+  "chronicle:battles": 1,
+  "chronicle:battlesWon": 1,
   "tilesCleared": 1
  }
 }

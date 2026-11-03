@@ -307,7 +307,12 @@
    "sendPatrol",
    "sellSurplus",
    "chooseAtCrossroads",
-   "exploreRuins"
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
   ]
  },
  "stats": {
@@ -316,6 +321,7 @@
   "cardsDrawn:firstRecruit": 1,
   "cardsDrawn:northernCrows": 1,
   "cardsDrawn:hordeDeserter": 1,
-  "cardsDrawn:siegeEve": 1
+  "cardsDrawn:siegeEve": 1,
+  "chronicle:populationMax": 12
  }
 }
