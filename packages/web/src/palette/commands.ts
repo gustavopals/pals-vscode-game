@@ -4136,7 +4136,8 @@ export function createCommands(
           arg === 'council' ||
           arg === 'guild' ||
           arg === 'market' ||
-          arg === 'army'
+          arg === 'army' ||
+          arg === 'chronicle'
           ? arg
           : controller.defaultRoute(),
       );

@@ -647,6 +647,8 @@ describe('controller.runCommand', () => {
     // A barra de status e a árvore levam ao Conselho pelo mesmo comando.
     controller.runCommand('lords.openPanel', 'council');
     expect(controller.route).toBe('council');
+    controller.runCommand('lords.openPanel', 'chronicle');
+    expect(controller.route).toBe('chronicle');
     controller.runCommand('lords.openPanel', 'mercado');
     expect(controller.route).toBe('fief');
     controller.runCommand('lords.openCouncil');
