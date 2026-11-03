@@ -527,9 +527,8 @@ describe('mestria e experiência do ofício (GDD §5.3 e §5.4)', () => {
       });
       const { state, events } = advanceTo(start, YEAR);
       expect(events.map((event) => event.type)).toEqual([
-        'yearStarted',
-        // V4G-T3: o fecho anual precede a estação e o amanhecer.
         'yearEnded',
+        'yearStarted',
         'seasonChanged',
         'dayStarted',
         'craftMastered',

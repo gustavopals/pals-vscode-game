@@ -1,12 +1,21 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { call, createTestApp, newPlayer, type TestApp } from './helpers/app';
+import { balance } from '@lotg/content';
+
+import {
+  call,
+  councilRecess,
+  createTestApp,
+  newPlayer,
+  quietHorde,
+  renew,
+  rewriteState,
+  type TestApp,
+} from './helpers/app';
 import { resetTestDb } from './helpers/db';
 
 // Crônica do Ano em Markdown vista pela API (V4G-T3; GDD §11.4; Apêndice E):
 // GET /games/:id/years/:year/chronicle.md
-// NOTA: Estes testes de integração foram escritos sem execução local direta,
-// respeitando a instrução da tarefa ("Os testes de integração do endpoint: escreva, sem rodar, e diga isso").
 
 let server: TestApp;
 
@@ -20,6 +29,48 @@ afterAll(async () => {
 });
 
 describe('GET /games/:id/years/:year/chronicle.md', () => {
+  it('a virada real põe a abertura e os tiles restaurados somente na crônica do ano novo', async () => {
+    const yearMs =
+      balance.calendar.dayMs *
+      balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
+    const who = await newPlayer(server);
+    await quietHorde(server, who.game.id);
+    await councilRecess(server, who.game.id);
+    server.clock.advance(yearMs - 1);
+    await renew(server, who);
+    expect(
+      (await call(server, 'GET', `/games/${who.game.id}/view`, { token: who.token })).status,
+    ).toBe(200);
+    await rewriteState(server, who.game.id, (state) => {
+      state.map.tiles.wolfDen!.threatActive = false;
+    });
+    server.clock.advance(1);
+    await renew(server, who);
+    expect(
+      (await call(server, 'GET', `/games/${who.game.id}/view`, { token: who.token })).status,
+    ).toBe(200);
+    const restored = await server.pool.query<{ text: string }>(
+      "select payload->>'text' as text from game_events where game_id = $1 and kind = 'threatTileRestored' order by seq",
+      [who.game.id],
+    );
+    expect(restored.rows).toHaveLength(1);
+    server.clock.advance(yearMs);
+    await renew(server, who);
+    const first = await call<string>(server, 'GET', `/games/${who.game.id}/years/1/chronicle.md`, {
+      token: who.token,
+    });
+    const second = await call<string>(server, 'GET', `/games/${who.game.id}/years/2/chronicle.md`, {
+      token: who.token,
+    });
+    expect([first.status, second.status]).toEqual([200, 200]);
+    const opening = 'Começa o ano 2 da Casa de Pedra Alta.';
+    expect(first.body).not.toContain(opening);
+    expect(first.body).not.toContain(restored.rows[0]!.text);
+    expect(second.body).toContain(opening);
+    expect(second.body).toContain(restored.rows[0]!.text);
+    expect(second.body).not.toContain('Começa o ano 3');
+  });
+
   it('responde 404 se a Crônica do ano pedido ainda não foi concluída', async () => {
     const who = await newPlayer(server);
     const reply = await call<string>(server, 'GET', `/games/${who.game.id}/years/1/chronicle.md`, {

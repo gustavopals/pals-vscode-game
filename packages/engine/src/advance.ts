@@ -57,6 +57,8 @@ function processCalendar(
   reportWaste(draft, atMs, events);
   const date = calendarAt(atMs);
   if (isYearBoundary(atMs)) {
+    // Fecha o ano anterior antes de emitir qualquer linha da nova crônica anual.
+    endYear(draft, atMs, events);
     draft.clock.year = yearOf(atMs);
     draft.clock.yearStartMs = atMs;
     emit(events, draft, atMs, 'yearStarted', { year: date.year });
@@ -66,7 +68,6 @@ function processCalendar(
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);
-    endYear(draft, atMs, events);
     if (draft.siege?.result === 'fall' && draft.siege.year === date.year - 1) {
       const durationMs = balance.siege.reconstruction.days * DAY_MS;
       draft.settlement.reconstructionUntilMs = atMs + durationMs;

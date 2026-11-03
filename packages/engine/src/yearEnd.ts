@@ -5,7 +5,7 @@ import { yearOf } from './clock';
 import type { GameEvent, GameState } from './types';
 import { recordYearPopulation, resetYearStats, yearStat } from './yearStats';
 
-/** Fecha o ano após restoreTiles e antes da Ameaça, sem sorteio nem lista nova no estado. */
+/** Fecha o ano antes da abertura do seguinte e de restoreTiles, sem sorteio nem lista nova no estado. */
 export function endYear(draft: GameState, atMs: number, events: GameEvent[]): void {
   const year = yearOf(atMs) - 1;
   recordYearPopulation(draft);

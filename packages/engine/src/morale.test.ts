@@ -265,9 +265,8 @@ describe('a moral só muda na virada do dia', () => {
     expect(state.settlement.cold).toBeNull();
     // A estação vira, o dia amanhece, a moral é recalculada e só então o frio fecha.
     expect(types(events)).toEqual([
-      'yearStarted',
-      // V4G-T3: o fecho anual precede a estação e o amanhecer.
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
       'moraleBandChanged',

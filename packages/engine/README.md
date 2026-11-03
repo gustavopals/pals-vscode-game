@@ -112,8 +112,10 @@ A fome congela a fila de recrutamento e recusa ordens novas; a produção cai pa
 
 ### Fecho anual (V4G-T3)
 
-Na virada anual, `processCalendar` emite `yearEnded` depois de `restoreTiles` e
-antes da subida da Ameaça. `yearEnd.ts` calcula estatísticas, resultado do cerco,
+Na virada anual, `processCalendar` emite `yearEnded` antes de `yearStarted` e de
+`restoreTiles`, ainda antes da subida da Ameaça. Essa ordem mantém as linhas de
+abertura e restauração depois do fecho anterior na sequência persistida, para que
+apareçam somente na crônica do novo ano. `yearEnd.ts` calcula estatísticas, resultado do cerco,
 pontuação e os seis Feitos sem sorteio. A população máxima usa `inhabitants`;
 `yearStats.ts` conta batalhas reais, envios de expedição, cartas resolvidas e
 acontecimentos dos Feitos na emissão dos eventos. O ensaio e a primeira onda

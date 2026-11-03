@@ -681,9 +681,8 @@ describe('objetivo: atravesse o inverno sem passar frio', () => {
     expect(winterDone(almost.state)).toBe(false);
     const { state, events } = advanceTo(almost.state, YEAR);
     expect(events.map((event) => event.type)).toEqual([
-      'yearStarted',
-      // V4G-T3: o fecho anual precede a estação e o amanhecer.
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
       'objectiveCompleted',

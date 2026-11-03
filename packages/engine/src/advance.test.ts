@@ -73,16 +73,16 @@ describe('advanceTo', () => {
     // Depois do amanhecer vem o Conselho: a virada do ano é também uma audiência.
     // Quem se feriu numa incursão do ano 1 pode sarar no mesmo instante (V4E-T2.4).
     const turn = atBoundary.filter((event) => event.type !== 'villagerRecovered');
-    // O fecho anual é explícito desde a V4G-T3, depois dos tiles restaurados.
+    // O fecho anual é explícito desde a V4G-T3, antes do início do ano novo e dos tiles restaurados.
     // O cenário sem cuidado perde o cerco e abre a Reconstrução nesta primavera (V4G-T2).
     expect(turn.map((event) => event.type).slice(0, 5)).toEqual([
-      'yearStarted',
       'yearEnded',
+      'yearStarted',
       'reconstructionStarted',
       'seasonChanged',
       'dayStarted',
     ]);
-    expect(turn[0]?.text).toBe('Começa o ano 2 da Casa de Pedra Alta.');
+    expect(turn[1]?.text).toBe('Começa o ano 2 da Casa de Pedra Alta.');
     expect(eventsOfType(events, 'dayStarted')).toHaveLength(84);
     expect(eventsOfType(events, 'seasonChanged')).toHaveLength(4);
   });
@@ -207,8 +207,8 @@ describe('advanceTo', () => {
     expect(events.map((event) => event.type)).toEqual([
       'constructionFinished',
       'recruitmentFinished',
-      'yearStarted',
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
       'craftMastered',

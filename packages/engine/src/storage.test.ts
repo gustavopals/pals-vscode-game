@@ -393,8 +393,8 @@ describe('desperdício contado', () => {
     );
     expect(types(events)).toEqual([
       'storageWasted',
-      'yearStarted',
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
     ]);

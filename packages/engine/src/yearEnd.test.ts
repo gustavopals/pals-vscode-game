@@ -12,7 +12,7 @@ import { recordYearFeint, recordYearPopulation, recordYearRehearsal, yearStat } 
 import { siegeYard } from './siege.test-helpers';
 
 describe('Crônica do Ano no motor (V4G-T3.1)', () => {
-  it('fecha após restoreTiles e antes da Ameaça, no instante exato e uma única vez', () => {
+  it('fecha antes do ano novo e dos tiles restaurados, no instante exato e uma única vez', () => {
     const state = gameAt(YEAR_MS - 1);
     state.settlement.buildings.watchtower = 1;
     state.map.tiles.wolfDen!.threatActive = false;
@@ -21,7 +21,8 @@ describe('Crônica do Ano no motor (V4G-T3.1)', () => {
     const before = cloneState(state);
     const advanced = advanceTo(state, YEAR_MS);
     const types = advanced.events.map((event) => event.type);
-    expect(types.indexOf('threatTileRestored')).toBeLessThan(types.indexOf('yearEnded'));
+    expect(types.indexOf('yearEnded')).toBeLessThan(types.indexOf('yearStarted'));
+    expect(types.indexOf('yearStarted')).toBeLessThan(types.indexOf('threatTileRestored'));
     expect(types.indexOf('yearEnded')).toBeLessThan(types.indexOf('threatRose'));
     expect(advanced.events.filter((event) => event.type === 'yearEnded')).toMatchObject([
       { atMs: YEAR_MS, data: { year: 1, siegeResult: 'victory', feats: 'firstWinter' } },

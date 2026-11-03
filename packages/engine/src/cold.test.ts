@@ -214,9 +214,8 @@ describe('fim do frio', () => {
     // A moral é recalculada antes de o frio fechar, e já não o conta: o povo, inquieto desde a
     // primeira virada do inverno, volta a ficar contente no mesmo instante em que o gelo cede.
     expect(types(events.filter((event) => event.atMs === YEAR))).toEqual([
-      'yearStarted',
-      // V4G-T3: o fecho anual precede a estação e o amanhecer.
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
       'moraleBandChanged',
@@ -458,9 +457,8 @@ describe('fome e frio no mesmo instante', () => {
     const { state, events } = advanceTo(start, YEAR);
     const moraleTypes = ['moraleBandChanged', 'villagerLeft', 'villagerDeserted'];
     expect(types(events.filter((event) => !moraleTypes.includes(event.type)))).toEqual([
-      'yearStarted',
-      // V4G-T3: o fecho anual precede a estação e o amanhecer.
       'yearEnded',
+      'yearStarted',
       'seasonChanged',
       'dayStarted',
       'famineEnded',

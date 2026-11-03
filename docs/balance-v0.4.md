@@ -1468,3 +1468,12 @@ volume ou elevar o nível real. O teste determinístico `preserva caravanas e vo
 reproduziu a falha antes da correção; as ordens novas continuam limitadas pelo nível
 reduzido (J3-2). A variante do anúncio sem Torre e os demais textos do Cerco também
 entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
+
+### 20.3 Revisões independentes
+
+1. A crônica anual perdia `yearStarted` e `threatTileRestored` porque precediam o
+   fecho anterior na sequência persistida. O fecho agora vem antes do ano novo e da
+   restauração. O teste de integração avança o motor pela API por duas viradas e
+   confere a pertença exclusiva dessas linhas ao ano 2. A ordem exata acompanha
+   `advance.test.ts`, os demais testes do instante e o README; nenhuma conta ou
+   sorteio mudou.
