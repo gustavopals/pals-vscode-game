@@ -636,6 +636,13 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   );
   const soonest = decisions[0];
   if (soonest !== undefined) {
+    const waveLeft = remainingNow(soonest.expiresInSeconds, elapsedSeconds);
+    const waveDue =
+      soonest.kind === 'siegeWave'
+        ? waveLeft <= 0
+          ? `onda ${soonest.wave} chegando`
+          : `onda ${soonest.wave} em ${formatApprox(waveLeft)}`
+        : null;
     const pending = pendingDecisionsLabel(decisions.length);
     const each = decisions.map(
       (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
@@ -658,15 +665,12 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
     ];
     return {
       bar: {
-        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${soonest.kind === 'siegeWave' ? `onda ${soonest.wave} em ${formatApprox(remainingNow(soonest.expiresInSeconds, elapsedSeconds))}` : expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${waveDue ?? expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
         tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
         target:
           soonest.kind === 'card' ? 'council' : soonest.kind === 'siegeWave' ? 'siege' : 'guild',
       },
-      title:
-        soonest.kind === 'siegeWave'
-          ? `Cerco · onda ${soonest.wave} em ${formatApprox(remainingNow(soonest.expiresInSeconds, elapsedSeconds))} · ${name}`
-          : null,
+      title: waveDue !== null ? `Cerco · ${waveDue} · ${name}` : null,
     };
   }
   if (view.siege !== null && view.siege.result === null) {

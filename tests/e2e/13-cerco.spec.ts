@@ -47,8 +47,10 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await openSiege(world, page);
     const sent: Array<{ type: string; payload: unknown }> = [];
     page.on('request', (outgoing) => {
-      if (outgoing.method() === 'POST' && outgoing.url().endsWith('/commands'))
-        sent.push(outgoing.postDataJSON());
+      if (outgoing.method() === 'POST' && outgoing.url().endsWith('/commands')) {
+        const order = outgoing.postDataJSON() as { type: string; payload: unknown };
+        sent.push({ type: order.type, payload: order.payload });
+      }
     });
     const view = await serverView(page, request);
     const other = view.army.formations[1]!;
@@ -72,7 +74,8 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await page.keyboard.press('Enter');
     const picker = page.getByRole('dialog');
     await expect(picker.getByRole('combobox')).toBeFocused();
-    await page.keyboard.press('Home');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Enter');
     await expect(picker).toHaveCount(0);
     await expect(page.getByTestId('siege-decision')).toContainText(
@@ -111,7 +114,9 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await world.passTime(HOUR, page);
     await expect(dialog).toHaveCount(0);
     await expect(page.getByTestId('siege-decision')).toContainText('onda 3');
-    await expect(page.getByRole('alert')).toContainText('O Cerco mudou ou o prazo acabou');
+    await expect(page.getByRole('region', { name: 'Avisos' })).toContainText(
+      'O Cerco mudou ou o prazo acabou',
+    );
   });
 
   test('Queda durante a ausência aparece no Retorno e deixa o feudo jogável', async ({

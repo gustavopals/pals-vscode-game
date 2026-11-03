@@ -231,6 +231,7 @@ describe('o Plano, as ondas e o rescaldo', () => {
       expect(html).not.toContain('data-testid="wall-review-open"');
     }
     expect(panel(siegeWaveView, 3600)).toContain('O prazo acabou.');
+    expect(statusBar({ ...input, elapsedSeconds: 3600 }).text).toContain('onda 2 chegando');
     expect(panel(siegeWaveView, 0, false, new Set(['siege:swap']))).toContain('Trocando…');
   });
   it('os três resultados usam a palavra da visão e preservam as ondas que não ocorreram', () => {
