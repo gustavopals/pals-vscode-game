@@ -27,7 +27,13 @@ export function siegeView(
         number: w.number,
         title: siegeTexts.waves[w.number],
         omens: state.horde.omens
-          .filter((o) => o.wave === w.number && o.revision === state.horde.wavePlan?.revision)
+          // O presságio vago não revela a onda a que pertence, nem pelo agrupamento.
+          .filter(
+            (o) =>
+              o.clarity !== 'vague' &&
+              o.wave === w.number &&
+              o.revision === state.horde.wavePlan?.revision,
+          )
           .map((o) => o.text),
       })),
     },

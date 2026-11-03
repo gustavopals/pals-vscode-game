@@ -802,3 +802,11 @@ e `raidersAskPassage` ("Mandá-los embora") foram aceitas respeitando a literali
 A carta `siegeEve` usa abertura narrativa específica na Crônica ("Na véspera do cerco, ") aprovada expressamente
 na ficha §11.5, sem a fórmula de dia do calendário.
 Opções que disparam obras dinâmicas (`startBuilding`, `repairWall`) não são classificadas como opções sem custo (`isFree`).
+
+## Terceira junção (2026-11-03)
+
+**J3-1. Anúncio do Cerco sem Torre.** _(Proposta do agente; não lida pelo autor.)_
+A marcação do Cerco continua pública, mas o texto sem Torre diz que o feudo marcou a
+Vigília, sem inventar vigias. Com Torre conserva a frase existente. O agrupamento de
+presságios por onda mostra somente os de clareza conhecida; os vagos continuam na
+lista geral do Exército, sem associação à onda, como exige a névoa já testada.

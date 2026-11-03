@@ -1400,3 +1400,30 @@ fora do filtro; nenhuma matriz é executada por esse comando.
 nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/siege-report.test.ts --maxWorkers=2
 nice -n 19 pnpm exec vitest run --project unit packages/sim-cli/src/bots/bots.test.ts packages/sim-cli/src/simulate.test.ts --maxWorkers=2 -t 'bot honesto|um bot é uma lista|cabeçalho|colunas das mecânicas'
 ```
+
+
+## 20. Terceira junção (2026-11-03)
+
+Branch `v4-juncao3`, sobre `a38a74a` (estado 38), para revisão do coordenador,
+sem publicação. Junções na ordem: Estatísticas (ADR 0021 e SQL `0001`), Novidades,
+Acampamento/Cerco, tela da sabotagem e do Acampamento, Cerco no simulador,
+Crônica do Ano e as treze cartas do lote 3. Estado final 41, protocolo 4.
+
+### 20.1 Contratos e isolamento dos testes
+
+A ponte remota do simulador passa a consumir diretamente o protocolo 4. O Econômico
+responde ao Cerco uma vez, depois de montar a formação, como os demais perfis;
+a correção de composição não cria uma visita ou política adicional.
+A lista exata de criadores de entidades inclui `councilWar.ts`: o efeito aprovado
+`addItem` cria o item ao resolver a carta. O teste continua proibindo a criação na
+visão, no relógio e nas migrações. O teste do passo 39 → 40 preserva a comparação
+exata do passo e passa a conferir a fronteira do passo seguinte quando migra até
+41; a migração completa registra `migratedAtMs`, como exige o contrato.
+
+A medição, os diffs e os resultados finais são registrados nas subseções abaixo.
+
+A revisão cruzada encontrou dois defeitos reais de névoa, sem mudar combate ou números:
+o Cerco agrupava presságios vagos pela onda escondida, e a marcação sem Torre falava
+em vigias inexistentes. A visão agora só agrupa presságios de clareza conhecida; a
+lista geral conserva os vagos. A frase sem Torre tem variante no conteúdo (J3-1).
+Os testes anteriores de igualdade de visão e de ausência de vigias ficaram intactos.

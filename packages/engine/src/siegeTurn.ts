@@ -47,7 +47,15 @@ export function scheduleSiege(draft: GameState, atMs: number, events: GameEvent[
     endedAtMs: null,
     aftermathUntilMs: null,
   };
-  emit(events, draft, atMs, 'siegeScheduled', { year, atMs: scheduled });
+  emit(
+    events,
+    draft,
+    atMs,
+    'siegeScheduled',
+    { year, atMs: scheduled },
+    {},
+    watchtowerLevel(draft) === 0 ? siegeTexts.scheduledWithoutTower : undefined,
+  );
 }
 
 /** Uma onda por instante; o intervalo real nasce no fim da anterior. */

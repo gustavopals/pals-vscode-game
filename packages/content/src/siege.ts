@@ -3,6 +3,7 @@ export const siegeTexts = {
   waves: { 1: 'Os Saqueadores', 2: 'As Feras', 3: 'A Longa Noite' },
   decision: 'Preparar a próxima onda do Cerco',
   defaultFormation: 'Usar a Defesa ativa',
+  scheduledWithoutTower: 'No {dia}º dia {daEstacao}, {feudo} marcou a Vigília do Cerco do Inverno.',
   result: { glorious: 'Vitória Gloriosa', victory: 'Vitória', fall: 'Queda' },
   notScheduled: 'O Cerco ainda não está marcado.',
   started: 'O Cerco já começou. Troque a formação na decisão entre ondas.',
