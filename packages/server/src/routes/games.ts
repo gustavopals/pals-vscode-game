@@ -7,6 +7,7 @@ import {
   HEADERS,
   type ListGamesResponse,
   StateVersionSchema,
+  YearChronicleParamsSchema,
 } from '@lotg/protocol';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
@@ -14,6 +15,7 @@ import { z } from 'zod';
 import { ApiError, notFound } from '../api-error';
 import { OfferedGameRequestSchema } from '../catalog';
 import type { AppContext } from '../context';
+import { readYearChronicleMarkdown } from '../games/chronicle';
 import { executeCommand } from '../games/commands';
 import { listEvents, readChronicle, readChronicleMarkdown } from '../games/events';
 import { createGame, listGames } from '../games/service';
@@ -102,6 +104,23 @@ export function registerGameRoutes(app: FastifyInstance, ctx: AppContext): void 
     const markdown = await readChronicleMarkdown(ctx, identity.accountId, gameIdOf(request), {
       links: links === '1',
     });
+    return reply.header('content-type', 'text/markdown; charset=utf-8').send(markdown);
+  });
+
+  app.get('/games/:id/years/:year/chronicle.md', async (request, reply) => {
+    const identity = await requireIdentity(ctx, request);
+    const params = YearChronicleParamsSchema.safeParse(request.params);
+    if (!params.success) {
+      throw notFound('Crônica do ano');
+    }
+    const { links } = ChronicleMarkdownQuerySchema.parse(request.query);
+    const markdown = await readYearChronicleMarkdown(
+      ctx,
+      identity.accountId,
+      params.data.id,
+      params.data.year,
+      { links: links === '1' },
+    );
     return reply.header('content-type', 'text/markdown; charset=utf-8').send(markdown);
   });
 }

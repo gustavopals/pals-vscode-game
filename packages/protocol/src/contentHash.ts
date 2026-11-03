@@ -36,6 +36,9 @@ import {
   hordeWaves,
   hordeTiles,
   omenTexts,
+  feats,
+  featRules,
+  yearChronicleTexts,
 } from '@lotg/content';
 
 import { canonicalJson } from './canonical';
@@ -87,6 +90,9 @@ function hashedContent(): Record<string, unknown> {
     hordeWaves,
     hordeTiles,
     omenTexts,
+    feats,
+    featRules,
+    yearChronicleTexts,
     threatMarkTemplates,
     raidTemplates,
     injuryTemplates,

@@ -754,3 +754,33 @@ Proposta conservadora: completar esses campos no motor/visão na junção e cons
 no bot; não tratar a prévia de incursão como se fosse da onda 3, nem ler composição
 oculta, duplicar regras de convocação no simulador ou provocar ordens recusadas para
 descobrir os limites. A pendência foi levada ao coordenador na retomada de 2026-10-30.
+
+### V4G-T3 — Crônica do Ano (2026-10-30)
+
+**G-15. Pesos da pontuação e contadores anuais.** _(Proposta do agente; não lida pelo autor.)_
+Sem pesos definidos no GDD, `balance.score` atribui 1 à população máxima, 10 a cada
+batalha vencida ou resistida, 5 a cada expedição enviada, 1 a cada carta resolvida,
+100 à vitória no cerco, mais 50 à Gloriosa e 25 por Feito. Não concede recurso,
+poder ou Legado. População usa os habitantes da visão (aldeões, Mestres e soldados;
+sem heróis). Batalhas contam só `battleFought`, nunca prévias; expedições contam
+envios, nunca nós; cartas contam resposta e expiração. Sabotador pede três envios,
+mesmo sem sucesso, e Resgate pede `heroRescued`. Os seis Feitos são anuais.
+Os contadores `chronicle:*` usam o mapa numérico `stats` já existente e são apagados
+após `yearEnded`; `yearScore` e `yearFeats` guardam só a última contagem. Não há
+lista anual nem mudança na forma/versão 40 do estado. Partidas em curso contam
+somente o que ocorrer após esta implementação, sem reconstituir o passado.
+
+**G-16. Medida da Finta.** _(Proposta do agente; não lida pelo autor.)_
+A comparação usa os efetivos por unidade e posto que realmente lutaram no ensaio,
+antes das baixas, e na primeira onda do cerco. A parcela alterada é
+`(máximo dos totais − interseção por unidade/posto) / máximo dos totais`;
+exige estritamente mais de 3/5, ambos os exércitos não vazios e vitória no cerco.
+Trocar apenas nome ou comandante não conta. Redução de efetivo entre o ensaio e
+o cerco conta; perdas nas ondas seguintes não mudam o retrato. Sem ensaio
+registrado naquele ano, o Feito não é concedido.
+
+**G-17. Não inclusão de 'Avançar para o Degelo'.** _(Decisão 22 do ADR 0020 confirmada.)_
+Conforme a decisão 22 do ADR 0020 e o GDD §11.4, a mecânica "Avançar para o Degelo"
+não entra no jogo. O servidor é o relógio autoritativo e o calendário é sincronizado
+para todos os jogadores, preservando a semana de 7 dias reais no ritmo normal.
+Não há ordem que antecipe o fim do inverno ou pule o rescaldo.

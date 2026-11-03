@@ -40,6 +40,8 @@ import { settleTavern } from './tavernTurn';
 import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
 import { turnWages } from './wages';
+import { endYear } from './yearEnd';
+import { recordYearPopulation } from './yearStats';
 import type { GameEvent, GameState } from './types';
 
 function processCalendar(
@@ -64,6 +66,7 @@ function processCalendar(
     // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
     // Ameaça subir nesta virada, que já conta o tile.
     restoreTiles(draft, atMs, events);
+    endYear(draft, atMs, events);
     if (draft.siege?.result === 'fall' && draft.siege.year === date.year - 1) {
       const durationMs = balance.siege.reconstruction.days * DAY_MS;
       draft.settlement.reconstructionUntilMs = atMs + durationMs;
@@ -307,6 +310,7 @@ export function advanceWith(
     return { state, events: [] };
   }
   const draft = cloneState(state);
+  recordYearPopulation(draft);
   const events: GameEvent[] = [];
   // Um estado em repouso já passou por aqui e nada muda. Um estado que acabou de ser migrado
   // pode não estar em repouso pelas regras novas (inverno sem madeira, por exemplo): a fome e o

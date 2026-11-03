@@ -19,6 +19,7 @@ export const EVENT_TYPES = [
   'dayStarted',
   'seasonChanged',
   'yearStarted',
+  'yearEnded',
   'constructionStarted',
   'constructionAutoStarted',
   'constructionFinished',
@@ -245,6 +246,8 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   dayStarted: 'Amanhece o {dia}º dia {daEstacao} em {feudo}.',
   seasonChanged: 'Chega {aEstacao} a {feudo}.',
   yearStarted: 'Começa o ano {ano} da Casa de {feudo}.',
+  yearEnded:
+    'Encerra-se o ano {ano} da Casa de {feudo}. Os escribas registram {pontos} pontos e os Feitos do ano.',
   constructionStarted:
     'No {dia}º dia {daEstacao}, os pedreiros começaram a erguer {edificio} ao {nivel}º nível.',
   // A planejada marcada "iniciar quando houver recursos", iniciada pelo motor (GDD §6.3).

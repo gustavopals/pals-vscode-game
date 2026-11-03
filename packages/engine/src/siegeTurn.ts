@@ -17,6 +17,7 @@ import { realToGameMs } from './units';
 import { vigilAt } from './vigil';
 import { applyWallDamage, wallForBattle } from './wallRepair';
 import type { GameEvent, GameState, SiegeWaveNumber } from './types';
+import { recordYearFeint } from './yearStats';
 
 /** A primeira virada após a migração marca, sem cobrar uma Vigília já passada. */
 export function scheduleSiege(draft: GameState, atMs: number, events: GameEvent[]): void {
@@ -72,6 +73,7 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     },
     draft.settlement.militia?.count ?? 0,
   );
+  if (number === 1) recordYearFeint(draft, defender.posts);
   const { id, resolution } = fightBattle(draft, {
     mode: 'defense',
     player: defender,

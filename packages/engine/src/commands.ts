@@ -32,6 +32,7 @@ import { hireHero, holdFestival } from './tavernOrders';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 import { dismissHero } from './wages';
 import { announceRaids, markRehearsalAfterVigilChange } from './raids';
+import { recordYearPopulation } from './yearStats';
 
 /** Contexto resolvido pelo servidor e guardado com a ordem para replay. */
 export type CommandContext = {
@@ -213,6 +214,7 @@ export function applyCommand(
     );
   }
   const draft = cloneState(state);
+  recordYearPopulation(draft);
   const events: GameEvent[] = [];
   const wasFull = fullStores(draft);
   const rejection = dispatch(draft, command, nowMs, events, context);

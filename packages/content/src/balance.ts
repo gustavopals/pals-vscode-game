@@ -783,6 +783,16 @@ export type Balance = {
   readonly wall: WallDef;
   readonly horde: HordeMindDef;
   readonly omens: OmensDef;
+  /** Pontuação anual, sem efeito sobre o poder do feudo (proposta G-15). */
+  readonly score: {
+    readonly populationMax: number;
+    readonly battlesWon: number;
+    readonly expeditions: number;
+    readonly cards: number;
+    readonly siegeVictory: number;
+    readonly siegeGlorious: number;
+    readonly feat: number;
+  };
   readonly siege: {
     readonly waveIntervalRealMs: number;
     readonly fall: {
@@ -1425,6 +1435,16 @@ export const balance: Balance = {
       alertIncrease: { num: 1, den: 10 },
       guardIncreasePerAttempt: { num: 1, den: 10 },
     },
+  },
+  // Proposta G-15: pesos inteiros conservadores; não concede recurso ou Legado.
+  score: {
+    populationMax: 1,
+    battlesWon: 10,
+    expeditions: 5,
+    cards: 1,
+    siegeVictory: 100,
+    siegeGlorious: 50,
+    feat: 25,
   },
   siege: {
     waveIntervalRealMs: 60 * MINUTE_MS,
