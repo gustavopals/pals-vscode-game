@@ -194,10 +194,16 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
       expect(await lowContrast(page)).toEqual([]);
       await world.passTime(2 * MINUTE, page);
+      await page
+        .locator('.activitybar')
+        .getByRole('button', { name: /^Feudo/ })
+        .click();
+      await expect(page.locator('#sidebar')).toBeVisible();
       await tree(page)
         .locator('[data-node="siege"]')
         .getByText('Cerco do Inverno', { exact: true })
         .click();
+      await expect(page.locator('#sidebar')).toBeHidden();
       await expect(
         page.getByRole('heading', { name: 'Cerco do Inverno', exact: true }),
       ).toBeFocused();
