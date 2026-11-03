@@ -7,6 +7,7 @@ import {
 } from '@lotg/content';
 
 import { councilHeroWords } from './councilHeroes';
+import { councilOptionCost } from './councilWar';
 import { DAY_MS, isYearBoundary } from './clock';
 import { costView } from './costView';
 import {
@@ -108,7 +109,7 @@ function effectsText(
   timeScale: number,
   heroes: readonly CouncilHero[] = [],
 ): string {
-  const parts = positiveEntries(option.cost ?? {}).map(
+  const parts = positiveEntries(councilOptionCost(state, option)).map(
     ([resource, amount]) => `−${thousands(amount)} ${resourceName(resource)}`,
   );
   for (const effect of option.effects) {
@@ -203,7 +204,7 @@ function optionView(
   timeScale: number,
   heroes?: readonly CouncilHero[],
 ): CouncilOptionView {
-  const cost = costView(state, option.cost ?? {});
+  const cost = costView(state, councilOptionCost(state, option));
   const lock = optionLock(state, option);
   return {
     id: option.id,

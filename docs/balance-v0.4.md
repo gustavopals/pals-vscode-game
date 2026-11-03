@@ -1490,3 +1490,8 @@ entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
    a prontidão é consumida na primeira onda, com aptidão e posto reconferidos (J3-4).
    A convocação manual mantém suas regras. O cenário confere postos, trabalho,
    persistência e convocação real na batalha, inclusive sem Torre.
+
+4. Custos fixos e dinâmicos agora se somam por recurso, inclusive com efeitos
+   repetidos. A prova também encontrou a cotação dinâmica ausente no `ViewState`:
+   a obra dos corvos aparecia sem custo e como pagável, mesmo faltando madeira.
+   A visão usa a mesma cotação da resposta e informa o recurso que falta.

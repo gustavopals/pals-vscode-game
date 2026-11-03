@@ -5,6 +5,7 @@ import {
   itemRarities,
   items,
   omenTexts,
+  RESOURCE_IDS,
   WING_IDS,
   type CouncilCard,
   type CouncilEffect,
@@ -43,17 +44,22 @@ export const armyHasRoom = (state: GameState, amount: number) =>
 /** Custos variáveis são cotados de novo na resposta, pelo mesmo caminho das ordens. */
 export function councilOptionCost(state: GameState, option: CouncilOption): ResourceAmounts {
   const cost = { ...option.cost };
+  const add = (extra: ResourceAmounts) => {
+    for (const resource of RESOURCE_IDS) {
+      const amount = extra[resource];
+      if (amount !== undefined) cost[resource] = (cost[resource] ?? 0) + amount;
+    }
+  };
   for (const effect of option.effects) {
     if (effect.type === 'startBuilding')
-      Object.assign(
-        cost,
-        upgradeQuote(state, effect.building, remainingFactor(effect.discount)).cost,
-      );
+      add(upgradeQuote(state, effect.building, remainingFactor(effect.discount)).cost);
     if (effect.type === 'repairWall') {
       const quote = currentRepairQuote(state);
       const factor = remainingFactor(effect.discount);
-      cost.stone = Math.floor((quote.stone * factor.num) / factor.den);
-      cost.gold = Math.floor((quote.gold * factor.num) / factor.den);
+      add({
+        stone: Math.floor((quote.stone * factor.num) / factor.den),
+        gold: Math.floor((quote.gold * factor.num) / factor.den),
+      });
     }
   }
   return cost;
