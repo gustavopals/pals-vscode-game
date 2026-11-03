@@ -1484,3 +1484,9 @@ entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
    troca real de tipo entre postos, conservando o total e a fronteira exata 60%/65%;
    três casos novos vedam o prêmio por mero reforço ou baixas. Não houve folga no
    limiar nem mudança de combate.
+
+3. A vigília da véspera aplicava 50% e tirava trabalhadores na resposta. A ficha
+   aprovada §11.5 pede 25% e produção até o combate. O valor está em `content`;
+   a prontidão é consumida na primeira onda, com aptidão e posto reconferidos (J3-4).
+   A convocação manual mantém suas regras. O cenário confere postos, trabalho,
+   persistência e convocação real na batalha, inclusive sem Torre.

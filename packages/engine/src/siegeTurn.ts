@@ -12,6 +12,7 @@ import { releaseExcessWorkers } from './population';
 import { buildDefender, toHordePosts } from './raidArmy';
 import { finishSiege } from './siegeOutcome';
 import { preparedSiegeWaves, winterStartsAt } from './siege';
+import { callMilitia, readyMilitiaCount } from './siegeOrders';
 import { watchtowerLevel, watchtowerPerks, watchtowerWarningMs } from './threat';
 import { realToGameMs } from './units';
 import { vigilAt } from './vigil';
@@ -69,6 +70,15 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
   )
     return;
   const number = (siege.current + 1) as SiegeWaveNumber;
+  if (number === 1) {
+    const prepared =
+      draft.stats.militiaReadyYear === siege.year ? (draft.stats.militiaReady ?? 0) : 0;
+    delete draft.stats.militiaReady;
+    delete draft.stats.militiaReadyYear;
+    const amount = Math.min(prepared, readyMilitiaCount(draft));
+    // Reconfere aptidão, limite e posto no instante da batalha; não duplica milícia já convocada.
+    if (amount > 0) callMilitia(draft, amount, atMs, events, true);
+  }
   const wave = siege.waves.find((w) => w.number === number)!;
   const formationId = siege.plan[number] ?? draft.army.activeFormationId;
   const formation = draft.army.formations.find((f) => f.id === formationId) ?? null;

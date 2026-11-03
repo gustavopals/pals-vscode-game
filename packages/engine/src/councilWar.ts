@@ -19,9 +19,8 @@ import { stowItem } from './equipment';
 import { traitLabel } from './heroes';
 import { omenText } from './hordeMind';
 import { nextId } from './ids';
-import { ableVillagers } from './population';
 import { baseRaidComposition } from './raidArmy';
-import { callMilitia } from './siegeOrders';
+import { callMilitia, readyMilitiaCount } from './siegeOrders';
 import { sightedRaid } from './threat';
 import type { GameEvent, GameState } from './types';
 import { wallHpPerWing } from './wall';
@@ -109,13 +108,7 @@ export function councilWarLock(state: GameState, option: CouncilOption): string 
       return 'requer o Rescaldo do cerco';
     if (effect.type === 'militiaReady') {
       const probe = JSON.parse(JSON.stringify(state)) as GameState;
-      const max = Math.min(
-        ableVillagers(state),
-        Math.floor(
-          (state.settlement.population.villagers * balance.army.militia.maxShare.num) /
-            balance.army.militia.maxShare.den,
-        ),
-      );
+      const max = readyMilitiaCount(state);
       const blocked = callMilitia(probe, max, state.lastProcessedAt, [], true);
       if (blocked !== null) return blocked.message;
     }
@@ -292,19 +285,8 @@ export function applyCouncilWarEffect(
         };
       break;
     case 'militiaReady':
-      callMilitia(
-        draft,
-        Math.min(
-          ableVillagers(draft),
-          Math.floor(
-            (draft.settlement.population.villagers * balance.army.militia.maxShare.num) /
-              balance.army.militia.maxShare.den,
-          ),
-        ),
-        atMs,
-        events,
-        true,
-      );
+      draft.stats.militiaReady = readyMilitiaCount(draft);
+      draft.stats.militiaReadyYear = draft.siege!.year;
       break;
   }
 }

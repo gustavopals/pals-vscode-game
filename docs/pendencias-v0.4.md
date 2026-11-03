@@ -827,3 +827,12 @@ as proporções de cada tipo em cada posto, incluindo milícia. Calcula-se em in
 o limite continua estritamente maior que 3/5 e pede dois exércitos não vazios e vitória.
 Uma tropa idêntica que apenas perdeu ou ganhou efetivo não concede o Feito. Trocar
 só o nome ou os comandantes também continua sem contar.
+
+
+**J3-4. Prontidão da milícia da véspera.** _(Proposta do agente; não lida pelo autor.)_
+A ficha §11.5 aprovada limita a 25% e conserva o trabalho até a batalha. O limite
+preparado e o ano ficam no mapa numérico `stats` já existente, sem campo novo na
+forma do estado. Na primeira onda consome-se esse registro e confere-se novamente
+aptidão, posto e 25% da população atual: vale o menor entre o preparado e o limite
+atual, sem duplicar milícia que o jogador convocou por outra ordem. O registro é
+apagado mesmo se o posto deixou de estar livre; não passa para outra onda ou ano.

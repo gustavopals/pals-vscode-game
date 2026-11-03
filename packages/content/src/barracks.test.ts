@@ -45,6 +45,7 @@ describe('Quartel (GDD §6.1 e §6.2; ADR 0019, decisão 7)', () => {
       campaign: balance.army.campaign,
       militia: {
         maxShare: { num: 1, den: 2 },
+        readyShare: { num: 1, den: 4 },
         unit: 'militia',
         takesDamage: { num: 5, den: 4 },
       },

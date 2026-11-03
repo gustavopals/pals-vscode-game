@@ -797,6 +797,7 @@ const balanceFields = z.strictObject({
     reportsKept: positiveInt,
     militia: z.strictObject({
       maxShare: ratio,
+      readyShare: ratio,
       unit: z.literal('militia'),
       takesDamage: ratio,
     }),

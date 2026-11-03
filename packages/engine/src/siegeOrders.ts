@@ -12,6 +12,15 @@ import { wallFullHp } from './wall';
 import { currentRepairQuote, wallRepairBlocked } from './wallRepair';
 import type { GameEvent, GameState, SiegeRejection, SiegeWaveNumber } from './types';
 
+/** Ficha 11.5: a prontidão reserva um limite; o trabalho só para ao começar a batalha. */
+export function readyMilitiaCount(state: GameState): number {
+  const share = balance.army.militia.readyShare;
+  return Math.min(
+    ableVillagers(state),
+    Math.floor((state.settlement.population.villagers * share.num) / share.den),
+  );
+}
+
 function formationValid(draft: GameState, id: unknown): boolean {
   return id === null || (typeof id === 'string' && draft.army.formations.some((f) => f.id === id));
 }

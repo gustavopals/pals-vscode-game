@@ -610,6 +610,8 @@ export type ArmyDef = {
   readonly reportsKept: number;
   readonly militia: {
     readonly maxShare: Ratio;
+    /** Ficha 11.5: aldeões preparados pela vigília, sem parar o trabalho até a batalha. */
+    readonly readyShare: Ratio;
     readonly unit: 'militia';
     readonly takesDamage: Ratio;
   };
@@ -1389,6 +1391,7 @@ export const balance: Balance = {
     reportsKept: 3,
     militia: {
       maxShare: { num: 1, den: 2 },
+      readyShare: { num: 1, den: 4 },
       unit: 'militia',
       takesDamage: { num: 5, den: 4 },
     },
