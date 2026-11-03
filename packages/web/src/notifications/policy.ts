@@ -16,7 +16,7 @@ import { CARAVAN_ICON, MARKET_ICON, MASTER_ICON } from '../ui/market';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { SMITHY_ICON } from '../ui/smithy';
-import { ARMY_ICON } from '../ui/army';
+import { ARMY_ICON, isCampAssaultDuplicate } from '../ui/army';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
@@ -93,6 +93,8 @@ const ARMY: ReadonlyArray<GameEvent['type']> = [
   'trainingShortfall',
   'omenSeen',
   'battleFought',
+  'campAssaulted',
+  'armyReturned',
 ];
 /** O que é da muralha e dos tiles de guerra: o aviso leva ao painel da Ameaça. */
 const WALL: ReadonlyArray<GameEvent['type']> = [
@@ -119,6 +121,8 @@ const GUILD: ReadonlyArray<GameEvent['type']> = [
   'commanderInjured',
   'heroLeveledUp',
   'itemFound',
+  'hordeSabotaged',
+  'hordeAlerted',
 ];
 /** O desfecho de uma incursão: depois dele, o alarme que a anunciou já não tem o que avisar. */
 const RAID_OUTCOMES: ReadonlyArray<GameEvent['type']> = ['raidSuffered', 'raidRepelled'];
@@ -209,6 +213,12 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'wallRepaired',
   'campAppeared',
   'fortressAppeared',
+  // Os efeitos da sabotagem e a volta dos esquadrões têm notícia própria; o ataque só fala
+  // quando o mesmo lote não trouxe o relato mais completo de `battleFought`.
+  'hordeSabotaged',
+  'hordeAlerted',
+  'campAssaulted',
+  'armyReturned',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -242,6 +252,10 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   omenSeen: THREAT_ICON,
   campAppeared: THREAT_ICON,
   fortressAppeared: THREAT_ICON,
+  hordeSabotaged: GUILD_ICON,
+  hordeAlerted: THREAT_ICON,
+  campAssaulted: 'sword',
+  armyReturned: ARMY_ICON,
   // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
   objectiveCompleted: OBJECTIVE_DONE_ICON,
   // O soldo e a equipe levam a bússola da Guilda; quem chega e quem parte, a pessoa.
@@ -690,6 +704,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
+      !isCampAssaultDuplicate(event, input.events) &&
       input.unshown?.(event) !== true &&
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
       !(isObjectiveCompleted(event) && event !== firstObjective) &&

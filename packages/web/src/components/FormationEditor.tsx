@@ -189,6 +189,11 @@ export function FormationEditor(props: {
       <h3 id="formation-editor-title">
         {isNew ? 'Nova formação' : `Editando: ${saved?.name ?? draft.name}`}
       </h3>
+      {army.editor.warning !== null ? (
+        <p class="warning" data-testid="formation-editor-warning">
+          <Icon name="warning" /> {army.editor.warning}
+        </p>
+      ) : null}
       <div class="trade-amount">
         <label for="formation-name">Nome da formação</label>
         <input

@@ -756,6 +756,22 @@ describe('ordens ao feudo', () => {
 });
 
 describe('avisos de acontecimentos', () => {
+  it.each([
+    ['hordeSabotaged', 'guild'],
+    ['hordeAlerted', 'guild'],
+    ['campAssaulted', 'army'],
+    ['armyReturned', 'army'],
+  ] as const)('o aviso %s leva à aba %s', async (type, route) => {
+    const made = await opened({ now: () => NOON });
+    await made.controller.setPreferences({ notifications: 'all' });
+    made.controller.navigate('settings');
+    await deliver(made, gameEvent(1, type, 'Notícia da campanha.'));
+    const action = made.controller.toasts[0]?.actions.find((item) => item.label === 'Ver');
+    expect(action).toBeDefined();
+    await action?.run();
+    expect(made.controller.route).toBe(route);
+  });
+
   it('com "todas", 5 obras em uma hora dão 3 avisos e badge 2', async () => {
     let clock = NOON;
     const made = await opened({ now: () => clock });

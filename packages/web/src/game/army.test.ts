@@ -1,4 +1,4 @@
-import type { GameEvent } from '@lotg/protocol';
+import type { GameEvent, ViewState } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import type { AccountState } from '../account/accountService';
@@ -14,6 +14,7 @@ import {
 } from '../notifications/policy';
 import {
   armyIdleView,
+  armyCampaignView,
   armyTrainingView,
   coldView,
   expeditionCrossroadsView,
@@ -23,7 +24,7 @@ import {
 } from '../test-helpers';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { rowActions } from '../workbench/Tree';
-import { beforeLeaving } from './beforeLeaving';
+import { beforeLeaving, leavingItems } from './beforeLeaving';
 import { guildDeadlines } from './gameSession';
 import { statusBar } from '../ui/format';
 import { buildReturnReport } from './returnReport';
@@ -173,6 +174,78 @@ describe('o ciclo de leitura e o fim do treino (V4C-T3.2)', () => {
     const { training } = armyTrainingView.army;
     expect(guildDeadlines(armyTrainingView)).toContain(training?.endsInSeconds);
     expect(guildDeadlines(armyIdleView)).not.toContain(null);
+  });
+
+  it('a campanha espera a batalha na marcha e o retorno na volta; ignora o zero já resolvido', () => {
+    const campaign = armyCampaignView.army.campaign!;
+    const marching = guildDeadlines(armyCampaignView);
+    expect(marching).toContain(campaign.battleInSeconds);
+    expect(marching).not.toContain(campaign.returnsInSeconds);
+    const returning: ViewState = {
+      ...armyCampaignView,
+      army: {
+        ...armyCampaignView.army,
+        campaign: { ...campaign, phase: 'returning', battleInSeconds: 0, returnsInSeconds: 5 },
+      },
+    };
+    expect(guildDeadlines(returning)).toContain(5);
+    expect(guildDeadlines(returning)).not.toContain(0);
+    expect(guildDeadlines(armyIdleView)).not.toContain(campaign.battleInSeconds);
+  });
+});
+
+describe('a campanha em Antes de partir (V4F-T3, revisão 2)', () => {
+  const campaign = armyCampaignView.army.campaign!;
+  const threat = threatIncomingView.threat;
+  if (!threat.known || threat.incoming === null) {
+    throw new Error('O cenário precisa de uma incursão conhecida na visão.');
+  }
+  const withRaid = (inSeconds: number, phase = campaign.phase): ViewState => ({
+    ...armyCampaignView,
+    army: { ...armyCampaignView.army, campaign: { ...campaign, phase } },
+    threat: {
+      ...threat,
+      incoming: { ...threat.incoming!, inSeconds },
+    },
+  });
+
+  it.each(['marching', 'returning'] as const)(
+    'a incursão antes do retorno é perigo, mesmo com Defesa ativa e campanha %s',
+    (phase) => {
+      const raid = beforeLeaving(withRaid(3600, phase))[0];
+      expect(raid).toMatchObject({
+        id: 'raid',
+        severity: 'danger',
+        command: { id: 'lords.openPanel', arg: 'army', label: 'Ver o Exército' },
+      });
+      expect(raid?.text).toContain(campaign.text);
+      expect(raid?.text).toContain('Retorno em 2 h');
+      expect(raid?.text).toContain('Soldados e comandantes em campanha não defendem o feudo');
+      expect(raid?.text).not.toContain('Nenhuma formação guarda o feudo');
+      expect(leavingItems(withRaid(3600)).some((item) => item.id === 'army-campaign')).toBe(false);
+    },
+  );
+
+  it('a incursão no mesmo instante do retorno ainda encontra os esquadrões fora', () => {
+    expect(beforeLeaving(withRaid(7200))[0]?.severity).toBe('danger');
+    const after = leavingItems(withRaid(7201)).find((item) => item.id === 'raid');
+    expect(after?.severity).toBe('warning');
+    expect(after?.text).not.toContain(campaign.text);
+    expect(after?.command.arg).toBe('threat');
+  });
+
+  it('sem incursão conhecida, lembra a ausência sem inventar ataque ou falta de Defesa ativa', () => {
+    const items = leavingItems(armyCampaignView);
+    const away = items.find((item) => item.id === 'army-campaign');
+    expect(away).toMatchObject({
+      severity: 'warning',
+      command: { id: 'lords.openPanel', arg: 'army' },
+    });
+    expect(away?.text).toContain(campaign.text);
+    expect(away?.text).toContain('Retorno em 2 h');
+    expect(items.map((item) => item.id)).not.toContain('raid');
+    expect(items.map((item) => item.id)).not.toContain('army-defense');
+    expect(leavingItems(armyIdleView).map((item) => item.id)).not.toContain('army-campaign');
   });
 });
 

@@ -9,7 +9,8 @@ type Army = ViewState['army'];
 /**
  * O Conselho de Guerra de uma formação salva (GDD §13.4): a prévia mais recente que o servidor
  * guardou, em percentual, o risco em uma frase e as perdas esperadas por posto. Nada é calculado
- * aqui: os números e as frases vêm da visão. "Simular" é uma ordem (trava `preview:<formação>`),
+ * aqui: os números e as frases vêm da visão. A simulação é de defesa do feudo, sem prévia
+ * ofensiva do Acampamento. "Simular defesa" é uma ordem (trava `preview:<formação>`),
  * e a prévia de uma formação que mudou depois fica marcada como desatualizada.
  */
 export function WarCouncilPanel(props: {
@@ -24,9 +25,19 @@ export function WarCouncilPanel(props: {
   const preview =
     army.preview !== null && army.preview.formationId === formationId ? army.preview : null;
   const working = formationId !== null && props.busy.has(`preview:${formationId}`);
+  const attacking = props.busy.has('campaign');
+  const assault =
+    saved === undefined
+      ? undefined
+      : army.campAssault.formations.find((entry) => entry.formationId === saved.id);
+  const canAttack = assault?.canAttack ?? false;
+  const attackBlocked = assault?.blockedReason ?? army.campAssault.blockedReason;
   return (
     <section class="war-council" aria-labelledby="war-council-title" data-testid="war-council">
       <h3 id="war-council-title">Conselho de Guerra</h3>
+      <p class="muted" data-testid="war-preview-scope">
+        <strong>Prévia de defesa do feudo.</strong> O ataque ao Acampamento ainda não tem prévia.
+      </p>
       {saved === undefined ? (
         <p class="muted" data-testid="war-council-unsaved">
           Salve a formação para ouvir o Conselho de Guerra.
@@ -40,10 +51,25 @@ export function WarCouncilPanel(props: {
             aria-busy={working}
             onClick={() => props.actions.run('lords.simulateBattle', { id: saved.id })}
           >
-            <Icon name="law" /> Simular
+            <Icon name="law" /> Simular defesa do feudo
+          </button>
+          <button
+            type="button"
+            data-testid="war-attack-camp"
+            disabled={props.disabled || working || attacking || !canAttack}
+            aria-busy={attacking}
+            title={attackBlocked ?? undefined}
+            onClick={() => props.actions.run('lords.attackCamp', { formationId: saved.id })}
+          >
+            <Icon name="sword" /> Atacar o Acampamento
           </button>
         </div>
       )}
+      {saved !== undefined && !canAttack && attackBlocked !== null ? (
+        <p class="blocked" data-testid="war-attack-blocked">
+          <Icon name="lock" /> {attackBlocked}
+        </p>
+      ) : null}
       {saved !== undefined && preview === null ? (
         <p class="muted" data-testid="war-council-empty">
           Nenhuma prévia desta formação ainda.
@@ -51,6 +77,11 @@ export function WarCouncilPanel(props: {
       ) : null}
       {saved !== undefined && preview !== null ? (
         <div data-testid="war-preview">
+          {preview.warning !== null ? (
+            <p class="warning" data-testid="war-preview-warning">
+              <Icon name="warning" /> {preview.warning}
+            </p>
+          ) : null}
           {saved.previewStale ? (
             <p class="blocked" data-testid="war-stale">
               <Icon name="warning" /> Prévia desatualizada: a formação mudou depois dela. Simule de

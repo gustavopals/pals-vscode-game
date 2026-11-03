@@ -26,6 +26,7 @@ import {
 import {
   busyQueues,
   capitalize,
+  formatApprox,
   formatCost,
   formatDuration,
   formatNumber,
@@ -63,6 +64,7 @@ import {
   reportAnchor,
   REPORTS_ANCHOR,
   REPORTS_SECTION,
+  sabotageStatus,
   sendable,
   slotLine,
   teamFit,
@@ -131,6 +133,8 @@ import {
   ARMY_ANCHOR,
   ARMY_ICON,
   ARMY_SECTION,
+  BATTLE_REPORTS_ANCHOR,
+  battleReportAnchor,
   batchAmount,
   disbandLine,
   offerOf,
@@ -1777,7 +1781,7 @@ export function createCommands(
   });
 
   /**
-   * "Simular batalha…" (V4D-T4): a prévia do Conselho de Guerra de uma formação salva. O painel
+   * "Simular defesa do feudo…" (V4D-T4): a prévia defensiva de uma formação salva. O painel
    * manda o `id`; a paleta pergunta qual. A formação é conferida de novo depois do diálogo.
    */
   const simulateBattle = oneAtATime(
@@ -1800,7 +1804,7 @@ export function createCommands(
         typeof record.id === 'string'
           ? record.id
           : await dialogs.pick<string>({
-              title: 'Simular batalha',
+              title: 'Simular defesa do feudo',
               placeholder: 'Qual formação?',
               items: view.army.formations.map((entry) => ({
                 icon: ARMY_ICON,
@@ -1827,6 +1831,170 @@ export function createCommands(
       await controller.simulateBattle(id);
     },
     (arg) => `simulate:${String(formationArg(arg).id ?? '')}`,
+  );
+
+  /** A disponibilidade de marcha é relida depois de cada diálogo, inclusive a confirmação. */
+  const marchReady = (formationId: string) => {
+    const army = controller.view?.army;
+    if (army === undefined) {
+      return null;
+    }
+    const formation = army.formations.find((entry) => entry.id === formationId);
+    if (formation === undefined) {
+      controller.toast({
+        kind: 'info',
+        text: 'A formação já não existe. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return null;
+    }
+    const offer = army.campAssault.formations.find((entry) => entry.formationId === formationId);
+    if (army.campaign !== null || offer?.canAttack !== true) {
+      controller.toast({
+        kind: 'warning',
+        text:
+          army.campaign?.text ??
+          offer?.blockedReason ??
+          army.campAssault.blockedReason ??
+          'Esta formação não pode marchar agora. Nada foi enviado.',
+        actions: [seeArmy],
+      });
+      return null;
+    }
+    return { army, formation };
+  };
+
+  /** Só a formação e a viagem conferidas; outras mudanças do feudo não invalidam a revisão. */
+  const assaultReview = ({ army, formation }: NonNullable<ReturnType<typeof marchReady>>) =>
+    JSON.stringify({
+      name: formation.name,
+      posts: formation.posts,
+      commanders: formation.commanders,
+      total: formation.total,
+      shortfall: formation.shortfall,
+      travelSeconds: army.campAssault.travelSeconds,
+      totalSeconds: army.campAssault.totalSeconds,
+    });
+
+  /**
+   * "Atacar o Acampamento…" (V4F-T3): a campanha ofensiva contra os saqueadores. O painel manda a
+   * formação; a paleta pergunta qual, com a lista das que podem marchar. A confirmação avisa por
+   * quanto tempo os esquadrões ficam fora.
+   */
+  const attackCamp = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const { army } = view;
+      if (army.campaign !== null) {
+        controller.toast({
+          kind: 'warning',
+          text: army.campaign.text,
+          actions: [seeArmy],
+        });
+        return;
+      }
+      if (
+        army.campAssault.blockedReason !== null &&
+        army.campAssault.formations.every((f) => !f.canAttack)
+      ) {
+        controller.toast({
+          kind: 'warning',
+          text: army.campAssault.blockedReason,
+          actions: [seeArmy],
+        });
+        return;
+      }
+
+      const rawId =
+        typeof arg === 'object' && arg !== null
+          ? ((arg as Record<string, unknown>).formationId ?? (arg as Record<string, unknown>).id)
+          : undefined;
+      let formationId = typeof rawId === 'string' ? rawId : undefined;
+
+      if (formationId === undefined) {
+        if (army.formations.length === 0) {
+          controller.toast({
+            kind: 'info',
+            text: 'Não há formação salva para marchar. Monte uma no editor do Exército.',
+            actions: [seeArmy],
+          });
+          return;
+        }
+        const picked = await dialogs.pick<{ formationId: string }>({
+          title: 'Atacar o Acampamento',
+          placeholder: 'Com qual formação?',
+          detail: [army.campAssault.text],
+          items: army.formations.map((f) => {
+            const assault = army.campAssault.formations.find((entry) => entry.formationId === f.id);
+            const can = assault?.canAttack ?? false;
+            return {
+              icon: can ? 'sword' : 'lock',
+              label: f.name,
+              description: can ? 'Pronta para marchar' : (assault?.blockedReason ?? 'Indisponível'),
+              value: { formationId: f.id },
+            };
+          }),
+        });
+        if (picked === undefined) {
+          return;
+        }
+        formationId = picked.formationId;
+      }
+
+      if (!sameGame(gameId)) {
+        sessionEnded('o ataque ao Acampamento');
+        return;
+      }
+
+      const current = marchReady(formationId);
+      if (current === null) {
+        return;
+      }
+      const reviewed = assaultReview(current);
+      const durationText = formatApprox(current.army.campAssault.totalSeconds);
+      const confirmed = await dialogs.confirm({
+        title: 'Atacar o Acampamento?',
+        detail: [
+          `O feudo fica sem estes esquadrões por ${durationText}.`,
+          `Formação: ${current.formation.name}.`,
+          ...current.formation.posts.map(
+            (post) => `${post.wingLabel}, ${post.lineLabel}: ${post.text}`,
+          ),
+          ...current.formation.commanders
+            .filter((commander) => commander.heroId !== null)
+            .map((commander) => `${commander.wingLabel}: ${commander.heroName}`),
+        ],
+        confirmLabel: 'Atacar o Acampamento',
+        cancelLabel: 'Desistir',
+      });
+      if (!confirmed) {
+        return;
+      }
+
+      if (!sameGame(gameId)) {
+        sessionEnded('o ataque ao Acampamento');
+        return;
+      }
+
+      const latest = marchReady(formationId);
+      if (latest === null) {
+        return;
+      }
+      if (assaultReview(latest) !== reviewed) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A formação ou o prazo da campanha mudou enquanto você decidia. Nada foi enviado: confira o ataque de novo.',
+          actions: [seeArmy],
+        });
+        return;
+      }
+      await controller.attackCamp(formationId);
+    },
+    () => 'campaign',
   );
 
   const deleteFormation = oneAtATime(
@@ -2872,6 +3040,11 @@ export function createCommands(
           placeholder: 'Para onde?',
           detail: [guild.text],
           items: guild.available.map((entry) => {
+            const sab = entry.sabotage !== null ? sabotageStatus(entry.sabotage) : null;
+            const sabDetail =
+              sab === null
+                ? null
+                : `${sab.attemptsText} ${sab.wavesText}${sab.alertText ? ` ${sab.alertText}` : ''}`;
             return {
               // Cadeado: o destino não pode partir agora, e o detalhe diz por quê.
               icon: canSend(entry) ? 'check' : 'lock',
@@ -2881,6 +3054,7 @@ export function createCommands(
                 blockedReason(entry),
                 entry.requirementsText,
                 entry.firstStretchText,
+                sabDetail,
                 entry.durationNote === '' ? null : entry.durationNote,
               ]
                 .filter((line) => line !== null)
@@ -3669,10 +3843,17 @@ export function createCommands(
     },
     {
       id: 'lords.simulateBattle',
-      title: 'Simular batalha…',
+      title: 'Simular defesa do feudo…',
       palette: true,
       when: hasGame,
       run: simulateBattle,
+    },
+    {
+      id: 'lords.attackCamp',
+      title: 'Atacar o Acampamento…',
+      palette: true,
+      when: hasGame,
+      run: attackCamp,
     },
     {
       id: 'lords.deleteFormation',
@@ -3921,6 +4102,15 @@ export function createCommands(
     }),
     hidden('lords.openReport', openReport),
     hidden('lords.refreshKingdom', () => controller.loadStats(true)),
+
+    hidden('lords.openBattleReport', (arg) => {
+      const reports = controller.view?.army.reports ?? [];
+      const kept = typeof arg === 'string' && reports.some((report) => report.id === arg);
+      controller.navigate('army');
+      env.reveal(
+        kept ? battleReportAnchor(arg) : reports.length > 0 ? BATTLE_REPORTS_ANCHOR : ARMY_ANCHOR,
+      );
+    }),
     hidden('lords.workersIncrease', step(1)),
     hidden('lords.workersDecrease', step(-1)),
     hidden('lords.showCommands', () => env.openPalette()),

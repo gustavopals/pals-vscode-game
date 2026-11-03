@@ -42,6 +42,7 @@ import {
   outcomeIsBad,
   reportOf,
   rescueDestination,
+  sabotageStatus,
   sendable,
   slotLine,
   stretchEnds,
@@ -547,5 +548,35 @@ describe('a leitura seguinte vem antes nos prazos das expedições', () => {
     // E entram nos prazos da Guilda que a sessão lê.
     expect(guildDeadlines(expeditionCrossroadsView)).toContain(40_798);
     expect(guildDeadlines(heroInjuredView)).toContain(1800);
+  });
+});
+
+describe('a sabotagem da Fortaleza como texto (V4F-T3)', () => {
+  it('mostra tentativas restantes, ondas enfraquecidas e aviso de alerta', () => {
+    const status1 = sabotageStatus({
+      attemptsLeft: 3,
+      wavesWeakened: [],
+      alerted: false,
+    });
+    expect(status1.attemptsText).toBe('3 tentativas restantes este ano.');
+    expect(status1.wavesText).toBe('Nenhuma onda enfraquecida ainda.');
+    expect(status1.alertText).toBeNull();
+
+    const status2 = sabotageStatus({
+      attemptsLeft: 1,
+      wavesWeakened: [1, 2],
+      alerted: true,
+    });
+    expect(status2.attemptsText).toBe('1 tentativa restante este ano.');
+    expect(status2.wavesText).toBe('Ondas enfraquecidas: onda 1, onda 2.');
+    expect(status2.alertText).toBe('A Horda está em alerta: a primeira onda virá reforçada.');
+
+    const status3 = sabotageStatus({
+      attemptsLeft: 0,
+      wavesWeakened: [1, 2, 3],
+      alerted: false,
+    });
+    expect(status3.attemptsText).toBe('Nenhuma tentativa restante este ano.');
+    expect(status3.wavesText).toBe('Ondas enfraquecidas: onda 1, onda 2, onda 3.');
   });
 });

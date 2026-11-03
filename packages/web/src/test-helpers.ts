@@ -1045,3 +1045,36 @@ export const armyTrainingView: ViewState = {
     },
   },
 };
+
+/** Uma Defesa ativa cujos esquadrões estão em campanha; os prazos já vêm em segundos reais. */
+export const armyCampaignView: ViewState = {
+  ...armyIdleView,
+  army: {
+    ...armyIdleView.army,
+    formations: [
+      {
+        id: 'formation-1',
+        name: 'Vanguarda',
+        isActive: true,
+        previewStale: false,
+        total: 3,
+        posts: [],
+        commanders: [],
+        shortfall: [],
+        shortfallText: '',
+        canDelete: true,
+      },
+    ],
+    campaign: {
+      formationId: 'formation-1',
+      formationName: 'Vanguarda',
+      tile: 'raiderCamp',
+      destination: 'Acampamento de Saqueadores',
+      phase: 'marching',
+      text: 'O exército segue para o Acampamento de Saqueadores.',
+      battleInSeconds: 3600,
+      returnsInSeconds: 7200,
+      reportId: null,
+    },
+  },
+};

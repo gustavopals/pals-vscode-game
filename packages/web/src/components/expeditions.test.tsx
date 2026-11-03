@@ -896,3 +896,51 @@ describe('a aba Hoje: a encruzilhada é uma decisão pendente (V3D-T4.3)', () =>
     expect(buttons(markup).map((button) => button.label)).toContain('Escolher caminho');
   });
 });
+
+describe('a sabotagem no painel de destinos (V4F-T3)', () => {
+  it('exibe o contador de tentativas, ondas enfraquecidas e o alerta', () => {
+    const base = expeditionTravelingView;
+    const sabotageDestination = {
+      modelId: 'sabotage',
+      label: 'Sabotagem da Fortaleza',
+      riskText: 'Alto',
+      durationSeconds: 18000,
+      durationNote: '',
+      requirementsText: 'Equipe: 3 heróis.',
+      teamMin: 3,
+      teamMax: 3,
+      teamMinLevel: 1,
+      firstStretchDifficulty: 120,
+      fit: null,
+      heroFit: [],
+      locked: false,
+      lockedReason: null,
+      eligibleHeroIds: [],
+      canSend: false,
+      suggestedTeam: [],
+      sendBlockedReason: 'Nenhuma equipe serve.',
+      firstStretchText: 'O parapeito ruído.',
+      rescue: false,
+      sabotage: {
+        attemptsLeft: 2,
+        wavesWeakened: [1],
+        alerted: true,
+      },
+    };
+    const view: ViewState = {
+      ...base,
+      guild: {
+        ...base.guild,
+        available: [...base.guild.available, sabotageDestination],
+      },
+    };
+    const markup = html(
+      <ExpeditionsPanel view={view} elapsed={0} disabled={false} busy={NONE} actions={actions} />,
+    );
+    const rendered = text(markup);
+    expect(rendered).toContain('Sabotagem da Fortaleza');
+    expect(rendered).toContain('2 tentativas restantes este ano.');
+    expect(rendered).toContain('Ondas enfraquecidas: onda 1.');
+    expect(rendered).toContain('A Horda está em alerta: a primeira onda virá reforçada.');
+  });
+});

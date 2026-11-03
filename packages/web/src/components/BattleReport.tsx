@@ -1,5 +1,6 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { BATTLE_REPORTS_ANCHOR, battleReportAnchor } from '../ui/army';
 import { Icon } from './shared';
 
 type Report = ViewState['army']['reports'][number];
@@ -15,7 +16,7 @@ export function BattleReport(props: { report: Report; onAdjust: (formationId: st
   const adjust = report.adjustFormationId;
   return (
     <article class="battle-report" data-testid="battle-report" aria-label={report.modeLabel}>
-      <h4>
+      <h4 id={battleReportAnchor(report.id)} tabIndex={-1}>
         {report.modeLabel}: {report.outcomeLabel}
       </h4>
       <p class="muted">
@@ -106,8 +107,10 @@ export function BattleReports(props: {
     return null;
   }
   return (
-    <section class="battle-reports" aria-labelledby="battle-reports-title">
-      <h3 id="battle-reports-title">Relatórios de batalha</h3>
+    <section class="battle-reports" aria-labelledby={BATTLE_REPORTS_ANCHOR}>
+      <h3 id={BATTLE_REPORTS_ANCHOR} tabIndex={-1}>
+        Relatórios de batalha
+      </h3>
       {props.reports.map((report) => (
         <BattleReport key={report.id} report={report} onAdjust={props.onAdjust} />
       ))}

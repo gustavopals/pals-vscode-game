@@ -1,4 +1,4 @@
-import type { ViewState } from '@lotg/protocol';
+import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import {
   activeFormation,
@@ -8,6 +8,7 @@ import {
   remainingNow,
 } from './format';
 import { parseAmount } from './market';
+import { domId } from './expeditions';
 
 /**
  * O Quartel e o exército como texto (GDD §10.2; ADR 0019, decisão 7): o que a aba Exército, a
@@ -27,9 +28,20 @@ export const ARMY_ICON = 'organization';
 /** A âncora do painel do Quartel na aba Exército e o argumento de `lords.openPanel`. */
 export const ARMY_ANCHOR = 'army-title';
 export const ARMY_SECTION = 'army';
+export const BATTLE_REPORTS_ANCHOR = 'battle-reports-title';
+export const battleReportAnchor = (battleId: string): string =>
+  domId('battle-report', battleId, 'title');
 
 /** O prefixo das linhas da árvore. */
 export const ARMY_NODE = 'army';
+
+/** O relato específico do Acampamento não repete a mesma batalha já contada neste lote. */
+export const isCampAssaultDuplicate = (event: GameEvent, events: readonly GameEvent[]): boolean =>
+  event.type === 'campAssaulted' &&
+  typeof event.data.battleId === 'string' &&
+  events.some(
+    (entry) => entry.type === 'battleFought' && entry.data.battleId === event.data.battleId,
+  );
 
 /** O Quartel está de pé. */
 export const hasBarracks = (army: Army): boolean => army.built;

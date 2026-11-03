@@ -9,7 +9,7 @@ import {
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
-import { ARMY_SECTION } from '../ui/army';
+import { ARMY_SECTION, isCampAssaultDuplicate } from '../ui/army';
 import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
@@ -145,6 +145,12 @@ export function costAction(
   if (topic === 'battle') {
     // A batalha já foi travada: o que se faz é ajustar a formação para a próxima.
     return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ajustar formação' };
+  }
+  if (topic === 'sabotage') {
+    return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
+  }
+  if (topic === 'campaign') {
+    return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver o Exército' };
   }
   if (topic === 'wall') {
     // A muralha que o item "Antes de partir" já oferece reparar tem o botão acima; sem ele (já
@@ -395,7 +401,15 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // A batalha travada na ausência (V4D-T3.3): a frase diz o desfecho e o que pesou. Toda
     // batalha é preço, mesmo a vencida: o exército pagou com baixas, e a próxima ação é a formação.
     case 'battleFought':
+    case 'campAssaulted':
       return { block: 'cost', topic: 'battle' };
+    case 'hordeSabotaged':
+      return { block: 'prospered', topic: 'sabotage' };
+    case 'hordeAlerted':
+      return { block: 'cost', topic: 'sabotage' };
+    // Voltar restitui os esquadrões ao feudo. O preço da batalha tem a própria linha acima.
+    case 'armyReturned':
+      return { block: 'prospered', topic: 'campaign' };
     // A muralha (V4E-T4): a vida que a batalha tirou é preço, com o botão do reparo; a que voltou
     // inteira é o feudo se recompondo. O presságio da Horda é aviso do que vem: pede o Exército.
     case 'wallDamaged':
@@ -539,6 +553,9 @@ export function buildBlocks(
   );
 
   for (const event of events) {
+    if (isCampAssaultDuplicate(event, events)) {
+      continue;
+    }
     if (objectives !== null && isObjectiveCompleted(event)) {
       continue;
     }
@@ -547,7 +564,16 @@ export function buildBlocks(
     if (place?.block === 'prospered' && place.topic === 'expedition' && journey !== null) {
       journeys.set(journey, [...(journeys.get(journey) ?? []), event]);
     } else if (place?.block === 'prospered') {
-      prospered.push({ at: event.seq, item: { text: event.text, topic: place.topic } });
+      prospered.push({
+        at: event.seq,
+        item: {
+          text: event.text,
+          topic: place.topic,
+          ...(place.topic === 'sabotage' || place.topic === 'campaign'
+            ? { action: costAction(after, place.topic) }
+            : {}),
+        },
+      });
     } else if (place?.block === 'cost' && event.type === 'expeditionLost' && journey !== null) {
       price(
         event.seq,

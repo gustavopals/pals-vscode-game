@@ -49,6 +49,9 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
   if (type === 'simulateBattle') {
     return `preview:${String(fields.formationId)}`;
   }
+  if (type === 'attackCamp') {
+    return 'campaign';
+  }
   if (type === 'setActiveFormation') {
     return 'formation:active';
   }
