@@ -675,7 +675,7 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   }
   if (view.siege !== null && view.siege.result === null) {
     if (view.siege.current > 0) {
-      const text = `Cerco · ${view.siege.current} ondas enfrentadas`;
+      const text = `Cerco · ${view.siege.current} ${view.siege.current === 1 ? 'onda enfrentada' : 'ondas enfrentadas'}`;
       return {
         bar: {
           text: `$(shield) ${text}`,

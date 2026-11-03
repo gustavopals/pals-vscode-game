@@ -330,13 +330,13 @@ describe('o Plano, as ondas e o rescaldo', () => {
     };
     const bar = statusBar({ ...input, view: waveFoughtView, elapsedSeconds: 0 });
     expect(bar).toMatchObject({
-      text: '$(shield) Cerco · 1 ondas enfrentadas',
+      text: '$(shield) Cerco · 1 onda enfrentada',
       target: 'siege',
     });
     expect(bar.tooltip).not.toContain('prepare o Plano');
     expect(bar.tooltip).toContain('Acompanhe na aba Exército');
     expect(documentTitle({ ...input, view: waveFoughtView, elapsedSeconds: 0 })).toBe(
-      'Cerco · 1 ondas enfrentadas · Pedra Alta · Lords of the Guild',
+      'Cerco · 1 onda enfrentada · Pedra Alta · Lords of the Guild',
     );
   });
 });

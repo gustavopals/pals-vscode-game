@@ -43,7 +43,8 @@ export function siegeSummary(view: ViewState, elapsed = 0): string | null {
   if (siege.result !== null) return siege.resultText;
   const decision = waveDecision(view);
   if (decision !== undefined) return waveDeadline(decision, elapsed);
-  if (siege.current > 0) return `Cerco · ${siege.current} ondas enfrentadas`;
+  if (siege.current > 0)
+    return `Cerco · ${siege.current} ${siege.current === 1 ? 'onda enfrentada' : 'ondas enfrentadas'}`;
   return `Cerco em ${formatRemaining(remainingNow(siege.scheduledInSeconds, elapsed))}`;
 }
 
