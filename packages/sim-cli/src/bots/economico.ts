@@ -14,7 +14,6 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartas,
-  responderCerco,
   montarFormacao,
   seguirObjetivos,
   treinarMinimo,

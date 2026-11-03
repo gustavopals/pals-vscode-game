@@ -33,6 +33,7 @@ import { clearedTiles, tileWithArticle } from './outcomes';
 import { baseRaidComposition } from './raidArmy';
 import { bandText, legacySize, raidInjures } from './raids';
 import {
+  sightedRaid,
   isThreatWatched,
   palisadeAgainst,
   palisadeLevel,
@@ -44,7 +45,6 @@ import {
   threatSources,
   watchtowerLevel,
   watchtowerPerks,
-  watchtowerWarningMs,
 } from './threat';
 import type {
   BuildingId,
@@ -585,21 +585,6 @@ function raidRiskView(
  * para a partida que foi anunciada com a antecedência de antes da mudança (ADR 0016, item 4):
  * uma incursão anunciada continua à vista. `null` sem Torre e sem incursão à vista.
  */
-function sightedRaid(state: GameState): ScheduledRaid | null {
-  const perks = watchtowerPerks(watchtowerLevel(state));
-  if (perks === null) {
-    return null;
-  }
-  const now = state.lastProcessedAt;
-  const warningMs = watchtowerWarningMs(state, perks);
-  const [raid] = state.horde.scheduledRaids
-    .filter(
-      (entry) =>
-        entry.atMs >= now && (entry.announcedAtMs !== null || entry.atMs - warningMs <= now),
-    )
-    .sort((a, b) => a.atMs - b.atMs);
-  return raid ?? null;
-}
 
 /**
  * A incursão que os vigias já avistaram (`sightedRaid`), em frases. O tamanho só sai com a Torre
@@ -633,7 +618,10 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
     costText: incomingCostText(state, raid.enemy, sizes, timeScale, raidInjures(raid)),
     // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
     defenseText: incomingDefenseText(palisadeAtRaid(state, raid.atMs), sizes),
-    compositionText: incomingCompositionText(raid, perks),
+    compositionText: incomingCompositionText(
+      raid,
+      state.council.bonuses.revealedRaidId === raid.id ? { ...perks, composition: 'exact' } : perks,
+    ),
   };
 }
 

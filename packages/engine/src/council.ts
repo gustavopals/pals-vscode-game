@@ -1,4 +1,13 @@
 import {
+  armyHasRoom,
+  inAftermath,
+  councilWarLock,
+  applyCouncilWarEffect,
+  councilOptionCost,
+} from './councilWar';
+import { sightedRaid } from './threat';
+import { wallMissingHp } from './wallRepair';
+import {
   balance,
   buildings,
   type CouncilCard,
@@ -23,7 +32,7 @@ import {
   councilHeroWords,
   freeCouncilHero,
 } from './councilHeroes';
-import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
+import { DAY_MS, YEAR_MS, yearOf, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
 import { amountsData, constructionOf, missingResources, payResources } from './construction';
 import { plural, thousands } from './format';
 import { rosterHasRoom, traitLabel } from './heroes';
@@ -130,6 +139,16 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
   }
   const { settlement, council } = state;
   if (
+    requires.tile !== undefined &&
+    !Object.values(state.map.tiles).some((tile) => tile.type === requires.tile && tile.threatActive)
+  )
+    return false;
+  if (requires.wallDamaged && wallMissingHp(state) === 0) return false;
+  if (requires.activeRaid && (state.army.activeFormationId === null || sightedRaid(state) === null))
+    return false;
+  if (requires.phase === 'aftermath' && !inAftermath(state)) return false;
+  if (requires.armyRoom !== undefined && !armyHasRoom(state, requires.armyRoom)) return false;
+  if (
     (requires.heroPresent !== undefined || requires.injuredHero === true) &&
     councilHeroCandidates(state, card).length < (requires.heroPresent ?? 1)
   )
@@ -218,7 +237,9 @@ export function scriptedCard(state: GameState, atMs: number, catalog: Catalog): 
       (card) =>
         card.scripted !== undefined &&
         scriptedDue(state, card.scripted, atMs) &&
-        timesDrawn(state, card.id) === 0 &&
+        (card.recurring === true
+          ? !state.council.seenThisYear.includes(card.id) && !isPending(state, card.id)
+          : timesDrawn(state, card.id) === 0) &&
         meetsRequirements(state, card, atMs),
     ) ?? null
   );
@@ -234,9 +255,26 @@ function scriptedDue(
   scripted: NonNullable<CouncilCard['scripted']>,
   atMs: number,
 ): boolean {
-  return 'atGameDay' in scripted
-    ? scripted.atGameDay <= gameDayAt(atMs)
-    : state.settlement.buildings.townHall >= scripted.onHallLevel;
+  if ('atGameDay' in scripted) return scripted.atGameDay <= gameDayAt(atMs);
+  if ('onHallLevel' in scripted) return state.settlement.buildings.townHall >= scripted.onHallLevel;
+  if ('beforeSiege' in scripted)
+    return (
+      state.siege !== null &&
+      state.siege.year === yearOf(atMs) &&
+      state.siege.current === 0 &&
+      state.siege.result === null &&
+      atMs < state.siege.atMs
+    );
+  const wanted = 'atSeasonStart' in scripted ? scripted.atSeasonStart : scripted.atSeasonEnd;
+  let days = 0;
+  for (const season of balance.calendar.seasons) {
+    if (season.id === wanted) {
+      if ('atSeasonEnd' in scripted) days += season.days - 1;
+      break;
+    }
+    days += season.days;
+  }
+  return atMs >= (scripted.year - 1) * YEAR_MS + days * DAY_MS;
 }
 
 /** As continuações cujo prazo já chegou em `atMs` e cuja carta ainda existe no catálogo. */
@@ -290,7 +328,10 @@ export function deliverCard(
     cardId: card.id,
     ...(heroes.length === 0 ? {} : { heroes }),
     drawnAtMs: atMs,
-    expiresAtMs: atMs + expiryMs(draft),
+    expiresAtMs:
+      card.scripted !== undefined && 'beforeSiege' in card.scripted
+        ? Math.min(atMs + expiryMs(draft), draft.siege!.atMs)
+        : atMs + expiryMs(draft),
     origin:
       'source' in origin
         ? null
@@ -344,6 +385,7 @@ export type Outcome = {
   soldiers: Array<{ unit: UnitId; amount: number }>;
   injuredHero: CouncilHero | null;
   healedHeroId: string | null;
+  events: GameEvent[];
 };
 
 export const noOutcome = (): Outcome => ({
@@ -357,6 +399,7 @@ export const noOutcome = (): Outcome => ({
   soldiers: [],
   injuredHero: null,
   healedHeroId: null,
+  events: [],
 });
 
 const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
@@ -541,7 +584,13 @@ export function applyEffects(
         break;
       }
       case 'addSoldiers': {
-        const granted = grantSoldiers(draft, effect.unit, effect.amount);
+        const granted =
+          effect.fromPopulation === false
+            ? armyHasRoom(draft, effect.amount)
+              ? effect.amount
+              : 0
+            : grantSoldiers(draft, effect.unit, effect.amount);
+        if (effect.fromPopulation === false) draft.army.units[effect.unit] += granted;
         if (granted > 0) {
           outcome.soldiers.push({ unit: effect.unit, amount: granted });
         }
@@ -558,6 +607,8 @@ export function applyEffects(
           outcome.masters.push(effect.masterId);
         }
         break;
+      default:
+        applyCouncilWarEffect(draft, effect, card, instanceId, atMs, outcome.events);
     }
   }
 }
@@ -573,6 +624,7 @@ function deliverOutcomeMasters(
   atMs: number,
   events: GameEvent[],
 ): void {
+  events.push(...outcome.events);
   if (outcome.healedHeroId !== null) recoverHeroes(draft, atMs, events);
   for (const masterId of outcome.masters) {
     deliverMaster(draft, masterId, atMs, events);
@@ -747,6 +799,8 @@ export function nextCouncilEventAt(state: GameState): number | null {
  * exige. O custo não entra aqui: quem não pode pagar vê o que falta, não uma tranca.
  */
 export function optionLock(state: GameState, option: CouncilOption): string | null {
+  const warLock = councilWarLock(state, option);
+  if (warLock !== null) return warLock;
   const { requires } = option;
   if (requires === undefined) {
     return null;
@@ -856,13 +910,16 @@ export function answerCard(
   if (lock !== null) {
     return reject('OPTION_LOCKED', { remedy: lock });
   }
+  // Obras e reparos pagam pela porta própria; os demais custos são cobrados aqui.
+  const dynamicCost = councilOptionCost(draft, option);
   const cost = option.cost ?? {};
-  const missing = missingResources(draft, cost);
+  const missing = missingResources(draft, dynamicCost);
   if (missing !== null) {
     return reject('INSUFFICIENT_RESOURCES', { missing });
   }
   const late = healerIsLate(draft, option, pending);
   payResources(draft, cost);
+  draft.settlement.weapons -= option.weaponsCost ?? 0;
   const speaker =
     option.requires?.heroTrait === undefined ? null : optionHero(draft, option.requires.heroTrait);
   council.pending.splice(index, 1);

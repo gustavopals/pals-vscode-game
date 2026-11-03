@@ -5,6 +5,8 @@ import type {
   HeroClassId,
   HeroTraitId,
   MarketResourceId,
+  ItemId,
+  TileTypeId,
   MasterId,
   NamedHeroId,
   Ratio,
@@ -40,10 +42,44 @@ export const COUNCIL_EFFECT_TYPES = [
   'tavernExtraOffer',
   'injureHero',
   'healHero',
+  'smithySpeed',
+  'smithyBatch',
+  'addItem',
+  'addWeapons',
+  'trainBoost',
+  'startBuilding',
+  'omen',
+  'threat',
+  'scheduleRaid',
+  'repairWall',
+  'healWall',
+  'revealRaid',
+  'repairDiscount',
+  'militiaReady',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
 export type CouncilImmediateEffect =
+  | { readonly type: 'smithySpeed'; readonly factor: Ratio; readonly durationDays: number }
+  | { readonly type: 'smithyBatch'; readonly extra: number; readonly durationDays: number }
+  | { readonly type: 'addItem'; readonly itemId: ItemId }
+  | { readonly type: 'addWeapons'; readonly amount: number }
+  | { readonly type: 'trainBoost'; readonly factor: Ratio }
+  | {
+      readonly type: 'startBuilding';
+      readonly building: BuildingId;
+      readonly level: number;
+      readonly discount: Ratio;
+    }
+  | { readonly type: 'omen'; readonly wave?: 1 | 2 | 3; readonly clarity: 1 | 3 | 5 }
+  | { readonly type: 'threat'; readonly delta: number }
+  | { readonly type: 'scheduleRaid'; readonly kind: 'weak'; readonly afterMs: number }
+  | { readonly type: 'repairWall'; readonly discount: Ratio }
+  | { readonly type: 'healWall'; readonly fraction: Ratio }
+  | { readonly type: 'revealRaid' }
+  | { readonly type: 'repairDiscount'; readonly points: number }
+  | { readonly type: 'militiaReady' }
+
   /**
    * Recursos, em unidades. Positivo é ganho: entra o que cabe no depósito, e o que não cabe é
    * desperdício contado (GDD §5.5). Negativo é perda: sai o que houver, e o estoque nunca fica
@@ -97,7 +133,12 @@ export type CouncilImmediateEffect =
    * (a mesma conta do fim do treino). A opção que os dá pede o Quartel e a vaga
    * (`requires.soldierRoom`), então o efeito nunca passa do teto nem do piso de aldeões.
    */
-  | { readonly type: 'addSoldiers'; readonly unit: UnitId; readonly amount: number }
+  | {
+      readonly type: 'addSoldiers';
+      readonly unit: UnitId;
+      readonly amount: number;
+      readonly fromPopulation?: false;
+    }
   /** Um candidato a mais só na próxima rotação; não aumenta o limite de contratação. */
   | { readonly type: 'tavernExtraOffer' }
   /** Fere de leve um dos participantes gravados na carta, escolhido na resolução do risco. */
@@ -123,6 +164,11 @@ export type CouncilEffect = CouncilImmediateEffect | CouncilRollEffect;
 
 /** Quando uma carta pode ser sorteada. Sem um campo, ele não restringe. */
 export type CouncilCardRequires = {
+  readonly tile?: TileTypeId;
+  readonly wallDamaged?: true;
+  readonly activeRaid?: true;
+  readonly phase?: 'aftermath';
+  readonly armyRoom?: number;
   readonly seasons?: readonly SeasonId[];
   /** O dia de jogo do feudo, a contar da fundação (o primeiro é 1), a partir do qual ela pode sair. */
   readonly minDay?: number;
@@ -146,6 +192,11 @@ export type CouncilCardRequires = {
 
 /** O que uma opção exige além do custo. Sem o requisito, ela aparece trancada, com o motivo. */
 export type CouncilOptionRequires = {
+  readonly armyRoom?: number;
+  readonly training?: true;
+  readonly commanderTrait?: HeroTraitId;
+  readonly siegeCasualties?: true;
+  readonly siegeWon?: true;
   /** O edifício tem de existir (nível 1 ou mais). */
   readonly building?: BuildingId;
   readonly buildings?: Partial<Record<BuildingId, number>>;
@@ -185,6 +236,7 @@ export type CouncilOption = {
   readonly requires?: CouncilOptionRequires;
   /** Pago na hora da escolha, em unidades. */
   readonly cost?: ResourceAmounts;
+  readonly weaponsCost?: number;
   /** As consequências conhecidas: a visão as mostra ao lado do custo, antes da escolha. */
   readonly effects: readonly CouncilEffect[];
   /** A pista: o que pode vir depois, sem dizer o quê. Uma frase curta. */
@@ -228,7 +280,12 @@ export type CouncilCard = {
    * audiência com lugar em que o Salão já está nesse nível ou acima (V4H-T1): nenhum campo novo
    * no estado, porque a conta lê o Salão no instante do sorteio.
    */
-  readonly scripted?: { readonly atGameDay: number } | { readonly onHallLevel: number };
+  readonly scripted?:
+    | { readonly atGameDay: number }
+    | { readonly onHallLevel: number }
+    | { readonly atSeasonStart: SeasonId; readonly year: number }
+    | { readonly atSeasonEnd: SeasonId; readonly year: number }
+    | { readonly beforeSiege: true };
   /**
    * A opção que o conselho aplica quando a carta expira, por dificuldade (GDD §12.1). É marcada
    * por quem escreve a carta; as três existem e não têm custo nem requisito.

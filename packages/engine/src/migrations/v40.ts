@@ -12,7 +12,7 @@ import {
   text,
   type Shape,
 } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { RESOURCE_IDS_V25 } from './v25';
 import { BUILDING_IDS_V28 } from './v28';
 import { raidPostV33 } from './v33';
@@ -203,4 +203,24 @@ export const stateV40: Shape = (value, path) => {
   )
     return `${at('siege')}: resultado incompatível com as ondas`;
   return null;
+};
+
+/** O lote 3 não agenda prazos nem sorteia ao migrar uma partida. */
+export const v40ToV41: MigrationStep = {
+  from: 40,
+  summary: 'Acrescenta os bônus do Conselho sem alterar lotes ou prazos existentes.',
+  shape: stateV40,
+  migrate: (state) => ({
+    ...state,
+    schemaVersion: 41,
+    council: {
+      ...(state.council as StoredState),
+      bonuses: {
+        smithySpeed: null,
+        smithyBatch: null,
+        repairDiscount: null,
+        revealedRaidId: null,
+      },
+    },
+  }),
 };

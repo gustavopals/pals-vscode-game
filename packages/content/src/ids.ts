@@ -298,6 +298,7 @@ export const ITEM_IDS = [
   'trackerHorn',
   'travelerMedal',
   'captainChain',
+  'lordsSword',
 ] as const;
 export type ItemId = (typeof ITEM_IDS)[number];
 

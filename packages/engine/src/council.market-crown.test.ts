@@ -296,6 +296,8 @@ describe('O Cobrador do Rei, de ponta a ponta', () => {
         [],
       );
       const nextYear = advanceTo(state, YEAR).state;
+      // Com o Cerco (V4G), a Queda danifica o Salão; restabelece o nível 3 para testar o Conselho no ano seguinte.
+      nextYear.settlement.buildings.townHall = 3;
       expect(eligibleCards(nextYear, YEAR, councilCards).map((entry) => entry.id)).toContain(
         'kingsTax',
       );

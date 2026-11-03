@@ -784,3 +784,21 @@ Conforme a decisão 22 do ADR 0020 e o GDD §11.4, a mecânica "Avançar para o 
 não entra no jogo. O servidor é o relógio autoritativo e o calendário é sincronizado
 para todos os jogadores, preservando a semana de 7 dias reais no ritmo normal.
 Não há ordem que antecipe o fim do inverno ou pule o rescaldo.
+
+
+## V4H-T2 — O lote 3 do Conselho (2026-10-30)
+
+**H-5. Estado 41 e bônus do Conselho.** _(Proposta do agente; não lida pelo autor.)_
+Os bônus temporários concedidos pelas cartas do lote 3 (`smithsDaughter`, `warCouncil`, etc.) são guardados em `council.bonuses`:
+`smithySpeed` (fator `{ num, den }` e `untilMs`), `smithyBatch` (armas extras `extra` e `untilMs`), `repairDiscount`
+(desconto em pontos e `untilMs`) e `revealedRaidId` (id da incursão futura revelada).
+A migração 40 → 41 inicializa esses campos em `null` sem disparar eventos ou alterar sorteios.
+Ao registrar uma forja em `draft.settlement.forge`, `extra` só é incluído se for maior que 0, preservando a
+forma padrão quando não há bônus ativo.
+
+**H-6. Opções dinâmicas e infinitivos no lote 3.** _(Proposta do agente; não lida pelo autor.)_
+As fichas aprovadas pelo autor de `northernCrows` ("Erguer a Torre de Vigia ao Nv3" e "Não dar importância")
+e `raidersAskPassage` ("Mandá-los embora") foram aceitas respeitando a literalidade das fichas aprovadas §§10.2 e 10.5.
+A carta `siegeEve` usa abertura narrativa específica na Crônica ("Na véspera do cerco, ") aprovada expressamente
+na ficha §11.5, sem a fórmula de dia do calendário.
+Opções que disparam obras dinâmicas (`startBuilding`, `repairWall`) não são classificadas como opções sem custo (`isFree`).

@@ -4,6 +4,8 @@ import { emit } from './chronicle';
 import { amountsData, missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import {
+  smithySpeedFactor,
+  smithyBatchExtra,
   forgeCost,
   forgeDurationMs,
   forgeRefundMilli,
@@ -55,11 +57,13 @@ export function forgeWeapons(
     return reject('INSUFFICIENT_RESOURCES', { missing });
   }
   payResources(draft, cost);
+  const extra = smithyBatchExtra(draft, amount);
   draft.settlement.forge = {
     kind: 'weapons',
     amount,
+    ...(extra > 0 ? { extra } : {}),
     startedAtMs: nowMs,
-    endsAtMs: nowMs + forgeDurationMs(level, amount),
+    endsAtMs: nowMs + forgeDurationMs(level, amount, smithySpeedFactor(draft)),
   };
   emit(
     events,

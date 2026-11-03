@@ -14,7 +14,7 @@ import {
 
 import { emit } from './chronicle';
 import { seasonAt } from './clock';
-import type { GameEvent, GameState } from './types';
+import type { GameEvent, GameState, ScheduledRaid } from './types';
 import { realToGameMs } from './units';
 
 /**
@@ -220,4 +220,20 @@ export function turnThreat(draft: GameState, atMs: number, events: GameEvent[]):
     { ameaca: next },
     before.get(mark) === 0 ? phrases?.first : phrases?.again,
   );
+}
+
+export function sightedRaid(state: GameState): ScheduledRaid | null {
+  const perks = watchtowerPerks(watchtowerLevel(state));
+  if (perks === null) {
+    return null;
+  }
+  const now = state.lastProcessedAt;
+  const warningMs = watchtowerWarningMs(state, perks);
+  const [raid] = state.horde.scheduledRaids
+    .filter(
+      (entry) =>
+        entry.atMs >= now && (entry.announcedAtMs !== null || entry.atMs - warningMs <= now),
+    )
+    .sort((a, b) => a.atMs - b.atMs);
+  return raid ?? null;
 }

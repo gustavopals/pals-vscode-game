@@ -281,7 +281,7 @@ export type ArrivingHero = {
  * com a condição cheia no instante `endsAtMs`.
  */
 export type ForgeJob =
-  | { kind: 'weapons'; amount: number; startedAtMs: number; endsAtMs: number }
+  | { kind: 'weapons'; amount: number; extra?: number; startedAtMs: number; endsAtMs: number }
   | { kind: 'repair'; item: Item; points: number; startedAtMs: number; endsAtMs: number };
 
 export type Item = {
@@ -569,7 +569,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 40;
+  schemaVersion: 41;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -723,6 +723,12 @@ export type GameState = {
    * deixam não ficam aqui: vão para `settlement.moraleEffects`, com os das outras mecânicas.
    */
   council: {
+    bonuses: {
+      smithySpeed: { factor: { num: number; den: number }; untilMs: number } | null;
+      smithyBatch: { extra: number; untilMs: number } | null;
+      repairDiscount: { points: number; untilMs: number } | null;
+      revealedRaidId: string | null;
+    };
     /** As cartas à espera de resposta, na ordem em que chegaram; no máximo `maxPending`. */
     pending: PendingCard[];
     /** Marcadores narrativos gravados pelas cartas. Atravessam os anos e nunca saem na visão. */

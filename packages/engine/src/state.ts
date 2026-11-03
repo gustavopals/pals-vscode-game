@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 40,
+    schemaVersion: 41,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -82,6 +82,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       forge: null,
     },
     council: {
+      bonuses: { smithySpeed: null, smithyBatch: null, repairDiscount: null, revealedRaidId: null },
       pending: [],
       flags: {},
       seenThisYear: [],

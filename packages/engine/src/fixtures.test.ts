@@ -855,7 +855,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(palisade.council.flags).not.toHaveProperty(['palisadePromise.open']);
     expect(palisade.settlement.moraleEffects.length).toBeGreaterThan(0);
     expect(of('week-scripted').settlement.buildings.palisade).toBe(2);
-    expect(of('week-scripted').council.flags).toMatchObject({ 'palisadePromise.kept': true });
+    expect(of('week-scripted').council.flags).toMatchObject({ 'thawBridge.piers': true });
     // As incursões: um ferido com o edifício a que volta, o termo de moral, a contagem e o
     // fluxo `horde`; e, no outro cenário, uma incursão sorteada pela Ameaça e já anunciada.
     const raided = of('raid');
