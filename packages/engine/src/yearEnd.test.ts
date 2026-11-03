@@ -130,6 +130,7 @@ describe('A Finta: estritamente mais de 60% dos postos efetivos do ensaio', () =
     recordYearFeint(state, {
       ...posts,
       center: { front: { unit: 'spearman', count: 20 - changed }, back: null },
+      left: { front: { unit: 'swordsman', count: changed }, back: null },
     });
     expect(yearStat(state, 'feint') === 1).toBe(earned);
   });
@@ -165,5 +166,22 @@ describe('A Finta inclui a milícia nos postos', () => {
       right: empty,
     });
     expect(yearStat(state, 'feint')).toBe(1);
+  });
+});
+
+describe('A Finta exige mudança de proporção, além da queda do efetivo', () => {
+  it.each([7, 20, 30])('a mesma tropa com %i combatentes não é uma finta', (count) => {
+    const state = newGame();
+    const posts = {
+      left: { front: null, back: null },
+      center: { front: { unit: 'spearman' as const, count: 20 }, back: null },
+      right: { front: null, back: null },
+    };
+    recordYearRehearsal(state, posts);
+    recordYearFeint(state, {
+      ...posts,
+      center: { front: { unit: 'spearman', count }, back: null },
+    });
+    expect(yearStat(state, 'feint')).toBe(0);
   });
 });

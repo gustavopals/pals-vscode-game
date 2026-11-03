@@ -817,3 +817,13 @@ virada diária, mesmo acima do teto do Mercado reduzido. A guarda v40 admite ess
 obrigações, até os limites publicados (duas caravanas e 1.000 unidades por recurso),
 como já admite soldados acima do Quartel reduzido. As novas ofertas e ordens continuam
 usando o nível real. Guardas v1–v39 e números de conteúdo não foram alterados.
+
+
+**J3-3. A Finta mede proporções por tipo e posto.** _(Proposta do agente; não lida pelo autor.)_
+Substitui a medida proposta em G-16 na seção da Crônica do Ano: a simples queda de
+soldados não representa a formação-isca descrita no GDD. A interseção agora compara
+as proporções de cada tipo em cada posto, incluindo milícia. Calcula-se em inteiros
+`1 − soma(mínimo(antes × totalDepois, depois × totalAntes)) / (totalAntes × totalDepois)`;
+o limite continua estritamente maior que 3/5 e pede dois exércitos não vazios e vitória.
+Uma tropa idêntica que apenas perdeu ou ganhou efetivo não concede o Feito. Trocar
+só o nome ou os comandantes também continua sem contar.

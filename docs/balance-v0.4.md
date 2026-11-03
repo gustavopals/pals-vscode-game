@@ -1477,3 +1477,10 @@ entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
    confere a pertença exclusiva dessas linhas ao ano 2. A ordem exata acompanha
    `advance.test.ts`, os demais testes do instante e o README; nenhuma conta ou
    sorteio mudou.
+
+2. A Finta premiava a perda de mais de 60% do efetivo sem trocar formação. A leitura
+   conservadora J3-3 compara a proporção por tipo/posto com multiplicação cruzada,
+   incluindo milícia. O teste anterior que reduzia uma tropa foi substituído por
+   troca real de tipo entre postos, conservando o total e a fronteira exata 60%/65%;
+   três casos novos vedam o prêmio por mero reforço ou baixas. Não houve folga no
+   limiar nem mudança de combate.

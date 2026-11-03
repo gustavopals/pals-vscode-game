@@ -75,7 +75,7 @@ export function recordYearRehearsal(
 export function recordYearFeint(state: GameState, posts: BattlePosts<UnitId | 'militia'>): void {
   let before = 0;
   let after = 0;
-  let overlap = 0;
+  const counts: Array<[number, number]> = [];
   for (const wing of WING_IDS)
     for (const line of LINE_IDS) {
       const post = posts[wing][line];
@@ -84,10 +84,16 @@ export function recordYearFeint(state: GameState, posts: BattlePosts<UnitId | 'm
         const current = post?.unit === unit ? post.count : 0;
         before += previous;
         after += current;
-        overlap += Math.min(previous, current);
+        counts.push([previous, current]);
       }
     }
-  const total = Math.max(before, after);
+  // Compara proporções por unidade/posto por multiplicação cruzada, sem ponto flutuante.
+  // A mesma composição menor ou maior conserva a interseção inteira e não é uma finta.
+  const total = before * after;
+  const overlap = counts.reduce(
+    (sum, [previous, current]) => sum + Math.min(previous * after, current * before),
+    0,
+  );
   const { num, den } = featRules.feintChangedShare;
   state.stats[`${YEAR_STAT_PREFIX}feint`] =
     before > 0 && after > 0 && (total - overlap) * den > total * num ? 1 : 0;
