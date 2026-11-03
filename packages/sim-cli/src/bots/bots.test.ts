@@ -7,7 +7,7 @@ import {
   type BuildingId,
   type Command,
   createInitialState,
-  deriveEngineViewState as deriveViewState,
+  deriveViewState,
   type ResourceId,
   type EngineViewState as ViewState,
 } from '@lotg/engine';

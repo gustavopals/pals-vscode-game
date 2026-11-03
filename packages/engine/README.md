@@ -868,9 +868,9 @@ continua bloqueando outro reparo. As previsões da moral excluem o Cerco, preser
 Desde **T2.7**, o protocolo **4** inclui as quatro ordens do Cerco em `Command`, suas
 recusas em `RejectionCode`, `siege` em `ViewState` e a decisão `siegeWave` em
 `pendingDecisions`, ordenada junto das cartas e encruzilhadas por prazo real.
-`deriveViewState` é a porta pública usada pelo servidor. `deriveEngineViewState` e
-`EngineViewState` permanecem como aliases para os consumidores do motor anteriores à
-T2.7; não há uma segunda visão nem uma segunda lista de decisões.
+`deriveViewState` é a porta pública usada pelo servidor e pelo simulador.
+`EngineViewState` permanece como alias de tipo; a API de execução continua fechada,
+com uma só visão e uma só lista de decisões.
 
 
 O resultado fecha na primeira derrota ou depois da terceira onda: Gloriosa quando nenhuma

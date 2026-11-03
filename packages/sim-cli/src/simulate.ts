@@ -3,7 +3,7 @@ import {
   advanceTo,
   type BuildingId,
   createInitialState,
-  deriveEngineViewState as deriveViewState,
+  deriveViewState,
   type DifficultyId,
   type GameEvent,
   type GameState,

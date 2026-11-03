@@ -1,7 +1,7 @@
 import {
   applyCommand,
   createInitialState,
-  deriveEngineViewState as deriveViewState,
+  deriveViewState,
   type Command,
   type GameState,
 } from '@lotg/engine';

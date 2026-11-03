@@ -1,4 +1,4 @@
-import { advanceTo, deriveEngineViewState, type GameState } from '@lotg/engine';
+import { advanceTo, deriveViewState, type GameState } from '@lotg/engine';
 import { describe, expect, it } from 'vitest';
 
 import { readySiege } from '../../../engine/src/siege.test-helpers';
@@ -11,7 +11,7 @@ function scenario(initial = readySiege()) {
   let state = initial;
   const orders: SimCommand[] = [];
   const refused: string[] = [];
-  const view = () => deriveEngineViewState(state, state.lastProcessedAt);
+  const view = () => deriveViewState(state, state.lastProcessedAt);
   const act: Act = async (type, payload) => {
     const command = { commandId: `cerco-${orders.length}`, type, payload } as SimCommand;
     orders.push(command);

@@ -44,7 +44,7 @@ import {
   type Command,
   createInitialState,
   CURRENT_SCHEMA_VERSION,
-  deriveEngineViewState as deriveViewState,
+  deriveViewState,
   ENGINE_VERSION,
   type GameState,
 } from '@lotg/engine';

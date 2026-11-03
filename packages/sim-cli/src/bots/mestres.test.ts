@@ -2,7 +2,7 @@ import {
   applyCommand,
   type Command,
   createInitialState,
-  deriveEngineViewState as deriveViewState,
+  deriveViewState,
   type GameState,
   type EngineViewState as ViewState,
 } from '@lotg/engine';
