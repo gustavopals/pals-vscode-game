@@ -20,10 +20,10 @@ describe('terceira junção: retratos congelados do Mercado', () => {
       effects.map((effect) => ({ ...effect, fromMs: before.lastProcessedAt })),
     );
     expect(JSON.stringify(before)).toBe(JSON.stringify(JSON.parse(raw)));
-    const invalid = structuredClone(before);
+    const invalid = JSON.parse(JSON.stringify(before)) as StoredState;
     ((invalid.market as StoredState).effects as StoredState[])[0]!.factor = { num: -1, den: 10 };
     expect(() => migrateState(invalid, { timeScale: 1 })).toThrow(/factor/);
-    const missing = structuredClone(migrated);
+    const missing = JSON.parse(JSON.stringify(migrated)) as typeof migrated;
     delete (missing.market.effects[0] as unknown as StoredState).fromMs;
     expect(() => migrateState(missing, { timeScale: 1 })).toThrow(/fromMs/);
   });
