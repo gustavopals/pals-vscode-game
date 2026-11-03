@@ -74,9 +74,7 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await page.keyboard.press('Enter');
     const picker = page.getByRole('dialog');
     await expect(picker.getByRole('combobox')).toBeFocused();
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('Enter');
+    await picker.getByRole('option', { name: /Usar a Defesa ativa/ }).click();
     await expect(picker).toHaveCount(0);
     await expect(page.getByTestId('siege-decision')).toContainText(
       'Formação marcada: Defesa ativa',
