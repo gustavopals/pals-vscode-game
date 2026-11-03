@@ -1,3 +1,4 @@
+import { Icon } from '../components/shared';
 import type { NotificationLevel } from '../notifications/policy';
 import { type Preferences, THEMES, type ThemeId } from '../services/preferences';
 import { THEME_LABELS } from '../theme/theme';
@@ -150,7 +151,7 @@ export function SettingsTab(props: {
             <p>Fuso do feudo: {props.game.vigil.timezone}</p>
             {props.game.siegeText == null ? null : (
               <p>
-                <span class="codicon codicon-shield" aria-hidden="true" /> {props.game.siegeText}
+                <Icon name="shield" /> {props.game.siegeText}
               </p>
             )}
             {props.game.vigil.warning === null ? null : (
