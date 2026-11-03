@@ -674,7 +674,18 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
     };
   }
   if (view.siege !== null && view.siege.result === null) {
-    const seconds = view.siege.nextWaveInSeconds ?? view.siege.scheduledInSeconds;
+    if (view.siege.current > 0) {
+      const text = `Cerco · ${view.siege.current} ondas enfrentadas`;
+      return {
+        bar: {
+          text: `$(shield) ${text}`,
+          tooltip: `${name}: ${text}. Acompanhe na aba Exército.`,
+          target: 'siege',
+        },
+        title: `${text} · ${name}`,
+      };
+    }
+    const seconds = view.siege.scheduledInSeconds;
     const text = `Cerco em ${formatRemaining(remainingNow(seconds, elapsedSeconds))}`;
     return {
       bar: {

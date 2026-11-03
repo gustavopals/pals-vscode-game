@@ -1,4 +1,4 @@
-import { ViewStateSchema } from '@lotg/protocol';
+import { type ViewState, ViewStateSchema } from '@lotg/protocol';
 import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
 
@@ -317,6 +317,27 @@ describe('o Plano, as ondas e o rescaldo', () => {
         siege: { ...siegeWaveView.siege!, nextWaveInSeconds: null },
       }),
     ).toEqual([]);
+  });
+  it('com o cerco em andamento e sem decisão pendente, a barra mostra ondas enfrentadas e não orienta preparar plano', () => {
+    const waveFoughtView: ViewState = {
+      ...siegeWaveView,
+      pendingDecisions: [],
+      siege: {
+        ...siegeWaveView.siege!,
+        current: 1,
+        nextWaveInSeconds: 0,
+      },
+    };
+    const bar = statusBar({ ...input, view: waveFoughtView, elapsedSeconds: 0 });
+    expect(bar).toMatchObject({
+      text: '$(shield) Cerco · 1 ondas enfrentadas',
+      target: 'siege',
+    });
+    expect(bar.tooltip).not.toContain('prepare o Plano');
+    expect(bar.tooltip).toContain('Acompanhe na aba Exército');
+    expect(documentTitle({ ...input, view: waveFoughtView, elapsedSeconds: 0 })).toBe(
+      'Cerco · 1 ondas enfrentadas · Pedra Alta · Lords of the Guild',
+    );
   });
 });
 
