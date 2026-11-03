@@ -609,3 +609,18 @@ A jornada completa mantém as quatro provas de uma hora e o retorno de uma hora,
 acrescentando um trecho sem prova (`escape`) de uma hora entre o Xamã e o retorno.
 O teto estrutural passa de cinco para seis nós temporizados; cada nó continua
 limitado a 60 min. O recuo antecipado mantém o caminho curto existente.
+
+### Estatísticas e ranking (fora do plano, 2026-10-30)
+
+Pedido direto do autor; decisões no [ADR 0021](decisions/0021-estatisticas-e-ranking.md).
+
+- **ST-1 (do autor): a política de privacidade precisa citar o ranking.** O nome do feudo e o
+  ouro dele ficam à vista de todos os jogadores na aba Reino, a não ser que a conta saia do
+  ranking nas Preferências; os totais do reino são agregados e contam todas as contas. O texto
+  da política é do autor (CLAUDE.md, regra 7) e não foi mexido.
+- **ST-2 (proposta): nome de feudo ofensivo.** O ranking mostra o nome escolhido pelo jogador,
+  sem moderação. Hoje não há como o autor tirar um nome da lista além de editar o banco; uma
+  ferramenta de operação (ou a saída forçada de uma conta) fica para quando for preciso.
+- **ST-3 (proposta): pontos.** O pedido falava em "pontos"; a pontuação do jogo é a da Crônica do
+  Ano (decisão 22 do ADR 0020), que ainda não existe. Quando existir, o ranking pode ganhar uma
+  segunda coluna ou uma segunda lista.

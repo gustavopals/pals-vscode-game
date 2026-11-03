@@ -7,6 +7,7 @@ import {
   type CreateGameRequest,
   type GameEvent,
   type GameSummary,
+  type StatsResponse,
   type ViewState,
 } from '@lotg/protocol';
 
@@ -553,6 +554,45 @@ export function catalogFixture(
  * uma partida, registra as chamadas e deixa o teste mexer no que o servidor responde. Não
  * aplica regra de jogo nenhuma: a visão é a que o teste puser em `state.view`.
  */
+/** Uma resposta de `GET /v1/stats` (ADR 0021): três feudos, o do jogador em 2º. */
+export function statsFixture(): StatsResponse {
+  return {
+    generatedAt: '2026-10-30T15:05:00.000Z',
+    kingdom: {
+      accounts: 1284,
+      fiefs: 1093,
+      activeLastWeek: 312,
+      gold: 1_254_300,
+      villagers: 18_402,
+      raidsRepelled: 947,
+      raidsSuffered: 215,
+      expeditionsSent: 3120,
+    },
+    ranking: [
+      { position: 1, settlementName: 'Monte Frio', gold: 12_450, mine: false },
+      { position: 2, settlementName: 'Pedra Alta', gold: 9_870, mine: true },
+      { position: 3, settlementName: 'Vau Raso', gold: 1_200, mine: false },
+    ],
+    rankedFiefs: 3,
+    me: {
+      listed: true,
+      position: 2,
+      fief: {
+        settlementName: 'Pedra Alta',
+        gold: 9_870,
+        villagers: 24,
+        soldiers: 12,
+        heroes: 3,
+        raidsRepelled: 4,
+        raidsSuffered: 1,
+        expeditionsSent: 9,
+        constructionsStarted: 17,
+        daysReigning: 12,
+      },
+    },
+  };
+}
+
 export function fakeApi() {
   const state = {
     online: true,
@@ -576,6 +616,10 @@ export function fakeApi() {
     requests: [] as string[],
     commands: [] as Command[],
     devicePolls: [] as unknown[],
+    /** Se a conta aparece no ranking de ouro (`/me/ranking`, ADR 0021). */
+    rankingListed: true,
+    /** O que `GET /stats` responde; `me.listed` segue `rankingListed`. */
+    stats: statsFixture(),
   };
 
   const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -679,6 +723,15 @@ export function fakeApi() {
       return json(
         authorized ? { account: state.account } : { account: state.account, ...tokens() },
       );
+    }
+    if (path === '/stats') {
+      return json({ ...state.stats, me: { ...state.stats.me, listed: state.rankingListed } });
+    }
+    if (path === '/me/ranking') {
+      if (method === 'PUT') {
+        state.rankingListed = (body as { listed: boolean }).listed;
+      }
+      return json({ listed: state.rankingListed });
     }
     if (path === '/me' && method === 'GET') {
       return json(state.account);

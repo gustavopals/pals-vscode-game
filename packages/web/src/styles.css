@@ -1893,3 +1893,190 @@ table.army-units td.num {
   margin: 4px 0 8px;
   padding-left: 20px;
 }
+
+/* --- Reino: estatísticas e ranking (ADR 0021) ------------------------------ */
+
+.kingdom {
+  max-width: 860px;
+}
+
+.kingdom h1 .codicon,
+.kingdom h2 .codicon {
+  vertical-align: -2px;
+}
+
+.kingdom section {
+  margin-top: 24px;
+}
+
+/* Os totais como cartões: o número grande lê-se de longe, o rótulo e a frase embaixo. */
+.kingdom-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.kingdom .kingdom-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.kingdom-tile-label {
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kingdom-tile-value {
+  font-size: 1.6em;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--vscode-foreground);
+}
+
+.kingdom-tile-hint {
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+}
+
+table.ranking {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+table.ranking th,
+table.ranking td {
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  font-weight: normal;
+  text-align: left;
+}
+
+table.ranking th.num,
+table.ranking td.num {
+  text-align: right;
+}
+
+table.ranking thead th {
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+}
+
+table.ranking .ranking-position {
+  width: 4.5em;
+  white-space: nowrap;
+}
+
+table.ranking td:last-child,
+table.ranking th:last-child {
+  padding-right: 8px;
+}
+
+.ranking-name {
+  overflow-wrap: anywhere;
+}
+
+.ranking-medal {
+  margin-right: 4px;
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.ranking-medal-2,
+.ranking-medal-3 {
+  color: var(--vscode-descriptionForeground);
+}
+
+/* A linha do jogador: o destaque da seleção e, por extenso, "(seu feudo)". */
+table.ranking tr.ranking-mine th,
+table.ranking tr.ranking-mine td {
+  color: var(--vscode-list-activeSelectionForeground);
+  background: var(--vscode-list-activeSelectionBackground);
+  font-weight: 600;
+}
+
+table.ranking tr.ranking-mine .ranking-medal {
+  color: inherit;
+}
+
+table.ranking tr.ranking-mine th {
+  padding-left: 0;
+}
+
+table.ranking tr.ranking-mine td:first-child {
+  box-shadow: inset 3px 0 0 var(--vscode-focusBorder);
+}
+
+.ranking-you {
+  font-weight: normal;
+}
+
+.ranking-gap td {
+  padding: 0 10px 0 0;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+}
+
+.kingdom-position {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+}
+
+.kingdom-position-badge {
+  min-width: 2.6em;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--vscode-badge-foreground);
+  background: var(--vscode-badge-background);
+  /* No alto contraste o selo não tem fundo próprio: a borda o desenha. */
+  border: 1px solid var(--vscode-contrastBorder);
+}
+
+.kingdom-fief-name {
+  font-weight: 600;
+}
+
+.kingdom-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0 24px;
+  margin: 6px 0 10px;
+}
+
+.kingdom-fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.kingdom-fact dt {
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+}
+
+.kingdom-fact dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.kingdom-note {
+  margin-top: 20px;
+}

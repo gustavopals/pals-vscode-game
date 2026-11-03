@@ -3883,6 +3883,13 @@ export function createCommands(
     { id: 'lords.privacy', title: 'Privacidade', palette: true, run: privacy },
     { id: 'lords.openSettings', title: 'Preferências', palette: true, run: go('settings') },
     { id: 'lords.about', title: 'Sobre', palette: true, run: go('about') },
+    {
+      id: 'lords.openKingdom',
+      title: 'Reino: estatísticas e ranking de ouro',
+      palette: true,
+      when: signedIn,
+      run: go('kingdom'),
+    },
     // Usados pela árvore, pela barra de status e pelos avisos; não aparecem na paleta.
     hidden('lords.openPanel', (arg) => {
       const section = typeof arg === 'string' ? SECTIONS[arg] : undefined;
@@ -3904,6 +3911,7 @@ export function createCommands(
       );
     }),
     hidden('lords.openReport', openReport),
+    hidden('lords.refreshKingdom', () => controller.loadStats(true)),
     hidden('lords.workersIncrease', step(1)),
     hidden('lords.workersDecrease', step(-1)),
     hidden('lords.showCommands', () => env.openPalette()),

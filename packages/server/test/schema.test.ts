@@ -10,6 +10,9 @@ import { createTestPool, resetTestDb, truncateAll } from './helpers/db';
 // Verificação independente da F2-T3: tudo aqui vem do GDD §14.6 e do MVP-ROADMAP (F2-T3),
 // inserindo linhas direto por SQL, sem passar pela API.
 
+/** As migrações de `deploy/migrations`: 0000_init e 0001_ranking_listed (ADR 0021). */
+const MIGRATIONS = 2;
+
 const TABLES = [
   'accounts',
   'sessions',
@@ -220,7 +223,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       );
       expect(control.rows).toHaveLength(1);
       expect(await countRows(pool, `"${control.rows[0]?.table_schema}".__drizzle_migrations`)).toBe(
-        1,
+        MIGRATIONS,
       );
     });
 
@@ -228,7 +231,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       await insertAccount(pool);
       await expect(runMigrations(pool)).resolves.toBeUndefined();
       await expect(runMigrations(pool)).resolves.toBeUndefined();
-      expect(await countRows(pool, 'drizzle.__drizzle_migrations')).toBe(1);
+      expect(await countRows(pool, 'drizzle.__drizzle_migrations')).toBe(MIGRATIONS);
       // Os dados que já estavam lá não são perdidos.
       expect(await countRows(pool, 'accounts')).toBe(1);
       await truncateAll(pool);
@@ -254,7 +257,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
          where table_schema = 'public' and table_type = 'BASE TABLE' order by table_name`,
       );
       expect(rows.map((row) => row.table_name)).toEqual([...TABLES].sort());
-      expect(await countRows(pool, 'drizzle.__drizzle_migrations')).toBe(1);
+      expect(await countRows(pool, 'drizzle.__drizzle_migrations')).toBe(MIGRATIONS);
     });
   });
 

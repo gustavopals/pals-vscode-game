@@ -1,0 +1,1 @@
+ALTER TABLE "accounts" ADD COLUMN "ranking_listed" boolean DEFAULT true NOT NULL;

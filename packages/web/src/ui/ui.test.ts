@@ -1242,6 +1242,7 @@ describe('árvore', () => {
     expect(anonymous?.children?.map((node) => node.command?.id)).toEqual([
       'lords.linkGithub',
       'lords.generateRecoveryCode',
+      'lords.openKingdom',
       'lords.privacy',
       'lords.signOut',
       'lords.deleteAccount',
@@ -1253,6 +1254,7 @@ describe('árvore', () => {
     expect(linked?.description).toBe('GitHub');
     expect(linked?.children?.map((node) => node.label)).toEqual([
       'Trocar o Código do Reino',
+      'Reino: estatísticas e ranking',
       'Privacidade',
       'Sair desta máquina',
       'Excluir conta…',

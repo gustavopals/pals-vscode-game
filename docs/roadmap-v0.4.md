@@ -1399,6 +1399,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4I-T3 | | | | | |
 | V4I-T4 | | | | | |
 | V4I-T5 | | | | | |
+| Estatísticas (fora do plano, pedido do autor) | 2026-10-30 | branch `estatisticas` (de `7cbdad1`): o ADR, o servidor, o SDK, o app, o cenário em navegador e os documentos, um commit por passo | um subagente | A aba **Reino** com os totais do reino, o ranking de ouro pelo nome do feudo e as estatísticas do jogador com a posição; a saída do ranking nas Preferências, por conta. **Novo** [ADR 0021](decisions/0021-estatisticas-e-ranking.md) (as três respostas do autor e as decisões técnicas: ouro do estado gravado, sem avançar partidas; cache de 60 s; contas "Bot " e partidas arquivadas fora). `GET /v1/stats`, `GET`/`PUT /v1/me/ranking`, a coluna `accounts.ranking_listed` (migração SQL `0001`). Nenhuma regra de jogo, estado 35 e protocolo 3 intactos. Pendências ST-1 a ST-3 (a política de privacidade é do autor) | Rodados: integração `stats` e `schema` (34 testes, num banco próprio do `db_test`), web (2.046), client-sdk (39), `pnpm lint`, `pnpm typecheck`, `pnpm build` e o navegador `15-reino` (2). **Não rodados:** `pnpm verify` inteiro, a integração inteira, o navegador inteiro (a árvore da conta ganhou uma linha e as Preferências um bloco: `04` e `06` podem notar), a matriz. Sem `push` |
 | Lançamento da v0.4.0 | | | | | |
 
 ---

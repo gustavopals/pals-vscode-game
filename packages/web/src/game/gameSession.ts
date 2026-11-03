@@ -307,10 +307,16 @@ export class GameSession {
   private readonly reports = new Emitter<ReturnReport>();
   private readonly openTabReports = new Emitter<ReturnReport>();
   private readonly problems = new Emitter<unknown>();
+  private readonly cycles = new Emitter<void>();
   readonly onView = this.viewChanges.on;
   /** Eventos novos, cada um entregue uma única vez. */
   readonly onEvents = this.eventBatches.on;
   readonly onConnection = this.connectionChanges.on;
+  /**
+   * Cada leitura bem-sucedida do ciclo, mudando a visão ou não (o 304 também): é o compasso de
+   * quem lê outra coisa no mesmo ritmo, como o Reino (`/stats`, ADR 0021).
+   */
+  readonly onCycle = this.cycles.on;
   readonly onReturnReport = this.reports.on;
   /**
    * O Relatório de Retorno de quem voltou a uma aba que ficou aberta e fora de vista por 4 horas
@@ -541,6 +547,7 @@ export class GameSession {
         return;
       }
       this.setConnection({ kind: 'online' });
+      this.cycles.emit();
       this.emitReturnReport();
       this.seeding = false;
       this.schedule(this.nextPollMs());

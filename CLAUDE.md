@@ -91,7 +91,7 @@ pnpm dev:api           # API no host com tsx watch (lê deploy/.env e aplica as 
 pnpm dev:web           # app web com o Vite em http://localhost:5173; /v1 é repassado para a API (LOTG_API_URL troca o destino)
 pnpm dev:landing       # página de apresentação com o Vite em http://localhost:5174 (não precisa da API)
 pnpm db:migrate        # aplica as migrações no banco de dev sem subir a API
-pnpm --filter @lotg/server db:generate -- --name <nome>   # gera o SQL de uma mudança em src/db/schema.ts
+pnpm --filter @lotg/server db:generate --name <nome>      # gera o SQL de uma mudança em src/db/schema.ts
 
 pnpm verify            # lint + typecheck + test — porta de entrada de todo "pronto"
 pnpm lint              # ESLint + Prettier (verificação); pnpm format corrige

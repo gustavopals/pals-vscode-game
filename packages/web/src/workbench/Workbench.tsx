@@ -13,6 +13,7 @@ import { ArmyTab } from '../tabs/Army';
 import { ChronicleTab } from '../tabs/Chronicle';
 import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
+import { KingdomTab } from '../tabs/Kingdom';
 import { FiefTab } from '../tabs/Fief';
 import { MarketTab } from '../tabs/Market';
 import { SettingsTab } from '../tabs/Settings';
@@ -81,6 +82,12 @@ function TabContent(props: {
                   ),
                 }
           }
+          ranking={
+            account.kind === 'signedOut'
+              ? null
+              : { listed: controller.rankingListed, saving: controller.rankingSaving }
+          }
+          onRanking={(listed) => void controller.setRankingListed(listed)}
           onChange={(patch) => void controller.setPreferences(patch)}
           onBrowserNotifications={(enabled) => void controller.setBrowserNotifications(enabled)}
           onNewGame={() => actions.run('lords.newGame')}
@@ -88,6 +95,14 @@ function TabContent(props: {
       );
     case 'about':
       return <AboutTab server={controller.server} actions={actions} />;
+    case 'kingdom':
+      return (
+        <KingdomTab
+          stats={controller.stats}
+          signedIn={account.kind !== 'signedOut'}
+          actions={actions}
+        />
+      );
     case 'chronicle':
       return (
         <ChronicleTab

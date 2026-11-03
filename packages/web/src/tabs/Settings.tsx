@@ -33,6 +33,12 @@ export function SettingsTab(props: {
   browserNotificationsSupported: boolean;
   /** `null` sem feudo aberto. */
   game: GameSettings | null;
+  /**
+   * A saída do ranking de ouro (ADR 0021), que é da conta e não do navegador; `null` sem conta.
+   * `listed` é `null` enquanto não foi lido do servidor.
+   */
+  ranking?: { listed: boolean | null; saving: boolean } | null;
+  onRanking?: (listed: boolean) => void;
   onChange: (patch: Partial<Preferences>) => void;
   onBrowserNotifications: (enabled: boolean) => void;
   /** "Nova partida…": é onde se escolhe outra dificuldade ou outro ritmo. */
@@ -110,6 +116,27 @@ export function SettingsTab(props: {
           Mostrar só um contador na barra de status e no título da aba, sem avisos
         </label>
       </fieldset>
+
+      {props.ranking === null || props.ranking === undefined ? null : (
+        <fieldset class="settings-ranking">
+          <legend>Ranking do reino</legend>
+          <label>
+            <input
+              type="checkbox"
+              name="rankingListed"
+              checked={props.ranking.listed ?? false}
+              disabled={props.ranking.listed === null || props.ranking.saving}
+              onChange={(event) => props.onRanking?.((event.target as HTMLInputElement).checked)}
+            />
+            Mostrar meu feudo no ranking
+          </label>
+          <p class="muted hint">
+            {props.ranking.listed === null
+              ? 'Consultando o reino…'
+              : 'Na aba Reino, todos os jogadores veem o nome do seu feudo e o ouro dele. O nome da sua conta não aparece, nem nada além disso. Vale para todos os feudos desta conta, em qualquer navegador; os totais do reino contam com você mesmo fora do ranking, sem nome.'}
+          </p>
+        </fieldset>
+      )}
 
       <fieldset>
         <legend>Hora da Vigília</legend>
