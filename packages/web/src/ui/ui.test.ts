@@ -1244,6 +1244,8 @@ describe('árvore', () => {
       'lords.generateRecoveryCode',
       'lords.openKingdom',
       'lords.privacy',
+      'lords.openNews',
+      'lords.about',
       'lords.signOut',
       'lords.deleteAccount',
     ]);
@@ -1256,9 +1258,20 @@ describe('árvore', () => {
       'Trocar o Código do Reino',
       'Reino: estatísticas e ranking',
       'Privacidade',
+      'Novidades',
+      'Sobre',
       'Sair desta máquina',
       'Excluir conta…',
     ]);
+  });
+
+  it('sela Novidades por ler no menu Conta, sem confundir com o retorno do feudo', () => {
+    expect(find(buildTree({ ...input, unreadNews: true }), 'account:news')).toMatchObject({
+      label: 'Novidades',
+      badge: 'novo',
+      command: { id: 'lords.openNews' },
+    });
+    expect(find(buildTree(input), 'account:news')?.badge).toBeUndefined();
   });
 
   it('mostra novidades, fome e falta de ligação', () => {

@@ -31,6 +31,7 @@ describe('endereço da aba (hash)', () => {
     expect(formatHash('chronicle')).toBe('#/cronica');
     expect(formatHash('settings')).toBe('#/preferencias');
     expect(formatHash('about')).toBe('#/sobre');
+    expect(formatHash('news')).toBe('#/novidades');
     expect(formatHash('welcome')).toBe('#/boas-vindas');
   });
 
@@ -72,6 +73,7 @@ describe('resolveRoute', () => {
   it('sem feudo, Preferências e Sobre continuam abrindo', () => {
     expect(resolveRoute('settings', false, 'welcome')).toBe('settings');
     expect(resolveRoute('about', false, 'welcome')).toBe('about');
+    expect(resolveRoute('news', false, 'welcome')).toBe('news');
     expect(resolveRoute('welcome', false, 'welcome')).toBe('welcome');
   });
 
@@ -140,8 +142,14 @@ describe('visibleTabs', () => {
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
 
-  it('só Crônica, Reino, Preferências e Sobre podem ser fechadas', () => {
-    expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'kingdom', 'settings']);
+  it('só Crônica, Reino, Preferências, Novidades e Sobre podem ser fechadas', () => {
+    expect([...CLOSABLE_ROUTES].sort()).toEqual([
+      'about',
+      'chronicle',
+      'kingdom',
+      'news',
+      'settings',
+    ]);
     expect([...GAME_ROUTES].sort()).toEqual([
       'army',
       'chronicle',

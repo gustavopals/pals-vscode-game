@@ -50,13 +50,38 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | `src/account/` | Conta neste navegador, Código do Reino, vínculo GitHub (*device flow*), lembrete "Proteja seu reino" depois de 48 horas reais (`linkReminder.ts`) |
 | `src/game/` | `gameSession.ts`: ciclo de 30 s (2 min em segundo plano), cache para o modo sem conexão (com marca de versão), envio de ordens, Relatório de Retorno (o da reabertura e o da aba que ficou aberta e fora de vista). `returnReport.ts`: o relatório como dado, com a conta dos estoques e os três blocos. `newGame.ts`: as opções de nova partida (dificuldade e ritmo) como dados, a escolha que vale e as linhas que a tela mostra. `beforeLeaving.ts`: o que preparar antes de sair, em até cinco itens, cada um com o comando que resolve |
 | `src/notifications/` | `policy.ts` decide o que avisar (no máximo 3 por hora) e monta o aviso de estação; `Toasts.tsx` desenha; `browserNotifications.ts` é a opção do navegador |
+| `src/news/` | Crônicas editoriais por versão, com data e situação de publicação (`entries.ts`); leitura local por conta (`readState.ts`) |
 | `src/palette/` | `commands.ts`: todos os comandos, o único lugar que conversa com o jogador por diálogos. `CommandPalette.tsx`: a paleta (`F1` ou `Ctrl+K`) e as listas de escolha, que podem abrir com um item já marcado (`selected`) |
 | `src/services/` | `browserStore.ts` (`localStorage` com prefixo `lords.`, tolerante a falha), `sessionLock.ts` (Web Locks na renovação da sessão), `tabSync.ts` (evento `storage`), `visibility.ts`, `preferences.ts` |
 | `src/workbench/` | A bancada: `ActivityBar`, `SideBar`, `Tree` (padrão ARIA, `treeNav.ts`), `EditorTabs`, `StatusBar` |
-| `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Conselho, Guilda, Mercado, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Sobre |
+| `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Conselho, Guilda, Mercado, Exército, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Novidades, Sobre |
 | `src/components/` | Os painéis do feudo (recursos com os avisos de depósito, trabalhadores com a troca de ofício, a experiência e os feridos, moral termo a termo, construções com as filas e as planejadas, a Ameaça com a incursão à vista, a Paliçada e a Torre de Vigia ao lado, recrutamento, objetivos com o que falta e o botão que leva até lá), a carta do Conselho (`CouncilCard.tsx`), os heróis com o soldo e o equipamento e a Taverna com os candidatos e o festival (`HeroesPanel.tsx`, `TavernPanel.tsx`), as expedições (`ExpeditionsPanel.tsx`: equipes fora do feudo, destinos com o envio, relatórios; `CrossroadsCard.tsx`: a folha da encruzilhada; `ExpeditionReport.tsx`: o relatório nó a nó; `ArsenalPanel.tsx`: os itens sem dono), os avisos do painel (`Banners.tsx`: sem ligação, fome com o que ela faz ao povo, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
 | `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`); a troca de ofício e a experiência como texto (`workers.ts`); a moral como texto e ícone (`morale.ts`); o Conselho como texto (`council.ts`); a Guilda e a Taverna como texto (`guild.ts`); as expedições, a encruzilhada, o relatório e o arsenal como texto e ícone (`expeditions.ts`); a Ameaça como texto e ícone (`threat.ts`); os objetivos como texto e o comando de cada um (`objectives.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
+
+## Novidades
+
+A aba fechável `#/novidades` reúne as crônicas das versões, da mais nova para a mais antiga.
+Abre por **Lords: Novidades** na paleta (`F1` ou `Ctrl+K`, comando `lords.openNews`), pelo
+menu Conta junto de Sobre e Privacidade, e pelo botão em Sobre. Funciona sem feudo e sem
+ligação. O comando leva o foco ao título; as setas das abas e Enter na árvore continuam disponíveis.
+
+O selo **novo** considera apenas a última entrada publicada compatível com a versão de
+`GET /v1/version`. A versão compilada do app não substitui a resposta do servidor. A leitura
+só é marcada depois que a página foi desenhada e está à vista (`useLayoutEffect`), inclusive
+se a versão chegar depois da abertura. `lords.newsSeen:<accountId>` sobrevive ao recarregar
+e avisa as outras abas; sair, excluir ou perder a sessão limpa a marca da conta. Leitura e
+escrita toleram falhas do armazenamento e usam memória enquanto a aba estiver aberta.
+
+O conteúdo fica em `src/news/entries.ts`, sem importação do motor ou do conteúdo de jogo e
+sem custos, taxas, prazos ou porcentagens de regra. **A v0.4 é rascunho, com data de redação,
+aviso de preparação e sem selo de publicação**. Antes de publicá-la, conferir escopo e data,
+conforme N-1 em [pendencias-v0.4.md](../../docs/pendencias-v0.4.md). Sem confirmação da versão,
+a página explica isso e mantém o histórico legível.
+
+Testes: `src/news/*.test.ts`, `src/app/news.test.ts`, HTML em `src/tabs/news.test.tsx` e
+`tests/e2e/15-novidades.spec.ts` (paleta, foco, Enter no menu, selo entre abas e ao recarregar,
+contraste nos três temas e ausência de rolagem horizontal em 720 px).
 
 ## Ordens e "Tentar de novo"
 

@@ -33,6 +33,8 @@ import { intentsOf } from '../game/intent';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
+import { latestPublishedNews } from '../news/entries';
+import { NewsReadState } from '../news/readState';
 import {
   arrearsAhead,
   ambushNotice,
@@ -220,10 +222,11 @@ export class Controller {
   readonly client: Client;
   readonly account: AccountService;
   readonly session: GameSession;
+  private readonly newsRead: NewsReadState;
 
   preferences: Preferences;
   route: Route = 'welcome';
-  /** Abas que o jogador abriu (Crônica, Preferências, Sobre). */
+  /** Abas que o jogador abriu (Crônica, Preferências, Novidades, Sobre). */
   opened: Route[] = [];
   chronicle: GameEvent[] = [];
   /** O que o conselho registrou na Crônica, para a aba do Conselho (`CouncilLog`). */
@@ -329,6 +332,7 @@ export class Controller {
 
   constructor(private readonly options: ControllerOptions) {
     this.preferences = loadPreferences(options.store);
+    this.newsRead = new NewsReadState(options.store);
     this.client = createClient({
       baseUrl: options.baseUrl,
       tokenStore: options.tokenStore,
@@ -446,6 +450,7 @@ export class Controller {
     this.visible = visible;
     this.session.setVisible(visible);
     this.refreshStatsIfShown();
+    this.changes.emit();
   }
 
   /** O navegador avisou que a rede voltou: sincroniza na hora, sem esperar o recuo. */
@@ -464,6 +469,11 @@ export class Controller {
     if (change.kind === 'preferences') {
       this.preferences = loadPreferences(this.options.store);
       this.changes.emit();
+    } else if (change.kind === 'newsRead') {
+      const account = this.account.state;
+      if (account.kind !== 'signedOut' && account.accountId === change.accountId) {
+        this.changes.emit();
+      }
     } else if (change.kind === 'signedOut') {
       // Saiu, excluiu ou perdeu a sessão em outra aba: esta volta às boas-vindas junto. Sair
       // apaga duas chaves e gera dois eventos: só o primeiro encontra a conta aqui.
@@ -493,6 +503,33 @@ export class Controller {
 
   get tabs(): Route[] {
     return visibleTabs(this.hasGame, this.opened);
+  }
+
+  /** A edição do servidor, sem usar a versão compilada do app como substituta. */
+  get serverVersion(): string | null {
+    return this.server.status === 'ready' ? this.server.value.server : null;
+  }
+
+  get hasUnreadNews(): boolean {
+    const account = this.account.state;
+    const latest = latestPublishedNews(this.serverVersion);
+    return (
+      account.kind !== 'signedOut' &&
+      latest !== null &&
+      this.newsRead.hasUnread(account.accountId, latest.version)
+    );
+  }
+
+  /** Só a página desenhada e à vista confirma a leitura; navegar sozinho não basta. */
+  async markNewsRead(): Promise<void> {
+    const account = this.account.state;
+    const latest = latestPublishedNews(this.serverVersion);
+    if (this.route !== 'news' || !this.visible || account.kind === 'signedOut' || latest === null) {
+      return;
+    }
+    if (await this.newsRead.markRead(account.accountId, latest.version)) {
+      this.changes.emit();
+    }
   }
 
   /** O servidor tem o vínculo com o GitHub ligado (há `GITHUB_CLIENT_ID`). */
@@ -553,7 +590,7 @@ export class Controller {
     if (route === 'chronicle') {
       void this.loadChronicle();
     }
-    if (route === 'about' && this.server.status !== 'ready') {
+    if ((route === 'about' || route === 'news') && this.server.status !== 'ready') {
       void this.loadServerInfo();
     }
     if (route === 'kingdom') {
@@ -619,6 +656,7 @@ export class Controller {
         this.session.stop();
         await clearAccountCaches(this.options.store, SERVER_KEY, before.accountId);
         await this.options.store.update(reminderKey(before.accountId), undefined);
+        await this.newsRead.forget(before.accountId);
       } else if (beforeTarget !== null) {
         // Mesma conta, outra partida: a anterior foi arquivada e o cache dela não serve mais.
         await this.session.clearCache(beforeTarget);

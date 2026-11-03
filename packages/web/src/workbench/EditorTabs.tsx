@@ -8,6 +8,8 @@ export function EditorTabs(props: {
   active: Route;
   /** Há um Relatório de Retorno por ler: a aba Hoje ganha um ponto. */
   hasNews: boolean;
+  /** Há uma crônica de versão publicada por ler. */
+  unreadNews?: boolean;
   /**
    * Cartas à espera de resposta: a aba do Conselho ganha o número, dito por extenso a quem não
    * o vê.
@@ -55,6 +57,7 @@ export function EditorTabs(props: {
             >
               <Icon name={ROUTE_ICONS[route]} />
               {ROUTE_LABELS[route]}
+              {route === 'news' && props.unreadNews ? <span class="chip">novo</span> : null}
               {route === 'today' && props.hasNews ? (
                 <span class="dot" role="img" aria-label="há novidades" />
               ) : null}
