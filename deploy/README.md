@@ -128,6 +128,26 @@ Para saber em que versão as partidas estão:
 select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
 ```
 
+### Protocolo 4 e estado 41 — candidato da terceira junção da v0.4 (2026-11-03)
+
+O candidato `v4-juncao3` traz o Cerco e passa de protocolo 3 para **4**:
+`pendingDecisions` ganha o tipo `siegeWave`, que o app antigo não sabe ler.
+O servidor aceita `X-Lords-Protocol: 4`; clientes anteriores recebem
+`426 UPGRADE_REQUIRED` ("Recarregue a página"). O cache do app descarta a visão
+do protocolo anterior e mantém o cursor dos eventos. As rotas continuam em `/v1`.
+
+A migração SQL **`0001_ranking_listed`** acrescenta a preferência pública do
+ranking em `accounts`; o arranque aplica o SQL sob a trava de migração existente.
+A versão do estado é **41**: o ataque ao Acampamento é 38 → 39, o Cerco é
+39 → 40 e os bônus das cartas do lote 3 são 40 → 41. A Crônica do Ano usa os
+contadores já existentes, sem um passo adicional. Antes de uma publicação autorizada,
+fazer o backup manual, anotar o SHA e conferir o portão do candidato; atualizar a API
+antes do app. Depois conferir `GET /v1/version` (`protocol: 4`, `builtAt` novo),
+`schema_version = 41` nas partidas avançadas e a coluna `accounts.ranking_listed`.
+A reversão após migrar o estado exige restaurar o backup correspondente; uma imagem
+anterior não pode escrever sobre o estado novo. Esta nota prepara a operação:
+**a terceira junção não publica nem altera o `main`**.
+
 ### A primeira publicação da v0.3: do estado 12 ao 24 de uma vez (nota de 2026-10-06, revista em 2026-10-15)
 
 **Esta publicação, a da Fase D da v0.3, é diferente das anteriores:** a produção roda a **v0.2.0 (estado 12, protocolo 2)** e saltará para o **estado 20 e o protocolo 3 em um `push` só**, passando pelos oito passos de migração (12 → 13 → … → 20) na primeira leitura de cada partida ou no job de avanço (ADR 0017, "Respostas de 2026-10-06"; as Fases B, C e D não vão ao ar em separado). O que isso pede, além dos passos 0 a 3 acima:

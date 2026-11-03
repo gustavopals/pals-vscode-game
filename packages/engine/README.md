@@ -33,10 +33,9 @@ outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentada
 ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
 [balance-v0.4.md](../../docs/balance-v0.4.md), seção 11.
 
-**Integração ainda por fazer:** o ataque e a sabotagem já estão no motor (V4F-T1/T2);
-a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
-permanece durante o inverno e é desativada na virada anual; isso é um estado
-intermediário da implementação, não o encerramento do cerco do GDD.
+**Terceira junção:** ataque e sabotagem estão ligados ao Cerco (V4F-T1/T2 e V4G-T2).
+A Fortaleza é desativada no encerramento do Cerco. Os resultados e o rescaldo estão
+implementados; a Crônica do Ano fecha os contadores na virada anual (V4G-T3).
 
 ## Sabotagem da Fortaleza (v0.4, V4F-T1)
 
@@ -844,8 +843,8 @@ o Xamã revela a terceira onda, e o Desastre alerta a primeira. A captura ou mor
 segue a dificuldade. A dificuldade cresce por tentativa; a Fortaleza que some
 faz a equipe voltar pela fronteira. As ofertas, recusas e notas dos relatórios
 chegam ao app pela visão. O passo 37 → 38 apenas acrescenta contadores zerados.
-A duração conservada do grafo está na pendência F-1; as ondas do Cerco ainda não
-são agendadas nem resolvidas.
+A duração conservada do grafo está na pendência F-1; as ondas do Cerco são
+agendadas e resolvidas pela V4G-T2, descrita abaixo.
 
 
 ### Cerco na linha do tempo (V4G-T2.1–T2.3, estado 40)

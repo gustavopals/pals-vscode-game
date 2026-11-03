@@ -83,7 +83,7 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 
 Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem ofício até a seguinte.
 
-**O Cerco (V4G-T2.10).** Todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação (ou da finta do militar). Enquanto o cerco não começa, o Plano acompanha a Defesa ativa. Em uma visita entre ondas, fazem reparo de emergência quando a oferta permite e trocam a próxima formação pela ativa se necessário. As visitas continuam na cadência do perfil. Nesta trilha o simulador local usa a visão ampliada do motor; o modo remoto espera a T2.7 expor o cerco pelo protocolo.
+**O Cerco (V4G-T2.10).** Todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação (ou da finta do militar). Enquanto o cerco não começa, o Plano acompanha a Defesa ativa. Em uma visita entre ondas, fazem reparo de emergência quando a oferta permite e trocam a próxima formação pela ativa se necessário. As visitas continuam na cadência do perfil. Na terceira junção, o simulador local usa a visão ampliada do motor e o modo remoto recebe o Cerco pelo protocolo 4.
 
 A convocação automática da milícia ainda depende da prévia da onda 3 e da oferta de
 convocação na visão (G-16 de `docs/pendencias-v0.4.md`). A prévia atual de
