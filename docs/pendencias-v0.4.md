@@ -740,8 +740,8 @@ Na V4G-T2.10, todos os bots salvam a Defesa ativa nas três ondas depois de mont
 entre ondas, fazem o reparo de emergência se `repairOffer.canRepair` permite e trocam apenas
 a formação da próxima onda pela Defesa ativa, se diferente. Não há visita extra para o
 cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o Plano existente.
-A ponte local do simulador usa a visão ampliada e as ordens internas do motor até a T2.7
-unificar o protocolo; no remoto, a visão de protocolo 3 continua sem cerco.
+Na terceira junção, a T2.7 já unifica o protocolo 4: a execução local e a remota
+consomem a visão com Cerco, sem acrescentar um campo `siege` vazio.
 
 **G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Proposta do agente; não lida pelo autor.)_
 Na base `61cdb70`, `simulateBattle` recebe apenas `formationId`: a prévia supõe uma
