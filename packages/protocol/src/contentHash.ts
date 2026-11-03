@@ -39,6 +39,7 @@ import {
   feats,
   featRules,
   yearChronicleTexts,
+  siegeTexts,
 } from '@lotg/content';
 
 import { canonicalJson } from './canonical';
@@ -93,6 +94,7 @@ function hashedContent(): Record<string, unknown> {
     feats,
     featRules,
     yearChronicleTexts,
+    siegeTexts,
     threatMarkTemplates,
     raidTemplates,
     injuryTemplates,

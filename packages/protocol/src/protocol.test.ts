@@ -1,5 +1,9 @@
 import {
   balance,
+  featRules,
+  feats,
+  yearChronicleTexts,
+  siegeTexts,
   buildings,
   chronicleTemplates,
   coldReliefs,
@@ -2700,6 +2704,10 @@ describe('contentHash', () => {
     expect(hashed).toEqual([
       canonicalJson({
         balance,
+        featRules,
+        feats,
+        yearChronicleTexts,
+        siegeTexts,
         buildings,
         objectives,
         chronicleTemplates,
@@ -2756,6 +2764,8 @@ describe('contentHash', () => {
       'councilCards',
       'craftGuilds',
       'enemies',
+      'featRules',
+      'feats',
       'foundingTemplates',
       'heroAttributes',
       'heroClasses',
@@ -2777,6 +2787,7 @@ describe('contentHash', () => {
       'prowlingTileOrder',
       'raidSizes',
       'raidTemplates',
+      'siegeTexts',
       'startingTiles',
       'tavernCandidates',
       'threatMarkTemplates',
@@ -2785,6 +2796,7 @@ describe('contentHash', () => {
       'vigilTexts',
       'wageArrearsReliefs',
       'warRaids',
+      'yearChronicleTexts',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
