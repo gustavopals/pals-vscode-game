@@ -639,6 +639,9 @@ function resolveRaid(
  * chegaram, em ordem. Cada incursão é resolvida uma vez e sai da lista.
  */
 export function settleRaids(draft: GameState, atMs: number, events: GameEvent[]): void {
+  const revealed = draft.council.bonuses.revealedRaidId;
+  if (revealed !== null && !draft.horde.scheduledRaids.some((raid) => raid.id === revealed))
+    draft.council.bonuses.revealedRaidId = null;
   // Depois das obras e da virada do dia, antes do aviso da Torre: a recém-marcada já é visível.
   markScriptedWarRaids(draft, atMs);
   announceRaids(draft, atMs, events);
@@ -652,5 +655,7 @@ export function settleRaids(draft: GameState, atMs: number, events: GameEvent[])
     if (warRaids.scripted.some((def) => def.rehearsal && def.id === raid.id))
       draft.stats.vigilRehearsalMarked = 1;
     resolveRaid(draft, raid, atMs, events);
+    if (draft.council.bonuses.revealedRaidId === raid.id)
+      draft.council.bonuses.revealedRaidId = null;
   }
 }
