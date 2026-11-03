@@ -80,13 +80,24 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
     expect(counts(3, 1, 1, true)).toEqual([1, 2, 3, 1]);
   });
 
-  it('as quatro avulsas novas: contagens exatas por estação, Taverna, heróis livres e feridos', () => {
-    const avulsas = CATALOG.slice(39, 43);
+  it('as avulsas e o lote 3: contagens exatas por estação, Taverna, heróis livres e feridos', () => {
+    const additions = CATALOG.slice(39);
+    expect(additions).toHaveLength(17);
     const counts = (tavern: number, freeHeroes: number, injured: boolean) =>
       balance.calendar.seasons.map((season) => {
         const at = SEASON_START[season.id] + DAY;
         const state = feudAt(at, 3);
         state.settlement.buildings.tavern = tavern;
+        Object.assign(state.settlement.buildings, {
+          market: 1,
+          smithy: 1,
+          barracks: 1,
+          watchtower: 2,
+          palisade: 3,
+        });
+        state.settlement.wall.hp = { left: 1, center: 1, right: 1 };
+        state.map.tiles.raiderCamp = { type: 'raiderCamp', threatActive: true };
+        state.map.tiles.hordeFortress = { type: 'hordeFortress', threatActive: true };
         for (let index = 0; index < freeHeroes; index++) {
           state.guild.heroes.push({
             id: `hero-${index + 1}`,
@@ -123,13 +134,13 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
             freedAtMs: null,
           });
         }
-        return eligibleCards(state, at, avulsas).length;
+        return eligibleCards(state, at, additions).length;
       });
-    expect(counts(0, 0, false)).toEqual([0, 0, 0, 0]);
-    expect(counts(1, 0, false)).toEqual([1, 1, 1, 1]);
-    expect(counts(1, 1, false)).toEqual([2, 2, 2, 2]);
-    expect(counts(1, 2, false)).toEqual([3, 3, 3, 2]);
-    expect(counts(1, 2, true)).toEqual([4, 4, 4, 3]);
+    expect(counts(0, 0, false)).toEqual([4, 5, 5, 2]);
+    expect(counts(1, 0, false)).toEqual([5, 6, 6, 3]);
+    expect(counts(1, 1, false)).toEqual([6, 7, 7, 4]);
+    expect(counts(1, 2, false)).toEqual([7, 8, 8, 4]);
+    expect(counts(1, 2, true)).toEqual([8, 9, 9, 5]);
   });
   it('o ano tem 5 audiências na primavera, 6 no verão, 6 no outono e 3 no inverno', () => {
     expect(balance.calendar.seasons.map((season) => audiencesOf(season.id).length)).toEqual([
