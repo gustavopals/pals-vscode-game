@@ -5,12 +5,35 @@ import { advanceTo } from './advance';
 import { currentRepairQuote } from './wallRepair';
 import { upgradeCost, upgradeQuote } from './construction';
 import { readySiege } from './siege.test-helpers';
-import { DAY } from './test-helpers';
+import { caravanEscortScenario, DAY } from './test-helpers';
+import { currentShape } from './migrations';
 import { finishSiege } from './siegeOutcome';
 import { cloneState } from './state';
 import { YEAR_MS } from './clock';
 
 describe('V4G-T2.6 · Rescaldo e Reconstrução (GDD §11.4; ADR 0020, decisões 19 e 22)', () => {
+  it('preserva caravanas e volume já negociado quando a Queda reduz o Mercado', () => {
+    const state = caravanEscortScenario();
+    state.settlement.buildings.market = 5;
+    state.market.tradedToday.wood = 900;
+    state.siege = {
+      ...readySiege().siege!,
+      year: state.clock.year,
+      atMs: state.lastProcessedAt,
+      current: 3,
+      nextWaveAtMs: null,
+      result: 'fall',
+      endedAtMs: state.lastProcessedAt,
+      aftermathUntilMs: YEAR_MS,
+    };
+    expect(currentShape(state, '')).toBeNull();
+    finishSiege(state, state.lastProcessedAt, []);
+    expect(state.settlement.buildings.market).toBe(3);
+    expect(state.market.caravans).toHaveLength(2);
+    expect(state.market.tradedToday.wood).toBe(900);
+    expect(currentShape(state, '')).toBeNull();
+  });
+
   it('aplica festa (+15 por 1 dia) na Vitória Gloriosa', () => {
     const state = readySiege();
     state.siege!.result = 'glorious';

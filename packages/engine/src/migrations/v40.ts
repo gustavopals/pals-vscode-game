@@ -141,6 +141,38 @@ export const stateV40: Shape = (value, path) => {
         },
       };
   }
+  // A Queda também pode reduzir o Mercado. Cargas em viagem e negócios do dia
+  // continuam válidos; ofertas e ordens usam o nível real, sem abrir novas vagas.
+  // Estes limites são os publicados na v24, escritos aqui sem alterar sua guarda.
+  if (
+    (stats?.siegesFallen ?? 0) > 0 &&
+    object(value.market) &&
+    Array.isArray(value.market.caravans) &&
+    value.market.caravans.length <= 2 &&
+    object(value.market.tradedToday) &&
+    object(inheritedSettlement.buildings)
+  ) {
+    const traded = Object.values(value.market.tradedToday);
+    const level = inheritedSettlement.buildings.market as number;
+    if (
+      level > 0 &&
+      traded.every(
+        (amount) =>
+          Number.isSafeInteger(amount) && (amount as number) >= 0 && (amount as number) <= 1000,
+      )
+    ) {
+      const roadLevel =
+        value.market.caravans.length > 1 ? 4 : value.market.caravans.length > 0 ? 2 : 0;
+      const tradeLevel = Math.ceil(Math.max(0, ...(traded as number[])) / 200);
+      inheritedSettlement = {
+        ...inheritedSettlement,
+        buildings: {
+          ...inheritedSettlement.buildings,
+          market: Math.max(level, roadLevel, tradeLevel),
+        },
+      };
+    }
+  }
   const inherited = stateV39({ ...rest, schemaVersion: 39, settlement: inheritedSettlement }, path);
   if (inherited !== null) return inherited;
   const now = value.lastProcessedAt as number;

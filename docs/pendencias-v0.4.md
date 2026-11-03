@@ -810,3 +810,10 @@ A marcação do Cerco continua pública, mas o texto sem Torre diz que o feudo m
 Vigília, sem inventar vigias. Com Torre conserva a frase existente. O agrupamento de
 presságios por onda mostra somente os de clareza conhecida; os vagos continuam na
 lista geral do Exército, sem associação à onda, como exige a névoa já testada.
+
+**J3-2. Mercado reduzido pela Queda com obrigações em curso.** _(Proposta do agente; não lida pelo autor.)_
+Caravanas já enviadas terminam normalmente e o volume já negociado permanece até a
+virada diária, mesmo acima do teto do Mercado reduzido. A guarda v40 admite essas
+obrigações, até os limites publicados (duas caravanas e 1.000 unidades por recurso),
+como já admite soldados acima do Quartel reduzido. As novas ofertas e ordens continuam
+usando o nível real. Guardas v1–v39 e números de conteúdo não foram alterados.

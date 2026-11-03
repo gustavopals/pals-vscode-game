@@ -1427,3 +1427,42 @@ o Cerco agrupava presságios vagos pela onda escondida, e a marcação sem Torre
 em vigias inexistentes. A visão agora só agrupa presságios de clareza conhecida; a
 lista geral conserva os vagos. A frase sem Torre tem variante no conteúdo (J3-1).
 Os testes anteriores de igualdade de visão e de ausência de vigias ficaram intactos.
+
+Os testes econômicos de estação agora usam `gameAtPeace`, que adia o Cerco daquele
+ano com ondas preparadas pelo motor em uma cópia, à semelhança da incursão adiada
+por `quietHorde`. Isso preserva as contas exatas de lenha, comida e adaptação; os
+cenários de combate, os retratos reais e a matriz continuam atravessando o Cerco.
+O roteiro dos dez objetivos também isola a economia. As asserções de ordem incluem
+`yearEnded`; as filas conferem `costPaid`; o teste de identidade compara todos os
+contadores antes/depois das leituras, incluindo as batalhas que o avanço já criou.
+O ouro sem heróis desconta somente as perdas explícitas de Queda. A reserva do teste
+de expedição de 30 dias cobre o soldo mesmo após as Quedas de vários anos. A prova
+de coortes fica isolada da perda de braços em combate; a divisão de intervalo com
+Cerco continua nas propriedades próprias. Nos 30 dias da experiência surgem três
+mestrias, com o estado e todos os eventos ainda exatamente iguais entre os cortes.
+
+As exceções editoriais do lote 3 ficam restritas às frases e à ordem das fichas
+aprovadas (`smuggledIron`, `lordsSword`, `hordeDeserter`, `hordeSpy`), com o contrato
+integral das cartas mantido. O Boicote percorre agora as três roteirizadas devidas
+(estrangeira, mercador itinerante e corvos) antes do sorteio; a semente escolhida com
+o catálogo completo é `merchant-boycott-6`. Nenhum efeito aprovado foi reescrito.
+
+### 20.2 Retratos e goldens
+
+Os bytes de todos os retratos preexistentes em `a38a74a` permanecem intactos, assim
+como todas as entradas preexistentes de `FROZEN`. Os retratos atuais v41 são
+regravados com `UPDATE_GOLDEN=1`. Dois retratos novos das trilhas, v39/v40 de
+`market-council-effects`, antecediam a correção intradiária do Mercado: faltava
+`fromMs` e o fim era calculado desde a escolha. Foram reconstituídos a partir do
+retrato v38 válido do main pelos passos reais 38 → 39 → 40, com as guardas conferidas
+e regravação por snapshot; só esses dois hashes novos foram corrigidos. O teste
+`junction.portraits.test.ts` preserva essa prova. Os efeitos agora vão da próxima
+virada, 367.200.000 ms, a 388.800.000 ms, iguais aos do retrato v38 de origem.
+
+A propriedade das caravanas revelou uma recusa real de estado após a Queda: o Mercado
+reduzido podia ter mais cargas em curso e volume negociado que seu novo teto. A guarda
+v40 agora valida essas obrigações pelos limites publicados, sem apagar cargas, reiniciar
+volume ou elevar o nível real. O teste determinístico `preserva caravanas e volume…`
+reproduziu a falha antes da correção; as ordens novas continuam limitadas pelo nível
+reduzido (J3-2). A variante do anúncio sem Torre e os demais textos do Cerco também
+entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
