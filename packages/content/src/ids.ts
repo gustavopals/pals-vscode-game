@@ -254,6 +254,7 @@ export const EXPEDITION_MODEL_IDS = [
   'swamp',
   // V4F-T1: a sabotagem da Fortaleza da Horda (ADR 0020, decisão 17).
   'sabotage',
+  'whiteWolfHunt',
 ] as const;
 export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];
 

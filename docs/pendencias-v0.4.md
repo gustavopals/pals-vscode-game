@@ -845,3 +845,11 @@ e a ficha exige estoque de armas para contratar. Mantém-se a regra e registra-s
 para o autor a proposta de apresentar também o custo e a quantidade que falta,
 em campo próprio da visão, sem tratá-las como recurso negociável. Nenhuma mudança
 de protocolo ou forma foi antecipada nesta junção.
+
+
+## Lobo Branco — V4H-T1.4 (2026-11-04)
+
+**H-10. Troca de rumo na segunda carta.** _(Proposta do agente; não lida pelo autor.)_
+Ao escolher `hunt` ou `feed` em §6.5, limpar os três marcadores antes de gravar o
+rumo novo. Assim quem passou da caçada à oferenda lê a variante certa de §7.1;
+`withdraw` e todas as opções finais continuam limpando os três, como aprovado.

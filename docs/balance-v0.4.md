@@ -1495,3 +1495,12 @@ entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
    repetidos. A prova também encontrou a cotação dinâmica ausente no `ViewState`:
    a obra dos corvos aparecia sem custo e como pagável, mesmo faltando madeira.
    A visão usa a mesma cotação da resposta e informa o recurso que falta.
+
+
+## Lobo Branco — V4H-T1.4 (2026-11-04)
+
+Transcrição de §§6.4, 6.5 e 7.1 aprovados em 2026-10-23. A exceção nominal
+`whitePaws/ignore` ao teste de perda automática preserva os 30 de comida da ficha
+nas três dificuldades. `forestReturns` conserva a ordem aprovada `claim`, `honor`,
+`sell`, embora `honor` cobre pedra. Os contratos específicos conferem valores exatos;
+as demais cartas mantêm as mesmas regras. Nenhuma faixa do simulador foi alterada.

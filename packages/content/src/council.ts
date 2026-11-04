@@ -56,6 +56,7 @@ export const COUNCIL_EFFECT_TYPES = [
   'revealRaid',
   'repairDiscount',
   'militiaReady',
+  'unlockExpedition',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
@@ -128,6 +129,12 @@ export type CouncilImmediateEffect =
    * usam). A carta que o dá pede `undiscovered`, e a revelação não é segredo.
    */
   | { readonly type: 'revealDestination'; readonly modelId?: ExpeditionModelId }
+  /** Abre um destino especial apenas até o prazo, contado da escolha. */
+  | {
+      readonly type: 'unlockExpedition';
+      readonly modelId: ExpeditionModelId;
+      readonly forDays: number;
+    }
   /**
    * Soldados já treinados entram no Exército, sem fila nem custo de treino, saindo dos aldeões
    * (a mesma conta do fim do treino). A opção que os dá pede o Quartel e a vaga
@@ -165,6 +172,8 @@ export type CouncilEffect = CouncilImmediateEffect | CouncilRollEffect;
 /** Quando uma carta pode ser sorteada. Sem um campo, ele não restringe. */
 export type CouncilCardRequires = {
   readonly tile?: TileTypeId;
+  /** Tiles de ameaça já limpos, pela chave no mapa. */
+  readonly clearedTiles?: readonly string[];
   readonly wallDamaged?: true;
   readonly activeRaid?: true;
   readonly phase?: 'aftermath';
@@ -192,6 +201,8 @@ export type CouncilCardRequires = {
 
 /** O que uma opção exige além do custo. Sem o requisito, ela aparece trancada, com o motivo. */
 export type CouncilOptionRequires = {
+  /** Heróis livres para partir agora, incluindo a trava dos comandantes. */
+  readonly heroPresent?: number;
   readonly armyRoom?: number;
   readonly training?: true;
   readonly commanderTrait?: HeroTraitId;

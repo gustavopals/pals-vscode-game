@@ -1,0 +1,346 @@
+import type { CouncilCard } from '../council';
+
+/** Ficha aprovada: docs/content-v0.4.md, §6.4. */
+export const whitePaws: CouncilCard = {
+  id: 'whitePaws',
+  title: 'Pegadas brancas',
+  text: 'Os caçadores acharam pegadas na neve cedo, pegadas largas, de um lobo maior que o maior que já se viu, e brancas ao redor, como se a terra tivesse dado à luz uma sombra clara. O Covil está limpo, mas a serra não esqueceu quem morava nele. O conselho quer saber o que o senhor responde.',
+  weight: 2,
+  requires: {
+    seasons: ['autumn'],
+    clearedTiles: ['wolfDen'],
+    notFlags: ['whiteWolf.hunt', 'whiteWolf.offer', 'whiteWolf.ignored'],
+  },
+  autoResolve: {
+    peasant: 'ignore',
+    lord: 'ignore',
+    ironKing: 'ignore',
+  },
+  options: [
+    {
+      id: 'hunt',
+      label: 'Organizar a caçada',
+      cost: {
+        food: 40,
+      },
+      effects: [
+        {
+          type: 'setFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'scheduleCard',
+          cardId: 'whiteWolf',
+          afterDays: 3,
+        },
+      ],
+      hint: 'Atrás de um rastro assim vai gente, e volta nem sempre.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou os caçadores seguirem as pegadas brancas. Levaram sal, corda e pouca conversa.',
+    },
+    {
+      id: 'offer',
+      label: 'Deixar carne na orla do bosque',
+      cost: {
+        food: 80,
+      },
+      effects: [
+        {
+          type: 'morale',
+          amount: 5,
+          durationDays: 2,
+        },
+        {
+          type: 'setFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'scheduleCard',
+          cardId: 'whiteWolf',
+          afterDays: 3,
+        },
+      ],
+      hint: 'A fera come o que deixam, e quem a alimenta vira conhecido dela.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou deixar carne na orla do bosque. De manhã, a carne tinha sumido e a neve estava amassada em círculo.',
+    },
+    {
+      id: 'ignore',
+      label: 'Fingir que não viu',
+      effects: [
+        {
+          type: 'resources',
+          amounts: {
+            food: -30,
+          },
+        },
+        {
+          type: 'setFlag',
+          flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'scheduleCard',
+          cardId: 'whiteWolf',
+          afterDays: 6,
+        },
+      ],
+      hint: 'O rastro some com a neve. O lobo, não.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} fez de conta que não viu as pegadas brancas. Na noite seguinte, o curral amanheceu mais leve.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} fez de conta que não viu as pegadas brancas. Na noite seguinte, o curral amanheceu mais leve.',
+    },
+  ],
+};
+
+/** Ficha aprovada: docs/content-v0.4.md, §6.5. */
+export const whiteWolf: CouncilCard = {
+  id: 'whiteWolf',
+  title: 'O Lobo Branco',
+  text: 'Os caçadores voltaram sem a fera e sem o rastro, mas com certeza: é um lobo só, branco como cinza fria, e vive onde o bosque fecha. Dizem que um grupo bem armado, com quem entenda de trilha, o alcança em dois dias. O conselho quer saber se a Guilda sai atrás dele.',
+  weight: 0,
+  autoResolve: {
+    peasant: 'withdraw',
+    lord: 'withdraw',
+    ironKing: 'withdraw',
+  },
+  options: [
+    {
+      id: 'hunt',
+      label: 'Mandar a Guilda atrás dele',
+      requires: {
+        buildings: {
+          guild: 1,
+        },
+        heroPresent: 1,
+      },
+      effects: [
+        {
+          type: 'unlockExpedition',
+          modelId: 'whiteWolfHunt',
+          forDays: 6,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'setFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'scheduleCard',
+          cardId: 'forestReturns',
+          afterDays: 5,
+        },
+      ],
+      hint: 'A caçada é longa, e a recompensa é a pele, a honra e a quietude.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou a Guilda atrás do Lobo Branco. Partiram de madrugada, em fila, calados.',
+    },
+    {
+      id: 'feed',
+      label: 'Manter a oferenda',
+      cost: {
+        food: 60,
+      },
+      effects: [
+        {
+          type: 'morale',
+          amount: 5,
+          durationDays: 3,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'setFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'scheduleCard',
+          cardId: 'forestReturns',
+          afterDays: 5,
+        },
+      ],
+      hint: 'Quem alimenta uma fera ganha tempo, e dívida.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou manter a carne na orla do bosque. O lobo veio comer à vista de todos.',
+    },
+    {
+      id: 'withdraw',
+      label: 'Recolher os homens e as lanternas',
+      effects: [
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+      ],
+      hint: 'Nem toda fera quer ser caçada.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou recolher os homens e apagar as lanternas. O lobo se foi pela serra, e a aldeia dormiu.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} mandou recolher os homens e apagar as lanternas. O lobo se foi pela serra, e a aldeia dormiu.',
+    },
+  ],
+  variants: [
+    {
+      flag: 'whiteWolf.hunt',
+      text: 'Os caçadores voltaram sem a fera e sem o rastro, mas com certeza: é um lobo só, branco como cinza fria, e vive onde o bosque fecha. Dizem que um grupo bem armado, com quem entenda de trilha, o alcança em dois dias. O conselho quer saber se a Guilda sai atrás dele.',
+    },
+    {
+      flag: 'whiteWolf.offer',
+      text: 'A carne some toda noite, e o lobo já deixa que o vejam: branco, calmo, sentado à beira da neve como um cão de guarda que ninguém contratou. Há quem diga que ele aprendeu o gosto do feudo. O conselho quer saber se a oferenda continua ou se a Guilda sai atrás dele.',
+    },
+    {
+      flag: 'whiteWolf.ignored',
+      text: 'O lobo desceu ao curral duas noites seguidas, e nenhuma cerca o deteve. A aldeia dorme de lanterna acesa. Há quem proponha alimentá-lo para amansar, e há quem queira vê-lo pendurado no portão. O conselho quer saber o que o senhor responde.',
+    },
+  ],
+};
+
+/** Ficha aprovada: docs/content-v0.4.md, §7.1. */
+export const forestReturns: CouncilCard = {
+  id: 'forestReturns',
+  title: 'O que a floresta devolve',
+  text: 'Os caçadores da Guilda voltaram com a pele do Lobo Branco dobrada em dois e a história na ponta da língua, que cada um conta de um jeito. O bosque, dizem, ficou quieto depois do golpe, como quem acompanha um enterro. O conselho quer saber o que se faz com o que a floresta devolveu.',
+  weight: 0,
+  autoResolve: {
+    peasant: 'claim',
+    lord: 'claim',
+    ironKing: 'claim',
+  },
+  options: [
+    {
+      id: 'claim',
+      label: 'Aceitar o que a floresta deixou',
+      effects: [
+        {
+          type: 'resources',
+          amounts: {
+            gold: 70,
+            food: 40,
+          },
+        },
+        {
+          type: 'morale',
+          amount: 5,
+          durationDays: 3,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+      ],
+      hint: 'O que o bosque devolve é do feudo, e o feudo agradece em silêncio.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} aceitou o que a floresta devolveu. A pele foi pendurada na parede do Salão, e a aldeia dormiu mais leve.',
+      expiredChronicle:
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} aceitou o que a floresta devolveu. A pele foi pendurada na parede do Salão, e a aldeia dormiu mais leve.',
+    },
+    {
+      id: 'honor',
+      label: 'Honrar o lobo com uma pedra',
+      cost: {
+        stone: 40,
+      },
+      effects: [
+        {
+          type: 'morale',
+          amount: 10,
+          durationDays: 3,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+      ],
+      hint: 'Um marco na orla, e a serra fica em paz com quem a invadiu.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou erguer um marco de pedra na orla do bosque. Ninguém soube dizer ao certo para quê, e ninguém o derrubou.',
+    },
+    {
+      id: 'sell',
+      label: 'Vender a pele a um nobre',
+      effects: [
+        {
+          type: 'resources',
+          amounts: {
+            gold: 120,
+          },
+        },
+        {
+          type: 'morale',
+          amount: -5,
+          durationDays: 2,
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.hunt',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.offer',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.ignored',
+        },
+      ],
+      hint: 'Mais ouro hoje, e menos orgulho amanhã.',
+      chronicle:
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu a pele do Lobo Branco a um nobre da estrada. O negócio foi fechado antes do almoço.',
+    },
+  ],
+  variants: [
+    {
+      flag: 'whiteWolf.hunt',
+      text: 'Os caçadores da Guilda voltaram com a pele do Lobo Branco dobrada em dois e a história na ponta da língua, que cada um conta de um jeito. O bosque, dizem, ficou quieto depois do golpe, como quem acompanha um enterro. O conselho quer saber o que se faz com o que a floresta devolveu.',
+    },
+    {
+      flag: 'whiteWolf.offer',
+      text: 'O lobo parou de vir à orla uma manhã, e na seguinte havia, onde antes ficava a carne, uma pilha de ossos limpos e de couro de caça, como se o bosque quisesse acertar contas. O conselho quer saber o que se faz com o que a floresta devolveu.',
+    },
+  ],
+};
