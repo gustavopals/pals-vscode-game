@@ -251,6 +251,7 @@ function stripComposition(copy: Draft): void {
   delete copy.market?.effects;
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
+  delete copy.map?.expeditionUnlocks;
   for (const occurrence of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
     delete occurrence.heroes;
   }
@@ -725,7 +726,7 @@ const FROZEN: Record<string, string> = {
   'state-v41-campaign-returning.json': 'b89fce07',
   'state-v41-caravan-escort.json': 'a857c638',
   'state-v41-caravan.json': '96be69c7',
-  'state-v41-cold.json': '7a02850a',
+  'state-v41-cold.json': '57f6f250',
   'state-v41-construction.json': '7c197255',
   'state-v41-council-encounters.json': 'f329d0c6',
   'state-v41-council-hidden.json': 'b7e3daa2',
