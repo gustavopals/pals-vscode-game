@@ -421,13 +421,13 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(EXPEDITION_MODEL_IDS).toEqual([
       'patrol',
       'oldForest',
+      'whiteWolfHunt',
       'wolfDen',
       'rescue',
       'ruins',
       'abandonedMine',
       'swamp',
       'sabotage',
-      'whiteWolfHunt',
     ]);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
@@ -845,6 +845,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(table).toEqual([
       ['Patrulha dos Arredores', 15, 2, '1-1', 1, '', 'Baixo', 1, 'open'],
       ['Floresta Antiga', 60, 3, '1-2', 1, '', 'Baixo a médio', 1, 'open'],
+      ['A caçada do Lobo Branco', 120, 3, '1-2', 1, '', 'Médio', 1, 'council'],
       ['Covil de Lobos', 120, 3, '2-2', 1, '', 'Médio', 1, 'tile'],
       ['Resgate', 120, 3, '2-2', 1, '', 'Alto', 1, 'captive'],
       ["Ruínas de Vel'Thar", 180, 4, '2-3', 2, '', 'Médio', 1, 'discovered'],
@@ -853,7 +854,6 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
       // V4F-T1 (ADR 0020, decisão 17; GDD §9.5).
       ['Sabotagem da Fortaleza', 360, 6, '3-3', 1, '', 'Alto', 1, 'tile'],
-      ['A caçada do Lobo Branco', 120, 3, '1-2', 1, '', 'Médio', 1, 'council'],
     ]);
   });
 

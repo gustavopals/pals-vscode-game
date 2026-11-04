@@ -207,13 +207,13 @@ export type ExpeditionModelDef = {
 export const expeditionModels: readonly ExpeditionModelDef[] = [
   patrol,
   oldForest,
+  whiteWolfHunt,
   wolfDen,
   rescue,
   ruins,
   abandonedMine,
   swamp,
   sabotage,
-  whiteWolfHunt,
 ];
 
 /**
