@@ -118,7 +118,11 @@ function reduceWave(draft: GameState, wave: Wave, year?: number): void {
     const index = slots.findIndex((entry) => entry.wing === post.wing && entry.line === post.line);
     // Um posto nunca some com a redução: as ondas menores dos primeiros anos (resposta do
     // autor de 2026-11-04) deixariam postos sem ninguém, e a forma exige ao menos um.
-    return { count: fixed?.count ?? amounts[index] ?? 0, minimum: fixed?.count ?? 1 };
+    return {
+      count: fixed?.count ?? amounts[index] ?? 0,
+      minimum: fixed?.count ?? 1,
+      fixed: fixed !== undefined,
+    };
   });
   distributeWave(wave, base, 100 - (wave.reductionPercent ?? 0), 100);
 }
@@ -126,7 +130,7 @@ function reduceWave(draft: GameState, wave: Wave, year?: number): void {
 /** Calcula o total uma vez, preserva os postos fixos e reparte o resto sem sorteio. */
 function distributeWave(
   wave: Wave,
-  base: readonly { count: number; minimum: number }[],
+  base: readonly { count: number; minimum: number; fixed: boolean }[],
   num: number,
   den: number,
 ): void {
@@ -136,7 +140,7 @@ function distributeWave(
   // Os postos fixos (Xamã e Senhor da Guerra) conservam o efetivo exigido pelo conteúdo.
   for (const [index, post] of base.entries()) {
     if (rest <= 0) break;
-    if (post.minimum > 0) continue;
+    if (post.fixed) continue;
     counts[index] = (counts[index] ?? 0) + 1;
     rest -= 1;
   }
@@ -146,11 +150,10 @@ function distributeWave(
 /** O alerta soma 10% sobre o total atual, também na regeneração. */
 function increaseAlertedWave(wave: Wave): void {
   const def = hordeWaves.find((entry) => entry.number === wave.number)!;
-  const base = wave.composition.map((post) => ({
-    count: post.count,
-    minimum:
-      def.fixed.find((entry) => entry.wing === post.wing && entry.line === post.line)?.count ?? 0,
-  }));
+  const base = wave.composition.map((post) => {
+    const fixed = def.fixed.find((entry) => entry.wing === post.wing && entry.line === post.line);
+    return { count: post.count, minimum: fixed?.count ?? 0, fixed: fixed !== undefined };
+  });
   const { num, den } = balance.horde.sabotage.alertIncrease;
   distributeWave(wave, base, den + num, den);
 }
