@@ -38,6 +38,10 @@ import {
   hordeTiles,
   hordeWaves,
   omenTexts,
+  feats,
+  featRules,
+  yearChronicleTexts,
+  siegeTexts,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -382,9 +386,10 @@ describe('CSV de uma partida', () => {
     // caminho de obras) o ano termina em 57.
     // Segunda junção (docs/balance-v0.4.md, seção 19): com 13 novas cartas do lote 2 e a sabotagem,
     // o ano termina em 50.
-    expect(summary.threat).toEqual({ final: 50, max: 100, watchtower: 4 });
+    // Terceira junção: com a resposta ao cerco e treino/reparos adicionais, a Torre termina no nível 3.
+    expect(summary.threat).toEqual({ final: 50, max: 100, watchtower: 3 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 50 no fim (máxima 100) · Torre de Vigia Nv4, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 50 no fim (máxima 100) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -657,6 +662,10 @@ describe('resumo de uma partida', () => {
             hordeTiles,
             hordeWaves,
             omenTexts,
+            feats,
+            featRules,
+            yearChronicleTexts,
+            siegeTexts,
             threatMarkTemplates,
             raidTemplates,
             injuryTemplates,
@@ -685,7 +694,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder ao cerco, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 

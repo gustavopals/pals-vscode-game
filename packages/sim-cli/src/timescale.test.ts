@@ -40,6 +40,10 @@ const base: SimulationOptions = {
   days: 3,
   strategy: 'economico',
   sessionsPerDay: 3,
+  // A Vigília padrão marca o Cerco às 156 h no Rápido e às 164 h no Normal.
+  // Meio-dia alinha ensaio e Cerco nos dois ritmos sem excluir seus efeitos ou
+  // encurtar a janela comparada (docs/balance-v0.4.md, seção 20).
+  vigilHourLocal: 12,
 };
 
 // 3 dias reais no ritmo 3 são 9 dias reais no ritmo 1: 216 h de jogo. Com 3 sessões por dia no

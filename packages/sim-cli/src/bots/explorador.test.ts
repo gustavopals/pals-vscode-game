@@ -47,6 +47,8 @@ describe('bot explorador', () => {
       'treinar soldados',
       // A Defesa ativa, herdada do econômico (V4E-T2.7, decisão 25).
       'montar a formação',
+      // Terceira junção: o plano e as decisões entre ondas vêm após a formação.
+      'responder ao cerco',
       'responder a carta',
       'erguer a Guilda',
       'contratar',

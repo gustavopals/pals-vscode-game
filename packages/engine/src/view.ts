@@ -224,7 +224,9 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
     affordable: Object.keys(quote.missing).length === 0,
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
-    planned: state.settlement.planned.some((plan) => plan.building === building),
+    planned: state.settlement.planned.some(
+      (plan) => plan.building === building && plan.targetLevel === quote.targetLevel,
+    ),
     effect: upgradeEffect(state, building, quote.targetLevel),
   };
 }

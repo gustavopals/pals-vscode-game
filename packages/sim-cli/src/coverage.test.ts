@@ -47,15 +47,23 @@ if (process.env.SHOW_COVERAGE !== undefined) {
  *
  * "Duelo na praça" (`squareDuel`) pede dois heróis livres fora do inverno e "O curandeiro errante"
  * (`wanderingHealer`) pede herói ferido. O bot econômico não contrata na Taverna (só o Explorador
- * contrata; o único herói regular é a estrangeira resgatada) e nunca envia expedições nem sofre
- * ferimentos, de modo que os requisitos dessas cartas nunca são satisfeitos pelo perfil Regular.
- * Ambas são exercitadas e testadas de ponta a ponta em `packages/engine/src/council.avulsas.test.ts`.
+ * contrata), mas pode contratar o capitão veterano por conselho (`veteranCaptain`), permitindo
+ * `squareDuel` em sementes com folga de ouro (2 partidas em 50 na terceira junção).
+ * "O curandeiro errante" continua inalcançado pelo bot Regular.
+ * "A Filha do Ferreiro" (`smithsDaughter`) e suas continuações (`temperingSecret`, `lordsSword`)
+ * exigem a Ferraria no verão, o que o bot Regular ainda não ergueu no verão do ano 1.
+ * "Depois da tempestade" (`afterTheStorm`) exige a fase de rescaldo do Cerco (`aftermath`);
+ * no ritmo Normal, o Cerco ocorre após as audiências do inverno e o ano fecha na hora 168
+ * antes de nova audiência no rescaldo, de modo que só é vista no ritmo Rápido.
  */
 const neverOpened = [
   'palisadePromiseDeadline',
   'palisadePromiseReckoning',
   'merchantBoycott',
-  'squareDuel',
+  'smithsDaughter',
+  'temperingSecret',
+  'lordsSword',
+  'afterTheStorm',
   'wanderingHealer',
 ];
 
@@ -90,9 +98,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     expect(normal.perRun.cards.min).toBeGreaterThanOrEqual(18);
     expect(normal.perRun.blocked.max).toBeLessThanOrEqual(4);
     expect(normal.perRun.models.min).toBeGreaterThanOrEqual(12);
-    // O bot responde a tudo o que encontra: só expira o que ficou na mesa entre duas visitas
-    // por mais de 24 h reais, e isso não acontece com duas visitas por dia.
-    expect(normal.perRun.expired).toEqual({ min: 0, max: 0 });
+    // O bot responde a tudo o que encontra; na terceira junção, "A véspera do cerco" (siegeEve)
+    // expira no combate da hora 164 entre visitas, atingindo no máximo 1 carta expirada.
+    expect(normal.perRun.expired).toEqual({ min: 0, max: 1 });
   });
 
   it('no ritmo Rápido a mesa enche entre as visitas, e o ano traz menos cartas', () => {
@@ -104,11 +112,15 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
   });
 
   it('toda estação tira cartas, e de modelos diferentes entre as sementes', () => {
-    for (const coverage of [normal, fast]) {
-      for (const [season, row] of Object.entries(coverage.bySeason)) {
-        expect(row.audiences, season).toBeGreaterThanOrEqual(3);
-        expect(row.models.length, season).toBeGreaterThanOrEqual(4);
-      }
+    for (const [season, row] of Object.entries(normal.bySeason)) {
+      expect(row.audiences, season).toBeGreaterThanOrEqual(3);
+      expect(row.models.length, season).toBeGreaterThanOrEqual(4);
+    }
+    for (const [season, row] of Object.entries(fast.bySeason)) {
+      expect(row.audiences, season).toBeGreaterThanOrEqual(3);
+      // No ritmo Rápido, a janela curta do outono e a sequência de cartas roteirizadas
+      // concentram os sorteios em ao menos 2 modelos distintos.
+      expect(row.models.length, season).toBeGreaterThanOrEqual(season === 'autumn' ? 2 : 4);
     }
     // No ritmo Normal nenhuma estação passa em branco em nenhuma semente. Era "ao menos 2" até
     // a V4E-T2: com as incursões-batalha o sorteio de toda semente mudou, e uma delas tira uma
@@ -133,8 +145,10 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // As que o sorteio tira saem em boa parte das sementes do ritmo Normal.
     // Segunda junção (docs/balance-v0.4.md, seção 19): tornMap (peso 1) sai em 10 partidas e
     // mysteriousMerchant (exige Guilda e Mercado no verão) em 5 partidas; as demais saem em ao menos 15.
+    // Terceira junção: com 56 cartas no catálogo, mysteriousMerchant sai em 3 partidas,
+    // tornMap (peso 1) sai em 8 partidas e as demais saem em ao menos 10.
     for (const row of normal.byCard.filter((entry) => drawable.includes(entry.cardId))) {
-      const minRuns = row.cardId === 'mysteriousMerchant' ? 5 : row.cardId === 'tornMap' ? 10 : 15;
+      const minRuns = row.cardId === 'mysteriousMerchant' ? 3 : row.cardId === 'tornMap' ? 8 : 10;
       expect(row.runs, row.cardId).toBeGreaterThanOrEqual(minRuns);
     }
   });
@@ -150,8 +164,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       // (sem tirar o material da próxima obra), e ainda assim abre a cadeia em mais da metade.
       // 45 → 40 com as oito cartas do lote 2 (V4E-T1): elas disputam a mesa (44 em 50 na Ponte).
       // Segunda junção (docs/balance-v0.4.md, seção 19): 40 → 35 com as treze cartas adicionais disputando a mesa (37 em 50 na Ponte).
+      // Terceira junção: 35 → 20 com as treze cartas do lote 3 (56 no catálogo completo).
       expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(35);
-      expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(25);
+      expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(20);
       // As continuações vêm em 2 dias depois da resposta, respeitando o lugar na mesa.
       // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
       // do ano não alcança o desfecho antes da última leitura (2 de 35 no Celeiro Comum): a
@@ -159,9 +174,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       expect(runsOf(normal, ending), ending).toBeLessThanOrEqual(runsOf(normal, middle));
     }
     // Segunda junção (docs/balance-v0.4.md, seção 19): 33 segundas cartas e 27 desfechos.
-    // As seis restantes são conferidas por ocorrência abaixo, sem tolerância de perdas.
-    expect(runsOf(normal, 'commonGranaryShare')).toBe(33);
-    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(27);
+    // Terceira junção: 21 segundas cartas e 21 desfechos concluídos no ano.
+    expect(runsOf(normal, 'commonGranaryShare')).toBe(21);
+    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(21);
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
     // Desde os objetivos da v0.2 (V2E-T4) a folga do começo vai para a Torre de Vigia e para o
@@ -176,7 +191,8 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // Com a Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27;
     // docs/balance-v0.4.md, seção 13): quatro, como depois da D-39.
     // Segunda junção (docs/balance-v0.4.md, seção 19): 7 das 50 sementes abrem a cadeia no ritmo Rápido com o novo sorteio de cartas.
-    expect(runsOf(fast, 'commonGranaryShare')).toBe(7);
+    // Terceira junção: treino militar e cerco absorvem a folga do início no ritmo Rápido; nenhuma cadeia abre.
+    expect(runsOf(fast, 'commonGranaryShare')).toBe(0);
   });
 
   it('cada continuação sem desfecho no fim do ano permanece na mesa ou agendada, sem se perder', () => {
@@ -216,9 +232,10 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     }
   });
 
-  it('os seis Celeiros abertos no fim do ano recebem o desfecho depois da visita seguinte', async () => {
+  it('toda cadeia de Celeiro aberta no ano conclui dentro da janela ou na extensão', async () => {
     // Segunda junção (docs/balance-v0.4.md, seção 19): a queda de 30 para 27 desfechos
-    // é o corte da janela na hora 168. Prolongar as mesmas partidas deve concluir as seis.
+    // é o corte da janela na hora 168. Prolongar as mesmas partidas concluía as seis pendentes.
+    // Terceira junção: com 56 cartas no catálogo, todas as 21 cadeias abertas concluíram até a hora 168.
     const late = normalRuns.filter(
       (run) =>
         run.events.some(
@@ -228,9 +245,7 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
           (event) => event.type === 'cardDrawn' && event.data.cardId === 'commonGranaryOutcome',
         ),
     );
-    expect(late.map((run) => run.options.seed)).toEqual(
-      ['010', '018', '021', '023', '029', '036'].map((suffix) => `pedra-alta-${suffix}`),
-    );
+    expect(late.map((run) => run.options.seed)).toEqual([]);
     for (const run of late) {
       const middle = run.finalState.council.pending.find(
         (card) => card.cardId === 'commonGranaryShare',

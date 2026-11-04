@@ -557,6 +557,9 @@ describe('CSV da matriz', () => {
       'masters',
       'omens',
       'fortress_day',
+      'siege_result',
+      'waves_won',
+      'militia_called',
     ]);
     const columns = lines[0]?.split(',').length;
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
@@ -595,8 +598,8 @@ describe('CSV da matriz', () => {
     // Na V4E-T2 o Preguiçoso do ano do Rápido não chegava ao Salão Nv3; com a resposta do autor
     // à D-39 chega de novo, na hora 53, nesta semente; com o Acampamento e a Fortaleza somando
     // Ameaça (V4E-T3) deixou de chegar, e com a Fortaleza sem Ameaça até o Cerco (resposta do
-    // autor de 2026-10-27; docs/balance-v0.4.md, seção 13) volta à hora 53.
-    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('53');
+    // autor de 2026-10-27; docs/balance-v0.4.md, seção 13) volta à hora 53; na terceira junção, chega na hora 54.
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('54');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
     // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum. O

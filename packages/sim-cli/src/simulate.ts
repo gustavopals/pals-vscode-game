@@ -45,6 +45,8 @@ export type SimulationOptions = {
   timeScale?: number;
   /** Dificuldade da partida (GDD §12.1). Padrão `lord`, a de quem não escolhe. */
   difficulty?: DifficultyId;
+  /** Preferência inicial da Hora da Vigília; por padrão, a das rodadas de referência. */
+  vigilHourLocal?: number;
   /**
    * Partida de controle: o mesmo bot, mas as obras que ele planeja entram como manuais e nenhuma
    * começa sozinha, como antes do início automático (V2C-T5). Serve para medir o que o início
@@ -679,7 +681,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   let state = createInitialState(seed, {
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
-    vigilHourLocal: 20,
+    vigilHourLocal: options.vigilHourLocal ?? 20,
     difficulty: options.difficulty ?? 'lord',
     timeScale,
   });
