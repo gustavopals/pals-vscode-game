@@ -37,6 +37,7 @@ import {
 } from '../ui/market';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 import { SIEGE_SECTION, siegeSummary, waveDeadline, waveDecision } from '../ui/siege';
+import { SMITHY_SECTION } from '../ui/smithy';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -813,13 +814,25 @@ function caravanItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * A forja parada com o que forjar: o Ferreiro de pé, sem lote, e o estoque paga ao menos uma
- * arma (`offer.maxAmount` da visão). Só informação: o botão abre a forja, que pergunta o lote.
+ * A forja parada: com material, sugere um lote; sem ele, avisa do ferro e da madeira pela
+ * oferta (`blockedReason`), sem copiar a receita. O painel explica o preparo; o aviso não
+ * envia uma ordem que a visão já recusa.
  */
 function forgeItem(view: ViewState): LeavingItem | null {
   const { smithy } = view;
-  if (!smithy.built || smithy.forge !== null || smithy.offer.maxAmount <= 0) {
+  if (!smithy.built || smithy.forge !== null) {
     return null;
+  }
+  if (smithy.offer.maxAmount <= 0) {
+    const reason = smithy.offer.blockedReason;
+    return reason === null
+      ? null
+      : {
+          id: 'forge',
+          severity: 'warning',
+          text: `O Ferreiro está parado. ${reason}`,
+          command: { id: 'lords.openPanel', arg: SMITHY_SECTION, label: 'Ver o Ferreiro' },
+        };
   }
   return {
     id: 'forge',
@@ -890,13 +903,14 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
- * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha e o soldo; depois **a linha das
- * encruzilhadas** (uma só, para todas as equipes à espera: ela tem reserva, a Postura, e por
- * isso vem depois do que só o jogador resolve, e antes dos alertas); depois os depósitos que
- * enchem, as obras que não começam sozinhas, os aldeões livres e os heróis sem jornada. Em
- * "Decisões pendentes", na mesma aba, a encruzilhada continua no topo. O Relatório de Retorno
- * tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
+ * Ordem de apresentação (V4H-T4.1; F-6 da v0.3): decisão entre ondas → incursão → Plano
+ * ainda padrão → muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa →
+ * campanha → encruzilhadas → depósitos → obras → aldeões livres → ferro excedente →
+ * forja (material ou lote) → equipamento gasto → Mestres livres → Mestres à porta →
+ * caravanas → heróis sem jornada → Taverna. A incursão absorve a falta de Defesa ativa.
+ * beforeLeaving escolhe até cinco por gravidade, com desempate nesta ordem, e mostra os
+ * escolhidos nesta mesma ordem. Mantém a política anterior da F-6, agora escrita e testada.
+ * O Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState, elapsedSeconds = 0): LeavingItem[] {
   const wave = waveDecision(view);

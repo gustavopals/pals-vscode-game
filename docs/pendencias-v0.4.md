@@ -880,3 +880,33 @@ de ausência de escolha: o aviso diz “Há ondas usando a Defesa ativa como pad
 o Plano de inválido. Sem resumo persistente por onda, a tela diz “Enfrentada”, não “Vencida”.
 Como `swapWaveFormation` e `emergencyRepair` não levam onda no payload, a retentativa conserva
 o `commandId`, mas deixa de enviar se a decisão avançar; no reparo, se a cotação mudar também.
+
+
+## V4H-T4 — Retorno e preparo da guerra (2026-11-04)
+
+**H-7. Ordem explícita de “Antes de partir” (F-6 da v0.3).** _(Proposta do agente; não lida pelo autor.)_
+Mantém a política existente, conforme a orientação conservadora da F-6 em
+`docs/pendencias-v0.3.md`: decisão entre ondas → incursão → Plano ainda padrão →
+muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa → campanha →
+encruzilhadas → depósitos → obras → aldeões livres → ferro excedente → forja →
+equipamento gasto → Mestres livres → Mestres à porta → caravanas → heróis sem jornada →
+Taverna. Uma incursão conhecida absorve o aviso de falta de Defesa ativa.
+O corte escolhe até cinco itens por gravidade (perigo, alerta, informação), desempata
+pela posição e mostra os escolhidos na ordem original. O Retorno suprime somente
+os assuntos já apresentados no bloco de decisões; os preços históricos não apagam
+avisos de preparo atual. A ordem e o corte têm testes com riscos simultâneos,
+com e sem decisão do Cerco. Não é a alteração de ordem proposta no roadmap da v0.3.
+
+**H-8. Falta de material, fatores e fechamento anual.** _(Proposta do agente; não lida pelo autor.)_
+Com o Ferreiro livre, `offer.maxAmount` zero e `offer.blockedReason` público, a lista
+mostra o motivo da falta de material como alerta e abre o Ferreiro. Não atribui a
+falta apenas ao ferro: a oferta também pode estar bloqueada pela madeira. Sem motivo
+público, não inventa quantidade nem receita. A forja com material conserva a sugestão
+de lote. Os fatores detalhados vêm de `army.reports` pelo mesmo `battleId`, com o
+nome da ala; quando o relatório não está mais guardado, fica a frase do evento.
+O nome da onda e a batalha formam uma linha por identificador, sem atribuição pela
+posição na lista. `yearEnded` entra em “O feudo prosperou” como registro do ano,
+com a pontuação já emitida e acesso à Crônica existente; não concede ganhos novos.
+A notícia anual chega apenas em “Todas”, com ícone de livro e a cota normal dos
+informativos. A tela/exportação anual completa continua no escopo pendente da V4G-T4;
+esta tarefa não inventa rótulos de Feitos ausentes da visão nem recalcula pontuação.

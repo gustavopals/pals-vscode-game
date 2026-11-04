@@ -1079,13 +1079,16 @@ export class Controller {
           }
         : {
             label: 'Ver',
-            route: isGuildEvent(event)
-              ? 'guild'
-              : isMarketEvent(event)
-                ? 'market'
-                : isArmyEvent(event)
-                  ? 'army'
-                  : 'fief',
+            route:
+              event.type === 'yearEnded'
+                ? 'chronicle'
+                : isGuildEvent(event)
+                  ? 'guild'
+                  : isMarketEvent(event)
+                    ? 'market'
+                    : isArmyEvent(event)
+                      ? 'army'
+                      : 'fief',
             ...(isWatchReport(event) || isRaidOutcome(event) || isWallEvent(event)
               ? { section: THREAT_SECTION }
               : {}),
@@ -1259,7 +1262,7 @@ export class Controller {
      */
     action: {
       label: string;
-      route: 'today' | 'fief' | 'council' | 'guild' | 'market' | 'army';
+      route: 'today' | 'fief' | 'council' | 'guild' | 'market' | 'army' | 'chronicle';
       section?: string;
       /**
        * Em vez de só navegar, o botão executa este comando do app (que leva à aba e abre o que

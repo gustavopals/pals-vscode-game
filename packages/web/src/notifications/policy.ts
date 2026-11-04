@@ -267,11 +267,14 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'hordeAlerted',
   'campAssaulted',
   'armyReturned',
+  // O fechamento anual é registro, sem decisão imediata: informa só em Todas.
+  'yearEnded',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
 /** O ícone próprio de um aviso; sem entrada aqui, vale o do tom (aviso ou informação). */
 const ICONS: Partial<Record<GameEvent['type'], string>> = {
+  yearEnded: 'book',
   coldStarted: 'flame',
   coldEnded: 'flame',
   // Uma conquista do feudo: a estrela a distingue de um aviso comum.
