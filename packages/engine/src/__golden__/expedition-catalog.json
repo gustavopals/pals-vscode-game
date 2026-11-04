@@ -610,5 +610,58 @@
    "itemsText": null,
    "lost": false
   }
+ },
+ "whiteWolfHunt": {
+  "variant": "C",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: A caçada do Lobo Branco. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf seguiu a trilha sob a geada e encontrou a passagem para o bosque fechado. A equipe de Pedra Alta avançou sem perder tempo.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A equipe de Pedra Alta recolheu a pele e a caça escondida entre as raízes.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 32 de comida e 71 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "A caçada do Lobo Branco",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A trilha sob a geada",
+     "text": "No 1º dia da Primavera, Rolf seguiu a trilha sob a geada e encontrou a passagem para o bosque fechado. A equipe de Pedra Alta avançou sem perder tempo. Trouxe 15 de comida.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "O lobo à margem do riacho",
+     "text": "No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A equipe de Pedra Alta recolheu a pele e a caça escondida entre as raízes. Trouxe 17 de comida e 71 de ouro.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta pela orla do bosque",
+     "text": "No 2º dia da Primavera, a equipe da caçada voltou a Pedra Alta pela orla do bosque. O que aconteceu entre as árvores ficou no relato de quem foi.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": null,
+   "lootText": "Trouxe 32 de comida e 71 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
  }
 }

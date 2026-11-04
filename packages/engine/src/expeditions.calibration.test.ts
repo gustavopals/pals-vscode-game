@@ -777,3 +777,21 @@ function traitText(team: readonly Hero[]): string {
   const traits = team.flatMap((entry) => entry.traits);
   return traits.length === 0 ? '' : `, com ${traits.join(', ')}`;
 }
+
+describe('calibragem da caçada especial do Lobo Branco', () => {
+  it('a trilha favorece o Arqueiro e o combate favorece o Guerreiro, sem classe obrigatória', () => {
+    const model = expeditionModels.find((entry) => entry.id === 'whiteWolfHunt')!;
+    for (const variant of model.variants) {
+      for (const [nodeId, favored] of [
+        ['tracks', 'archer'],
+        ['whiteWolf', 'warrior'],
+      ] as const) {
+        const node = variant.nodes[nodeId] as ExpeditionStageNode;
+        const odds = (classId: HeroClassId) => trialOdds([hero(classId, 1)], node, 'balanced');
+        const chance = (classId: HeroClassId) => odds(classId).full + odds(classId).success;
+        expect(chance(favored)).toBeGreaterThan(chance('cleric'));
+        expect(chance(favored)).toBeLessThan(1);
+      }
+    }
+  });
+});

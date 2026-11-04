@@ -1,3 +1,4 @@
+import { nextExpeditionUnlockAt } from './expeditionUnlocks';
 import { nextSiegeEventAt } from './siege';
 import { nextCampaignEventAt } from './campaign';
 import { nextCaravanArrivalAt } from './caravans';
@@ -44,6 +45,8 @@ export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
   const { constructionQueues, recruitmentQueue, famine } = state.settlement;
   const candidates = [nextDayBoundary(now)];
+  const unlockEnds = nextExpeditionUnlockAt(state);
+  if (unlockEnds !== null) candidates.push(unlockEnds);
   const siegeAt = nextSiegeEventAt(state);
   if (siegeAt !== null) candidates.push(siegeAt);
   const marketEnds = nextMarketEffectAt(state);

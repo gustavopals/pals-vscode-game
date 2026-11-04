@@ -1,3 +1,4 @@
+import { unlockExpedition } from './expeditionUnlocks';
 import {
   balance,
   buildings,
@@ -894,8 +895,14 @@ export function expeditionReturningScenario(): GameState {
  * aparecer. O cativo fica no fim da lista de heróis, depois de quem o teste já pôs.
  */
 export function everyDestinationOpen(draft: GameState): void {
+  for (const card of councilCards) {
+    for (const effect of card.options.flatMap((option) => option.effects)) {
+      if (effect.type === 'unlockExpedition')
+        unlockExpedition(draft, effect.modelId, effect.forDays, draft.lastProcessedAt);
+    }
+  }
   draft.map.discovered = expeditionModels
-    .filter((model) => model.access.kind === 'discovered')
+    .filter((model) => model.access.kind === 'discovered' || model.access.kind === 'council')
     .map((model) => model.id);
   const captive = addHero(draft, { name: 'Cativo' });
   captive.status = 'captured';
@@ -1969,7 +1976,7 @@ export function runWeekScenario(answers: Readonly<Record<string, string>> = week
   let state: GameState = newGame('pedra-alta-golden');
   const events: GameEvent[] = [];
   const orders: Array<Record<string, unknown>> = [];
-  const days: Array<Record<string, unknown>> = [];
+  const days: Array<{ day: number; eventsSoFar: number; state: GameState }> = [];
 
   const advance = (toMs: number) => {
     const result = advanceTo(state, toMs);

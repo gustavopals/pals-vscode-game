@@ -597,6 +597,8 @@ const GuildSchema = z.strictObject({
       modelId: z.string(),
       label: z.string(),
       riskText: z.string(),
+      /** Prazo de envio dos destinos especiais, em segundos reais. */
+      expiresInSeconds: z.number().int().nonnegative().optional(),
       durationSeconds: z.number(),
       durationNote: z.string(),
       requirementsText: z.string(),

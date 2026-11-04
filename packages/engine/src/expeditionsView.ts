@@ -199,6 +199,13 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
     }
     const hasCrossroads = Object.values(variant.nodes).some((node) => node.kind === 'crossroads');
     const notes: string[] = [];
+    const untilMs = state.map.expeditionUnlocks[model.id];
+    const expiresInSeconds =
+      untilMs === undefined ? undefined : realSecondsCeil(Math.max(0, untilMs - now), timeScale);
+    if (expiresInSeconds !== undefined)
+      notes.push(
+        fillText(expeditionTexts.availableUntil, { prazo: durationText(expiresInSeconds) }),
+      );
     if (hasCrossroads) {
       notes.push(fillText(expeditionTexts.durationNote, { espera: wait }));
     }
@@ -217,6 +224,7 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
     };
     const outlook = teamOutlook(state, model, against);
     views.push({
+      ...(expiresInSeconds === undefined ? {} : { expiresInSeconds }),
       modelId: model.id,
       label: model.label,
       riskText: model.riskLabel,

@@ -88,6 +88,11 @@ const STABLE_IDS: Record<
   string,
   Array<{ start: string; nodes: string[]; options: Record<string, string[]> }>
 > = {
+  whiteWolfHunt: [
+    { start: 'tracks', nodes: ['tracks', 'whiteWolf', 'home'], options: {} },
+    { start: 'tracks', nodes: ['tracks', 'whiteWolf', 'home'], options: {} },
+    { start: 'tracks', nodes: ['tracks', 'whiteWolf', 'home'], options: {} },
+  ],
   patrol: [
     {
       start: 'fences',
@@ -422,6 +427,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       'abandonedMine',
       'swamp',
       'sabotage',
+      'whiteWolfHunt',
     ]);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
@@ -847,6 +853,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
       // V4F-T1 (ADR 0020, decisão 17; GDD §9.5).
       ['Sabotagem da Fortaleza', 360, 6, '3-3', 1, '', 'Alto', 1, 'tile'],
+      ['A caçada do Lobo Branco', 120, 3, '1-2', 1, '', 'Médio', 1, 'council'],
     ]);
   });
 
@@ -897,7 +904,10 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
         const crossroads = Object.values(variant.nodes).filter(
           (node) => node.kind === 'crossroads',
         );
-        expect(crossroads.length, model.id).toBe(model.id === 'patrol' ? 0 : 1);
+        // §6.5: a caçada especial tem três nós lineares (balance-v0.4.md, Lobo Branco).
+        expect(crossroads.length, model.id).toBe(
+          ['patrol', 'whiteWolfHunt'].includes(model.id) ? 0 : 1,
+        );
         for (const node of crossroads) {
           if (node.kind !== 'crossroads') {
             continue;
@@ -912,7 +922,8 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
           expect(new Set(Object.values(node.posture)).size).toBe(3);
         }
       }
-      if (model.id !== 'patrol') {
+      if (!['patrol', 'whiteWolfHunt'].includes(model.id)) {
+        // Os dois modelos lineares não têm opções; os demais mantêm o requisito (balance, Lobo Branco).
         // Parte das opções, nunca todas: em cada modelo há ao menos uma com requisito.
         expect(required, model.id).toBeGreaterThanOrEqual(1);
       }
@@ -1219,5 +1230,37 @@ describe('as frases das expedições', () => {
     expect(expeditionTemplates.postureFallback).toContain('{postura}');
     expect(chronicleTemplates.expeditionReturned).toContain('{saque}');
     expect(expeditionTemplates.returnedCut).toContain('{perda}');
+  });
+});
+
+describe('a expedição especial do Lobo Branco (§6.5)', () => {
+  it('só abre pelo Conselho, com três nós e provas de trilha e combate, sem relíquia', () => {
+    const model = expeditionModels.find((entry) => entry.id === 'whiteWolfHunt')!;
+    expect(model).toMatchObject({
+      access: { kind: 'council' },
+      riskLabel: 'Médio',
+      requires: { guildLevel: 1, teamMin: 1, teamMax: 2, minHeroLevel: 1, classes: [] },
+    });
+    for (const variant of model.variants) {
+      expect(Object.keys(variant.nodes)).toEqual(['tracks', 'whiteWolf', 'home']);
+      expect(variant.nodes.tracks).toMatchObject({
+        trial: { helps: 'archer', onDisaster: 'injury' },
+        next: 'whiteWolf',
+      });
+      expect(variant.nodes.whiteWolf).toMatchObject({
+        trial: { helps: 'warrior', onDisaster: 'injury' },
+        next: 'home',
+      });
+      for (const node of Object.values(variant.nodes)) {
+        if (node.kind === 'return' || node.kind === 'crossroads') continue;
+        expect(node.rewards?.item).toBeUndefined();
+        expect(node.rewards?.reveals).toBeUndefined();
+        expect(
+          Object.keys(node.rewards?.resources ?? {}).every((resource) =>
+            ['gold', 'food'].includes(resource),
+          ),
+        ).toBe(true);
+      }
+    }
   });
 });

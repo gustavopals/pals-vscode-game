@@ -3,6 +3,7 @@ import {
   type CouncilOption,
   type CouncilEffect,
   expeditionModels,
+  expeditionTexts,
   RESOURCE_IDS,
 } from '@lotg/content';
 
@@ -25,7 +26,7 @@ import {
   scriptedCard,
   seatedCards,
 } from './council';
-import { decimal, durationText, plural, sentenceCase, thousands } from './format';
+import { decimal, durationText, fillText, plural, sentenceCase, thousands } from './format';
 import { troopText } from './army';
 import { nextHiddenDestination } from './outcomes';
 import { masterLabel } from './masters';
@@ -165,6 +166,16 @@ function effectsText(
       const real = durationText(realSecondsCeil(effect.durationDays * DAY_MS, timeScale));
       parts.push(
         `${signed(effect.amount)} de moral por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${real})`,
+      );
+    } else if (effect.type === 'unlockExpedition') {
+      const label =
+        expeditionModels.find((model) => model.id === effect.modelId)?.label ?? effect.modelId;
+      parts.push(
+        fillText(expeditionTexts.unlockFor, {
+          destino: label,
+          dias: plural(effect.forDays, 'dia', 'dias'),
+          prazo: durationText(realSecondsCeil(effect.forDays * DAY_MS, timeScale)),
+        }),
       );
     } else if (effect.type === 'revealDestination') {
       const target = effect.modelId ?? nextHiddenDestination(state);

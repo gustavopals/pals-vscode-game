@@ -545,6 +545,11 @@ describe('a leitura seguinte vem antes nos prazos das expedições', () => {
     expect(expeditionDeadlines(guildOf(expeditionCrossroadsView))).toEqual([40_798]);
     expect(expeditionDeadlines(guildOf(heroInjuredView))).toEqual([1800]);
     expect(expeditionDeadlines(guildOf(guildPaidView))).toEqual([]);
+    const special = structuredClone(guildOf(expeditionTravelingView));
+    special.available[0]!.expiresInSeconds = 90;
+    expect(expeditionDeadlines(special)).toContain(90);
+    special.available[0]!.expiresInSeconds = 0;
+    expect(expeditionDeadlines(special)).not.toContain(0);
     // E entram nos prazos da Guilda que a sessão lê.
     expect(guildDeadlines(expeditionCrossroadsView)).toContain(40_798);
     expect(guildDeadlines(heroInjuredView)).toContain(1800);

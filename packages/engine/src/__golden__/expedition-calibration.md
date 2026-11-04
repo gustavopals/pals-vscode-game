@@ -30,6 +30,9 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Sabotagem da Fortaleza | Alto | Fraca: Clérigo + Clérigo + Clérigo Nv1 | 41% | 0% / 98% / 2% | 41% / 59% / 0% | 2% / 0% |
 | Sabotagem da Fortaleza | Alto | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 52% | 14% / 86% / 0% | 21% / 77% / 2% | 0% / 2% |
 | Sabotagem da Fortaleza | Alto | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 97% | 79% / 21% / 0% | 66% / 34% / 0% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Fraca: Clérigo Nv1 | 0% | 0% / 95% / 5% | 0% / 95% / 5% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Mínima: Guerreiro Nv1 | 29% | 29% / 71% / 0% | 29% / 71% / 0% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
 
 ## Cada prova, para as três equipes
 
@@ -114,6 +117,12 @@ Em 31 sortes:
 | Sabotagem da Fortaleza | C | O depósito de óleo e breu | 122 | defesa ×1,5 | Guerreiro | captura | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
 | Sabotagem da Fortaleza | C | O paiol fortificado | 152 | perícia ×1,5 | Arqueiro | captura | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
 | Sabotagem da Fortaleza | C | O santuário dos totens | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
+| A caçada do Lobo Branco | A | As pegadas no leito seco | 48 | perícia ×1 | Arqueiro | fere | 0/0/31/0 | 0/16/15/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | A | O lobo na clareira | 44 | perícia ×0,5 | Guerreiro | fere | 0/0/30/1 | 0/18/13/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | B | O rastro entre os pinheiros | 49 | perícia ×1 | Arqueiro | fere | 0/0/30/1 | 0/13/18/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | B | O lobo junto ao rochedo | 43 | perícia ×0,5 | Guerreiro | fere | 0/0/31/0 | 0/20/11/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | C | A trilha sob a geada | 47 | perícia ×1 | Arqueiro | fere | 0/0/31/0 | 0/18/13/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | C | O lobo à margem do riacho | 45 | perícia ×0,5 | Guerreiro | fere | 0/0/28/3 | 0/16/15/0 | 31/0/0/0 |
 
 ## Cada opção de encruzilhada
 
@@ -203,3 +212,5 @@ Em 31 sortes:
 | Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |
 | Sabotagem da Fortaleza | 360 min | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 3,6 | 30,8 |
 | Sabotagem da Fortaleza | 360 min | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 4,7 | 38,2 |
+| A caçada do Lobo Branco | 120 min | Mínima: Guerreiro Nv1 | 32,4 | 19,4 |
+| A caçada do Lobo Branco | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 25,8 | 31,2 |

@@ -853,3 +853,12 @@ de protocolo ou forma foi antecipada nesta junção.
 Ao escolher `hunt` ou `feed` em §6.5, limpar os três marcadores antes de gravar o
 rumo novo. Assim quem passou da caçada à oferenda lê a variante certa de §7.1;
 `withdraw` e todas as opções finais continuam limpando os três, como aprovado.
+
+**H-11. Grafo e encerramento da caçada.** _(Proposta do agente; não lida pelo autor.)_
+A ficha §6.5 aprova três nós, risco médio, trilha, combate, ouro e comida; §6.6
+detalha três variantes de 120 minutos com retorno incluído. A trilha usa perícia
+e favorece o Arqueiro, como as provas existentes; não se inventa bônus do traço
+Rastreador. Desastre fere gravemente, sem captura. A janela de seis dias segue a
+ficha, sem consumo no envio nem limite novo de tentativas. A carta final continua
+chegando cinco dias após a escolha, mesmo sem partida ou com caçada malsucedida:
+a ficha aprovada não condiciona a continuação ao resultado da expedição.

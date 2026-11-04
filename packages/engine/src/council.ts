@@ -1,3 +1,5 @@
+import { unlockExpedition } from './expeditionUnlocks';
+import { canDepartNow } from './formations';
 import {
   armyHasRoom,
   inAftermath,
@@ -142,6 +144,8 @@ export function meetsRequirements(state: GameState, card: CouncilCard, atMs: num
     requires.tile !== undefined &&
     !Object.values(state.map.tiles).some((tile) => tile.type === requires.tile && tile.threatActive)
   )
+    return false;
+  if ((requires.clearedTiles ?? []).some((id) => state.map.tiles[id]?.threatActive !== false))
     return false;
   if (requires.wallDamaged && wallMissingHp(state) === 0) return false;
   if (requires.activeRaid && (state.army.activeFormationId === null || sightedRaid(state) === null))
@@ -576,6 +580,9 @@ export function applyEffects(
         }
         break;
       }
+      case 'unlockExpedition':
+        unlockExpedition(draft, effect.modelId, effect.forDays, atMs);
+        break;
       case 'revealDestination': {
         const next = effect.modelId ?? nextHiddenDestination(draft);
         if (next !== null && revealDestination(draft, next)) {
@@ -806,6 +813,11 @@ export function optionLock(state: GameState, option: CouncilOption): string | nu
     return null;
   }
   const { settlement } = state;
+  if (
+    requires.heroPresent !== undefined &&
+    state.guild.heroes.filter((hero) => canDepartNow(state, hero)).length < requires.heroPresent
+  )
+    return 'requer um herói livre no feudo para partir';
   if (!optionVisible(state, option)) return 'requer a história dos mercadores em curso';
   for (const [id, level] of Object.entries(requires.buildings ?? {})) {
     const building = id as keyof typeof settlement.buildings;

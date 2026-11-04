@@ -178,6 +178,12 @@ export function logEntry(
  */
 export function accessLock(state: GameState, model: ExpeditionModelDef): string | null {
   const { access } = model;
+  if (access.kind === 'council') {
+    return state.map.discovered.includes(model.id) &&
+      (state.map.expeditionUnlocks[model.id] ?? 0) > state.lastProcessedAt
+      ? null
+      : expeditionTexts.lockedUnknown;
+  }
   if (access.kind === 'discovered') {
     return state.map.discovered.includes(model.id) ? null : expeditionTexts.lockedUnknown;
   }

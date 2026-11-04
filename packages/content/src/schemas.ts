@@ -2193,6 +2193,7 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
       access: z.discriminatedUnion('kind', [
         z.strictObject({ kind: z.literal('open') }),
         z.strictObject({ kind: z.literal('discovered') }),
+        z.strictObject({ kind: z.literal('council') }),
         z.strictObject({ kind: z.literal('captive') }),
         z.strictObject({ kind: z.literal('tile'), tileId: identifier }),
       ]),

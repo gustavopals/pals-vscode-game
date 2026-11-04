@@ -836,6 +836,31 @@ Crônica (`withdraw`): "No {dia}º dia {daEstacao}, o senhor de {feudo} mandou r
 
 **O motor precisará:** `unlockExpedition { modelId, forDays }` (novo: o modelo entra em `map.discovered` com prazo de `forDays` dias de jogo e some quando o prazo passa; hoje `discovered` só cresce) e um **modelo de expedição novo**, `whiteWolfHunt` (3 nós, dificuldade Média, provas de Rastreador e de Guerreiro, saque de ouro e comida, **sem relíquia**), com grafo e ficha a escrever na V4H-T1 e os ids fixados em teste (`STABLE_IDS`), como os demais. **Saída mais barata, se o autor preferir:** trocar a expedição por um `rollEffect` de 1 chance em 2 de ganhar 120 de ouro (a pele) e, na perda, ferimento leve a um herói; custa menos ao motor e à calibragem, mas perde a ideia de a Guilda sair atrás do lobo. **Troca em relação à lista:** sem presságio nem relíquia (ver o começo da seção); `feed` dá moral em lugar do presságio claro.
 
+### 6.6 A caçada do Lobo Branco (`whiteWolfHunt`, V4H-T1.4)
+
+_(Proposta do agente; não lida pelo autor.)_ O modelo especial de três nós foi
+aprovado em §6.5; os detalhes abaixo usam apenas as provas e recompensas existentes.
+Abertura exclusiva por `whiteWolf/hunt`, por seis dias de jogo contados da escolha.
+Guilda Nv1, de um a dois heróis Nv1, sem classe obrigatória; risco **Médio**.
+Duração total: 120 minutos de jogo (45 + 45 + 30), com o fator sazonal habitual.
+
+Três variantes: `tracks → whiteWolf → home`, sem encruzilhada. Os ids são iguais
+nas três variantes; mudam o lugar, as frases e a dificuldade das provas:
+
+| Variante | Trilha (`tracks`, perícia ×1, Arqueiro) | Combate (`whiteWolf`, perícia ×1/2, Guerreiro) |
+|---|---|---|
+| A | As pegadas no leito seco; dificuldade 48 | O lobo na clareira; dificuldade 44 |
+| B | O rastro entre os pinheiros; dificuldade 49 | O lobo junto ao rochedo; dificuldade 43 |
+| C | A trilha sob a geada; dificuldade 47 | O lobo à margem do riacho; dificuldade 45 |
+
+A trilha dá 20 de experiência e 10–15 de comida; o combate, 30 de experiência,
+40–70 de ouro e 10–20 de comida, antes da parte de cada desfecho. Revés fere de
+leve e Desastre fere gravemente, sem captura. A volta não tem prova nem saque.
+Sem item, relíquia, revelação, alteração de presságio ou efeito no Cerco.
+A prova de trilha favorece a perícia do Arqueiro; não cria um bônus para o traço
+Rastreador (H-11). As quatro frases de cada prova e a volta são fixadas no catálogo
+e no golden dos relatórios; dizem quem se destacou sem antecipar o dano.
+
 ## 7. Lote 2 do Conselho: quarto lote de cinco (para o autor)
 
 **Lido e aprovado pelo autor em 2026-10-23, as cinco como estão** (decisão 23).

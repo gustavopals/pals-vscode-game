@@ -2261,6 +2261,10 @@ describe('ViewStateSchema', () => {
       sabotage: null,
     };
     expect(parse({ ...view.guild, available: [offer] })).toBe(true);
+    expect(parse({ ...view.guild, available: [{ ...offer, expiresInSeconds: 30 }] })).toBe(true);
+    for (const expiresInSeconds of [-1, 0.5, Infinity]) {
+      expect(parse({ ...view.guild, available: [{ ...offer, expiresInSeconds }] })).toBe(false);
+    }
     // Sem prova no primeiro trecho não há régua; a sorte e os pesos do nó nunca saem.
     expect(parse({ ...view.guild, available: [{ ...offer, fit: null, heroFit: [] }] })).toBe(true);
     expect(
