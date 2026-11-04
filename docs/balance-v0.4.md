@@ -1585,3 +1585,9 @@ golden, retrato ou faixa foi alterado; não houve remedição nem teste afrouxad
 em vez de repetir dias no servidor. Os dois goldens existentes continuam exatos;
 um calendário alternativo no teste prova a classificação nas fronteiras das
 estações e dos anos 1 e 2. Nenhum número publicado foi alterado.
+
+**E — aproximação da Torre:** o passo **5** passa do literal no motor para
+`balance.threat.approximateRoundTo`, obrigatório e inteiro positivo no schema.
+Arredondamento, mínimo positivo e omissão de alas vazias permanecem iguais.
+Testes do conteúdo e da visão preservam o valor e as frases anteriores; sem
+regravar goldens ou remedir faixas.

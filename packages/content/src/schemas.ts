@@ -219,6 +219,7 @@ const threat = z
     mediumRaidAbove: positiveInt,
     raidDrop: positiveInt,
     raidLeadMs: positiveInt,
+    approximateRoundTo: positiveInt,
     // Cada nível avisa mais cedo que o anterior, o que já distingue o tamanho não o esquece, e
     // cada um revela da composição ao menos o que o anterior revelava; o dano das torres nunca
     // cai (V4E-T1; ADR 0020, decisão 16).
