@@ -82,6 +82,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
       discovered: [],
+      expeditionUnlocks: {},
     });
     // Os lobos do ano 1 (`threat.raids.test.ts`); as outras incursões a Ameaça sorteia depois.
     expect(state.horde.scheduledRaids.map((entry) => entry.id)).toEqual(['wolvesYear1']);

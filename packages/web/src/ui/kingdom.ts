@@ -120,7 +120,7 @@ export function fiefFacts(fief: FiefStats): FiefFact[] {
     {
       id: 'expeditions',
       icon: 'compass',
-      label: 'Envios em expedição',
+      label: 'Expedições enviadas',
       value: whole(fief.expeditionsSent),
     },
     {
