@@ -433,10 +433,14 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
       let state = autumnWithFortress((draft) => {
         for (const hero of draft.guild.heroes) hero.level = 10;
       });
+      // A viagem real é a do primeiro outono, com as ondas do ano 1 a um terço (13, 20 e 27 em
+      // Senhor, o chefe além): 15% dá ⌊13·85/100⌋ = 11, ⌊20·85/100⌋ = 17 e ⌊27·85/100⌋ = 22;
+      // 30%, ⌊9,1⌋ = 9, 14 e ⌊18,9⌋ = 18; 45%, ⌊7,15⌋ = 7, 11 e ⌊14,85⌋ = 14. As mesmas contas
+      // sobre as ondas inteiras do ano 3 (34/51/68, 28/42/56, 22/33/44) estão em hordeSabotage.test.ts.
       const expected = [
-        [34, 51, 68],
-        [28, 42, 56],
-        [22, 33, 44],
+        [11, 17, 22],
+        [9, 14, 18],
+        [7, 11, 14],
       ];
       for (let trip = 0; trip < 3; trip += 1) {
         state = send(state, 'sabotage', ['hero-1', 'hero-2', 'hero-3'], 'balanced', 0).state;
