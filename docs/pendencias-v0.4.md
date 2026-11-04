@@ -2,6 +2,14 @@
 
 > **Para ler primeiro.** A v0.3.0 está no ar desde 2026-10-15 (estado 24, protocolo 3). Em 2026-10-16 o autor respondeu, uma a uma, às decisões do lote 1 da v0.4 e à herança da v0.3: todas com a premissa recomendada ([ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)). Este arquivo é a caixa de entrada do autor durante a v0.4, no molde de [pendencias-v0.3.md](pendencias-v0.3.md). Cada item diz o que vale enquanto não houver resposta.
 
+## Respostas do autor de 2026-11-04
+
+1. **H-12 (Lobo Branco), "Só com a fera vencida":** a carta `forestReturns` ([content-v0.4.md](content-v0.4.md), §7.1), na variante da caçada (`whiteWolf.hunt`), só chega se a expedição `whiteWolfHunt` voltou tendo **vencido o nó da fera** (`whiteWolf` com Sucesso ou Sucesso Pleno). Na volta da caçada vencedora, o motor grava `whiteWolf.slain`; a carta agendada pela opção `hunt` exige essa flag (`ifFlags: ['whiteWolf.slain']`) e, se a janela de seis dias fechar sem abate (e sem equipe `whiteWolfHunt` ainda na estrada), a carta agendada é **cancelada** e a flag `whiteWolf.hunt` é limpa (escolha mais simples e conservadora). **A expedição deixa de pagar a pele:** o nó `whiteWolf` em `packages/content/src/missions/whiteWolfHunt.ts` não paga mais o ouro e a comida da pele (só a carta `forestReturns` paga, um pagamento só), e as frases do nó deixam de anunciar a pele como saque da expedição. Os textos das cartas aprovados não mudam.
+2. **G-9 (rescaldo):** aprovado como está (festa de 1 dia de jogo, inclusive na Gloriosa com mortos; reparo da muralha a 4/5 até acabar o inverno; reconstrução a 4/5 em novas obras por 2 dias de jogo a partir da primavera).
+3. **G-12 (Vitória Gloriosa):** fica como está (`siege.result === 'glorious'` exige que nenhuma ala defensora tenha caído nas três ondas, nem iniciado sem combatente na linha de frente, nem tido a linha de frente rompida).
+4. **Aprovação em bloco das demais pendências da v0.4:** todas as demais pendências da v0.4 (**G-1 a G-24**, **H-1 a H-11**, **F-2 a F-6**, **N-1**, **N-2**, **D-40 a D-45**, além de **J3-1 a J3-5** e das leituras anteriores das Fases B a E) estão **aprovadas em bloco**, como na v0.2 e na v0.3 — se o autor trocar uma depois, é mudança de conteúdo, golden e GDD no mesmo commit.
+5. **Renumeração de duplicatas (`G-19` a `G-24`):** as três `G-15`, três `G-16` e duas `G-17` em seções diferentes foram desambiguadas mantendo `G-15` e `G-16` no simulador (`V4G-T2.10`), renumerando as de `V4G-T3` (Crônica do Ano) para **G-19**, **G-20** e **G-21**, e renumerando as de `V4G-T4` (limites da visão na interface) para **G-22**, **G-23** e **G-24** (mantendo **G-18**).
+
 ## 1. O mais importante
 
 0. **O ferro (V4B-T1) está no `main` desde 2026-10-19**, sem publicação (decisão 26). As dúvidas dele são as B-1 a B-10, na seção 5; a B-8 foi respondida (só a Floresta Antiga revela a Mina).
@@ -18,8 +26,8 @@ O registro completo está em [pendencias-v0.3.md](pendencias-v0.3.md). Respondid
 
 | Item | O que é | Vale enquanto não houver resposta |
 |---|---|---|
-| **F-5** | A partida migrada que já voltou das Ruínas não conta o objetivo 16 | Nada: a produção nasceu na v0.3 já com o contador. Se aparecer, uma acomodação que some os relatórios |
-| **F-6** | A ordem dos itens de "Antes de partir" não é a da V3F-T3.1 | A ordem do código |
+| **F-5** | A partida migrada que já voltou das Ruínas não conta o objetivo 16 | **Respondida em 2026-11-04 (aprovada em bloco):** nada (a produção nasceu na v0.3 já com o contador) |
+| **F-6** | A ordem dos itens de "Antes de partir" não é a da V3F-T3.1 | **Respondida em 2026-11-04 (aprovada em bloco; ver também H-7):** a ordem do código |
 | **P1 a P3** (plausíveis da revisão da Fase F) | O depósito que pode aparecer em dois blocos do Retorno; a caravana sem escolta como "alerta"; a marca da Postura entre duas visitas | Nada, até alguém ver na tela |
 | **E-55 a E-60** | Decisões do agente na revisão da Fase E (o excedente como reserva simples, nomes no estado, o especulador) | Como estão |
 | **"Ouro com destino"** | O ouro parado não caiu na v0.3 (menos de 0,5%) | A decisão 2: medir depois do Quartel (V4C-T4.3) e voltar com propostas antes da Fase D |
@@ -370,24 +378,22 @@ Decisões do agente na V4E-T2 (estado 33), todas por aprovar. Os números são o
 
 ### V4E-T3 — decisões de implementação e limites (2026-10-27)
 
-**D-40. Pesos iniciais das ondas.** _(Proposta do agente; não lida pelo autor.)_
+**D-40. Pesos iniciais das ondas.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A seção 12 de [content-v0.4.md](content-v0.4.md) inventaria as misturas e os postos
 fixos. Os tamanhos 40/60/80 e a astúcia por dificuldade seguem o ADR 0020.
 Não foi validada a taxa de Vitória do cerco, que ainda não existe.
 
-**D-41. Revisão dos presságios.** _(Decisão de implementação.)_ A preparação tem
+**D-41. Revisão dos presságios.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_ A preparação tem
 revisão; observar uma formação diferente no outono renova as ondas e limpa os
 presságios correntes. As linhas anteriores da Crônica não mudam: registram o
 que os vigias viram naquele instante. No inverno as ondas congelam. O parcial
 revela um posto, com a contagem em múltiplos de cinco, sem revelar outros postos.
 
-**D-42. O tile nasce depois de fechar a Ameaça do dia anterior.** _(Leitura da
-ordem da virada.)_ A aparição ocorre no instante aprovado (o Acampamento no 25º dia de jogo, no verão; a Fortaleza na virada que abre o outono); o
+**D-42. O tile nasce depois de fechar a Ameaça do dia anterior.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_ A aparição ocorre no instante aprovado (o Acampamento no 25º dia de jogo, no verão; a Fortaleza na virada que abre o outono); o
 primeiro +2 desse tile vem na virada seguinte. Isso mantém verdadeira a previsão
 da Torre feita antes do surgimento. Sem Torre, a aparição não vira evento público.
 
-**D-43. Pressão maior e finta limitada nas visitas.** _(Impacto medido; sem
-aceitação humana.)_ [balance-v0.4.md](balance-v0.4.md), seção 11: 3.600 partidas;
+**D-43. Pressão maior e finta limitada nas visitas.** _(Respondida pelo autor em 2026-10-27 e aprovada em bloco em 2026-11-04.)_ [balance-v0.4.md](balance-v0.4.md), seção 11: 3.600 partidas;
 zero fome/frio/recusas. O primeiro ano do Regular no Normal tem Ameaça média
 próxima de 78 no outono/inverno. O Preguiçoso do Rápido sofre mais ferimentos.
 A isca do militar foi vista em uma batalha de dez sementes em Senhor e uma em
@@ -402,7 +408,7 @@ Rápido caem (Senhor, semana: de 13–25 para 7–21), mas **não voltam** aos 4
 a Ameaça de fim de ano continua alta (o Covil e o Acampamento somam +4 por dia o ano todo
 desde o 25º dia). Fica para o autor decidir se o Acampamento também precisa de ajuste.
 
-**D-44. Ligação às próximas fases.** A V4E-T3 prepara e congela ondas; a Fase G
+**D-44. Ligação às próximas fases.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_ A V4E-T3 prepara e congela ondas; a Fase G
 vai agendá-las, aplicar sabotagem e encerrar a Fortaleza com o cerco. Até essa
 ligação, ela fica ativa no inverno e é desativada no ano novo. Isso não significa
 que o cerco foi implementado. A antiga premissa D-34 (limpar o Covil impede os
@@ -412,7 +418,7 @@ incursão marcada por vez (D-33).
 
 ### V4E-T3 — correções da revisão independente (2026-10-27)
 
-**D-45a. Quem ronda com vários tiles ativos.** _(Decisão provisória do agente, por aprovar.)_
+**D-45a. Quem ronda com vários tiles ativos.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 `prowlingEnemy` escolhia o inimigo do primeiro tile ativo pela ordem alfabética da chave:
 com o Acampamento e a Fortaleza, as incursões sorteadas depois do 25º dia se anunciavam como
 de saqueadores ou da Horda, com a composição dos lobos (`hordeBaseMix`). **Escolhido:** uma
@@ -422,16 +428,14 @@ Acampamento só manda as dele com o Covil limpo. **Alternativa:** cada tile ativ
 próprias incursões, com composição do próprio inimigo (saqueadores e Horda com mistura
 própria em `hordeBaseMix`), o que pede números novos e muda a pressão medida.
 
-**D-45b. A prévia de uma incursão não lê presságio.** _(Decisão provisória do agente, por
-aprovar.)_ Sem incursão à vista, a prévia de defesa usava o último presságio (de uma onda do
+**D-45b. A prévia de uma incursão não lê presságio.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_ Sem incursão à vista, a prévia de defesa usava o último presságio (de uma onda do
 Cerco, até 105 inimigos) como inimigo conhecido da próxima incursão comum, e o parcial
 misturava um posto da onda com a estimativa. **Escolhido:** a prévia de incursão usa só a
 incursão à vista e o último relatório; os presságios ficam para a prévia de uma onda, na
 Fase G. **Alternativa:** uma prévia "contra a onda N" à parte, já na Fase E, escolhida pelo
 jogador no Conselho de Guerra.
 
-**D-45c. Incursão sem formação vista não mexe na memória.** _(Decisão provisória do agente,
-por aprovar.)_ Sem Defesa ativa, a batalha via um defensor sem posto; a memória virava `null`
+**D-45c. Incursão sem formação vista não mexe na memória.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_ Sem Defesa ativa, a batalha via um defensor sem posto; a memória virava `null`
 e, no outono, as ondas eram regeradas sem memória: uma finta de graça (desligar a Defesa
 antes de uma incursão). **Escolhido:** sem formação vista, a memória e as ondas ficam como
 estavam. **Alternativa:** a Horda "lembrar" a milícia (uma formação vazia que conta como
@@ -445,20 +449,20 @@ contra o conteúdo de hoje.
 
 ### V4G-T1 — Hora da Vigília (2026-10-27)
 
-**G-1. Janela da Vigília e fallback.** _(Proposta do agente; não lida pelo autor.)_
+**G-1. Janela da Vigília e fallback.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O GDD §4.3 prevê +12 h de jogo se não houver Vigília, sem delimitar a busca.
 Escolhida a janela de 24 h de jogo do evento: inverno [144 h, 168 h) e ensaio
 [120 h, 144 h), buscando a partir de +6 h, inclusive. Se não couber, +12 h.
 É a leitura que mantém o evento na data e torna útil o fallback no Rápido.
 Prazos são arredondados para cima em milissegundos de jogo. Nenhum Cerco é criado.
 
-**G-2. Chamadas offline e compatibilidade.** _(Proposta do agente; não lida pelo autor.)_
+**G-2. Chamadas offline e compatibilidade.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A criação e a migração sem contexto civil explícito usam origem 0, offset 0 e
 `timezoneResolved: false`, de forma determinística. O servidor sempre passa `created_at`
 e resolve o offset IANA na criação da linha; uma preferência posterior resolve no
 instante da ordem. O offset só muda por essa ordem, sem atualização automática por DST.
 
-**G-3. Marcação do ensaio.** _(Proposta do agente; não lida pelo autor.)_
+**G-3. Marcação do ensaio.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Mantida a antecedência de 6 h de jogo, agora como instante próprio da linha do tempo
 (pode não ser virada de dia). A tentativa é única: `stats.vigilRehearsalMarked`, também
 quando não há vaga (D-33), impede repetir por mudar a preferência. Incursões antigas
@@ -469,14 +473,14 @@ Nenhum prazo nasce no passo. _(Corrigido na revisão de 2026-10-27: o critério 
 `migratedAtMs` antes do início do 61º dia, que dava uma segunda tentativa a quem migrou dentro
 da antecedência sem vaga e que a migração seguinte, ao trocar `migratedAtMs`, desligaria.)_
 
-**G-4. Alteração e replay.** _(Proposta do agente; não lida pelo autor.)_
+**G-4. Alteração e replay.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Escolhida a ordem `setVigilHour { hourLocal, timezone }`, pelo caminho idempotente
 das demais ordens. O servidor resolve o offset no instante da ordem, entrega
 `CommandContext.vigil` ao motor e guarda o dado em `commands.payload.resolvedVigil`
 para replay independente de ICU. Nenhum offset enviado pelo cliente é aceito.
 Preferências permitem editar o fuso IANA; a hora confirmada vem da visão.
 
-**G-5. Preferência alterada dentro da antecedência.** _(Proposta do agente; não lida pelo autor.)_
+**G-5. Preferência alterada dentro da antecedência.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Se o ensaio ainda não foi marcado e o novo horário ainda é futuro, mas a
 antecedência de 6 h já começou, a ordem marca agora (sujeita à vaga única).
 Se o novo horário já passou (dentro da janela do evento), o ensaio é marcado agora e chega
@@ -489,7 +493,7 @@ fora por falta de vaga.)_
 
 ### V4H-T3 — objetivos 17 a 21 (2026-10-27)
 
-**H-1. O treino anterior e a formação salva.** _(Proposta do agente; não lida pelo autor.)_
+**H-1. O treino anterior e a formação salva.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O objetivo 18 conta soldados que terminaram o treino, somados, mesmo depois de baixas ou
 dispensa. O estado 34 não tinha esse total: os soldados presentes são o piso comprovável do
 histórico anterior; baixas e dispensas anteriores à mudança não podem ser reconstruídas.
@@ -500,7 +504,7 @@ Salão e os contadores já existentes de simulações e incursões repelidas. O 
 antes de revelar o objetivo vale, e cada prêmio sai uma vez. Nenhuma forma de estado mudou:
 continuam estado 34 e protocolo 3; os contadores novos cabem em `stats`, já de chaves livres.
 
-**H-2. O presságio gratuito antes do outono.** _(Proposta do agente; não lida pelo autor.)_
+**H-2. O presságio gratuito antes do outono.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O GDD não diz como dar presságio quando as ondas ainda não foram preparadas. A recompensa
 fica devida em `stats.objectiveOmenPending` e sai no primeiro `settlePlanned` com preparação
 real: lê a primeira onda da revisão atual, com a clareza da Torre (vaga sem Torre), sem
@@ -508,7 +512,7 @@ sortear nem mudar o plano. A visão avisa que a entrega espera a preparação. D
 regra normal: uma nova revisão substitui os presságios do painel. Não se inventa onda nem
 se antecipa o Cerco. Com preparação já existente, a entrega é imediata.
 
-**H-3. Quanto XP e a quem.** _(Proposta do agente; não lida pelo autor.)_
+**H-3. Quanto XP e a quem.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O GDD promete XP ao comandante sem fixar valor: a proposta é **20 XP por comandante
 sobrevivente da última incursão repelida ainda identificável nos relatórios guardados**.
 `stats.lastRaidRepelledBattle` registra o número da batalha ao repelir: a Paliçada pode
@@ -521,7 +525,7 @@ herói. O número está no conteúdo. Os textos dos cinco objetivos são rascunh
 Nenhum dos cinco objetivos de §12.2 depende de Cerco ou sabotagem: **nenhuma substituição**
 foi necessária. Os sazonais continuam fora, conforme a decisão 24 do ADR 0020.
 
-**H-4. Pioras medidas com os objetivos novos.** _(Proposta do agente; não lida pelo autor.)_
+**H-4. Pioras medidas com os objetivos novos.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A matriz de 50 sementes nas três dificuldades (balance-v0.4.md, seção 15) mantém fome,
 frio e recusas em zero, mas o Explorador de **Camponês no ano do Tranquilo** cai do Salão
 mínimo 7 ao **6** (`pedra-alta-047`, 1/50), e sua população passa de 62–74 a 58–72.
@@ -540,7 +544,7 @@ nas outras dificuldades, conforme o teste já fazia, e não cobre os extremos 01
 
 ## V4H-T1 — Mercado e Coroa (2026-10-28)
 
-**H-1. Arredondamento e momento do risco.** _(Proposta do agente; não lida pelo autor.)_
+**H-1. Arredondamento e momento do risco.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 `resourcesPercent` arredonda a quantidade retirada ou concedida para baixo em milésimos,
 lendo o estoque na resolução. O ganho respeita o depósito e conta desperdício.
 A Clériga que reduz o risco da praga é consultada na virada da resolução, não na escolha;
@@ -549,7 +553,7 @@ fila `council.delayed`: só guarda carta e opção, nunca o resultado, e não ad
 aninhado. O herói Carismático que fala na escolha é o primeiro livre na lista, e o evento
 guarda identificador e nome para a Crônica não trocar de interlocutor numa recarga.
 
-**H-2. Duração, início na virada e conflito de narrativa do preço.** _(Decisão do coordenador; não lida pelo autor.)_
+**H-2. Duração, início na virada e conflito de narrativa do preço.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O fator de preço de uma carta do Conselho passa a valer apenas a partir da **próxima
 virada de dia de jogo** depois da resposta (`fromMs = nextDayBoundary(atMs)`), expirando
 também em uma virada de dia (`untilMs = fromMs + durationDays * DAY_MS`). Como o preço do
@@ -565,7 +569,7 @@ intacto; cabe ao autor ajustar as frases para harmonizar com a ativação na vir
 
 ## V4H-T1 — quatro avulsas (2026-10-28)
 
-**H-3. Participantes, cura e contingências.** _(Proposta do agente; não lida pelo autor.)_
+**H-3. Participantes, cura e contingências.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 As fichas §§7.4–7.5 e 8.1 escolhem participantes na chegada pelo fluxo `council`, sem
 reposição, e guardam identificador e nome na ocorrência e no risco pendente. Livre
 significa `idle` sem ferimento; comandante que permanece no feudo também pode conversar.
@@ -579,7 +583,7 @@ escolhido continua sendo o da ficha, sem cura substituta, e a frase de contingê
 entre os feridos da casa." A opção sem cura (`wait`) e o vencimento da carta preservam as
 frases aprovadas na ficha §8.1.
 
-**H-4. Persistência do recrutador.** _(Proposta do agente; não lida pelo autor.)_
+**H-4. Persistência do recrutador.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O estado passa de 36 para 37: marcador booleano `guild.tavern.extraOffer`, desligado
 na migração, e participantes opcionais em `council.pending`/`delayed` (obrigatórios nas
 três cartas com alvo). O bônus é um candidato na próxima lista e se consome na rotação,
@@ -588,7 +592,7 @@ ofertas passa de três para quatro; as guardas antigas e os retratos v36 ficam c
 A escolha paga na hora exata de uma rotação vale para a seguinte: o instante vence
 antes da ordem, como no restante do motor.
 
-**H-5. Travas sugeridas na revisão para `kingsTax` e `merchantBoycott`.** _(Proposta do agente; não lida pelo autor.)_
+**H-5. Travas sugeridas na revisão para `kingsTax` e `merchantBoycott`.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A revisão independente das cartas levantou a suspeita de faltarem travas de narrativa:
 1. Em `kingsTax` (§6.1, imposto do rei, recorrente): responder `pay` ou `negotiate` não grava flag, permitindo em tese que o sorteio tire a carta novamente no mesmo ano ou estação.
 2. Em `merchantBoycott` (§5.4): a carta requer apenas `flags: ['merchant.hostile']`, podendo sair no início do outono em paralelo à continuação `merchantFinalOffer` (§5.3) antes de uma possível trégua (`peace`).
@@ -600,11 +604,11 @@ Como as fichas aprovadas pelo autor em `docs/content-v0.4.md` (§§5.4 e 6.1) n�
 O coordenador confirmou as **6 h de jogo** do ADR 0020/17. A proposta anterior de
 encurtar a jornada para 300 min foi retirada; não constituía aprovação para mudar o ADR.
 
-**F-2. Versão do esquema de estado (37 → 38).** _(Proposta do agente; não lida pelo autor.)_
+**F-2. Versão do esquema de estado (37 → 38).** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O roadmap previa a transição 33 → 34 para a sabotagem. Como as etapas intermediárias (Vigília na 35, cartas na 36 e avulsas na 37) avançaram a numeração, a Sabotagem da Fortaleza adotou a transição 37 → 38 (`migrations/v37.ts` e `migrations/v38.ts`), introduzindo `horde.sabotages: { attempts, successes, alerted }` e o campo opcional `reductionPercent` nas ondas de `horde.wavePlan.waves`.
 
 
-**F-5. Trecho de saída da Fortaleza para completar as seis horas.** _(Proposta do agente; não lida pelo autor.)_
+**F-5. Trecho de saída da Fortaleza para completar as seis horas.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A jornada completa mantém as quatro provas de uma hora e o retorno de uma hora,
 acrescentando um trecho sem prova (`escape`) de uma hora entre o Xamã e o retorno.
 O teto estrutural passa de cinco para seis nós temporizados; cada nó continua
@@ -626,7 +630,7 @@ Pedido direto do autor; decisões no [ADR 0021](decisions/0021-estatisticas-e-ra
   segunda coluna ou uma segunda lista.
 ### Novidades — pedido direto do autor (2026-10-30)
 
-**N-1. Confirmar a crônica da v0.4 na publicação.** _(Proposta do agente; não lida pelo autor.)_
+**N-1. Confirmar a crônica da v0.4 na publicação.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 `packages/web/src/news/entries.ts` prepara a entrada "Guerra e Cerco" como `draft`, com
 comentário explícito. **2026-10-30 é a data da redação, não da publicação.** A página a
 identifica como "Em preparação" e avisa que seu escopo depende de confirmação. Sabotagem,
@@ -635,7 +639,7 @@ Antes de publicar, conferir cada frase contra o que realmente vai ao ar, retirar
 ficar para depois, trocar a data pela publicação e só então mudar o status para `published`.
 O selo ignora rascunhos, mesmo se o servidor já informar `0.4.0`.
 
-**N-2. Leitura local e fim da sessão.** _(Proposta do agente; não lida pelo autor.)_
+**N-2. Leitura local e fim da sessão.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A marca `lords.newsSeen:<accountId>` considera a última entrada publicada compatível com
 `GET /v1/version`, sem substituir esse dado pela versão compilada do app. Só a aba Novidades
 desenhada e à vista marca a leitura; rascunhos não a avançam. A marca sobrevive ao recarregar,
@@ -647,16 +651,16 @@ quando a consulta de versão falha, sem afirmar qual versão está no reino.
 
 ## V4F-T2 — Ataque ao Acampamento (2026-10-28)
 
-**F-3. Viagem, guarnição e saque.** _(Proposta do agente; não lida pelo autor.)_
+**F-3. Viagem, guarnição e saque.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 As 3 h do catálogo (§9.3) são a campanha inteira: 90 min de jogo por trecho, sem bônus sazonal de expedição. A guarnição é a da estação da chegada, sem sorteio e sem astúcia: saqueadores nas três frentes (4/6/4 na primavera, 6/8/6 no verão, 8/10/8 no outono, 10/12/10 no inverno), com 2/3/4/5 arqueiros bandidos no centro. A paliçada tem 60 HP por ala (Nv1). A vitória traz 40 comida, 30 madeira e 50 ouro no retorno, respeitando depósito e desperdício. Os números estão em `balance.army.campaign` e ainda pedem medição pelo coordenador. O tile precisa estar conhecido pela Torre (a lista de tiles segue a névoa de §8.2). O requisito de um herói do catálogo é um comandante livre em ala preenchida; a falta usa `HERO_UNAVAILABLE` com frase própria.
 
-**F-4. Reserva e calendário.** _(Proposta do agente; não lida pelo autor.)_
+**F-4. Reserva e calendário.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A partida guarda uma cópia dos postos efetivamente preenchidos e de seus comandantes. Editar uma formação não muda a campanha; apagar a formação enviada é recusado até o retorno (`FORMATION_IN_CAMPAIGN`, correção da revisão de 2026-10-29). Soldados enviados continuam no total do Quartel, habitação e consumo até o retorno; as baixas são descontadas nesse retorno. Reservas não podem ser dispensadas, não defendem incursões e não entram na prévia defensiva. Comandantes usam o estado `campaign`, continuam recebendo soldo, não podem partir/equipar/ser dispensados; ferimento, experiência e desgaste são aplicados na chegada. A previsão da moral exclui a campanha para não antecipar sorteios; o soldo vencido é cobrado na volta, como nas expedições e escoltas. A batalha e a volta resolvem depois das expedições e antes das caravanas; uma incursão no mesmo instante da volta ainda enfrenta o feudo sem os que chegam. O estado efetivo passa de 38 para 39 (a referência antiga a 35 no roadmap não vale nesta base).
 
 
 ## V4G-T2 — Motor do Cerco (2026-10-29)
 
-**G-6. Migração tardia e calendário das ondas.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco b.)**
+**G-6. Migração tardia e calendário das ondas.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco b; respondida pelo autor em 2026-11-04: aprovada em bloco.)**
 O passo efetivo é 39 → 40, sem sorteio ou prazo. Na primeira virada de outono/inverno
 a linha do tempo usa a preparação existente. Se a Vigília daquele inverno já passou,
 a primeira onda fica uma antecedência da Torre adiante (ou o mínimo da Vigília sem Torre),
@@ -664,12 +668,12 @@ sem cobrar batalha retroativa; as outras esperam 60 min reais cada. Uma sequênc
 atravesse a primavera conserva o retrato das ondas, embora a Horda reinicie a memória anual.
 **Decisão do coordenador:** se a primeira onda calculada pela migração tardia cairia após o término do inverno (`scheduled >= year * YEAR_MS`), o cerco não é marcado para aquele ano (`draft.siege = null`), impedindo que ondas ocorram fora do inverno (GDD §10).
 
-**G-7. Plano e comandos internos antes do protocolo 4.** _(Proposta do agente; não lida pelo autor.)_
+**G-7. Plano e comandos internos antes do protocolo 4.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O Plano fica em `siege.plan`, sem segunda cópia em `army.battlePlan`. Campos nulos usam a
 Defesa ativa do instante da onda. Os tipos de ordens, recusas e decisão entre ondas ficam
 separados dos tipos públicos do protocolo 3; T2.7 os incorporará ao protocolo 4.
 
-**G-8. Empates e continuidade depois da Queda.** _(Proposta do agente; não lida pelo autor.)_
+**G-8. Empates e continuidade depois da Queda.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Empates entre edifícios são resolvidos pela ordem fixa de `BUILDING_IDS`, com o Salão
 incluído. Nenhum nível fica negativo; os já erguidos conservam ao menos nível 1. Obras em
 curso dos edifícios atingidos são canceladas sem devolução, para não restaurarem o nível
@@ -678,13 +682,13 @@ liberando o tempo de espera das obras restantes. Sobreviventes e planos acima do
 Quartel são preservados; o treino novo continua exigindo vaga. Estoques que excedam o depósito
 reduzido continuam consumíveis, sem ampliar os 30% de perda (o armazenamento já permite isso).
 
-**G-9. Rescaldo sem número aprovado.** _(Proposta do agente; não lida pelo autor.)_
+**G-9. Rescaldo sem número aprovado.** _(Respondida pelo autor em 2026-11-04: aprovado como está.)_
 A festa dura um dia de jogo, como o luto; a Gloriosa usa festa mesmo com mortos. O reparo da
 muralha custa 4/5 da pedra e do ouro até acabar o inverno, sem reduzir o prazo. A reconstrução
 reduz os custos de novas obras por dois dias de jogo a partir da primavera, sem devolução de
 custos antigos nem desconto no treino, forja ou comércio. Números em `balance.siege`.
 
-**G-10. Prioridade de alocação da milícia.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco a.)**
+**G-10. Prioridade de alocação da milícia.** **(Atualizado com decisão do coordenador na revisão de 2026-10-29: Risco a; respondida pelo autor em 2026-11-04: aprovada em bloco.)**
 A milícia convocada ocupa apenas postos vagos da linha de frente na ordem centro-frente,
 esquerda-frente e direita-frente (`center.front`, `left.front`, `right.front`). Como unidade de linha
 de frente de combate corpo-a-corpo (3/2/12, recebe ×5/4 de dano, sem projétil), ela não pode ser
@@ -695,7 +699,7 @@ e retornam aos aldeões sem ofício.
 
 ### V4G-T2 — decisões e correções da revisão independente (2026-10-29)
 
-**G-11. Reembolso de cancelamento de obra sobre o custo efetivamente pago.** _(Decisão do coordenador.)_
+**G-11. Reembolso de cancelamento de obra sobre o custo efetivamente pago.** _(Decisão do coordenador; respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O reembolso ao cancelar uma construção ou melhoria em andamento devolve 80% (`balance.construction.cancelRefund`)
 do custo efetivamente pago (`costPaid` gravado no objeto da obra ativa), e não do custo de tabela atual.
 Isso impede que descontos temporários (como a Primavera da Reconstrução) gerem ganho de recursos ao iniciar
@@ -705,36 +709,36 @@ sem necessidade de criar a versão 41 pois a v40 ainda não foi publicada. Adici
 em `construction.test.ts` provando que nenhuma sequência de iniciar e cancelar obras gera recursos com a
 Reconstrução ativa ou expirada.
 
-**G-12. Critério de Vitória Gloriosa contra o Cerco.** _(Decisão do coordenador.)_
+**G-12. Critério de Vitória Gloriosa contra o Cerco.** _(Decisão do coordenador; respondida pelo autor em 2026-11-04: fica como está.)_
 A classificação como "Vitória Gloriosa" (`siege.result === 'glorious'`) exige que nenhuma ala defensora
 tenha caído em nenhuma das três ondas do cerco, nem que qualquer ala defensora tenha iniciado sem combatente
 na linha de frente (`frontMissing`). Se qualquer ala iniciar sem tropa na frente, ou se a linha de frente de
 qualquer ala for rompida (`frontBreached`), ou se a ala cair em combate (`wingFellInBattle` registrado nas notas
 de ação de ataque da rodada), o resultado do cerco é rebaixado no máximo para Vitória comum (`victory`).
 
-**G-13. Recusa de convocação de milícia sem postos livres.** _(Decisão do coordenador.)_
+**G-13. Recusa de convocação de milícia sem postos livres.** _(Decisão do coordenador; respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A ordem `callMilitia` verifica antecipadamente se a formação que lutará na próxima batalha (seja a onda do cerco
 ou incursão iminente em `untilMs`) possui ao menos um posto livre na linha de frente. Se todos os postos de frente
 estiverem preenchidos por combatentes regulares, a ordem é recusada com código `NO_MILITIA_SLOT` e frase legível
 no conteúdo (`siegeTexts.militiaNoSlot`: "A formação que vai lutar não tem posto livre para a milícia."), sem
 debitar a produção dos aldeões convocados.
 
-**G-14. Escopo anual da Primavera da Reconstrução.** _(Decisão do coordenador.)_
+**G-14. Escopo anual da Primavera da Reconstrução.** _(Decisão do coordenador; respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O efeito benéfico da Primavera da Reconstrução (desconto de 4/5 em obras e reparos por dois dias de jogo
 após a Queda do feudo) só nasce da Queda de um cerco ocorrido no ano imediatamente anterior
 (`draft.siege.year === date.year - 1`). Quedas de anos anteriores não disparam o bônus em primaveras subsequentes.
 
 ## V4F-T3 — Revisão da interface (2026-10-29)
 
-**F-5. Prévia ofensiva do ataque ao Acampamento.** _(Proposta do agente; não lida pelo autor.)_
+**F-5. Prévia ofensiva do ataque ao Acampamento.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O coordenador decidiu adiar a prévia ofensiva: `simulateBattle` entrega a defesa do feudo e uma prévia de ataque exige regra e contrato próprios no motor. A tela e a paleta agora identificam a simulação como **defesa do feudo**, com o aviso de que o ataque ainda não tem prévia. Fica para o autor decidir a prévia ofensiva do ataque ao Acampamento; o app não adapta percentuais, perdas nem fatores defensivos para representar esse ataque.
 
-**F-6. Nível dos avisos da sabotagem e da campanha.** _(Proposta do agente; não lida pelo autor.)_
+**F-6. Nível dos avisos da sabotagem e da campanha.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Os quatro desfechos (`hordeSabotaged`, `hordeAlerted`, `campAssaulted`, `armyReturned`) chegam em "Todas", seguindo as notícias de expedição e batalha e a cota existente. Os dois primeiros levam à Guilda e os outros, ao Exército. No Retorno, enfraquecer ondas e trazer os esquadrões de volta são ganhos; alertar a Horda e travar batalha são preço. O autor ainda pode decidir se o alerta da Horda merece aviso essencial. O relato do Acampamento só substitui a ausência de `battleFought` do mesmo identificador no lote, para a mesma batalha não aparecer duas vezes.
 
 ## V4G-T2.10 — Simulador
 
-**G-15. Resposta simples dos bots entre ondas.** _(Proposta do agente; não lida pelo autor.)_
+**G-15. Resposta simples dos bots entre ondas.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Na V4G-T2.10, todos os bots salvam a Defesa ativa nas três ondas depois de montar a formação
 (ou da finta do militar) e atualizam o Plano enquanto o cerco não começou. Em uma visita
 entre ondas, fazem o reparo de emergência se `repairOffer.canRepair` permite e trocam apenas
@@ -743,7 +747,7 @@ cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o P
 Na terceira junção, a T2.7 já unifica o protocolo 4: a execução local e a remota
 consomem a visão com Cerco, sem acrescentar um campo `siege` vazio.
 
-**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Resolvida em 2026-11-04, V4G-T2.10.)_
+**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Resolvida em 2026-11-04, V4G-T2.10; aprovada em bloco pelo autor em 2026-11-04.)_
 Na base `61cdb70`, `simulateBattle` recebia apenas `formationId`: a prévia supunha uma
 incursão, sem alvo de onda. `siege.waves` trazia número, título e presságios, sem
 percentual de vitória, e a visão não expunha a oferta de convocação da milícia.
@@ -754,7 +758,7 @@ Resolvida na `v4g-t2-g16` (V4G-T2.10) mantendo o protocolo 4 (adição compatív
 
 ### V4G-T3 — Crônica do Ano (2026-10-30)
 
-**G-15. Pesos da pontuação e contadores anuais.** _(Proposta do agente; não lida pelo autor.)_
+**G-19. Pesos da pontuação e contadores anuais.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Sem pesos definidos no GDD, `balance.score` atribui 1 à população máxima, 10 a cada
 batalha vencida ou resistida, 5 a cada expedição enviada, 1 a cada carta resolvida,
 100 à vitória no cerco, mais 50 à Gloriosa e 25 por Feito. Não concede recurso,
@@ -767,7 +771,7 @@ após `yearEnded`; `yearScore` e `yearFeats` guardam só a última contagem. Nã
 lista anual nem mudança na forma/versão 40 do estado. Partidas em curso contam
 somente o que ocorrer após esta implementação, sem reconstituir o passado.
 
-**G-16. Medida da Finta.** _(Proposta do agente; não lida pelo autor.)_
+**G-20. Medida da Finta.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco, com o refinamento de J3-3.)_
 A comparação usa os efetivos por unidade e posto que realmente lutaram no ensaio,
 antes das baixas, e na primeira onda do cerco. A parcela alterada é
 `(máximo dos totais − interseção por unidade/posto) / máximo dos totais`;
@@ -776,7 +780,7 @@ Trocar apenas nome ou comandante não conta. Redução de efetivo entre o ensaio
 o cerco conta; perdas nas ondas seguintes não mudam o retrato. Sem ensaio
 registrado naquele ano, o Feito não é concedido.
 
-**G-17. Não inclusão de 'Avançar para o Degelo'.** _(Decisão 22 do ADR 0020 confirmada.)_
+**G-21. Não inclusão de 'Avançar para o Degelo'.** _(Decisão 22 do ADR 0020 confirmada; respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Conforme a decisão 22 do ADR 0020 e o GDD §11.4, a mecânica "Avançar para o Degelo"
 não entra no jogo. O servidor é o relógio autoritativo e o calendário é sincronizado
 para todos os jogadores, preservando a semana de 7 dias reais no ritmo normal.
@@ -785,7 +789,7 @@ Não há ordem que antecipe o fim do inverno ou pule o rescaldo.
 
 ## V4H-T2 — O lote 3 do Conselho (2026-10-30)
 
-**H-5. Estado 41 e bônus do Conselho.** _(Proposta do agente; não lida pelo autor.)_
+**H-5. Estado 41 e bônus do Conselho.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Os bônus temporários concedidos pelas cartas do lote 3 (`smithsDaughter`, `warCouncil`, etc.) são guardados em `council.bonuses`:
 `smithySpeed` (fator `{ num, den }` e `untilMs`), `smithyBatch` (armas extras `extra` e `untilMs`), `repairDiscount`
 (desconto em pontos e `untilMs`) e `revealedRaidId` (id da incursão futura revelada).
@@ -793,7 +797,7 @@ A migração 40 → 41 inicializa esses campos em `null` sem disparar eventos ou
 Ao registrar uma forja em `draft.settlement.forge`, `extra` só é incluído se for maior que 0, preservando a
 forma padrão quando não há bônus ativo.
 
-**H-6. Opções dinâmicas e infinitivos no lote 3.** _(Proposta do agente; não lida pelo autor.)_
+**H-6. Opções dinâmicas e infinitivos no lote 3.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 As fichas aprovadas pelo autor de `northernCrows` ("Erguer a Torre de Vigia ao Nv3" e "Não dar importância")
 e `raidersAskPassage` ("Mandá-los embora") foram aceitas respeitando a literalidade das fichas aprovadas §§10.2 e 10.5.
 A carta `siegeEve` usa abertura narrativa específica na Crônica ("Na véspera do cerco, ") aprovada expressamente
@@ -802,13 +806,13 @@ Opções que disparam obras dinâmicas (`startBuilding`, `repairWall`) não são
 
 ## Terceira junção (2026-11-03)
 
-**J3-1. Anúncio do Cerco sem Torre.** _(Proposta do agente; não lida pelo autor.)_
+**J3-1. Anúncio do Cerco sem Torre.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A marcação do Cerco continua pública, mas o texto sem Torre diz que o feudo marcou a
 Vigília, sem inventar vigias. Com Torre conserva a frase existente. O agrupamento de
 presságios por onda mostra somente os de clareza conhecida; os vagos continuam na
 lista geral do Exército, sem associação à onda, como exige a névoa já testada.
 
-**J3-2. Mercado reduzido pela Queda com obrigações em curso.** _(Proposta do agente; não lida pelo autor.)_
+**J3-2. Mercado reduzido pela Queda com obrigações em curso.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Caravanas já enviadas terminam normalmente e o volume já negociado permanece até a
 virada diária, mesmo acima do teto do Mercado reduzido. A guarda v40 admite essas
 obrigações, até os limites publicados (duas caravanas e 1.000 unidades por recurso),
@@ -816,8 +820,8 @@ como já admite soldados acima do Quartel reduzido. As novas ofertas e ordens co
 usando o nível real. Guardas v1–v39 e números de conteúdo não foram alterados.
 
 
-**J3-3. A Finta mede proporções por tipo e posto.** _(Proposta do agente; não lida pelo autor.)_
-Substitui a medida proposta em G-16 na seção da Crônica do Ano: a simples queda de
+**J3-3. A Finta mede proporções por tipo e posto.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
+Substitui a medida proposta em G-20 na seção da Crônica do Ano: a simples queda de
 soldados não representa a formação-isca descrita no GDD. A interseção agora compara
 as proporções de cada tipo em cada posto, incluindo milícia. Calcula-se em inteiros
 `1 − soma(mínimo(antes × totalDepois, depois × totalAntes)) / (totalAntes × totalDepois)`;
@@ -826,7 +830,7 @@ Uma tropa idêntica que apenas perdeu ou ganhou efetivo não concede o Feito. Tr
 só o nome ou os comandantes também continua sem contar.
 
 
-**J3-4. Prontidão da milícia da véspera.** _(Proposta do agente; não lida pelo autor.)_
+**J3-4. Prontidão da milícia da véspera.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A ficha §11.5 aprovada limita a 25% e conserva o trabalho até a batalha. O limite
 preparado e o ano ficam no mapa numérico `stats` já existente, sem campo novo na
 forma do estado. Na primeira onda consome-se esse registro e confere-se novamente
@@ -835,7 +839,7 @@ atual, sem duplicar milícia que o jogador convocou por outra ordem. O registro 
 apagado mesmo se o posto deixou de estar livre; não passa para outra onda ou ano.
 
 
-**J3-5. Custo em armas dos mercenários.** _(Proposta do agente; não lida pelo autor.)_
+**J3-5. Custo em armas dos mercenários.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Confirmado que a falta de armas resulta em `OPTION_LOCKED`, com motivo legível
 “requer 5 armas no estoque”. Armas não são um recurso do contrato `ResourceCostView`,
 e a ficha exige estoque de armas para contratar. Mantém-se a regra e registra-se
@@ -844,13 +848,13 @@ em campo próprio da visão, sem tratá-las como recurso negociável. Nenhuma mu
 de protocolo ou forma foi antecipada nesta junção.
 ### V4G-T4 — limites da visão na interface (2026-11-03)
 
-**G-15. Milícia sem oferta pública.** _(Proposta do agente; não lida pelo autor.)_
+**G-22. Milícia sem oferta pública.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O protocolo 4 desta base não oferece quantidade máxima, disponibilidade, motivo de bloqueio,
 custo em braços ou milícia ativa no `ViewState`. A tela não calcula metade da população nem
 deduz a antecedência da Torre. A convocação e sua confirmação ficam pendentes da oferta do
 motor; não há botão que envie uma ordem às cegas. Nenhuma mudança no motor nesta trilha.
 
-**G-16. Relatório por onda e rescaldo completos.** _(Proposta do agente; não lida pelo autor.)_
+**G-23. Relatório por onda e rescaldo completos.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 `siege.waves` oferece número, título e presságios; não oferece resultado individual,
 `battleId`, formação efetivamente usada ou baixas. `army.reports` não identifica ano/onda.
 Exibir progresso com `current`, relatórios guardados sem atribuição inventada e os efeitos
@@ -861,14 +865,14 @@ usa pedra/ouro da oferta pública de reparo da muralha: os dois comandos usam
 `currentRepairQuote` nesta base; a emergência é imediata e exige nova conferência se o custo
 ou a decisão mudar.
 
-**G-17. Crônica do Ano e verificação visual adiadas.** _(Proposta do agente; não lida pelo autor.)_
+**G-24. Crônica do Ano e verificação visual adiadas.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O branch `v4g-t4-tela` parte de `7875e0b`, sem V4G-T3. A aba anual, pontuação, Feitos e download
 do Markdown anual ficam para a integração dessa tarefa. A Crônica existente continua acessível.
 Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
 feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
 três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
 
-**G-18. Prioridade e padrão do Plano.** _(Proposta do agente; não lida pelo autor.)_
+**G-18. Prioridade e padrão do Plano.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A decisão entre ondas abre “Antes de partir” e o bloco de decisões do Retorno. A lembrança
 de preparar um Cerco ainda não iniciado vem depois da incursão iminente, sem tirar a fome,
 o frio ou o soldo da prioridade da barra; o Cerco marcado fica abaixo das decisões pendentes
@@ -881,7 +885,7 @@ o `commandId`, mas deixa de enviar se a decisão avançar; no reparo, se a cota�
 
 ## V4H-T4 — Retorno e preparo da guerra (2026-11-04)
 
-**H-7. Ordem explícita de “Antes de partir” (F-6 da v0.3).** _(Proposta do agente; não lida pelo autor.)_
+**H-7. Ordem explícita de “Antes de partir” (F-6 da v0.3).** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Mantém a política existente, conforme a orientação conservadora da F-6 em
 `docs/pendencias-v0.3.md`: decisão entre ondas → incursão → Plano ainda padrão →
 muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa → campanha →
@@ -894,7 +898,7 @@ os assuntos já apresentados no bloco de decisões; os preços históricos não 
 avisos de preparo atual. A ordem e o corte têm testes com riscos simultâneos,
 com e sem decisão do Cerco. Não é a alteração de ordem proposta no roadmap da v0.3.
 
-**H-8. Falta de material, fatores e fechamento anual.** _(Proposta do agente; não lida pelo autor.)_
+**H-8. Falta de material, fatores e fechamento anual.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Com o Ferreiro livre, `offer.maxAmount` zero e `offer.blockedReason` público, a lista
 mostra o motivo da falta de material como alerta e abre o Ferreiro. Não atribui a
 falta apenas ao ferro: a oferta também pode estar bloqueada pela madeira. Sem motivo
@@ -912,12 +916,12 @@ esta tarefa não inventa rótulos de Feitos ausentes da visão nem recalcula pon
 
 ## Lobo Branco — V4H-T1.4 (2026-11-04)
 
-**H-10. Troca de rumo na segunda carta.** _(Proposta do agente; não lida pelo autor.)_
+**H-10. Troca de rumo na segunda carta.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 Ao escolher `hunt` ou `feed` em §6.5, limpar os três marcadores antes de gravar o
 rumo novo. Assim quem passou da caçada à oferenda lê a variante certa de §7.1;
 `withdraw` e todas as opções finais continuam limpando os três, como aprovado.
 
-**H-11. Grafo e encerramento da caçada.** _(Proposta do agente; não lida pelo autor.)_
+**H-11. Grafo e encerramento da caçada.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A ficha §6.5 aprova três nós, risco médio, trilha, combate, ouro e comida; §6.6
 detalha três variantes de 120 minutos com retorno incluído. A trilha usa perícia
 e favorece o Arqueiro, como as provas existentes; não se inventa bônus do traço
@@ -930,6 +934,5 @@ ou Sucesso Pleno, removendo `whiteWolfHunt` de `map.discovered` e
 `map.expeditionUnlocks`; se voltar com Revés ou Desastre na fera, a janela
 continua aberta até o prazo de seis dias).
 
-**H-12. Condição de chegada e recompensa da pele em `forestReturns` (`whiteWolf.hunt`).** _(Proposta do agente; não lida pelo autor.)_
-- Enquanto isso: na opção `hunt` de `whiteWolf` (§6.5), a ficha aprovada agenda `forestReturns` (§7.1) para 5 dias depois (`scheduleCard(forestReturns, 5)`) e grava `whiteWolf.hunt` no ato da escolha. Como os textos e as recompensas das fichas §§6.5, 6.6 e 7.1 foram aprovados pelo autor, foram mantidos sem alteração: (1) se o jogador escolher `hunt` mas não enviar `whiteWolfHunt` ou falhar no combate da fera, `forestReturns` ainda chega 5 dias depois com a variante `whiteWolf.hunt` ("Os caçadores voltaram com a pele alva…") e permite vender ou reclamar uma pele que não foi obtida; (2) quando a caçada vence o nó da fera, o encontro de `whiteWolfHunt` (§6.6) já paga `+40–70 ouro` e `+10–20 comida` ("trouxeram a pele alva") e, em `forestReturns` (§7.1), `claim` (`+70 ouro, +40 comida, +5 moral`) ou `sell` (`+120 ouro, −5 moral`) pagam novamente pela mesma pele.
-- Recomendação para o autor: gravar uma flag própria (por exemplo, `whiteWolf.slain`) somente quando `whiteWolfHunt` voltar com Sucesso ou Sucesso Pleno no nó da fera, exigir a pele vencida como condição para a variante da caçada em `forestReturns` (ou cancelar/desviar a carta agendada quando a janela fechar sem abate) e decidir se o ouro/comida do encontro em §6.6 deve ficar concentrado apenas na resolução de `forestReturns` (§7.1) ou se os dois pagamentos são intencionais.
+**H-12. Condição de chegada e recompensa da pele em `forestReturns` (`whiteWolf.hunt`).** _(Respondida pelo autor em 2026-11-04: "Só com a fera vencida" e pagamento único na carta.)_
+- **Resposta aplicada em `v4h-pele`:** a volta de `whiteWolfHunt` com Sucesso ou Sucesso Pleno no nó `whiteWolf` grava `whiteWolf.slain`; o `scheduleCard` da opção `hunt` de `whiteWolf` exige `ifFlags: ['whiteWolf.slain']` e, se a janela de seis dias fechar sem abate e sem equipe na estrada, a carta agendada é cancelada e a flag `whiteWolf.hunt` é limpa. O nó `whiteWolf` de `whiteWolfHunt` deixou de pagar o ouro e a comida da pele (só `forestReturns` paga, um pagamento só), e as frases do nó foram ajustadas para não anunciarem a pele como saque da expedição. Os textos aprovados das três cartas foram preservados.

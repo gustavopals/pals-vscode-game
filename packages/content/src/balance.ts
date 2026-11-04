@@ -787,7 +787,7 @@ export type Balance = {
   readonly wall: WallDef;
   readonly horde: HordeMindDef;
   readonly omens: OmensDef;
-  /** Pontuação anual, sem efeito sobre o poder do feudo (proposta G-15). */
+  /** Pontuação anual, sem efeito sobre o poder do feudo (proposta G-19). */
   readonly score: {
     readonly populationMax: number;
     readonly battlesWon: number;
@@ -1442,7 +1442,7 @@ export const balance: Balance = {
       guardIncreasePerAttempt: { num: 1, den: 10 },
     },
   },
-  // Proposta G-15: pesos inteiros conservadores; não concede recurso ou Legado.
+  // Proposta G-19: pesos inteiros conservadores; não concede recurso ou Legado.
   score: {
     populationMax: 1,
     battlesWon: 10,
