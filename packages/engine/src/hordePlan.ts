@@ -6,6 +6,7 @@ import {
   HORDE_UNIT_IDS,
   LINE_IDS,
   omenTexts,
+  siegeWaveYearFactor,
   UNIT_IDS,
   WING_IDS,
   warRaids,
@@ -32,9 +33,13 @@ type Post = NonNullable<ScheduledRaid['composition']>[number];
 type Wave = NonNullable<GameState['horde']['wavePlan']>['waves'][number];
 
 /** Efetivos de base por posto, sem sorteio; compartilhados pela geração e pela sabotagem. */
-function baseWaveLayout(draft: GameState, def: HordeWaveDef) {
+function baseWaveLayout(draft: GameState, def: HordeWaveDef, year?: number) {
   const { num, den } = balance.difficulties[draft.settings.difficulty].siegeFactor;
-  const count = Math.floor((def.baseCount * num) / den);
+  const planYear =
+    year ?? draft.horde.wavePlan?.year ?? draft.siege?.year ?? yearOf(draft.lastProcessedAt);
+  const yearFactor = siegeWaveYearFactor(planYear);
+  const baseCount = Math.floor((def.baseCount * yearFactor.num) / yearFactor.den);
+  const count = Math.floor((baseCount * num) / den);
   const remaining = count - def.fixed.filter((p) => !p.extra).reduce((sum, p) => sum + p.count, 0);
   const hasBack = HORDE_UNIT_IDS.some(
     (unit) => hordeUnits[unit].line === 'back' && (def.mix[unit] ?? 0) > 0,
@@ -64,14 +69,14 @@ function baseWaveLayout(draft: GameState, def: HordeWaveDef) {
 }
 
 /** Um sorteio por posto, em ordem fixa; a contagem exata é repartida sem perder resto. */
-function generateWave(draft: GameState, def: HordeWaveDef): Wave {
+function generateWave(draft: GameState, def: HordeWaveDef, year?: number): Wave {
   const weights = compositionWeights(
     'autumn',
     draft.settings.difficulty,
     draft.horde.lastFormationSeen,
     def.mix,
   ).weights;
-  const { slots, amounts } = baseWaveLayout(draft, def);
+  const { slots, amounts } = baseWaveLayout(draft, def, year);
   const posts: Post[] = def.fixed.map(({ wing, line, unit, count: fixedCount }) => ({
     wing,
     line,
@@ -105,13 +110,15 @@ function generateWave(draft: GameState, def: HordeWaveDef): Wave {
 }
 
 /** Reparte o total reduzido sobre a base, com os restos na ordem fixa dos postos. */
-function reduceWave(draft: GameState, wave: Wave): void {
+function reduceWave(draft: GameState, wave: Wave, year?: number): void {
   const def = hordeWaves.find((entry) => entry.number === wave.number)!;
-  const { slots, amounts } = baseWaveLayout(draft, def);
+  const { slots, amounts } = baseWaveLayout(draft, def, year);
   const base = wave.composition.map((post) => {
     const fixed = def.fixed.find((entry) => entry.wing === post.wing && entry.line === post.line);
     const index = slots.findIndex((entry) => entry.wing === post.wing && entry.line === post.line);
-    return { count: fixed?.count ?? amounts[index] ?? 0, minimum: fixed?.count ?? 0 };
+    // Um posto nunca some com a redução: as ondas menores dos primeiros anos (resposta do
+    // autor de 2026-11-04) deixariam postos sem ninguém, e a forma exige ao menos um.
+    return { count: fixed?.count ?? amounts[index] ?? 0, minimum: fixed?.count ?? 1 };
   });
   distributeWave(wave, base, 100 - (wave.reductionPercent ?? 0), 100);
 }
@@ -152,7 +159,8 @@ function increaseAlertedWave(wave: Wave): void {
 function prepareWaves(draft: GameState, atMs: number): void {
   const previousWaves = draft.horde.wavePlan?.waves;
   const revision = (draft.horde.wavePlan?.revision ?? 0) + 1;
-  const waves = hordeWaves.map((def) => generateWave(draft, def));
+  const year = yearOf(atMs);
+  const waves = hordeWaves.map((def) => generateWave(draft, def, year));
 
   // Preserva reduções de sabotagens anteriores ao regerar as ondas
   if (previousWaves !== undefined) {
@@ -160,7 +168,7 @@ function prepareWaves(draft: GameState, atMs: number): void {
       const prev = previousWaves.find((w) => w.number === wave.number);
       if (prev?.reductionPercent !== undefined && prev.reductionPercent > 0) {
         wave.reductionPercent = prev.reductionPercent;
-        reduceWave(draft, wave);
+        reduceWave(draft, wave, year);
       }
     }
   }
@@ -174,7 +182,7 @@ function prepareWaves(draft: GameState, atMs: number): void {
   }
 
   draft.horde.wavePlan = {
-    year: yearOf(atMs),
+    year,
     revision,
     generatedAtMs: atMs,
     waves,
