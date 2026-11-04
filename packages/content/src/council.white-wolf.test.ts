@@ -98,7 +98,12 @@ describe('as três fichas aprovadas do Lobo Branco (§§6.4, 6.5 e 7.1)', () => 
       requires: { buildings: { guild: 1 }, heroPresent: 1 },
     });
     expect(card('whiteWolf').options[0]?.cost).toBeUndefined();
-    const cleared = ['whiteWolf.hunt', 'whiteWolf.offer', 'whiteWolf.ignored'].map((flag) => ({
+    const cleared = [
+      'whiteWolf.hunt',
+      'whiteWolf.offer',
+      'whiteWolf.ignored',
+      'whiteWolf.slain',
+    ].map((flag) => ({
       type: 'clearFlag',
       flag,
     }));
@@ -106,7 +111,7 @@ describe('as três fichas aprovadas do Lobo Branco (§§6.4, 6.5 e 7.1)', () => 
       { type: 'unlockExpedition', modelId: 'whiteWolfHunt', forDays: 6 },
       ...cleared,
       { type: 'setFlag', flag: 'whiteWolf.hunt' },
-      { type: 'scheduleCard', cardId: 'forestReturns', afterDays: 5 },
+      { type: 'scheduleCard', cardId: 'forestReturns', afterDays: 5, ifFlags: ['whiteWolf.slain'] },
     ]);
     expect(card('whiteWolf').options[1]).toMatchObject({ id: 'feed', cost: { food: 60 } });
     expect(card('whiteWolf').options[1]?.effects).toEqual([

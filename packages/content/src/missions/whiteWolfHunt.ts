@@ -73,25 +73,13 @@ export const whiteWolfHunt: ExpeditionModelDef = {
             helps: 'warrior',
             lesson: 'Um Guerreiro teria sustentado a linha quando o lobo avançou.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco na clareira e desferiu o golpe antes do salto. A equipe de {feudo} recolheu a pele e a caça escondida entre as raízes.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco na clareira e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco na clareira e sustentou a linha até o golpe final. O bosque ficou quieto.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco na clareira, mas a fera rompeu a linha. A equipe de {feudo} recolheu parte da caça e deixou a clareira.',
+                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco na clareira, mas a fera rompeu a linha. A equipe de {feudo} deixou a clareira antes que escurecesse.',
               disaster:
-                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou sem a pele.',
-            },
-          },
-          rewards: {
-            resources: {
-              gold: {
-                min: 40,
-                max: 70,
-              },
-              food: {
-                min: 10,
-                max: 20,
-              },
+                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
           next: 'home',
@@ -160,25 +148,13 @@ export const whiteWolfHunt: ExpeditionModelDef = {
             helps: 'warrior',
             lesson: 'Um Guerreiro teria sustentado a linha quando o lobo avançou.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco junto ao rochedo e desferiu o golpe antes do salto. A equipe de {feudo} recolheu a pele e a caça escondida entre as raízes.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco junto ao rochedo e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco junto ao rochedo e sustentou a linha até o golpe final. O bosque ficou quieto.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco junto ao rochedo, mas a fera rompeu a linha. A equipe de {feudo} recolheu parte da caça e deixou a clareira.',
+                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco junto ao rochedo, mas a fera rompeu a linha. A equipe de {feudo} deixou a clareira antes que escurecesse.',
               disaster:
-                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou sem a pele.',
-            },
-          },
-          rewards: {
-            resources: {
-              gold: {
-                min: 40,
-                max: 70,
-              },
-              food: {
-                min: 10,
-                max: 20,
-              },
+                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
           next: 'home',
@@ -247,25 +223,13 @@ export const whiteWolfHunt: ExpeditionModelDef = {
             helps: 'warrior',
             lesson: 'Um Guerreiro teria sustentado a linha quando o lobo avançou.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A equipe de {feudo} recolheu a pele e a caça escondida entre as raízes.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco à margem do riacho e sustentou a linha até o golpe final. O bosque ficou quieto.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco à margem do riacho, mas a fera rompeu a linha. A equipe de {feudo} recolheu parte da caça e deixou a clareira.',
+                'No {dia}º dia {daEstacao}, {heroi} cercou o Lobo Branco à margem do riacho, mas a fera rompeu a linha. A equipe de {feudo} deixou a clareira antes que escurecesse.',
               disaster:
-                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou sem a pele.',
-            },
-          },
-          rewards: {
-            resources: {
-              gold: {
-                min: 40,
-                max: 70,
-              },
-              food: {
-                min: 10,
-                max: 20,
-              },
+                'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
           next: 'home',

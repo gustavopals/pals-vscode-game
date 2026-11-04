@@ -1251,6 +1251,13 @@ describe('a expedição especial do Lobo Branco (§6.5)', () => {
         trial: { helps: 'warrior', onDisaster: 'injury' },
         next: 'home',
       });
+      if (
+        variant.nodes.whiteWolf !== undefined &&
+        variant.nodes.whiteWolf.kind !== 'return' &&
+        variant.nodes.whiteWolf.kind !== 'crossroads'
+      ) {
+        expect(variant.nodes.whiteWolf.rewards).toBeUndefined();
+      }
       for (const node of Object.values(variant.nodes)) {
         if (node.kind === 'return' || node.kind === 'crossroads') continue;
         expect(node.rewards?.item).toBeUndefined();

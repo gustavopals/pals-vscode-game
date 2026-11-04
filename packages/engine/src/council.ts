@@ -281,6 +281,46 @@ function scriptedDue(
   return atMs >= (scripted.year - 1) * YEAR_MS + days * DAY_MS;
 }
 
+/** Se todas as flags exigidas pela continuação agendada (`scheduleCard.ifFlags`) estão gravadas. */
+function continuationReady(state: GameState, entry: ScheduledCard, catalog: Catalog): boolean {
+  const previousCard = cardOf(catalog, entry.previousCardId);
+  const previousOption =
+    previousCard === null ? null : optionOf(previousCard, entry.previousOptionId);
+  const scheduled = previousOption?.effects.find(
+    (effect): effect is Extract<CouncilEffect, { type: 'scheduleCard' }> =>
+      effect.type === 'scheduleCard' && effect.cardId === entry.cardId,
+  );
+  return (scheduled?.ifFlags ?? []).every((flag) => state.council.flags[flag] === true);
+}
+
+/**
+ * Se uma continuação exige uma flag de expedição (ex.: `whiteWolf.slain` em H-12) e a janela da
+ * expedição já fechou sem abate e sem equipe na estrada, cancela a carta e limpa o ramo.
+ */
+function cancelUnmetContinuations(draft: GameState, catalog: Catalog): void {
+  const { council } = draft;
+  for (let index = council.scheduled.length - 1; index >= 0; index--) {
+    const entry = council.scheduled[index]!;
+    if (continuationReady(draft, entry, catalog)) continue;
+    const previousCard = cardOf(catalog, entry.previousCardId);
+    const previousOption =
+      previousCard === null ? null : optionOf(previousCard, entry.previousOptionId);
+    const unlock = previousOption?.effects.find((effect) => effect.type === 'unlockExpedition');
+    if (unlock === undefined) continue;
+    const windowOpen = draft.map.expeditionUnlocks[unlock.modelId] !== undefined;
+    const inFlight = draft.guild.expeditions.some(
+      (expedition) => expedition.modelId === unlock.modelId,
+    );
+    if (windowOpen || inFlight) continue;
+    council.scheduled.splice(index, 1);
+    for (const effect of previousOption?.effects ?? []) {
+      if (effect.type === 'setFlag') {
+        delete council.flags[effect.flag];
+      }
+    }
+  }
+}
+
 /** As continuações cujo prazo já chegou em `atMs` e cuja carta ainda existe no catálogo. */
 export function dueContinuations(
   state: GameState,
@@ -288,7 +328,10 @@ export function dueContinuations(
   catalog: Catalog,
 ): ScheduledCard[] {
   return state.council.scheduled.filter(
-    (entry) => entry.atMs <= atMs && cardOf(catalog, entry.cardId) !== null,
+    (entry) =>
+      entry.atMs <= atMs &&
+      cardOf(catalog, entry.cardId) !== null &&
+      continuationReady(state, entry, catalog),
   );
 }
 
@@ -752,8 +795,11 @@ export function deliverContinuations(
   catalog: Catalog = CATALOG,
 ): void {
   const { council } = draft;
+  cancelUnmetContinuations(draft, catalog);
   for (;;) {
-    const index = council.scheduled.findIndex((entry) => entry.atMs <= atMs);
+    const index = council.scheduled.findIndex(
+      (entry) => entry.atMs <= atMs && continuationReady(draft, entry, catalog),
+    );
     if (index === -1) {
       return;
     }

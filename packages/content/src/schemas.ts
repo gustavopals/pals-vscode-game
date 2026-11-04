@@ -1595,7 +1595,12 @@ const CouncilImmediateEffectSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('morale'), amount: nonZeroInt, durationDays: positiveInt }),
   z.strictObject({ type: z.literal('setFlag'), flag }),
   z.strictObject({ type: z.literal('clearFlag'), flag }),
-  z.strictObject({ type: z.literal('scheduleCard'), cardId: identifier, afterDays: positiveInt }),
+  z.strictObject({
+    type: z.literal('scheduleCard'),
+    cardId: identifier,
+    afterDays: positiveInt,
+    ifFlags: z.array(flag).min(1).optional(),
+  }),
   z.strictObject({
     type: z.literal('addHero'),
     heroId: z.enum(NAMED_HERO_IDS),
@@ -1892,7 +1897,13 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
     card.options.flatMap((option) => [...option.effects, ...(option.hidden?.effects ?? [])]),
   );
   const written = new Set(
-    everyEffect.flatMap((effect) => (effect.type === 'setFlag' ? [effect.flag] : [])),
+    everyEffect.flatMap((effect) =>
+      effect.type === 'setFlag'
+        ? [effect.flag]
+        : effect.type === 'unlockExpedition' && effect.modelId === 'whiteWolfHunt'
+          ? ['whiteWolf.slain']
+          : [],
+    ),
   );
   const scheduled = new Set(
     everyEffect.flatMap((effect) => (effect.type === 'scheduleCard' ? [effect.cardId] : [])),
@@ -1906,7 +1917,7 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
         [...option.effects, ...(option.hidden?.effects ?? [])].flatMap((effect) =>
           effect.type === 'clearFlag'
             ? [effect.flag]
-            : effect.type === 'addMaster'
+            : effect.type === 'addMaster' || effect.type === 'scheduleCard'
               ? (effect.ifFlags ?? [])
               : [],
         ),

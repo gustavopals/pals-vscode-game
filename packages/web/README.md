@@ -477,7 +477,7 @@ atuais da moral e acesso às obras/Crônica. O Retorno põe vitória e Reconstru
 **Limites desta base:** não há oferta de milícia, vínculo por onda com `army.reports` nem
 resumo/prazo do rescaldo no `ViewState`. Os relatórios guardados continuam disponíveis abaixo
 do editor, sem atribuição inventada a uma onda. Crônica do Ano, pontuação, Feitos e download
-anual esperam V4G-T3. Pendências G-15–G-17 em `docs/pendencias-v0.4.md`.
+anual esperam V4G-T3. Pendências G-22–G-24 em `docs/pendencias-v0.4.md`.
 `tests/e2e/13-cerco.spec.ts` escreve os cenários de ondas, troca, reparo, Queda durante a
 ausência, ritmo Rápido, três temas, foco/teclado e 720 px. **Não foram executados nesta
 trilha**, nem os testes de integração ou capturas da landing.

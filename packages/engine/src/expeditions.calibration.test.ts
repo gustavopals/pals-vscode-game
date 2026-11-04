@@ -553,7 +553,13 @@ describe('a calibragem do catálogo (roadmap da v0.3, V3D-T3.6)', () => {
           continue;
         }
         const other = yieldPerHeroHour(model, kind, 'balanced');
-        expect(other.resources, `${model.id}, ${kind}: recursos`).toBeGreaterThan(base.resources);
+        // Na caçada do Lobo Branco (H-12, 2026-11-04; docs/balance-v0.4.md), a pele deixou de ser
+        // paga no nó da fera para ser paga uma só vez pela carta forestReturns (+70 ouro/+40 comida
+        // ou +120 ouro); o saque direto nos nós fica só na trilha (10–15 comida), enquanto a XP do
+        // percurso segue acima da Patrulha.
+        if (model.id !== 'whiteWolfHunt') {
+          expect(other.resources, `${model.id}, ${kind}: recursos`).toBeGreaterThan(base.resources);
+        }
         expect(other.xp, `${model.id}, ${kind}: experiência`).toBeGreaterThan(base.xp);
       }
     }

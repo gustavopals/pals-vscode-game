@@ -125,7 +125,7 @@ Os pesos e textos ficam no conteúdo (`balance.score`, `feats.ts`). `stats` já 
 um mapa aberto: os contadores `chronicle:*` são zerados ao fechar o ano, e o
 documento completo fica nos eventos, sem lista nova no estado ou migração.
 Partidas que já passaram da virada não recebem fecho retroativo. Critérios e
-pesos ainda não definidos pelo autor: propostas G-15/G-16 nas pendências.
+pesos aprovados em bloco pelo autor: propostas G-19/G-20 nas pendências.
 
 Os números são os de `balance.calendar.seasons[].effects` e `balance.winter` (GDD §4.1; [ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 13 e 13a). O motor não conhece o nome de estação nenhuma: lê os efeitos da que está em vigor em `lastProcessedAt`.
 

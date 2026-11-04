@@ -102,7 +102,12 @@ export type CouncilImmediateEffect =
   | { readonly type: 'setFlag'; readonly flag: string }
   | { readonly type: 'clearFlag'; readonly flag: string }
   /** A continuação: outra carta chega `afterDays` dias de jogo depois, furando o sorteio. */
-  | { readonly type: 'scheduleCard'; readonly cardId: string; readonly afterDays: number }
+  | {
+      readonly type: 'scheduleCard';
+      readonly cardId: string;
+      readonly afterDays: number;
+      readonly ifFlags?: readonly string[];
+    }
   /**
    * Um herói com nome próprio (`namedHeroes`) entra para o feudo, sem custo: agora ou, com
    * `afterDays`, esse tanto de dias de jogo depois, contados do instante da escolha. A promessa
