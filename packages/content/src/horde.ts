@@ -15,10 +15,10 @@ export type HordeWaveDef = {
   }[];
 };
 
-/** Fatores de tamanho das ondas do Cerco por ano de jogo (resposta do autor de 2026-11-04). */
+/** Fatores de tamanho das ondas do Cerco por ano de jogo (respostas do autor de 2026-11-04: um terço no ano 1, dois terços no ano 2). */
 export const hordeWaveYearFactors: readonly Ratio[] = [
-  { num: 1, den: 2 },
-  { num: 3, den: 4 },
+  { num: 1, den: 3 },
+  { num: 2, den: 3 },
 ];
 
 /** Fator multiplicador do tamanho base da onda conforme o ano do Cerco (ano >= 1; ano 3+ é 1/1). */

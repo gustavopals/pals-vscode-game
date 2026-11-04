@@ -13,8 +13,8 @@ describe('Cerco: números do ADR 0020/19–22', () => {
     ]);
     expect(balance.siege.waveIntervalRealMs).toBe(3_600_000);
     expect(balance.siege.waveYearFactors).toEqual([
-      { num: 1, den: 2 },
-      { num: 3, den: 4 },
+      { num: 1, den: 3 },
+      { num: 2, den: 3 },
     ]);
     expect(balance.siege.fall).toEqual({
       resourcesLost: { num: 3, den: 10 },
@@ -24,9 +24,9 @@ describe('Cerco: números do ADR 0020/19–22', () => {
     });
   });
 
-  it('fatores das ondas por ano escalam 1/2, 3/4 e 1 dali em diante', () => {
-    expect(siegeWaveYearFactor(1)).toEqual({ num: 1, den: 2 });
-    expect(siegeWaveYearFactor(2)).toEqual({ num: 3, den: 4 });
+  it('fatores das ondas por ano escalam 1/3, 2/3 e 1 dali em diante', () => {
+    expect(siegeWaveYearFactor(1)).toEqual({ num: 1, den: 3 });
+    expect(siegeWaveYearFactor(2)).toEqual({ num: 2, den: 3 });
     expect(siegeWaveYearFactor(3)).toEqual({ num: 1, den: 1 });
     expect(siegeWaveYearFactor(4)).toEqual({ num: 1, den: 1 });
 
