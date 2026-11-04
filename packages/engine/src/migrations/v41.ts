@@ -1,5 +1,5 @@
 import { exactObject, literal, natural, nullable, positive, text, type Shape } from './shape';
-import type { StoredState } from './step';
+import type { MigrationStep, StoredState } from './step';
 import { stateV40 } from './v40';
 
 const object = (value: unknown): value is StoredState =>
@@ -59,4 +59,16 @@ export const stateV41: Shape = (value, path) => {
   };
   adapt(inherited);
   return stateV40(inherited, path);
+};
+
+/** O prazo só nasce quando uma carta é respondida; a migração não abre destino. */
+export const v41ToV42: MigrationStep = {
+  from: 41,
+  summary: 'Acrescenta os prazos dos destinos liberados por carta, sem abrir uma caçada.',
+  shape: stateV41,
+  migrate: (state) => ({
+    ...state,
+    schemaVersion: 42,
+    map: { ...(state.map as StoredState), expeditionUnlocks: {} },
+  }),
 };

@@ -441,6 +441,7 @@ export function reportOf(guild: Guild | null | undefined, event: GameEvent): str
  */
 export function expeditionDeadlines(guild: Guild): number[] {
   return [
+    ...guild.available.map((offer) => offer.expiresInSeconds),
     ...guild.expeditions.map((expedition) => expedition.nodeEndsInSeconds),
     ...guild.expeditions.map((expedition) => expedition.crossroads?.decidesInSeconds),
     ...guild.heroes.map((hero) => hero.injury?.recoversInSeconds),

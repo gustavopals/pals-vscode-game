@@ -19,6 +19,7 @@ import { ruins } from './missions/ruins';
 import { swamp } from './missions/swamp';
 import { abandonedMine } from './missions/abandonedMine';
 import { sabotage } from './missions/sabotage';
+import { whiteWolfHunt } from './missions/whiteWolfHunt';
 import { wolfDen } from './missions/wolfDen';
 
 /**
@@ -176,6 +177,8 @@ export type ExpeditionRequires = {
 export type ExpeditionAccess =
   | { readonly kind: 'open' }
   | { readonly kind: 'discovered' }
+  /** Destino especial aberto por carta, com prazo no mapa; nunca revelado por saque. */
+  | { readonly kind: 'council' }
   | { readonly kind: 'captive' }
   | { readonly kind: 'tile'; readonly tileId: string };
 
@@ -204,6 +207,7 @@ export type ExpeditionModelDef = {
 export const expeditionModels: readonly ExpeditionModelDef[] = [
   patrol,
   oldForest,
+  whiteWolfHunt,
   wolfDen,
   rescue,
   ruins,
@@ -266,6 +270,8 @@ export const expeditionTexts = {
   noneHome: 'Ninguém da equipe está no feudo agora: quem partiu ainda não voltou.',
   /** A duração anunciada não conta a espera na encruzilhada. */
   durationNote: 'Sem contar a espera em uma encruzilhada, que dura até {espera}.',
+  unlockFor: 'libera {destino} por {dias} de jogo ({prazo})',
+  availableUntil: 'Disponível para envio por mais {prazo}.',
   summer: 'No {estacao} os caminhos estão secos: a jornada fica mais curta.',
   /** O primeiro trecho: os nós até a primeira encruzilhada, cada um com a dificuldade. */
   stretchTrial: '{no} (dificuldade {dificuldade})',
@@ -289,6 +295,8 @@ export const expeditionTexts = {
   lockedRescueUnderWay: 'já há um Resgate a caminho de quem está em cativeiro',
   /** O tile de ameaça já tem uma equipe a caminho: `{lugar}` é o tile, com artigo. */
   lockedTileUnderWay: 'outra equipe já partiu para limpar {lugar}',
+  /** A caçada aberta pelo Conselho já tem uma equipe na estrada. */
+  lockedCouncilUnderWay: 'outra equipe já partiu para essa caçada',
   /**
    * O que falta a uma equipe para o destino, sem ponto: entra na recusa da ordem ("Essa equipe
    * não serve para …: {isto}.") e no que a tela diz do destino ("Nenhuma equipe do feudo serve

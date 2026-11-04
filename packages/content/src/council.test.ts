@@ -148,7 +148,7 @@ describe('Conselho: o catálogo', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
     // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
     // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
-    expect(councilCards).toHaveLength(56);
+    expect(councilCards).toHaveLength(59);
     expect(councilCards.slice(0, 22).map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -209,6 +209,9 @@ describe('Conselho: o catálogo', () => {
       ['warCouncil', 'Conselho de Guerra'],
       ['afterTheStorm', 'Depois da tempestade'],
       ['siegeEve', 'A véspera'],
+      ['whitePaws', 'Pegadas brancas'],
+      ['whiteWolf', 'O Lobo Branco'],
+      ['forestReturns', 'O que a floresta devolve'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -292,6 +295,9 @@ describe('Conselho: o catálogo', () => {
       warCouncil: ['listen', 'hear', 'leave'],
       afterTheStorm: ['mourn', 'feast', 'rebuild', 'leave'],
       siegeEve: ['feast', 'vigil', 'rest'],
+      whitePaws: ['hunt', 'offer', 'ignore'],
+      whiteWolf: ['hunt', 'feed', 'withdraw'],
+      forestReturns: ['claim', 'honor', 'sell'],
     });
     expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf', 'osbert']);
   });
@@ -422,6 +428,7 @@ describe('Conselho: o catálogo', () => {
       'revealRaid',
       'repairDiscount',
       'militiaReady',
+      'unlockExpedition',
     ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
@@ -660,6 +667,7 @@ const known = (list: readonly CouncilEffect[]) => {
       effect.type === 'addMaster' ||
       effect.type === 'addSoldiers' ||
       effect.type === 'revealDestination' ||
+      effect.type === 'unlockExpedition' ||
       effect.type === 'tavernExtraOffer' ||
       effect.type === 'healHero' ||
       effect.type === 'startBuilding' ||
@@ -834,12 +842,14 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
     // - kingsTax (§6.1): imposto real de 15% de ouro em `pay`
     // - kingsCollector (§6.2): multa real de 30% de ouro em `fine`
     // - kingsAnswer (§6.3): tributo real de 10% de recursos em `tribute`
+    // - whitePaws (§6.4): ignorar perde 30 de comida (balance-v0.4.md, Lobo Branco).
     // - fieldBlight (§4.4): risco de praga (rollEffect com -50% de comida) em `pray`
     const RESOURCE_LOSS_EXCEPTIONS = new Set([
       'kingsTax',
       'kingsCollector',
       'kingsAnswer',
       'fieldBlight',
+      'whitePaws',
     ]);
     for (const entry of councilCards) {
       if (RESOURCE_LOSS_EXCEPTIONS.has(entry.id)) {
@@ -979,6 +989,8 @@ describe('Conselho: a ordem das opções na carta', () => {
       'raidersAskPassage',
       'afterTheStorm',
       'siegeEve',
+      // Ficha §7.1 aprovada: claim vem antes de honor, que custa pedra (balance, Lobo Branco).
+      'forestReturns',
     ]);
     for (const entry of councilCards) {
       if (ORDER_EXCEPTIONS.has(entry.id)) {

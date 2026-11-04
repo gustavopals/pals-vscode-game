@@ -1530,3 +1530,43 @@ strings completas. Não libera frases por tamanho, categoria ou trecho, e a prov
 dos módulos/exports continua recusando conteúdo além das listas de identificadores.
 É uma correção de falso positivo de apresentação; nenhuma regra ou faixa do
 simulador mudou. Não houve remedição nem atualização de golden.
+
+
+## Lobo Branco — V4H-T1.4 (2026-11-04)
+
+Transcrição de §§6.4, 6.5 e 7.1 aprovados em 2026-10-23. A exceção nominal
+`whitePaws/ignore` ao teste de perda automática preserva os 30 de comida da ficha
+nas três dificuldades. `forestReturns` conserva a ordem aprovada `claim`, `honor`,
+`sell`, embora `honor` cobre pedra. Os contratos específicos conferem valores exatos;
+as demais cartas mantêm as mesmas regras. Nenhuma faixa do simulador foi alterada.
+
+O modelo especial tem três nós lineares, incluindo a volta (§6.6). O teste de
+encruzilhadas mantém uma exceção nominal para `whiteWolfHunt`, além da Patrulha;
+todos os outros modelos continuam exigindo a sua encruzilhada. A calibragem geral
+continua exigindo risco médio verdadeiro, sem ampliar faixa nem reduzir cobertura.
+
+Antes de subir o estado, `fixtures.test.ts` na v41 teve 58 testes verdes e cinco
+diferenças: quatro listas de `quietCouncil` ganharam os três ids novos; o retrato
+`cold` já divergia em seis estatísticas nulas de milícia no ensaio. Os 62 arquivos
+v41 herdados foram preservados byte a byte e congelados. A v42 acrescenta somente
+`map.expeditionUnlocks`, vazio na migração, e um retrato com a janela ativa.
+
+O teste exato do passo 39 → 40 também estava anterior à normalização histórica
+de `market.effects.fromMs` já feita na junção. Sua expectativa agora inclui
+explicitamente `fromMs = lastProcessedAt` quando o campo histórico falta,
+preservando todos os outros campos e a comparação exata, sem alterar o passo.
+
+No golden de sete dias, além de `schemaVersion: 42` e do mapa vazio novo, a única
+diferença de eventos herdada é a posição de `yearStarted`: o código da junção já emite
+`yearEnded` antes dele, e o golden v41 ainda invertia essas duas linhas. A ordem
+do motor não foi alterada nesta tarefa. Ordens, sorteios, demais eventos e valores
+dos sete estados permanecem iguais após retirar os dois campos de forma e as
+mesmas seis estatísticas nulas de milícia no sexto dia, já identificadas no
+retrato `cold`. Uma comparação estrutural confirmou que o gerador não mudou.
+
+Na retomada, a comparação dos 62 pares v41/v42 confirmou somente a versão, o mapa
+de prazos vazio, os três ids em quatro listas de recesso e aquelas seis estatísticas
+nulas no retrato `cold`. Nenhum byte v41 foi alterado. Os diffs da calibragem e do
+catálogo só acrescentam a caçada; todas as linhas dos modelos existentes permanecem
+iguais. Validação focada final: 1.340 testes aprovados (17 arquivos), typecheck e
+lint com saída 0; replay completo das migrações e matriz ficam para o coordenador.

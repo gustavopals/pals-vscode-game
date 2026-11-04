@@ -12,6 +12,9 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Floresta Antiga | Baixo a médio | Fraca: Clérigo Nv1 | 100% | 34% / 62% / 3% | 100% / 0% / 0% | 0% / 0% |
 | Floresta Antiga | Baixo a médio | Mínima: Guerreiro Nv1 | 100% | 76% / 24% / 0% | 33% / 59% / 8% | 0% / 0% |
 | Floresta Antiga | Baixo a médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Fraca: Clérigo Nv1 | 0% | 0% / 95% / 5% | 0% / 95% / 5% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Mínima: Guerreiro Nv1 | 29% | 29% / 71% / 0% | 29% / 71% / 0% | 0% / 0% |
+| A caçada do Lobo Branco | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
 | Covil de Lobos | Médio | Fraca: Clérigo + Clérigo Nv1 | 52% | 19% / 77% / 3% | 6% / 59% / 34% | 0% / 0% |
 | Covil de Lobos | Médio | Mínima: Guerreiro + Arqueiro Nv1 | 89% | 45% / 55% / 0% | 8% / 92% / 0% | 0% / 0% |
 | Covil de Lobos | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 94% / 6% / 0% | 56% / 44% / 0% | 0% / 0% |
@@ -45,6 +48,12 @@ Em 31 sortes:
 | Floresta Antiga | B | Os lenhadores sem senhor | 54 | o padrão | Guerreiro | fere | 0/0/0/31 | 0/0/26/5 | 31/0/0/0 |
 | Floresta Antiga | C | O ninho no alto | 50 | perícia ×1,5 | Arqueiro | fere | 0/2/29/0 | 0/17/14/0 | 31/0/0/0 |
 | Floresta Antiga | C | O fundo do barranco | 40 | o padrão | Guerreiro | fere | 0/0/28/3 | 0/20/11/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | A | As pegadas no leito seco | 48 | perícia ×1 | Arqueiro | fere | 0/0/31/0 | 0/16/15/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | A | O lobo na clareira | 44 | perícia ×0,5 | Guerreiro | fere | 0/0/30/1 | 0/18/13/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | B | O rastro entre os pinheiros | 49 | perícia ×1 | Arqueiro | fere | 0/0/30/1 | 0/13/18/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | B | O lobo junto ao rochedo | 43 | perícia ×0,5 | Guerreiro | fere | 0/0/31/0 | 0/20/11/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | C | A trilha sob a geada | 47 | perícia ×1 | Arqueiro | fere | 0/0/31/0 | 0/18/13/0 | 31/0/0/0 |
+| A caçada do Lobo Branco | C | O lobo à margem do riacho | 45 | perícia ×0,5 | Guerreiro | fere | 0/0/28/3 | 0/16/15/0 | 31/0/0/0 |
 | Covil de Lobos | A | A subida pela encosta de pedra solta | 84 | perícia ×1 | Arqueiro | fere | 0/11/20/0 | 4/26/1/0 | 19/12/0/0 |
 | Covil de Lobos | A | O lobo velho no fundo da toca | 90 | o padrão | Guerreiro | fere | 0/0/17/14 | 0/0/31/0 | 0/16/15/0 |
 | Covil de Lobos | A | A matilha na fumaça | 86 | perícia ×0,5 | Guerreiro | fere | 0/0/31/0 | 0/18/13/0 | 6/25/0/0 |
@@ -191,6 +200,8 @@ Em 31 sortes:
 | Patrulha dos Arredores | 15 min | Com folga: Guerreiro Nv3 | 9,3 | 9,3 |
 | Floresta Antiga | 60 min | Mínima: Guerreiro Nv1 | 59,3 | 12,1 |
 | Floresta Antiga | 60 min | Com folga: Guerreiro + Arqueiro Nv3 | 37,5 | 18,3 |
+| A caçada do Lobo Branco | 120 min | Mínima: Guerreiro Nv1 | 32,4 | 19,4 |
+| A caçada do Lobo Branco | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 25,8 | 31,2 |
 | Covil de Lobos | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 8,6 | 29,4 |
 | Covil de Lobos | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 10,9 | 36,9 |
 | Resgate | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 4,5 | 27,8 |

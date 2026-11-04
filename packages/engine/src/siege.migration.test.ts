@@ -43,7 +43,7 @@ describe('Cerco: estado 39 → 40', () => {
   });
   it('exige os campos novos e recusa cerco incompleto', () => {
     const state = newGame();
-    expect(state.schemaVersion).toBe(41);
+    expect(state.schemaVersion).toBe(42);
     expect(currentShape({ ...state, siege: {} }, '')).not.toBeNull();
     const { militia, ...settlement } = state.settlement;
     expect(militia).toBeNull();

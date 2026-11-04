@@ -553,7 +553,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -720,7 +720,8 @@
       }
      },
      "threat": 24,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -827,7 +828,7 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1015,7 +1016,8 @@
       }
      },
      "threat": 0,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -1227,7 +1229,7 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1413,7 +1415,8 @@
       }
      },
      "threat": 13,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -1716,7 +1719,7 @@
    "day": 4,
    "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1920,7 +1923,8 @@
       }
      },
      "threat": 61,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -2439,7 +2443,7 @@
    "day": 5,
    "eventsSoFar": 237,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2645,7 +2649,8 @@
       }
      },
      "threat": 100,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -3283,7 +3288,7 @@
    "day": 6,
    "eventsSoFar": 293,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3499,7 +3504,8 @@
       }
      },
      "threat": 72,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -4177,7 +4183,7 @@
    "day": 7,
    "eventsSoFar": 359,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -4366,7 +4372,8 @@
       }
      },
      "threat": 50,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,

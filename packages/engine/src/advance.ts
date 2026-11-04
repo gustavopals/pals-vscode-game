@@ -1,3 +1,4 @@
+import { expireExpeditionUnlocks } from './expeditionUnlocks';
 import { balance } from '@lotg/content';
 
 import { settleHeroArrivals } from './arrivals';
@@ -166,6 +167,8 @@ export function processEventsAt(
   recoverHeroes(draft, atMs, events);
   // Os fatores que acabaram saem antes do passeio e das cartas deste instante.
   draft.market.effects = draft.market.effects.filter((effect) => effect.untilMs > atMs);
+  // A janela acaba antes do Conselho; equipes já enviadas mantêm o percurso.
+  expireExpeditionUnlocks(draft, atMs);
   processCalendar(draft, atMs, events, catalog);
   // De novo depois da virada do dia: o aldeão que partiu ou desertou nela abriu uma vaga, e o
   // Mestre à espera entra neste mesmo instante, e não no próximo que alguém processar. A vaga
@@ -334,6 +337,7 @@ export function advanceWith(
   // das planejadas e da conta do ouro, que já contam com o saque (`recallStranded`).
   announceRaids(draft, draft.lastProcessedAt, events);
   settleTavern(draft, draft.lastProcessedAt, events);
+  expireExpeditionUnlocks(draft, draft.lastProcessedAt);
   recallStranded(draft, draft.lastProcessedAt, events);
   if (hasStartablePlan(draft) || hasUnsettledObjectives(draft)) {
     settlePlanned(draft, draft.lastProcessedAt, events);

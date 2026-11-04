@@ -178,6 +178,16 @@ export function logEntry(
  */
 export function accessLock(state: GameState, model: ExpeditionModelDef): string | null {
   const { access } = model;
+  if (access.kind === 'council') {
+    if (
+      !state.map.discovered.includes(model.id) ||
+      (state.map.expeditionUnlocks[model.id] ?? 0) <= state.lastProcessedAt
+    ) {
+      return expeditionTexts.lockedUnknown;
+    }
+    const underWay = state.guild.expeditions.some((expedition) => expedition.modelId === model.id);
+    return underWay ? expeditionTexts.lockedCouncilUnderWay : null;
+  }
   if (access.kind === 'discovered') {
     return state.map.discovered.includes(model.id) ? null : expeditionTexts.lockedUnknown;
   }
@@ -219,6 +229,12 @@ export function rescuesUnderWay(state: GameState): number {
 export function isKnownDestination(state: GameState, model: ExpeditionModelDef): boolean {
   if (model.id === 'sabotage') {
     return state.map.tiles.hordeFortress?.threatActive === true;
+  }
+  if (model.access.kind === 'council') {
+    return (
+      state.map.discovered.includes(model.id) &&
+      (state.map.expeditionUnlocks[model.id] ?? 0) > state.lastProcessedAt
+    );
   }
   if (model.access.kind === 'tile') {
     return true;

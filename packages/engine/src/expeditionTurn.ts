@@ -28,6 +28,7 @@ import {
   teamNames,
 } from './expeditions';
 import { lessonOf, standoutOf, trialTemplate } from './expeditionReport';
+import { closeExpeditionUnlock } from './expeditionUnlocks';
 import { joinList } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
 import { alertHordeFortress, applyWaveSabotage, revealWaveThree } from './hordePlan';
@@ -468,6 +469,14 @@ function returnHome(
   if (completed) {
     const doneKey = `expeditionsReturned:${expedition.modelId}`;
     draft.stats[doneKey] = (draft.stats[doneKey] ?? 0) + 1;
+    const lastStage = expedition.log.at(-1);
+    if (
+      modelOf(expedition.modelId)?.access.kind === 'council' &&
+      lastStage !== undefined &&
+      succeeded(lastStage.outcome)
+    ) {
+      closeExpeditionUnlock(draft, expedition.modelId);
+    }
   }
   const { resources, items: carried } = expedition.loot;
   const empty = carried.length === 0 && RESOURCE_IDS.every((resource) => resources[resource] === 0);

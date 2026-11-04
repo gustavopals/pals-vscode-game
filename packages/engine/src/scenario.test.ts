@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { HOUR, MINUTE, NO_TAVERN, runWeekScenario as runScenario } from './test-helpers';
+import { CURRENT_SCHEMA_VERSION } from './migrations';
 import { deriveViewState } from './view';
 
 const DAY_REAL = 24 * HOUR;
@@ -8,6 +9,10 @@ const DAY_REAL = 24 * HOUR;
 describe('cenário golden de 7 dias', () => {
   it('estado a cada 24 h, ordens e eventos idênticos ao golden', async () => {
     const { orders, days, events } = runScenario();
+    expect(days.every(({ state }) => state.schemaVersion === CURRENT_SCHEMA_VERSION)).toBe(true);
+    expect(days.every(({ state }) => Object.keys(state.map.expeditionUnlocks).length === 0)).toBe(
+      true,
+    );
     await expect(`${JSON.stringify({ orders, days, events }, null, 1)}\n`).toMatchFileSnapshot(
       './__golden__/scenario-7-days.json',
     );

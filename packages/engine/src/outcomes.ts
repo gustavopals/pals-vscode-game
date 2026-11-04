@@ -359,6 +359,9 @@ export function clearedTiles(state: GameState): string[] {
  * revelou; o que já era conhecido não muda nada.
  */
 export function revealDestination(draft: GameState, modelId: string): boolean {
+  // O destino do Conselho só abre pela carta, nunca por descoberta permanente.
+  if (expeditionModels.some((model) => model.id === modelId && model.access.kind === 'council'))
+    return false;
   if (draft.map.discovered.includes(modelId)) {
     return false;
   }

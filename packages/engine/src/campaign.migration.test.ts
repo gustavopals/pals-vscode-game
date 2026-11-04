@@ -32,7 +32,7 @@ describe('campanha: migração 38 → 39 e guarda persistida', () => {
       const before = fixture(scenario);
       const copy = JSON.stringify(before);
       const result = migrateState(before, { timeScale: 1 });
-      expect(CURRENT_SCHEMA_VERSION).toBe(41);
+      expect(CURRENT_SCHEMA_VERSION).toBe(42);
       expect(result.army.campaign).toBeNull();
       expect(result.army).toEqual({ ...(before.army as object), campaign: null });
       expect(result.rng).toEqual(before.rng);

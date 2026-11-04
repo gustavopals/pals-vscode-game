@@ -35,6 +35,7 @@ import {
 import { mysteriousMerchant, merchantLead, merchantFinalOffer } from './mysteriousMerchant';
 import { kingsTax, kingsCollector, kingsAnswer } from './kingsCollector';
 import { refugeesAtGates, refugeesCraft, refugeesReturn } from './refugees';
+import { whitePaws, whiteWolf, forestReturns } from './whiteWolf';
 import { woundedStranger } from './scripted';
 import {
   apprenticesTable,
@@ -131,4 +132,7 @@ export const councilCards: readonly CouncilCard[] = [
   warCouncil,
   afterTheStorm,
   siegeEve,
+  whitePaws,
+  whiteWolf,
+  forestReturns,
 ];

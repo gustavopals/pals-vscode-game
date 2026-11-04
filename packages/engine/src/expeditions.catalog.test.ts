@@ -381,8 +381,8 @@ const everyBranch = graphs.flatMap((graph) =>
 );
 
 describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)', () => {
-  it('são 24 grafos (os 18 da v0.3, os 3 da Mina Abandonada e os 3 da Sabotagem), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
-    expect(graphs).toHaveLength(24);
+  it('são 27 grafos (os 18 da v0.3, os 3 da Mina, os 3 da Sabotagem e os 3 do Lobo Branco), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
+    expect(graphs).toHaveLength(27);
     expect(everyBranch.length).toBe(
       4 * graphs.reduce((sum, graph) => sum + pathsOf(graph.variant).length, 0),
     );
@@ -492,8 +492,14 @@ describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)',
 describe('a névoa em todo grafo com encruzilhada (ADR 0018, decisão 13)', () => {
   const withCrossroads = graphs.filter((graph) => crossroadsOf(graph.variant).length > 0);
 
-  it('só a Patrulha não tem encruzilhada', () => {
-    expect(graphs.length - withCrossroads.length).toBe(3);
+  it('só a Patrulha e a caçada especial de três nós não têm encruzilhada', () => {
+    // §6.5 aprova a caçada linear; todos os demais preservam a névoa (balance, Lobo Branco).
+    expect(
+      graphs
+        .filter((graph) => crossroadsOf(graph.variant).length === 0)
+        .map((graph) => graph.model.id),
+    ).toEqual(['patrol', 'patrol', 'patrol', 'whiteWolfHunt', 'whiteWolfHunt', 'whiteWolfHunt']);
+    expect(graphs.length - withCrossroads.length).toBe(6);
   });
 
   it.each(withCrossroads.map((graph) => [graph.name, graph] as const))(
@@ -648,5 +654,22 @@ describe('o relatório de cada modelo, com semente fixa (critério 3 do GDD §16
     await expect(`${JSON.stringify(once, null, 1)}\n`).toMatchFileSnapshot(
       './__golden__/expedition-catalog.json',
     );
+  });
+});
+
+describe('relatos da caçada especial do Lobo Branco', () => {
+  it('cada variante relata a trilha, o encontro e a volta, com ouro e comida e sem item', () => {
+    for (const graph of graphs.filter((entry) => entry.model.id === 'whiteWolfHunt')) {
+      const result = walk(graph, {}, 'full');
+      expect(result.state.guild.expeditions).toEqual([]);
+      expect(result.state.guild.reports[0]?.log.map((entry) => entry.nodeId)).toEqual([
+        'tracks',
+        'whiteWolf',
+      ]);
+      expect(result.report.log).toHaveLength(3);
+      expect(result.report.log.at(-1)?.text).toContain('voltou a');
+      expect(result.state.guild.reports[0]?.log.flatMap((entry) => entry.found)).toEqual([]);
+      expect(result.events.some((event) => event.type === 'expeditionReturned')).toBe(true);
+    }
   });
 });

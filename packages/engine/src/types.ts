@@ -569,7 +569,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 41;
+  schemaVersion: 42;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -764,6 +764,8 @@ export type GameState = {
      * Moram no mapa: são lugares, e o mapa gráfico da v0.5 os herda.
      */
     discovered: string[];
+    /** Prazos dos destinos especiais abertos pelo Conselho, em ms de jogo. */
+    expeditionUnlocks: Record<string, number>;
   };
   /** Cerco do ano; as ondas acompanham a preparação da Horda até a primeira batalha. */
   siege: SiegeState | null;
@@ -1980,6 +1982,8 @@ export type PostureView = { id: PostureId; label: string; text: string };
  * Só o primeiro trecho, até a primeira encruzilhada; o que vem depois não sai do servidor.
  */
 export type ExpeditionOfferView = {
+  /** Prazo de envio de um destino especial; ausente nos permanentes. */
+  expiresInSeconds?: number | undefined;
   /** O identificador que `sendExpedition` recebe. */
   modelId: string;
   label: string;

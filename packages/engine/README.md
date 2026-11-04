@@ -244,6 +244,30 @@ Os números são os de `balance.council` (GDD §7; [ADR 0014](../../docs/decisio
 7. Uma cadeia nova ganha um cenário de ponta a ponta em `council.chains.test.ts`: aceitar, recusar, expirar nas três dificuldades, a continuação com a mesa cheia e o que fica gravado para o ano seguinte.
 8. Uma promessa que o jogador cumpre com uma obra é conferida pela opção trancada por edifício (`requires.building`), repetida em cada carta da cadeia e marcada em `autoResolveIfUnlocked`, com a frase de quando é o conselho que a aplica (`expiredChronicle`). O modelo é "A Promessa da Paliçada" (`cards/palisadePromise.ts`).
 
+### O Lobo Branco (V4H-T1.4)
+
+As três cartas de `cards/whiteWolf.ts` transcrevem §§6.4, 6.5 e 7.1 de
+[content-v0.4.md](../../docs/content-v0.4.md). `whitePaws` exige outono e Covil
+limpo; chega uma vez por ano, sem um ramo da cadeia em curso. As continuações
+mantêm o prazo contado da escolha e esperam vaga na mesa. Ao mudar de rumo na
+segunda carta, as flags anteriores são limpas (proposta H-10).
+
+Só `whiteWolf/hunt` abre `whiteWolfHunt`: Guilda Nv1 e um herói apto a partir,
+sem custo. `unlockExpedition` acrescenta o destino a `map.discovered` e guarda
+em `map.expeditionUnlocks` o instante da escolha mais seis dias de jogo.
+`nextEventAt` inclui esse prazo; `expireExpeditionUnlocks` retira destino e prazo
+antes do Conselho, também ao acomodar um estado na fronteira. Uma equipe já
+enviada conclui os três nós normalmente. Descobertas comuns não abrem a caçada.
+O grafo, as provas e as recompensas usam as regras existentes (§6.6, proposta H-11).
+
+A visão informa o prazo em segundos reais e no texto da oferta; o app inclui
+esse prazo na próxima leitura. A carta final chega cinco dias após a escolha,
+conforme a ficha, independentemente do envio ou resultado. As fichas aprovadas
+mantêm moral e perda de comida; não pedem efeito em presságios ou no Cerco.
+`council.chains.test.ts` cobre todos os ramos, expiração e mesa cheia nas três
+dificuldades; os testes específicos conferem acesso, prazo exato, névoa, ausência
+de sorteio e divisão de intervalo.
+
 ## Ameaça, Torre de Vigia e Paliçada
 
 Os números são os de `balance.threat` e `balance.raids`; os tiles, os inimigos e os nomes dos tamanhos de incursão, os de `tiles.ts`; e as frases das incursões, as de `raidTemplates`, `injuryTemplates` e `injuredLoss`, em `@lotg/content` (GDD §8.2 e §12.3; [ADR 0014](../../docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisões 10, 11 e 20). A subida da Ameaça e a regra da Paliçada ficam em `threat.ts`; o sorteio da incursão, em `hordeTurn.ts`; o roteiro, o aviso da Torre, a resolução e os feridos, em `raids.ts` (que não sorteia nada, e por isso serve também à linha do tempo, ao estado inicial e às previsões); o que a visão diz, em `threatView.ts`.
@@ -649,7 +673,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 39):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 42):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -697,8 +721,10 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 36 | V4H-T1 | `market.effects`, vazio na migração 35 → 36 (`v35.ts`), com forma em `v36.ts`. Cada efeito guarda recurso, fator racional, prazo e rótulo. O passo não muda preço, carta, prazo existente nem gerador. Os retratos v35 ficam congelados; a previsão 36 → 37 do roadmap estava defasada nesta base. |
 | 37 | V4H-T1 (avulsas) | `guild.tavern.extraOffer` desligado no passo 36 → 37; participantes por identidade e nome em cartas e riscos com alvo. Próxima rotação admite até quatro ofertas. A guarda v36 e seus 55 retratos ficam congelados. O passo não cria encontro, prazo ou sorteio. |
 | 38 | V4F-T1 | Contadores de sabotagem da Fortaleza, zerados no passo 37 → 38. |
-| 40 | V4G-T2 | Cerco, milícia e reconstrução: passo efetivo 39 → 40 (o roadmap previa 35 → 36), com `siege`, `settlement.militia` e `settlement.reconstructionUntilMs` inicialmente nulos; a linha do tempo agenda na primeira virada de outono/inverno, sem sorteio ou prazo na migração. |
 | 39 | V4F-T2 | Campanha ofensiva do exército e estado `campaign` do herói; o passo 38 → 39 só acrescenta `army.campaign: null`, sem prazo ou sorteio. |
+| 40 | V4G-T2 | Cerco, milícia e reconstrução: passo efetivo 39 → 40 (o roadmap previa 35 → 36), com `siege`, `settlement.militia` e `settlement.reconstructionUntilMs` inicialmente nulos; a linha do tempo agenda na primeira virada de outono/inverno, sem sorteio ou prazo na migração. |
+| 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
+| 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 

@@ -246,6 +246,7 @@ export type ExpeditionDisasterId = (typeof EXPEDITION_DISASTER_IDS)[number];
 export const EXPEDITION_MODEL_IDS = [
   'patrol',
   'oldForest',
+  'whiteWolfHunt',
   'wolfDen',
   'rescue',
   'ruins',

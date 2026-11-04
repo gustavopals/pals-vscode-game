@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 41,
+    schemaVersion: 42,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -103,6 +103,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       threat: 0,
       // Nenhum destino revelado: os que aparecem por descoberta esperam uma expedição.
       discovered: [],
+      expeditionUnlocks: {},
     },
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
     siege: null,
