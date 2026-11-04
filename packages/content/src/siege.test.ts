@@ -35,8 +35,8 @@ describe('Cerco: números do ADR 0020/19–22', () => {
       return hordeWaves.map((w) => Math.floor((w.baseCount * factor.num) / factor.den));
     };
 
-    expect(waveSizesForYear(1)).toEqual([20, 30, 40]);
-    expect(waveSizesForYear(2)).toEqual([30, 45, 60]);
+    expect(waveSizesForYear(1)).toEqual([13, 20, 26]);
+    expect(waveSizesForYear(2)).toEqual([26, 40, 53]);
     expect(waveSizesForYear(3)).toEqual([40, 60, 80]);
     expect(waveSizesForYear(4)).toEqual([40, 60, 80]);
   });
