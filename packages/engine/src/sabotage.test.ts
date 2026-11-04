@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { settleHordeTiles } from './hordePlan';
+import { teamBlock } from './expeditions';
 import { currentShape } from './migrations';
 import { harmOf } from './outcomes';
+import { reject } from './rejections';
 import { cloneState } from './state';
 import {
   accept,
@@ -255,6 +257,28 @@ describe('V4F-T1 · Sabotagem da Fortaleza', () => {
           }),
         ).code,
       ).toBe('TEAM_SIZE');
+    });
+
+    it('o tamanho exato da equipe e a recusa acompanham o requisito do conteúdo', () => {
+      const state = autumnWithFortress();
+      const original = expeditionModels.find((entry) => entry.id === 'sabotage')!;
+      const model = {
+        ...original,
+        requires: {
+          ...original.requires,
+          teamMin: 2,
+          teamMax: 2,
+          teamSize: 2,
+        },
+      };
+      expect(teamBlock(state, model, ['hero-1', 'hero-2'])).toBeNull();
+      expect(teamBlock(state, model, ['hero-1', 'hero-2', 'hero-3'])).toEqual({
+        code: 'TEAM_SIZE',
+        message: 'A sabotagem da Fortaleza pede uma equipe de exatamente 2 heróis.',
+      });
+      expect(reject('TEAM_SIZE').message).toBe(
+        'A sabotagem da Fortaleza pede uma equipe de exatamente 3 heróis.',
+      );
     });
 
     it('recusa quando a Fortaleza não está ativa com EXPEDITION_LOCKED', () => {

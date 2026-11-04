@@ -1591,3 +1591,9 @@ estações e dos anos 1 e 2. Nenhum número publicado foi alterado.
 Arredondamento, mínimo positivo e omissão de alas vazias permanecem iguais.
 Testes do conteúdo e da visão preservam o valor e as frases anteriores; sem
 regravar goldens ou remedir faixas.
+
+**F — equipe da sabotagem:** a validação e o texto de `TEAM_SIZE` usam o
+`requires.teamMin` do modelo, que continua em **3**, em vez de repetir o literal
+no motor. O requisito alternativo só existe no teste, comprovando que a recusa
+acompanha o conteúdo; o texto publicado continua idêntico. Nenhuma faixa,
+estatística, regra ou retrato foi alterado.
