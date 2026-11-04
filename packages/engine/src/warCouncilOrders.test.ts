@@ -1,6 +1,10 @@
+import { siegeTexts, warCouncilTexts } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { revealWaveThree } from './hordePlan';
+import { stateV41 } from './migrations/v41';
+import { readySiege } from './siege.test-helpers';
 import {
   accept,
   barracksYard,
@@ -14,7 +18,7 @@ import { cloneState } from './state';
 import { riskText } from './warCouncilView';
 import { formationSignature, previewInputFor } from './warCouncilOrders';
 import { deriveViewState } from './view';
-import type { GameState } from './types';
+import type { GameState, SiegeWaveNumber } from './types';
 
 const SOLDIERS = (draft: GameState) => {
   draft.army.units.spearman = 6;
@@ -22,7 +26,8 @@ const SOLDIERS = (draft: GameState) => {
   draft.army.units.swordsman = 5;
 };
 
-const simulate = (formationId: string) => command('simulateBattle', { formationId });
+const simulate = (formationId: string, siegeWave?: SiegeWaveNumber) =>
+  command('simulateBattle', siegeWave === undefined ? { formationId } : { formationId, siegeWave });
 
 /** O Quartel com soldados e a "Formação 1" salva. */
 const yard = (count = 1) => formationYard(count, null, SOLDIERS);
@@ -299,5 +304,169 @@ describe('previewStale (V4D-T5)', () => {
     const other = cloneState(simulated);
     other.army.units.knight += 3;
     expect(staleOf(other)).toBe(false);
+  });
+});
+
+describe('prévia de onda do Cerco (V4G-T2.10 · G-16)', () => {
+  it('recusa siegeWave fora de 1..3 com INVALID_WAVE', () => {
+    for (const bad of [0, 4, -1, '3'] as unknown as SiegeWaveNumber[]) {
+      const refused = refuse(yard(), simulate('formation-1', bad));
+      expect(refused.code).toBe('INVALID_WAVE');
+      expect(refused.message).toBe(siegeTexts.invalidWave);
+    }
+  });
+
+  it('se a onda não é conhecida (ou só há presságio vago), a prévia diz isso em vez de inventar', () => {
+    const state = readySiege();
+    state.horde.omens = [
+      {
+        atMs: state.lastProcessedAt,
+        revision: state.horde.wavePlan!.revision,
+        clarity: 'vague',
+        wave: 3,
+        text: 'Um estandarte negro foi visto além do rio: a Horda terá um chefe.',
+        reveals: [],
+      },
+    ];
+    const { state: after } = accept(state, simulate('formation-1', 3));
+    expect(after.army.preview).toMatchObject({
+      formationId: 'formation-1',
+      siegeWave: 3,
+      runs: 200,
+      wins: 0,
+      glorious: 0,
+      losses: 200,
+      risk: null,
+      expectedLosses: [],
+      enemy: [],
+    });
+    const view = deriveViewState(after, after.lastProcessedAt).army.preview;
+    expect(view).toMatchObject({
+      formationId: 'formation-1',
+      siegeWave: 3,
+      runs: 200,
+      winsPercent: 0,
+      gloriousPercent: 0,
+      lossesPercent: 100,
+      riskText: warCouncilTexts.unknownWave,
+      expectedLosses: [],
+      knownEnemy: [],
+    });
+    expect(stateV41(after, 'state')).toBeNull();
+  });
+
+  it('usa só o que os presságios não vagos da revisão atual e a Torre revelam da onda', () => {
+    const state = readySiege();
+    state.horde.omens = [
+      {
+        atMs: state.lastProcessedAt,
+        revision: state.horde.wavePlan!.revision,
+        clarity: 'partial',
+        wave: 3,
+        text: 'Cerca de 15 cavaleiros negros pela ala esquerda na terceira noite.',
+        reveals: [{ wing: 'left', line: 'front', unit: 'blackKnight', count: 15 }],
+      },
+    ];
+    const partialState = accept(state, simulate('formation-1', 3)).state;
+    const partialView = deriveViewState(partialState, partialState.lastProcessedAt).army.preview;
+    expect(partialView?.siegeWave).toBe(3);
+    expect(partialView?.knownEnemy).toEqual([
+      {
+        wing: 'left',
+        wingLabel: 'Ala esquerda',
+        line: 'front',
+        lineLabel: 'Frente',
+        known: false,
+        unitLabel: 'Cavaleiros negros',
+        count: 15,
+        text: 'Cavaleiros negros ~15 ?',
+      },
+    ]);
+
+    const exactSource = readySiege();
+    revealWaveThree(exactSource, exactSource.lastProcessedAt, []);
+    const exactState = accept(exactSource, simulate('formation-1', 3)).state;
+    const exactView = deriveViewState(exactState, exactState.lastProcessedAt).army.preview;
+    expect(exactView?.siegeWave).toBe(3);
+    expect(exactView?.knownEnemy.length).toBeGreaterThan(1);
+    expect(exactView?.knownEnemy.every((post) => post.known && !post.text.endsWith(' ?'))).toBe(
+      true,
+    );
+  });
+
+  it('névoa: duas partidas que diferem só na composição oculta dão a mesma visão e a mesma prévia', () => {
+    const first = readySiege();
+    const second = cloneState(first);
+    second.horde.lastFormationSeen = { total: 40, byUnit: { archer: 40 } };
+    second.rng.horde = [9, 8, 7, 6];
+    second.horde.wavePlan!.waves[2]!.composition = [
+      { wing: 'left', line: 'front', unit: 'ogre', count: 90 },
+      { wing: 'center', line: 'front', unit: 'warlord', count: 1 },
+      { wing: 'right', line: 'back', unit: 'shaman', count: 50 },
+    ];
+    second.siege!.waves = second.horde.wavePlan!.waves.map((wave) => ({
+      ...wave,
+      composition: wave.composition.map((post) => ({ ...post })),
+    }));
+
+    expect(deriveViewState(first, first.lastProcessedAt)).toEqual(
+      deriveViewState(second, second.lastProcessedAt),
+    );
+    const simUnknownA = accept(first, simulate('formation-1', 3)).state;
+    const simUnknownB = accept(second, simulate('formation-1', 3)).state;
+    expect(simUnknownA.army.preview).toEqual(simUnknownB.army.preview);
+    expect(deriveViewState(simUnknownA, simUnknownA.lastProcessedAt)).toEqual(
+      deriveViewState(simUnknownB, simUnknownB.lastProcessedAt),
+    );
+
+    const partialOmen = {
+      atMs: first.lastProcessedAt,
+      revision: first.horde.wavePlan!.revision,
+      clarity: 'partial' as const,
+      wave: 3 as const,
+      text: 'Cerca de 25 cavaleiros negros pela ala esquerda na terceira noite.',
+      reveals: [
+        { wing: 'left' as const, line: 'front' as const, unit: 'blackKnight' as const, count: 25 },
+      ],
+    };
+    first.horde.omens = [partialOmen];
+    second.horde.omens = [{ ...partialOmen, reveals: partialOmen.reveals.map((p) => ({ ...p })) }];
+
+    expect(deriveViewState(first, first.lastProcessedAt)).toEqual(
+      deriveViewState(second, second.lastProcessedAt),
+    );
+    const simPartialA = accept(first, simulate('formation-1', 3)).state;
+    const simPartialB = accept(second, simulate('formation-1', 3)).state;
+    expect(simPartialA.army.preview).toEqual(simPartialB.army.preview);
+    expect(deriveViewState(simPartialA, simPartialA.lastProcessedAt)).toEqual(
+      deriveViewState(simPartialB, simPartialB.lastProcessedAt),
+    );
+  });
+
+  it('previewStale acompanha a onda simulada quando chega presságio novo daquela onda', () => {
+    const base = readySiege();
+    const simulated = accept(base, simulate('formation-1', 3)).state;
+    expect(
+      deriveViewState(simulated, simulated.lastProcessedAt).army.formations[0]?.previewStale,
+    ).toBe(false);
+
+    const wave2Omen = cloneState(simulated);
+    wave2Omen.horde.omens.push({
+      atMs: wave2Omen.lastProcessedAt,
+      revision: wave2Omen.horde.wavePlan!.revision,
+      clarity: 'partial',
+      wave: 2,
+      text: 'Feras na segunda noite.',
+      reveals: [{ wing: 'center', line: 'front', unit: 'wolf', count: 30 }],
+    });
+    expect(
+      deriveViewState(wave2Omen, wave2Omen.lastProcessedAt).army.formations[0]?.previewStale,
+    ).toBe(false);
+
+    const wave3Omen = cloneState(simulated);
+    revealWaveThree(wave3Omen, wave3Omen.lastProcessedAt, []);
+    expect(
+      deriveViewState(wave3Omen, wave3Omen.lastProcessedAt).army.formations[0]?.previewStale,
+    ).toBe(true);
   });
 });

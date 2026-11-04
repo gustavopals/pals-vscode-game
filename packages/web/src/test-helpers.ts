@@ -42,6 +42,14 @@ export const siegeWaveView: ViewState = {
       { number: 2, title: 'Segunda onda', omens: [] },
       { number: 3, title: 'Terceira onda', omens: [] },
     ],
+    militiaOffer: {
+      maxCount: 5,
+      canCall: false,
+      blockedReason:
+        'A milícia só pode ser convocada quando a Torre de Vigia avistar uma incursão forte ou uma onda de cerco.',
+      untilInSeconds: null,
+      warningSeconds: 0,
+    },
   },
   pendingDecisions: [
     {

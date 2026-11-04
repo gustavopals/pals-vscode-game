@@ -295,9 +295,14 @@ export const SetActiveFormationCommandSchema = command(
   'setActiveFormation',
   z.strictObject({ id: z.string().min(1).max(64).nullable() }),
 );
+const siegeWaveNumber = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+
 export const SimulateBattleCommandSchema = command(
   'simulateBattle',
-  z.strictObject({ formationId: z.string().min(1).max(64) }),
+  z.strictObject({
+    formationId: z.string().min(1).max(64),
+    siegeWave: siegeWaveNumber.optional(),
+  }),
 );
 
 export const AttackCampCommandSchema = command(

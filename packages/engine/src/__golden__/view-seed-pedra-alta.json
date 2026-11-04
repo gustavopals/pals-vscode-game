@@ -6923,7 +6923,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 9,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 0
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -18122,7 +18129,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 6,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 3600
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -19740,7 +19754,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 6,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 7200
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -21418,7 +21439,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 6,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 3600
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -23036,7 +23064,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 6,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 7200
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -41496,7 +41531,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 2,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 0
+      }
     },
     "masters": [],
     "mastersWaiting": {
@@ -46605,7 +46647,14 @@
           "title": "A Longa Noite",
           "omens": []
         }
-      ]
+      ],
+      "militiaOffer": {
+        "maxCount": 2,
+        "canCall": false,
+        "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
+        "untilInSeconds": null,
+        "warningSeconds": 0
+      }
     },
     "masters": [],
     "mastersWaiting": {

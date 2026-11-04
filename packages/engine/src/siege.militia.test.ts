@@ -5,9 +5,11 @@ import { advanceTo } from './advance';
 import { callMilitia } from './siegeOrders';
 import { readySiege, siegeYard } from './siege.test-helpers';
 import { ableVillagers } from './population';
+import { cloneState } from './state';
 import { watchtowerPerks, watchtowerWarningMs } from './threat';
 import { HOUR } from './test-helpers';
 import type { GameEvent, ScheduledRaid } from './types';
+import { deriveViewState } from './view';
 
 describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
   it('convoca milícia com cerco marcado dentro da antecedência da Torre e emite evento', () => {
@@ -230,5 +232,84 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
       balance.morale.populationFloor,
     );
     expect(afterWave.state.settlement.population.villagers).toBe(3);
+  });
+
+  it('expõe siege.militiaOffer na visão pela mesma regra de callMilitia e sem tocar no RNG', () => {
+    const state = readySiege();
+    const tower = state.settlement.buildings.watchtower;
+    const warning = watchtowerWarningMs(state, watchtowerPerks(tower)!);
+    const now = state.siege!.nextWaveAtMs! - warning + 1000;
+    state.lastProcessedAt = now;
+    state.clock.gameTimeMs = now;
+    const rngBefore = cloneState(state).rng;
+
+    // 1. Com todos os postos da frente ocupados na formação da onda -> NO_MILITIA_SLOT
+    const blockedSlotOffer = deriveViewState(state, now).siege!.militiaOffer;
+    expect(blockedSlotOffer.canCall).toBe(false);
+    expect(blockedSlotOffer.maxCount).toBeGreaterThan(0);
+    expect(blockedSlotOffer.blockedReason).toBe(siegeTexts.militiaNoSlot);
+    expect(blockedSlotOffer.blockedReason).toBe(
+      callMilitia(state, blockedSlotOffer.maxCount, now, [])?.message,
+    );
+    expect(state.rng).toEqual(rngBefore);
+
+    // 2. Libera um posto na frente da formação que vai lutar -> canCall: true
+    state.army.formations[0]!.posts.center.front = null;
+    const openOffer = deriveViewState(state, now).siege!.militiaOffer;
+    expect(openOffer.canCall).toBe(true);
+    expect(openOffer.blockedReason).toBeNull();
+    expect(openOffer.maxCount).toBe(
+      Math.min(Math.floor(state.settlement.population.villagers / 2), ableVillagers(state)),
+    );
+    expect(openOffer.untilInSeconds).toBeGreaterThan(0);
+    expect(openOffer.warningSeconds).toBeGreaterThan(0);
+    expect(state.rng).toEqual(rngBefore);
+
+    // 3. Sem aldeões aptos (todos feridos) -> INVALID_MILITIA_AMOUNT
+    const injuredState = cloneState(state);
+    injuredState.settlement.injured = Array(injuredState.settlement.population.villagers).fill({
+      untilMs: now + HOUR,
+      building: null,
+    });
+    const zeroAbleOffer = deriveViewState(injuredState, now).siege!.militiaOffer;
+    expect(zeroAbleOffer.maxCount).toBe(0);
+    expect(zeroAbleOffer.canCall).toBe(false);
+    expect(zeroAbleOffer.blockedReason).toBe(siegeTexts.militiaAmount);
+    expect(zeroAbleOffer.blockedReason).toBe(
+      callMilitia(injuredState, zeroAbleOffer.maxCount, now, [])?.message,
+    );
+
+    // 4. Fora da antecedência da Torre ou sem Torre -> MILITIA_NOT_ALLOWED
+    const noTowerState = cloneState(state);
+    noTowerState.settlement.buildings.watchtower = 0;
+    const noTowerOffer = deriveViewState(noTowerState, now).siege!.militiaOffer;
+    expect(noTowerOffer.canCall).toBe(false);
+    expect(noTowerOffer.untilInSeconds).toBeNull();
+    expect(noTowerOffer.warningSeconds).toBe(0);
+    expect(noTowerOffer.blockedReason).toBe(siegeTexts.militiaNotAllowed);
+    expect(noTowerOffer.blockedReason).toBe(
+      callMilitia(noTowerState, noTowerOffer.maxCount, now, [])?.message,
+    );
+
+    const earlyState = cloneState(state);
+    const tooEarly = earlyState.siege!.nextWaveAtMs! - warning - 10 * HOUR;
+    earlyState.lastProcessedAt = tooEarly;
+    const earlyOffer = deriveViewState(earlyState, tooEarly).siege!.militiaOffer;
+    expect(earlyOffer.canCall).toBe(false);
+    expect(earlyOffer.untilInSeconds).toBeNull();
+    expect(earlyOffer.warningSeconds).toBeGreaterThan(0);
+    expect(earlyOffer.blockedReason).toBe(siegeTexts.militiaNotAllowed);
+    expect(earlyOffer.blockedReason).toBe(
+      callMilitia(earlyState, earlyOffer.maxCount, tooEarly, [])?.message,
+    );
+
+    // 5. Depois de convocar -> MILITIA_ACTIVE
+    expect(callMilitia(state, openOffer.maxCount, now, [])).toBeNull();
+    const activeOffer = deriveViewState(state, now).siege!.militiaOffer;
+    expect(activeOffer.canCall).toBe(false);
+    expect(activeOffer.blockedReason).toBe(siegeTexts.militiaActive);
+    expect(activeOffer.blockedReason).toBe(
+      callMilitia(state, openOffer.maxCount, now, [])?.message,
+    );
   });
 });

@@ -29,6 +29,9 @@ function capitalized(text: string): string {
 
 /** "Risco principal: Na ala esquerda, a Frente cai…", ou a frase de quando nada se destacou. */
 export function riskText(preview: ArmyPreview, hasTroops: boolean): string {
+  if (preview.siegeWave !== undefined && preview.enemy.length === 0) {
+    return warCouncilTexts.unknownWave;
+  }
   if (!hasTroops) {
     return warCouncilTexts.noTroops;
   }
@@ -54,7 +57,7 @@ export function previewIsStale(state: GameState, formation: Formation): boolean 
   return (
     preview !== null &&
     preview.formationId === formation.id &&
-    preview.signature !== formationSignature(state, formation)
+    preview.signature !== formationSignature(state, formation, preview.siegeWave)
   );
 }
 
@@ -67,6 +70,7 @@ export function armyPreviewView(state: GameState): ArmyPreviewView | null {
   return {
     warning: campaignWarning(state),
     formationId: preview.formationId,
+    siegeWave: preview.siegeWave ?? null,
     runs: preview.runs,
     winsPercent,
     gloriousPercent: percent(preview.glorious, preview.runs),

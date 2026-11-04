@@ -1,8 +1,10 @@
 import { siegeTexts } from '@lotg/content';
 
 import { waveDecisionOpen } from './siege';
+import { checkMilitiaCall } from './siegeOrders';
 import { realSecondsCeil } from './units';
 import type { GameState, SiegeView, SiegeWaveDecisionView, SiegeWaveNumber } from './types';
+import { wavePublicOmens } from './warCouncilOrders';
 
 /** Só fatos públicos: data, plano e os presságios da versão atual; nenhuma composição crua. */
 export function siegeView(
@@ -14,6 +16,7 @@ export function siegeView(
   const until = (atMs: number) =>
     Math.max(0, realSecondsCeil(atMs - state.lastProcessedAt, timeScale));
   const next = (entry.current + 1) as SiegeWaveNumber;
+  const militia = checkMilitiaCall(state, undefined, state.lastProcessedAt);
   return {
     siege: {
       year: entry.year,
@@ -26,16 +29,15 @@ export function siegeView(
       waves: entry.waves.map((w) => ({
         number: w.number,
         title: siegeTexts.waves[w.number],
-        omens: state.horde.omens
-          // O presságio vago não revela a onda a que pertence, nem pelo agrupamento.
-          .filter(
-            (o) =>
-              o.clarity !== 'vague' &&
-              o.wave === w.number &&
-              o.revision === state.horde.wavePlan?.revision,
-          )
-          .map((o) => o.text),
+        omens: wavePublicOmens(state, w.number).map((o) => o.text),
       })),
+      militiaOffer: {
+        maxCount: militia.maxCount,
+        canCall: militia.rejection === null,
+        blockedReason: militia.rejection?.message ?? null,
+        untilInSeconds: militia.untilMs === null ? null : until(militia.untilMs),
+        warningSeconds: realSecondsCeil(militia.warningMs, timeScale),
+      },
     },
     pendingDecisions: !waveDecisionOpen(state)
       ? []

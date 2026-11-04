@@ -2900,13 +2900,60 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
     }
   });
 
-  it('aceita simular uma formação (V4D-T2) e recusa a forma errada', () => {
+  it('aceita simular uma formação ou onda do Cerco (V4D-T2 / V4G-T2.10) e recusa a forma errada', () => {
     const simulate = (payload: unknown) => ({ commandId: uuid, type: 'simulateBattle', payload });
     expect(CommandSchema.safeParse(simulate({ formationId: 'formation-1' })).success).toBe(true);
-    for (const bad of [{}, { formationId: '' }, { formationId: 3 }, { id: 'formation-1' }]) {
+    for (const siegeWave of [1, 2, 3] as const) {
+      expect(
+        CommandSchema.safeParse(simulate({ formationId: 'formation-1', siegeWave })).success,
+      ).toBe(true);
+    }
+    for (const bad of [
+      {},
+      { formationId: '' },
+      { formationId: 3 },
+      { id: 'formation-1' },
+      { formationId: 'formation-1', siegeWave: 0 },
+      { formationId: 'formation-1', siegeWave: 4 },
+      { formationId: 'formation-1', siegeWave: '3' },
+      { formationId: 'formation-1', siegeWave: null },
+    ]) {
       expect(CommandSchema.safeParse(simulate(bad)).success).toBe(false);
     }
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).toContain('battleSimulated');
+  });
+
+  it('valida siege.militiaOffer na visão do Cerco e recusa chaves ou tipos inválidos', () => {
+    const state = createInitialState('pedra-alta', {
+      settlementName: 'Pedra Alta',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 21,
+      difficulty: 'lord',
+      timeScale: 16,
+    });
+    const winterStart = 3 * 90 * 24 * 3600_000;
+    const atSiege = advanceTo(state, winterStart + 6 * 24 * 3600_000).state;
+    const view = deriveViewState(atSiege, atSiege.lastProcessedAt);
+    expect(view.siege).not.toBeNull();
+    expect(ViewStateSchema.safeParse(view).success).toBe(true);
+    expect(
+      ViewStateSchema.safeParse({
+        ...view,
+        siege: {
+          ...view.siege!,
+          militiaOffer: { ...view.siege!.militiaOffer, extra: true },
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      ViewStateSchema.safeParse({
+        ...view,
+        siege: {
+          ...view.siege!,
+          militiaOffer: { ...view.siege!.militiaOffer, canCall: 'yes' },
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it('recusa a forma errada: ala que falta, chave a mais, unidade fora do Quartel', () => {

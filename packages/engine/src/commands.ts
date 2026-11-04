@@ -185,7 +185,7 @@ function dispatch(
     case 'setActiveFormation':
       return setActiveFormation(draft, payload.id, nowMs, events);
     case 'simulateBattle':
-      return simulateBattle(draft, payload.formationId, nowMs, events);
+      return simulateBattle(draft, payload.formationId, nowMs, events, payload.siegeWave);
     case 'repairWall':
       return repairWall(draft, nowMs, events);
     case 'repairItem':

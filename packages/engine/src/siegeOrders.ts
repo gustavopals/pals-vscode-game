@@ -110,6 +110,123 @@ export function emergencyRepair(
   return null;
 }
 
+export type MilitiaCallCheck = {
+  maxCount: number;
+  warningMs: number;
+  untilMs: number | null;
+  rejection: SiegeRejection | null;
+};
+
+/**
+ * Validação única da convocação da milícia (GDD §11.3; ADR 0020, decisão 21; V4G-T2.10).
+ * Compartilhada entre `callMilitia` e `siegeView` para que a oferta e a recusa nunca divirjam.
+ */
+export function checkMilitiaCall(
+  state: GameState,
+  count?: unknown,
+  nowMs = state.lastProcessedAt,
+  fromCouncil = false,
+): MilitiaCallCheck {
+  const totalVillagers = state.settlement.population.villagers;
+  const maxShare = balance.army.militia.maxShare;
+  const maxByVillagers = Math.floor((totalVillagers * maxShare.num) / maxShare.den);
+  const maxAble = ableVillagers(state);
+  const maxCount = Math.min(maxByVillagers, maxAble);
+  const requested = count === undefined ? maxCount : count;
+
+  const tower = watchtowerLevel(state);
+  const perks = watchtowerPerks(tower);
+  const warningMs = fromCouncil
+    ? Math.max(0, (state.siege?.atMs ?? nowMs) - nowMs)
+    : perks === null
+      ? 0
+      : watchtowerWarningMs(state, perks);
+
+  if (state.settlement.militia !== null) {
+    return {
+      maxCount,
+      warningMs,
+      untilMs: state.settlement.militia.untilMs,
+      rejection: { code: 'MILITIA_ACTIVE', message: siegeTexts.militiaActive },
+    };
+  }
+
+  if (perks === null && !fromCouncil) {
+    return {
+      maxCount,
+      warningMs,
+      untilMs: null,
+      rejection: { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed },
+    };
+  }
+
+  const deadline = nowMs + warningMs;
+  const qualifyingTimes: number[] = [];
+
+  for (const raid of state.horde.scheduledRaids) {
+    if (!fromCouncil && raid.size === 'strong' && raid.atMs >= nowMs && raid.atMs <= deadline) {
+      qualifyingTimes.push(raid.atMs);
+    }
+  }
+
+  const siege = state.siege;
+  if (
+    siege !== null &&
+    siege.result === null &&
+    siege.nextWaveAtMs !== null &&
+    siege.nextWaveAtMs >= nowMs &&
+    siege.nextWaveAtMs <= deadline
+  ) {
+    qualifyingTimes.push(siege.nextWaveAtMs);
+  }
+
+  if (qualifyingTimes.length === 0) {
+    return {
+      maxCount,
+      warningMs,
+      untilMs: null,
+      rejection: { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed },
+    };
+  }
+
+  const untilMs = Math.min(...qualifyingTimes);
+
+  if (
+    !Number.isSafeInteger(requested) ||
+    (requested as number) < 1 ||
+    (requested as number) > maxCount
+  ) {
+    return {
+      maxCount,
+      warningMs,
+      untilMs,
+      rejection: { code: 'INVALID_MILITIA_AMOUNT', message: siegeTexts.militiaAmount },
+    };
+  }
+
+  const isSiege = siege !== null && siege.nextWaveAtMs === untilMs;
+  const waveNumber = isSiege ? ((siege.current + 1) as SiegeWaveNumber) : null;
+  const formationId =
+    isSiege && waveNumber !== null
+      ? (siege.plan[waveNumber] ?? state.army.activeFormationId)
+      : state.army.activeFormationId;
+  const formation = state.army.formations.find((f) => f.id === formationId) ?? null;
+  const defender = buildDefender(formation, availableUnits(state), () => null);
+  const hasFreeSlot = MILITIA_POST_PRIORITY.some(
+    (slot) => defender.posts[slot.wing][slot.line] === null,
+  );
+  if (!hasFreeSlot) {
+    return {
+      maxCount,
+      warningMs,
+      untilMs,
+      rejection: { code: 'NO_MILITIA_SLOT', message: siegeTexts.militiaNoSlot },
+    };
+  }
+
+  return { maxCount, warningMs, untilMs, rejection: null };
+}
+
 /**
  * Convocação da milícia de aldeões (GDD §11.3; ADR 0020, decisão 21).
  * Permitida somente quando houver incursão forte ou cerco/onda marcados dentro da antecedência da Torre de Vigia.
@@ -122,72 +239,11 @@ export function callMilitia(
   events: GameEvent[],
   fromCouncil = false,
 ): SiegeRejection | null {
-  if (draft.settlement.militia !== null) {
-    return { code: 'MILITIA_ACTIVE', message: siegeTexts.militiaActive };
-  }
-
-  const tower = watchtowerLevel(draft);
-  const perks = watchtowerPerks(tower);
-  if (perks === null && !fromCouncil) {
-    return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
-  }
-
-  const warningMs = fromCouncil
-    ? Math.max(0, (draft.siege?.atMs ?? nowMs) - nowMs)
-    : watchtowerWarningMs(draft, perks!);
-  const deadline = nowMs + warningMs;
-  const qualifyingTimes: number[] = [];
-
-  for (const raid of draft.horde.scheduledRaids) {
-    if (!fromCouncil && raid.size === 'strong' && raid.atMs >= nowMs && raid.atMs <= deadline) {
-      qualifyingTimes.push(raid.atMs);
-    }
-  }
-
-  const siege = draft.siege;
-  if (
-    siege !== null &&
-    siege.result === null &&
-    siege.nextWaveAtMs !== null &&
-    siege.nextWaveAtMs >= nowMs &&
-    siege.nextWaveAtMs <= deadline
-  ) {
-    qualifyingTimes.push(siege.nextWaveAtMs);
-  }
-
-  if (qualifyingTimes.length === 0) {
-    return { code: 'MILITIA_NOT_ALLOWED', message: siegeTexts.militiaNotAllowed };
-  }
-
-  const totalVillagers = draft.settlement.population.villagers;
-  const maxShare = balance.army.militia.maxShare;
-  const maxByVillagers = Math.floor((totalVillagers * maxShare.num) / maxShare.den);
-  const maxAble = ableVillagers(draft);
-  const maxAllowed = Math.min(maxByVillagers, maxAble);
-
-  if (!Number.isSafeInteger(count) || (count as number) < 1 || (count as number) > maxAllowed) {
-    return { code: 'INVALID_MILITIA_AMOUNT', message: siegeTexts.militiaAmount };
-  }
+  const check = checkMilitiaCall(draft, count, nowMs, fromCouncil);
+  if (check.rejection !== null) return check.rejection;
 
   const amount = count as number;
-  const untilMs = Math.min(...qualifyingTimes);
-
-  const isSiege = siege !== null && siege.nextWaveAtMs === untilMs;
-  const waveNumber = isSiege ? ((siege.current + 1) as SiegeWaveNumber) : null;
-  const formationId =
-    isSiege && waveNumber !== null
-      ? (siege.plan[waveNumber] ?? draft.army.activeFormationId)
-      : draft.army.activeFormationId;
-  const formation = draft.army.formations.find((f) => f.id === formationId) ?? null;
-  const defender = buildDefender(formation, availableUnits(draft), () => null);
-  const hasFreeSlot = MILITIA_POST_PRIORITY.some(
-    (slot) => defender.posts[slot.wing][slot.line] === null,
-  );
-  if (!hasFreeSlot) {
-    return { code: 'NO_MILITIA_SLOT', message: siegeTexts.militiaNoSlot };
-  }
-
-  draft.settlement.militia = { count: amount, untilMs };
+  draft.settlement.militia = { count: amount, untilMs: check.untilMs! };
   releaseExcessWorkers(draft);
   draft.stats.militiaCalled = (draft.stats.militiaCalled ?? 0) + amount;
   emit(events, draft, nowMs, 'militiaCalled', { count: amount }, { quantidade: amount });

@@ -228,6 +228,20 @@ export function previewRun(input: PreviewInput, run: number) {
 
 export function previewBattle(input: PreviewInput): PreviewResult {
   const runs = input.runs ?? balance.battle.previewRuns;
+  const hasEnemy = WING_IDS.some((wing) =>
+    LINE_IDS.some((line) => input.enemy[wing][line] !== null),
+  );
+  if (!hasEnemy) {
+    return {
+      runs,
+      wins: 0,
+      glorious: 0,
+      losses: runs,
+      risk: null,
+      expectedLosses: [],
+      enemy: [],
+    };
+  }
 
   let wins = 0;
   let glorious = 0;

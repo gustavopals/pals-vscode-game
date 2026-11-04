@@ -953,6 +953,8 @@ export type ArmyState = {
 /** O que `simulateBattle` grava: o agregado das 200 simulações (`previewBattle`), em inteiros. */
 export type ArmyPreview = {
   formationId: string;
+  /** A onda do Cerco simulada (`1 | 2 | 3`); ausente quando o alvo é a próxima incursão. */
+  siegeWave?: SiegeWaveNumber;
   /** O instante de jogo da ordem. */
   atMs: number;
   /**
@@ -1018,6 +1020,18 @@ export type SiegeWaveDecisionView = {
   expiresInSeconds: number;
   options: Array<{ formationId: string | null; label: string; selected: boolean }>;
 };
+export type SiegeMilitiaOfferView = {
+  /** O máximo de aldeões convocáveis agora: `min(floor(villagers / 2), ableVillagers)`. */
+  maxCount: number;
+  /** A ordem `callMilitia` com `count: maxCount` seria aceita agora. */
+  canCall: boolean;
+  /** Por que `callMilitia` seria recusada agora (a mesma frase da ordem), ou `null` quando `canCall`. */
+  blockedReason: string | null;
+  /** Segundos reais até o embate para o qual a milícia pode ser chamada; `null` fora da janela. */
+  untilInSeconds: number | null;
+  /** Antecedência da Torre de Vigia no nível de agora, em segundos reais (`0` sem Torre). */
+  warningSeconds: number;
+};
 export type SiegeView = {
   year: number;
   scheduledInSeconds: number;
@@ -1027,6 +1041,7 @@ export type SiegeView = {
   result: SiegeState['result'];
   resultText: string | null;
   waves: Array<{ number: SiegeWaveNumber; title: string; omens: string[] }>;
+  militiaOffer: SiegeMilitiaOfferView;
 };
 /** Alias mantido para os consumidores do motor anteriores à T2.7. */
 export type EngineViewState = ViewState;
@@ -1178,11 +1193,15 @@ export type Command =
   /** Marca a Defesa ativa; `id: null` a desmarca. */
   | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } }
   /**
-   * Roda a prévia do Conselho de Guerra (GDD §10.5; V4D-T2): 200 batalhas com gerador próprio,
-   * contra o inimigo provável da estação. Grava `army.preview` (uma por vez); não sorteia no
-   * gerador do estado nem cria entidade.
+   * Roda a prévia do Conselho de Guerra (GDD §10.5; V4D-T2 e V4G-T2.10): 200 batalhas com gerador
+   * próprio, contra o inimigo provável da estação ou a onda do Cerco (`siegeWave`). Grava
+   * `army.preview` (uma por vez); não sorteia no gerador do estado nem cria entidade.
    */
-  | { commandId: string; type: 'simulateBattle'; payload: { formationId: string } }
+  | {
+      commandId: string;
+      type: 'simulateBattle';
+      payload: { formationId: string; siegeWave?: SiegeWaveNumber | undefined };
+    }
   /**
    * Repara a muralha (GDD §6.3; V4E-T1): custa metade da pedra do nível e ouro igual, na
    * proporção do que falta; leva 15 min de jogo por 25% da vida de uma ala; entra na frente das
@@ -2621,6 +2640,8 @@ export type ArmyPreviewView = {
   /** A prévia defensiva exclui os soldados e comandantes em campanha. */
   warning: string | null;
   formationId: string;
+  /** A onda do Cerco simulada (`1 | 2 | 3`), ou `null` para incursão comum. */
+  siegeWave: SiegeWaveNumber | null;
   /** Quantas batalhas a prévia rodou. */
   runs: number;
   /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */

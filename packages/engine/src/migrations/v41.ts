@@ -4,6 +4,8 @@ import { stateV40 } from './v40';
 
 const object = (value: unknown): value is StoredState =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
+const waveNumber: Shape = (value, path) =>
+  [1, 2, 3].includes(value as number) ? null : `${path}: onda fora de 1 a 3`;
 const bonuses = exactObject({
   smithySpeed: nullable(
     exactObject({ factor: exactObject({ num: positive, den: positive }), untilMs: natural }),
@@ -37,9 +39,16 @@ export const stateV41: Shape = (value, path) => {
       return `${path}.settlement.forge.extra: rendimento inválido`;
     settlement.forge = forge;
   }
+  const army = object(value.army) ? { ...value.army } : value.army;
+  if (object(army) && object(army.preview) && army.preview.siegeWave !== undefined) {
+    const { siegeWave, ...preview } = army.preview;
+    const waveError = waveNumber(siegeWave, `${path}.army.preview.siegeWave`);
+    if (waveError !== null) return waveError;
+    army.preview = preview;
+  }
   // A fachada adapta só o identificador novo, sem aceitar campos extras na forma antiga.
   const inherited = JSON.parse(
-    JSON.stringify({ ...value, schemaVersion: 40, council, settlement }),
+    JSON.stringify({ ...value, schemaVersion: 40, council, settlement, army }),
   ) as StoredState;
   const adapt = (entry: unknown): void => {
     if (Array.isArray(entry)) entry.forEach(adapt);

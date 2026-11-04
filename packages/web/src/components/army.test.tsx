@@ -282,6 +282,7 @@ describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
       ],
       preview: {
         formationId: 'formation-1',
+        siegeWave: null,
         warning:
           'Os esquadrões e comandantes em campanha só voltam à Defesa quando chegam ao feudo.',
         runs: 200,
