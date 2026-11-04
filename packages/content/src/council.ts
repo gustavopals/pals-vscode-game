@@ -173,7 +173,7 @@ export type CouncilEffect = CouncilImmediateEffect | CouncilRollEffect;
 export type CouncilCardRequires = {
   readonly tile?: TileTypeId;
   /** Tiles de ameaça já limpos, pela chave no mapa. */
-  readonly clearedTiles?: readonly string[];
+  readonly clearedTiles?: readonly TileTypeId[];
   readonly wallDamaged?: true;
   readonly activeRaid?: true;
   readonly phase?: 'aftermath';

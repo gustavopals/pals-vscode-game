@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import source from '../../../docs/content-v0.4.md?raw';
 import { councilCards } from './cards';
 import type { CouncilCard } from './council';
+import { CouncilCardSchema } from './schemas';
 
 const ids = ['whitePaws', 'whiteWolf', 'forestReturns'];
 const card = (id: string): CouncilCard => councilCards.find((entry) => entry.id === id)!;
@@ -146,5 +147,16 @@ describe('as três fichas aprovadas do Lobo Branco (§§6.4, 6.5 e 7.1)', () => 
         ],
       },
     ]);
+  });
+
+  it('valida clearedTiles no schema contra o enum TILE_TYPE_IDS', () => {
+    const base = card('whitePaws');
+    expect(CouncilCardSchema.safeParse(base).success).toBe(true);
+    expect(
+      CouncilCardSchema.safeParse({
+        ...base,
+        requires: { ...base.requires, clearedTiles: ['invalidTile'] },
+      }).success,
+    ).toBe(false);
   });
 });

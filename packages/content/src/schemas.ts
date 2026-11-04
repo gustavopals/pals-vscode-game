@@ -1766,7 +1766,7 @@ export const CouncilCardSchema = z
         heroPresent: positiveInt.max(2).optional(),
         injuredHero: z.literal(true).optional(),
         tile: z.enum(TILE_TYPE_IDS).optional(),
-        clearedTiles: z.array(identifier).min(1).optional(),
+        clearedTiles: z.array(z.enum(TILE_TYPE_IDS)).min(1).optional(),
         wallDamaged: z.literal(true).optional(),
         activeRaid: z.literal(true).optional(),
         phase: z.literal('aftermath').optional(),
