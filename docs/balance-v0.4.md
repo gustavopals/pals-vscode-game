@@ -1528,3 +1528,10 @@ do motor não foi alterada nesta tarefa. Ordens, sorteios, demais eventos e valo
 dos sete estados permanecem iguais após retirar os dois campos de forma e as
 mesmas seis estatísticas nulas de milícia no sexto dia, já identificadas no
 retrato `cold`. Uma comparação estrutural confirmou que o gerador não mudou.
+
+Na retomada, a comparação dos 62 pares v41/v42 confirmou somente a versão, o mapa
+de prazos vazio, os três ids em quatro listas de recesso e aquelas seis estatísticas
+nulas no retrato `cold`. Nenhum byte v41 foi alterado. Os diffs da calibragem e do
+catálogo só acrescentam a caçada; todas as linhas dos modelos existentes permanecem
+iguais. Validação focada final: 1.340 testes aprovados (17 arquivos), typecheck e
+lint com saída 0; replay completo das migrações e matriz ficam para o coordenador.
