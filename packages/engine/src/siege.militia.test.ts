@@ -5,6 +5,7 @@ import { advanceTo } from './advance';
 import { callMilitia } from './siegeOrders';
 import { readySiege, siegeYard } from './siege.test-helpers';
 import { ableVillagers } from './population';
+import { cloneState } from './state';
 import { watchtowerPerks, watchtowerWarningMs } from './threat';
 import { HOUR } from './test-helpers';
 import type { GameEvent, ScheduledRaid } from './types';
@@ -240,7 +241,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     const now = state.siege!.nextWaveAtMs! - warning + 1000;
     state.lastProcessedAt = now;
     state.clock.gameTimeMs = now;
-    const rngBefore = structuredClone(state.rng);
+    const rngBefore = cloneState(state).rng;
 
     // 1. Com todos os postos da frente ocupados na formação da onda -> NO_MILITIA_SLOT
     const blockedSlotOffer = deriveViewState(state, now).siege!.militiaOffer;
@@ -265,7 +266,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     expect(state.rng).toEqual(rngBefore);
 
     // 3. Sem aldeões aptos (todos feridos) -> INVALID_MILITIA_AMOUNT
-    const injuredState = structuredClone(state);
+    const injuredState = cloneState(state);
     injuredState.settlement.injured = Array(injuredState.settlement.population.villagers).fill({
       untilMs: now + HOUR,
       building: null,
@@ -279,7 +280,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     );
 
     // 4. Fora da antecedência da Torre ou sem Torre -> MILITIA_NOT_ALLOWED
-    const noTowerState = structuredClone(state);
+    const noTowerState = cloneState(state);
     noTowerState.settlement.buildings.watchtower = 0;
     const noTowerOffer = deriveViewState(noTowerState, now).siege!.militiaOffer;
     expect(noTowerOffer.canCall).toBe(false);
@@ -290,7 +291,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
       callMilitia(noTowerState, noTowerOffer.maxCount, now, [])?.message,
     );
 
-    const earlyState = structuredClone(state);
+    const earlyState = cloneState(state);
     const tooEarly = earlyState.siege!.nextWaveAtMs! - warning - 10 * HOUR;
     earlyState.lastProcessedAt = tooEarly;
     const earlyOffer = deriveViewState(earlyState, tooEarly).siege!.militiaOffer;

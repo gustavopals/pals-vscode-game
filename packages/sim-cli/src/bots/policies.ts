@@ -2359,9 +2359,7 @@ export const responderCerco: Policy = {
     }
     const wave3Id = current.siege?.plan[3] ?? active?.id ?? null;
     const wave3Formation =
-      wave3Id === null
-        ? undefined
-        : current.army.formations.find((entry) => entry.id === wave3Id);
+      wave3Id === null ? undefined : current.army.formations.find((entry) => entry.id === wave3Id);
     if (
       wave3Formation !== undefined &&
       current.siege !== null &&

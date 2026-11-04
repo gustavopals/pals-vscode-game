@@ -153,9 +153,7 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
     state.horde.wavePlan!.waves[2]!.composition = [
       { wing: 'left', line: 'front', unit: 'wolf', count: 2 },
     ];
-    state.siege!.waves[2]!.composition = [
-      { wing: 'left', line: 'front', unit: 'wolf', count: 2 },
-    ];
+    state.siege!.waves[2]!.composition = [{ wing: 'left', line: 'front', unit: 'wolf', count: 2 }];
     revealWaveThree(state, now, []);
 
     const game = scenario(state);
