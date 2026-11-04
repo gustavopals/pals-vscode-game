@@ -10,6 +10,8 @@ import { currentShape } from './migrations';
 import { finishSiege } from './siegeOutcome';
 import { cloneState } from './state';
 import { YEAR_MS } from './clock';
+import { caravanBlock, caravanSlots } from './caravans';
+import { deriveViewState } from './view';
 
 describe('V4G-T2.6 · Rescaldo e Reconstrução (GDD §11.4; ADR 0020, decisões 19 e 22)', () => {
   it('preserva caravanas e volume já negociado quando a Queda reduz o Mercado', () => {
@@ -30,6 +32,15 @@ describe('V4G-T2.6 · Rescaldo e Reconstrução (GDD §11.4; ADR 0020, decisões
     finishSiege(state, state.lastProcessedAt, []);
     expect(state.settlement.buildings.market).toBe(3);
     expect(state.market.caravans).toHaveLength(2);
+    // J3-2: a Queda não desfaz viagens. Vagas ocupadas continuam existindo até a
+    // chegada, mas o nível reduzido continua limitando qualquer envio novo.
+    expect(caravanSlots(state)).toBe(2);
+    expect(caravanBlock(state)?.code).toBe('CARAVAN_LIMIT');
+    expect(deriveViewState(state, state.lastProcessedAt).market.caravanOffer).toMatchObject({
+      available: false,
+      slots: 2,
+      slotsInUse: 2,
+    });
     expect(state.market.tradedToday.wood).toBe(900);
     expect(currentShape(state, '')).toBeNull();
     const withoutFall = cloneState(state);

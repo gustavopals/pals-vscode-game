@@ -44,9 +44,12 @@ export function slotsAtLevel(level: number): number {
   return slotsByLevel[Math.min(level, slotsByLevel.length) - 1] ?? 0;
 }
 
-/** Quantas caravanas o Mercado de agora mantém na estrada. */
+/**
+ * Vagas na estrada, incluindo as ocupadas antes de a Queda reduzir o Mercado (J3-2).
+ * A viagem termina normalmente; `caravanBlock` limita novos envios pelo nível real.
+ */
 export function caravanSlots(state: GameState): number {
-  return slotsAtLevel(marketLevel(state));
+  return Math.max(slotsAtLevel(marketLevel(state)), state.market.caravans.length);
 }
 
 /** O primeiro nível do Mercado que mantém mais caravanas na estrada que o de agora; `null` no teto. */

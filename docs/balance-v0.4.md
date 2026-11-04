@@ -1469,6 +1469,12 @@ reproduziu a falha antes da correção; as ordens novas continuam limitadas pelo
 reduzido (J3-2). A variante do anúncio sem Torre e os demais textos do Cerco também
 entram no `contentHash`, ao lado dos feitos e textos da Crônica do Ano.
 
+Na validação de 2026-11-04, a propriedade ainda encontrou vagas ocupadas acima do
+nível reduzido. `caravanSlots` agora inclui essas viagens até a chegada; a oferta
+mostra as vagas ocupadas e `caravanBlock` continua calculando novos envios pelo
+nível real. A regressão determinística falhou antes da correção (2 vagas esperadas,
+1 recebida). Nenhuma asserção da propriedade ou número de conteúdo foi alterado.
+
 ### 20.3 Revisões independentes
 
 1. A crônica anual perdia `yearStarted` e `threatTileRestored` porque precediam o
