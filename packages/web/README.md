@@ -456,7 +456,8 @@ ordem a caminho ou prazo encerrado, os botões de ordem ficam desabilitados.
 `lords.setBattlePlan`, `lords.swapWaveFormation` e `lords.emergencyRepair` passam por
 `controller.prepare`/`guildOrder`. As travas são por onda do Plano, troca e muralha. Uma
 retentativa usa o mesmo `commandId` e payload; também confere se ainda é a mesma decisão e,
-no reparo, o mesmo orçamento. Uma troca antiga não alcança outra onda. Os reparos comum e de
+no reparo, o mesmo orçamento. Troca e reparo enviam `wave` da decisão conferida; o motor
+recusa a ordem se essa onda já passou, inclusive no instante exato dela. Os reparos comum e de
 emergência disputam a mesma intenção. O foco de navegação vai ao título; os diálogos usam o
 foco e o teclado já existentes na bancada (`useLayoutEffect`).
 

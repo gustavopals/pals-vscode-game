@@ -160,6 +160,17 @@ describe('a névoa da composição (V4E-T2.5)', () => {
     );
     expect(text(5)).toMatch(/^Os vigias contam 9 lobos na frente contra a ala esquerda, 12 /);
   });
+
+  it('a contagem aproximada preserva o mínimo positivo e omite alas vazias', () => {
+    const state = sighted(4);
+    state.horde.scheduledRaids[0]!.composition = [
+      { wing: 'left', line: 'front', unit: 'wolf', count: 1 },
+    ];
+    const threat = deriveViewState(state, WOLVES_AT - 1).threat;
+    expect(threat.known && threat.incoming?.compositionText).toBe(
+      'Os vigias contam cerca de 5 contra a ala esquerda.',
+    );
+  });
 });
 
 describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {

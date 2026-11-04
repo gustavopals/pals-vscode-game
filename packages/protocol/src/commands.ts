@@ -317,21 +317,28 @@ export const RepairWallCommandSchema = command('repairWall', z.strictObject({}))
 export const SetBattlePlanCommandSchema = command(
   'setBattlePlan',
   z.strictObject({
-    wave: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    wave: siegeWaveNumber,
     formationId: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE).nullable(),
   }),
 );
 
-/** Troca a formação da próxima onda enquanto a decisão está aberta. */
+/**
+ * Troca a formação da próxima onda enquanto a decisão está aberta. `wave` é a onda da
+ * decisão que o jogador viu: se ela já foi lutada quando a ordem chega, o motor recusa.
+ */
 export const SwapWaveFormationCommandSchema = command(
   'swapWaveFormation',
   z.strictObject({
+    wave: siegeWaveNumber,
     formationId: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE).nullable(),
   }),
 );
 
-/** Reparo imediato entre ondas; custo e prazo são conferidos pelo motor. */
-export const EmergencyRepairCommandSchema = command('emergencyRepair', z.strictObject({}));
+/** Reparo imediato antes da onda `wave` (a da decisão vista); custo e prazo, pelo motor. */
+export const EmergencyRepairCommandSchema = command(
+  'emergencyRepair',
+  z.strictObject({ wave: siegeWaveNumber }),
+);
 
 export const CallMilitiaCommandSchema = command(
   'callMilitia',

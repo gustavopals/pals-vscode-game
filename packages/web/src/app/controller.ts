@@ -1958,19 +1958,24 @@ export class Controller {
     );
   }
 
-  swapWaveFormation(formationId: string | null): Promise<boolean> {
+  /**
+   * `wave` é a onda da decisão que o jogador conferiu: vai na ordem, e o motor recusa se a onda
+   * já foi lutada quando ela chega (revisão da Fase G). Outra onda na visão também não envia.
+   */
+  swapWaveFormation(wave: 1 | 2 | 3, formationId: string | null): Promise<boolean> {
     const decision = this.view === null ? undefined : waveDecision(this.view);
     return this.guildOrder(
       'siege:swap',
       'swapWaveFormation',
-      { formationId },
+      { wave, formationId },
       'ao Cerco',
-      () => this.sameWave(decision?.id),
+      () => decision?.wave === wave && this.sameWave(decision.id),
       'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
     );
   }
 
-  emergencyRepair(): Promise<boolean> {
+  /** Reparo de emergência antes da onda `wave`, a da decisão conferida (como a troca). */
+  emergencyRepair(wave: 1 | 2 | 3): Promise<boolean> {
     const view = this.view;
     const decision = view === null ? undefined : waveDecision(view);
     const quote =
@@ -1980,13 +1985,14 @@ export class Controller {
     return this.guildOrder(
       'wall',
       'emergencyRepair',
-      {},
+      { wave },
       'aos pedreiros',
       () => {
         const now = this.view;
         const current = now === null ? undefined : waveDecision(now);
         return (
-          this.sameWave(decision?.id) &&
+          decision?.wave === wave &&
+          this.sameWave(decision.id) &&
           now !== null &&
           current !== undefined &&
           emergencySignature(current, now.threat.defense.wall.repairOffer) === quote

@@ -90,7 +90,9 @@ describe('o Plano e a decisão entre ondas', () => {
       selected: 0,
       detail: expect.arrayContaining(['A onda seguinte chega em 1 h']),
     });
-    expect(orders()).toEqual([{ type: 'swapWaveFormation', payload: { formationId: null } }]);
+    expect(orders()).toEqual([
+      { type: 'swapWaveFormation', payload: { wave: 2, formationId: null } },
+    ]);
   });
   it('cancelar a lista não envia; duplo clique envia uma só ordem', async () => {
     const made = await setup(siegeWaveView);
@@ -113,7 +115,7 @@ describe('o Plano e a decisão entre ondas', () => {
         expect.stringMatching(/Reparar toda a muralha agora: .* de pedra e .* de ouro/),
       ]),
     });
-    expect(orders()).toEqual([{ type: 'emergencyRepair', payload: {} }]);
+    expect(orders()).toEqual([{ type: 'emergencyRepair', payload: { wave: 2 } }]);
   });
   it('reparo cancelado ou bloqueado não envia', async () => {
     const made = await setup(repairable);
@@ -131,7 +133,7 @@ describe('o Plano e a decisão entre ondas', () => {
     expect(intentOf('setBattlePlan', { wave: 1, formationId: 'formation-1' })).toBe(
       intentOf('setBattlePlan', { wave: 1, formationId: null }),
     );
-    expect(intentOf('emergencyRepair', {})).toBe(intentOf('repairWall', {}));
+    expect(intentOf('emergencyRepair', { wave: 2 })).toBe(intentOf('repairWall', {}));
   });
   it('a decisão que avança com a lista aberta fecha a pergunta e não troca a onda seguinte', async () => {
     const made = await setup(siegeWaveView);

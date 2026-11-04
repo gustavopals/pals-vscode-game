@@ -282,6 +282,8 @@ export type ThreatDef = {
   readonly raidLeadMs: number;
   /** Um item por nível da Torre de Vigia, a partir do nível 1. */
   readonly watchtowerLevels: readonly WatchtowerLevelDef[];
+  /** Múltiplo e mínimo da contagem aproximada por ala na Torre de Vigia. */
+  readonly approximateRoundTo: number;
   /** Um item por nível da Paliçada, a partir do nível 1. */
   readonly palisadeLevels: readonly PalisadeLevelDef[];
   /**
@@ -1140,6 +1142,7 @@ export const balance: Balance = {
       },
       { warningRealMs: 5 * HOUR_MS, revealsRaidSize: true, composition: 'exact', towerDamage: 36 },
     ],
+    approximateRoundTo: 5,
     // Da Muralha de Pedra em diante a regra da v0.2 não muda (as incursões de hoje são leves ou
     // médias, e o nível 2 já segura as duas): o que cresce é a vida de cada ala (`wall`), que a
     // batalha das incursões usa a partir da V4E-T2. Decisão do agente, por aprovar.

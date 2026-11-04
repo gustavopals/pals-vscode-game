@@ -435,8 +435,8 @@ export function teamBlock(
   heroIds: unknown,
 ): Rejection | null {
   const ids = Array.isArray(heroIds) ? (heroIds as unknown[]) : [];
-  if (model.id === 'sabotage' && ids.length !== 3) {
-    return reject('TEAM_SIZE');
+  if (model.id === 'sabotage' && ids.length !== model.requires.teamMin) {
+    return reject('TEAM_SIZE', { count: model.requires.teamMin });
   }
   if (ids.length === 0 || new Set(ids).size !== ids.length) {
     return reject('TEAM_INVALID', { label: model.label });

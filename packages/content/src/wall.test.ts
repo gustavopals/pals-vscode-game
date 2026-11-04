@@ -74,7 +74,20 @@ describe('Muralha de Pedra, Baluarte e Torre Nv3+ (V4E-T1.1; ADR 0020)', () => {
       'exact',
     ]);
     expect(balance.battle.towers.fromLevel).toBe(3);
+    expect(balance.threat.approximateRoundTo).toBe(5);
   });
+
+  it.each([undefined, 0, -5, 2.5, '5'])(
+    'recusa o passo inválido %s na contagem aproximada da Torre',
+    (approximateRoundTo) => {
+      expect(
+        BalanceSchema.safeParse({
+          ...balance,
+          threat: { ...balance.threat, approximateRoundTo },
+        }).success,
+      ).toBe(false);
+    },
+  );
 
   it('a vida por ala: 60 e 100 nos dois primeiros níveis, e só cresce', () => {
     const { hpByLevel } = balance.wall;

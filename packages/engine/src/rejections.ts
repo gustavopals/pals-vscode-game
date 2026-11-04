@@ -2,6 +2,7 @@ import {
   balance,
   buildings,
   campaignTexts,
+  expeditionModels,
   siegeTexts,
   PRODUCTION_BUILDING_IDS,
   type ResourceAmounts,
@@ -288,8 +289,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   SABOTAGE_SEASON: () => 'A sabotagem da Fortaleza só pode ser feita durante o outono.',
   SABOTAGE_LIMIT: ({ count = balance.horde.sabotage.maxPerYear }) =>
     `A Fortaleza só pode ser sabotada até ${count} vezes por ano.`,
-  TEAM_SIZE: ({ count = 3 }) =>
-    `A sabotagem da Fortaleza pede uma equipe de exatamente ${count} heróis.`,
+  TEAM_SIZE: ({
+    count = expeditionModels.find((model) => model.id === 'sabotage')!.requires.teamMin,
+  }) => `A sabotagem da Fortaleza pede uma equipe de exatamente ${count} heróis.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

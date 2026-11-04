@@ -1570,3 +1570,30 @@ nulas no retrato `cold`. Nenhum byte v41 foi alterado. Os diffs da calibragem e 
 catálogo só acrescentam a caçada; todas as linhas dos modelos existentes permanecem
 iguais. Validação focada final: 1.340 testes aprovados (17 arquivos), typecheck e
 lint com saída 0; replay completo das migrações e matriz ficam para o coordenador.
+
+## Correções das revisões E/F/G (2026-11-04)
+
+**G — decisão no instante da onda:** troca de formação e reparo de emergência
+agora levam a onda da decisão conferida. O servidor continua avançando antes da
+ordem; se a onda já foi lutada, `NO_WAVE_DECISION` preserva esse avanço e impede
+que a ordem atinja a onda seguinte. Protocolo 4 ainda não publicado, sem mudar a
+forma do estado 42. Regressões exatas nos ritmos 0,5×, 1× e 3×; integração escrita
+para cada ordem e seu recibo recusado, sem execução. Nenhum número de regra,
+golden, retrato ou faixa foi alterado; não houve remedição nem teste afrouxado.
+
+**G — calendário da Crônica:** os capítulos somam `balance.calendar.seasons`
+em vez de repetir dias no servidor. Os dois goldens existentes continuam exatos;
+um calendário alternativo no teste prova a classificação nas fronteiras das
+estações e dos anos 1 e 2. Nenhum número publicado foi alterado.
+
+**E — aproximação da Torre:** o passo **5** passa do literal no motor para
+`balance.threat.approximateRoundTo`, obrigatório e inteiro positivo no schema.
+Arredondamento, mínimo positivo e omissão de alas vazias permanecem iguais.
+Testes do conteúdo e da visão preservam o valor e as frases anteriores; sem
+regravar goldens ou remedir faixas.
+
+**F — equipe da sabotagem:** a validação e o texto de `TEAM_SIZE` usam o
+`requires.teamMin` do modelo, que continua em **3**, em vez de repetir o literal
+no motor. O requisito alternativo só existe no teste, comprovando que a recusa
+acompanha o conteúdo; o texto publicado continua idêntico. Nenhuma faixa,
+estatística, regra ou retrato foi alterado.

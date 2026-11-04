@@ -134,13 +134,13 @@ describe('propriedades do cerco: divisão de intervalo exata (V4G-T2.9)', () => 
             commandToApply = {
               commandId: `cmd-swap-${seed}`,
               type: 'swapWaveFormation',
-              payload: { formationId: 'formation-2' },
+              payload: { wave: 2, formationId: 'formation-2' },
             };
           } else if (action === 'repair') {
             commandToApply = {
               commandId: `cmd-repair-${seed}`,
               type: 'emergencyRepair',
-              payload: {},
+              payload: { wave: 2 },
             };
           }
 

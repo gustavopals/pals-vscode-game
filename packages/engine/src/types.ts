@@ -1000,8 +1000,12 @@ export type SiegeCommand =
       type: 'setBattlePlan';
       payload: { wave: SiegeWaveNumber; formationId: string | null };
     }
-  | { commandId: string; type: 'swapWaveFormation'; payload: { formationId: string | null } }
-  | { commandId: string; type: 'emergencyRepair'; payload: Record<string, never> }
+  | {
+      commandId: string;
+      type: 'swapWaveFormation';
+      payload: { wave: SiegeWaveNumber; formationId: string | null };
+    }
+  | { commandId: string; type: 'emergencyRepair'; payload: { wave: SiegeWaveNumber } }
   | { commandId: string; type: 'callMilitia'; payload: { count: number } };
 export type SiegeRejectionCode =
   | 'SIEGE_NOT_SCHEDULED'

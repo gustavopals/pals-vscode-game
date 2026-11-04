@@ -438,8 +438,8 @@ describe('sendCommand', () => {
   it('envia as quatro ordens do Cerco com o protocolo 4 e preserva a identidade', async () => {
     const commands: Command[] = [
       { ...order, type: 'setBattlePlan', payload: { wave: 2, formationId: null } },
-      { ...order, type: 'swapWaveFormation', payload: { formationId: 'formation-1' } },
-      { ...order, type: 'emergencyRepair', payload: {} },
+      { ...order, type: 'swapWaveFormation', payload: { wave: 2, formationId: 'formation-1' } },
+      { ...order, type: 'emergencyRepair', payload: { wave: 2 } },
       { ...order, type: 'callMilitia', payload: { count: 5 } },
     ];
     const { client, calls } = setup(() => ({ status: 200, body: accepted }));

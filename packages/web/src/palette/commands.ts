@@ -1595,7 +1595,7 @@ export function createCommands(
         changedSiege();
         return;
       }
-      await controller.swapWaveFormation(formationId);
+      await controller.swapWaveFormation(decision.wave, formationId);
     } finally {
       stop();
     }
@@ -1643,7 +1643,7 @@ export function createCommands(
       changedSiege();
       return;
     }
-    await controller.emergencyRepair();
+    await controller.emergencyRepair(decision.wave);
   });
 
   // --- Quartel ----------------------------------------------------------------------

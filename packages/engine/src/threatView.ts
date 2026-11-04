@@ -625,14 +625,11 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   };
 }
 
-/** A parte do arredondamento da contagem aproximada (V4E-T2.5): múltiplos de 5, ao menos 5. */
-const APPROXIMATE_STEP = 5;
-
 /**
  * O que os vigias dizem do exército da incursão (V4E-T2.5; GDD §8.2; `watchtowerLevels[]
  * .composition`), e **só isso sai na visão**: nada nos níveis 1 e 2; os tipos de inimigo no 3;
- * quantos vêm por ala, em múltiplos de 5, no 4; a composição exata, posto a posto, no 5. A
- * composição sai da marcada ou, sem ela, da composição-base da estação: a mesma que vai lutar.
+ * quantos vêm por ala, arredondados conforme o conteúdo, no 4; a composição exata, posto a posto,
+ * no 5. A composição sai da marcada ou, sem ela, da composição-base da estação: a mesma que vai lutar.
  */
 function incomingCompositionText(raid: ScheduledRaid, perks: WatchtowerLevelDef): string | null {
   if (perks.composition === 'none') {
@@ -650,6 +647,7 @@ function incomingCompositionText(raid: ScheduledRaid, perks: WatchtowerLevelDef)
     return `Os vigias distinguem ${joinList(kinds)}.`;
   }
   if (perks.composition === 'approximate') {
+    const step = balance.threat.approximateRoundTo;
     const parts = WING_IDS.flatMap((wing) => {
       const total = posts
         .filter((post) => post.wing === wing)
@@ -657,10 +655,7 @@ function incomingCompositionText(raid: ScheduledRaid, perks: WatchtowerLevelDef)
       if (total === 0) {
         return [];
       }
-      const rounded = Math.max(
-        APPROXIMATE_STEP,
-        Math.round(total / APPROXIMATE_STEP) * APPROXIMATE_STEP,
-      );
+      const rounded = Math.max(step, Math.round(total / step) * step);
       return [`cerca de ${String(rounded)} contra ${wingPhrases[wing]}`];
     });
     return `Os vigias contam ${joinList(parts)}.`;

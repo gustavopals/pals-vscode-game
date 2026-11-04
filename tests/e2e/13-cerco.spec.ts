@@ -79,7 +79,10 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await expect(page.getByTestId('siege-decision')).toContainText(
       'Formação marcada: Defesa ativa',
     );
-    expect(sent).toContainEqual({ type: 'swapWaveFormation', payload: { formationId: null } });
+    expect(sent).toContainEqual({
+      type: 'swapWaveFormation',
+      payload: { wave: 2, formationId: null },
+    });
     await world.passTime(HOUR, page);
     await expect(page.getByTestId('siege-decision')).toContainText('onda 3');
     await world.passTime(HOUR, page);
