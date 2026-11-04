@@ -263,6 +263,8 @@ describe('relatório da matriz', () => {
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
     // A meta é do Regular: o Explorador visita com a mesma cadência e não entra nela.
     expect(goal).not.toContain('| Explorador |');
+    // V4G-T5.3: três sementes jogadas com treino, reservas e Quedas; a meta de 8 h
+    // permanece. O relatório deve expor inclusive o aumento do desperdício de comida (§21).
     expect(rows).toEqual([
       // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11): o Regular vende o que iria ao
       // chão, e as sequências das três sementes encurtam na semana do Rápido (eram até 33 h) e
@@ -284,12 +286,12 @@ describe('relatório da matriz', () => {
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a semana do Rápido volta à madeira de 27 a 30 h e à pedra de 18 a 24, e
       // no Normal a comida vai ao chão por até 1 h.
       // Segunda junção (docs/balance-v0.4.md, seção 19): novos sorteios de cartas.
-      '| 7 dias reais | Rápido 3× | Regular | 3 a 21 | 27 a 30 | 21 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 | 1 a 3 | 0 | ≤ 8 | dentro |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 0,5 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 a 6 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 | 1 a 3 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0,5 a 2,5 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Rápido 3× | Regular | 57 | 3 a 24 | 6 a 18 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 9 a 12 | 0 a 2 | 0 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 9 a 12 | 0 a 2 | 0 | ≤ 8 | **acima** |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 4 a 5,5 | 0 a 1 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -304,7 +306,8 @@ describe('relatório da matriz', () => {
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13),
       // e na junção da Fase E (a Vigília e os objetivos 17 a 21; seção "Junção da Fase E").
       // Segunda junção (docs/balance-v0.4.md, seção 19): 13 cartas e sabotagem.
-      "  'week/3/regular': measured([73, 82], 7, 0, 0, 5200, 3925, 69291, 30),",
+      // V4G-T5.3: custos militares e Queda mudam população/estoques; valor medido, sem folga (§21).
+      "  'week/3/regular': measured([35, 40], 7, 0, 0, 3426, 2382, 24607, 57),",
     );
   });
 

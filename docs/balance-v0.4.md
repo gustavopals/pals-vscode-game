@@ -1691,3 +1691,36 @@ obrigatórios. A primeira tentativa da matriz completa de Senhor foi interrompid
 antes de emitir dados (processo terminado com 143; invólucro do pnpm com 1) para que
 as três medições definitivas usem essa correção. Nenhuma faixa saiu dessa tentativa.
 A rodada curta da seção 21.2 continua sendo a medição identificada por `fc00878`.
+
+### 21.4 Método da remedição completa
+
+A remedição definitiva usa `234d70b` (inclui a última defesa sem soldados), motor
+0.3.0, estado 42, conteúdo `75d68aa79cf92571`, Node 22.22.3. São os quatro perfis
+padrão mais o Militar, nas duas janelas, nos três ritmos e nas 50 sementes fixas,
+em cada dificuldade: 30 células e 1.500 registros por dificuldade. Somente as
+24 células dos quatro perfis padrão têm faixa; o Militar continua sem faixa.
+
+O invólucro no scratchpad chama o mesmo `runMatrix` do CLI por perfil, preserva
+as sementes e o cache das janelas do Normal e junta os resultados na ordem usual.
+A igualdade exata com uma chamada única foi conferida em dois perfis, um ritmo,
+duas janelas e uma semente (saída 0). Ele guarda os resumos JSON para conferir as
+expectativas sem repetir simulações; CSV e Markdown saem dos formatadores do CLI.
+Todos os arquivos ficam em `/tmp/codex-bots-cerco-20261104/full-*`, fora do Git.
+
+```bash
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts lord
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts peasant
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts ironKing
+```
+
+A motivação para substituir `MEASURED` é a política de preparo e a contabilidade
+real de treino, milícia e Quedas na base reunida com o catálogo de 59 cartas.
+A folga de `SLACK` continua em 10% para população e 5% para os tetos; a meta de
+desperdício continua em 8 h de jogo. Os resultados finais e a conferência das
+faixas são registrados abaixo depois de concluídas as três dificuldades.
+
+Na conferência dos testes, a soma das vendas passa a incluir o ferro já existente
+no Mercado. O limite por recurso/dia é conferido pelo nível reconstituído dos
+eventos de obra e Queda, com a cotação de cada negociação e o saldo de volume
+exato; o nível final reduzido não invalida uma venda anterior. Não se retirou a
+exigência de zero recusas.

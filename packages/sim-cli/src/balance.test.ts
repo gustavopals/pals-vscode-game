@@ -279,7 +279,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Preguiçoso do ano do Rápido não erguia a Taverna em semente nenhuma (D-39).
     // Com as do roteiro dos dias 25 e 37 leves e sem ferido (seção 10) ele a ergue na hora 55
     // em parte das sementes.
-    expect(tavernAt('year/3/preguicoso')).toEqual({ min: 55, max: null });
+    // V4G-T5.3: catálogo de 59 cartas e Cerco reunidos; marco medido nas 50 sementes (§21).
+    expect(tavernAt('year/3/preguicoso')).toEqual({ min: 56, max: null });
     // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
     // gasta. Na semana do Rápido o Explorador termina com mais ouro parado do que o Regular.
     const gold = (key: string) =>
@@ -448,7 +449,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9) a Torre do Preguiçoso do
     // Rápido passou a sair entre as horas 74 e 85 (era 50 e 51), e no Normal na 80 (era 78;
     // pendência D-39). Com a resposta do autor (seção 10): de 50 a 57 no Rápido e 78 no Normal.
-    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 57 });
+    // V4G-T5.3: o Preguiçoso conserva a economia; o catálogo atual desloca uma chegada (§21).
+    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 58 });
     expect(tower('week/1/preguicoso')).toEqual({ min: 78, max: 78 });
     expect(tower('week/0.5/preguicoso')).toEqual({ min: 80, max: 80 });
     // A Ameaça não satura: com +2 por dia, −35 por incursão e as médias a partir de 70, ela
