@@ -12,12 +12,17 @@ export function unlockExpedition(
   draft.map.expeditionUnlocks[modelId] = atMs + forDays * DAY_MS;
 }
 
+/** Encerra a janela do destino aberto pelo Conselho: sai de `discovered` e de `expeditionUnlocks`. */
+export function closeExpeditionUnlock(draft: GameState, modelId: string): void {
+  draft.map.discovered = draft.map.discovered.filter((id) => id !== modelId);
+  delete draft.map.expeditionUnlocks[modelId];
+}
+
 /** Some da lista no prazo exato. A jornada que partiu antes dele termina normalmente. */
 export function expireExpeditionUnlocks(draft: GameState, atMs: number): void {
   for (const [modelId, untilMs] of Object.entries(draft.map.expeditionUnlocks)) {
     if (untilMs > atMs) continue;
-    draft.map.discovered = draft.map.discovered.filter((id) => id !== modelId);
-    delete draft.map.expeditionUnlocks[modelId];
+    closeExpeditionUnlock(draft, modelId);
   }
 }
 

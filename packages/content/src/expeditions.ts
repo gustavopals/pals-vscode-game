@@ -295,6 +295,8 @@ export const expeditionTexts = {
   lockedRescueUnderWay: 'já há um Resgate a caminho de quem está em cativeiro',
   /** O tile de ameaça já tem uma equipe a caminho: `{lugar}` é o tile, com artigo. */
   lockedTileUnderWay: 'outra equipe já partiu para limpar {lugar}',
+  /** A caçada aberta pelo Conselho já tem uma equipe na estrada. */
+  lockedCouncilUnderWay: 'outra equipe já partiu para essa caçada',
   /**
    * O que falta a uma equipe para o destino, sem ponto: entra na recusa da ordem ("Essa equipe
    * não serve para …: {isto}.") e no que a tela diz do destino ("Nenhuma equipe do feudo serve

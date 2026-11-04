@@ -194,4 +194,102 @@ describe('ganchos das fichas do Lobo Branco', () => {
     expect(whole.state.map.discovered).not.toContain('whiteWolfHunt');
     expect(whole.state.map.expeditionUnlocks).toEqual({});
   });
+
+  it('a fera é uma só: bloqueia segunda equipe a caminho e encerra a janela só quando volta com a fera vencida', () => {
+    const start = unlock().state;
+    start.settlement.buildings.guild = 2;
+    const firstHero = start.guild.heroes[0]!;
+    const secondHero = addHero(start, { name: 'Rolf', classId: 'warrior', level: 1 });
+    firstHero.classId = 'cleric';
+    firstHero.level = 1;
+
+    // 1. Primeira equipe parte; segunda equipe é recusada enquanto a primeira está a caminho.
+    const sent = send(start, 'whiteWolfHunt', [firstHero.id], 'balanced', 0);
+    const reason =
+      'Esse destino ainda não está ao alcance do feudo: outra equipe já partiu para essa caçada.';
+    expect(
+      refuse(
+        sent.state,
+        command('sendExpedition', {
+          modelId: 'whiteWolfHunt',
+          heroIds: [secondHero.id],
+          posture: 'balanced',
+        }),
+      ),
+    ).toEqual({
+      code: 'EXPEDITION_LOCKED',
+      message: reason,
+    });
+    expect(
+      deriveViewState(sent.state, sent.state.lastProcessedAt).guild.available.find(
+        (offer) => offer.modelId === 'whiteWolfHunt',
+      ),
+    ).toMatchObject({
+      locked: true,
+      lockedReason: reason,
+      canSend: false,
+      sendBlockedReason: reason,
+    });
+
+    // 2. Clérigo Nv1 sozinho nunca vence o nó da fera (poder 32 contra dificuldade 44):
+    // na volta sem vencer a fera, a janela de seis dias continua aberta para nova tentativa.
+    const failedReturn = advanceTo(sent.state, sent.state.lastProcessedAt + 2 * 3_600_000).state;
+    expect(failedReturn.guild.expeditions).toEqual([]);
+    expect(['setback', 'disaster']).toContain(
+      failedReturn.guild.reports[0]?.log.find((entry) => entry.nodeId === 'whiteWolf')?.outcome,
+    );
+    expect(failedReturn.map.discovered).toContain('whiteWolfHunt');
+    expect(failedReturn.map.expeditionUnlocks.whiteWolfHunt).toBe(AUTUMN + 6 * DAY);
+
+    // 3. Equipe forte vence a fera: continua bloqueando outra equipe durante o caminho de volta
+    // e encerra a janela no instante em que chega em casa.
+    secondHero.level = 10;
+    const retry = send(failedReturn, 'whiteWolfHunt', [secondHero.id], 'balanced', 0);
+    const returning = advanceTo(retry.state, retry.state.lastProcessedAt + 90 * 60_000).state;
+    expect(returning.guild.expeditions[0]?.status).toBe('returning');
+    expect(
+      ['full', 'success'].includes(
+        returning.guild.expeditions[0]?.log.find((entry) => entry.nodeId === 'whiteWolf')
+          ?.outcome ?? '',
+      ),
+    ).toBe(true);
+    expect(
+      refuse(
+        returning,
+        command('sendExpedition', {
+          modelId: 'whiteWolfHunt',
+          heroIds: [firstHero.id],
+          posture: 'balanced',
+        }),
+      ).code,
+    ).toBe('EXPEDITION_LOCKED');
+
+    const wonReturnAt = retry.state.lastProcessedAt + 120 * 60_000;
+    const stepBefore = advanceTo(returning, wonReturnAt - 1);
+    const stepAt = advanceTo(stepBefore.state, wonReturnAt);
+    const direct = advanceTo(returning, wonReturnAt);
+    expect(stepAt.state).toEqual(direct.state);
+    expect([...stepBefore.events, ...stepAt.events]).toEqual(direct.events);
+    expect(direct.state.map.discovered).not.toContain('whiteWolfHunt');
+    expect(direct.state.map.expeditionUnlocks).toEqual({});
+    expect(
+      deriveViewState(direct.state, direct.state.lastProcessedAt).guild.available.some(
+        (offer) => offer.modelId === 'whiteWolfHunt',
+      ),
+    ).toBe(false);
+    expect(
+      refuse(
+        direct.state,
+        command('sendExpedition', {
+          modelId: 'whiteWolfHunt',
+          heroIds: [secondHero.id],
+          posture: 'balanced',
+        }),
+      ),
+    ).toEqual({
+      code: 'EXPEDITION_LOCKED',
+      message:
+        'Esse destino ainda não está ao alcance do feudo: a Guilda não conhece esse caminho.',
+    });
+  });
 });
