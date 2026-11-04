@@ -1401,7 +1401,7 @@ describe('A Filha do Ferreiro, de ponta a ponta', () => {
 });
 
 describe('"O Lobo Branco", de ponta a ponta (§§6.4, 6.5 e 7.1)', () => {
-  const flags = ['whiteWolf.hunt', 'whiteWolf.offer', 'whiteWolf.ignored'];
+  const flags = ['whiteWolf.hunt', 'whiteWolf.offer', 'whiteWolf.ignored', 'whiteWolf.slain'];
   const opened = (difficulty: DifficultyId, timeScale = 1) => {
     const state = feud(difficulty, timeScale, AUTUMN + 1234);
     state.map.tiles.wolfDen!.threatActive = false;
@@ -1456,7 +1456,14 @@ describe('"O Lobo Branco", de ponta a ponta (§§6.4, 6.5 e 7.1)', () => {
             if (secondChoice === 'hunt') {
               const sent = send(state, 'whiteWolfHunt', [state.guild.heroes[0]!.id]);
               expect(sent.state.map.expeditionUnlocks.whiteWolfHunt).toBe(secondAt + 6 * DAY);
-              state = sent.state;
+              state = advanceTo(sent.state, secondAt + DAY).state;
+              expect(state.council.flags).toEqual({
+                'whiteWolf.hunt': true,
+                'whiteWolf.slain': true,
+              });
+              expect(
+                state.guild.reports[0]?.log.find((entry) => entry.nodeId === 'whiteWolf')?.gained,
+              ).toEqual({ food: 0, wood: 0, stone: 0, gold: 0, iron: 0 });
             } else expect(state.map.discovered).not.toContain('whiteWolfHunt');
             const finalAt = secondAt + 5 * DAY;
             state = advanceTo(state, finalAt).state;
@@ -1486,6 +1493,68 @@ describe('"O Lobo Branco", de ponta a ponta (§§6.4, 6.5 e 7.1)', () => {
         }
       }
     }
+
+    it(`${difficulty}: caçada não enviada não entrega a carta da pele e cancela ao fechar a janela`, () => {
+      const first = choose(opened(difficulty), 'whitePaws', 'hunt');
+      const secondAt = first.state.lastProcessedAt + 3 * DAY;
+      const next = advanceTo(first.state, secondAt).state;
+      const second = choose(next, 'whiteWolf', 'hunt');
+      expect(second.state.council.flags).toEqual({ 'whiteWolf.hunt': true });
+
+      const atFive = advanceTo(second.state, secondAt + 5 * DAY);
+      expect(shown(atFive.state, 'forestReturns')).toBeUndefined();
+      expect(
+        atFive.events.some(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === 'forestReturns',
+        ),
+      ).toBe(false);
+      expect(atFive.state.council.scheduled).toHaveLength(1);
+      expect(atFive.state.map.expeditionUnlocks.whiteWolfHunt).toBe(secondAt + 6 * DAY);
+
+      const atSix = advanceTo(atFive.state, secondAt + 6 * DAY);
+      expect(shown(atSix.state, 'forestReturns')).toBeUndefined();
+      expect(
+        atSix.events.some(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === 'forestReturns',
+        ),
+      ).toBe(false);
+      expect(atSix.state.map.discovered).not.toContain('whiteWolfHunt');
+      expect(atSix.state.map.expeditionUnlocks).toEqual({});
+      expect(atSix.state.council.scheduled).toEqual([]);
+      expect(atSix.state.council.flags).toEqual({});
+    });
+
+    it(`${difficulty}: caçada perdida não grava whiteWolf.slain nem entrega a carta da pele`, () => {
+      const start = opened(difficulty);
+      start.guild.heroes[0]!.classId = 'cleric';
+      start.guild.heroes[0]!.level = 1;
+      const first = choose(start, 'whitePaws', 'hunt');
+      const secondAt = first.state.lastProcessedAt + 3 * DAY;
+      const next = advanceTo(first.state, secondAt).state;
+      const second = choose(next, 'whiteWolf', 'hunt');
+      const sent = send(second.state, 'whiteWolfHunt', [second.state.guild.heroes[0]!.id]);
+
+      const returned = advanceTo(sent.state, secondAt + DAY).state;
+      expect(['setback', 'disaster']).toContain(
+        returned.guild.reports[0]?.log.find((entry) => entry.nodeId === 'whiteWolf')?.outcome,
+      );
+      expect(returned.council.flags).toEqual({ 'whiteWolf.hunt': true });
+      expect(returned.map.expeditionUnlocks.whiteWolfHunt).toBe(secondAt + 6 * DAY);
+
+      const atFive = advanceTo(returned, secondAt + 5 * DAY);
+      expect(shown(atFive.state, 'forestReturns')).toBeUndefined();
+      expect(atFive.state.council.scheduled).toHaveLength(1);
+
+      const atSix = advanceTo(atFive.state, secondAt + 6 * DAY);
+      expect(shown(atSix.state, 'forestReturns')).toBeUndefined();
+      expect(
+        atSix.events.some(
+          (event) => event.type === 'cardDrawn' && event.data.cardId === 'forestReturns',
+        ),
+      ).toBe(false);
+      expect(atSix.state.council.scheduled).toEqual([]);
+      expect(atSix.state.council.flags).toEqual({});
+    });
 
     for (const stage of ['whitePaws', 'whiteWolf', 'forestReturns'] as const) {
       it(`${difficulty}: expirar ${stage} aplica a ficha, sem custo de opção nem flag pendurada`, () => {

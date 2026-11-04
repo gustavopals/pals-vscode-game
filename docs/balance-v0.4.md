@@ -1542,7 +1542,16 @@ as demais cartas mantêm as mesmas regras. Nenhuma faixa do simulador foi altera
 
 O modelo especial tem três nós lineares, incluindo a volta (§6.6). O teste de
 encruzilhadas mantém uma exceção nominal para `whiteWolfHunt`, além da Patrulha;
-todos os outros modelos continuam exigindo a sua encruzilhada. A calibragem geral
+todos os outros modelos continuam exigindo a sua encruzilhada. Pela resposta do autor
+à **H-12** em 2026-11-04 ("Só com a fera vencida" e pagamento único na carta), o nó
+`whiteWolf` de `whiteWolfHunt` deixou de pagar os 40–70 de ouro e 10–20 de comida da
+pele (que passam a ser pagos uma única vez pela carta `forestReturns`, entregue só se a
+expedição voltar com Sucesso ou Sucesso Pleno no nó da fera, gravando `whiteWolf.slain`).
+Por isso, o saque direto nos nós de `whiteWolfHunt` fica apenas nos 10–15 de comida da
+trilha (4,7 e 3,9 recursos por hora de herói na tabela de calibragem, com 19,4 e 31,2 de
+experiência por hora de herói, acima da Patrulha), e o teste B10 de recursos por hora de
+herói em `expeditions.calibration.test.ts` excetua `whiteWolfHunt` na coluna de recursos
+diretos (mantendo a exigência de experiência acima da Patrulha). A calibragem geral
 continua exigindo risco médio verdadeiro, sem ampliar faixa nem reduzir cobertura.
 
 Antes de subir o estado, `fixtures.test.ts` na v41 teve 58 testes verdes e cinco

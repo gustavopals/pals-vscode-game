@@ -133,6 +133,10 @@ export const whiteWolf: CouncilCard = {
           flag: 'whiteWolf.ignored',
         },
         {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
+        },
+        {
           type: 'setFlag',
           flag: 'whiteWolf.hunt',
         },
@@ -140,6 +144,7 @@ export const whiteWolf: CouncilCard = {
           type: 'scheduleCard',
           cardId: 'forestReturns',
           afterDays: 5,
+          ifFlags: ['whiteWolf.slain'],
         },
       ],
       hint: 'A caçada é longa, e a recompensa é a pele, a honra e a quietude.',
@@ -171,6 +176,10 @@ export const whiteWolf: CouncilCard = {
           flag: 'whiteWolf.ignored',
         },
         {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
+        },
+        {
           type: 'setFlag',
           flag: 'whiteWolf.offer',
         },
@@ -199,6 +208,10 @@ export const whiteWolf: CouncilCard = {
         {
           type: 'clearFlag',
           flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
         },
       ],
       hint: 'Nem toda fera quer ser caçada.',
@@ -264,6 +277,10 @@ export const forestReturns: CouncilCard = {
           type: 'clearFlag',
           flag: 'whiteWolf.ignored',
         },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
+        },
       ],
       hint: 'O que o bosque devolve é do feudo, e o feudo agradece em silêncio.',
       chronicle:
@@ -294,6 +311,10 @@ export const forestReturns: CouncilCard = {
         {
           type: 'clearFlag',
           flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
         },
       ],
       hint: 'Um marco na orla, e a serra fica em paz com quem a invadiu.',
@@ -326,6 +347,10 @@ export const forestReturns: CouncilCard = {
         {
           type: 'clearFlag',
           flag: 'whiteWolf.ignored',
+        },
+        {
+          type: 'clearFlag',
+          flag: 'whiteWolf.slain',
         },
       ],
       hint: 'Mais ouro hoje, e menos orgulho amanhã.',

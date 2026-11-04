@@ -12,7 +12,7 @@ import {
 } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { lowerFirst } from './council';
+import { deliverContinuations, lowerFirst } from './council';
 import { stowItem, wearTeam } from './equipment';
 import {
   enterNode,
@@ -420,6 +420,7 @@ function endLost(
     sold: [],
     lost: true,
   });
+  deliverContinuations(draft, atMs, events);
 }
 
 /** "22 de ouro e um item (Lança de caça)": o saque em palavras, com os itens. */
@@ -476,6 +477,9 @@ function returnHome(
       succeeded(lastStage.outcome)
     ) {
       closeExpeditionUnlock(draft, expedition.modelId);
+      if (expedition.modelId === 'whiteWolfHunt') {
+        draft.council.flags['whiteWolf.slain'] = true;
+      }
     }
   }
   const { resources, items: carried } = expedition.loot;
@@ -547,6 +551,7 @@ function returnHome(
     atMs,
     events,
   );
+  deliverContinuations(draft, atMs, events);
 }
 
 /**

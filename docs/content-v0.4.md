@@ -740,7 +740,7 @@ Nenhuma outra carta dependeu de mecânica proibida. O soldado como requisito de 
 
 **Por que estas cinco.** Fecham a ideia "a coroa e a floresta cobram": o imposto que volta todo ano e vira ameaça se o jogador recusa (3 cartas) e o primeiro aviso de que o Covil limpo deixou um lobo para trás (2 cartas; o fim está no lote D). Pedem os ganchos de motor: `resourcesPercent` (já proposto em 4.4), `heroTrait` e `minSoldiers` como requisitos de opção, `clearedTiles` como requisito de carta e uma expedição liberada por carta (`unlockExpedition`).
 
-**Convenções.** As da seção 4. Números conferidos contra `balance.ts`: o Quartel guarda 10 soldados por nível (`army.capPerLevel`), então "10 soldados" é um Quartel Nv1 cheio. Os tamanhos de efeito seguem o lote 1 (moral de ±5 a ±10 por 2 a 4 dias, comida de 30 a 90, ouro de 30 a 120). As perdas percentuais de ouro (7%, 15%, 20% e 30%) pesam mais que a de comida da "Praga nos campos" (30% da comida estocada) só onde a carta é a punição de uma recusa. Flags da cadeia do imposto: `tax.refused`, `tax.defied`, `tax.refusedTwice`. Flags do Lobo Branco: `whiteWolf.hunt`, `whiteWolf.offer`, `whiteWolf.ignored`.
+**Convenções.** As da seção 4. Números conferidos contra `balance.ts`: o Quartel guarda 10 soldados por nível (`army.capPerLevel`), então "10 soldados" é um Quartel Nv1 cheio. Os tamanhos de efeito seguem o lote 1 (moral de ±5 a ±10 por 2 a 4 dias, comida de 30 a 90, ouro de 30 a 120). As perdas percentuais de ouro (7%, 15%, 20% e 30%) pesam mais que a de comida da "Praga nos campos" (30% da comida estocada) só onde a carta é a punição de uma recusa. Flags da cadeia do imposto: `tax.refused`, `tax.defied`, `tax.refusedTwice`. Flags do Lobo Branco: `whiteWolf.hunt`, `whiteWolf.offer`, `whiteWolf.ignored`, `whiteWolf.slain`.
 
 ### 6.1 Impostos do Rei (`kingsTax`, cadeia 1/3, recorrente)
 
@@ -861,8 +861,9 @@ nas três variantes; mudam o lugar, as frases e a dificuldade das provas:
 | B | O rastro entre os pinheiros; dificuldade 49 | O lobo junto ao rochedo; dificuldade 43 |
 | C | A trilha sob a geada; dificuldade 47 | O lobo à margem do riacho; dificuldade 45 |
 
-A trilha dá 20 de experiência e 10–15 de comida; o combate, 30 de experiência,
-40–70 de ouro e 10–20 de comida, antes da parte de cada desfecho. Revés fere de
+A trilha dá 20 de experiência e 10–15 de comida; o combate dá 30 de experiência e
+não paga ouro nem comida (só a carta 7.1 paga a pele, um pagamento só, e a volta com
+Sucesso ou Sucesso Pleno nesse nó grava `whiteWolf.slain`, conforme H-12). Revés fere de
 leve e Desastre fere gravemente, sem captura. A volta não tem prova nem saque.
 Sem item, relíquia, revelação, alteração de presságio ou efeito no Cerco.
 A prova de trilha favorece a perícia do Arqueiro; não cria um bônus para o traço

@@ -359,7 +359,13 @@ describe('Conselho: o catálogo', () => {
     const written = new Set(
       councilCards
         .flatMap(effectsOf)
-        .flatMap((effect) => (effect.type === 'setFlag' ? [effect.flag] : [])),
+        .flatMap((effect) =>
+          effect.type === 'setFlag'
+            ? [effect.flag]
+            : effect.type === 'unlockExpedition' && effect.modelId === 'whiteWolfHunt'
+              ? ['whiteWolf.slain']
+              : [],
+        ),
     );
     for (const entry of councilCards) {
       const read = [
@@ -367,7 +373,13 @@ describe('Conselho: o catálogo', () => {
         ...(entry.requires?.notFlags ?? []),
         ...entry.options.flatMap((option) => option.requires?.flags ?? []),
         ...(entry.variants ?? []).map((variant) => variant.flag),
-        ...effectsOf(entry).flatMap((effect) => (effect.type === 'clearFlag' ? [effect.flag] : [])),
+        ...effectsOf(entry).flatMap((effect) =>
+          effect.type === 'clearFlag'
+            ? [effect.flag]
+            : effect.type === 'addMaster' || effect.type === 'scheduleCard'
+              ? (effect.ifFlags ?? [])
+              : [],
+        ),
       ];
       for (const flag of read) {
         expect(written, `${entry.id}: ${flag}`).toContain(flag);

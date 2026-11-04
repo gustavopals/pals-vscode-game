@@ -200,8 +200,8 @@ Em 31 sortes:
 | Patrulha dos Arredores | 15 min | Com folga: Guerreiro Nv3 | 9,3 | 9,3 |
 | Floresta Antiga | 60 min | Mínima: Guerreiro Nv1 | 59,3 | 12,1 |
 | Floresta Antiga | 60 min | Com folga: Guerreiro + Arqueiro Nv3 | 37,5 | 18,3 |
-| A caçada do Lobo Branco | 120 min | Mínima: Guerreiro Nv1 | 32,4 | 19,4 |
-| A caçada do Lobo Branco | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 25,8 | 31,2 |
+| A caçada do Lobo Branco | 120 min | Mínima: Guerreiro Nv1 | 4,7 | 19,4 |
+| A caçada do Lobo Branco | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 3,9 | 31,2 |
 | Covil de Lobos | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 8,6 | 29,4 |
 | Covil de Lobos | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 10,9 | 36,9 |
 | Resgate | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 4,5 | 27,8 |
