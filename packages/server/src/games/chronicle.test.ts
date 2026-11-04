@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { balance, yearChronicleTexts, type YearEndedData } from '@lotg/content';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildYearChronicleMarkdown, type YearChronicleRow } from './chronicle';
 
@@ -261,4 +261,65 @@ describe('Crônica do Ano em Markdown (V4G-T3.2 e T3.4)', () => {
     });
     expect(clean).not.toContain('<!-- expedition-42 -->');
   });
+
+  it.each([1, 2])(
+    'o ano %s acompanha as fronteiras de outro calendário do conteúdo',
+    async (year) => {
+      // Durações diferentes das publicadas detectam limites fixos tanto nas estações como no ano.
+      const seasons = balance.calendar.seasons.map((season, index) => ({
+        ...season,
+        days: index + 1,
+      }));
+      vi.resetModules();
+      vi.doMock('@lotg/content', async (importOriginal) => {
+        const content = await importOriginal<typeof import('@lotg/content')>();
+        return {
+          ...content,
+          balance: { ...balance, calendar: { ...balance.calendar, seasons } },
+        };
+      });
+      try {
+        const { buildYearChronicleMarkdown: render } = await import('./chronicle');
+        const yearMs = seasons.reduce((sum, season) => sum + season.days * DAY_MS, 0);
+        const rows: YearChronicleRow[] = [];
+        let start = (year - 1) * yearMs;
+        rows.push(row('marker', 'antes do ano', {}, start - 1));
+        for (const season of seasons) {
+          rows.push(row('marker', `primeiro instante: ${season.id}`, {}, start));
+          start += season.days * DAY_MS;
+          rows.push(row('marker', `último instante: ${season.id}`, {}, start - 1));
+        }
+        rows.push(row('marker', 'fim do ano', {}, start));
+        rows.push(row('marker', 'depois do ano', {}, start + 1));
+        const yearEnded: YearEndedData = {
+          year,
+          populationMax: 0,
+          battles: 0,
+          battlesWon: 0,
+          expeditions: 0,
+          cards: 0,
+          siegeResult: 'victory',
+          score: 0,
+          feats: '',
+        };
+        const markdown = render('Pedra Alta', year, rows, yearEnded);
+        expect(markdown).not.toContain('antes do ano');
+        expect(markdown).not.toContain('depois do ano');
+        seasons.forEach((season, index) => {
+          const from = markdown.indexOf(`## ${season.label}\n`);
+          const next = seasons[index + 1];
+          const to = next === undefined ? markdown.length : markdown.indexOf(`## ${next.label}\n`);
+          const section = markdown.slice(from, to);
+          expect(section).toContain(`primeiro instante: ${season.id}`);
+          expect(section).toContain(`último instante: ${season.id}`);
+          for (const other of seasons.filter((entry) => entry.id !== season.id))
+            expect(section).not.toContain(`: ${other.id}`);
+          if (next === undefined) expect(section).toContain('fim do ano');
+        });
+      } finally {
+        vi.doUnmock('@lotg/content');
+        vi.resetModules();
+      }
+    },
+  );
 });

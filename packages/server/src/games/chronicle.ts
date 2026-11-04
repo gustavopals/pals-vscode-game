@@ -1,6 +1,7 @@
 import {
   balance,
   feats,
+  type SeasonId,
   yearChronicleTexts,
   type YearEndedData,
   YearEndedDataSchema,
@@ -35,12 +36,14 @@ const ECHO_LABELS: Record<string, string> = {
   cardExpired: 'A decisão do conselho voltou',
 };
 
-const SEASONS = [
-  { id: 'spring', label: 'Primavera', startOffset: 0, endOffset: 24 * DAY_MS },
-  { id: 'summer', label: 'Verão', startOffset: 24 * DAY_MS, endOffset: 48 * DAY_MS },
-  { id: 'autumn', label: 'Outono', startOffset: 48 * DAY_MS, endOffset: 72 * DAY_MS },
-  { id: 'winter', label: 'Inverno', startOffset: 72 * DAY_MS, endOffset: 84 * DAY_MS },
-] as const;
+/** Os capítulos acompanham a ordem e a duração das estações do conteúdo. */
+const SEASONS = balance.calendar.seasons.reduce<
+  { id: SeasonId; label: string; endOffset: number }[]
+>((list, season) => {
+  const start = list.at(-1)?.endOffset ?? 0;
+  list.push({ id: season.id, label: season.label, endOffset: start + season.days * DAY_MS });
+  return list;
+}, []);
 
 /**
  * Monta o Markdown da Crônica do Ano conforme GDD §11.4 e Apêndice E:
@@ -70,12 +73,9 @@ export function buildYearChronicleMarkdown(
   const yearStartMs = (year - 1) * YEAR_MS;
   const yearEndMs = year * YEAR_MS;
 
-  const seasonRows: Record<(typeof SEASONS)[number]['id'], YearChronicleRow[]> = {
-    spring: [],
-    summer: [],
-    autumn: [],
-    winter: [],
-  };
+  const seasonRows = new Map<SeasonId, YearChronicleRow[]>(
+    SEASONS.map((season) => [season.id, []]),
+  );
 
   const outcomes = new Map<string, YearChronicleRow>();
 
@@ -92,25 +92,19 @@ export function buildYearChronicleMarkdown(
       continue;
     }
     const offsetMs = atMs - yearStartMs;
-    if (offsetMs < 0 || offsetMs > 84 * DAY_MS) {
+    if (offsetMs < 0 || offsetMs > YEAR_MS) {
       continue;
     }
 
-    if (offsetMs < 24 * DAY_MS) {
-      seasonRows.spring.push(row);
-    } else if (offsetMs < 48 * DAY_MS) {
-      seasonRows.summer.push(row);
-    } else if (offsetMs < 72 * DAY_MS) {
-      seasonRows.autumn.push(row);
-    } else {
-      seasonRows.winter.push(row);
-    }
+    // O instante exato do fim do ano fica na última estação, como o fecho anual.
+    const season = SEASONS.find((entry) => offsetMs < entry.endOffset) ?? SEASONS.at(-1)!;
+    seasonRows.get(season.id)!.push(row);
   }
 
   // 3. Seções por estação
   for (const season of SEASONS) {
     lines.push(`## ${season.label}`, '');
-    const events = seasonRows[season.id];
+    const events = seasonRows.get(season.id)!;
     if (events.length === 0) {
       lines.push(yearChronicleTexts.emptySeason, '');
     } else {

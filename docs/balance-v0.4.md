@@ -1580,3 +1580,8 @@ que a ordem atinja a onda seguinte. Protocolo 4 ainda não publicado, sem mudar 
 forma do estado 42. Regressões exatas nos ritmos 0,5×, 1× e 3×; integração escrita
 para cada ordem e seu recibo recusado, sem execução. Nenhum número de regra,
 golden, retrato ou faixa foi alterado; não houve remedição nem teste afrouxado.
+
+**G — calendário da Crônica:** os capítulos somam `balance.calendar.seasons`
+em vez de repetir dias no servidor. Os dois goldens existentes continuam exatos;
+um calendário alternativo no teste prova a classificação nas fronteiras das
+estações e dos anos 1 e 2. Nenhum número publicado foi alterado.
