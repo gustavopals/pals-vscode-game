@@ -433,9 +433,15 @@ describe('o pacote do app', () => {
   });
 
   it('não leva nenhuma frase do conteúdo', () => {
+    // Na junção da V4H-T4, o lote 3 e a Crônica anual passaram a usar estes três rótulos
+    // que a interface já tinha. A coincidência literal não é conteúdo importado: a prova
+    // dos exports acima continua aceitando apenas identificadores. A exceção é exata,
+    // sem liberar outras frases; motivo registrado em docs/balance-v0.4.md.
+    const sharedLabels = new Set(['Reparar agora', 'Conselho de Guerra', 'Expedições enviadas']);
     const secret = Object.entries(content)
       .filter(([name]) => !ALLOWED_CONTENT_EXPORTS.includes(name))
-      .flatMap(([, value]) => [...phrases(value)]);
+      .flatMap(([, value]) => [...phrases(value)])
+      .filter((phrase) => !sharedLabels.has(phrase));
     // A lista não pode esvaziar sem ninguém notar: dificuldades, ritmos, objetivos e Crônica.
     expect(secret.length).toBeGreaterThan(30);
     expect(secret.filter((phrase) => code.includes(phrase))).toEqual([]);

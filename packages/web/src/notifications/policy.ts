@@ -18,6 +18,7 @@ import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { SMITHY_ICON } from '../ui/smithy';
 import { ARMY_ICON, isCampAssaultDuplicate } from '../ui/army';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
+import { waveDecision, waveDeadline } from '../ui/siege';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
 
@@ -51,6 +52,7 @@ const ALARMS: ReadonlyArray<GameEvent['type']> = [
   // quanto, com a frase da Crônica. É a perda do Mercado que o jogador pode evitar da próxima
   // vez, com a escolta ou a Torre de Vigia.
   'caravanAmbushed',
+  'siegeFell',
 ];
 /**
  * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
@@ -145,6 +147,52 @@ const CROSSROADS: GameEvent['type'] = 'expeditionAtCrossroads';
  * conta é o contador de decisões pendentes, que vem da visão.
  */
 const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn', CROSSROADS];
+const SIEGE: ReadonlyArray<GameEvent['type']> = [
+  'siegeScheduled',
+  'siegeWaveFought',
+  'siegeWon',
+  'siegeGlorious',
+  'siegeFell',
+  'warlordSlain',
+  'reconstructionStarted',
+];
+
+export const isSiegeEvent = (event: Pick<GameEvent, 'type'>): boolean => SIEGE.includes(event.type);
+
+/** O evento antigo não anuncia uma preparação ou decisão que já passou. */
+export function siegeNotice(
+  event: GameEvent,
+  view: ViewState | null,
+  now: number,
+  timeZone?: string,
+): { text: string; details: string[] } | null {
+  // A Reconstrução pertence ao ano que começa, enquanto o Cerco guardado é do anterior.
+  if (event.type === 'reconstructionStarted') return { text: event.text, details: [] };
+  if (view?.siege === null || view === null) return null;
+  if (event.data.year !== undefined && event.data.year !== view.siege.year) return null;
+  const decision = waveDecision(view);
+  if (event.type === 'siegeScheduled') {
+    return view.siege.current > 0 || view.siege.result !== null
+      ? null
+      : {
+          text: event.text,
+          details: [
+            `Cerco em ${formatDuration(view.siege.scheduledInSeconds)}, ${clockDeadline(now, now + view.siege.scheduledInSeconds * 1000, timeZone)}. Prepare o Plano de Batalha na aba Exército.`,
+          ],
+        };
+  }
+  if (event.type === 'siegeWaveFought') {
+    if (decision === undefined || event.data.wave !== decision.wave - 1) return null;
+    return {
+      text: event.text,
+      details: [
+        `${waveDeadline(decision)} · ${clockDeadline(now, now + decision.expiresInSeconds * 1000, timeZone)}.`,
+        `Sem nova ordem, vale ${decision.options.find((option) => option.selected)?.label ?? 'o Plano de Batalha'}.`,
+      ],
+    };
+  }
+  return { text: event.text, details: [] };
+}
 /**
  * O que se ouve da mata antes de qualquer ataque (GDD §8.2). O relato dos vigias: a Ameaça
  * cruzou uma marca; só chega a quem tem a Torre de Vigia, que foi erguida para isto: saber
@@ -290,6 +338,13 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   trainingShortfall: 'warning',
   itemRepaired: SMITHY_ICON,
   itemWorn: 'warning',
+  siegeScheduled: 'shield',
+  siegeWaveFought: 'shield',
+  siegeWon: 'verified',
+  siegeGlorious: 'star-full',
+  siegeFell: 'warning',
+  warlordSlain: 'verified',
+  reconstructionStarted: 'tools',
 };
 
 export type PolicyInput = {
@@ -563,6 +618,7 @@ function wanted(
   }
   return (
     isEssential(event) ||
+    isSiegeEvent(event) ||
     isRelief(event) ||
     isDecision(event) ||
     isWatchReport(event) ||
@@ -672,7 +728,8 @@ function rank(event: GameEvent): number {
 }
 
 /** Quantos eventos sem aviso viram badge de novidade: as cartas novas ficam de fora. */
-const badgeCount = (events: GameEvent[]) => events.filter((event) => !isDecision(event)).length;
+const badgeCount = (events: GameEvent[]) =>
+  events.filter((event) => !isDecision(event) && event.type !== 'siegeWaveFought').length;
 
 /**
  * Decide o que notificar (GDD §13.5): avisar o essencial, nunca incomodar. No máximo 3 por

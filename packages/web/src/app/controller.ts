@@ -60,6 +60,8 @@ import {
   isArmyEvent,
   isSmithyEvent,
   isWallEvent,
+  isSiegeEvent,
+  siegeNotice,
   MUTE_DURATION_MS,
   raidAftermath,
   raidAhead,
@@ -67,6 +69,7 @@ import {
   seasonAhead,
   seasonArrival,
 } from '../notifications/policy';
+import { emergencySignature, SIEGE_SECTION, waveDecision } from '../ui/siege';
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
@@ -297,6 +300,7 @@ export class Controller {
    * a Postura decidiu), "Escolher caminho" deixou de fazer sentido e o aviso sai de cena.
    */
   private crossroadsToasts = new Map<string, number>();
+  private siegeToast: { phase: string; id: number } | null = null;
   /**
    * O alarme dos vigias que está à vista ("lobos a caminho"): quando a incursão chega, ou a
    * visão deixa de trazê-la, ele não tem mais o que avisar e sai de cena. Quem fala depois é o
@@ -579,6 +583,7 @@ export class Controller {
       this.reportAsked = null;
     }
     this.route = route;
+    if (route === 'army') this.dropSiegeToast();
     if (route === 'today' || route === 'fief') {
       this.unseen = 0;
     }
@@ -678,6 +683,7 @@ export class Controller {
       this.dropRaidToast();
       this.dropWatchToast();
       this.answering = new Set();
+      this.dropSiegeToast();
       this.guildOrders = new Set();
       this.reportAsked = null;
       this.dropCrossroadsToasts(() => true);
@@ -781,6 +787,12 @@ export class Controller {
       // E a encruzilhada que já foi decidida, o aviso que a anunciou.
       const waiting = new Set(waitingExpeditions(view.guild).map((expedition) => expedition.id));
       this.dropCrossroadsToasts((expeditionId) => !waiting.has(expeditionId));
+      const phase =
+        waveDecision(view)?.id ??
+        (view.siege?.current === 0 && view.siege.result === null
+          ? `scheduled:${view.siege.year}`
+          : null);
+      if (this.siegeToast !== null && phase !== this.siegeToast.phase) this.dropSiegeToast();
       if (view.threat.incoming === null) {
         // A incursão anunciada já chegou: "a caminho" deixou de ser verdade.
         this.dropRaidToast();
@@ -912,7 +924,13 @@ export class Controller {
       // A visão chega antes dos eventos: a estação dela é a que vale agora.
       season: this.view?.calendar.season ?? null,
       // A decisão que não vai virar aviso aqui não ocupa um dos avisos da hora.
-      unshown: (event) => isDecision(event) && !this.decisionAnnounced(event),
+      unshown: (event) =>
+        (isDecision(event) && !this.decisionAnnounced(event)) ||
+        (isSiegeEvent(event) &&
+          (siegeNotice(event, this.view, this.viewReceivedAt) === null ||
+            ((event.type === 'siegeScheduled' || event.type === 'siegeWaveFought') &&
+              this.visible &&
+              this.route === 'army'))),
     });
     this.notificationHistory = decision.history;
     this.unseen += decision.badge;
@@ -945,6 +963,33 @@ export class Controller {
    * o lote em que ele chegou: vários objetivos cumpridos de uma vez saem em um aviso só.
    */
   private notify(event: GameEvent, batch: GameEvent[]): void {
+    if (isSiegeEvent(event)) {
+      const view = this.view;
+      const notice = siegeNotice(event, view, this.viewReceivedAt, this.timezone());
+      if (notice === null) return;
+      this.dropSiegeToast();
+      const id = this.announce({
+        ...notice,
+        kind: event.type === 'siegeFell' ? 'warning' : 'info',
+        icon: eventIcon(event),
+        ...(event.type === 'siegeWaveFought' ? { counted: false } : {}),
+        action: {
+          label: event.type === 'siegeWaveFought' ? 'Ver a próxima onda' : 'Ver o Cerco',
+          route: 'army',
+          section: SIEGE_SECTION,
+        },
+      });
+      if (
+        view?.siege != null &&
+        (event.type === 'siegeWaveFought' || event.type === 'siegeScheduled')
+      ) {
+        this.siegeToast = {
+          phase: waveDecision(view)?.id ?? `scheduled:${view.siege.year}`,
+          id,
+        };
+      }
+      return;
+    }
     if (isCrossroadsArrival(event)) {
       this.notifyCrossroads(event);
       return;
@@ -1182,6 +1227,14 @@ export class Controller {
     }
   }
 
+  private dropSiegeToast(): void {
+    if (this.siegeToast !== null) {
+      const { id } = this.siegeToast;
+      this.siegeToast = null;
+      this.dismissToast(id);
+    }
+  }
+
   /**
    * Um aviso do jogo: no canto da página, com o botão que leva ao assunto ("Ver" ou "Decidir")
    * e "Silenciar 2h", e, com a aba em segundo plano, no contador do título e (se o jogador
@@ -1267,6 +1320,7 @@ export class Controller {
   private dropGameToasts(): void {
     this.cardToasts.clear();
     this.crossroadsToasts.clear();
+    this.siegeToast = null;
     this.seasonToast = null;
     this.raidToast = null;
     this.watchToast = null;
@@ -1708,6 +1762,8 @@ export class Controller {
     type: T,
     payload: Extract<Command, { type: T }>['payload'],
     where = 'à Guilda',
+    stillValid?: () => boolean,
+    invalidText?: string,
   ): Promise<boolean> {
     const options: AttemptOptions = {
       intents: intentsOf(type, payload),
@@ -1722,6 +1778,17 @@ export class Controller {
     let done = false;
     const attempted = await this.attempt(async () => {
       done = false;
+      // A retentativa conserva o recibo, mas uma intenção com validade (como a decisão entre ondas
+      // ou um orçamento conferido) avisa e não reenvia se o contexto já mudou.
+      if (stillValid !== undefined && !stillValid()) {
+        this.toast({
+          kind: 'warning',
+          text:
+            invalidText ??
+            'A ordem antiga já não é válida e não foi reenviada. Confira o estado atual.',
+        });
+        return;
+      }
       this.setGuildOrder(key, true);
       try {
         await send();
@@ -1870,6 +1937,69 @@ export class Controller {
    */
   repairWall(): Promise<boolean> {
     return this.guildOrder('wall', 'repairWall', {}, 'aos pedreiros');
+  }
+
+  setBattlePlan(wave: 1 | 2 | 3, formationId: string | null): Promise<boolean> {
+    const year = this.view?.siege?.year;
+    return this.guildOrder(
+      `siege:plan:${wave}`,
+      'setBattlePlan',
+      { wave, formationId },
+      'ao Cerco',
+      () =>
+        this.view?.siege?.year === year &&
+        this.view?.siege?.current === 0 &&
+        this.view.siege.result === null &&
+        this.view.siege.scheduledInSeconds > (this.now() - this.viewReceivedAt) / 1000,
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
+    );
+  }
+
+  swapWaveFormation(formationId: string | null): Promise<boolean> {
+    const decision = this.view === null ? undefined : waveDecision(this.view);
+    return this.guildOrder(
+      'siege:swap',
+      'swapWaveFormation',
+      { formationId },
+      'ao Cerco',
+      () => this.sameWave(decision?.id),
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
+    );
+  }
+
+  emergencyRepair(): Promise<boolean> {
+    const view = this.view;
+    const decision = view === null ? undefined : waveDecision(view);
+    const quote =
+      view === null || decision === undefined
+        ? null
+        : emergencySignature(decision, view.threat.defense.wall.repairOffer);
+    return this.guildOrder(
+      'wall',
+      'emergencyRepair',
+      {},
+      'aos pedreiros',
+      () => {
+        const now = this.view;
+        const current = now === null ? undefined : waveDecision(now);
+        return (
+          this.sameWave(decision?.id) &&
+          now !== null &&
+          current !== undefined &&
+          emergencySignature(current, now.threat.defense.wall.repairOffer) === quote
+        );
+      },
+      'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
+    );
+  }
+
+  private sameWave(id: string | undefined): boolean {
+    const current = this.view === null ? undefined : waveDecision(this.view);
+    return (
+      id !== undefined &&
+      current?.id === id &&
+      current.expiresInSeconds > (this.now() - this.viewReceivedAt) / 1000
+    );
   }
 
   /**

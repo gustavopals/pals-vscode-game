@@ -40,6 +40,12 @@ const TRAINING_ORDERS: ReadonlySet<CommandType> = new Set(['trainSoldiers', 'can
  */
 export function intentOf(type: CommandType, payload: Command['payload']): string {
   const fields = payload as Record<string, unknown>;
+  if (type === 'setBattlePlan') {
+    return `siege:plan:${String(fields.wave)}`;
+  }
+  if (type === 'repairWall' || type === 'emergencyRepair') {
+    return 'wall';
+  }
   if (TRAINING_ORDERS.has(type)) {
     return 'training';
   }

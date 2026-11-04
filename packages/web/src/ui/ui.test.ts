@@ -318,9 +318,10 @@ describe('barra de status', () => {
     expect(result.tooltip).toContain('Frio: sem lenha');
   });
 
-  it('inverno com a lareira acesa não toma a barra', () => {
+  it('inverno com a lareira acesa deixa a barra para o Cerco marcado', () => {
     const lit = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
-    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +24,7 comida/h');
+    // A lareira acesa não pede ação; nesta visão há agora um Cerco marcado (V4G-T4).
+    expect(statusBar({ ...base, view: lit }).text).toBe('$(shield) Cerco em 12:30');
   });
 
   it('sem ligação passa na frente de tudo', () => {
@@ -504,8 +505,10 @@ describe('barra de status', () => {
       });
 
       it('passa na frente da fome, do frio, das decisões pendentes, do depósito e da obra', () => {
-        // O golden da incursão já tem a Despensa cheia e perdendo: sem os lobos, a linha é dela.
-        expect(statusBar({ ...base, view: threatWatchedView }).text).toMatch(/^\$\(archive\) /);
+        // O Cerco marcado na visão passa a ocupar a barra antes do depósito (V4G-T4).
+        expect(statusBar({ ...base, view: threatWatchedView }).text).toBe(
+          '$(shield) Cerco em 17:16',
+        );
         const crowded: ViewState = {
           ...deciding(withQueues(threatIncomingView, [activeConstruction()]), 2),
           famine: starving.famine,
@@ -1033,7 +1036,8 @@ describe('árvore', () => {
 
     it('a linha "Hoje" conta o ataque entre o que há a preparar', () => {
       const today = buildTree({ ...input, view: threatIncomingView })[0];
-      expect(today?.description).toBe('⚠ 4 a preparar');
+      // O Plano do Cerco soma um preparo ao ataque já avistado (V4G-T4).
+      expect(today?.description).toBe('⚠ 5 a preparar');
       expect(today?.tooltip?.split('\n')[1]).toBe(
         'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min. Sem Paliçada, nada segura este ataque.',
       );

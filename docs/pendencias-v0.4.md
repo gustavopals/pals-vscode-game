@@ -845,3 +845,38 @@ e a ficha exige estoque de armas para contratar. Mantém-se a regra e registra-s
 para o autor a proposta de apresentar também o custo e a quantidade que falta,
 em campo próprio da visão, sem tratá-las como recurso negociável. Nenhuma mudança
 de protocolo ou forma foi antecipada nesta junção.
+### V4G-T4 — limites da visão na interface (2026-11-03)
+
+**G-15. Milícia sem oferta pública.** _(Proposta do agente; não lida pelo autor.)_
+O protocolo 4 desta base não oferece quantidade máxima, disponibilidade, motivo de bloqueio,
+custo em braços ou milícia ativa no `ViewState`. A tela não calcula metade da população nem
+deduz a antecedência da Torre. A convocação e sua confirmação ficam pendentes da oferta do
+motor; não há botão que envie uma ordem às cegas. Nenhuma mudança no motor nesta trilha.
+
+**G-16. Relatório por onda e rescaldo completos.** _(Proposta do agente; não lida pelo autor.)_
+`siege.waves` oferece número, título e presságios; não oferece resultado individual,
+`battleId`, formação efetivamente usada ou baixas. `army.reports` não identifica ano/onda.
+Exibir progresso com `current`, relatórios guardados sem atribuição inventada e os efeitos
+atuais da moral/muralha é possível; o vínculo persistente por onda fica pendente. Também
+faltam `rescaldoText`, seu prazo, o prazo do desconto e o resumo das perdas da Queda na visão.
+Não deduzir festa/luto pelo texto nem escrever percentuais no cliente. O reparo de emergência
+usa pedra/ouro da oferta pública de reparo da muralha: os dois comandos usam
+`currentRepairQuote` nesta base; a emergência é imediata e exige nova conferência se o custo
+ou a decisão mudar.
+
+**G-17. Crônica do Ano e verificação visual adiadas.** _(Proposta do agente; não lida pelo autor.)_
+O branch `v4g-t4-tela` parte de `7875e0b`, sem V4G-T3. A aba anual, pontuação, Feitos e download
+do Markdown anual ficam para a integração dessa tarefa. A Crônica existente continua acessível.
+Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
+feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
+três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
+
+**G-18. Prioridade e padrão do Plano.** _(Proposta do agente; não lida pelo autor.)_
+A decisão entre ondas abre “Antes de partir” e o bloco de decisões do Retorno. A lembrança
+de preparar um Cerco ainda não iniciado vem depois da incursão iminente, sem tirar a fome,
+o frio ou o soldo da prioridade da barra; o Cerco marcado fica abaixo das decisões pendentes
+e acima dos depósitos/obras. `null` significa Defesa ativa e não distingue escolha explícita
+de ausência de escolha: o aviso diz “Há ondas usando a Defesa ativa como padrão”, sem chamar
+o Plano de inválido. Sem resumo persistente por onda, a tela diz “Enfrentada”, não “Vencida”.
+Como `swapWaveFormation` e `emergencyRepair` não levam onda no payload, a retentativa conserva
+o `commandId`, mas deixa de enviar se a decisão avançar; no reparo, se a cotação mudar também.

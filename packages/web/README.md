@@ -436,3 +436,47 @@ aberto pela ordem `setVigilHour`; sem feudo, ficam como padrão de criação. A
 tela exibe a hora confirmada e a explicação/aviso de fuso do `ViewState`. Uma
 mudança só vale para acontecimentos ainda não marcados, sem ajuste automático
 de horário de verão.
+
+## O Cerco na bancada (V4G-T4, protocolo 4)
+
+O painel **Cerco do Inverno** abre a aba Exército, mesmo sem Quartel: só lê `siege`,
+`pendingDecisions`, a oferta pública da muralha e os efeitos atuais da moral. O Plano tem uma
+formação por onda, com **Defesa ativa** como padrão; mudar o seletor não envia ordem, e
+**Salvar onda N** confirma a escolha. Presságios são somente as frases públicas de cada onda.
+O progresso distingue próxima onda, ondas enfrentadas e as que não ocorreram após a Queda;
+não deduz composição nem resultado individual.
+
+Entre ondas, o prazo real da visão desce com o relógio da página: **“A onda seguinte chega
+em…”**. **Trocar formação…** abre a lista com a opção atual marcada. **Reparar agora…** mostra
+pedra e ouro antes de confirmar; usa o orçamento público da muralha (o motor usa a mesma
+cotação para os dois reparos), sem anunciar o prazo do reparo comum. A visão é relida depois
+dos diálogos; custo, plano ou decisão alterados invalidam a conferência. Sem ligação, com
+ordem a caminho ou prazo encerrado, os botões de ordem ficam desabilitados.
+
+`lords.setBattlePlan`, `lords.swapWaveFormation` e `lords.emergencyRepair` passam por
+`controller.prepare`/`guildOrder`. As travas são por onda do Plano, troca e muralha. Uma
+retentativa usa o mesmo `commandId` e payload; também confere se ainda é a mesma decisão e,
+no reparo, o mesmo orçamento. Uma troca antiga não alcança outra onda. Os reparos comum e de
+emergência disputam a mesma intenção. O foco de navegação vai ao título; os diálogos usam o
+foco e o teclado já existentes na bancada (`useLayoutEffect`).
+
+A barra e o título anunciam o Cerco marcado; uma decisão mostra a onda e o prazo e leva
+direto ao painel. Incursão iminente, fome/frio e soldo mantêm sua prioridade; a onda próxima
+divide a barra com esses alarmes. A árvore tem o Cerco e suas ondas. A decisão vem no topo de
+“Antes de partir” e do terceiro bloco do Retorno; ondas sem escolha explícita lembram o Plano.
+Avisos de Cerco/onda/resultado são essenciais, respeitam silêncio e modo discreto; a onda já
+contada como decisão não soma outra novidade, e seu aviso sai ao avançar ou abrir o Exército.
+O ciclo de leitura inclui marcação, próxima onda e decisão, ignorando zeros persistentes.
+
+Vitória Gloriosa, Vitória e Queda usam `resultText`. O rescaldo oferece a muralha, os efeitos
+atuais da moral e acesso às obras/Crônica. O Retorno põe vitória e Reconstrução em
+“O feudo prosperou”, Queda em “O que exigiu um preço”; recursos tomados pela Queda entram em
+**Levado**, sem virar produção negativa ou desperdício de depósito.
+
+**Limites desta base:** não há oferta de milícia, vínculo por onda com `army.reports` nem
+resumo/prazo do rescaldo no `ViewState`. Os relatórios guardados continuam disponíveis abaixo
+do editor, sem atribuição inventada a uma onda. Crônica do Ano, pontuação, Feitos e download
+anual esperam V4G-T3. Pendências G-15–G-17 em `docs/pendencias-v0.4.md`.
+`tests/e2e/13-cerco.spec.ts` escreve os cenários de ondas, troca, reparo, Queda durante a
+ausência, ritmo Rápido, três temas, foco/teclado e 720 px. **Não foram executados nesta
+trilha**, nem os testes de integração ou capturas da landing.

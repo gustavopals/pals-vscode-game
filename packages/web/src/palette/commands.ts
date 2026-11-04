@@ -7,6 +7,16 @@ import type { Controller } from '../app/controller';
 import type { Dialogs, PickItem, Validation } from '../app/dialogs';
 import type { Route } from '../app/router';
 import {
+  emergencySignature,
+  emergencyTerms,
+  planFormation,
+  SIEGE_ANCHOR,
+  SIEGE_SECTION,
+  waveDeadline,
+  waveDecision,
+  type Wave,
+} from '../ui/siege';
+import {
   choiceSummary,
   difficultyLine,
   type NewGameChoice,
@@ -185,6 +195,7 @@ export type CommandEnv = {
  * que a seção fica e a âncora dela.
  */
 const SECTIONS: Record<string, { route: Route; anchor: string }> = {
+  [SIEGE_SECTION]: { route: 'army', anchor: SIEGE_ANCHOR },
   [THREAT_SECTION]: { route: 'fief', anchor: THREAT_ANCHOR },
   [OBJECTIVES_SECTION]: { route: 'fief', anchor: OBJECTIVES_ANCHOR },
   [CONSTRUCTIONS_SECTION]: { route: 'fief', anchor: CONSTRUCTIONS_ANCHOR },
@@ -1427,6 +1438,212 @@ export function createCommands(
       return;
     }
     await controller.repairWall();
+  });
+
+  // --- Cerco ------------------------------------------------------------------------
+
+  const seeSiege = {
+    label: 'Ver o Cerco',
+    run: () => controller.runCommand('lords.openPanel', SIEGE_SECTION),
+  };
+  const changedSiege = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'O Cerco mudou ou o prazo acabou: nada foi enviado. Confira a próxima onda.',
+      actions: [seeSiege],
+    });
+
+  const setBattlePlan = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view?.siege === null || view === null) return;
+      const gameId = controller.session.gameId;
+      const year = view.siege.year;
+      const record = (typeof arg === 'object' && arg !== null ? arg : {}) as {
+        wave?: unknown;
+        formationId?: unknown;
+      };
+      const wave =
+        view.siege.waves.find((entry) => entry.number === record.wave)?.number ??
+        (await dialogs.pick<Wave>({
+          title: 'Plano de Batalha',
+          placeholder: 'Escolha a onda',
+          items: view.siege.waves.map((entry) => ({
+            label: `${entry.number} · ${entry.title}`,
+            value: entry.number,
+          })),
+        }));
+      if (wave === undefined) return;
+      if (!sameGame(gameId)) {
+        sessionEnded('o Plano de Batalha');
+        return;
+      }
+      const current = controller.view;
+      if (
+        current?.siege?.year !== year ||
+        current.siege.current > 0 ||
+        current.siege.result !== null ||
+        remainingNow(current.siege.scheduledInSeconds, elapsed()) <= 0
+      ) {
+        changedSiege();
+        return;
+      }
+      const previous = current.siege.plan[wave];
+      const formationId =
+        typeof record.formationId === 'string' || record.formationId === null
+          ? record.formationId
+          : await dialogs.pick<string | null>({
+              title: `Plano · onda ${wave}`,
+              placeholder: 'Escolha a formação',
+              items: [
+                { label: planFormation(current, null), value: null },
+                ...current.army.formations.map((entry) => ({
+                  label: entry.name,
+                  detail: entry.shortfallText,
+                  value: entry.id,
+                })),
+              ],
+              selected: Math.max(
+                0,
+                [null, ...current.army.formations.map((entry) => entry.id)].indexOf(previous),
+              ),
+            });
+      if (formationId === undefined) return;
+      if (!sameGame(gameId)) {
+        sessionEnded('o Plano de Batalha');
+        return;
+      }
+      const now = controller.view;
+      if (
+        now?.siege?.year !== year ||
+        now.siege.current > 0 ||
+        now.siege.result !== null ||
+        now.siege.plan[wave] !== previous ||
+        remainingNow(now.siege.scheduledInSeconds, elapsed()) <= 0 ||
+        (formationId !== null && !now.army.formations.some((entry) => entry.id === formationId))
+      ) {
+        changedSiege();
+        return;
+      }
+      await controller.setBattlePlan(wave, formationId);
+    },
+    (arg) => String((arg as { wave?: unknown } | undefined)?.wave ?? 'pick'),
+  );
+
+  const swapWaveFormation = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) return;
+    const decision = waveDecision(view);
+    if (decision === undefined || remainingNow(decision.expiresInSeconds, elapsed()) <= 0) {
+      changedSiege();
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const record = (typeof arg === 'object' && arg !== null ? arg : {}) as {
+      decisionId?: unknown;
+      formationId?: unknown;
+    };
+    if (record.decisionId !== undefined && record.decisionId !== decision.id) {
+      changedSiege();
+      return;
+    }
+    const selection = JSON.stringify(decision.options);
+    const gone = new AbortController();
+    const stillOpen = () => {
+      const now = controller.view === null ? undefined : waveDecision(controller.view);
+      return (
+        sameGame(gameId) &&
+        now?.id === decision.id &&
+        remainingNow(now.expiresInSeconds, elapsed()) > 0 &&
+        JSON.stringify(now.options) === selection
+      );
+    };
+    const stop = controller.onChange(() => {
+      if (!stillOpen()) gone.abort();
+    });
+    try {
+      const formationId =
+        typeof record.formationId === 'string' || record.formationId === null
+          ? record.formationId
+          : await dialogs.pick<string | null>({
+              title: `Trocar formação · onda ${decision.wave}`,
+              placeholder: 'Escolha a formação',
+              detail: [
+                waveDeadline(decision, elapsed()),
+                'Sem nova ordem, vale a formação marcada no Plano de Batalha.',
+              ],
+              items: decision.options.map((option) => ({
+                label: option.label,
+                value: option.formationId,
+              })),
+              selected: Math.max(
+                0,
+                decision.options.findIndex((option) => option.selected),
+              ),
+              signal: gone.signal,
+            });
+      if (!sameGame(gameId)) {
+        if (gone.signal.aborted || formationId !== undefined) sessionEnded('a troca de formação');
+        return;
+      }
+      if (gone.signal.aborted || !stillOpen()) {
+        changedSiege();
+        return;
+      }
+      if (formationId === undefined) return;
+      if (!decision.options.some((option) => option.formationId === formationId)) {
+        changedSiege();
+        return;
+      }
+      await controller.swapWaveFormation(formationId);
+    } finally {
+      stop();
+    }
+  });
+
+  const emergencyRepair = oneAtATime(async () => {
+    const view = requireView();
+    if (view === null) return;
+    const decision = waveDecision(view);
+    if (decision === undefined || remainingNow(decision.expiresInSeconds, elapsed()) <= 0) {
+      changedSiege();
+      return;
+    }
+    const offer = view.threat.defense.wall.repairOffer;
+    if (!offer.canRepair) {
+      controller.toast({
+        kind: 'info',
+        text: offer.blockedText ?? offer.text,
+        actions: [seeSiege],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const confirmed = await dialogs.confirm({
+      title: 'Reparo de emergência?',
+      detail: [emergencyTerms(offer), waveDeadline(decision, elapsed())],
+      confirmLabel: 'Confirmar o reparo',
+      cancelLabel: 'Manter a muralha',
+    });
+    if (!confirmed) return;
+    if (!sameGame(gameId)) {
+      sessionEnded('o reparo de emergência');
+      return;
+    }
+    const now = controller.view;
+    const next = now === null ? undefined : waveDecision(now);
+    if (
+      now === null ||
+      next === undefined ||
+      remainingNow(next.expiresInSeconds, elapsed()) <= 0 ||
+      !now.threat.defense.wall.repairOffer.canRepair ||
+      emergencySignature(next, now.threat.defense.wall.repairOffer) !==
+        emergencySignature(decision, offer)
+    ) {
+      changedSiege();
+      return;
+    }
+    await controller.emergencyRepair();
   });
 
   // --- Quartel ----------------------------------------------------------------------
@@ -3884,6 +4101,27 @@ export function createCommands(
       run: repairWall,
     },
     {
+      id: 'lords.setBattlePlan',
+      title: 'Salvar Plano de Batalha por onda…',
+      palette: true,
+      when: hasGame,
+      run: setBattlePlan,
+    },
+    {
+      id: 'lords.swapWaveFormation',
+      title: 'Trocar formação entre ondas…',
+      palette: true,
+      when: hasGame,
+      run: swapWaveFormation,
+    },
+    {
+      id: 'lords.emergencyRepair',
+      title: 'Reparar a muralha entre ondas…',
+      palette: true,
+      when: hasGame,
+      run: emergencyRepair,
+    },
+    {
       id: 'lords.repairItem',
       title: 'Reparar um item…',
       palette: true,
@@ -4095,7 +4333,8 @@ export function createCommands(
           arg === 'council' ||
           arg === 'guild' ||
           arg === 'market' ||
-          arg === 'army'
+          arg === 'army' ||
+          arg === 'chronicle'
           ? arg
           : controller.defaultRoute(),
       );
