@@ -1627,3 +1627,10 @@ bancada; antes, o teste tentava focar um botão do editor que já tinha sido ret
 Não há clique forçado nem retirada de cenário: os sete casos de campanha passaram
 isoladamente, com saída 0, mantendo os prazos, a revisão em duas abas, o Retorno,
 a navegação para a batalha certa, teclado, foco e contraste nos três temas.
+
+**Textos e navegação:** a legenda do saldo agora confere a frase exata que também
+explica a Queda; as células e a conta do saque dos lobos mantêm as provas anteriores.
+Com a tela do Cerco integrada, a barra de status leva à decisão no Exército, com
+foco no título. O cenário de protocolo confere esse destino e depois abre Hoje,
+mantendo a leitura de `siegeWave`, a ausência de ações de carta/encruzilhada e o
+cabeçalho de protocolo 4. Os dois cenários passaram isoladamente, com saída 0.

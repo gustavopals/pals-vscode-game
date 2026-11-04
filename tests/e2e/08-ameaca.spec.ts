@@ -427,7 +427,10 @@ test.describe('a incursão de lobos', () => {
     await expect(stockCells(page, 'Madeira').nth(5)).toHaveText(`−${written(raidedWood)}`);
     await expect(stockCells(page, 'Pedra').nth(5)).toHaveText('—');
     await expect(stockCells(page, 'Ouro').nth(5)).toHaveText('—');
-    await expect(todayTab(page)).toContainText('Levado é o que as incursões tiraram do estoque.');
+    // A legenda atual também explica a Queda; a tabela continua provando só o saque dos lobos.
+    await expect(todayTab(page)).toContainText(
+      'Levado é o que as incursões e a Queda tiraram do estoque.',
+    );
     const number = (text: string) =>
       text === '—'
         ? 0

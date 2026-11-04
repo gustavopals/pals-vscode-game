@@ -37,7 +37,11 @@ test('o app envia protocolo 4 e lê siegeWave em Hoje sem tratá-la como carta',
   await page.clock.fastForward(31_000);
   await expect(page.locator('.status-main')).toContainText('1 decisão pendente');
   await page.locator('.status-main').click();
-  await expect(page).toHaveURL(/#\/hoje$/);
+  // Com a tela do Cerco integrada, a barra leva à decisão no Exército. Hoje continua
+  // mostrando a mesma decisão como Cerco, sem abrir diálogos de carta ou encruzilhada.
+  await expect(page).toHaveURL(/#\/exercito$/);
+  await expect(page.getByRole('heading', { name: 'Cerco do Inverno', exact: true })).toBeFocused();
+  await page.getByRole('tab', { name: 'Hoje', exact: true }).click();
   const today = page.getByRole('tabpanel', { name: 'Hoje' });
   const decision = siege.pendingDecisions.find((entry) => entry.kind === 'siegeWave')!;
   await expect(today.getByText(`Cerco: “${decision.title}”`, { exact: false })).toBeVisible();
