@@ -1224,3 +1224,87 @@ test.describe('o retorno com a Guilda (V3F-T3)', () => {
     );
   });
 });
+
+test.describe('o retorno com a guerra (V4H-T4)', () => {
+  // V4H-T4.2: a preparação é do servidor de teste; a forja e as ondas usam o motor real.
+  // Escrito para o coordenador executar. Cada salto espera o ciclo anterior terminar.
+  for (const theme of THEMES) {
+    test(`guerra no Retorno: reabrir depois de 4 h com cerco, batalha e forja (${theme}, 720 px)`, async ({
+      context,
+      request,
+      world,
+    }) => {
+      test.setTimeout(90_000);
+      const first = await world.open(context);
+      await first.setViewportSize({ width: 720, height: 900 });
+      await playNow(first);
+      await applyTheme(first, theme);
+      await world.raise('smithy', 1);
+      await world.stock('iron', 100);
+      await world.stock('wood', 700);
+      await world.stock('food', 10_000);
+      await world.stock('gold', 10_000);
+      // Duas ondas cabem na ausência, e a terceira ainda espera uma decisão na volta.
+      await world.control('siege', { inMinutes: 180, opposition: 'small' });
+      await world.passTime(MINUTE, first);
+      await first.getByRole('tab', { name: 'Feudo' }).click();
+      const forge = fief(first).getByRole('form', { name: 'Forjar armas' });
+      await forge.getByTestId('forge-amount').fill('3');
+      await forge.getByRole('button', { name: 'Revisar a forja' }).click();
+      await forge.getByTestId('forge-confirm-button').click();
+      await expect(first.getByTestId('smithy-running')).toContainText('Forjando 3');
+      const before = await serverView(first, request);
+      const lastSeq = (await gameEvents(first, request)).at(-1)?.seq ?? 0;
+      await first.close();
+
+      await world.passTime(4 * HOUR);
+      const page = await world.open(context);
+      await page.setViewportSize({ width: 720, height: 900 });
+      await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      const today = page.getByRole('tabpanel', { name: 'Hoje' });
+      await expect(today).toContainText('Você esteve fora por 4 horas.');
+      const after = await serverView(page, request);
+      const events = (await gameEvents(page, request)).filter((event) => event.seq > lastSeq);
+      const forged = events.find((event) => event.type === 'weaponsForged');
+      const battles = events.filter((event) => event.type === 'battleFought');
+      expect(forged).toBeDefined();
+      expect(battles).toHaveLength(2);
+      expect(after.siege?.current).toBe(2);
+      expect(after.smithy.forge).toBeNull();
+      expect(after.smithy.weapons).toBe(before.smithy.weapons + 3);
+      await expect(reportBlock(page, 'O feudo prosperou')).toContainText(forged!.text);
+      for (const battle of battles) {
+        const row = reportBlock(page, 'O que exigiu um preço')
+          .getByRole('listitem')
+          .filter({ hasText: battle.text });
+        await expect(row).toHaveCount(1);
+        const report = after.army.reports.find((report) => report.id === battle.data.battleId);
+        expect(report).toBeDefined();
+        for (const factor of report!.factors) await expect(row).toContainText(factor.text);
+      }
+      const pending = reportBlock(page, 'Você ainda pode decidir');
+      await expect(pending.getByRole('listitem').first()).toContainText('Cerco');
+      await expect(pending.getByRole('button', { name: 'Ver a próxima onda' })).toHaveCount(1);
+      await expect(toasts(page).getByRole('status')).toHaveCount(0);
+      expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+      expect(await lowContrast(page)).toEqual([]);
+
+      await pending.getByRole('button', { name: 'Ver a próxima onda' }).click();
+      await expect(page.getByRole('tab', { name: 'Exército' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await expect(page.getByTestId('siege-decision')).toContainText('onda 3');
+      await page.reload();
+      await expect(page.getByTestId('siege-decision')).toBeVisible();
+      // Reabrir/ler não refaz nem as armas nem as batalhas da ausência.
+      expect((await serverView(page, request)).smithy.weapons).toBe(after.smithy.weapons);
+      expect(
+        (await gameEvents(page, request)).filter((event) => event.type === 'battleFought'),
+      ).toHaveLength(battles.length);
+    });
+  }
+});
