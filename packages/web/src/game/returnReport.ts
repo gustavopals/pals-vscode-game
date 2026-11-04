@@ -14,6 +14,7 @@ import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
+import { SIEGE_SECTION, waveDeadline } from '../ui/siege';
 import {
   isObjectiveCompleted,
   objectivesCompleted,
@@ -64,7 +65,11 @@ function total(events: GameEvent[], key: string): number {
  * na frase do evento, em "custou".
  */
 function cutOf(events: GameEvent[], id: string): number {
-  return total(events, `lost_${id}`);
+  // A Queda tira do estoque: não é recompensa cortada pelo depósito.
+  return total(
+    events.filter((event) => event.type !== 'siegeFell'),
+    `lost_${id}`,
+  );
 }
 
 /** O número e a faixa da moral de uma visão, como o relatório os guarda. */
@@ -142,6 +147,9 @@ export function costAction(
     // O ferido se recupera sozinho, e a equipe perdida não volta: a Guilda diz quem pode partir.
     return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
   }
+  if (topic === 'chronicle') {
+    return { command: 'lords.openPanel', arg: 'chronicle', label: 'Ver a Crônica' };
+  }
   if (topic === 'battle') {
     // A batalha já foi travada: o que se faz é ajustar a formação para a próxima.
     return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ajustar formação' };
@@ -151,6 +159,9 @@ export function costAction(
   }
   if (topic === 'campaign') {
     return { command: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver o Exército' };
+  }
+  if (topic === 'siege') {
+    return { command: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Ver o rescaldo' };
   }
   if (topic === 'wall') {
     // A muralha que o item "Antes de partir" já oferece reparar tem o botão acima; sem ele (já
@@ -190,8 +201,8 @@ export function costAction(
 }
 
 /**
- * "Você ainda pode decidir", com a visão de agora: no topo, as equipes paradas em uma
- * encruzilhada, com o prazo real e o que a Postura fará; depois as cartas do Conselho à espera,
+ * "Você ainda pode decidir", com a visão de agora: decisão entre ondas do Cerco; depois as
+ * equipes paradas em uma encruzilhada, com o prazo real e o que a Postura fará; depois as cartas à espera,
  * da que vence primeiro à última (a ordem da visão), cada uma com o prazo em tempo real e,
  * quando é a continuação de outra, a frase do servidor que lembra a escolha; depois as obras
  * que não começam sozinhas, os aldeões livres e os heróis sem jornada, nas frases e com os
@@ -201,10 +212,10 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
   const waves = view.pendingDecisions
     .filter((decision) => decision.kind === 'siegeWave')
     .map((decision): ReturnReportItem => ({
-      text: `Cerco: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
+      text: `Cerco: “${decision.title}” · ${waveDeadline(decision, elapsedSeconds)}. Sem nova ordem, vale ${decision.options.find((option) => option.selected)?.label ?? 'o Plano de Batalha'}.`,
       topic: `siegeWave:${decision.id}`,
-      ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
-      action: { command: 'lords.openPanel', arg: 'army', label: 'Exército' },
+      severity: 'danger',
+      action: { command: 'lords.openPanel', arg: SIEGE_SECTION, label: 'Ver a próxima onda' },
     }));
   const cards = cardDecisions(view).map((decision): ReturnReportItem => {
     const follows = view.council.pending.find((card) => card.instanceId === decision.id)
@@ -220,8 +231,8 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       action: { command: 'lords.openPanel', arg: 'council', label: 'Decidir' },
     };
   });
-  // A equipe parada em uma encruzilhada vem primeiro: é a decisão de prazo mais curto que o
-  // jogo tem, e sem resposta a Postura decide por ele. A linha diz o prazo real e o que a
+  // Depois da decisão do Cerco vêm as equipes paradas em uma encruzilhada: sem resposta,
+  // a Postura decide por elas. A linha diz o prazo real e o que a
   // Postura fará, na frase do servidor; o botão abre a lista dos caminhos.
   const crossroads = crossroadsDecisions(view).map((decision): ReturnReportItem => {
     const posture = view.guild.expeditions.find((expedition) => expedition.id === decision.id)
@@ -283,6 +294,16 @@ function moraleFell(event: GameEvent): boolean {
 /** Em que bloco um evento cai, e com que assunto; `null` para o que não é desfecho. */
 function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string } | null {
   switch (event.type) {
+    // O fechamento anual já traz a pontuação e os Feitos na frase emitida pelo motor.
+    case 'yearEnded':
+      return { block: 'prospered', topic: 'chronicle' };
+    case 'siegeGlorious':
+    case 'siegeWon':
+    case 'warlordSlain':
+    case 'reconstructionStarted':
+      return { block: 'prospered', topic: 'siege' };
+    case 'siegeFell':
+      return { block: 'cost', topic: 'siege' };
     // A obra concluída, o edifício erguido e a planejada que começou sozinha: o feudo trabalhou
     // sem o senhor.
     case 'constructionFinished':
@@ -402,6 +423,7 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // batalha é preço, mesmo a vencida: o exército pagou com baixas, e a próxima ação é a formação.
     case 'battleFought':
     case 'campAssaulted':
+    case 'siegeWaveFought':
       return { block: 'cost', topic: 'battle' };
     case 'hordeSabotaged':
       return { block: 'prospered', topic: 'sabotage' };
@@ -419,7 +441,7 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     case 'omenSeen':
       return { block: 'cost', topic: 'omen' };
     default:
-      // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
+      // Viradas de estação e abertura de ano, ordens em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.
       return null;
   }
@@ -484,6 +506,29 @@ function wasteItems(view: ViewState, wasted: Map<string, number>, events: GameEv
       },
     };
   });
+}
+
+/**
+ * Identifica a onda pelo evento e repete os fatores detalhados da visão da mesma batalha.
+ * Relatório que já saiu da lista não é reconstruído: sua frase da Crônica continua valendo.
+ */
+function battleText(view: ViewState, event: GameEvent, events: readonly GameEvent[]): string {
+  const id = event.data.battleId;
+  const report =
+    typeof id === 'string' ? view.army.reports.find((entry) => entry.id === id) : undefined;
+  const wave =
+    event.type === 'battleFought' && typeof id === 'string'
+      ? events.find((entry) => entry.type === 'siegeWaveFought' && entry.data.battleId === id)
+      : undefined;
+  const factors =
+    report === undefined
+      ? []
+      : report.factors.length === 0
+        ? [report.noFactorText]
+        : report.factors.map(
+            (entry) => `${entry.text}${entry.wingLabel === null ? '' : ` (${entry.wingLabel})`}`,
+          );
+  return [...(wave === undefined ? [] : [wave.text]), event.text, ...factors].join(' ');
 }
 
 /**
@@ -552,8 +597,21 @@ export function buildBlocks(
     (event) => event.type === 'marketTraded' && event.data.direction === 'sell',
   );
 
+  const battles = new Set(
+    events.flatMap((event) =>
+      event.type === 'battleFought' && typeof event.data.battleId === 'string'
+        ? [event.data.battleId]
+        : [],
+    ),
+  );
   for (const event of events) {
-    if (isCampAssaultDuplicate(event, events)) {
+    // A onda conserva seu nome em battleText, sem uma segunda linha para a mesma batalha.
+    if (
+      isCampAssaultDuplicate(event, events) ||
+      (event.type === 'siegeWaveFought' &&
+        typeof event.data.battleId === 'string' &&
+        battles.has(event.data.battleId))
+    ) {
       continue;
     }
     if (objectives !== null && isObjectiveCompleted(event)) {
@@ -569,7 +627,10 @@ export function buildBlocks(
         item: {
           text: event.text,
           topic: place.topic,
-          ...(place.topic === 'sabotage' || place.topic === 'campaign'
+          ...(place.topic === 'sabotage' ||
+          place.topic === 'campaign' ||
+          place.topic === 'chronicle' ||
+          place.topic === 'siege'
             ? { action: costAction(after, place.topic) }
             : {}),
         },
@@ -581,7 +642,11 @@ export function buildBlocks(
         place.topic,
       );
     } else if (place?.block === 'cost') {
-      price(event.seq, event.text, place.topic);
+      price(
+        event.seq,
+        place.topic === 'battle' ? battleText(after, event, events) : event.text,
+        place.topic,
+      );
     } else if (event.type === 'storageFilled') {
       // O depósito encheu e nada se perdeu ainda: a frase da Crônica avisa. Com perda, a linha
       // do depósito, acima, já diz mais.
@@ -767,7 +832,12 @@ export function buildReturnReport(
           const spent = total(events, `spent_${row.id}`);
           const received = total(events, `gained_${row.id}`);
           const cut = cutOf(events, row.id);
-          const raided = total(events, `raided_${row.id}`);
+          const raided =
+            total(events, `raided_${row.id}`) +
+            total(
+              events.filter((event) => event.type === 'siegeFell'),
+              `lost_${row.id}`,
+            );
           const wasted = Math.max(
             cut,
             tidy(

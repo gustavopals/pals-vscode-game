@@ -12,6 +12,7 @@ import { Header } from '../components/Header';
 import { WarCouncilPanel } from '../components/WarCouncilPanel';
 import { OmensPanel } from '../components/OmensPanel';
 import { Icon } from '../components/shared';
+import { SiegePanel } from '../components/SiegePanel';
 import { type Draft, draftOf, emptyDraft } from '../ui/formation';
 
 /**
@@ -132,6 +133,13 @@ export function ArmyTab(props: {
           preciso a ligação.
         </p>
       )}
+      <SiegePanel
+        view={view}
+        elapsed={elapsed}
+        disabled={disabled}
+        busy={props.busy}
+        actions={actions}
+      />
       <div class="fief army">
         <div class="column">
           <BarracksPanel

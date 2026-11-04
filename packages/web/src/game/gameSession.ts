@@ -14,6 +14,7 @@ import { expeditionDeadlines } from '../ui/expeditions';
 import { trainingDeadline } from '../ui/army';
 import { forgeDeadline } from '../ui/smithy';
 import { marketDeadlines } from '../ui/market';
+import { siegeDeadlines } from '../ui/siege';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
 
@@ -612,10 +613,7 @@ export class GameSession {
       // O prazo de cada carta do Conselho (é quando ela sai da mesa e a Crônica conta o que o
       // conselho fez) e a próxima audiência, que pode trazer outra.
       ...view.council.pending.map((card) => card.expiresInSeconds),
-      ...view.pendingDecisions
-        .filter((decision) => decision.kind === 'siegeWave')
-        .map((decision) => decision.expiresInSeconds),
-      view.siege?.nextWaveInSeconds,
+      ...siegeDeadlines(view),
       view.council.nextAudienceInSeconds,
       // A chegada da incursão que os vigias avistaram (é quando a Crônica conta o desfecho), o
       // fim do reparo da muralha e o instante em que o próximo ferido sara e volta ao ofício.

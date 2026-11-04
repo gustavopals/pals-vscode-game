@@ -7,6 +7,7 @@ import { cardDeadline, expiresSoon, nextAudience } from '../ui/council';
 import { CROSSROADS_ICON } from '../ui/expeditions';
 import { hasMarket } from '../ui/market';
 import { moraleBurdened, moraleIcon, moraleSince } from '../ui/morale';
+import { waveDeadline } from '../ui/siege';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
 import { ObjectivesPanel } from './ObjectivesPanel';
@@ -145,13 +146,14 @@ function ReportBlock(props: {
  */
 function BeforeLeaving(props: {
   view: ViewState;
+  elapsed: number;
   online: boolean;
   actions: Actions;
   /** Os assuntos que o Relatório de Retorno, logo acima, já trouxe com o botão que resolve. */
   skip?: readonly string[];
 }) {
   const skip = props.skip ?? [];
-  const items = beforeLeaving(props.view, skip);
+  const items = beforeLeaving(props.view, skip, props.elapsed);
   // Tudo o que havia a preparar já está no relatório: a seção não diz "preparado" à toa.
   const reported = items.length === 0 && leavingItems(props.view).length > 0;
   return (
@@ -220,7 +222,9 @@ function PendingDecisions(props: {
   actions: Actions;
 }) {
   const { view, elapsed } = props;
-  const decisions = view.pendingDecisions;
+  const decisions = [...view.pendingDecisions].sort(
+    (a, b) => Number(b.kind === 'siegeWave') - Number(a.kind === 'siegeWave'),
+  );
   return (
     <section aria-labelledby="decisions-title">
       <h2 id="decisions-title">
@@ -269,7 +273,9 @@ function PendingDecisions(props: {
                     />{' '}
                     {soon ? <span class="sr-only">Atenção: </span> : null}
                     {siege ? 'Cerco' : crossroads ? 'Guilda' : 'Conselho'}: “{decision.title}” ·{' '}
-                    <span class="decision-deadline">{cardDeadline(decision, elapsed)}</span>
+                    <span class="decision-deadline">
+                      {siege ? waveDeadline(decision, elapsed) : cardDeadline(decision, elapsed)}
+                    </span>
                     {posture === undefined ? null : <span class="muted">. {posture}</span>}
                   </p>
                   {siege ? (
@@ -281,7 +287,7 @@ function PendingDecisions(props: {
                     disabled={crossroads && !props.online}
                     onClick={() =>
                       siege
-                        ? props.actions.run('lords.openPanel', 'army')
+                        ? props.actions.run('lords.openPanel', 'siege')
                         : crossroads
                           ? props.actions.run('lords.chooseExpeditionPath', decision.id)
                           : props.actions.run('lords.openPanel', 'council')
@@ -391,7 +397,7 @@ function StockTable(props: {
           ? ' O que foi vendido no balcão do Mercado, ou seguiu na carga de uma caravana, também está em Gasto, e o ouro que rendeu, em Recebido.'
           : ''}{' '}
         Perdido é o que não coube no depósito e foi ao chão, da produção ou de uma recompensa.
-        {raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
+        {raided ? ' Levado é o que as incursões e a Queda tiraram do estoque.' : ''}
       </p>
     </>
   );
@@ -532,6 +538,7 @@ export function Today(props: {
   const leaving = (
     <BeforeLeaving
       view={props.view}
+      elapsed={elapsed}
       online={online}
       actions={props.actions}
       skip={blocks === null ? [] : coveredTopics(blocks)}

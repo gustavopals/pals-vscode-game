@@ -845,3 +845,68 @@ e a ficha exige estoque de armas para contratar. Mantém-se a regra e registra-s
 para o autor a proposta de apresentar também o custo e a quantidade que falta,
 em campo próprio da visão, sem tratá-las como recurso negociável. Nenhuma mudança
 de protocolo ou forma foi antecipada nesta junção.
+### V4G-T4 — limites da visão na interface (2026-11-03)
+
+**G-15. Milícia sem oferta pública.** _(Proposta do agente; não lida pelo autor.)_
+O protocolo 4 desta base não oferece quantidade máxima, disponibilidade, motivo de bloqueio,
+custo em braços ou milícia ativa no `ViewState`. A tela não calcula metade da população nem
+deduz a antecedência da Torre. A convocação e sua confirmação ficam pendentes da oferta do
+motor; não há botão que envie uma ordem às cegas. Nenhuma mudança no motor nesta trilha.
+
+**G-16. Relatório por onda e rescaldo completos.** _(Proposta do agente; não lida pelo autor.)_
+`siege.waves` oferece número, título e presságios; não oferece resultado individual,
+`battleId`, formação efetivamente usada ou baixas. `army.reports` não identifica ano/onda.
+Exibir progresso com `current`, relatórios guardados sem atribuição inventada e os efeitos
+atuais da moral/muralha é possível; o vínculo persistente por onda fica pendente. Também
+faltam `rescaldoText`, seu prazo, o prazo do desconto e o resumo das perdas da Queda na visão.
+Não deduzir festa/luto pelo texto nem escrever percentuais no cliente. O reparo de emergência
+usa pedra/ouro da oferta pública de reparo da muralha: os dois comandos usam
+`currentRepairQuote` nesta base; a emergência é imediata e exige nova conferência se o custo
+ou a decisão mudar.
+
+**G-17. Crônica do Ano e verificação visual adiadas.** _(Proposta do agente; não lida pelo autor.)_
+O branch `v4g-t4-tela` parte de `7875e0b`, sem V4G-T3. A aba anual, pontuação, Feitos e download
+do Markdown anual ficam para a integração dessa tarefa. A Crônica existente continua acessível.
+Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
+feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
+três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
+
+**G-18. Prioridade e padrão do Plano.** _(Proposta do agente; não lida pelo autor.)_
+A decisão entre ondas abre “Antes de partir” e o bloco de decisões do Retorno. A lembrança
+de preparar um Cerco ainda não iniciado vem depois da incursão iminente, sem tirar a fome,
+o frio ou o soldo da prioridade da barra; o Cerco marcado fica abaixo das decisões pendentes
+e acima dos depósitos/obras. `null` significa Defesa ativa e não distingue escolha explícita
+de ausência de escolha: o aviso diz “Há ondas usando a Defesa ativa como padrão”, sem chamar
+o Plano de inválido. Sem resumo persistente por onda, a tela diz “Enfrentada”, não “Vencida”.
+Como `swapWaveFormation` e `emergencyRepair` não levam onda no payload, a retentativa conserva
+o `commandId`, mas deixa de enviar se a decisão avançar; no reparo, se a cotação mudar também.
+
+
+## V4H-T4 — Retorno e preparo da guerra (2026-11-04)
+
+**H-7. Ordem explícita de “Antes de partir” (F-6 da v0.3).** _(Proposta do agente; não lida pelo autor.)_
+Mantém a política existente, conforme a orientação conservadora da F-6 em
+`docs/pendencias-v0.3.md`: decisão entre ondas → incursão → Plano ainda padrão →
+muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa → campanha →
+encruzilhadas → depósitos → obras → aldeões livres → ferro excedente → forja →
+equipamento gasto → Mestres livres → Mestres à porta → caravanas → heróis sem jornada →
+Taverna. Uma incursão conhecida absorve o aviso de falta de Defesa ativa.
+O corte escolhe até cinco itens por gravidade (perigo, alerta, informação), desempata
+pela posição e mostra os escolhidos na ordem original. O Retorno suprime somente
+os assuntos já apresentados no bloco de decisões; os preços históricos não apagam
+avisos de preparo atual. A ordem e o corte têm testes com riscos simultâneos,
+com e sem decisão do Cerco. Não é a alteração de ordem proposta no roadmap da v0.3.
+
+**H-8. Falta de material, fatores e fechamento anual.** _(Proposta do agente; não lida pelo autor.)_
+Com o Ferreiro livre, `offer.maxAmount` zero e `offer.blockedReason` público, a lista
+mostra o motivo da falta de material como alerta e abre o Ferreiro. Não atribui a
+falta apenas ao ferro: a oferta também pode estar bloqueada pela madeira. Sem motivo
+público, não inventa quantidade nem receita. A forja com material conserva a sugestão
+de lote. Os fatores detalhados vêm de `army.reports` pelo mesmo `battleId`, com o
+nome da ala; quando o relatório não está mais guardado, fica a frase do evento.
+O nome da onda e a batalha formam uma linha por identificador, sem atribuição pela
+posição na lista. `yearEnded` entra em “O feudo prosperou” como registro do ano,
+com a pontuação já emitida e acesso à Crônica existente; não concede ganhos novos.
+A notícia anual chega apenas em “Todas”, com ícone de livro e a cota normal dos
+informativos. A tela/exportação anual completa continua no escopo pendente da V4G-T4;
+esta tarefa não inventa rótulos de Feitos ausentes da visão nem recalcula pontuação.

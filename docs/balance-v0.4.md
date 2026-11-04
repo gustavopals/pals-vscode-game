@@ -1520,3 +1520,13 @@ regravação. Retratos v1–v40 e `FROZEN` ficaram intactos (115 testes, saída 
    repetidos. A prova também encontrou a cotação dinâmica ausente no `ViewState`:
    a obra dos corvos aparecia sem custo e como pagável, mesmo faltando madeira.
    A visão usa a mesma cotação da resposta e informa o recurso que falta.
+
+### Junção da tela do Cerco e Retorno (V4H-T4, 2026-11-04)
+
+O teste de frases do bundle encontrou três coincidências entre rótulos locais já
+existentes e o conteúdo incorporado na terceira junção: “Reparar agora”, “Conselho
+de Guerra” e “Expedições enviadas”. A guarda passa a excetuar somente essas três
+strings completas. Não libera frases por tamanho, categoria ou trecho, e a prova
+dos módulos/exports continua recusando conteúdo além das listas de identificadores.
+É uma correção de falso positivo de apresentação; nenhuma regra ou faixa do
+simulador mudou. Não houve remedição nem atualização de golden.

@@ -420,7 +420,7 @@ export type StatusBarOutput = {
    * A aba a que o clique leva (um argumento de `lords.openPanel`); sem ela, vale a aba em que o
    * app abriria. `threat` é o painel da Ameaça, na aba Feudo: a página e o foco vão até ele.
    */
-  target?: 'today' | 'fief' | 'council' | 'guild' | 'threat' | 'army';
+  target?: 'today' | 'fief' | 'council' | 'guild' | 'threat' | 'army' | 'siege';
   /** Fome, frio ou soldo em atraso: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
@@ -531,7 +531,7 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
  * São decisões com prazo curto que outra coisa toma pelo jogador em minutos, e um atraso de soldo que
  * dura horas as esconderia até o fim. A linha continua sendo a do estado, com o tom dele; a decisão
  * entra depois, com o ícone dela e o tempo que falta, e o clique passa a levar à aba correspondente
- * (Guilda para encruzilhada, Hoje para onda; menos na incursão, que mantém o clique para a defesa).
+ * (Guilda para encruzilhada, Cerco no Exército para onda; menos na incursão, que mantém o clique para a defesa).
  * As cartas do Conselho não entram: o prazo delas é de um dia.
  */
 function withNearCrossroads(
@@ -555,7 +555,7 @@ function withNearCrossroads(
   const label = near.decision.kind === 'crossroads' ? 'encruzilhada' : `onda ${near.decision.wave}`;
   const where = isCrossroads
     ? 'A equipe espera na encruzilhada, na aba Guilda.'
-    : 'A decisão entre ondas está na aba Hoje.';
+    : 'A decisão entre ondas está na aba Exército.';
   return {
     ...topic,
     bar: {
@@ -565,7 +565,7 @@ function withNearCrossroads(
       // A incursão mantém o clique dela (a defesa tem prazo também); nos outros estados, a
       // escolha é o que vence primeiro, e o clique leva a ela.
       ...(topic.bar.alarm === true
-        ? { target: isCrossroads ? ('guild' as const) : ('today' as const) }
+        ? { target: isCrossroads ? ('guild' as const) : ('siege' as const) }
         : {}),
     },
   };
@@ -636,6 +636,13 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   );
   const soonest = decisions[0];
   if (soonest !== undefined) {
+    const waveLeft = remainingNow(soonest.expiresInSeconds, elapsedSeconds);
+    const waveDue =
+      soonest.kind === 'siegeWave'
+        ? waveLeft <= 0
+          ? `onda ${soonest.wave} chegando`
+          : `onda ${soonest.wave} em ${formatApprox(waveLeft)}`
+        : null;
     const pending = pendingDecisionsLabel(decisions.length);
     const each = decisions.map(
       (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
@@ -654,16 +661,39 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
               ? 'A equipe espera na encruzilhada, na aba Guilda.'
               : 'As equipes esperam na encruzilhada, na aba Guilda.',
           ]),
-      ...(siege === 0 ? [] : ['A decisão entre ondas está na aba Hoje.']),
+      ...(siege === 0 ? [] : ['A decisão entre ondas está na aba Exército.']),
     ];
     return {
       bar: {
-        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        text: `$(${soonest.kind === 'card' ? 'law' : soonest.kind === 'siegeWave' ? 'shield' : 'git-compare'}) ${pending} · ${waveDue ?? expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
         tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
         target:
-          soonest.kind === 'card' ? 'council' : soonest.kind === 'siegeWave' ? 'today' : 'guild',
+          soonest.kind === 'card' ? 'council' : soonest.kind === 'siegeWave' ? 'siege' : 'guild',
       },
-      title: null,
+      title: waveDue !== null ? `Cerco · ${waveDue} · ${name}` : null,
+    };
+  }
+  if (view.siege !== null && view.siege.result === null) {
+    if (view.siege.current > 0) {
+      const text = `Cerco · ${view.siege.current} ${view.siege.current === 1 ? 'onda enfrentada' : 'ondas enfrentadas'}`;
+      return {
+        bar: {
+          text: `$(shield) ${text}`,
+          tooltip: `${name}: ${text}. Acompanhe na aba Exército.`,
+          target: 'siege',
+        },
+        title: `${text} · ${name}`,
+      };
+    }
+    const seconds = view.siege.scheduledInSeconds;
+    const text = `Cerco em ${formatRemaining(remainingNow(seconds, elapsedSeconds))}`;
+    return {
+      bar: {
+        text: `$(shield) ${text}`,
+        tooltip: `${name}: prepare o Plano de Batalha na aba Exército.`,
+        target: 'siege',
+      },
+      title: `${text} · ${name}`,
     };
   }
   // Soldados sem Defesa ativa: um aviso, abaixo das decisões e acima do depósito. Nada vence.

@@ -1,3 +1,4 @@
+import { Icon } from '../components/shared';
 import type { NotificationLevel } from '../notifications/policy';
 import { type Preferences, THEMES, type ThemeId } from '../services/preferences';
 import { THEME_LABELS } from '../theme/theme';
@@ -19,6 +20,7 @@ export type GameSettings = {
   /** O que a dificuldade muda, em uma frase; `null` se o servidor ainda não a mandou. */
   difficultyAbout: string | null;
   vigil?: { hourLocal: number; timezone: string; text: string; warning: string | null };
+  siegeText?: string | null;
 };
 
 /**
@@ -174,6 +176,11 @@ export function SettingsTab(props: {
           <>
             <p class="muted hint">{props.game.vigil.text}</p>
             <p>Fuso do feudo: {props.game.vigil.timezone}</p>
+            {props.game.siegeText == null ? null : (
+              <p>
+                <Icon name="shield" /> {props.game.siegeText}
+              </p>
+            )}
             {props.game.vigil.warning === null ? null : (
               <p role="status">{props.game.vigil.warning}</p>
             )}

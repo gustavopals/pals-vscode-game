@@ -164,6 +164,91 @@ control.post('/__test/battle', async () => {
   return { ok: true };
 });
 
+/**
+ * Cerco já marcado a N minutos reais, com exércitos de referência pequenos ou esmagadores.
+ * Só a preparação é posta de fora; plano, intervalo, batalha, dano e Queda usam o motor real.
+ * Não serve para medir balanceamento nem substitui os cenários de calendário do motor.
+ */
+control.post('/__test/siege', async (request) => {
+  const { inMinutes = 2, opposition = 'small' } = (request.body ?? {}) as {
+    inMinutes?: number;
+    opposition?: 'small' | 'overwhelming';
+  };
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    state.settlement.buildings.barracks = 5;
+    state.settlement.buildings.palisade = 3;
+    state.settlement.buildings.watchtower = 3;
+    state.settlement.wall.hp = { left: 40, center: 40, right: 40 };
+    state.army.units.knight = 60;
+    state.army.units.archer = 60;
+    state.ids.formation = (state.ids.formation ?? 0) + 2;
+    const formations = [state.ids.formation - 1, state.ids.formation].map((number, index) => ({
+      id: `formation-${number}`,
+      name: index === 0 ? 'Muralha Firme' : 'Guarda do Inverno',
+      posts: {
+        left: {
+          front: { unit: 'knight' as const, count: 20 },
+          back: { unit: 'archer' as const, count: 20 },
+        },
+        center: {
+          front: { unit: 'knight' as const, count: 20 },
+          back: { unit: 'archer' as const, count: 20 },
+        },
+        right: {
+          front: { unit: 'knight' as const, count: 20 },
+          back: { unit: 'archer' as const, count: 20 },
+        },
+      },
+      commanders: { left: null, center: null, right: null },
+    }));
+    state.army.formations = formations;
+    state.army.activeFormationId = opposition === 'small' ? formations[0]!.id : null;
+    if (opposition === 'overwhelming') {
+      state.army.units.knight = 0;
+      state.army.units.archer = 0;
+      state.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+    }
+    const atMs = state.lastProcessedAt + inMinutes * 60_000 * state.settings.timeScale;
+    state.siege = {
+      year: 1,
+      atMs,
+      current: 0,
+      nextWaveAtMs: atMs,
+      plan: { 1: null, 2: null, 3: null },
+      result: null,
+      breached: false,
+      deaths: 0,
+      endedAtMs: null,
+      aftermathUntilMs: null,
+      waves: ([1, 2, 3] as const).map((number) => ({
+        number,
+        composition: [
+          {
+            wing: 'left',
+            line: 'front',
+            unit: opposition === 'small' ? 'raider' : 'ogre',
+            count: opposition === 'small' ? 1 : 100,
+          },
+          { wing: 'center', line: 'front', unit: number === 3 ? 'warlord' : 'raider', count: 1 },
+          {
+            wing: 'right',
+            line: 'front',
+            unit: opposition === 'small' ? 'raider' : 'ogre',
+            count: opposition === 'small' ? 1 : 100,
+          },
+        ],
+      })),
+    };
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
 control.post('/__test/horde-quiet', async () => {
   const never = {
     id: 'never',
