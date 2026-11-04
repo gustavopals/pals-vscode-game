@@ -181,7 +181,7 @@ O número, a faixa, o fator na produção, a conta termo a termo, o que a próxi
 
 Nenhuma regra nova: tudo sai de prazos, taxas e estoques que o `ViewState` já traz. Os limiares abaixo (um dia, oito horas, uma hora) são escolhas de apresentação, em horas de relógio, como o destaque de "cheio em"; o app não converte tempo de jogo.
 
-- **`beforeLeaving(view)`** (`game/beforeLeaving.ts`, função pura) devolve até cinco itens `{ id, severity, text, command }`, nesta ordem: a incursão que os vigias avistaram (só para quem tem a Torre; ver "Incursões, Paliçada e feridos"), a comida (fome em andamento, ou a comida que acaba em menos de 24 h, pelo prazo de `runsOutIn`: quando ele vem da previsão da estação que vem, o item diz a estação, o saldo que ela traz e o prazo, "Inverno em 1 h: o saldo de comida passa a −18,5/h, e ela acaba em 8 h."), a lenha (frio em andamento; no inverno, a madeira com prazo para acabar; antes dele, `calendar.nextFirewoodSeason` a menos de 24 h com `firewood.missing` maior que zero, seja o inverno a próxima estação ou a seguinte), um item por depósito cheio e perdendo ou a menos de 8 h de encher (a madeira e a pedra dividem o Armazém: um item), as obras que não começam sozinhas e os aldeões livres. Abaixo de 8 h, o que acaba é `danger`; o resto é `warning`; obras e aldeões livres são `info`.
+- **`beforeLeaving(view, skip, elapsedSeconds)`** (`game/beforeLeaving.ts`) devolve até cinco itens `{ id, severity, text, command }`. A ordem escrita e testada da V4H-T4/F-6 é: decisão entre ondas → incursão → Plano ainda padrão → muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa → campanha → encruzilhadas → depósitos → obras → aldeões livres → ferro excedente → forja → equipamento gasto → Mestres livres → Mestres à porta → caravanas → heróis sem jornada → Taverna. A incursão absorve a falta de Defesa ativa. O corte escolhe os cinco mais graves, desempata pela posição e conserva a ordem de apresentação; um alerta não cede lugar a uma informação. Os prazos e os motivos vêm da visão. `skip` retira os assuntos já mostrados no bloco de decisões do Retorno antes de fazer o corte.
 - **Todo item tem um comando**, com o rótulo do botão: `lords.allocateWorkers` com o edifício que produz o recurso ("Alocar na Fazenda", "Alocar na Serraria"), `lords.build` com o depósito ("Construir Celeiro", "Ampliar Armazém"), `lords.planConstruction`, `lords.toggleAutoStart`. Quando a obra do depósito está travada ou já em curso, o botão é "Ver os depósitos" e leva ao feudo, onde o aviso do depósito tem o custo e o motivo.
 - **A fome e o frio que acabam sozinhos.** Quando a visão traz `famine.endsInSeconds` ou `winter.cold.endsInSeconds` (quem chegou ao ofício ainda se adapta), o item deixa de ser urgente e de oferecer "Alocar na Fazenda": diz o prazo ("A fome já dura 40 h, mas acaba sozinha em 2 h. Não é preciso mexer na Fazenda.") e o botão leva ao feudo. Os avisos de fome e de frio (`components/Banners.tsx`) também deixam de acrescentar "Ponha aldeões na Fazenda": a frase do servidor já diz o porquê e o prazo.
 - **Quanto falta de lenha é a conta do servidor** (`firewood.missing`), que já desconta o que a Serraria repõe e o que as obras planejadas automáticas vão levar do estoque (`firewood.reserved`). Quando há obra levando madeira, o item diz quanto ("As obras que começam sozinhas levam 80 do estoque."). O app não divide o estoque pela taxa.
@@ -388,7 +388,7 @@ Os objetivos são o tutorial vivo: cada um aponta uma ferramenta no momento em q
   - **O feudo prosperou:** obras concluídas e edifícios erguidos, planejadas que começaram sozinhas, recrutas e colonos (somados, uma linha cada), ofícios dominados, objetivos cumpridos (vários, em uma linha só: ver "Objetivos do Senhor"), a fome e o frio que acabaram, a moral que subiu de faixa, e o efeito escondido de uma carta que não tirou nada (mesmo que o depósito tenha cortado parte do ganho). Sem botão: boa notícia não pede ação.
   - **O que exigiu um preço:** a fome e o frio que começaram (os que já vinham de antes e não pararam ganham uma linha sem número: "A fome continuou durante toda a sua ausência."), quem desertou e quem partiu (somados), a moral que desceu de faixa, as cartas que o conselho decidiu sozinho (a frase diz o que ele fez), o efeito escondido que cobrou algo (`spent_*` ou moral negativa no evento; a parte de um ganho que o depósito cortou, `lost_*`, não faz da boa notícia um preço: ela sai na linha do depósito), e o que foi ao chão, uma linha por depósito ("Despensa sem espaço: 120 de comida foram ao chão.", com o número da coluna Perdido). **Cada item tem a próxima ação** (`costAction`): a de "Antes de partir" para o mesmo assunto, se ele ainda pede preparo; senão, o caminho que evita a próxima (a Fazenda, a Serraria, a obra do depósito, a conta da moral, a mesa do conselho).
   - **Você ainda pode decidir:** as cartas à espera, com o prazo e, na continuação, a frase do servidor que lembra a escolha (`followsFrom.text`); depois as obras que não começam sozinhas e os aldeões livres, nas frases e com os botões de "Antes de partir" (`pendingItems`).
-- **A ordem** dentro de cada bloco é a dos acontecimentos; o que é soma fica onde aconteceu o primeiro. O que não é desfecho (viradas de estação e de ano, ordens dadas em outro navegador, cartas que chegaram) fica fora dos blocos e continua em "A Crônica da ausência", recolhida abaixo da tabela (`<details>`), com todas as linhas.
+- **A ordem** dentro de cada bloco é a dos acontecimentos; o que é soma fica onde aconteceu o primeiro. O que não é desfecho (viradas de estação, abertura de ano, ordens dadas em outro navegador, cartas que chegaram) fica fora dos blocos e continua em "A Crônica da ausência", recolhida abaixo da tabela (`<details>`), com todas as linhas.
 - **O que é da ausência fica; o que é de agora acompanha o feudo.** O relatório guarda os blocos do instante em que foi montado, e a aba os desenha com `currentBlocks(report, view, elapsed)`: os dois primeiros não mudam, mas os botões das perdas e o terceiro bloco são refeitos com a visão de agora. A carta respondida sai da lista, o prazo desce com o relógio da página, e "Construir Celeiro" vira "Ver os depósitos" quando a obra começa.
 - **Na aba Hoje** (`components/Today.tsx`): o tempo fora, a moral, os três blocos (cada um com título, ícone e contagem; vazio, diz o que não houve), a conta dos estoques, a Crônica da ausência e "Marcar como lido". O item que pede ação tem o desenho dos de "Antes de partir" (ícone e palavra da urgência, frase, botão ao lado; abaixo, em tela estreita), e o botão é descrito pela frase (`aria-describedby`): há mais de um "Decidir" na mesma lista. Sem ligação, os botões que dão ordens ficam desabilitados.
 - **A aba que ficou aberta** (`gameSession.ts`, V2D-T4.4): sair de vista começa a contar uma ausência (`Away`: o instante, a visão que correspondia ao cursor e os eventos que chegarem em segundo plano). Na volta, com 4 horas ou mais fora de vista, ela vira Relatório de Retorno (`onReturnWhileOpen`); o app **não troca de aba debaixo do cursor**: um aviso diz "Você esteve fora por 5 horas. O Relatório de Retorno espera na aba Hoje.", com "Ver" (no modo discreto, só a marca na aba). A ausência vai para o cache (`away`), porque o navegador pode descartar a aba em segundo plano e recarregá-la na volta: aí o relatório sai como o de qualquer reabertura, contado desde que a aba saiu de vista. Se outra aba do mesmo navegador esteve à vista nesse meio-tempo (`attendedAt`, gravado por quem está à vista), o jogador não esteve fora, e não há relatório. **Limite:** a aba que ficou **à vista** o tempo todo (em um segundo monitor, a noite inteira) não tem como saber que o jogador saiu, e não recebe relatório.
@@ -480,3 +480,37 @@ anual esperam V4G-T3. Pendências G-15–G-17 em `docs/pendencias-v0.4.md`.
 `tests/e2e/13-cerco.spec.ts` escreve os cenários de ondas, troca, reparo, Queda durante a
 ausência, ritmo Rápido, três temas, foco/teclado e 720 px. **Não foram executados nesta
 trilha**, nem os testes de integração ou capturas da landing.
+
+
+## Retorno com a guerra (V4H-T4)
+
+O Retorno continua montado apenas com a visão e os eventos, sem importar motor ou
+conteúdo. Forja e reparo concluídos, soldados treinados, sabotagem bem-sucedida,
+retorno da campanha, vitória no Cerco e reconstrução são ganhos. Batalha, treino
+reduzido, alerta da Horda, dano à muralha, presságio e Queda são preço e oferecem a
+próxima ação. O fechamento anual (`yearEnded`) registra a frase e a pontuação emitidas,
+com botão para a Crônica existente; não recalcula pontos nem concede recursos.
+
+Os fatores detalhados da batalha são os textos de `army.reports` com o mesmo
+`battleId`, incluindo a ala quando conhecida. Sem relatório guardado, conserva a
+frase do evento. A onda do Cerco e sua batalha ocupam uma linha; um relato do
+Acampamento também não duplica `battleFought`. O vínculo nunca depende da posição
+dos relatórios, de uma formação atual ou de uma composição oculta.
+
+“Você ainda pode decidir” começa pela decisão entre ondas, depois encruzilhadas,
+cartas e, na ordem de “Antes de partir”, vendas oferecidas, obras manuais, aldeões
+livres e heróis prontos.
+Os prazos e as ações acompanham a visão atual; os fatos e fatores da ausência ficam
+guardados. O assunto da onda já contado não reaparece em “Antes de partir”.
+Com forja livre e sem material, o aviso repete `smithy.offer.blockedReason` e abre o
+Ferreiro; com material, conserva “Forjar…”. Não há receita nem custo copiado no app.
+
+`yearEnded` informa apenas em “Todas”, com ícone de livro, cota normal e acesso à
+Crônica. Forja, treino, batalha, presságio e sabotagem conservam seus níveis; Cerco
+continua essencial. Os eventos de uma ausência longa ficam no Retorno, sem avisos
+avulsos. Propostas de apresentação: H-7/H-8 em `docs/pendencias-v0.4.md`.
+
+`tests/e2e/03-retorno-e-conexao.spec.ts` acrescenta a reabertura após quatro horas,
+com forja e duas ondas resolvidas, fatores vindos da visão, terceira onda pendente,
+sem progresso duplicado, nos três temas e em 720 px. **Cenários escritos, sem
+execução nesta trilha**; inspeção visual real e navegador ficam para o coordenador.
