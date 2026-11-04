@@ -2923,6 +2923,39 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).toContain('battleSimulated');
   });
 
+  it('valida siege.militiaOffer na visão do Cerco e recusa chaves ou tipos inválidos', () => {
+    const state = createInitialState('pedra-alta', {
+      settlementName: 'Pedra Alta',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 21,
+      difficulty: 'lord',
+      timeScale: 16,
+    });
+    const winterStart = 3 * 90 * 24 * 3600_000;
+    const atSiege = advanceTo(state, winterStart + 6 * 24 * 3600_000).state;
+    const view = deriveViewState(atSiege, atSiege.lastProcessedAt);
+    expect(view.siege).not.toBeNull();
+    expect(ViewStateSchema.safeParse(view).success).toBe(true);
+    expect(
+      ViewStateSchema.safeParse({
+        ...view,
+        siege: {
+          ...view.siege!,
+          militiaOffer: { ...view.siege!.militiaOffer, extra: true },
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      ViewStateSchema.safeParse({
+        ...view,
+        siege: {
+          ...view.siege!,
+          militiaOffer: { ...view.siege!.militiaOffer, canCall: 'yes' },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
   it('recusa a forma errada: ala que falta, chave a mais, unidade fora do Quartel', () => {
     const twoWings = { left: posts.left, center: posts.center };
     const base = { id: null, name: 'Portão', posts, commanders };

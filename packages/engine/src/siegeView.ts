@@ -1,6 +1,7 @@
 import { siegeTexts } from '@lotg/content';
 
 import { waveDecisionOpen } from './siege';
+import { checkMilitiaCall } from './siegeOrders';
 import { realSecondsCeil } from './units';
 import type { GameState, SiegeView, SiegeWaveDecisionView, SiegeWaveNumber } from './types';
 import { wavePublicOmens } from './warCouncilOrders';
@@ -15,6 +16,7 @@ export function siegeView(
   const until = (atMs: number) =>
     Math.max(0, realSecondsCeil(atMs - state.lastProcessedAt, timeScale));
   const next = (entry.current + 1) as SiegeWaveNumber;
+  const militia = checkMilitiaCall(state, undefined, state.lastProcessedAt);
   return {
     siege: {
       year: entry.year,
@@ -29,6 +31,13 @@ export function siegeView(
         title: siegeTexts.waves[w.number],
         omens: wavePublicOmens(state, w.number).map((o) => o.text),
       })),
+      militiaOffer: {
+        maxCount: militia.maxCount,
+        canCall: militia.rejection === null,
+        blockedReason: militia.rejection?.message ?? null,
+        untilInSeconds: militia.untilMs === null ? null : until(militia.untilMs),
+        warningSeconds: realSecondsCeil(militia.warningMs, timeScale),
+      },
     },
     pendingDecisions: !waveDecisionOpen(state)
       ? []

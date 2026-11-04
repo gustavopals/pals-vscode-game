@@ -466,6 +466,13 @@ const SiegeSchema = z.strictObject({
       omens: z.array(z.string()),
     }),
   ),
+  militiaOffer: z.strictObject({
+    maxCount: z.number(),
+    canCall: z.boolean(),
+    blockedReason: z.string().nullable(),
+    untilInSeconds: z.number().nullable(),
+    warningSeconds: z.number(),
+  }),
 });
 
 /**

@@ -1020,6 +1020,18 @@ export type SiegeWaveDecisionView = {
   expiresInSeconds: number;
   options: Array<{ formationId: string | null; label: string; selected: boolean }>;
 };
+export type SiegeMilitiaOfferView = {
+  /** O máximo de aldeões convocáveis agora: `min(floor(villagers / 2), ableVillagers)`. */
+  maxCount: number;
+  /** A ordem `callMilitia` com `count: maxCount` seria aceita agora. */
+  canCall: boolean;
+  /** Por que `callMilitia` seria recusada agora (a mesma frase da ordem), ou `null` quando `canCall`. */
+  blockedReason: string | null;
+  /** Segundos reais até o embate para o qual a milícia pode ser chamada; `null` fora da janela. */
+  untilInSeconds: number | null;
+  /** Antecedência da Torre de Vigia no nível de agora, em segundos reais (`0` sem Torre). */
+  warningSeconds: number;
+};
 export type SiegeView = {
   year: number;
   scheduledInSeconds: number;
@@ -1029,6 +1041,7 @@ export type SiegeView = {
   result: SiegeState['result'];
   resultText: string | null;
   waves: Array<{ number: SiegeWaveNumber; title: string; omens: string[] }>;
+  militiaOffer: SiegeMilitiaOfferView;
 };
 /** Alias mantido para os consumidores do motor anteriores à T2.7. */
 export type EngineViewState = ViewState;
