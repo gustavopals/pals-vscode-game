@@ -9,8 +9,8 @@
 590400000	siegeFell	No 11º dia do Inverno, o Cerco trouxe a Queda. Pedra Alta sobrevive em ruínas; haverá outra primavera.
 590895360	coldStarted	No 11º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
 597600000	moraleBandChanged	No 12º dia do Inverno, o povo de Pedra Alta perdeu a esperança. Já se fala em ir embora.
-604800000	yearStarted	Começa o ano 2 da Casa de Pedra Alta.
 604800000	yearEnded	Encerra-se o ano 1 da Casa de Pedra Alta. Os escribas registram 18 pontos e os Feitos do ano.
+604800000	yearStarted	Começa o ano 2 da Casa de Pedra Alta.
 604800000	reconstructionStarted	No 1º dia da Primavera, começou a Primavera da Reconstrução em Pedra Alta. O custo das novas obras cai temporariamente.
 604800000	seasonChanged	Chega a Primavera a Pedra Alta.
 604800000	moraleBandChanged	No 1º dia da Primavera, os resmungos cessaram em Pedra Alta. O povo está contente.

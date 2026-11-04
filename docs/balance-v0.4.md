@@ -1487,6 +1487,13 @@ O contrato do bundle encontrou o título “Conselho de Guerra” e o rótulo
 recebido. Novidades e estatísticas usam redação editorial própria. Não houve
 mudança de regra ou de layout, e o teste integral do bundle permanece intacto.
 
+Os quatro goldens restantes foram conferidos antes e depois de `UPDATE_GOLDEN=1`:
+`state-v41-cold` e o cenário semanal ganham exatamente seis contadores nulos de
+milícia na formação do ensaio; a crônica de inverno e o cenário passam a fechar
+o ano antes de iniciar o seguinte; os 35 retratos da visão ganham somente
+`army.warCouncilTitle`. Nenhuma alteração de sorteio adicional apareceu nesta
+regravação. Retratos v1–v40 e `FROZEN` ficaram intactos (115 testes, saída 0).
+
 ### 20.3 Revisões independentes
 
 1. A crônica anual perdia `yearStarted` e `threatTileRestored` porque precediam o
