@@ -111,7 +111,7 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     const swapped = order(first, {
       commandId: 'swap',
       type: 'swapWaveFormation',
-      payload: { formationId: 'formation-1' },
+      payload: { wave: 2, formationId: 'formation-1' },
     });
     if (!swapped.ok) throw new Error(swapped.message);
     expect(swapped.state.rng).toEqual(first.rng);
@@ -142,7 +142,11 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     expect(quote.stone).toBeGreaterThan(0);
     const without = wave(first).state.army.reports.at(-1)!;
     for (const wing of without.wall) expect(wing.start).toBe(first.settlement.wall.hp[wing.wing]);
-    const fixed = order(first, { commandId: 'repair', type: 'emergencyRepair', payload: {} });
+    const fixed = order(first, {
+      commandId: 'repair',
+      type: 'emergencyRepair',
+      payload: { wave: 2 },
+    });
     if (!fixed.ok) throw new Error(fixed.message);
     expect(fixed.state.settlement.resources.stone).toBe(
       first.settlement.resources.stone - quote.stone * 1000,
@@ -153,7 +157,7 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     expect(fixed.state.settlement.wall.hp).toEqual({ left: 800, center: 800, right: 800 });
     expect(fixed.state.settlement.wallRepair).toBeNull();
     expect(
-      order(readySiege(), { commandId: 'early', type: 'emergencyRepair', payload: {} }),
+      order(readySiege(), { commandId: 'early', type: 'emergencyRepair', payload: { wave: 1 } }),
     ).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
   });
   it('a obra do mesmo instante precede a onda e a troca no prazo já chega tarde', () => {
@@ -171,8 +175,61 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
     );
     const end = wave(wave(first.state).state).state;
     expect(
-      order(end, { commandId: 'late', type: 'swapWaveFormation', payload: { formationId: null } }),
+      order(end, {
+        commandId: 'late',
+        type: 'swapWaveFormation',
+        payload: { wave: 3, formationId: null },
+      }),
     ).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
+  });
+  it.each([0.5, 1, 3])('a ordem no instante da onda não muda de alvo no ritmo %s', (pace) => {
+    // Revisão da Fase G: o servidor avança até o instante do comando antes de aplicá-lo.
+    // No instante exato da onda 2, `advanceTo` luta a onda e abre a decisão da onda 3;
+    // a troca e o reparo pensados para a onda 2 têm de ser recusados, não gravados na 3.
+    const before = readySiege('lord', pace);
+    before.ids.formation = 2;
+    before.army.formations.push({
+      ...JSON.parse(JSON.stringify(before.army.formations[0]!)),
+      id: 'formation-2',
+      name: 'Outra defesa',
+    });
+    const first = wave(before).state;
+    expect(
+      order(first, {
+        commandId: 'swap-ahead',
+        type: 'swapWaveFormation',
+        payload: { wave: 3, formationId: 'formation-2' },
+      }),
+    ).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
+    expect(
+      order(first, { commandId: 'repair-ahead', type: 'emergencyRepair', payload: { wave: 3 } }),
+    ).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
+    const second = wave(first).state;
+    expect(second.siege!.current).toBe(2);
+    expect(second.lastProcessedAt).toBe(first.siege!.nextWaveAtMs);
+    const swap = order(second, {
+      commandId: 'swap-late',
+      type: 'swapWaveFormation',
+      payload: { wave: 2, formationId: 'formation-2' },
+    });
+    expect(swap).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
+    expect(second.siege!.plan[3]).toBeNull();
+    const repair = order(second, {
+      commandId: 'repair-late',
+      type: 'emergencyRepair',
+      payload: { wave: 2 },
+    });
+    expect(repair).toMatchObject({ ok: false, code: 'NO_WAVE_DECISION' });
+    const now = order(second, {
+      commandId: 'swap-now',
+      type: 'swapWaveFormation',
+      payload: { wave: 3, formationId: 'formation-2' },
+    });
+    if (!now.ok) throw new Error(now.message);
+    expect(now.state.siege!.plan).toMatchObject({ 2: null, 3: 'formation-2' });
+    expect(
+      order(second, { commandId: 'repair-now', type: 'emergencyRepair', payload: { wave: 3 } }).ok,
+    ).toBe(true);
   });
   it('migração tardia agenda no futuro e a visão não deixa escapar composição', () => {
     const before = siegeYard();

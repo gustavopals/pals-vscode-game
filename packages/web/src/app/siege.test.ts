@@ -97,7 +97,7 @@ describe('retentativa das ordens do Cerco', () => {
     made.api.state.stateVersion += 1;
     await made.controller.session.syncNow();
     made.api.state.online = false;
-    expect(await made.controller.swapWaveFormation(null)).toBe(false);
+    expect(await made.controller.swapWaveFormation(2, null)).toBe(false);
     const retry = made.controller.toasts
       .flatMap((toast) => toast.actions)
       .find((action) => action.label === 'Tentar de novo');
@@ -117,6 +117,19 @@ describe('retentativa das ordens do Cerco', () => {
     expect(made.controller.toasts.map((toast) => toast.text)).toContain(
       'O Cerco mudou ou o prazo acabou: a ordem antiga não foi reenviada. Confira a próxima onda.',
     );
+  });
+  it('a troca e o reparo levam a onda conferida e não saem para outra onda', async () => {
+    const made = await opened();
+    made.api.state.view = siegeWaveView;
+    made.api.state.stateVersion += 1;
+    await made.controller.session.syncNow();
+    expect(await made.controller.swapWaveFormation(3, null)).toBe(false);
+    expect(await made.controller.emergencyRepair(3)).toBe(false);
+    expect(made.api.state.commands).toEqual([]);
+    expect(await made.controller.swapWaveFormation(2, null)).toBe(true);
+    expect(made.api.state.commands.map(({ type, payload }) => ({ type, payload }))).toEqual([
+      { type: 'swapWaveFormation', payload: { wave: 2, formationId: null } },
+    ]);
   });
   for (const type of ['setBattlePlan', 'swapWaveFormation', 'emergencyRepair'] as const) {
     it(`${type}: a falha de rede e Tentar de novo conservam commandId e payload`, async () => {
@@ -149,8 +162,8 @@ describe('retentativa das ordens do Cerco', () => {
         type === 'setBattlePlan'
           ? () => made.controller.setBattlePlan(2, null)
           : type === 'swapWaveFormation'
-            ? () => made.controller.swapWaveFormation(null)
-            : () => made.controller.emergencyRepair();
+            ? () => made.controller.swapWaveFormation(2, null)
+            : () => made.controller.emergencyRepair(2);
       expect(await send()).toBe(false);
       const retry = made.controller.toasts
         .flatMap((toast) => toast.actions)

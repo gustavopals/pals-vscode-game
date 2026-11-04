@@ -84,7 +84,10 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
     const before = game.view().threat.defense.wall.repairOffer;
     expect(before.canRepair).toBe(true);
     const returned = await responderCerco.run(game.view(), game.act);
-    expect(game.orders.map(({ type }) => type)).toEqual(['emergencyRepair', 'swapWaveFormation']);
+    expect(game.orders.map(({ type, payload }) => ({ type, payload }))).toEqual([
+      { type: 'emergencyRepair', payload: { wave: 2 } },
+      { type: 'swapWaveFormation', payload: { wave: 2, formationId: 'formation-1' } },
+    ]);
     expect(game.state().siege?.plan).toEqual({ 1: null, 2: 'formation-1', 3: null });
     expect(returned).toEqual(game.view());
     expect(returned.threat.defense.wall.repairOffer.canRepair).toBe(false);

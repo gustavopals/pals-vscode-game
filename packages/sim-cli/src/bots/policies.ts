@@ -2351,10 +2351,10 @@ export const responderCerco: Policy = {
     const decision = current.pendingDecisions.find((entry) => entry.kind === 'siegeWave');
     if (decision !== undefined) {
       if (current.threat.defense.wall.repairOffer.canRepair) {
-        current = await act('emergencyRepair', {});
+        current = await act('emergencyRepair', { wave: decision.wave });
       }
       if (active !== undefined && current.siege?.plan[decision.wave] !== active.id) {
-        current = await act('swapWaveFormation', { formationId: active.id });
+        current = await act('swapWaveFormation', { wave: decision.wave, formationId: active.id });
       }
     }
     const wave3Id = current.siege?.plan[3] ?? active?.id ?? null;

@@ -70,9 +70,9 @@ describe('protocolo 4: o Cerco', () => {
     const valid: Command[] = [
       { commandId, type: 'setBattlePlan', payload: { wave: 1, formationId: null } },
       { commandId, type: 'setBattlePlan', payload: { wave: 3, formationId: 'formation-1' } },
-      { commandId, type: 'swapWaveFormation', payload: { formationId: null } },
-      { commandId, type: 'swapWaveFormation', payload: { formationId: 'formation-1' } },
-      { commandId, type: 'emergencyRepair', payload: {} },
+      { commandId, type: 'swapWaveFormation', payload: { wave: 2, formationId: null } },
+      { commandId, type: 'swapWaveFormation', payload: { wave: 3, formationId: 'formation-1' } },
+      { commandId, type: 'emergencyRepair', payload: { wave: 2 } },
       { commandId, type: 'callMilitia', payload: { count: 5 } },
       // A faixa é regra do motor: inteiros fora dela chegam à recusa legível (422).
       { commandId, type: 'callMilitia', payload: { count: -1 } },
@@ -81,9 +81,13 @@ describe('protocolo 4: o Cerco', () => {
     for (const command of [
       { type: 'setBattlePlan', payload: { wave: 4, formationId: null } },
       { type: 'swapWaveFormation', payload: {} },
-      { type: 'swapWaveFormation', payload: { formationId: 1 } },
-      { type: 'swapWaveFormation', payload: { formationId: 'x', atMs: 1 } },
-      { type: 'emergencyRepair', payload: { cost: 0 } },
+      { type: 'swapWaveFormation', payload: { formationId: null } },
+      { type: 'swapWaveFormation', payload: { wave: 4, formationId: null } },
+      { type: 'swapWaveFormation', payload: { wave: 2, formationId: 1 } },
+      { type: 'swapWaveFormation', payload: { wave: 2, formationId: 'x', atMs: 1 } },
+      { type: 'emergencyRepair', payload: {} },
+      { type: 'emergencyRepair', payload: { wave: 0 } },
+      { type: 'emergencyRepair', payload: { wave: 2, cost: 0 } },
       { type: 'callMilitia', payload: { count: 1.5 } },
     ]) {
       expect(CommandSchema.safeParse({ commandId, ...command }).success).toBe(false);

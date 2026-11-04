@@ -57,17 +57,24 @@ export function setBattlePlan(
   return null;
 }
 
+/** O avanço precede a ordem: a onda da visão precisa continuar sendo a da decisão aberta. */
+function decidedWave(draft: GameState, wave: unknown, nowMs: number): SiegeWaveNumber | null {
+  if (!waveDecisionOpen(draft, nowMs)) return null;
+  const decided = (draft.siege!.current + 1) as SiegeWaveNumber;
+  return wave === decided ? decided : null;
+}
+
 export function swapWaveFormation(
   draft: GameState,
+  waveNumber: unknown,
   formationId: unknown,
   nowMs: number,
   events: GameEvent[],
 ): SiegeRejection | null {
-  if (!waveDecisionOpen(draft, nowMs))
-    return { code: 'NO_WAVE_DECISION', message: siegeTexts.noDecision };
+  const wave = decidedWave(draft, waveNumber, nowMs);
+  if (wave === null) return { code: 'NO_WAVE_DECISION', message: siegeTexts.noDecision };
   if (!formationValid(draft, formationId)) return reject('FORMATION_NOT_FOUND');
   const siege = draft.siege!;
-  const wave = (siege.current + 1) as SiegeWaveNumber;
   const id = formationId as string | null;
   if (siege.plan[wave] === id) return null;
   siege.plan[wave] = id;
@@ -88,10 +95,11 @@ export function swapWaveFormation(
 /** Reparo imediato entre ondas. O ADR exige o ouro igual à pedra, além da decisão 20. */
 export function emergencyRepair(
   draft: GameState,
+  waveNumber: unknown,
   nowMs: number,
   events: GameEvent[],
 ): SiegeRejection | null {
-  if (!waveDecisionOpen(draft, nowMs))
+  if (decidedWave(draft, waveNumber, nowMs) === null)
     return { code: 'NO_WAVE_DECISION', message: siegeTexts.noDecision };
   const blocked = wallRepairBlocked(draft);
   if (blocked !== null) return blocked;

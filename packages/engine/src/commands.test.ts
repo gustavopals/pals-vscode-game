@@ -262,7 +262,7 @@ describe('catálogo de recusas', () => {
     SIEGE_NOT_SCHEDULED: [rich, command('setBattlePlan', { wave: 1, formationId: null })],
     SIEGE_STARTED: [siegeStarted, command('setBattlePlan', { wave: 1, formationId: null })],
     INVALID_WAVE: [siege, command('setBattlePlan', { wave: 0 as 1, formationId: null })],
-    NO_WAVE_DECISION: [rich, command('swapWaveFormation', { formationId: null })],
+    NO_WAVE_DECISION: [rich, command('swapWaveFormation', { wave: 2, formationId: null })],
     MILITIA_NOT_ALLOWED: [rich, command('callMilitia', { count: 1 })],
     MILITIA_ACTIVE: [militiaActive, command('callMilitia', { count: 1 })],
     INVALID_MILITIA_AMOUNT: [siege, command('callMilitia', { count: 0 })],

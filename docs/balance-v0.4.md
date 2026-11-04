@@ -1570,3 +1570,13 @@ nulas no retrato `cold`. Nenhum byte v41 foi alterado. Os diffs da calibragem e 
 catálogo só acrescentam a caçada; todas as linhas dos modelos existentes permanecem
 iguais. Validação focada final: 1.340 testes aprovados (17 arquivos), typecheck e
 lint com saída 0; replay completo das migrações e matriz ficam para o coordenador.
+
+## Correções das revisões E/F/G (2026-11-04)
+
+**G — decisão no instante da onda:** troca de formação e reparo de emergência
+agora levam a onda da decisão conferida. O servidor continua avançando antes da
+ordem; se a onda já foi lutada, `NO_WAVE_DECISION` preserva esse avanço e impede
+que a ordem atinja a onda seguinte. Protocolo 4 ainda não publicado, sem mudar a
+forma do estado 42. Regressões exatas nos ritmos 0,5×, 1× e 3×; integração escrita
+para cada ordem e seu recibo recusado, sem execução. Nenhum número de regra,
+golden, retrato ou faixa foi alterado; não houve remedição nem teste afrouxado.

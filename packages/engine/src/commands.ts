@@ -68,9 +68,9 @@ function dispatch(
     case 'setBattlePlan':
       return setBattlePlan(draft, payload.wave, payload.formationId, nowMs, events);
     case 'swapWaveFormation':
-      return swapWaveFormation(draft, payload.formationId, nowMs, events);
+      return swapWaveFormation(draft, payload.wave, payload.formationId, nowMs, events);
     case 'emergencyRepair':
-      return emergencyRepair(draft, nowMs, events);
+      return emergencyRepair(draft, payload.wave, nowMs, events);
     case 'callMilitia':
       return callMilitia(draft, payload.count, nowMs, events);
     case 'setVigilHour': {

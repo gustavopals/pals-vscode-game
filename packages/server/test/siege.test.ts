@@ -68,7 +68,7 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
       token: player.token,
       headers: old,
     });
-    const command = order('swapWaveFormation', { formationId: 'formation-1' });
+    const command = order('swapWaveFormation', { wave: 2, formationId: 'formation-1' });
     const refused = await send<ApiError>(server, player.token, player.game.id, command, old);
     for (const reply of [read, refused]) {
       expect(reply.status).toBe(426);
@@ -105,7 +105,7 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
       expect(JSON.stringify(read.body.view.siege)).not.toMatch(/composition|reductionPercent|rng/);
 
       const before = await row(player.game.id);
-      const command = order('swapWaveFormation', { formationId: 'formation-1' });
+      const command = order('swapWaveFormation', { wave: 2, formationId: 'formation-1' });
       const responses = await Promise.all([
         send<CommandAccepted>(server, player.token, player.game.id, command, protocol),
         send<CommandAccepted>(server, player.token, player.game.id, command, protocol),
@@ -126,7 +126,7 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
         BigInt(before.state_version) + 1n,
       );
 
-      const repair = order('emergencyRepair', {});
+      const repair = order('emergencyRepair', { wave: 2 });
       const fixed = await send<CommandAccepted>(
         server,
         player.token,
@@ -158,8 +158,8 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
     const player = await newPlayer(server);
     const cases = [
       [order('setBattlePlan', { wave: 1, formationId: null }), 'SIEGE_NOT_SCHEDULED'],
-      [order('swapWaveFormation', { formationId: null }), 'NO_WAVE_DECISION'],
-      [order('emergencyRepair', {}), 'NO_WAVE_DECISION'],
+      [order('swapWaveFormation', { wave: 2, formationId: null }), 'NO_WAVE_DECISION'],
+      [order('emergencyRepair', { wave: 2 }), 'NO_WAVE_DECISION'],
       [order('callMilitia', { count: 1 }), 'MILITIA_NOT_ALLOWED'],
     ] as const;
     for (const [command, code] of cases) {
@@ -185,7 +185,7 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
       server,
       token,
       player.game.id,
-      order('swapWaveFormation', { formationId: null }),
+      order('swapWaveFormation', { wave: 3, formationId: null }),
       protocol,
     );
     expect(refused.status).toBe(422);
@@ -194,4 +194,44 @@ describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
     expect(refused.body.details.view.pendingDecisions).toEqual([]);
     expect(refused.body.details.view.siege?.result).not.toBeNull();
   });
+
+  it.each(['swapWaveFormation', 'emergencyRepair'] as const)(
+    '%s da onda 2 no instante dela preserva o avanço e recusa atingir a onda 3',
+    async (type) => {
+      const player = await betweenWaves();
+      const before = await row(player.game.id);
+      const advanced = advanceTo(before.state, before.state.siege!.nextWaveAtMs!);
+      server.clock.advance(HOUR);
+      const token = await renew(server, player);
+      const command =
+        type === 'swapWaveFormation'
+          ? order(type, { wave: 2, formationId: 'formation-1' })
+          : order(type, { wave: 2 });
+      const refused = await send<GameRuleError>(server, token, player.game.id, command, protocol);
+      expect(refused.status).toBe(422);
+      expect(GameRuleErrorSchema.parse(refused.body)).toEqual(refused.body);
+      expect(refused.body.details.code).toBe('NO_WAVE_DECISION');
+      expect(refused.body.details.view.siege?.current).toBe(2);
+      expect(refused.body.details.view.siege?.plan[3]).toBeNull();
+      expect(refused.body.details.view.pendingDecisions).toContainEqual(
+        expect.objectContaining({ kind: 'siegeWave', wave: 3 }),
+      );
+      expect(
+        refused.body.details.events.filter((event) => event.type === 'siegeWaveFought'),
+      ).toHaveLength(1);
+      expect(refused.body.details.events.map((event) => event.type)).not.toContain(
+        'waveFormationSwapped',
+      );
+      expect(refused.body.details.events.map((event) => event.type)).not.toContain('wallRepaired');
+      const persisted = await row(player.game.id);
+      expect(persisted.state).toEqual(advanced.state);
+      expect(BigInt(persisted.state_version)).toBe(BigInt(before.state_version) + 1n);
+
+      const replay = await send<GameRuleError>(server, token, player.game.id, command, protocol);
+      expect(replay.status).toBe(422);
+      expect(replay.headers['x-lords-replayed']).toBe('true');
+      expect(replay.body).toEqual(refused.body);
+      expect((await row(player.game.id)).state_version).toBe(persisted.state_version);
+    },
+  );
 });
