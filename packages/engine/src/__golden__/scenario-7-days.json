@@ -553,7 +553,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -720,7 +720,8 @@
       }
      },
      "threat": 24,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -827,7 +828,7 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1015,7 +1016,8 @@
       }
      },
      "threat": 0,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -1227,7 +1229,7 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1413,7 +1415,8 @@
       }
      },
      "threat": 13,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": null,
     "horde": {
@@ -1716,7 +1719,7 @@
    "day": 4,
    "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1920,7 +1923,8 @@
       }
      },
      "threat": 61,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -2439,7 +2443,7 @@
    "day": 5,
    "eventsSoFar": 237,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2645,7 +2649,8 @@
       }
      },
      "threat": 100,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -3283,7 +3288,7 @@
    "day": 6,
    "eventsSoFar": 293,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3499,7 +3504,8 @@
       }
      },
      "threat": 72,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -4137,31 +4143,37 @@
      "chronicle:rehearsal:left:front:archer": 0,
      "chronicle:rehearsal:left:front:knight": 0,
      "chronicle:rehearsal:left:front:shieldbearer": 0,
+     "chronicle:rehearsal:left:front:militia": 0,
      "chronicle:rehearsal:left:back:spearman": 0,
      "chronicle:rehearsal:left:back:swordsman": 0,
      "chronicle:rehearsal:left:back:archer": 0,
      "chronicle:rehearsal:left:back:knight": 0,
      "chronicle:rehearsal:left:back:shieldbearer": 0,
+     "chronicle:rehearsal:left:back:militia": 0,
      "chronicle:rehearsal:center:front:spearman": 0,
      "chronicle:rehearsal:center:front:swordsman": 0,
      "chronicle:rehearsal:center:front:archer": 0,
      "chronicle:rehearsal:center:front:knight": 0,
      "chronicle:rehearsal:center:front:shieldbearer": 0,
+     "chronicle:rehearsal:center:front:militia": 0,
      "chronicle:rehearsal:center:back:spearman": 0,
      "chronicle:rehearsal:center:back:swordsman": 0,
      "chronicle:rehearsal:center:back:archer": 0,
      "chronicle:rehearsal:center:back:knight": 0,
      "chronicle:rehearsal:center:back:shieldbearer": 0,
+     "chronicle:rehearsal:center:back:militia": 0,
      "chronicle:rehearsal:right:front:spearman": 0,
      "chronicle:rehearsal:right:front:swordsman": 0,
      "chronicle:rehearsal:right:front:archer": 0,
      "chronicle:rehearsal:right:front:knight": 0,
      "chronicle:rehearsal:right:front:shieldbearer": 0,
+     "chronicle:rehearsal:right:front:militia": 0,
      "chronicle:rehearsal:right:back:spearman": 0,
      "chronicle:rehearsal:right:back:swordsman": 0,
      "chronicle:rehearsal:right:back:archer": 0,
      "chronicle:rehearsal:right:back:knight": 0,
      "chronicle:rehearsal:right:back:shieldbearer": 0,
+     "chronicle:rehearsal:right:back:militia": 0,
      "seasonsSurvived:autumn": 1,
      "cardsDrawn:hordeDeserter": 1
     }
@@ -4171,7 +4183,7 @@
    "day": 7,
    "eventsSoFar": 359,
    "state": {
-    "schemaVersion": 41,
+    "schemaVersion": 42,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -4360,7 +4372,8 @@
       }
      },
      "threat": 50,
-     "discovered": []
+     "discovered": [],
+     "expeditionUnlocks": {}
     },
     "siege": {
      "year": 1,
@@ -8211,14 +8224,6 @@
    }
   },
   {
-   "type": "yearStarted",
-   "atMs": 604800000,
-   "text": "Começa o ano 2 da Casa de Pedra Alta do Norte.",
-   "data": {
-    "year": 2
-   }
-  },
-  {
    "type": "yearEnded",
    "atMs": 604800000,
    "text": "Encerra-se o ano 1 da Casa de Pedra Alta do Norte. Os escribas registram 38 pontos e os Feitos do ano.",
@@ -8232,6 +8237,14 @@
     "siegeResult": "fall",
     "score": 38,
     "feats": ""
+   }
+  },
+  {
+   "type": "yearStarted",
+   "atMs": 604800000,
+   "text": "Começa o ano 2 da Casa de Pedra Alta do Norte.",
+   "data": {
+    "year": 2
    }
   },
   {

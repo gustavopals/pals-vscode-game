@@ -1522,7 +1522,9 @@ explicitamente `fromMs = lastProcessedAt` quando o campo histórico falta,
 preservando todos os outros campos e a comparação exata, sem alterar o passo.
 
 No golden de sete dias, além de `schemaVersion: 42` e do mapa vazio novo, a única
-diferença herdada é a posição de `yearStarted`: o código da junção já emite
+diferença de eventos herdada é a posição de `yearStarted`: o código da junção já emite
 `yearEnded` antes dele, e o golden v41 ainda invertia essas duas linhas. A ordem
 do motor não foi alterada nesta tarefa. Ordens, sorteios, demais eventos e valores
-dos sete estados permanecem iguais após retirar os dois campos de forma.
+dos sete estados permanecem iguais após retirar os dois campos de forma e as
+mesmas seis estatísticas nulas de milícia no sexto dia, já identificadas no
+retrato `cold`. Uma comparação estrutural confirmou que o gerador não mudou.

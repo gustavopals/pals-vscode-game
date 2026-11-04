@@ -719,6 +719,69 @@ function fingerprint(text: string): string {
 // Segunda junção: v35 conserva os bytes do main; v36/v37 foram regravados após integrar
 // cartas, objetivos e Vigília (docs/balance-v0.4.md, seção "Segunda junção").
 const FROZEN: Record<string, string> = {
+  // V4H-T1.4: bytes herdados da junção, sem regravar os retratos v41.
+  'state-v41-campaign-defeated.json': 'c0175d21',
+  'state-v41-campaign-marching.json': '03f31c38',
+  'state-v41-campaign-returning.json': 'b89fce07',
+  'state-v41-caravan-escort.json': 'a857c638',
+  'state-v41-caravan.json': '96be69c7',
+  'state-v41-cold.json': '7a02850a',
+  'state-v41-construction.json': '7c197255',
+  'state-v41-council-encounters.json': 'f329d0c6',
+  'state-v41-council-hidden.json': 'b7e3daa2',
+  'state-v41-council-risk.json': 'fd2dd1dc',
+  'state-v41-council.json': '34db91f4',
+  'state-v41-crafts.json': '978d284d',
+  'state-v41-den-cleared.json': '9c585551',
+  'state-v41-expedition-crossroads.json': '31f2b83b',
+  'state-v41-expedition-returning.json': 'ee4fc931',
+  'state-v41-expedition.json': '9ea19eec',
+  'state-v41-famine-3x.json': 'a4bf437a',
+  'state-v41-famine-ended.json': '8dcd64d2',
+  'state-v41-famine-half.json': '7e5175b7',
+  'state-v41-famine-resumed.json': '92f1ebd4',
+  'state-v41-famine-smithy.json': '8cd9db50',
+  'state-v41-famine.json': '0e0ae834',
+  'state-v41-fresh.json': '59fc95fc',
+  'state-v41-guild.json': '342f51f8',
+  'state-v41-hero-captured.json': 'ebf1f752',
+  'state-v41-hero-injured.json': 'caa235ff',
+  'state-v41-hero-promised.json': '245fec4b',
+  'state-v41-horde-omens-exact.json': '392a1e30',
+  'state-v41-horde-omens-partial.json': 'f91e53d0',
+  'state-v41-horde-omens-vague.json': 'ebbe48d5',
+  'state-v41-housing-full.json': 'feb86cf0',
+  'state-v41-iron-king-half.json': 'e619bfd6',
+  'state-v41-market-council-effects.json': '360ef880',
+  'state-v41-market-opening.json': 'f65d95ef',
+  'state-v41-market.json': '7542072b',
+  'state-v41-master-waiting.json': 'e997a098',
+  'state-v41-masters.json': 'd0b6b6c0',
+  'state-v41-migrated-3x.json': '48fb167a',
+  'state-v41-migrated-iron-king-caravan.json': '92dfb226',
+  'state-v41-migrated-iron-king-half.json': '813083ef',
+  'state-v41-migrated-peasant-3x.json': '21d107be',
+  'state-v41-morale.json': 'c615068b',
+  'state-v41-objectives.json': '8913c469',
+  'state-v41-palisade.json': 'c58ea1b2',
+  'state-v41-peasant-3x.json': 'd56afbdf',
+  'state-v41-queues.json': '65aaf1f3',
+  'state-v41-raid-announced.json': '43a0c6eb',
+  'state-v41-raid.json': 'f9377eca',
+  'state-v41-siege-between-waves.json': '6fa44772',
+  'state-v41-siege-ended.json': '3c253aae',
+  'state-v41-siege-scheduled.json': 'a89a47e9',
+  'state-v41-smithy-forging.json': '63350ec2',
+  'state-v41-storage.json': '05ae8008',
+  'state-v41-tavern-busy.json': 'c989c090',
+  'state-v41-tavern.json': '70e9ba72',
+  'state-v41-threat.json': 'bdf337da',
+  'state-v41-vigil-fixed-offset.json': '740255d0',
+  'state-v41-wage-arrears-ended.json': '91a43e06',
+  'state-v41-wage-arrears-resumed.json': 'bf18c3ae',
+  'state-v41-wage-arrears.json': 'ba62baeb',
+  'state-v41-warehouse-full.json': 'e95b6e8c',
+  'state-v41-week-scripted.json': '316e0ba0',
   // V4H-T2: retratos v40 congelados antes do lote 3.
   'state-v40-campaign-defeated.json': '5d5f1688',
   'state-v40-campaign-marching.json': '4b03be13',
@@ -2218,7 +2281,8 @@ function fixedKeys(value: unknown, reference: unknown = value, path = ''): strin
     path === 'ids' ||
     path === 'stats' ||
     path === 'council.flags' ||
-    path === 'map.tiles';
+    path === 'map.tiles' ||
+    path === 'map.expeditionUnlocks';
   if (!isObject(value) || !isObject(reference) || freeKeys) {
     return [];
   }

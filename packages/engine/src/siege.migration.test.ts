@@ -22,6 +22,15 @@ describe('Cerco: estado 39 → 40', () => {
       ...before,
       schemaVersion: 40,
       siege: null,
+      // A junção já normaliza o Mercado histórico sem fromMs na fronteira;
+      // conservar a igualdade exata também para esse retrato (balance, Lobo Branco).
+      market: {
+        ...before.market,
+        effects: before.market.effects.map((effect: { fromMs?: number }) => ({
+          ...effect,
+          fromMs: effect.fromMs ?? before.lastProcessedAt,
+        })),
+      },
       settlement: { ...before.settlement, militia: null, reconstructionUntilMs: null },
     });
     expect(stateV40(after, '')).toBeNull();
@@ -35,7 +44,7 @@ describe('Cerco: estado 39 → 40', () => {
   });
   it('exige os campos novos e recusa cerco incompleto', () => {
     const state = newGame();
-    expect(state.schemaVersion).toBe(41);
+    expect(state.schemaVersion).toBe(42);
     expect(currentShape({ ...state, siege: {} }, '')).not.toBeNull();
     const { militia, ...settlement } = state.settlement;
     expect(militia).toBeNull();

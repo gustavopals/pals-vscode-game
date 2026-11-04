@@ -11,6 +11,9 @@ import {
   AUTUMN,
   campaignYard,
   accept,
+  addHero,
+  quietCouncil,
+  quietHorde,
   gameAt,
   caravanEscortScenario,
   caravanOrder,
@@ -86,6 +89,22 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  // V4H-T1.4: janela da caçada viva, com a continuação já agendada.
+  'white-wolf-window': () => {
+    const start = gameAt(AUTUMN + 1234);
+    quietCouncil(start);
+    quietHorde(start);
+    start.settlement.buildings.guild = 1;
+    addHero(start);
+    const seated = dealt(start, 'whiteWolf').state;
+    return accept(
+      seated,
+      command('answerCard', {
+        instanceId: seated.council.pending[0]!.instanceId,
+        optionId: 'hunt',
+      }),
+    ).state;
+  },
   'siege-ended': () => {
     const state = readySiege();
     return advanceTo(state, state.siege!.atMs + 2 * HOUR).state;
@@ -685,6 +704,10 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const all0 = () => Object.values(built);
 
     expect(of('fresh').lastProcessedAt).toBe(0);
+    expect(of('white-wolf-window').map.expeditionUnlocks).toEqual({
+      whiteWolfHunt: AUTUMN + 1234 + 6 * DAY,
+    });
+    expect(of('white-wolf-window').map.discovered).toContain('whiteWolfHunt');
     expect(of('construction').settlement.constructionQueues.some((slot) => slot !== null)).toBe(
       true,
     );
@@ -817,6 +840,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 18,
       discovered: [],
+      expeditionUnlocks: {},
     });
     expect(threat.settlement.buildings.watchtower).toBe(1);
     expect(threat.settlement.constructionQueues[0]).toMatchObject({
@@ -1075,10 +1099,10 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(Object.keys(returning.rng).filter((key) => key.includes(':'))).toEqual([
       'expedition:expedition-1',
     ]);
-    // Nos outros retratos a Guilda dos Aventureiros não existe: nenhuma expedição, nenhum
+    // Além da janela da caçada, a Guilda dos Aventureiros só existe nos seis retratos acima: nenhuma expedição, nenhum
     // relatório, nenhum fluxo de expedição.
     const withGuild = all0().filter((state) => state.settlement.buildings.guild > 0);
-    expect(withGuild).toHaveLength(6);
+    expect(withGuild).toHaveLength(7);
 
     // Os desfechos (versão 18): o que o próximo passo de migração precisa encontrar.
     const injured = of('hero-injured');
