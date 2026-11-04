@@ -1,5 +1,6 @@
 import { balance, type ItemId, itemRarities, items } from '../../packages/content/src/index';
-import { advanceTo, type GameState } from '../../packages/engine/src/index';
+import { advanceTo, type GameState, migrateState } from '../../packages/engine/src/index';
+import { quietSiege } from '../../packages/engine/src/test-helpers';
 import type { FastifyInstance } from 'fastify';
 
 import { buildApp } from '../../packages/server/src/app';
@@ -135,6 +136,21 @@ control.post('/__test/council-deal', async (request) => {
  * que `quietHorde` faz nos testes de integração do servidor.
  */
 const NEVER_GAME_MS = 1000 * 84 * 2 * 3_600_000;
+
+/** Isola contas de estação da perda de habitantes e estoques na Queda, como no motor. */
+control.post('/__test/siege-quiet', async () => {
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const { id, state } of games.rows) {
+    quietSiege(state);
+    migrateState(state, { timeScale: state.settings.timeScale });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
 /** Relatório de uma batalha real, com a Defesa ativa do cenário; nunca existe em produção. */
 control.post('/__test/battle', async () => {
   const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
@@ -181,24 +197,25 @@ control.post('/__test/siege', async (request) => {
     state.settlement.buildings.palisade = 3;
     state.settlement.buildings.watchtower = 3;
     state.settlement.wall.hp = { left: 40, center: 40, right: 40 };
-    state.army.units.knight = 60;
-    state.army.units.archer = 60;
+    // Seis postos de oito: 48 soldados cabem no Quartel Nv5 (120 não cabiam).
+    state.army.units.knight = 24;
+    state.army.units.archer = 24;
     state.ids.formation = (state.ids.formation ?? 0) + 2;
     const formations = [state.ids.formation - 1, state.ids.formation].map((number, index) => ({
       id: `formation-${number}`,
       name: index === 0 ? 'Muralha Firme' : 'Guarda do Inverno',
       posts: {
         left: {
-          front: { unit: 'knight' as const, count: 20 },
-          back: { unit: 'archer' as const, count: 20 },
+          front: { unit: 'knight' as const, count: 8 },
+          back: { unit: 'archer' as const, count: 8 },
         },
         center: {
-          front: { unit: 'knight' as const, count: 20 },
-          back: { unit: 'archer' as const, count: 20 },
+          front: { unit: 'knight' as const, count: 8 },
+          back: { unit: 'archer' as const, count: 8 },
         },
         right: {
-          front: { unit: 'knight' as const, count: 20 },
-          back: { unit: 'archer' as const, count: 20 },
+          front: { unit: 'knight' as const, count: 8 },
+          back: { unit: 'archer' as const, count: 8 },
         },
       },
       commanders: { left: null, center: null, right: null },
@@ -229,18 +246,20 @@ control.post('/__test/siege', async (request) => {
             wing: 'left',
             line: 'front',
             unit: opposition === 'small' ? 'raider' : 'ogre',
-            count: opposition === 'small' ? 1 : 100,
+            count: opposition === 'small' ? 1 : 50,
           },
           { wing: 'center', line: 'front', unit: number === 3 ? 'warlord' : 'raider', count: 1 },
           {
             wing: 'right',
             line: 'front',
             unit: opposition === 'small' ? 'raider' : 'ogre',
-            count: opposition === 'small' ? 1 : 100,
+            count: opposition === 'small' ? 1 : 50,
           },
         ],
       })),
     };
+    // A preparação precisa passar pela mesma guarda da API; falha aqui, antes do polling.
+    migrateState(state, { timeScale: state.settings.timeScale });
     await pool.query('update games set state = $2::jsonb where id = $1', [
       game.id,
       JSON.stringify(state),

@@ -705,6 +705,9 @@ test.describe('telas estreitas', () => {
   }) => {
     const page = await world.open(context);
     await playNow(page);
+    // Mantém a queda de moral causada só pelo frio: a Queda do Cerco mudaria a população
+    // e anteciparia a falta de lenha, retirando a previsão que este cabeçalho precisa provar.
+    await world.control('siege-quiet');
     const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
     for (const free of [4, 3, 2, 1, 0]) {
       await plus.click();

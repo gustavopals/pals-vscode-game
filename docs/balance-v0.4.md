@@ -1597,3 +1597,25 @@ regravar goldens ou remedir faixas.
 no motor. O requisito alternativo só existe no teste, comprovando que a recusa
 acompanha o conteúdo; o texto publicado continua idêntico. Nenhuma faixa,
 estatística, regra ou retrato foi alterado.
+
+## V4-JUNCAO3 — correções dos cenários em navegador (2026-11-04)
+
+A preparação de `/__test/siege` gravava 120 soldados em um Quartel com limite
+de 50; a guarda do estado recusava a leitura com 500, e o navegador aguardava
+um ciclo que não podia terminar. Agora são 48 soldados em seis postos de oito.
+A oposição esmagadora usa 101 inimigos por onda, dentro do teto de 105, e
+continua provocando a Queda contra o feudo sem Defesa. A preparação passa por
+`migrateState` antes da escrita, antecipando qualquer erro de forma. São números
+de cenário, sem mudança no conteúdo, no combate ou nas faixas do simulador.
+
+Os dois cenários de lenha e cabeçalho adiam o Cerco com `quietSiege`, pelo mesmo
+helper usado nas contas de estação do motor. A Queda tirava um aldeão, alterava
+o consumo de 2,5/h para 2/h e antecipava a queda de moral. As expectativas
+numéricas e a prova da previsão de moral ficam exatas; não se trocou a conta
+por uma tolerância. Os cenários próprios continuam atravessando batalhas,
+ausência, Queda e reconstrução. O plano confere o rótulo público atual
+“Usar a Defesa ativa”, preservando a prova da ordem e das três ondas.
+
+Verificação deste grupo: 13 cenários aprovados em execuções individuais com
+saída 0 (oito de Cerco, três de Retorno nos temas e dois de economia/cabeçalho).
+Incluem 720 px, foco, teclado, contraste, prazo no ritmo Rápido e modo discreto.

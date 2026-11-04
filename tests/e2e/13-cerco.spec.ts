@@ -16,9 +16,8 @@ import {
   type World,
 } from './helpers';
 
-// V4G-T4: cenários escritos sem execução nesta trilha. A rota só prepara o Cerco;
-// a tela envia as ordens e o motor resolve as ondas. Milícia e Markdown anual dependem
-// dos campos/rotas registrados em G-15–G-17, sem expectativa inventada aqui.
+// V4G-T4: a rota só prepara o Cerco; a tela envia as ordens e o motor resolve as ondas.
+// A terceira junção executa estes cenários contra a API real, inclusive nos três temas.
 const panel = (page: Page) => page.getByTestId('siege-panel');
 
 async function openSiege(
@@ -77,7 +76,7 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     await picker.getByRole('option', { name: /Usar a Defesa ativa/ }).click();
     await expect(picker).toHaveCount(0);
     await expect(page.getByTestId('siege-decision')).toContainText(
-      'Formação marcada: Defesa ativa',
+      'Formação marcada: Usar a Defesa ativa',
     );
     expect(sent).toContainEqual({
       type: 'swapWaveFormation',

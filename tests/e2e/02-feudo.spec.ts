@@ -503,6 +503,9 @@ test.describe('estações, lenha e frio', () => {
   }) => {
     const page = await world.open(context);
     await playNow(page);
+    // A Queda tira habitantes e estoques; este cenário prova as contas exatas das estações
+    // com os mesmos cinco aldeões. O combate continua nos cenários próprios do Cerco.
+    await world.control('siege-quiet');
     // Todos na Fazenda: a comida não falta até o inverno, e ninguém corta lenha.
     const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
     for (const free of [4, 3, 2, 1, 0]) {
