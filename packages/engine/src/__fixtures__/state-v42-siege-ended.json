@@ -81,9 +81,9 @@
   ],
   "wall": {
    "hp": {
-    "left": 0,
-    "center": 674,
-    "right": 387
+    "left": 666,
+    "center": 775,
+    "right": 749
    }
   },
   "wallRepair": null,
@@ -170,13 +170,13 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -188,13 +188,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -205,19 +205,19 @@
       "wing": "left",
       "line": "front",
       "unit": "wolf",
-      "count": 15
+      "count": 5
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "count": 27
+      "count": 9
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 18
+      "count": 6
      }
     ]
    },
@@ -228,7 +228,7 @@
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -240,19 +240,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "skeleton",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    }
@@ -301,13 +301,13 @@
        "wing": "left",
        "line": "front",
        "unit": "raider",
-       "count": 12
+       "count": 4
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "raider",
-       "count": 14
+       "count": 4
       },
       {
        "wing": "center",
@@ -319,13 +319,13 @@
        "wing": "right",
        "line": "front",
        "unit": "raider",
-       "count": 11
+       "count": 3
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "banditArcher",
-       "count": 2
+       "count": 1
       }
      ]
     },
@@ -336,19 +336,19 @@
        "wing": "left",
        "line": "front",
        "unit": "wolf",
-       "count": 15
+       "count": 5
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "wolf",
-       "count": 27
+       "count": 9
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "raider",
-       "count": 18
+       "count": 6
       }
      ]
     },
@@ -359,7 +359,7 @@
        "wing": "left",
        "line": "front",
        "unit": "skeleton",
-       "count": 29
+       "count": 9
       },
       {
        "wing": "center",
@@ -371,19 +371,19 @@
        "wing": "center",
        "line": "back",
        "unit": "shaman",
-       "count": 17
+       "count": 6
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "skeleton",
-       "count": 28
+       "count": 9
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "shaman",
-       "count": 6
+       "count": 2
       }
      ]
     }
@@ -395,19 +395,19 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 1,
-    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -419,13 +419,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -434,13 +434,13 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 3,
-    "text": "Um desertor desenha no chão, para a terceira onda: 29 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 17 xamãs na retaguarda pelo centro; 28 esqueletos na frente pela ala direita; 6 xamãs na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a terceira onda: 9 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 6 xamãs na retaguarda pelo centro; 9 esqueletos na frente pela ala direita; 2 xamãs na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -452,19 +452,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "skeleton",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    }
@@ -576,31 +576,23 @@
     "mode": "defense",
     "outcome": "victory",
     "ending": "annihilation",
-    "rounds": 2,
+    "rounds": 1,
     "decisive": [
-     {
-      "factor": "wallAbsorbed",
-      "owner": "player",
-      "amount": 204,
-      "wing": null,
-      "round": 1,
-      "percent": 90
-     },
      {
       "factor": "counter",
       "owner": "player",
-      "amount": 160,
+      "amount": 81,
       "wing": null,
       "round": 1,
       "percent": null
      },
      {
-      "factor": "tower",
+      "factor": "wallAbsorbed",
       "owner": "player",
-      "amount": 144,
-      "wing": null,
+      "amount": 6,
+      "wing": "left",
       "round": 1,
-      "percent": null
+      "percent": 46
      }
     ],
     "casualties": [
@@ -657,16 +649,16 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "start": 12,
-      "lost": 12
+      "start": 4,
+      "lost": 4
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "start": 14,
-      "lost": 14
+      "start": 4,
+      "lost": 4
      },
      {
       "owner": "horde",
@@ -681,33 +673,33 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 11,
-      "lost": 11
+      "start": 3,
+      "lost": 3
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "start": 2,
-      "lost": 2
+      "start": 1,
+      "lost": 1
      }
     ],
     "wall": [
      {
       "wing": "left",
       "start": 800,
-      "end": 741
+      "end": 794
      },
      {
       "wing": "center",
       "start": 800,
-      "end": 699
+      "end": 800
      },
      {
       "wing": "right",
       "start": 800,
-      "end": 756
+      "end": 800
      }
     ],
     "commanders": [],
@@ -729,29 +721,29 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 57,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 8,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
         "damage": 69,
         "casualties": 3
        },
        {
         "actor": {
          "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "archer",
+        "count": 8,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 84,
+        "casualties": 4
+       },
+       {
+        "actor": {
+         "owner": "player",
          "wing": "right",
          "line": "back"
         },
@@ -763,7 +755,7 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 62,
+        "damage": 74,
         "casualties": 3
        },
        {
@@ -773,212 +765,7 @@
          "line": "back"
         },
         "unit": "banditArcher",
-        "count": 2,
-        "target": {
-         "owner": "player",
-         "wing": "right",
-         "line": "back"
-        },
-        "wall": 0,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "unit": "raider",
-        "count": 9,
-        "target": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 54,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "raider",
-        "count": 11,
-        "target": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 86,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back"
-        },
-        "unit": "shaman",
         "count": 1,
-        "target": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "unit": "raider",
-        "count": 8,
-        "target": {
-         "owner": "player",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 44,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 47,
-        "casualties": 2
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 44,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "right",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 48,
-        "casualties": 3
-       }
-      ],
-      "casualties": {
-       "player": 0,
-       "horde": 23
-      },
-      "morale": {
-       "player": 100,
-       "horde": 100
-      },
-      "wall": {
-       "left": 746,
-       "center": 714,
-       "right": 756
-      }
-     },
-     {
-      "round": 2,
-      "attacks": [
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 60,
-        "casualties": 4
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 8,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 81,
-        "casualties": 4
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "right",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 77,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back"
-        },
-        "unit": "banditArcher",
-        "count": 2,
         "target": {
          "owner": "player",
          "wing": "right",
@@ -1001,24 +788,7 @@
          "wing": "left",
          "line": "front"
         },
-        "wall": 5,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "raider",
-        "count": 2,
-        "target": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 15,
+        "wall": 6,
         "damage": 0,
         "casualties": 0
        },
@@ -1053,7 +823,7 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 54,
+        "damage": 57,
         "casualties": 1
        },
        {
@@ -1067,11 +837,11 @@
         "target": {
          "owner": "horde",
          "wing": "center",
-         "line": "front"
+         "line": "back"
         },
         "wall": 0,
-        "damage": 61,
-        "casualties": 2
+        "damage": 54,
+        "casualties": 1
        },
        {
         "actor": {
@@ -1087,22 +857,22 @@
          "line": "back"
         },
         "wall": 0,
-        "damage": 58,
-        "casualties": 2
+        "damage": 59,
+        "casualties": 1
        }
       ],
       "casualties": {
        "player": 0,
-       "horde": 17
+       "horde": 13
       },
       "morale": {
        "player": 100,
        "horde": -10
       },
       "wall": {
-       "left": 741,
-       "center": 699,
-       "right": 756
+       "left": 794,
+       "center": 800,
+       "right": 800
       }
      }
     ]
@@ -1114,12 +884,12 @@
     "mode": "defense",
     "outcome": "victory",
     "ending": "annihilation",
-    "rounds": 3,
+    "rounds": 1,
     "decisive": [
      {
       "factor": "wallAbsorbed",
       "owner": "player",
-      "amount": 737,
+      "amount": 119,
       "wing": null,
       "round": 1,
       "percent": 100
@@ -1127,15 +897,15 @@
      {
       "factor": "tower",
       "owner": "player",
-      "amount": 216,
-      "wing": null,
+      "amount": 36,
+      "wing": "center",
       "round": 1,
       "percent": null
      },
      {
       "factor": "counter",
       "owner": "player",
-      "amount": 74,
+      "amount": 24,
       "wing": "right",
       "round": 1,
       "percent": null
@@ -1195,41 +965,41 @@
       "wing": "left",
       "line": "front",
       "unit": "wolf",
-      "start": 15,
-      "lost": 15
+      "start": 5,
+      "lost": 5
      },
      {
       "owner": "horde",
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "start": 27,
-      "lost": 27
+      "start": 9,
+      "lost": 9
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "start": 18,
-      "lost": 18
+      "start": 6,
+      "lost": 6
      }
     ],
     "wall": [
      {
       "wing": "left",
-      "start": 741,
-      "end": 157
+      "start": 794,
+      "end": 694
      },
      {
       "wing": "center",
-      "start": 699,
-      "end": 699
+      "start": 800,
+      "end": 800
      },
      {
       "wing": "right",
-      "start": 756,
-      "end": 603
+      "start": 800,
+      "end": 781
      }
     ],
     "commanders": [],
@@ -1244,13 +1014,13 @@
          "line": "front"
         },
         "unit": "wolf",
-        "count": 15,
+        "count": 5,
         "target": {
          "owner": "player",
          "wing": "left",
          "line": "front"
         },
-        "wall": 115,
+        "wall": 38,
         "damage": 0,
         "casualties": 0
        },
@@ -1261,13 +1031,13 @@
          "line": "front"
         },
         "unit": "wolf",
-        "count": 27,
+        "count": 9,
         "target": {
          "owner": "player",
          "wing": "left",
          "line": "front"
         },
-        "wall": 187,
+        "wall": 62,
         "damage": 0,
         "casualties": 0
        },
@@ -1285,8 +1055,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 36,
-        "casualties": 2
+        "damage": 46,
+        "casualties": 3
        },
        {
         "actor": {
@@ -1302,8 +1072,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 37,
-        "casualties": 2
+        "damage": 55,
+        "casualties": 3
        },
        {
         "actor": {
@@ -1319,8 +1089,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 47,
-        "casualties": 2
+        "damage": 65,
+        "casualties": 3
        },
        {
         "actor": {
@@ -1329,13 +1099,13 @@
          "line": "front"
         },
         "unit": "raider",
-        "count": 16,
+        "count": 3,
         "target": {
          "owner": "player",
          "wing": "right",
          "line": "front"
         },
-        "wall": 102,
+        "wall": 19,
         "damage": 0,
         "casualties": 0
        },
@@ -1350,307 +1120,16 @@
         "target": {
          "owner": "horde",
          "wing": "left",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 42,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 29,
-        "casualties": 2
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "right",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 40,
-        "casualties": 2
-       }
-      ],
-      "casualties": {
-       "player": 0,
-       "horde": 21
-      },
-      "morale": {
-       "player": 100,
-       "horde": 100
-      },
-      "wall": {
-       "left": 439,
-       "center": 699,
-       "right": 654
-      }
-     },
-     {
-      "round": 2,
-      "attacks": [
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "unit": "wolf",
-        "count": 7,
-        "target": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 53,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "wolf",
-        "count": 20,
-        "target": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 147,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 38,
-        "casualties": 2
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 8,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 47,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "right",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 58,
-        "casualties": 4
-       },
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "unit": "raider",
-        "count": 8,
-        "target": {
-         "owner": "player",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 51,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 54,
-        "casualties": 4
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 41,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "right",
-         "line": "front"
-        },
-        "unit": "shieldbearer",
-        "count": 20,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 52,
-        "casualties": 2
-       }
-      ],
-      "casualties": {
-       "player": 0,
-       "horde": 24
-      },
-      "morale": {
-       "player": 100,
-       "horde": 70
-      },
-      "wall": {
-       "left": 239,
-       "center": 699,
-       "right": 603
-      }
-     },
-     {
-      "round": 3,
-      "attacks": [
-       {
-        "actor": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "unit": "wolf",
-        "count": 11,
-        "target": {
-         "owner": "player",
-         "wing": "left",
-         "line": "front"
-        },
-        "wall": 82,
-        "damage": 0,
-        "casualties": 0
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 49,
-        "casualties": 3
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "center",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 8,
-        "target": {
-         "owner": "horde",
-         "wing": "center",
          "line": "front"
         },
         "wall": 0,
         "damage": 53,
-        "casualties": 4
+        "casualties": 2
        },
        {
         "actor": {
          "owner": "player",
-         "wing": "right",
-         "line": "back"
-        },
-        "unit": "archer",
-        "count": 6,
-        "target": {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front"
-        },
-        "wall": 0,
-        "damage": 71,
-        "casualties": 4
-       },
-       {
-        "actor": {
-         "owner": "player",
-         "wing": "left",
+         "wing": "center",
          "line": "front"
         },
         "unit": "shieldbearer",
@@ -1661,22 +1140,39 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 63,
+        "damage": 48,
         "casualties": 4
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "shieldbearer",
+        "count": 20,
+        "target": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 60,
+        "casualties": 3
        }
       ],
       "casualties": {
        "player": 0,
-       "horde": 15
+       "horde": 20
       },
       "morale": {
        "player": 100,
        "horde": 10
       },
       "wall": {
-       "left": 157,
-       "center": 699,
-       "right": 603
+       "left": 694,
+       "center": 800,
+       "right": 781
       }
      }
     ]
@@ -1691,25 +1187,25 @@
     "rounds": 2,
     "decisive": [
      {
-      "factor": "wallAbsorbed",
+      "factor": "tower",
       "owner": "player",
-      "amount": 398,
-      "wing": null,
-      "round": 1,
-      "percent": 82
-     },
-     {
-      "factor": "aura",
-      "owner": "horde",
-      "amount": 148,
+      "amount": 108,
       "wing": null,
       "round": 1,
       "percent": null
      },
      {
-      "factor": "tower",
+      "factor": "wallAbsorbed",
       "owner": "player",
-      "amount": 108,
+      "amount": 85,
+      "wing": null,
+      "round": 1,
+      "percent": 74
+     },
+     {
+      "factor": "aura",
+      "owner": "horde",
+      "amount": 34,
       "wing": null,
       "round": 1,
       "percent": null
@@ -1769,8 +1265,8 @@
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "start": 29,
-      "lost": 3
+      "start": 9,
+      "lost": 8
      },
      {
       "owner": "horde",
@@ -1785,7 +1281,7 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "start": 17,
+      "start": 6,
       "lost": 0
      },
      {
@@ -1793,33 +1289,33 @@
       "wing": "right",
       "line": "front",
       "unit": "skeleton",
-      "start": 28,
-      "lost": 3
+      "start": 9,
+      "lost": 7
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "start": 6,
+      "start": 2,
       "lost": 0
      }
     ],
     "wall": [
      {
       "wing": "left",
-      "start": 157,
-      "end": 0
+      "start": 694,
+      "end": 666
      },
      {
       "wing": "center",
-      "start": 699,
-      "end": 674
+      "start": 800,
+      "end": 775
      },
      {
       "wing": "right",
-      "start": 603,
-      "end": 387
+      "start": 781,
+      "end": 749
      }
     ],
     "commanders": [],
@@ -1841,8 +1337,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 9,
-        "casualties": 0
+        "damage": 27,
+        "casualties": 1
        },
        {
         "actor": {
@@ -1875,8 +1371,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 10,
-        "casualties": 0
+        "damage": 36,
+        "casualties": 2
        },
        {
         "actor": {
@@ -1902,14 +1398,14 @@
          "line": "back"
         },
         "unit": "shaman",
-        "count": 17,
+        "count": 6,
         "target": {
          "owner": "player",
          "wing": "center",
          "line": "front"
         },
         "wall": 0,
-        "damage": 12,
+        "damage": 4,
         "casualties": 0
        },
        {
@@ -1919,14 +1415,14 @@
          "line": "back"
         },
         "unit": "shaman",
-        "count": 6,
+        "count": 2,
         "target": {
          "owner": "player",
          "wing": "right",
          "line": "front"
         },
         "wall": 0,
-        "damage": 4,
+        "damage": 1,
         "casualties": 0
        },
        {
@@ -1943,8 +1439,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 10,
-        "casualties": 1
+        "damage": 38,
+        "casualties": 3
        },
        {
         "actor": {
@@ -1977,8 +1473,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 12,
-        "casualties": 1
+        "damage": 49,
+        "casualties": 3
        },
        {
         "actor": {
@@ -1987,13 +1483,13 @@
          "line": "front"
         },
         "unit": "skeleton",
-        "count": 28,
+        "count": 5,
         "target": {
          "owner": "player",
          "wing": "left",
          "line": "front"
         },
-        "wall": 157,
+        "wall": 28,
         "damage": 0,
         "casualties": 0
        },
@@ -2004,29 +1500,29 @@
          "line": "front"
         },
         "unit": "skeleton",
-        "count": 27,
+        "count": 4,
         "target": {
          "owner": "player",
          "wing": "right",
          "line": "front"
         },
-        "wall": 216,
+        "wall": 32,
         "damage": 0,
         "casualties": 0
        }
       ],
       "casualties": {
        "player": 0,
-       "horde": 6
+       "horde": 13
       },
       "morale": {
        "player": 100,
        "horde": 100
       },
       "wall": {
-       "left": 0,
-       "center": 674,
-       "right": 387
+       "left": 666,
+       "center": 775,
+       "right": 749
       }
      },
      {
@@ -2046,8 +1542,8 @@
          "line": "front"
         },
         "wall": 0,
-        "damage": 7,
-        "casualties": 0
+        "damage": 39,
+        "casualties": 2
        },
        {
         "actor": {
@@ -2069,16 +1565,16 @@
       ],
       "casualties": {
        "player": 0,
-       "horde": 1
+       "horde": 3
       },
       "morale": {
        "player": 100,
        "horde": 90
       },
       "wall": {
-       "left": 0,
-       "center": 674,
-       "right": 387
+       "left": 666,
+       "center": 775,
+       "right": 749
       }
      }
     ]

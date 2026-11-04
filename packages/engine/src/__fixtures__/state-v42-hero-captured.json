@@ -170,13 +170,13 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -188,13 +188,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -205,19 +205,19 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 15
+      "count": 5
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "ogre",
-      "count": 27
+      "count": 9
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "wolf",
-      "count": 18
+      "count": 6
      }
     ]
    },
@@ -228,7 +228,7 @@
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -240,19 +240,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    }
@@ -295,13 +295,13 @@
        "wing": "left",
        "line": "front",
        "unit": "raider",
-       "count": 12
+       "count": 4
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "raider",
-       "count": 14
+       "count": 4
       },
       {
        "wing": "center",
@@ -313,13 +313,13 @@
        "wing": "right",
        "line": "front",
        "unit": "raider",
-       "count": 11
+       "count": 3
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "banditArcher",
-       "count": 2
+       "count": 1
       }
      ]
     },
@@ -330,19 +330,19 @@
        "wing": "left",
        "line": "front",
        "unit": "raider",
-       "count": 15
+       "count": 5
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "ogre",
-       "count": 27
+       "count": 9
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "wolf",
-       "count": 18
+       "count": 6
       }
      ]
     },
@@ -353,7 +353,7 @@
        "wing": "left",
        "line": "front",
        "unit": "skeleton",
-       "count": 29
+       "count": 9
       },
       {
        "wing": "center",
@@ -365,19 +365,19 @@
        "wing": "center",
        "line": "back",
        "unit": "shaman",
-       "count": 17
+       "count": 6
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "blackKnight",
-       "count": 28
+       "count": 9
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "shaman",
-       "count": 6
+       "count": 2
       }
      ]
     }

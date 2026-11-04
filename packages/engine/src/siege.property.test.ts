@@ -98,6 +98,11 @@ describe('propriedades do cerco: divisão de intervalo exata (V4G-T2.9)', () => 
         (difficulty, timeScale, seed, decisionFraction, action) => {
           const state = readySiege(difficulty, timeScale);
           state.seed = `prop-decisao-${seed}`;
+          // No ano 1 a 1ª onda tem um terço do tamanho (9 inimigos em Camponês): os 20 arqueiros e
+          // a Torre Nv5 podem liquidar a frente na fase de tiro antes do corpo a corpo e deixar a
+          // muralha intacta (WALL_INTACT). Um ponto de dano prévio garante que emergencyRepair
+          // seja aceito em toda dificuldade e semente, sem afrouxar a asserção de aceite.
+          state.settlement.wall.hp.center -= 1;
 
           state.ids.formation = 2;
           state.army.formations.push({
