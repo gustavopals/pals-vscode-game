@@ -1,3 +1,4 @@
+import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
 import {
   alocarPorDemanda,
   alocarPorDemandaFor,
@@ -14,10 +15,8 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartas,
-  responderCerco,
   montarFormacao,
   seguirObjetivos,
-  treinarMinimo,
   venderExcedente,
 } from './policies';
 import { type Bot, botOf, type Policy } from './types';
@@ -59,7 +58,11 @@ import { type Bot, botOf, type Policy } from './types';
  * Lanceiros e Arqueiros com o que sobra e, desde a V4E-T2.7, **monta com eles uma formação e a
  * deixa como Defesa ativa** (`montarFormacao`, logo depois do treino): toda incursão é batalha.
  *
- * A Paliçada vem na frente de tudo: é a defesa, e só entra quando a Ameaça que a Torre mostra
+ * Desde a V4G-T5.3, no outono e durante o Cerco aberto, prepara a infraestrutura militar,
+ * treina até onde a oferta e a economia permitem e salva o Plano pelas prévias por onda.
+ * A preparação vem antes das demais obras; fora desse período conserva a política mínima.
+ *
+ * A Paliçada vem antes das outras obras econômicas: é a defesa, e só entra quando a Ameaça que a Torre mostra
  * passou do limiar das incursões (sem Torre o bot não sabe de nada, e não a ergue).
  *
  * Os objetivos vêm logo depois: são o tutorial do jogo, e quem os segue recebe cada ferramenta
@@ -74,6 +77,7 @@ import { type Bot, botOf, type Policy } from './types';
  * sobra da visita, nunca a comida de um recruta nem o material de uma obra que podia começar.
  */
 export const economicoPolicies: readonly Policy[] = [
+  prepareSiege,
   erguerPalicada,
   seguirObjetivos,
   erguerQuartel,
@@ -82,9 +86,9 @@ export const economicoPolicies: readonly Policy[] = [
   ampliarEstoque,
   planejarAutomaticas,
   recrutar,
-  treinarMinimo,
+  trainForSiege,
   montarFormacao,
-  responderCerco,
+  respondPreparedSiege,
   responderCartas,
   alocarPorDemanda,
   alocarMestre,

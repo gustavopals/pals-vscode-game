@@ -933,3 +933,32 @@ continua aberta até o prazo de seis dias).
 **H-12. Condição de chegada e recompensa da pele em `forestReturns` (`whiteWolf.hunt`).** _(Proposta do agente; não lida pelo autor.)_
 - Enquanto isso: na opção `hunt` de `whiteWolf` (§6.5), a ficha aprovada agenda `forestReturns` (§7.1) para 5 dias depois (`scheduleCard(forestReturns, 5)`) e grava `whiteWolf.hunt` no ato da escolha. Como os textos e as recompensas das fichas §§6.5, 6.6 e 7.1 foram aprovados pelo autor, foram mantidos sem alteração: (1) se o jogador escolher `hunt` mas não enviar `whiteWolfHunt` ou falhar no combate da fera, `forestReturns` ainda chega 5 dias depois com a variante `whiteWolf.hunt` ("Os caçadores voltaram com a pele alva…") e permite vender ou reclamar uma pele que não foi obtida; (2) quando a caçada vence o nó da fera, o encontro de `whiteWolfHunt` (§6.6) já paga `+40–70 ouro` e `+10–20 comida` ("trouxeram a pele alva") e, em `forestReturns` (§7.1), `claim` (`+70 ouro, +40 comida, +5 moral`) ou `sell` (`+120 ouro, −5 moral`) pagam novamente pela mesma pele.
 - Recomendação para o autor: gravar uma flag própria (por exemplo, `whiteWolf.slain`) somente quando `whiteWolfHunt` voltar com Sucesso ou Sucesso Pleno no nó da fera, exigir a pele vencida como condição para a variante da caçada em `forestReturns` (ou cancelar/desviar a carta agendada quando a janela fechar sem abate) e decidir se o ouro/comida do encontro em §6.6 deve ficar concentrado apenas na resolução de `forestReturns` (§7.1) ou se os dois pagamentos são intencionais.
+
+## V4G-T5.3 — preparo dos bots (2026-11-04)
+
+**BOT-1. Prioridades de outono.** _(Proposta do agente; não lida pelo autor.)_
+Regular, Dedicado, Explorador e Militar passam a melhorar Quartel, Torre e Muralha
+no outono e durante o Cerco ainda aberto. Priorizam os níveis abaixo de 3 e depois
+o menor nível disponível, pagando somente o que a visão libera e preservando a
+lenha. O treino deixa o limite heurístico de um quarto da população nesse período:
+tenta alcançar o teto público do Quartel com os lotes ofertados, reserva de moral
+coberta e braços para alimentar o lote. A alocação protege a Fazenda contra os
+trabalhadores que serão convertidos no fim do treino. Enquanto há espaço no exército,
+o lavrador extra de crescimento continua produzindo comida mesmo com as casas cheias. Não cria visitas adicionais, armamento, regra ou bônus.
+O Preguiçoso conserva as políticas mínimas anteriores.
+
+**BOT-2. Plano sem adivinhar a Horda.** _(Proposta do agente; não lida pelo autor.)_
+O bot preparado compara duas disposições fixas, distribuídas em três alas ou com
+uma frente livre para a milícia, com as prévias públicas de cada onda. Prefere maior
+vitória prevista, depois menores baixas e maior efetivo empregado. Sem informação
+de inimigos na prévia, não considera os 100% contra amostra vazia como segurança.
+Dentro da antecedência pública, reserva uma frente e convoca somente se a oferta
+atual permitir, quando o risco é alto ou a composição ainda é desconhecida.
+Comandantes e visitas continuam como antes; o Militar conserva sua finta de outono.
+
+**BOT-3. Planejadas após a Queda.** _(Proposta do agente; não lida pelo autor.)_
+A visão pode mostrar a melhoria imediata como não planejada e conservar uma
+planejada do mesmo edifício para um nível mais alto. Os bots passam a conferir
+ambas as listas antes de planejar. Conservam o plano alto e reconstroem os níveis
+intermediários por ordens aceitas; não apagam intenção nem mandam ordem para testar
+uma recusa. A exigência de zero recusas permanece nos testes.

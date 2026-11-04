@@ -1,5 +1,6 @@
+import { trainForSiege, siegeTrainingPolicy } from './siegePreparation';
 import { economicoPolicies, preparedFor } from './economico';
-import { erguerFerreiro, forjarArmas, treinarMinimo, treinarSoldados } from './policies';
+import { erguerFerreiro, forjarArmas } from './policies';
 import { montarFormacao } from './policies';
 import { prepararFinta } from './finta';
 import { botOf, type Bot, type Policy } from './types';
@@ -22,8 +23,8 @@ export const militarPolicies: readonly Policy[] = [
   erguerFerreiro,
   forjarArmas,
   ...economicoPolicies.map((policy) =>
-    policy === treinarMinimo
-      ? treinarSoldados(['swordsman', 'spearman', 'archer'])
+    policy === trainForSiege
+      ? siegeTrainingPolicy(['swordsman', 'spearman', 'archer'])
       : policy === montarFormacao
         ? prepararFinta
         : policy,

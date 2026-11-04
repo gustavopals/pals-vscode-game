@@ -6,7 +6,8 @@ import { readySiege } from '../../../engine/src/siege.test-helpers';
 import { HOUR } from '../../../engine/src/test-helpers';
 import { applySimCommand, type SimCommand } from '../engine';
 import { strategyPolicies } from './index';
-import { responderCerco } from './policies';
+import { responderCerco, planejarAutomaticas } from './policies';
+import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
 import type { Act } from './types';
 
 function scenario(initial = readySiege()) {
@@ -33,7 +34,9 @@ function afterFirstWave(): GameState {
 describe('os bots atravessam o cerco (V4G-T2.10)', () => {
   it('todos os perfis respondem ao cerco depois de montar ou fintar a Defesa ativa', () => {
     for (const policies of Object.values(strategyPolicies)) {
-      const index = policies.indexOf(responderCerco);
+      const index = policies.findIndex((policy) =>
+        [responderCerco, respondPreparedSiege].includes(policy),
+      );
       expect(index).toBeGreaterThan(0);
       expect(['montar a formação', 'fintar a Horda']).toContain(policies[index - 1]?.name);
     }
@@ -194,5 +197,115 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
       { type: 'callMilitia', payload: { count: state.settlement.population.villagers / 2 } },
     ]);
     expect(raidPreviewGame.refused).toEqual([]);
+  });
+});
+
+describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
+  it('só os bots preparados ampliam a infraestrutura e o treino de outono', () => {
+    expect(strategyPolicies.preguicoso).not.toContain(prepareSiege);
+    expect(strategyPolicies.preguicoso).not.toContain(trainForSiege);
+    for (const name of ['economico', 'explorador', 'militar'] as const) {
+      expect(strategyPolicies[name]).toContain(prepareSiege);
+      expect(strategyPolicies[name]).toContain(respondPreparedSiege);
+    }
+  });
+
+  it('melhora Quartel, Torre e Muralha já existentes sem depender da Ameaça escondida', async () => {
+    const state = readySiege();
+    state.settlement.buildings.barracks = 1;
+    state.settlement.buildings.watchtower = 1;
+    state.settlement.buildings.palisade = 1;
+    state.army.units = { spearman: 5, archer: 5, swordsman: 0, knight: 0, shieldbearer: 0 };
+    const game = scenario(state);
+    await prepareSiege.run(game.view(), game.act);
+    expect(game.orders).toContainEqual(
+      expect.objectContaining({ type: 'startConstruction', payload: { building: 'barracks' } }),
+    );
+    for (const building of ['watchtower', 'palisade']) {
+      expect(
+        game.orders.some(
+          ({ type, payload }) =>
+            ['startConstruction', 'planConstruction'].includes(type) &&
+            'building' in payload &&
+            payload.building === building,
+        ),
+      ).toBe(true);
+    }
+    expect(game.refused).toEqual([]);
+  });
+
+  it('não duplica planejada de nível alto conservada após a Queda', async () => {
+    const state = readySiege();
+    state.settlement.buildings.barracks = 2;
+    state.settlement.planned = [{ building: 'barracks', targetLevel: 6, autoStart: false }];
+    state.settlement.resources.wood = 0;
+    const game = scenario(state);
+    expect(
+      game.view().constructions.available.find(({ building }) => building === 'barracks')?.planned,
+    ).toBe(false);
+    await prepareSiege.run(game.view(), game.act);
+    await planejarAutomaticas.run(game.view(), game.act);
+    expect(
+      game.orders.filter(
+        ({ type, payload }) =>
+          type === 'planConstruction' && 'building' in payload && payload.building === 'barracks',
+      ),
+    ).toEqual([]);
+    expect(game.refused).toEqual([]);
+  });
+
+  it('não prepara obras na primavera, com fome ou depois do desfecho', async () => {
+    for (const condition of ['spring', 'famine', 'fall']) {
+      const game = scenario();
+      const view = game.view();
+      if (condition === 'spring') view.calendar.season = 'spring';
+      if (condition === 'famine')
+        view.famine = { sinceMs: 0, secondsElapsed: 1, endsInSeconds: null, text: 'Fome.' };
+      if (condition === 'fall') view.siege!.result = 'fall';
+      await prepareSiege.run(view, game.act);
+      expect(game.orders).toEqual([]);
+    }
+  });
+
+  it('treina o lote ofertado além do antigo limite de um quarto, respeitando o teto do Quartel', async () => {
+    const state = readySiege();
+    state.army.units = { spearman: 10, archer: 10, swordsman: 0, knight: 0, shieldbearer: 0 };
+    state.settlement.population.villagers = 80;
+    const game = scenario(state);
+    const view = game.view();
+    view.resources.find(({ id }) => id === 'food')!.perHour = 100;
+    const offer = view.army.offer.find(({ unit }) => unit === 'spearman')!;
+    await trainForSiege.run(view, game.act);
+    expect(game.orders).toEqual([
+      expect.objectContaining({
+        type: 'trainSoldiers',
+        payload: { unit: 'spearman', amount: offer.maxAmount },
+      }),
+    ]);
+    expect(game.refused).toEqual([]);
+  });
+
+  it('usa todos os tipos disponíveis, revê baixas e salva o Plano com prévias das três ondas', async () => {
+    const state = readySiege();
+    state.army.formations[0]!.name = 'Defesa do bot';
+    const game = scenario(state);
+    await respondPreparedSiege.run(game.view(), game.act);
+    expect(
+      game.orders.filter(({ type }) => type === 'simulateBattle').map(({ payload }) => payload),
+    ).toEqual(
+      expect.arrayContaining([1, 2, 3].map((siegeWave) => expect.objectContaining({ siegeWave }))),
+    );
+    const plannedIds = Object.values(game.state().siege!.plan);
+    expect(
+      plannedIds.every((id) =>
+        game.state().army.formations.some((formation) => formation.id === id),
+      ),
+    ).toBe(true);
+    const prepared = game
+      .view()
+      .army.formations.filter(({ name }) => name.startsWith('Defesa do bot'));
+    expect(prepared.every(({ shortfall }) => shortfall.length === 0)).toBe(true);
+    expect(prepared[0]!.total).toBe(game.view().army.total);
+    expect(game.refused).toEqual([]);
   });
 });

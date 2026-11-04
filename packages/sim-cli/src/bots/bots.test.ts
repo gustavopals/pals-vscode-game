@@ -14,6 +14,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { botFor, strategies, strategyPolicies } from './index';
+import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
 import {
   alocarPorDemanda,
   alocarMestre,
@@ -180,6 +181,7 @@ describe('um bot é uma lista de políticas', () => {
     // depois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico investe
     // com folga; o preguiçoso responde sem gastar.
     expect(strategyPolicies.economico).toEqual([
+      prepareSiege,
       erguerPalicada,
       seguirObjetivos,
       // O Quartel (V4C-T1.8): a política mínima de guerra, antes das obras, como a Torre.
@@ -189,10 +191,10 @@ describe('um bot é uma lista de políticas', () => {
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
-      treinarMinimo,
+      trainForSiege,
       // A Defesa ativa (V4E-T2.7, decisão 25): toda incursão é batalha.
       montarFormacao,
-      responderCerco,
+      respondPreparedSiege,
       responderCartas,
       // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
@@ -497,6 +499,18 @@ describe('política "alocar por demanda"', () => {
     const { act, orders } = recorder(view);
     await alocarPorDemanda.run(view, act);
     expect(targets(orders)).toEqual({ farm: 2, lumberMill: 1, quarry: 1, goldMine: 1 });
+  });
+
+  it('no outono planta também para treinar, mesmo com as Habitações cheias', async () => {
+    const base = housingFull(withUpgrades(freshView(), []));
+    const view: ViewState = {
+      ...base,
+      calendar: { ...base.calendar, season: 'autumn' },
+      army: { ...base.army, built: true, cap: 20 },
+    };
+    const { act, orders } = recorder(view);
+    await alocarPorDemanda.run(view, act);
+    expect(targets(orders).farm).toBe(2);
   });
 
   it('com a despensa cheia e a comida indo ao chão, a sobra já existe: sem lavrador a mais', async () => {
@@ -2097,18 +2111,18 @@ describe('os bots jogando contra o motor', () => {
       const view = feudo.view();
       expect(view.threat.known).toBe(true);
       expect(levels[0]).toBe(0);
-      // Uma ordem por nível. O primeiro é o do objetivo: a Torre fica planejada como automática
-      // antes de o Salão a liberar, e começa sozinha. O segundo é o de `erguer a Torre`, com
-      // folga no estoque.
+      // V4G-T5.3: o outono pode planejar a Torre, e a Queda pode exigir reconstruí-la.
+      // A sequência fixa de uma ordem por nível deixou de representar o jogo; mantemos
+      // a primeira ordem exata, progressão até Nv3+ e nenhuma recusa (balance §21).
       const forTower = feudo.orders.filter(
         (order) => (order.payload as { building?: string }).building === 'watchtower',
       );
-      expect(forTower.map((order) => order.type).slice(0, 2)).toEqual([
-        'planConstruction',
-        'startConstruction',
-      ]);
-      // Os níveis 3 a 5 são ordens `startConstruction` a mais.
-      expect(forTower.slice(2).every((order) => order.type === 'startConstruction')).toBe(true);
+      expect(Math.max(...levels)).toBeGreaterThanOrEqual(3);
+      expect(
+        forTower.every((order) =>
+          ['startConstruction', 'planConstruction', 'setAutoStart'].includes(order.type),
+        ),
+      ).toBe(true);
       expect(forTower[0]?.payload).toEqual({
         building: 'watchtower',
         autoStart: true,
@@ -2799,6 +2813,7 @@ describe('bot honesto', () => {
       'ousado.ts',
       'policies.ts',
       'preguicoso.ts',
+      'siegePreparation.ts',
       'types.ts',
     ]);
     for (const { name, text } of sources) {

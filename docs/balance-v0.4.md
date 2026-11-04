@@ -1570,3 +1570,37 @@ nulas no retrato `cold`. Nenhum byte v41 foi alterado. Os diffs da calibragem e 
 catálogo só acrescentam a caçada; todas as linhas dos modelos existentes permanecem
 iguais. Validação focada final: 1.340 testes aprovados (17 arquivos), typecheck e
 lint com saída 0; replay completo das migrações e matriz ficam para o coordenador.
+
+## 21. O Cerco medido com bots preparados (V4G-T5.3, 2026-11-04)
+
+### 21.1 Política e contratos preservados
+
+Regular/econômico, Dedicado, Explorador e Militar preparam a infraestrutura a partir
+do outono: melhoram Quartel, Torre e Muralha, reservam comida/lenha e tentam completar
+o teto público do Quartel. A alocação deixa lavradores para alimentar o lote e
+suportar os braços convertidos no fim do treino. O lavrador extra de crescimento
+continua produzindo para o exército mesmo com as casas cheias. Comparam duas disposições fixas
+pelas prévias públicas de cada onda, salvam o Plano e usam reparo/milícia somente
+quando a visão permite, nas visitas habituais. Sem inimigos conhecidos, a prévia
+vazia não é tratada como garantia de vitória. BOT-1 a BOT-3 nas pendências registram
+as leituras conservadoras. Não foram alterados números de conteúdo, combate,
+estado, protocolo, migrações, retratos ou goldens.
+
+A Queda conserva planejadas de nível alto enquanto a próxima melhoria disponível
+volta a um nível baixo. A conferência apenas de `upgrade.planned` produzia
+`ALREADY_PLANNED`. Os bots agora conferem a lista por edifício antes de planejar;
+não se retirou a exigência de zero recusas. Isso também corrigiu os testes antigos
+do Preguiçoso: as propriedades de comida positiva depois da adaptação e de ninguém
+sem ofício continuaram intactas e passaram.
+
+Duas expectativas foram atualizadas com motivo específico: o Quartel deixa de ser
+fixo no Nv1, e a Torre pode ser planejada/reconstruída depois da Queda, de modo que
+uma sequência fixa de uma ordem por nível não vale mais. Mantêm-se a primeira ordem
+exata, a chegada ao Nv3+ e zero recusas. A contabilidade militar inclui soldados
+concedidos pelo Conselho (`data.soldiers`); `battleFought.playerLost` inclui também
+milicianos, por isso a diferença deve caber na convocação. Sem milícia, a igualdade
+exata entre recrutados/concedidos, baixas e sobreviventes continua obrigatória.
+
+Passo 1: testes focados de `bots.test.ts`, `cerco.test.ts` e `militar.test.ts`,
+**159/159 em 3 arquivos, saída 0**, com `nice -n 19` e `--maxWorkers=2`.
+A remedição das faixas e a suíte completa do sim-cli ficam para o passo 3.
