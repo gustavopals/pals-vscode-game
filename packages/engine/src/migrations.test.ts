@@ -4396,8 +4396,22 @@ describe('versão 9 → 10', () => {
     for (const fixture of version9) {
       const before = read(fixture) as unknown as GameState;
       const state = migrated(fixture);
-      // O passo não mexe no Conselho: a cadência, a mesa e as flags são as que estavam.
-      expect(state.council, fixture.name).toStrictEqual(before.council);
+      // O passo 9 → 10 preserva o Conselho inteiro. A cadeia até v41 acrescenta
+      // apenas os bônus do lote 3 (docs/balance-v0.4.md, seção 20).
+      const step = v9ToV10.migrate(read(fixture), {
+        timeScale: before.settings.timeScale,
+        boundaryMs: before.lastProcessedAt,
+      });
+      expect(step.council, fixture.name).toStrictEqual(before.council);
+      expect(state.council, fixture.name).toStrictEqual({
+        ...before.council,
+        bonuses: {
+          smithySpeed: null,
+          smithyBatch: null,
+          repairDiscount: null,
+          revealedRaidId: null,
+        },
+      });
       expect(Object.keys(state.council.flags).join()).not.toContain('palisadePromise');
     }
     const ready = migrated(named('state-v9-migrated-3x.json'));
@@ -7527,6 +7541,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
       activeFormationId: null,
       reports: [],
       preview: null,
+      campaign: null,
     });
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });

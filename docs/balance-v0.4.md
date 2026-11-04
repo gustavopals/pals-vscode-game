@@ -1475,6 +1475,12 @@ mostra as vagas ocupadas e `caravanBlock` continua calculando novos envios pelo
 nível real. A regressão determinística falhou antes da correção (2 vagas esperadas,
 1 recebida). Nenhuma asserção da propriedade ou número de conteúdo foi alterado.
 
+As comparações de migração também foram atualizadas: 9 → 10 preserva o Conselho
+inteiro, conferido diretamente no passo; a cadeia completa acrescenta exatamente
+os quatro bônus nulos da v41. O exército migrado da v27 inclui `campaign: null`
+da v39. O teste 39 → 40 confere explicitamente `fromMs` da variante histórica do
+Mercado, além de preservar os outros campos. Nenhum passo ou retrato foi regravado.
+
 ### 20.3 Revisões independentes
 
 1. A crônica anual perdia `yearStarted` e `threatTileRestored` porque precediam o

@@ -22,6 +22,14 @@ describe('Cerco: estado 39 → 40', () => {
       ...before,
       schemaVersion: 40,
       siege: null,
+      // As trilhas v39/v40 precedem fromMs: a entrada histórica conserva o fim
+      // e adota a fronteira processada, sem alterar os retratos (§20.2 do balance).
+      market: {
+        ...before.market,
+        effects: before.market.effects.map((effect: Record<string, unknown>) =>
+          Object.hasOwn(effect, 'fromMs') ? effect : { ...effect, fromMs: before.lastProcessedAt },
+        ),
+      },
       settlement: { ...before.settlement, militia: null, reconstructionUntilMs: null },
     });
     expect(stateV40(after, '')).toBeNull();
