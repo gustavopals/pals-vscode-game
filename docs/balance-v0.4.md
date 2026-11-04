@@ -1619,3 +1619,11 @@ ausência, Queda e reconstrução. O plano confere o rótulo público atual
 Verificação deste grupo: 13 cenários aprovados em execuções individuais com
 saída 0 (oito de Cerco, três de Retorno nos temas e dois de economia/cabeçalho).
 Incluem 720 px, foco, teclado, contraste, prazo no ritmo Rápido e modo discreto.
+
+**Acampamento:** os avisos persistentes acumulados até o outono são dispensados
+pelo botão da interface antes da montagem da formação. Nos temas em 720 px, a
+formação salva é selecionada depois da mudança de largura e da remontagem da
+bancada; antes, o teste tentava focar um botão do editor que já tinha sido retirado.
+Não há clique forçado nem retirada de cenário: os sete casos de campanha passaram
+isoladamente, com saída 0, mantendo os prazos, a revisão em duas abas, o Retorno,
+a navegação para a batalha certa, teclado, foco e contraste nos três temas.

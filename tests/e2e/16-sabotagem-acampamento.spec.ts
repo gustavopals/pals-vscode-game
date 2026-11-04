@@ -19,7 +19,7 @@ import {
 
 // V4F-T3: interações que os testes em Node não provam. Os cenários usam a API real; os prazos
 // vêm da visão. Só o cenário do alerta injeta esse campo na resposta, para testar a apresentação
-// independentemente de sortear um Desastre. Esta revisão escreveu os cenários sem executá-los.
+// independentemente de sortear um Desastre.
 
 const armyTab = (page: Page) => page.getByRole('tab', { name: 'Exército' });
 const guildTab = (page: Page) => page.getByRole('tab', { name: 'Guilda' });
@@ -59,6 +59,11 @@ async function autumnSite(world: World, page: Page, request: APIRequestContext) 
   await world.hero('Bela', { classId: 'mage', level: 10 });
   await world.hero('Ciro', { classId: 'cleric', level: 10 });
   await world.passTime(MINUTE, page);
+  // O salto até o outono deixa avisos persistentes sobre o editor. Dispensa-os pelo
+  // controle da interface antes de começar a campanha; as provas do ataque ficam intactas.
+  const dismiss = toasts(page).getByRole('button', { name: 'Dispensar aviso' });
+  while ((await dismiss.count()) > 0) await dismiss.first().click();
+  await expect(toasts(page).getByRole('status')).toHaveCount(0);
 }
 
 async function fillFront(page: Page, amount: string) {
@@ -346,8 +351,11 @@ test.describe('sabotagem e Acampamento na interface (V4F-T3)', () => {
       const page = await world.open(context);
       await readyAssault(world, page, request);
       await applyTheme(page, theme);
-      await page.getByTestId('formation-edit').click();
       await page.setViewportSize({ width: 720, height: 1100 });
+      // A bancada se remonta ao cruzar 720 px. Seleciona a formação salva depois
+      // desse ciclo, para o teclado agir no editor que o jogador está vendo.
+      await expect(page.locator('#sidebar')).toBeHidden();
+      await page.getByTestId('formation-edit').click();
       await march(page);
       await expect(page.getByTestId('campaign-warning')).toBeVisible();
       expect(await overflow(page)).toEqual({ page: 0, content: 0 });
