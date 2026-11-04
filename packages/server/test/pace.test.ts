@@ -392,6 +392,25 @@ function atPace(view: ViewState, pace: number): ViewState {
                     secondsElapsed: down(view.winter.cold.secondsElapsed),
                   },
           },
+    // V4G-T2: a Vigília e a onda seguinte são instantes de jogo, mostrados em segundos reais.
+    siege:
+      view.siege === null
+        ? null
+        : {
+            ...view.siege,
+            scheduledInSeconds: up(view.siege.scheduledInSeconds),
+            nextWaveInSeconds:
+              view.siege.nextWaveInSeconds === null ? null : up(view.siege.nextWaveInSeconds),
+          },
+    // V4F-T2: a viagem ao Acampamento é tempo de jogo, mostrada em segundos reais.
+    army: {
+      ...view.army,
+      campAssault: {
+        ...view.army.campAssault,
+        totalSeconds: up(view.army.campAssault.totalSeconds),
+        travelSeconds: up(view.army.campAssault.travelSeconds),
+      },
+    },
   };
 }
 

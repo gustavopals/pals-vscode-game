@@ -664,8 +664,8 @@ describe('a carta da estrangeira entrega o primeiro herói (roadmap da v0.3, V3C
 
 describe('o app de um protocolo antigo não sabe ler cartas', () => {
   it('o cliente do protocolo 1 recebe 426 com o aviso de recarregar, em leitura e em ordem', async () => {
-    // O protocolo 2 trouxe as cartas; o 3, a encruzilhada (`expeditions.test.ts`).
-    expect(PROTOCOL_VERSION).toBe(3);
+    // O protocolo 2 trouxe as cartas; o 3, a encruzilhada (`expeditions.test.ts`); o 4, o Cerco.
+    expect(PROTOCOL_VERSION).toBe(4);
     const { who, card } = await playerWithCard(normal, 1);
     const old = { [PROTOCOL]: '1' };
     const expected = {

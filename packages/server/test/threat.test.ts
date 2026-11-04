@@ -398,6 +398,7 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
       discovered: [],
+      expeditionUnlocks: {},
     });
     expect(row.state.horde).toEqual({
       scheduledRaids: [],

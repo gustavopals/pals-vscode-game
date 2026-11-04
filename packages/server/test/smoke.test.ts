@@ -177,8 +177,27 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       // prazo, o conselho a acolheu, e o feudo abandonado ganhou a primeira heroína.
       ['heroJoined', 'No 9º dia do Verão, Edda, guerreira, passou a servir a Pedra Alta.'],
       ['seasonChanged', 'Chega o Outono a Pedra Alta.'],
+      // V4G: o Cerco do Inverno marcado no outono, lutado sem exército e perdido.
+      ['siegeScheduled', 'No 1º dia do Outono, Pedra Alta marcou a Vigília do Cerco do Inverno.'],
       ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
+      [
+        'battleFought',
+        'No 5º dia do Inverno, o exército de Pedra Alta travou batalha: derrota. Pesou mais a força dos braços.',
+      ],
+      ['siegeWaveFought', 'No 5º dia do Inverno, Pedra Alta enfrentou Os Saqueadores: Queda.'],
+      [
+        'siegeFell',
+        'No 5º dia do Inverno, o Cerco trouxe a Queda. Pedra Alta sobrevive em ruínas; haverá outra primavera.',
+      ],
+      [
+        'yearEnded',
+        'Encerra-se o ano 1 da Casa de Pedra Alta. Os escribas registram 14 pontos e os Feitos do ano.',
+      ],
       ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],
+      [
+        'reconstructionStarted',
+        'No 1º dia da Primavera, começou a Primavera da Reconstrução em Pedra Alta. O custo das novas obras cai temporariamente.',
+      ],
       ['seasonChanged', 'Chega a Primavera a Pedra Alta.'],
     ]);
 

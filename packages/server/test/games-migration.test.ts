@@ -149,6 +149,13 @@ function withoutVigilSettings<T extends Record<string, unknown>>(
 /** Projeta os campos dos estados 36–38 ao comparar retratos anteriores à segunda junção. */
 function beforeSecondJoin<T>(state: T): T {
   const copy = JSON.parse(JSON.stringify(state)) as {
+    siege?: unknown;
+    army?: Record<string, unknown>;
+    settlement?: Record<string, unknown> & {
+      forge?: Record<string, unknown> | null;
+      constructionQueues?: Array<Record<string, unknown> | null>;
+    };
+    map?: Record<string, unknown>;
     market?: Record<string, unknown>;
     guild?: { tavern?: Record<string, unknown> };
     council?: {
@@ -160,6 +167,17 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.market?.effects;
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
+  delete copy.map?.expeditionUnlocks;
+  // Terceira junção (estados 39 a 42): o Acampamento, o Cerco e o lote 3.
+  delete copy.siege;
+  delete copy.army?.campaign;
+  delete (copy.council as Record<string, unknown> | undefined)?.bonuses;
+  delete copy.settlement?.militia;
+  delete copy.settlement?.reconstructionUntilMs;
+  if (copy.settlement?.forge) delete copy.settlement.forge.extra;
+  for (const queue of copy.settlement?.constructionQueues ?? []) {
+    if (queue !== null) delete queue.costPaid;
+  }
   for (const entry of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
     delete entry.heroes;
   }
@@ -365,6 +383,9 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     // A muralha (V4E-T1, versão 32): sem Paliçada, nenhuma vida, nenhum reparo.
     wall: { hp: { left: 0, center: 0, right: 0 } },
     wallRepair: null,
+    // O Cerco (V4G-T2, versão 40): nenhuma milícia, nenhuma reconstrução.
+    militia: null,
+    reconstructionUntilMs: null,
     planned: planned.map((plan) => ({ ...plan, autoStart: false })),
     // Os ofícios (V2C-T3): experiência em zero e todo mundo já adaptado.
     craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
@@ -1061,6 +1082,8 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       // E a muralha, da versão 32: sem Paliçada, nenhuma vida, nenhum reparo.
       wall: { hp: { left: 0, center: 0, right: 0 } },
       wallRepair: null,
+      militia: null,
+      reconstructionUntilMs: null,
     });
   });
 
