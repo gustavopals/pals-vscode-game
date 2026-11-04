@@ -1503,11 +1503,11 @@ export function alocarPorDemandaFor(awayHours: number): Policy {
 export const alocarPorDemanda: Policy = alocarPorDemandaFor(DEFAULT_AWAY_HOURS);
 
 /**
- * Os braços do feudo: os habitantes que podem trabalhar. Quem os lobos feriram come como os
- * outros, mas não entra em ofício nenhum até sarar (e volta sozinho ao que tinha).
+ * Os braços do feudo: os habitantes que podem trabalhar agora (os livres mais os já alocados nos
+ * ofícios; exclui feridos e milícia convocada, que o motor já tirou de `population.free` e `workers`).
  */
 function ableHands(view: ViewState): number {
-  return view.population.villagers - view.population.injured;
+  return view.population.free + view.workers.reduce((sum, row) => sum + row.assigned, 0);
 }
 
 async function allocate(view: ViewState, act: Act, awayHours: number): Promise<ViewState> {
@@ -2330,7 +2330,8 @@ export const treinarMinimo: Policy = treinarSoldados(['spearman', 'archer']);
 
 /**
  * Salva a Defesa ativa nas três ondas; entre ondas, repara se a oferta permite e troca a
- * próxima formação pela ativa. Só responde nas visitas do perfil, sem convocar visitas extras.
+ * próxima formação pela ativa; quando a oferta da milícia está aberta e a prévia da onda 3 dá
+ * menos de 50% de vitória, convoca o máximo permitido. Só lê campos da visão, sem tentativa e erro.
  */
 export const responderCerco: Policy = {
   name: 'responder ao cerco',
@@ -2348,14 +2349,47 @@ export const responderCerco: Policy = {
       }
     }
     const decision = current.pendingDecisions.find((entry) => entry.kind === 'siegeWave');
-    if (decision === undefined) {
-      return current;
+    if (decision !== undefined) {
+      if (current.threat.defense.wall.repairOffer.canRepair) {
+        current = await act('emergencyRepair', {});
+      }
+      if (active !== undefined && current.siege?.plan[decision.wave] !== active.id) {
+        current = await act('swapWaveFormation', { formationId: active.id });
+      }
     }
-    if (current.threat.defense.wall.repairOffer.canRepair) {
-      current = await act('emergencyRepair', {});
-    }
-    if (active !== undefined && current.siege?.plan[decision.wave] !== active.id) {
-      current = await act('swapWaveFormation', { formationId: active.id });
+    const wave3Id = current.siege?.plan[3] ?? active?.id ?? null;
+    const wave3Formation =
+      wave3Id === null
+        ? undefined
+        : current.army.formations.find((entry) => entry.id === wave3Id);
+    if (
+      wave3Formation !== undefined &&
+      current.siege !== null &&
+      current.siege.militiaOffer.canCall &&
+      current.siege.militiaOffer.maxCount > 0
+    ) {
+      const preview = current.army.preview;
+      if (
+        preview === null ||
+        preview.formationId !== wave3Formation.id ||
+        preview.siegeWave !== 3 ||
+        wave3Formation.previewStale
+      ) {
+        current = await act('simulateBattle', {
+          formationId: wave3Formation.id,
+          siegeWave: 3,
+        });
+      }
+      if (
+        (current.army.preview?.winsPercent ?? 100) < MIN_PREVIEW_WINS_PERCENT &&
+        current.siege !== null &&
+        current.siege.militiaOffer.canCall &&
+        current.siege.militiaOffer.maxCount > 0
+      ) {
+        current = await act('callMilitia', {
+          count: current.siege.militiaOffer.maxCount,
+        });
+      }
     }
     return current;
   },

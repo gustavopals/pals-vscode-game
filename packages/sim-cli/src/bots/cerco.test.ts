@@ -1,7 +1,9 @@
 import { advanceTo, deriveViewState, type GameState } from '@lotg/engine';
 import { describe, expect, it } from 'vitest';
 
+import { revealWaveThree } from '../../../engine/src/hordePlan';
 import { readySiege } from '../../../engine/src/siege.test-helpers';
+import { HOUR } from '../../../engine/src/test-helpers';
 import { applySimCommand, type SimCommand } from '../engine';
 import { strategyPolicies } from './index';
 import { responderCerco } from './policies';
@@ -115,4 +117,84 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
       expect(game.refused).toEqual([]);
     },
   );
+
+  it('convoca a milícia quando militiaOffer.canCall é verdadeiro e a prévia da onda 3 dá menos de 50%', async () => {
+    const state = readySiege();
+    state.siege!.plan = { 1: 'formation-1', 2: 'formation-1', 3: 'formation-1' };
+    state.army.formations[0]!.posts.right.front = null;
+    const now = state.siege!.nextWaveAtMs! - HOUR;
+    state.lastProcessedAt = now;
+    state.clock.gameTimeMs = now;
+
+    const game = scenario(state);
+    const offer = game.view().siege!.militiaOffer;
+    expect(offer.canCall).toBe(true);
+
+    await responderCerco.run(game.view(), game.act);
+    expect(game.orders.map(({ type, payload }) => ({ type, payload }))).toEqual([
+      { type: 'simulateBattle', payload: { formationId: 'formation-1', siegeWave: 3 } },
+      { type: 'callMilitia', payload: { count: offer.maxCount } },
+    ]);
+    expect(game.refused).toEqual([]);
+
+    // Na visita seguinte a milícia já está ativa (`canCall: false`): não repete nem gera recusa.
+    await responderCerco.run(game.view(), game.act);
+    expect(game.orders).toHaveLength(2);
+    expect(game.refused).toEqual([]);
+  });
+
+  it('não convoca a milícia quando a prévia da onda 3 dá 50% ou mais de vitória', async () => {
+    const state = readySiege();
+    state.siege!.plan = { 1: 'formation-1', 2: 'formation-1', 3: 'formation-1' };
+    state.army.formations[0]!.posts.right.front = null;
+    const now = state.siege!.nextWaveAtMs! - HOUR;
+    state.lastProcessedAt = now;
+    state.clock.gameTimeMs = now;
+    state.horde.wavePlan!.waves[2]!.composition = [
+      { wing: 'left', line: 'front', unit: 'wolf', count: 2 },
+    ];
+    state.siege!.waves[2]!.composition = [
+      { wing: 'left', line: 'front', unit: 'wolf', count: 2 },
+    ];
+    revealWaveThree(state, now, []);
+
+    const game = scenario(state);
+    expect(game.view().siege!.militiaOffer.canCall).toBe(true);
+
+    const after = await responderCerco.run(game.view(), game.act);
+    expect(after.army.preview?.siegeWave).toBe(3);
+    expect(after.army.preview?.winsPercent).toBeGreaterThanOrEqual(50);
+    expect(game.orders.map(({ type }) => type)).toEqual(['simulateBattle']);
+    expect(game.refused).toEqual([]);
+  });
+
+  it('não trata prévia de incursão como onda 3 e não tenta convocar quando canCall é falso', async () => {
+    const state = readySiege();
+    state.siege!.plan = { 1: 'formation-1', 2: 'formation-1', 3: 'formation-1' };
+    // Todos os postos da frente ocupados -> militiaOffer.canCall é falso (NO_MILITIA_SLOT)
+    const now = state.siege!.nextWaveAtMs! - HOUR;
+    state.lastProcessedAt = now;
+    state.clock.gameTimeMs = now;
+
+    const blockedGame = scenario(state);
+    expect(blockedGame.view().siege!.militiaOffer.canCall).toBe(false);
+    await responderCerco.run(blockedGame.view(), blockedGame.act);
+    expect(blockedGame.orders).toEqual([]);
+    expect(blockedGame.refused).toEqual([]);
+
+    // Libera um posto na frente e grava uma prévia de incursão (sem siegeWave) com 100% de vitória:
+    // o bot não a confunde com a prévia da onda 3; simula a onda 3 e convoca a milícia.
+    state.army.formations[0]!.posts.right.front = null;
+    const raidPreviewGame = scenario(state);
+    await raidPreviewGame.act('simulateBattle', { formationId: 'formation-1' });
+    expect(raidPreviewGame.view().army.preview?.siegeWave).toBeNull();
+    raidPreviewGame.orders.length = 0;
+
+    await responderCerco.run(raidPreviewGame.view(), raidPreviewGame.act);
+    expect(raidPreviewGame.orders.map(({ type, payload }) => ({ type, payload }))).toEqual([
+      { type: 'simulateBattle', payload: { formationId: 'formation-1', siegeWave: 3 } },
+      { type: 'callMilitia', payload: { count: state.settlement.population.villagers / 2 } },
+    ]);
+    expect(raidPreviewGame.refused).toEqual([]);
+  });
 });

@@ -53,7 +53,7 @@ describe('medição do Cerco (V4G-T2.10)', () => {
       fallen: 1,
       wavesFought: 1,
       wavesWon: 0,
-      militiaCalled: 0,
+      militiaCalled: 52,
     });
   });
 
@@ -61,10 +61,10 @@ describe('medição do Cerco (V4G-T2.10)', () => {
     const [header, ...rows] = toCsv(year.rows).trimEnd().split('\n');
     expect(header?.split(',').slice(-3)).toEqual(['siege_result', 'waves_won', 'militia_called']);
     expect(rows[0]?.split(',').slice(-3)).toEqual(['', '0', '0']);
-    expect(rows.at(-1)?.split(',').slice(-3)).toEqual(['fall', '0', '0']);
+    expect(rows.at(-1)?.split(',').slice(-3)).toEqual(['fall', '0', '52']);
     expect(year.rows[0]?.siege).toEqual(noSieges());
     expect(formatSummary(year)).toContain(
-      'Cerco: 1 encerrados · 0 vitórias (0 gloriosas) · 1 quedas · 0 de 1 ondas vencidas · 0 aldeões convocados',
+      'Cerco: 1 encerrados · 0 vitórias (0 gloriosas) · 1 quedas · 0 de 1 ondas vencidas · 52 aldeões convocados',
     );
   });
 
@@ -84,7 +84,7 @@ describe('medição do Cerco (V4G-T2.10)', () => {
     };
     const [header, row] = matrixCsv(result).trimEnd().split('\n');
     expect(header?.split(',').slice(-3)).toEqual(['siege_result', 'waves_won', 'militia_called']);
-    expect(row?.split(',').slice(-3)).toEqual(['fall', '0', '0']);
+    expect(row?.split(',').slice(-3)).toEqual(['fall', '0', '52']);
   });
 
   it('serializa vitórias e convocações positivas sem alterar as contagens de horas anteriores', () => {
