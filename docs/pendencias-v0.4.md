@@ -858,7 +858,15 @@ rumo novo. Assim quem passou da caçada à oferenda lê a variante certa de §7.
 A ficha §6.5 aprova três nós, risco médio, trilha, combate, ouro e comida; §6.6
 detalha três variantes de 120 minutos com retorno incluído. A trilha usa perícia
 e favorece o Arqueiro, como as provas existentes; não se inventa bônus do traço
-Rastreador. Desastre fere gravemente, sem captura. A janela de seis dias segue a
-ficha, sem consumo no envio nem limite novo de tentativas. A carta final continua
-chegando cinco dias após a escolha, mesmo sem partida ou com caçada malsucedida:
-a ficha aprovada não condiciona a continuação ao resultado da expedição.
+Rastreador. Desastre fere gravemente, sem captura. A fera é uma só: enquanto há
+uma equipe a caminho em `whiteWolfHunt`, o envio de segunda equipe é recusado com
+`EXPEDITION_LOCKED` (`expeditionTexts.lockedCouncilUnderWay`, mantendo o destino
+visível como fechado na Guilda, como `wolfDen` e `rescue`), e a janela de seis
+dias se encerra quando a equipe volta para casa com o nó da fera vencido (Sucesso
+ou Sucesso Pleno, removendo `whiteWolfHunt` de `map.discovered` e
+`map.expeditionUnlocks`; se voltar com Revés ou Desastre na fera, a janela
+continua aberta até o prazo de seis dias).
+
+**H-12. Condição de chegada e recompensa da pele em `forestReturns` (`whiteWolf.hunt`).** _(Proposta do agente; não lida pelo autor.)_
+- Enquanto isso: na opção `hunt` de `whiteWolf` (§6.5), a ficha aprovada agenda `forestReturns` (§7.1) para 5 dias depois (`scheduleCard(forestReturns, 5)`) e grava `whiteWolf.hunt` no ato da escolha. Como os textos e as recompensas das fichas §§6.5, 6.6 e 7.1 foram aprovados pelo autor, foram mantidos sem alteração: (1) se o jogador escolher `hunt` mas não enviar `whiteWolfHunt` ou falhar no combate da fera, `forestReturns` ainda chega 5 dias depois com a variante `whiteWolf.hunt` ("Os caçadores voltaram com a pele alva…") e permite vender ou reclamar uma pele que não foi obtida; (2) quando a caçada vence o nó da fera, o encontro de `whiteWolfHunt` (§6.6) já paga `+40–70 ouro` e `+10–20 comida` ("trouxeram a pele alva") e, em `forestReturns` (§7.1), `claim` (`+70 ouro, +40 comida, +5 moral`) ou `sell` (`+120 ouro, −5 moral`) pagam novamente pela mesma pele.
+- Recomendação para o autor: gravar uma flag própria (por exemplo, `whiteWolf.slain`) somente quando `whiteWolfHunt` voltar com Sucesso ou Sucesso Pleno no nó da fera, exigir a pele vencida como condição para a variante da caçada em `forestReturns` (ou cancelar/desviar a carta agendada quando a janela fechar sem abate) e decidir se o ouro/comida do encontro em §6.6 deve ficar concentrado apenas na resolução de `forestReturns` (§7.1) ou se os dois pagamentos são intencionais.
