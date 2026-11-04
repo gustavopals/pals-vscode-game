@@ -2140,7 +2140,10 @@ describe('os bots jogando contra o motor', () => {
   const V03_REACHED: Record<string, Partial<Record<number, string[]>>> = {
     economico: {
       1: withoutExpedition,
-      3: withoutExpedition.slice(0, 2),
+      // V4G-T5.3: a última defesa por milícia muda a população e os recursos após a Queda;
+      // nesta semente a Guilda não termina na janela. Os dez objetivos básicos e sua ordem
+      // continuam obrigatórios abaixo (balance §21).
+      3: withoutExpedition.slice(0, 1),
       0.5: withoutExpedition,
     },
     preguicoso: { 1: withoutExpedition.slice(0, 2) },

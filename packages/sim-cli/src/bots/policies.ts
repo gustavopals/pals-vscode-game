@@ -2380,6 +2380,15 @@ export const responderCerco: Policy = {
         current = await act('swapWaveFormation', { formationId: active.id });
       }
     }
+    // O Preguiçoso também pode ter perdido todos os soldados antes da Vigília. Sem uma
+    // formação para simular, usa apenas a oferta já validada da última defesa disponível.
+    if (
+      active === undefined &&
+      current.siege?.militiaOffer.canCall &&
+      current.siege.militiaOffer.maxCount > 0
+    ) {
+      return act('callMilitia', { count: current.siege.militiaOffer.maxCount });
+    }
     const wave3Id = current.siege?.plan[3] ?? active?.id ?? null;
     const wave3Formation =
       wave3Id === null ? undefined : current.army.formations.find((entry) => entry.id === wave3Id);

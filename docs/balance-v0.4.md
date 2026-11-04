@@ -1604,3 +1604,90 @@ exata entre recrutados/concedidos, baixas e sobreviventes continua obrigatória.
 Passo 1: testes focados de `bots.test.ts`, `cerco.test.ts` e `militar.test.ts`,
 **159/159 em 3 arquivos, saída 0**, com `nice -n 19` e `--maxWorkers=2`.
 A remedição das faixas e a suíte completa do sim-cli ficam para o passo 3.
+
+### 21.2 Rodada curta em Senhor (10 sementes por célula)
+
+Versão do preparo: `fc00878`; motor 0.3.0, estado 42, protocolo 4, conteúdo
+`75d68aa79cf92571`, Node 22.22.3. CSVs e relatórios fora do repositório, em
+`/tmp/codex-bots-cerco-20261104/final-pilot-{lord,militar}.{csv,md}`.
+São 300 registros, 250 partidas distintas entre as janelas; o Normal se repete
+nas duas. Não somar as janelas: a semana do Rápido atravessa três cercos e a
+semana do Tranquilo termina antes do primeiro. Comandos, em sequência:
+
+```bash
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord --seeds 10
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord --profile militar --seeds 10
+```
+
+O primeiro retorna **1** por comparação com as faixas anteriores; o Militar,
+sem faixa própria, retorna **0**. Não há falha de execução.
+
+**7 dias reais**
+
+| Ritmo | Perfil | Vitórias / Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 0 / 30 | 0 / 30 | 0 |
+| Rápido 3× | Regular | 0 / 30 | 0 / 30 | 0 |
+| Rápido 3× | Dedicado | 1 / 29 | 15 / 44 | 108 |
+| Rápido 3× | Explorador | 2 / 28 | 14 / 42 | 38 |
+| Normal 1× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Regular | 0 / 10 | 2 / 12 | 18 |
+| Normal 1× | Dedicado | 0 / 10 | 10 / 20 | 32 |
+| Normal 1× | Explorador | 0 / 10 | 8 / 18 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Regular | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Explorador | 0 / 0 | 0 / 0 | 0 |
+| Rápido 3× | Militar | 0 / 30 | 0 / 30 | 19 |
+| Normal 1× | Militar | 0 / 10 | 3 / 13 | 0 |
+| Tranquilo 0,5× | Militar | 0 / 0 | 0 / 0 | 0 |
+
+**um ano de jogo**
+
+| Ritmo | Perfil | Vitórias / Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Regular | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Dedicado | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Explorador | 0 / 10 | 0 / 10 | 11 |
+| Normal 1× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Regular | 0 / 10 | 2 / 12 | 18 |
+| Normal 1× | Dedicado | 0 / 10 | 10 / 20 | 32 |
+| Normal 1× | Explorador | 0 / 10 | 8 / 18 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Tranquilo 0,5× | Regular | 0 / 10 | 5 / 15 | 13 |
+| Tranquilo 0,5× | Dedicado | 0 / 10 | 16 / 26 | 10 |
+| Tranquilo 0,5× | Explorador | 1 / 9 | 11 / 20 | 11 |
+| Rápido 3× | Militar | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Militar | 0 / 10 | 3 / 13 | 0 |
+| Tranquilo 0,5× | Militar | 0 / 10 | 6 / 16 | 29 |
+
+Não houve fome, frio ou ordem recusada nos 300 registros. Não houve Gloriosa.
+**Leitura:** há vitórias medidas com preparo, mas são raras: uma no primeiro ano
+do Explorador do Tranquilo e três cercos posteriores na semana do Rápido (um do
+Dedicado, dois do Explorador). Nenhum perfil vence o primeiro Cerco do Rápido nesta
+amostra; Regular e Militar não vencem nenhum Cerco medido. Portanto o preparo
+não demonstrou a faixa de vitória desejada para o Regular. Não se alterou nenhum
+número do Cerco para produzir uma vitória. BOT-4 a BOT-6 oferecem alternativas ao
+autor; a rodada de 50 sementes confirmará os limites antes de regravar faixas.
+
+As rodadas exploratórias anteriores a `fc00878` não são a linha de base: serviram
+para identificar a falta de comida destinada ao treino. A medição acima usa a
+versão final do bot, com produção para soldados e proteção da Fazenda.
+
+### 21.3 Milícia mesmo sem exército permanente
+
+A conferência do preparo encontrou um retorno antecipado quando `army.total` era
+zero. A política agora usa a oferta pública também nessa situação, sem tentar
+salvar formação vazia (o motor a recusa). O Preguiçoso também pode convocar pela
+oferta quando não tem Defesa ativa. A janela, o teto de aldeões e o posto continuam
+validados pelo motor. As duas políticas têm regressão de convocação sem soldados,
+sem Defesa ativa e sem repetição na visita seguinte.
+
+Essa última defesa altera a população e os recursos depois da Queda: em `bots`,
+o Econômico do Rápido já não conclui a Guilda dentro da janela do teste. A expectativa
+do marco foi atualizada; os dez objetivos básicos, a ordem e zero recusas permanecem
+obrigatórios. A primeira tentativa da matriz completa de Senhor foi interrompida
+antes de emitir dados (processo terminado com 143; invólucro do pnpm com 1) para que
+as três medições definitivas usem essa correção. Nenhuma faixa saiu dessa tentativa.
+A rodada curta da seção 21.2 continua sendo a medição identificada por `fc00878`.

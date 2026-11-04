@@ -116,7 +116,10 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
       if (condition === 'cerco encerrado') state.siege!.result = 'fall';
       const game = scenario(state);
       await responderCerco.run(game.view(), game.act);
-      expect(game.orders).toEqual([]);
+      // Sem Defesa ativa ainda pode haver oferta para a milícia defender sozinha (§21).
+      expect(game.orders.map(({ type }) => type)).toEqual(
+        condition === 'sem Defesa ativa' ? ['callMilitia'] : [],
+      );
       expect(game.refused).toEqual([]);
     },
   );
@@ -266,6 +269,26 @@ describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
       expect(game.orders).toEqual([]);
     }
   });
+
+  it.each([responderCerco, respondPreparedSiege])(
+    '$name: convoca a milícia mesmo sem soldados nem Defesa ativa',
+    async (policy) => {
+      const state = readySiege();
+      state.army.units = { spearman: 0, archer: 0, swordsman: 0, knight: 0, shieldbearer: 0 };
+      state.army.formations = [];
+      state.army.activeFormationId = null;
+      const game = scenario(state);
+      const offer = game.view().siege!.militiaOffer;
+      expect(offer.canCall).toBe(true);
+      await policy.run(game.view(), game.act);
+      expect(game.orders).toEqual([
+        expect.objectContaining({ type: 'callMilitia', payload: { count: offer.maxCount } }),
+      ]);
+      await policy.run(game.view(), game.act);
+      expect(game.orders).toHaveLength(1);
+      expect(game.refused).toEqual([]);
+    },
+  );
 
   it('treina o lote ofertado além do antigo limite de um quarto, respeitando o teto do Quartel', async () => {
     const state = readySiege();

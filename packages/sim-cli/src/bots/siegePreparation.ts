@@ -184,7 +184,15 @@ async function saveCandidates(view: ViewState, act: Act): Promise<ViewState> {
 export const respondPreparedSiege: Policy = {
   name: 'responder ao cerco preparado',
   run: async (view, act) => {
-    if (!preparingSiege(view) || view.siege === null || view.army.total === 0) return view;
+    if (!preparingSiege(view) || view.siege === null) return view;
+    // Sem soldados não há formação nova válida para salvar. A milícia ainda pode defender
+    // sozinha: a oferta pública já confere prazo, braços e posto, inclusive sem Defesa ativa.
+    if (view.army.total === 0) {
+      const offer = view.siege.militiaOffer;
+      return offer.canCall && offer.maxCount > 0
+        ? act('callMilitia', { count: offer.maxCount })
+        : view;
+    }
     let current = await saveCandidates(view, act);
     const decision = current.pendingDecisions.find((entry) => entry.kind === 'siegeWave');
     if (decision !== undefined && current.threat.defense.wall.repairOffer.canRepair) {

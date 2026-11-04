@@ -962,3 +962,23 @@ planejada do mesmo edifício para um nível mais alto. Os bots passam a conferir
 ambas as listas antes de planejar. Conservam o plano alto e reconstroem os níveis
 intermediários por ordens aceitas; não apagam intenção nem mandam ordem para testar
 uma recusa. A exigência de zero recusas permanece nos testes.
+
+**BOT-4. Janela econômica de preparação.** _(Proposta do agente; não lida pelo autor.)_
+A rodada curta em Senhor continua sem vitória no primeiro Cerco do Rápido em todos
+os perfis. Se o autor quiser que o preparo tenha mais sessões disponíveis, permitir
+que os bots melhorem Quartel e acumulem comida no verão, mantendo o treino intensivo
+no outono. Não aplicado: a tarefa autorizou começar o preparo no outono.
+
+**BOT-5. Custo de montar a tropa no outono.** _(Proposta do agente; não lida pelo autor.)_
+Como alternativa à antecipação, revisar o custo em comida e o tempo dos lotes de
+treino: o Quartel maior não dá soldados prontos, e recrutamento, reserva para o
+inverno e soldados disputam a mesma despensa. Medir uma redução isolada antes de
+escolher valores; não mudar simultaneamente comida, teto e ondas. Nenhum custo foi
+alterado nesta tarefa.
+
+**BOT-6. Pressão das três ondas sobre a tropa sobrevivente.** _(Proposta do agente; não lida pelo autor.)_
+Se a preparação econômica permanecer como está, medir uma redução isolada da base
+das ondas, começando pela terceira. Quem visita duas vezes por dia deixa o Plano,
+mas geralmente não encontra a janela de uma hora para reparar e convocar outra
+milícia; vitórias parciais não bastam para vencer o Cerco. A base 40/60/80 e o chefe
+permaneceram intactos; qualquer ajuste depende do autor.
