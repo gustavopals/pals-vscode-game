@@ -2471,6 +2471,8 @@ export type SmithyView = {
  * prontos: o app não calcula nada. `foodPerHour` é o consumo de cada soldado por hora real.
  */
 export type ArmyView = {
+  /** Nome público do painel de prévia, fornecido pelo conteúdo. */
+  warCouncilTitle: string;
   campaign: {
     formationId: string;
     formationName: string;

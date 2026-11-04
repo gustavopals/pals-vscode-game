@@ -1481,6 +1481,12 @@ os quatro bônus nulos da v41. O exército migrado da v27 inclui `campaign: null
 da v39. O teste 39 → 40 confere explicitamente `fromMs` da variante histórica do
 Mercado, além de preservar os outros campos. Nenhum passo ou retrato foi regravado.
 
+O contrato do bundle encontrou o título “Conselho de Guerra” e o rótulo
+“Expedições enviadas” escritos no app. O título agora vem de
+`army.warCouncilTitle`, adição ao protocolo 4; o painel prova que exibe o valor
+recebido. Novidades e estatísticas usam redação editorial própria. Não houve
+mudança de regra ou de layout, e o teste integral do bundle permanece intacto.
+
 ### 20.3 Revisões independentes
 
 1. A crônica anual perdia `yearStarted` e `threatTileRestored` porque precediam o

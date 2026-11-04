@@ -863,6 +863,7 @@ const SmithySchema = z.strictObject({
 const unitId = z.enum(UNIT_IDS);
 
 const ArmySchema = z.strictObject({
+  warCouncilTitle: z.string(),
   campaign: z
     .strictObject({
       formationId: z.string(),

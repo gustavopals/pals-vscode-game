@@ -59,6 +59,7 @@ export const wingLocatives: Record<WingId, string> = {
  * dano fez à formação e preenche `{ala}` (ver `wingLocatives`); o app só mostra o resultado.
  */
 export const warCouncilTexts = {
+  title: 'Conselho de Guerra',
   /** O motivo por fator da batalha (`battleReport.ts`); `{ala}` só nos fatores que têm ala. */
   risk: {
     wallAbsorbed: '{ala}, o peso da Horda cai sobre a muralha, que cede primeiro.',

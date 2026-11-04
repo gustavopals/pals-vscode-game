@@ -252,6 +252,7 @@ describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
   it('WarCouncilPanel exibe botão de atacar o acampamento e aviso de campanha', () => {
     const armyWithAssault = {
       ...armyIdleView.army,
+      warCouncilTitle: 'Prévia fornecida pelo feudo',
       campAssault: {
         text: 'O exército viaja até o Acampamento.',
         travelSeconds: 5400,
@@ -303,6 +304,7 @@ describe('a campanha e ataque ao acampamento (V4F-T3)', () => {
       />,
     );
     expect(markup).toContain('data-testid="war-attack-camp"');
+    expect(markup).toContain('<h3 id="war-council-title">Prévia fornecida pelo feudo</h3>');
     expect(text(markup)).toContain('Simular defesa do feudo');
     expect(text(markup)).toContain('Prévia de defesa do feudo');
     expect(text(markup)).toContain('O ataque ao Acampamento ainda não tem prévia.');

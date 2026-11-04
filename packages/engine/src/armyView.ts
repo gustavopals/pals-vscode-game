@@ -1,4 +1,12 @@
-import { balance, buildings, campaignTexts, tileTypes, UNIT_IDS, units } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  campaignTexts,
+  tileTypes,
+  UNIT_IDS,
+  units,
+  warCouncilTexts,
+} from '@lotg/content';
 
 import {
   armyCap,
@@ -112,6 +120,7 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
   const noFormationBlock =
     assaultFormations.length === 0 ? attackCampBlock(state, undefined) : null;
   return {
+    warCouncilTitle: warCouncilTexts.title,
     campaign:
       campaign === null
         ? null

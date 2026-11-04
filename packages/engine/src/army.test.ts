@@ -308,6 +308,7 @@ describe('Quartel e treino (V4C-T1; ADR 0019, decisão 7)', () => {
       draft.settlement.buildings.townHall = 3;
     });
     const view = deriveViewState(fresh, 1);
+    expect(view.army.warCouncilTitle).toBe('Conselho de Guerra');
     expect(view.army.built).toBe(false);
     expect(view.army.text).toContain('Salão Nv4');
     expect(refused(fresh, 'trainSoldiers', { unit: 'spearman', amount: 1 }).message).toContain(

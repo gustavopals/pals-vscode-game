@@ -34,13 +34,13 @@ export function WarCouncilPanel(props: {
   const attackBlocked = assault?.blockedReason ?? army.campAssault.blockedReason;
   return (
     <section class="war-council" aria-labelledby="war-council-title" data-testid="war-council">
-      <h3 id="war-council-title">Conselho de Guerra</h3>
+      <h3 id="war-council-title">{army.warCouncilTitle}</h3>
       <p class="muted" data-testid="war-preview-scope">
         <strong>Prévia de defesa do feudo.</strong> O ataque ao Acampamento ainda não tem prévia.
       </p>
       {saved === undefined ? (
         <p class="muted" data-testid="war-council-unsaved">
-          Salve a formação para ouvir o Conselho de Guerra.
+          Salve a formação para ouvir o {army.warCouncilTitle}.
         </p>
       ) : (
         <div class="trade-review-actions">
