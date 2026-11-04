@@ -6,6 +6,8 @@ import { cardOf, cardReading, CATALOG, eligibleCards } from './council';
 import { cloneState, createInitialState } from './state';
 import {
   accept,
+  addHero,
+  send,
   AUTUMN,
   command,
   DAY,
@@ -1395,5 +1397,169 @@ describe('A Filha do Ferreiro, de ponta a ponta', () => {
         expect(final.state.settlement.weapons).toBe(0);
       },
     );
+  }
+});
+
+describe('"O Lobo Branco", de ponta a ponta (§§6.4, 6.5 e 7.1)', () => {
+  const flags = ['whiteWolf.hunt', 'whiteWolf.offer', 'whiteWolf.ignored'];
+  const opened = (difficulty: DifficultyId, timeScale = 1) => {
+    const state = feud(difficulty, timeScale, AUTUMN + 1234);
+    state.map.tiles.wolfDen!.threatActive = false;
+    state.settlement.buildings.guild = 1;
+    addHero(state, { level: 10 });
+    return dealt(state, 'whitePaws').state;
+  };
+  const branchFlags = {
+    hunt: 'whiteWolf.hunt',
+    offer: 'whiteWolf.offer',
+    ignore: 'whiteWolf.ignored',
+  };
+  const firstChoices = ['hunt', 'offer', 'ignore'] as const;
+  const secondChoices = ['hunt', 'feed', 'withdraw'] as const;
+  const finalChoices = ['claim', 'honor', 'sell'] as const;
+
+  for (const difficulty of DIFFICULTY_IDS) {
+    for (const firstChoice of firstChoices) {
+      for (const secondChoice of secondChoices) {
+        const endings = secondChoice === 'withdraw' ? (['claim'] as const) : finalChoices;
+        for (const finalChoice of endings) {
+          it(`${difficulty}: ${firstChoice} → ${secondChoice}${secondChoice === 'withdraw' ? '' : ` → ${finalChoice}`}`, () => {
+            const first = choose(opened(difficulty), 'whitePaws', firstChoice);
+            expect(first.state.council.flags).toEqual({ [branchFlags[firstChoice]]: true });
+            expect(first.events.find((event) => event.type === 'cardAnswered')?.data).toMatchObject(
+              { spent_food: { hunt: 40, offer: 80, ignore: 30 }[firstChoice] },
+            );
+            const delay = firstChoice === 'ignore' ? 6 : 3;
+            const secondAt = first.state.lastProcessedAt + delay * DAY;
+            expect(first.state.council.scheduled[0]).toMatchObject({
+              cardId: 'whiteWolf',
+              atMs: secondAt,
+              previousCardId: 'whitePaws',
+              previousOptionId: firstChoice,
+            });
+            const next = advanceTo(first.state, secondAt).state;
+            expect(shown(next, 'whiteWolf')?.text).toBe(
+              cardOf(CATALOG, 'whiteWolf')!.variants!.find(
+                (variant) => variant.flag === branchFlags[firstChoice],
+              )!.text,
+            );
+            const second = choose(next, 'whiteWolf', secondChoice);
+            if (secondChoice === 'withdraw') {
+              expect(second.state.council.flags).toEqual({});
+              expect(second.state.council.scheduled).toEqual([]);
+              expect(second.state.map.discovered).not.toContain('whiteWolfHunt');
+              return;
+            }
+            const flag = secondChoice === 'hunt' ? 'whiteWolf.hunt' : 'whiteWolf.offer';
+            expect(second.state.council.flags).toEqual({ [flag]: true });
+            let state = second.state;
+            if (secondChoice === 'hunt') {
+              const sent = send(state, 'whiteWolfHunt', [state.guild.heroes[0]!.id]);
+              expect(sent.state.map.expeditionUnlocks.whiteWolfHunt).toBe(secondAt + 6 * DAY);
+              state = sent.state;
+            } else expect(state.map.discovered).not.toContain('whiteWolfHunt');
+            const finalAt = secondAt + 5 * DAY;
+            state = advanceTo(state, finalAt).state;
+            expect(shown(state, 'forestReturns')?.text).toBe(
+              cardOf(CATALOG, 'forestReturns')!.variants!.find((variant) => variant.flag === flag)!
+                .text,
+            );
+            const end = choose(state, 'forestReturns', finalChoice);
+            const data = end.events.find((event) => event.type === 'cardAnswered')!.data;
+            expect(data).toMatchObject(
+              {
+                claim: { gained_gold: 70, gained_food: 40, morale: 5, moraleDays: 3 },
+                honor: { spent_stone: 40, morale: 10, moraleDays: 3 },
+                sell: { gained_gold: 120, morale: -5, moraleDays: 2 },
+              }[finalChoice],
+            );
+            expect(end.state.council.flags).toEqual({});
+            expect(end.state.council.scheduled).toEqual([]);
+            expect(end.state.council.pending).toEqual([]);
+            expect(end.state.council.seenThisYear).toContain('whitePaws');
+            expect(eligibleCards(end.state, finalAt, CATALOG).map((card) => card.id)).not.toContain(
+              'whitePaws',
+            );
+            if (secondChoice === 'hunt')
+              expect(end.state.guild.reports[0]?.modelId).toBe('whiteWolfHunt');
+          });
+        }
+      }
+    }
+
+    for (const stage of ['whitePaws', 'whiteWolf', 'forestReturns'] as const) {
+      it(`${difficulty}: expirar ${stage} aplica a ficha, sem custo de opção nem flag pendurada`, () => {
+        let state = opened(difficulty, 3);
+        if (stage !== 'whitePaws') {
+          state = choose(state, 'whitePaws', 'offer').state;
+          state = advanceTo(state, state.lastProcessedAt + 3 * DAY).state;
+        }
+        if (stage === 'forestReturns') {
+          state = choose(state, 'whiteWolf', 'feed').state;
+          state = advanceTo(state, state.lastProcessedAt + 5 * DAY).state;
+        }
+        const pending = state.council.pending.find((card) => card.cardId === stage)!;
+        const expired = advanceTo(state, pending.expiresAtMs);
+        const event = expired.events.find(
+          (event) => event.type === 'cardExpired' && event.data.cardId === stage,
+        )!;
+        expect(event.atMs).toBe(pending.expiresAtMs);
+        expect(event.data.optionId).toBe(
+          { whitePaws: 'ignore', whiteWolf: 'withdraw', forestReturns: 'claim' }[stage],
+        );
+        expect(event.text).toContain('sem palavra do senhor, o conselho');
+        if (stage === 'whitePaws') {
+          expect(event.data.spent_food).toBe(30);
+          expect(expired.state.council.flags).toEqual({ 'whiteWolf.ignored': true });
+          expect(expired.state.council.scheduled[0]?.atMs).toBe(pending.expiresAtMs + 6 * DAY);
+          const second = advanceTo(expired.state, pending.expiresAtMs + 6 * DAY).state;
+          expect(shown(second, 'whiteWolf')?.text).toContain('O lobo desceu ao curral');
+          const finish = advanceTo(second, second.council.pending[0]!.expiresAtMs).state;
+          expect(flags.some((flag) => finish.council.flags[flag])).toBe(false);
+          expect(finish.council.scheduled).toEqual([]);
+        } else {
+          expect(flags.some((flag) => expired.state.council.flags[flag])).toBe(false);
+          expect(expired.state.council.scheduled).toEqual([]);
+          // Durante a ausência o Celeiro enche: os 40 da ficha viram desperdício contado.
+          if (stage === 'forestReturns')
+            expect(event.data).toMatchObject({
+              gained_gold: 70,
+              lost_food: 40,
+              morale: 5,
+              moraleDays: 3,
+            });
+        }
+      });
+    }
+
+    for (const target of ['whiteWolf', 'forestReturns'] as const) {
+      it(`${difficulty}: ${target} espera com a mesa cheia e chega no instante da vaga`, () => {
+        let state = choose(opened(difficulty), 'whitePaws', 'hunt').state;
+        if (target === 'forestReturns') {
+          state = advanceTo(state, state.lastProcessedAt + 3 * DAY).state;
+          state = choose(state, 'whiteWolf', 'feed').state;
+        }
+        const due = state.council.scheduled[0]!.atMs;
+        state = dealt(dealt(state, 'sawmillRest').state, 'collapsedWell').state;
+        const full = advanceTo(state, due);
+        expect(full.state.council.pending).toHaveLength(2);
+        expect(full.state.council.scheduled[0]?.cardId).toBe(target);
+        expect(
+          full.events.some((event) => event.type === 'cardDrawn' && event.data.cardId === target),
+        ).toBe(false);
+        const free = choose(
+          full.state,
+          'sawmillRest',
+          cardOf(CATALOG, 'sawmillRest')!.autoResolve[difficulty],
+        );
+        expect(free.state.council.pending).toHaveLength(2);
+        expect(free.state.council.scheduled).toEqual([]);
+        expect(free.events.find((event) => event.type === 'cardDrawn')).toMatchObject({
+          atMs: due,
+          data: { cardId: target, source: 'continuation' },
+        });
+        expect(shown(free.state, target)?.followsFrom).not.toBeNull();
+      });
+    }
   }
 });

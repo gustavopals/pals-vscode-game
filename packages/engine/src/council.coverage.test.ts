@@ -82,11 +82,12 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
 
   it('as avulsas e o lote 3: contagens exatas por estação, Taverna, heróis livres e feridos', () => {
     const additions = CATALOG.slice(39);
-    expect(additions).toHaveLength(17);
-    const counts = (tavern: number, freeHeroes: number, injured: boolean) =>
+    expect(additions).toHaveLength(20);
+    const counts = (tavern: number, freeHeroes: number, injured: boolean, cleared = false) =>
       balance.calendar.seasons.map((season) => {
         const at = SEASON_START[season.id] + DAY;
         const state = feudAt(at, 3);
+        if (cleared) state.map.tiles.wolfDen!.threatActive = false;
         state.settlement.buildings.tavern = tavern;
         Object.assign(state.settlement.buildings, {
           market: 1,
@@ -141,6 +142,8 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
     expect(counts(1, 1, false)).toEqual([6, 7, 7, 4]);
     expect(counts(1, 2, false)).toEqual([7, 8, 8, 4]);
     expect(counts(1, 2, true)).toEqual([8, 9, 9, 5]);
+    expect(counts(0, 0, false, true)).toEqual([4, 5, 6, 2]);
+    expect(counts(1, 2, true, true)).toEqual([8, 9, 10, 5]);
   });
   it('o ano tem 5 audiências na primavera, 6 no verão, 6 no outono e 3 no inverno', () => {
     expect(balance.calendar.seasons.map((season) => audiencesOf(season.id).length)).toEqual([
