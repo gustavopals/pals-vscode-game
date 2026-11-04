@@ -3,6 +3,7 @@ import { siegeTexts } from '@lotg/content';
 import { waveDecisionOpen } from './siege';
 import { realSecondsCeil } from './units';
 import type { GameState, SiegeView, SiegeWaveDecisionView, SiegeWaveNumber } from './types';
+import { wavePublicOmens } from './warCouncilOrders';
 
 /** Só fatos públicos: data, plano e os presságios da versão atual; nenhuma composição crua. */
 export function siegeView(
@@ -26,15 +27,7 @@ export function siegeView(
       waves: entry.waves.map((w) => ({
         number: w.number,
         title: siegeTexts.waves[w.number],
-        omens: state.horde.omens
-          // O presságio vago não revela a onda a que pertence, nem pelo agrupamento.
-          .filter(
-            (o) =>
-              o.clarity !== 'vague' &&
-              o.wave === w.number &&
-              o.revision === state.horde.wavePlan?.revision,
-          )
-          .map((o) => o.text),
+        omens: wavePublicOmens(state, w.number).map((o) => o.text),
       })),
     },
     pendingDecisions: !waveDecisionOpen(state)

@@ -1017,6 +1017,7 @@ const ArmySchema = z.strictObject({
     .strictObject({
       warning: z.string().nullable(),
       formationId: z.string(),
+      siegeWave: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
       runs: z.number(),
       /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */
       winsPercent: z.number(),

@@ -2900,10 +2900,24 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
     }
   });
 
-  it('aceita simular uma formação (V4D-T2) e recusa a forma errada', () => {
+  it('aceita simular uma formação ou onda do Cerco (V4D-T2 / V4G-T2.10) e recusa a forma errada', () => {
     const simulate = (payload: unknown) => ({ commandId: uuid, type: 'simulateBattle', payload });
     expect(CommandSchema.safeParse(simulate({ formationId: 'formation-1' })).success).toBe(true);
-    for (const bad of [{}, { formationId: '' }, { formationId: 3 }, { id: 'formation-1' }]) {
+    for (const siegeWave of [1, 2, 3] as const) {
+      expect(
+        CommandSchema.safeParse(simulate({ formationId: 'formation-1', siegeWave })).success,
+      ).toBe(true);
+    }
+    for (const bad of [
+      {},
+      { formationId: '' },
+      { formationId: 3 },
+      { id: 'formation-1' },
+      { formationId: 'formation-1', siegeWave: 0 },
+      { formationId: 'formation-1', siegeWave: 4 },
+      { formationId: 'formation-1', siegeWave: '3' },
+      { formationId: 'formation-1', siegeWave: null },
+    ]) {
       expect(CommandSchema.safeParse(simulate(bad)).success).toBe(false);
     }
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).toContain('battleSimulated');

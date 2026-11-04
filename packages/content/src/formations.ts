@@ -84,6 +84,9 @@ export const warCouncilTexts = {
   noRisk: 'Nenhum fator da Horda se destacou nas simulações.',
   /** Quando a formação não tem soldado nenhum para lutar. */
   noTroops: 'A formação não tem soldado nenhum no feudo: sem tropa, a Horda vence sem lutar.',
+  /** Quando a onda pedida ainda não tem presságio público da versão atual. */
+  unknownWave:
+    'Ainda não há presságios sobre esta onda do Cerco: sem conhecer o inimigo, a prévia não inventa composição.',
 } as const;
 
 /**

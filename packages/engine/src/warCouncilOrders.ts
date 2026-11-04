@@ -4,6 +4,7 @@ import {
   hordeUnits,
   HORDE_UNIT_IDS,
   LINE_IDS,
+  siegeTexts,
   WING_IDS,
   warRaids,
   type HordeUnitId,
@@ -24,14 +25,57 @@ import { raidSizeAt, watchtowerLevel } from './threat';
 import { watchtowerPerks, watchtowerWarningMs } from './threat';
 import { baseRaidComposition } from './raidArmy';
 import { wallForBattle } from './wallRepair';
-import type { Formation, GameEvent, GameState, Rejection } from './types';
+import type { Formation, GameEvent, GameState, Rejection, SiegeWaveNumber } from './types';
 import { previewBattle, type EnemyGuessPosts, type PreviewInput } from './warCouncil';
 
 /**
- * A ordem do Conselho de Guerra (GDD §10.5; ADR 0019, decisão 10; V4D-T2.2) e as contas de
- * estado que a alimentam. A prévia em si (`warCouncil.ts`) não recebe o estado: este arquivo
- * monta a entrada dela a partir do estado, e é só ele que grava `army.preview`.
+ * A ordem do Conselho de Guerra (GDD §10.5; ADR 0019, decisão 10; V4D-T2.2 e V4G-T2.10) e as
+ * contas de estado que a alimentam. A prévia em si (`warCouncil.ts`) não recebe o estado: este
+ * arquivo monta a entrada dela a partir do estado, e é só ele que grava `army.preview`.
  */
+
+/** Presságios públicos da versão atual sobre uma onda do Cerco; exclui os vagos. */
+export function wavePublicOmens(state: GameState, wave: SiegeWaveNumber) {
+  if (state.horde.wavePlan === null) {
+    return [];
+  }
+  return state.horde.omens.filter(
+    (omen) =>
+      omen.clarity !== 'vague' &&
+      omen.wave === wave &&
+      omen.revision === state.horde.wavePlan?.revision,
+  );
+}
+
+/** O que o jogador pode saber de uma onda do Cerco: só os presságios não vagos da revisão atual. */
+function publicWaveKnowledge(state: GameState, wave: SiegeWaveNumber): EnemyGuessPosts {
+  const enemy: EnemyGuessPosts = {
+    left: { front: null, back: null },
+    center: { front: null, back: null },
+    right: { front: null, back: null },
+  };
+  const omens = wavePublicOmens(state, wave);
+  if (omens.length === 0) {
+    return enemy;
+  }
+  const exact = [...omens].reverse().find((omen) => omen.clarity === 'exact');
+  if (exact !== undefined) {
+    for (const post of exact.reveals) {
+      enemy[post.wing][post.line] = { kind: 'known', unit: post.unit, count: post.count };
+    }
+    return enemy;
+  }
+  for (const omen of omens) {
+    for (const post of omen.reveals) {
+      enemy[post.wing][post.line] = {
+        kind: 'approximate',
+        unit: post.unit,
+        count: post.count,
+      };
+    }
+  }
+  return enemy;
+}
 
 /**
  * A impressão digital de uma prévia (V4D-T5): o conteúdo da formação (postos e comandantes, sem o
@@ -39,7 +83,11 @@ import { previewBattle, type EnemyGuessPosts, type PreviewInput } from './warCou
  * É o que a prévia guarda para a visão saber que ela envelheceu (`previewStale`): renomear não
  * envelhece, mas dispensar ou treinar soldados, mudar a formação ou erguer a Torre, sim.
  */
-export function formationSignature(state: GameState, formation: Formation): number {
+export function formationSignature(
+  state: GameState,
+  formation: Formation,
+  siegeWave?: SiegeWaveNumber,
+): number {
   const used = [
     ...new Set(postEntries(formation).flatMap(({ post }) => (post === null ? [] : [post.unit]))),
   ].sort();
@@ -55,7 +103,9 @@ export function formationSignature(state: GameState, formation: Formation): numb
       used.map((unit) => [unit, availableUnits(state)[unit]]),
       watchtowerLevel(state),
       WING_IDS.map((wing) => state.settlement.wall.hp[wing]),
-      publicEnemyKnowledge(state),
+      siegeWave === undefined
+        ? publicEnemyKnowledge(state)
+        : [siegeWave, publicWaveKnowledge(state, siegeWave)],
       ...(state.army.campaign === null
         ? []
         : [Object.values(state.army.campaign.formation.commanders)]),
@@ -190,7 +240,11 @@ function publicEnemyKnowledge(state: GameState): {
 }
 
 /** O que `previewBattle` recebe para uma formação do feudo, no estado de agora. */
-export function previewInputFor(state: GameState, formation: Formation): PreviewInput {
+export function previewInputFor(
+  state: GameState,
+  formation: Formation,
+  siegeWave?: SiegeWaveNumber,
+): PreviewInput {
   const commanders = {} as Record<WingId, BattleCommanderInput | null>;
   for (const wing of WING_IDS) {
     const hero = state.guild.heroes.find((entry) => entry.id === formation.commanders[wing]);
@@ -205,7 +259,9 @@ export function previewInputFor(state: GameState, formation: Formation): Preview
     season: seasonAt(state.lastProcessedAt).id,
     mode: 'defense',
     player: { posts: filledPosts(state, formation), commanders },
-    ...publicEnemyKnowledge(state),
+    ...(siegeWave === undefined
+      ? publicEnemyKnowledge(state)
+      : { enemy: publicWaveKnowledge(state, siegeWave) }),
     // A muralha como está agora, ala por ala (V4E-T1): a ala derrubada entra sem muralha.
     wall: wallForBattle(state),
     watchtowerLevel: watchtowerLevel(state),
@@ -214,16 +270,18 @@ export function previewInputFor(state: GameState, formation: Formation): Preview
 }
 
 /**
- * A ordem de simular (`simulateBattle { formationId }`): roda as 200 batalhas da prévia com o
- * gerador próprio dela (`previewBattle`, que nunca toca `state.rng`), grava `army.preview` no
- * lugar da anterior e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado e não
- * cria entidade. As recusas, nesta ordem: a formação que não existe e o Quartel que falta.
+ * A ordem de simular (`simulateBattle { formationId, siegeWave? }`): roda as 200 batalhas da prévia
+ * com o gerador próprio dela (`previewBattle`, que nunca toca `state.rng`), grava `army.preview`
+ * no lugar da anterior e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado e não
+ * cria entidade. As recusas, nesta ordem: a formação que não existe, o Quartel que falta e a onda
+ * fora de `1..3`.
  */
 export function simulateBattle(
   draft: GameState,
   formationId: unknown,
   nowMs: number,
   events: GameEvent[],
+  siegeWave?: unknown,
 ): Rejection | null {
   const formation = findFormation(draft, formationId);
   if (formation === undefined) {
@@ -232,11 +290,16 @@ export function simulateBattle(
   if (barracksLevel(draft) === 0) {
     return reject('BARRACKS_REQUIRED', { note: barracksRequiresText(draft) });
   }
-  const result = previewBattle(previewInputFor(draft, formation));
+  if (siegeWave !== undefined && ![1, 2, 3].includes(siegeWave as number)) {
+    return { code: 'INVALID_WAVE', message: siegeTexts.invalidWave };
+  }
+  const wave = siegeWave as SiegeWaveNumber | undefined;
+  const result = previewBattle(previewInputFor(draft, formation, wave));
   draft.army.preview = {
     formationId: formation.id,
+    ...(wave === undefined ? {} : { siegeWave: wave }),
     atMs: nowMs,
-    signature: formationSignature(draft, formation),
+    signature: formationSignature(draft, formation, wave),
     runs: result.runs,
     wins: result.wins,
     glorious: result.glorious,
@@ -256,6 +319,7 @@ export function simulateBattle(
     'battleSimulated',
     {
       formationId: formation.id,
+      ...(wave === undefined ? {} : { siegeWave: wave }),
       wins: result.wins,
       glorious: result.glorious,
       losses: result.losses,

@@ -953,6 +953,8 @@ export type ArmyState = {
 /** O que `simulateBattle` grava: o agregado das 200 simulações (`previewBattle`), em inteiros. */
 export type ArmyPreview = {
   formationId: string;
+  /** A onda do Cerco simulada (`1 | 2 | 3`); ausente quando o alvo é a próxima incursão. */
+  siegeWave?: SiegeWaveNumber;
   /** O instante de jogo da ordem. */
   atMs: number;
   /**
@@ -1178,11 +1180,15 @@ export type Command =
   /** Marca a Defesa ativa; `id: null` a desmarca. */
   | { commandId: string; type: 'setActiveFormation'; payload: { id: string | null } }
   /**
-   * Roda a prévia do Conselho de Guerra (GDD §10.5; V4D-T2): 200 batalhas com gerador próprio,
-   * contra o inimigo provável da estação. Grava `army.preview` (uma por vez); não sorteia no
-   * gerador do estado nem cria entidade.
+   * Roda a prévia do Conselho de Guerra (GDD §10.5; V4D-T2 e V4G-T2.10): 200 batalhas com gerador
+   * próprio, contra o inimigo provável da estação ou a onda do Cerco (`siegeWave`). Grava
+   * `army.preview` (uma por vez); não sorteia no gerador do estado nem cria entidade.
    */
-  | { commandId: string; type: 'simulateBattle'; payload: { formationId: string } }
+  | {
+      commandId: string;
+      type: 'simulateBattle';
+      payload: { formationId: string; siegeWave?: SiegeWaveNumber | undefined };
+    }
   /**
    * Repara a muralha (GDD §6.3; V4E-T1): custa metade da pedra do nível e ouro igual, na
    * proporção do que falta; leva 15 min de jogo por 25% da vida de uma ala; entra na frente das
@@ -2619,6 +2625,8 @@ export type ArmyPreviewView = {
   /** A prévia defensiva exclui os soldados e comandantes em campanha. */
   warning: string | null;
   formationId: string;
+  /** A onda do Cerco simulada (`1 | 2 | 3`), ou `null` para incursão comum. */
+  siegeWave: SiegeWaveNumber | null;
   /** Quantas batalhas a prévia rodou. */
   runs: number;
   /** Vitória % (inclui a Gloriosa), Gloriosa % e Derrota %; Vitória e Derrota somam 100. */
