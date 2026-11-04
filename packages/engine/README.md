@@ -542,8 +542,8 @@ Os números são os de `warRaids` (`raidWar.ts`; pendência D-11, aprovada) e as
 ### Conselho de Guerra: a prévia (V4D-T2)
 
 - **`previewBattle(input)`** (`warCouncil.ts`) roda `balance.battle.previewRuns` (200) vezes o **mesmo `resolveBattle`**, cada uma com um gerador **próprio da prévia** (`seedStream` sobre a semente da partida, a formação, o que se sabe do inimigo e o número da rodada). Não recebe o estado e nunca toca `state.rng` nem `state.ids`; o `purity.test.ts` confere os imports do arquivo.
-- **`simulateBattle { formationId }`** (`warCouncilOrders.ts`) monta a entrada a partir do estado (os soldados que o feudo tem nos postos, o comandante que pode ser nomeado, a Torre, a regra `heroCapture`; o inimigo é o palpite de `balance.battle.previewEnemy` na estação de agora, com `?` em todos os postos até a Horda existir; a muralha só entra com a V4E-T1), grava `army.preview` (**uma por vez**, a nova substitui a velha) e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado nem cria entidade. Apagar a formação da prévia a apaga. O evento `battleSimulated` fica fora da Crônica (`CHRONICLE_HIDDEN_EVENT_TYPES`).
-- **Na visão** (`warCouncilView.ts`): `army.preview` com os percentuais inteiros (Vitória e Derrota somam 100), `riskText` montado a partir do fator (as frases estão em `warCouncilTexts`, no conteúdo), `expectedLosses` e `knownEnemy` por posto; `army.formations[].previewStale` quando os postos ou os comandantes mudaram depois da prévia (a impressão digital `army.preview.signature`).
+- **`simulateBattle { formationId, siegeWave? }`** (`warCouncilOrders.ts`) monta a entrada a partir do estado (os soldados que o feudo tem nos postos, o comandante que pode ser nomeado, a Torre, a regra `heroCapture` e a muralha; sem `siegeWave`, o inimigo é o palpite de `balance.battle.previewEnemy` na estação de agora; com `siegeWave` em `1 | 2 | 3`, recusa fora desse domínio com `INVALID_WAVE` e usa exclusivamente os presságios públicos não vagos da revisão atual daquela onda, `wavePublicOmens`, sem ler a composição oculta; se a onda não tem posto revelado, grava prévia sem inimigos e sem rodadas simuladas), grava `army.preview` com `siegeWave: 1 | 2 | 3 | null` (**uma por vez**, a nova substitui a velha) e conta em `stats.battlesSimulated`. Não sorteia no fluxo do estado nem cria entidade. Apagar a formação da prévia a apaga. O evento `battleSimulated` fica fora da Crônica (`CHRONICLE_HIDDEN_EVENT_TYPES`).
+- **Na visão** (`warCouncilView.ts`): `army.preview` com `siegeWave` (`1 | 2 | 3 | null`), os percentuais inteiros (Vitória e Derrota somam 100), `riskText` montado a partir do fator (`warCouncilTexts.unknownWave` quando `siegeWave !== null` e nenhum posto da onda é conhecido), `expectedLosses` e `knownEnemy` por posto; `army.formations[].previewStale` quando os postos, os comandantes, a Torre ou os presságios do alvo simulado mudaram depois da prévia (a impressão digital `army.preview.signature`).
 
 ### Campanha ao Acampamento (V4F-T2)
 
@@ -868,6 +868,11 @@ continua bloqueando outro reparo. As previsões da moral excluem o Cerco, preser
 Desde **T2.7**, o protocolo **4** inclui as quatro ordens do Cerco em `Command`, suas
 recusas em `RejectionCode`, `siege` em `ViewState` e a decisão `siegeWave` em
 `pendingDecisions`, ordenada junto das cartas e encruzilhadas por prazo real.
+Desde **T2.10 (G-16)**, `siege.militiaOffer` (`maxCount`, `canCall`, `blockedReason`,
+`untilInSeconds`, `warningSeconds`) expõe na visão a oferta de convocação da milícia
+calculada por `checkMilitiaCall` em `siegeOrders.ts` (a mesma validação de `callMilitia`,
+sem duplicar regra nem sortear), e `simulateBattle` aceita `siegeWave?: 1 | 2 | 3` sem
+subir a versão do protocolo.
 `deriveViewState` é a porta pública usada pelo servidor e pelo simulador.
 `EngineViewState` permanece como alias de tipo; a API de execução continua fechada,
 com uma só visão e uma só lista de decisões.

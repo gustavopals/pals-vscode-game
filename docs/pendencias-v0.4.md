@@ -743,17 +743,14 @@ cerco: o perfil conserva a cadência habitual. Sem formação ativa, mantêm o P
 Na terceira junção, a T2.7 já unifica o protocolo 4: a execução local e a remota
 consomem a visão com Cerco, sem acrescentar um campo `siege` vazio.
 
-**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Proposta do agente; não lida pelo autor.)_
-Na base `61cdb70`, `simulateBattle` recebe apenas `formationId`: a prévia supõe uma
-incursão, sem alvo de onda. `siege.waves` traz número, título e presságios, sem
-percentual de vitória. A visão também não oferece o máximo convocável, o prazo e a
-disponibilidade da milícia. Portanto a convocação da T2.10 depende de o motor expor
-uma prévia identificada como onda 3 e a oferta de convocação (quantidade máxima e
-se a ordem seria aceita agora, incluindo milícia ativa, antecedência e posto vago).
-Proposta conservadora: completar esses campos no motor/visão na junção e consumi-los
-no bot; não tratar a prévia de incursão como se fosse da onda 3, nem ler composição
-oculta, duplicar regras de convocação no simulador ou provocar ordens recusadas para
-descobrir os limites. A pendência foi levada ao coordenador na retomada de 2026-10-30.
+**G-16. Contrato da prévia da onda 3 e da oferta de milícia para o bot.** _(Resolvida em 2026-11-04, V4G-T2.10.)_
+Na base `61cdb70`, `simulateBattle` recebia apenas `formationId`: a prévia supunha uma
+incursão, sem alvo de onda. `siege.waves` trazia número, título e presságios, sem
+percentual de vitória, e a visão não expunha a oferta de convocação da milícia.
+Resolvida na `v4g-t2-g16` (V4G-T2.10) mantendo o protocolo 4 (adição compatível):
+1. `simulateBattle { formationId, siegeWave? }` aceita `1 | 2 | 3` (recusa valores fora de `1..3` com `INVALID_WAVE`), grava `army.preview.siegeWave` (`1 | 2 | 3 | null`) e usa somente o que os presságios não vagos da revisão atual (`wavePublicOmens`) e a Torre revelam da onda, sem ler `siege.waves[].composition` nem `horde.wavePlan`. Se a onda não é conhecida, a prévia não inventa composição e exibe `warCouncilTexts.unknownWave` em `riskText`.
+2. `siege.militiaOffer` (`{ maxCount, canCall, blockedReason, untilInSeconds, warningSeconds }`) expõe na visão o máximo convocável agora, a aceitação imediata e o motivo da recusa pela mesma função `checkMilitiaCall` de `callMilitia` (`siegeOrders.ts`), sem duplicar regra nem sortear.
+3. Em `packages/sim-cli/src/bots/policies.ts`, `responderCerco` simula a onda 3 quando `militiaOffer.canCall` é verdadeiro e convoca `militiaOffer.maxCount` quando `army.preview.siegeWave === 3` e `winsPercent < 50`, lendo exclusivamente `ViewState`.
 
 ### V4G-T3 — Crônica do Ano (2026-10-30)
 
