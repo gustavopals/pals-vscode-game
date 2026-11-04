@@ -1,3 +1,4 @@
+import { hordeWaveYearFactors } from './horde';
 import type {
   BuildingId,
   DifficultyId,
@@ -797,6 +798,7 @@ export type Balance = {
   };
   readonly siege: {
     readonly waveIntervalRealMs: number;
+    readonly waveYearFactors: readonly Ratio[];
     readonly fall: {
       readonly resourcesLost: Ratio;
       readonly populationLost: Ratio;
@@ -1451,6 +1453,7 @@ export const balance: Balance = {
   },
   siege: {
     waveIntervalRealMs: 60 * MINUTE_MS,
+    waveYearFactors: hordeWaveYearFactors,
     fall: {
       resourcesLost: { num: 3, den: 10 },
       populationLost: { num: 1, den: 5 },
