@@ -196,7 +196,7 @@ export const respondPreparedSiege: Policy = {
     let current = await saveCandidates(view, act);
     const decision = current.pendingDecisions.find((entry) => entry.kind === 'siegeWave');
     if (decision !== undefined && current.threat.defense.wall.repairOffer.canRepair) {
-      current = await act('emergencyRepair', {});
+      current = await act('emergencyRepair', { wave: decision.wave });
     }
     const waves: Wave[] = decision === undefined ? [1, 2, 3] : [decision.wave];
     for (const wave of waves) {
@@ -244,7 +244,7 @@ export const respondPreparedSiege: Policy = {
       if (current.siege!.current === 0 && current.siege!.plan[wave] !== best.id) {
         current = await act('setBattlePlan', { wave, formationId: best.id });
       } else if (decision !== undefined && current.siege!.plan[wave] !== best.id) {
-        current = await act('swapWaveFormation', { formationId: best.id });
+        current = await act('swapWaveFormation', { wave: decision.wave, formationId: best.id });
       }
       // A Defesa ativa acompanha a próxima onda; a finta do outono continua sendo do Militar.
       if (

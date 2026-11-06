@@ -207,6 +207,29 @@ describe('os bots atravessam o cerco (V4G-T2.10)', () => {
 });
 
 describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
+  it('vincula o reparo e a troca à onda da decisão pública', async () => {
+    const state = afterFirstWave();
+    state.settlement.wall.hp.left = 1;
+    const game = scenario(state);
+    const decision = game.view().pendingDecisions.find((entry) => entry.kind === 'siegeWave');
+    expect(decision?.wave).toBe(2);
+    await respondPreparedSiege.run(game.view(), game.act);
+    expect(
+      game.orders
+        .filter(({ type }) => ['emergencyRepair', 'swapWaveFormation'].includes(type))
+        .map(({ type, payload }) => ({ type, payload })),
+    ).toEqual([
+      { type: 'emergencyRepair', payload: { wave: decision!.wave } },
+      {
+        type: 'swapWaveFormation',
+        payload: { wave: decision!.wave, formationId: game.state().siege!.plan[2] },
+      },
+    ]);
+    expect(game.state().siege!.plan[1]).toBeNull();
+    expect(game.state().siege!.plan[3]).toBeNull();
+    expect(game.refused).toEqual([]);
+  });
+
   it('só os bots preparados ampliam a infraestrutura e o treino de outono', () => {
     expect(strategyPolicies.preguicoso).not.toContain(prepareSiege);
     expect(strategyPolicies.preguicoso).not.toContain(trainForSiege);
