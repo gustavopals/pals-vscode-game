@@ -2,6 +2,7 @@
   "name": "@lotg/content",
   "version": "0.3.0",
   "private": true,
+  "sideEffects": false,
   "license": "MIT",
   "description": "Lords of the Guild: Dados de jogo e schemas",
   "type": "module",
