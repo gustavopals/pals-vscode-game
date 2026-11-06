@@ -1808,6 +1808,8 @@ A retomada parte de `624fffc` (as ordens entre ondas levam a onda da decisão) e
 tela do Cerco e correções das revisões. O primeiro Cerco usa 1/3 das ondas-base;
 o segundo, 2/3; a partir do terceiro vale o tamanho inteiro (GDD §11.2).
 
+Identidade impressa pelo CLI: motor `0.3.0`, estado `v42`, conteúdo `c03f4ac8b41c9311`.
+
 Esta rodada usa diretamente o CLI, uma vez por dificuldade, com Node 22.22.3 e
 prioridade `nice -n 19`. São 24 células por dificuldade: duas janelas, três ritmos,
 quatro perfis e as 50 sementes fixas. Cada dificuldade completa tem 1.200 registros
@@ -1836,18 +1838,19 @@ violações; não significa uma interrupção da simulação quando há 1.200 re
 | Dificuldade | Saída do CLI | Células alteradas / 24 | Células fora / 24 | Registros fora / 1.200 | Recusas | Fome máxima (h reais) | Frio máximo (h reais) |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Senhor | 1 | 15 | 15 | 447 | 0 | 3 | 1 |
+| Camponês | 1 | 16 | 15 | 526 | 0 | 3 | 3 |
 
-| Grandeza fora da faixa anterior | Senhor |
-|---|---:|
-| população | 36 |
-| Salão | 32 |
-| fome | 4 |
-| frio | 3 |
-| madeira | 4 |
-| pedra | 11 |
-| ouro | 1 |
-| sequência de desperdício | 418 |
-| recusas | 0 |
+| Grandeza fora da faixa anterior | Senhor | Camponês |
+|---|---:|---:|
+| população | 36 | 58 |
+| Salão | 32 | 24 |
+| fome | 4 | 2 |
+| frio | 3 | 2 |
+| madeira | 4 | 5 |
+| pedra | 11 | 6 |
+| ouro | 1 | 26 |
+| sequência de desperdício | 418 | 452 |
+| recusas | 0 | 0 |
 
 A comparação reúne mudanças intencionais já integradas, não um ajuste isolado de
 números: o catálogo atual muda os sorteios, e o preparo do Cerco prioriza Quartel,
@@ -1876,6 +1879,14 @@ a repetição da semente 009 nas duas janelas não é um terceiro caso independe
 São pioras a revisar: a remedição não as corrige nem remove os critérios dos testes.
 A causa de cada intervalo ainda pede a leitura dos eventos da semente; o CSV não
 permite atribuir sozinho cada falta ao treino, à milícia ou à Queda.
+
+Em Camponês, a fome aparece na semana do Rápido do Regular nas sementes 007
+(3 h) e 015 (1 h). O frio aparece no Dedicado do Rápido, semente 041, nas duas
+janelas (3 h em cada registro): dois registros do mesmo intervalo da partida.
+As 16 células com linha de base alterada e os 526 registros fora das faixas
+anteriores também continuam sem ordens recusadas. O Regular chega a 84 h de comida
+indo ao chão na semana do Rápido, 21 h no Normal e 15 h de pedra no ano do Rápido;
+as quatro células (contando semana e ano do Normal) ficam acima da meta de 8 h.
 
 ### 22.3 Cerco por dificuldade, perfil e ritmo
 
@@ -1919,6 +1930,42 @@ chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extr
 | Tranquilo 0,5× | Dedicado | 50 | 47 | 19 | 3 | 147 / 150 | 306 |
 | Tranquilo 0,5× | Explorador | 50 | 35 | 25 | 15 | 117 / 132 | 147 |
 
+#### Camponês
+
+**7 dias reais**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 150 | 0 | 0 | 150 | 0 / 150 | 22 |
+| Rápido 3× | Regular | 150 | 0 | 0 | 150 | 4 / 154 | 191 |
+| Rápido 3× | Dedicado | 150 | 12 | 3 | 138 | 133 / 271 | 1.099 |
+| Rápido 3× | Explorador | 150 | 31 | 13 | 119 | 118 / 237 | 343 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 16 | 3 | 34 | 87 / 121 | 112 |
+| Normal 1× | Dedicado | 50 | 44 | 31 | 6 | 143 / 149 | 130 |
+| Normal 1× | Explorador | 50 | 32 | 19 | 18 | 124 / 142 | 192 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Regular | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Explorador | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+
+**Um ano de jogo**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Rápido 3× | Regular | 50 | 0 | 0 | 50 | 0 / 50 | 94 |
+| Rápido 3× | Dedicado | 50 | 0 | 0 | 50 | 13 / 63 | 469 |
+| Rápido 3× | Explorador | 50 | 0 | 0 | 50 | 2 / 52 | 92 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 16 | 3 | 34 | 87 / 121 | 112 |
+| Normal 1× | Dedicado | 50 | 44 | 31 | 6 | 143 / 149 | 130 |
+| Normal 1× | Explorador | 50 | 32 | 19 | 18 | 124 / 142 | 192 |
+| Tranquilo 0,5× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Tranquilo 0,5× | Regular | 50 | 39 | 19 | 11 | 135 / 146 | 31 |
+| Tranquilo 0,5× | Dedicado | 50 | 50 | 40 | 0 | 150 / 150 | 141 |
+| Tranquilo 0,5× | Explorador | 50 | 47 | 41 | 3 | 142 / 145 | 108 |
+
 ### 22.4 Validações e ponto de continuação
 
 - Passo 2: unitários de engine/content/protocol/web, saída **0**, **203 arquivos**,
@@ -1928,7 +1975,7 @@ chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extr
   O pacote só inicializa dados e schemas locais, sem efeitos externos; a marcação
   conserva a fronteira do app sem liberar conteúdo na lista de exports permitidos.
 - Nenhum golden foi regravado e nenhum retrato `FROZEN` foi alterado.
-- Remedição ainda parcial: falta concluir **Camponês, Rei de Ferro**. `MEASURED` permanece
+- Remedição ainda parcial: falta concluir **Rei de Ferro**. `MEASURED` permanece
   inteiro na linha de base anterior para não misturar dificuldades de rodadas distintas.
 - A suíte completa de sim-cli e as expectativas exatas ainda precisam ser verificadas.
   Não houve `pnpm verify`, integração, build/e2e ou landing nesta retomada após o passo 2.
