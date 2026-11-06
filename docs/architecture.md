@@ -1,31 +1,35 @@
-# Arquitetura da v0.3
+# Arquitetura até a v0.4
 
-> **Retomada em 2026-10-23:** a v0.4 está na Fase C, com estado 29 e protocolo 3.
-> Quartel, soldados, formações e a aba Exército estão no `main` (seção 19c), com a
-> revisão da fase corrigida e a medição do ouro respondida pelo autor; da Fase D, a
-> batalha, a prévia e os comandantes (seção 19d, estado 31).
-> O histórico abaixo contém retratos de fases anteriores; o ponto de continuação
-> e a evidência atual estão em [Retomada da v0.4](retomada-v0.4.md).
-> Não houve publicação da v0.4 nesta sessão.
-> **Em 2026-10-26:** a Muralha e as cartas do lote 2 (estado 32) e as incursões que viram
-> batalha (estado 33, seção 19e).
+O que está construído em Lords of the Guild, conferido em **2026-11-06** no branch
+`v4-docs`, a partir da terceira junção `v4-juncao3` (`ccbaa5c`). O estado está na
+**versão 42**, o protocolo na **4** e os pacotes ainda em **0.3.0**. Esta é uma
+base local de desenvolvimento, sem publicação da v0.4. Antes de afirmar o que
+está no ar, conferir `protocol`, `version` e `builtAt` em `GET /v1/version`.
 
+O [GDD](../GAME_DESIGN.md), §14, continua sendo o contrato. As regras da guerra
+seguem os ADRs [0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)
+e [0020](decisions/0020-horda-cerco-e-cronica-do-ano.md); o Reino segue o
+[ADR 0021](decisions/0021-estatisticas-e-ranking.md). As seções 19b a 19m descrevem
+as entregas da v0.4 sobre a base da Guilda. Registros de fases nos READMEs podem
+conservar números e limitações históricos; aqui vale o código desta base.
 
-O que está construído em Lords of the Guild depois da v0.3 "A Guilda", como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em **2026-10-15** e aponta para o código. Ele foi reescrito nessa data como retrato da v0.3, e não anotado por cima do retrato da v0.2 (tarefa V3G-T4.3 do [roadmap da v0.3](roadmap-v0.3.md)): as versões anteriores estão no histórico do Git.
-
-**Estado em 2026-10-15.** A v0.3 está implementada no `main` **local**, com o **estado do jogo na versão 24** e o **protocolo 3**, e **não foi publicada**: a produção roda a v0.2.0 (estado 12, protocolo 2) até o autor dar o `push`, e a publicação salta de uma vez as Fases B a F ([deploy/README.md](../deploy/README.md), "A primeira publicação da v0.3"). O lote 2 do Conselho (V3F-T1) ficou **fora** da v0.3.0 (pendência F-3). As regras novas são as dos ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), com as respostas do autor de 2026-10-06 e 2026-10-07 registradas neles. **Nenhuma pessoa jogou a v0.3**, e o conteúdo novo (heróis, candidatos, os dezoito grafos de expedição, frases do relatório, do Mercado, das caravanas e dos Mestres) é rascunho que o autor não leu. Antes de afirmar o que está no ar, confira `protocol` e `builtAt` em `GET /v1/version`.
-
-Para o detalhe de cada pacote: [motor](../packages/engine/README.md), [servidor](../packages/server/README.md), [app web](../packages/web/README.md), [simulador](../packages/sim-cli/README.md), [página de apresentação](../packages/landing/README.md) e [implantação](../deploy/README.md). As medições estão em [balance-v0.3.md](balance-v0.3.md); as dúvidas e decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md); o conteúdo em rascunho, em [content-v0.3.md](content-v0.3.md).
+Detalhes por pacote: [motor](../packages/engine/README.md),
+[servidor](../packages/server/README.md), [app](../packages/web/README.md),
+[simulador](../packages/sim-cli/README.md) e [implantação](../deploy/README.md).
+As medições e suas datas estão em [balance-v0.4.md](balance-v0.4.md); decisões e
+perguntas abertas, em [pendencias-v0.4.md](pendencias-v0.4.md). O ponto de
+continuação é [retomada-v0.4.md](retomada-v0.4.md); provas e roteiro humano estão
+em [acceptance-v0.4.md](acceptance-v0.4.md) e [manual-test-v0.4.md](manual-test-v0.4.md).
 
 ## 1. Visão geral
 
-O diagrama do GDD §14.1, atualizado para a instalação que está no ar em `https://lords.palsincomehub.com`.
+O diagrama do GDD §14.1, com os componentes usados pela base local e pela implantação no Coolify.
 
 ```mermaid
 flowchart TB
     subgraph browser["Navegador"]
         App["App web (Preact)<br/>bancada com aparência de editor"]
-        SDK["client-sdk<br/>HTTP tipado, renovação de sessão,<br/>X-Lords-Protocol: 3"]
+        SDK["client-sdk<br/>HTTP tipado, renovação de sessão,<br/>X-Lords-Protocol: 4"]
         Store[("localStorage<br/>tokens, cache da visão com marca de versão,<br/>preferências")]
         App --> SDK
         App --> Store
@@ -55,7 +59,7 @@ flowchart TB
     Deploy["GitHub Actions · ci.yml<br/>job deploy, depois da CI verde"] -. "API do Coolify:<br/>API, app, página" .-> coolify
 ```
 
-A instalação é a da v0.1 ([ADR 0009](decisions/0009-implantacao-no-coolify.md)): três recursos no Coolify mais a página de apresentação, a borda no proxy da plataforma, app e API na mesma origem, deploy automático a cada `push` no `main`. Nem a v0.2 nem a v0.3 criaram tabela, rota de infraestrutura nem recurso novo: tudo o que acrescentaram ao jogo vive dentro de `games.state` e de `game_events`. As rotas novas da v0.2 foram `GET /v1/catalog` e os campos novos de `POST /games`; **a v0.3 não acrescentou rota nenhuma**, só comandos, eventos e campos da visão, e `GET /chronicle.md` ganhou o parâmetro `links`.
+A instalação é a da v0.1 ([ADR 0009](decisions/0009-implantacao-no-coolify.md)): três recursos no Coolify mais a página de apresentação, a borda no proxy da plataforma, app e API na mesma origem, deploy automático a cada `push` no `main`. Nem a v0.2 nem a v0.3 criaram tabela, rota de infraestrutura nem recurso novo: tudo o que acrescentaram ao jogo vive dentro de `games.state` e de `game_events`. As rotas novas da v0.2 foram `GET /v1/catalog` e os campos novos de `POST /games`; **a v0.3 não acrescentou rota nenhuma**, só comandos, eventos e campos da visão, e `GET /chronicle.md` ganhou o parâmetro `links`. A v0.4 acrescenta a Crônica anual (`GET /games/:id/years/:year/chronicle.md`), as estatísticas (`GET /stats`) e a preferência de ranking (`GET`/`PUT /me/ranking`), sob `/v1`, além da migração SQL `0001_ranking_listed` em `accounts`.
 
 Os princípios do GDD §14.1 valem como estão: o servidor é autoritativo e é o relógio; o motor é um só (servidor, simulador e testes); estado inicial, semente e log de comandos refazem uma partida que nasceu na versão atual (a de uma partida migrada tem um limite, ver 4.4); o avanço é preguiçoso, então uma queda do servidor não perde nada.
 
@@ -104,7 +108,7 @@ Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/ind
 
 | Responsabilidade | Onde fica |
 |---|---|
-| Regras de jogo: produção, estações, estoque, obras e filas, ofício, moral, Conselho, Ameaça, incursões, objetivos, heróis, soldo, Taverna, expedições, Mercado, caravanas, Mestres | `packages/engine` (`advanceTo`, `applyCommand`) |
+| Regras de jogo: produção, estações, estoque, obras e filas, ofício, moral, Conselho, Ameaça, incursões, objetivos, heróis, soldo, Taverna, expedições, Mercado, caravanas, Mestres, forja, exército, batalha, Horda, Cerco e fecho anual | `packages/engine` (`advanceTo`, `applyCommand`) |
 | Números, textos, cartas e frases da Crônica | `packages/content` (`balance.ts`, `buildings.ts`, `cards/`, `chronicle.ts`, `objectives.ts`, `tiles.ts`) |
 | Leitura de um estado gravado em qualquer versão | `migrateState`, em `packages/engine/src/migrations.ts` |
 | Sorteios | `packages/engine/src/random.ts`, só dentro de `advanceTo` |
@@ -142,14 +146,14 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (39 neste branch) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (42 nesta base) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco. **Exceção:** os ids de carta, de modelo de expedição, de nó, de opção, de candidato, de item e de Mestre, e os limites do Mercado e das caravanas, ficam gravados no estado e pedem passo de migração para mudar |
-| Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
+| Protocolo | `protocol` em `GET /version` (hoje 4); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
 
 ### 4.2 `migrateState`
 
-Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. Ela é pura, sequencial (1 → 2 → … → 27), idempotente e **confere a forma exata** de cada versão antes de mexer, também quando o estado já diz ser da versão atual: o número não é salvo-conduto. O que ela não conhece é recusado com `StateMigrationError` (`future` para uma versão mais nova que a do motor; `invalid` para uma forma inesperada), com o caminho do campo e o tipo, nunca o valor. Cada passo mora em `packages/engine/src/migrations/`, com a forma exata da versão de que parte, os identificadores escritos no arquivo (nada importado de `@lotg/content`) e um retrato congelado em `__fixtures__/`.
+Um estado gravado só entra no motor por `migrateState(stored, { timeScale, realOriginMs, utcOffsetMinutes, timezoneResolved })`. Ela é pura, sequencial (1 → 2 → … → 42), idempotente e **confere a forma exata** de cada versão antes de mexer, também quando o estado já diz ser da versão atual: o número não é salvo-conduto. O que ela não conhece é recusado com `StateMigrationError` (`future` para uma versão mais nova que a do motor; `invalid` para uma forma inesperada), com o caminho do campo e o tipo, nunca o valor. Cada passo mora em `packages/engine/src/migrations/`, com a forma exata da versão de que parte, os identificadores escritos no arquivo (nada importado de `@lotg/content`) e um retrato congelado em `__fixtures__/`.
 
 | Versão | Tarefa | O que entrou |
 |---|---|---|
@@ -179,8 +183,21 @@ Um estado gravado só entra no motor por `migrateState(stored, { timeScale })`. 
 | 25 | V4B-T1 | O ferro: `iron` no estoque, nos acumuladores, no desperdício, nos preços do Mercado e nos registros de quantidade das expedições; nenhum no feudo, o preço na base |
 | 26 | V4B-T2 | O Ferreiro: `buildings.smithy` em 0, `settlement.weapons` em 0 e `settlement.forge` em `null` |
 | 27 | V4B-T3 | O desgaste: `condition` em cada item (cheia, pela raridade) e `kind` no lote da forja, que passa a guardar também um reparo |
-| 28 a 32 | V4C-T1 a V4E-T1 | O exército, as formações, os relatórios de batalha, a prévia e a muralha (seções 19c e 19d; a tabela do README do motor) |
+| 28 | V4C-T1 | Quartel, contagens por unidade e lote de treino |
+| 29 | V4C-T2 | Formações salvas e Defesa ativa |
+| 30 | V4D-T1 | Relatórios de batalha |
+| 31 | V4D-T2 | Prévia do Conselho de Guerra |
+| 32 | V4E-T1 | Vida da muralha por ala e reparo |
 | 33 | V4E-T2 | `composition` em cada incursão marcada (`null` no passo, que não sorteia), o tamanho `strong` e `formationId` em cada relatório de batalha; o passo marca a incursão do roteiro da guerra que a fronteira encontra dentro da antecedência |
+| 34 | V4E-T3 | Memória da Horda, preparação das ondas e presságios |
+| 35 | V4G-T1 | Origem real e offset civil fixo da Vigília |
+| 36 | V4H-T1 | Efeitos temporários sobre os preços do Mercado |
+| 37 | V4H-T1 | Participantes das cartas e candidato extra da Taverna |
+| 38 | V4F-T1 | Tentativas, sucessos e alerta da sabotagem |
+| 39 | V4F-T2 | Campanha do exército e herói em `campaign` |
+| 40 | V4G-T2 | Cerco, milícia e Primavera da Reconstrução, inicialmente nulos |
+| 41 | V4H-T2 | Bônus de cartas da guerra e guarda da Espada do Senhor |
+| 42 | V4H-T1.4 | `map.expeditionUnlocks`, vazio; não abre a Caçada do Lobo Branco |
 
 Os objetivos 5 a 10 (V2E-T4) e os 11 a 16 (V3F-T2) **não mudaram a forma**: uma partida gravada antes deles fica fora do repouso e é acomodada na fronteira, antes de o tempo andar (seção 6). O contador novo dos objetivos (`expeditionsReturned:<modelo>`) não é preenchido por passo nenhum (pendência F-5; seção 21).
 
@@ -192,7 +209,7 @@ Os objetivos 5 a 10 (V2E-T4) e os 11 a 16 (V3F-T2) **não mudaram a forma**: uma
 
 `loadGame` (`packages/server/src/games/repository.ts`) chama `migrateState` sob o lock da partida, em toda leitura, todo comando e no job de avanço; o resto do servidor só enxerga o estado na versão atual. A migração é gravada pela primeira escrita daquela transação, com um único incremento de `state_version`. Duas requisições simultâneas migram uma vez. `persistState` confere também o estado que vai gravar (`assertStorable`). Um estado ilegível termina em `500` **sem nada gravado por cima**; o job conta a falha, registra a causa da primeira e segue com as outras partidas.
 
-**Limite conhecido.** O instante de cada migração depende de quando a partida foi gravada pela última vez antes da publicação, e isso não se deduz da semente nem dos comandos. Refazer por replay uma partida migrada exige o estado gravado em cada fronteira (um backup); o estado guarda só a mais recente (pendência B-4). **A migração 12 → 24 nunca passou por uma partida de produção**: só pelos retratos congelados e pelos testes de integração.
+**Limite conhecido.** O instante de cada migração depende de quando a partida foi gravada pela última vez antes da publicação, e isso não se deduz da semente nem dos comandos. Refazer por replay uma partida migrada exige o estado gravado em cada fronteira (um backup); o estado guarda só a mais recente (pendência B-4). A publicação da v0.3 em 2026-10-15 migrou quatro partidas de 12 para 24, conforme o registro do roadmap da v0.4. A passagem de 24 para 42 ainda exige a publicação pelo autor; retratos e testes não substituem o backup nem a conferência em produção.
 
 ## 5. Sorteios
 
@@ -201,22 +218,25 @@ O motor sorteia com um gerador próprio, com semente, em `packages/engine/src/ra
 | Fluxo | Quem sorteia | Desde |
 |---|---|---|
 | `morale` | A chegada de um colono e a partida de um aldeão, na virada do dia | V2C-T4 |
-| `council` | A carta de cada audiência | V2D-T1 |
-| `horde` | A incursão que a Ameaça marca | V2E-T3 |
+| `council` | A carta de cada audiência, os participantes dos encontros e o risco diferido de cartas | V2D-T1 |
+| `horde` | Marcação e composição de incursões, preparação/regeneração das ondas e presságios | V2E-T3 |
 | `tavern` | A rotação dos candidatos (`tavernTurn.ts`) | V3C-T2 |
 | `market` | O passo do preço de cada recurso na virada do dia; nasce na primeira virada com o Mercado de pé | V3E-T1 |
 | `expedition:<id>` | O nó de uma expedição: a sorte, quem sofre, a cobiça, o saque, o item e o Mestre; apagado na volta | V3D-T1 |
+| `battle:<id>` | Sorte de 90 a 110 por ataque; criado e apagado no instante da batalha, nunca persistido | V4D-T1 |
 | `caravan:<id>` | A emboscada de uma caravana sem escolta; nasce e é apagado no mesmo instante, e por isso nunca chega a ser gravado | V3E-T2 |
 
-- Sortear em um fluxo não desloca os outros. O fluxo nasce na primeira vez em que é usado (semente por FNV-1a mais SplitMix32 sobre `seed:nome`). Os **fluxos de entidade** (`expedition:expedition-<n>`, `caravan:caravan-<n>`) têm o tipo igual à família e `n` de 1 ao contador de `state.ids`; a guarda de forma confere `rng` contra `ids`, exige que todo `expedition:<id>` seja de uma expedição em curso e todo `caravan:<id>`, de uma caravana na estrada.
+- Sortear em um fluxo não desloca os outros. O fluxo nasce na primeira vez em que é usado (semente por FNV-1a mais SplitMix32 sobre `seed:nome`). Os **fluxos de entidade** (`expedition:expedition-<n>`, `caravan:caravan-<n>`, `battle:battle-<n>`) têm o tipo igual à família e `n` de 1 ao contador de `state.ids`; a guarda de forma confere `rng` contra `ids`, exige que todo `expedition:<id>` seja de uma expedição em curso e todo `caravan:<id>`, de uma caravana na estrada.
 - **Só `advanceTo` sorteia**, em instantes da linha do tempo, nunca em um comando, na visão, em `nextEventAt`, na criação ou na migração: consultar a tela a cada 30 segundos não rerrola nada, e um recibo reenviado nem chega ao motor. `purity.test.ts` barra a importação de `random.ts` nesses módulos. Uma ordem pode **criar** uma entidade, mas não sorteia: contratar na Taverna cria o herói de um candidato que a rotação já tinha sorteado, e enviar uma expedição dá o identificador e deixa a variante do grafo para um hash da semente.
 - **Só se sorteia o que pode acontecer**: sem vaga, no piso de população, sem carta elegível, com uma incursão já marcada, o fluxo não anda.
 - O estado do gerador é gravado com a partida e **nunca** sai no `ViewState`. A divisão de intervalo é provada com os sorteios de verdade no caminho (`economy.property.test.ts`, `council.property.test.ts`, `threat.raids.test.ts`, `tavern.property.test.ts`, `expeditions.property.test.ts`, `market.property.test.ts`, `market.caravans.property.test.ts`).
 - Trocar o algoritmo é mudar uma regra: `RNG_VERSION`, vetores de referência em `random.test.ts` e um passo de migração.
 
+A prévia usa geradores locais próprios, sem tocar `state.rng` ou `state.ids`; forja, treino, reparos, formação e sabotagem não têm fluxo novo. A sabotagem e a caçada usam o fluxo da expedição; campanha, incursão e onda usam o da batalha. Os efeitos de cartas reaproveitam `council`, `tavern` e `market`, sem sorteio na resposta do jogador.
+
 ### Identidades
 
-`nextId(draft, tipo)` (`ids.ts`) devolve `<tipo>-<n>` de um contador em `state.ids` que só sobe: nunca relógio, UUID ou sorteio. Só uma ordem aceita e um evento da linha do tempo criam entidades. Os tipos: `hero` (criado só por `arrivals.ts`, a porta também do herói contratado), `offer` (o candidato da Taverna, só por `tavernTurn.ts`), `expedition` (só por `expeditionOrders.ts`), `item` (o item achado no fim de um nó, `expeditionTurn.ts`), `caravan` (só por `caravanOrders.ts`) e `master` (só por `masterTurn.ts`; Mestre nenhum tem fluxo de sorteio). O objeto `ids` não sai na visão; os identificadores que a visão mostra deixam inferir quantos já foram criados, o que é inofensivo.
+`nextId(draft, tipo)` (`ids.ts`) devolve `<tipo>-<n>` de um contador em `state.ids` que só sobe: nunca relógio, UUID ou sorteio. Só uma ordem aceita e um evento da linha do tempo criam entidades. Os tipos: `hero` (criado só por `arrivals.ts`, a porta também do herói contratado), `offer` (o candidato da Taverna, só por `tavernTurn.ts`), `expedition` (só por `expeditionOrders.ts`), `item` (o item achado no fim de um nó, `expeditionTurn.ts`), `caravan` (só por `caravanOrders.ts`) `master` (só por `masterTurn.ts`; Mestre nenhum tem fluxo de sorteio), `formation` (em `formationOrders.ts`) e `battle` (em `battleTurn.ts`). Itens também podem nascer do efeito de carta em `councilWar.ts`. O objeto `ids` não sai na visão; os identificadores que a visão mostra deixam inferir quantos já foram criados, o que é inofensivo.
 
 ## 6. A linha do tempo e a ordem do mesmo instante
 
@@ -224,35 +244,54 @@ O motor sorteia com um gerador próprio, com semente, em `packages/engine/src/ra
 
 A invariante, testada por propriedade e sem tolerância, vale no estado, nos eventos e no gerador: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)`.
 
-**Ordem fixa dentro do mesmo instante** (`processEventsAt`, em [`packages/engine/src/advance.ts`](../packages/engine/src/advance.ts); provada em `advance.test.ts`, "no mesmo instante a ordem é fixa", e, para cada mecânica, em `tavern.test.ts`, `expeditions.test.ts`, `market.caravans.test.ts` e `masters.test.ts`):
+**Ordem fixa dentro do mesmo instante** (`processEventsAt`, em
+[`advance.ts`](../packages/engine/src/advance.ts)). É a ordem do README do motor,
+com os encaixes descritos nas seções da forja, do treino, da muralha, do Cerco e do
+Lobo Branco; o código resolve o treino antes da recuperação dos aldeões feridos:
 
-1. Obras concluídas e, logo depois, o lote da forja que termina (`finishForge`: as armas de um lote, ou o item reparado que volta ao arsenal; v0.4, Fase B).
-2. Aldeões que chegam: os recrutas e, depois, os aldeões feridos que saram e voltam ao ofício; logo depois, o lote do Quartel que termina (`finishTraining`: os soldados saem dos aldeões, até o piso de 3; o que o piso tirou sai como `trainingShortfall`; v0.4, Fase C).
-3. **Mestres que esperavam à porta** (`settleMasterArrivals`): a obra que ampliou as casas já terminou, e o recruta, que tinha a casa reservada, já entrou.
-4. Heróis feridos que saram (`recoverHeroes`): quem sara em um instante já pode partir na ordem dada nele.
-5. A virada do dia (`processCalendar`), ela mesma em ordem fixa: o fecho do desperdício do dia que acabou; o ano (e a lista de cartas vistas no ano, que zera; os lobos que voltam ao Covil limpo, `restoreTiles`, antes de a Ameaça subir); a estação (e a conta das estações sem frio); o amanhecer; a experiência do ofício; a moral (recálculo, sorteio do colono, sorteio da partida, deserção por fome); a cobrança do soldo em atraso (`turnWages`: Descontente e heróis que partem); **o Mercado** (`turnMarket`: o preço de cada recurso anda e o volume do dia volta, só com o Mercado de pé); o sorteio do Conselho, que vem depois da moral porque a faixa de moral é requisito de carta, e depois do Mercado para a carta daquela virada já encontrar o preço de hoje; e, por último, a Ameaça (subida, uivos do roteiro, sorteio da incursão).
-6. **Mestres à porta, de novo**: a vaga que um aldeão deixou ao partir ou desertar nesta virada é tomada neste instante, e não no próximo.
-7. O Conselho fora do sorteio (`settleCouncil`): cartas que expiram, efeitos escondidos que acontecem, continuações que chegam, nessa ordem.
-8. Heróis prometidos que chegam (`settleHeroArrivals`): o que uma carta acabou de dar e o que tinha instante marcado. Depois da virada, porque a cobrança do soldo daquela virada não alcança quem chega nela.
-9. Fim de adaptação (`finishAdaptations`): as levas de aldeões e os Mestres.
-10. As incursões (`settleRaids`): o aviso da Torre e a resolução das que chegaram, que desde a V4E-T2 é uma batalha contra a Defesa ativa e a muralha (o fluxo `battle:<id>` nasce e morre ali; seção 19e).
-11. A Taverna (`settleTavern`): o festival que acabou e a troca dos candidatos, com o sorteio dela.
-12. As expedições (`settleExpeditions`): os nós que terminam, os prazos de encruzilhada e as equipes que voltam, **na ordem do identificador**, cada uma com o sorteio do próprio fluxo. Dentro de um nó a ordem dos sorteios é fixa: a sorte, quem sofre, a cobiça do Ganancioso, as quantidades do saque, o item e, por último, o Mestre, só no Sucesso e só se ele ainda pode chegar. O saque entra antes da conta do ouro.
-13. As caravanas que chegam (`settleCaravans`), na ordem do identificador: com escolta, sem sorteio; sem escolta, um sorteio no fluxo da caravana, com a Torre de Vigia **deste** instante. O ouro entra antes das planejadas e da conta do soldo, e o fluxo é apagado por último.
-14. Início automático das planejadas e objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao outro).
-15. Fome e frio e, por último, o soldo em atraso, que abre ou fecha (`settleScarcity`).
+1. Fim do reparo normal da muralha, obras concluídas, fim da forja ou do reparo de item.
+2. Recrutas que chegam, fim do treino, aldeões feridos que saram.
+3. Mestres à porta que agora têm vaga; heróis feridos que saram.
+4. Retirada dos efeitos de preço vencidos e expiração de destinos temporários.
+5. Virada do dia (`processCalendar`): fecho do desperdício; **fecho anual
+   `yearEnded` antes de `yearStarted`**; no ano novo, reinício do Conselho e da
+   memória da Horda, restauração dos tiles e abertura da Reconstrução quando devida;
+   estação e sua conta de frio; amanhecer; experiência do ofício; moral (colono,
+   partida e deserção); soldo vencido; Mercado (preços e volume); sorteio do
+   Conselho; Ameaça (inclui preparação da Horda e marcação do Cerco).
+6. Mestres à porta novamente, ocupando a vaga deixada na virada.
+7. Conselho fora do sorteio: expirações, efeitos escondidos e continuações.
+8. Heróis prometidos que chegam; fim da adaptação de aldeões e Mestres.
+9. Incursões: marcação do ensaio quando devida, aviso da Torre e batalha.
+10. **Cerco**: a onda devida, seu resultado e a abertura da decisão seguinte;
+    depois, dissolução de milícia vencida e fim da Reconstrução.
+11. Taverna: fim do festival e rotação dos candidatos.
+12. Expedições, na ordem do identificador: fim de nó, decisão por Postura e retorno.
+    Dentro da prova, a ordem é sorte, vítima, cobiça, saque, item e Mestre elegível.
+13. **Campanha ao Acampamento**: chegada, batalha ou retorno.
+14. Caravanas, na ordem do identificador: venda e eventual emboscada; o fluxo sai por último.
+15. Planejadas automáticas e objetivos, repetidos enquanto houver consequência.
+16. Fome, frio e, por último, abertura/fecho do atraso do soldo.
 
-Depois de tudo, `advanceWith` registra os estoques que encheram (`announceFilled`). Consequências que a ordem decide: a Paliçada que termina no instante do ataque já o repele (obras antes das incursões); a moral do instante de uma incursão é a de antes dela (virada antes das incursões); o ferido que sara na virada já conta para a experiência do ofício; a carta que expira no instante de um comando é resolvida antes dele (`applyCommand` exige o estado avançado), e a resposta encontra `CARD_EXPIRED`; a equipe que volta no instante da virada não é cobrada pelo soldo em atraso dela (estava fora); a caravana que chega no mesmo instante de uma expedição não se cruza com ela (um herói faz uma coisa por vez); o saque ou a venda que entra paga a obra que esperava recurso e o soldo, e o atraso que abriria naquele instante nem abre. Um evento novo entra nessa lista em um lugar escolhido, com teste do instante exato, e o README do motor diz por quê.
+Depois de tudo, `announceFilled` registra os depósitos cheios. A muralha reparada,
+a obra e as armas prontas já contam para a batalha daquele instante. A tropa e os
+heróis que voltam de expedição/campanha depois dela ainda estão fora na defesa.
+Uma troca enviada no instante exato da onda chega depois do avanço e é recusada.
+O saque e as caravanas ainda podem pagar uma planejada ou fechar o atraso no mesmo
+instante. As provas estão distribuídas entre `advance.test.ts`, `smithy.test.ts`,
+`army.test.ts`, `raids.property.test.ts`, `campaign.property.test.ts`,
+`siege.timeline.test.ts` e `yearEnd.test.ts`; não há um cenário único com todos
+os acontecimentos simultâneos.
 
 **Repouso.** Depois de cada instante e de cada comando: nenhuma planejada automática pode começar, nenhum objetivo ativo está cumprido, a fome, o frio e o soldo em atraso não têm o que abrir ou fechar, nenhuma carta está vencida na mesa, nenhum aviso da Torre está por dar. Por isso `nextEventAt` é sempre depois de agora e nenhum instante é processado duas vezes. Um estado que chega fora do repouso (recém-migrado, ou com uma lista de objetivos que cresceu) é acomodado no instante em que está, **antes** de o tempo andar: `advanceWith` anuncia as incursões, ergue a lista da Taverna que falta, **recolhe a equipe cujo destino, trecho ou encruzilhada o conteúdo deixou de ter** (`recallStranded`, que a manda para casa com o que juntou), inicia as planejadas e acomoda os objetivos e a escassez. Todo encadeamento tem limite derivado de conteúdo finito (listas de planejadas e de objetivos, uma incursão marcada por vez, no máximo duas cartas na mesa).
 
-**Previsões.** A visão anuncia prazos ("cheio em", "acaba em", a espera de uma planejada, a conta da lenha, a moral da próxima virada) andando uma cópia do estado só com a produção contínua, o ofício e a moral, **sem sortear nada**. A cópia que prevê a moral (`stateAtNextMoraleTurn`) deixa de fora as incursões marcadas (segredo até os vigias a verem), empurra a rotação da Taverna para nunca, anda sem as expedições em curso e sem as caravanas na estrada: a previsão não conta com a volta de um herói Devoto nem com o ouro de uma venda, e a visão nunca resolve um nó antes da hora. Um prazo anunciado é o de quem não é atacado no caminho.
+**Previsões.** A visão anuncia prazos ("cheio em", "acaba em", a espera de uma planejada, a conta da lenha, a moral da próxima virada) andando uma cópia do estado só com a produção contínua, o ofício e a moral, **sem sortear nada**. A cópia que prevê a moral (`stateAtNextMoraleTurn`) deixa de fora as incursões marcadas (segredo até os vigias a verem), empurra a rotação da Taverna para nunca, anda sem as expedições em curso sem as caravanas na estrada, sem a campanha e sem o Cerco: a previsão não conta com a volta de um herói Devoto nem com o ouro de uma venda, e a visão nunca resolve um nó antes da hora. Um prazo anunciado é o de quem não é atacado no caminho.
 
 ## 7. Os relógios
 
 Há três relógios, e cada um tem um dono.
 
-**Tempo de jogo (motor).** Milissegundos inteiros desde o início da partida; o motor recebe o instante como argumento e não conhece o relógio do sistema. Todos os números do conteúdo estão no ritmo Normal do GDD: um dia do calendário são 2 horas de jogo (`calendar.dayMs`), o ano tem 84 dias (primavera, verão e outono de 24, inverno de 12). As constantes de prazo são tempo de jogo e escalam com o ritmo ([ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 1), **com as exceções que o conteúdo marca com `…RealMs`** ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)): o prazo de resposta de uma carta do Conselho (`council.expiryRealMs`, 24 h reais), a carência e o passo da deserção por fome (`morale.famineDesertionAfterRealMs` e `famineDesertionEveryRealMs`, 12 h e 2 h reais), a janela em que a fome que reabre é a mesma (`morale.famineResumeWithinRealMs`, 2 h reais) a antecedência do aviso da Torre de Vigia (`threat.watchtowerLevels[].warningRealMs`, 1 h e 2 h reais) os quatro prazos do soldo em atraso (`heroes.arrears`: `discontentAfterRealMs`, 12 h; `leaveAfterRealMs`, 24 h; `leaveEveryRealMs` e `resumeWithinRealMs`, 2 h reais; [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 3) e a espera da encruzilhada de uma expedição (`expeditions.crossroadsWaitRealMs`, 12 h reais por resposta do autor de 2026-10-06, convertida quando a equipe chega ao nó; ADR 0017, decisão 1). **Todo o resto da v0.3 é tempo de jogo** e escala com o ritmo: o soldo, a duração dos nós, o ferimento, a rotação da Taverna, a viagem de uma caravana, a adaptação de um Mestre. O motor as converte em tempo de jogo com `state.settings.timeScale` (`realToGameMs`). Consequência: "as mesmas ordens dão o mesmo feudo em qualquer ritmo" vale até uma carta expirar, uma fome passar da carência, um soldo atrasar além da carência, uma encruzilhada esgotar a espera ou os vigias darem um alarme (o desfecho da incursão é o mesmo; o instante do alarme, não).
+**Tempo de jogo (motor).** Milissegundos inteiros desde o início da partida; o motor recebe o instante como argumento e não conhece o relógio do sistema. Todos os números do conteúdo estão no ritmo Normal do GDD: um dia do calendário são 2 horas de jogo (`calendar.dayMs`), o ano tem 84 dias (primavera, verão e outono de 24, inverno de 12). As constantes de prazo são tempo de jogo e escalam com o ritmo ([ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 1), **com as exceções que o conteúdo marca com `…RealMs`** ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)): o prazo de resposta de uma carta do Conselho (`council.expiryRealMs`, 24 h reais), a carência e o passo da deserção por fome (`morale.famineDesertionAfterRealMs` e `famineDesertionEveryRealMs`, 12 h e 2 h reais), a janela em que a fome que reabre é a mesma (`morale.famineResumeWithinRealMs`, 2 h reais) a antecedência do aviso da Torre de Vigia (`threat.watchtowerLevels[].warningRealMs`, 1 h e 2 h reais) os quatro prazos do soldo em atraso (`heroes.arrears`: `discontentAfterRealMs`, 12 h; `leaveAfterRealMs`, 24 h; `leaveEveryRealMs` e `resumeWithinRealMs`, 2 h reais; [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisão 3) e a espera da encruzilhada de uma expedição (`expeditions.crossroadsWaitRealMs`, 12 h reais por resposta do autor de 2026-10-06, convertida quando a equipe chega ao nó; ADR 0017, decisão 1). Na v0.4, o intervalo entre ondas (`siege.waveIntervalRealMs`) também é **60 min reais**, convertido pelo ritmo ao encerrar a onda anterior. A janela da milícia é a antecedência real da Torre. **Os demais prazos são tempo de jogo** e escalam com o ritmo: o soldo, a duração dos nós, o ferimento, a rotação da Taverna, a viagem de uma caravana, a adaptação de um Mestre. O motor as converte em tempo de jogo com `state.settings.timeScale` (`realToGameMs`). Consequência: "as mesmas ordens dão o mesmo feudo em qualquer ritmo" vale até uma carta expirar, uma fome passar da carência, um soldo atrasar além da carência, uma encruzilhada esgotar a espera, os vigias darem um alarme ou uma onda seguinte chegar. A Vigília acrescenta a referência civil descrita na seção 19g.
 
 **Tempo real (servidor).** O servidor é o único relógio (`ctx.clock()`, nunca `Date.now()` solto):
 
@@ -264,7 +303,7 @@ tempo de jogo = (agora − criação da partida) × time_scale
 
 **Visão em tempo real (interface).** `deriveViewState(state, gameTimeMs, { timeScale })` entrega prazos em segundos reais (arredondados para cima; `depletesInSeconds` e `famine.secondsElapsed`, para baixo), taxas por hora real e textos de explicação já com esses números. O app não converte nada: do ritmo ele só recebe rótulos prontos (`settlement.paceLabel`) e, nas boas-vindas, as opções de `GET /catalog`. O que o app faz com o tempo:
 
-- Ciclo de 30 s com a aba à vista (2 min em segundo plano): `GET /view` com ETag e `GET /events?after=`. A leitura seguinte vem antes quando um prazo da visão vence: uma obra, a espera de uma planejada, uma adaptação, uma carta, uma incursão e os da Guilda (o fim do nó, o prazo da encruzilhada, o ferido que sara, a chegada de uma caravana) (`nextPollMs`, `guildDeadlines` e `expeditionDeadlines`). Entre dois ciclos, as contagens regressivas andam no relógio do navegador.
+- Ciclo de 30 s com a aba à vista (2 min em segundo plano): `GET /view` com ETag e `GET /events?after=`. A leitura seguinte vem antes quando um prazo da visão vence: uma obra, a espera de uma planejada, uma adaptação, uma carta, uma incursão e os da Guilda (o fim do nó, o prazo da encruzilhada, o ferido que sara, a chegada de uma caravana), a forja, o treino, o reparo e os prazos do Cerco (`nextPollMs`, `guildDeadlines` e `expeditionDeadlines`). Entre dois ciclos, as contagens regressivas andam no relógio do navegador.
 - O Relatório de Retorno sai ao abrir a página depois de 4 horas reais sem leitura e, desde a v0.2, também na volta de uma aba que ficou **fora de vista** por 4 horas ou mais (a ausência vai para o cache, porque o navegador pode descartar a aba).
 - Os limiares de apresentação são de tempo real e ficam no app, sem número de regra: "cheio em" com alerta abaixo de 8 h, "Antes de partir" olhando 24 h, o aviso de estação uma hora antes, o lembrete "Proteja seu reino" 48 horas depois da primeira vez no navegador.
 
@@ -283,16 +322,16 @@ O motor do Conselho fica em `council.ts` (o que não sorteia), `councilTurn.ts` 
 - **A carta roteirizada** (v0.3, `scripted: { atGameDay: 13 }`; seção 12): a "Estrangeira ferida" sai no sorteio da audiência, na frente das sorteadas, uma vez por partida, e pede lugar na mesa sem reservá-lo.
 - **"Sua escolha voltou."** O evento da continuação leva a escolha anterior (`previousCardId`, `previousOptionId`, `previousInstanceId`); o servidor escreve, no Markdown da Crônica, a nota que a cita (`games/chronicleMarkdown.ts`), e a aba Crônica leva o foco à linha citada.
 
-- **Lote 2 fora da v0.3.0.** As cartas que dariam Mestres (`addMaster`), mexeriam no preço (`market.effects`) ou pediriam um herói presente (V3F-T1) **não existem**: o branch `wip/v3f-t1-lote2` está guardado, sem junção (pendência F-3). O Conselho da v0.3 é o lote 1 de 21 cartas mais a roteirizada.
+- **Lotes 2 e 3 na v0.4.** A herança de 22 cartas da v0.3 foi ampliada para 59 nesta base, incluindo os ganchos de Mestre, Mercado, encontros, guerra e Lobo Branco (seção 19l). O alvo de 60 do roadmap ainda não é a contagem do catálogo.
 ## 9. A Ameaça e as incursões
 
-As regras ficam em `threat.ts`, `hordeTurn.ts` (o sorteio) e `raids.ts` (roteiro, aviso, resolução e feridos, sem sortear nada); os números em `balance.threat` e `balance.raids`, e os tiles em `tiles.ts` (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20).
+As regras ficam em `threat.ts`, `hordeTurn.ts` (o sorteio) e `raids.ts` (roteiro, aviso, resolução e feridos, com a batalha delegada a `battleTurn.ts`); os números em `balance.threat` e `balance.raids`, e os tiles em `tiles.ts` (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20).
 
 - **Tiles abstratos.** O Covil de Lobos é um tile sem mapa (`map.tiles`); o mapa gráfico é da v0.5. A Ameaça (`map.threat`) sobe na virada do dia com os tiles ativos e com o outono, e cai a cada incursão, repelida ou sofrida.
 - **A névoa é aplicada no servidor.** `ViewState.threat` é uma união fechada: sem a Torre de Vigia (`known: false`) só saem a frase, a Torre e a defesa; o número, a tendência, os tiles e as incursões marcadas não saem, e o schema do protocolo recusa o resto. Os eventos só levam a Ameaça para quem tem a Torre. Testes conferem que dois feudos iguais, um com a Ameaça em zero e outro com uma incursão à porta, têm a mesma visão sem a Torre.
 - **Incursões marcadas** (`horde.scheduledRaids`, no máximo uma por vez): a do roteiro do ano 1 nasce com a partida (os uivos no 10º dia, os lobos no 16º); as outras são sorteadas pela Ameaça na virada do dia e chegam em outra virada. O sorteio não vira evento nem linha: a incursão só aparece quando os vigias a avistam e, sem Torre, quando chega.
-- **Torre e Paliçada**, até o nível 2 (níveis acima são de versões futuras). A Torre só deixa ver (antecedência do aviso; no nível 2, o tamanho). A regra inteira da Paliçada é `palisadeAgainst(nível, tamanho)`: aberta, segura ou rompida pela metade.
-- **O Covil de Lobos limpo** (v0.3, seção 14): uma expedição ao Covil bem-sucedida desliga o tile e tira 30 da Ameaça (`threat.tileClearedDrop`); os lobos voltam na virada do ano (`restoreTiles`, antes de a Ameaça subir). Com o Covil limpo a Ameaça só sobe no outono, e só no outono há sorteio de incursão: os lobos descem a serra (`threat.seasonEnemy`, `raidingEnemy`; regra confirmada pelo autor em 2026-10-06, "Manter os lobos do outono").
+- **Torre até o nível 5 e Paliçada até o 6.** A Torre informa tamanho/composição conforme o nível, dispara em batalha e clareia presságios. A Paliçada tem vida por ala e reparo. `palisadeAgainst` ainda limita as perdas econômicas da incursão; a batalha e os níveis novos estão nas seções 19d e 19e.
+- **O Covil de Lobos limpo** (v0.3, seção 14): uma expedição ao Covil bem-sucedida desliga o tile e tira 30 da Ameaça (`threat.tileClearedDrop`); os lobos voltam na virada do ano (`restoreTiles`, antes de a Ameaça subir). Na v0.3, com o Covil limpo a Ameaça só subia no outono; na v0.4, o Acampamento ativo também contribui e permite incursões. O outono continua tendo lobos mesmo com o Covil limpo: os lobos descem a serra (`threat.seasonEnemy`, `raidingEnemy`; regra confirmada pelo autor em 2026-10-06, "Manter os lobos do outono").
 - **Feridos** não trabalham por um dia de jogo, continuam comendo e voltam sozinhos ao edifício de onde saíram; ninguém parte por causa dos lobos.
 
 O comportamento medido em 2026-10-02 (a Ameaça sobe até perto do máximo e fica lá, e quase toda incursão sorteada é média) está em [balance-v0.2.md](balance-v0.2.md), seção 14.4, e é o que o balanceamento de fechamento (V2F-T1) está revendo.
@@ -305,9 +344,11 @@ O comportamento medido em 2026-10-02 (a Ameaça sobe até perto do máximo e fic
 
 **Protocolo 2** (V2D-T1). Com o Conselho, `pendingDecisions` deixou de ser sempre vazio e passou a trazer cartas que o app do protocolo 1 não sabe ler. `PROTOCOL_VERSION` passou a 2, o SDK manda `X-Lords-Protocol` em toda chamada e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a quem manda outro número. Quem não manda o cabeçalho (o monitor de saúde, um `curl`) é atendido. As rotas continuam em `/v1`: o GDD dizia que mudanças incompatíveis iriam para `/v2` (pendência B-9).
 
-**Protocolo 3** (V3D-T1; [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 11). `pendingDecisions` é uma união **fechada** por `kind`: no protocolo 2 só havia `card`, e um teste recusava qualquer outro tipo. Com as expedições, a equipe parada em uma encruzilhada entra na lista (`kind: 'crossroads'`, com o identificador da expedição, o título e o prazo real), e o app do protocolo 2 recusaria a visão inteira ao ver uma. Por isso `PROTOCOL_VERSION` é 3, e o cliente anterior recebe o mesmo `426`, em leitura e em ordem, sem que nenhum recibo seja gravado nem reescrito (`packages/server/test/expeditions.test.ts`). `packages/server/src/plugins/errors.ts` não mudou: já comparava `X-Lords-Protocol` com o número. Um terceiro tipo de decisão pendente subiria o número de novo. A produção, que roda o protocolo 2, só passa ao 3 na primeira publicação da v0.3: o app antigo aberto recebe `426` ("Recarregue a página").
+**Protocolo 3** (V3D-T1; [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 11). `pendingDecisions` é uma união **fechada** por `kind`: no protocolo 2 só havia `card`, e um teste recusava qualquer outro tipo. Com as expedições, a equipe parada em uma encruzilhada entra na lista (`kind: 'crossroads'`, com o identificador da expedição, o título e o prazo real), e o app do protocolo 2 recusaria a visão inteira ao ver uma. Naquela entrega `PROTOCOL_VERSION` passou a 3, e o cliente anterior recebe o mesmo `426`, em leitura e em ordem, sem que nenhum recibo seja gravado nem reescrito (`packages/server/test/expeditions.test.ts`). `packages/server/src/plugins/errors.ts` não mudou: já comparava `X-Lords-Protocol` com o número. A v0.3 foi publicada com esse protocolo.
 
-**Crônica.** `chronicleRows` filtra `CHRONICLE_HIDDEN_EVENT_TYPES` (`dayStarted`, `storageWasted` e `expeditionNodeResolved`, em `@lotg/protocol`) em `GET /chronicle` e em `/chronicle.md`: sem viradas de dia, sem o fecho do desperdício e sem o nó de expedição que deu certo; o que terminou em Revés ou Desastre sai como `expeditionNodeFailed`. `GET /events` traz tudo. `GET /chronicle.md?links=1` marca cada linha de expedição com o identificador dela (`chronicleLink.ts`), para o app ligar a linha ao relatório pela marca; sem `links` o documento sai limpo.
+**Protocolo 4** (V4G-T2). A decisão entre ondas acrescenta `kind: 'siegeWave'` à união fechada. O cliente do protocolo 3 recebe `426`; o cache antigo é descartado e o cursor de eventos fica. As rotas continuam em `/v1`, e os recibos antigos continuam intactos (`packages/server/test/siege.test.ts`).
+
+**Crônica.** `chronicleRows` filtra `CHRONICLE_HIDDEN_EVENT_TYPES` (`dayStarted`, `storageWasted`, `expeditionNodeResolved` e `battleSimulated`, em `@lotg/protocol`) em `GET /chronicle` e em `/chronicle.md`: sem viradas de dia, sem o fecho do desperdício e sem o nó de expedição que deu certo; o que terminou em Revés ou Desastre sai como `expeditionNodeFailed`. `GET /events` traz tudo. `GET /chronicle.md?links=1` marca cada linha de expedição com o identificador dela (`chronicleLink.ts`), para o app ligar a linha ao relatório pela marca; sem `links` o documento sai limpo.
 
 **Ordem de implantação.** O job `deploy` implanta a API antes do app, então por alguns segundos uma aba antiga fala com a API nova: ela recebe o `426` e o aviso de recarregar. O cache do app tem a marca da versão (`CACHE_VERSION`: protocolo e formato da visão); o de outra versão é descartado, e a primeira volta depois de uma atualização sai sem a comparação dos estoques (pendência B-11). Um campo do `ViewState` que mantém o nome e passa a dizer outra coisa pede subir `VIEW_FORMAT`.
 
@@ -397,7 +438,7 @@ O núcleo da v0.3 (Fase D). O detalhe está no [README do motor](../packages/eng
 - **Ferimento**: o Revés fere de leve (2 h de jogo) e o Desastre, de forma grave (12 h). Quem sofre é sorteado no fluxo da expedição. O ferido termina a jornada e fica `injured` no feudo até `injury.untilMs`, instante da linha do tempo (`heroRecovered`).
 - **Captura e morte**, onde o nó marca captura, pela dificuldade (`balance.difficulties[].heroCapture`): ferimento grave em Camponês, captura em Senhor, **morte em Rei de Ferro**. O cativo não recebe soldo, **não ocupa lugar no limite de heróis** e só volta com o **Resgate** (uma expedição ao destino de resgate, que devolve quem está lá há mais tempo; um Resgate por cativo). A equipe inteira capturada ou morta termina a expedição e perde o saque.
 - **Experiência** (`grantXp`): cada prova dá experiência a quem continua na equipe, com níveis até o 10 (`heroLeveledUp`).
-- **Equipamento** (`equipment.ts`): doze itens em três espaços e quatro raridades (`items.ts`); o item nasce com `nextId(draft, 'item')` no fim de um nó, vai para o arsenal (`guild.inventory`, teto de 30; o que não cabe vira ouro) e entra no poder como fator, e os bônus de item de um herói somam entre si. `equipItem` e `unequipItem` não sorteiam. **Não existe** desgaste, reparo nem venda de item (v0.4).
+- **Equipamento** (`equipment.ts`): três espaços e quatro raridades (`items.ts`); o item nasce com `nextId(draft, 'item')` no fim de um nó ou por carta, vai para o arsenal (`guild.inventory`, teto de 30; o que não cabe vira ouro) e entra no poder como fator. `equipItem` e `unequipItem` não sorteiam. Desgaste e reparo existem na v0.4 (seção 19b); venda voluntária não existe.
 - **O Covil de Lobos limpo** desliga o tile e tira 30 da Ameaça (seção 9). Uma equipe por vez em um tile de ameaça.
 
 **Relatório nó a nó** (`expeditionReport.ts`; não sorteia): cada registro do percurso guarda quem se destacou e o que o desfecho ruim ensina (`log[].standout`, `log[].lesson`), escolhidos sem sorteio na resolução; a frase da Crônica e a do relatório são a mesma. O relatório fecha com o caminho de volta, `lossesText` e `deedsText`; os três últimos ficam guardados (`guild.reports`).
@@ -427,7 +468,7 @@ O núcleo da v0.3 (Fase D). O detalhe está no [README do motor](../packages/eng
 
 - **Estado**: `market.caravans` (`id` de `nextId`, `resource`, `amount`, `unitPrice` **fixado no envio**, `arrivesAtMs`, `escortHeroId`), em ordem de identificador, com teto igual aos lugares do Mercado. **Não há campo de desfecho**: o desfecho não existe antes da chegada (teste de névoa em `market.caravans.test.ts`).
 - **Envio**: Mercado no nível 2; até 300 unidades de um recurso; 4 h de jogo de viagem; um lugar na estrada (dois a partir do Mercado nível 4). O preço fixado é o de venda de agora × 23/20 (**a caravana paga 15% sobre o balcão**, resposta do autor de 2026-10-07; o schema recusa a combinação em que comprar para revender dê lucro). A ordem leva o `quoteDay`, tira a carga do estoque, não conta no volume do dia, **dá o identificador e não sorteia**. Recusas: `MARKET_LEVEL_REQUIRED`, `CARAVAN_LIMIT`, `INVALID_AMOUNT`, `INSUFFICIENT_RESOURCES`, `HERO_NOT_FOUND`, `HERO_UNAVAILABLE`, `PRICE_CHANGED`.
-- **Chegada**: instante da linha do tempo (seção 6, item 13). Com escolta não há sorteio; sem escolta, um sorteio no fluxo `caravan:<id>`, com a chance `máx(2, 10 − 5 × nível da Torre)` por cento e a Torre do instante da chegada; a emboscada leva metade da carga, arredondada para baixo. Eventos `caravanSent`, `caravanArrived`, `caravanAmbushed` (este com `lost_<recurso>` e `ambushed_<recurso>`).
+- **Chegada**: instante da linha do tempo (seção 6, item 14). Com escolta não há sorteio; sem escolta, um sorteio no fluxo `caravan:<id>`, com a chance `máx(2, 10 − 5 × nível da Torre)` por cento e a Torre do instante da chegada; a emboscada leva metade da carga, arredondada para baixo. Eventos `caravanSent`, `caravanArrived`, `caravanAmbushed` (este com `lost_<recurso>` e `ambushed_<recurso>`).
 - **Quem escolta** está fora do feudo, como quem está em expedição: recebe soldo, não parte, não é dispensado nem equipado, e, no soldo em atraso, só parte depois de voltar.
 - **Critério 5 do GDD §16.2**: provado por cenário de semente fixa e pela matriz QA-10, com 1.000 sementes por célula: nenhuma emboscada com escolta; sem escolta, 116, 50 e 24 com a Torre nos níveis 0, 1 e 2.
 - **Visão**: `market.caravans` e `market.caravanOffer` (o risco explicado termo a termo, `eligibleEscortIds`, o excedente enviável).
@@ -439,7 +480,7 @@ O núcleo da v0.3 (Fase D). O detalhe está no [README do motor](../packages/eng
 **O desenho, em uma frase: o Mestre é um habitante que não é aldeão.** `population.villagers` continua contando só os aldeões; o Mestre mora em `settlement.masters`. As contas de habitante (vaga nas casas, comida, lenha, casas cheias, piso de população) somam os dois (`inhabitants`); as de aldeão (ofício, adaptação por coortes, quem parte, deserta ou se fere) não sabem que ele existe. **É isso que garante, por construção, que nenhuma regra de perda o alcança.** No edifício ele é um braço a mais, fora de `settlement.workers` e das coortes (`handsAt`, `armsOf`), e conta para a experiência do ofício. O piso de população protege 3 aldeões, com quantos Mestres houver.
 
 - **Conteúdo**: `balance.masters` (+15%, em fração 3/20; um por edifício; adaptação de um dia de jogo; teto de quatro); quatro Mestres com nome (Odo, Berta, Gil e Ximena; ids fixados em `masters.test.ts`; o ofício de origem é só narrativa).
-- **Origem**: a recompensa de expedição `master` (Odo nos três guardiões das Ruínas de Vel'Thar, 1 em 4; Berta nos três chefes do Pântano Nebuloso, 1 em 3; sempre no último nó com prova, no sexto sorteio do nó). **Gil e Ximena só chegariam por carta (lote 2), e por isso ficam sem origem na v0.3.0** (pendência F-3).
+- **Origem**: a recompensa de expedição `master` (Odo nos guardiões das Ruínas de Vel'Thar, 1 em 4; Berta nos chefes do Pântano Nebuloso, 1 em 3; no último nó com prova, depois do item). Gil e Ximena chegam pelas cartas dos Refugiados do lote 2, integrado na v0.4; todos passam por `deliverMaster`.
 - **Chegada**: `deliverMaster` é o único ponto que cria um Mestre. Com vaga entra na hora, sem edifício; sem vaga espera à porta, sem morar nem comer, e entra junto dos aldeões que chegam e de novo logo depois da virada do dia (seção 6, itens 3 e 6).
 - **A ordem `assignMaster { masterId, building }`** (`null` o deixa sem edifício) não sorteia nem cria entidade. **A primeira alocação é imediata** (`worked`, estado 24); chegar a um edifício depois de já ter trabalhado custa a adaptação (meio braço, sem bônus, por um dia de jogo; o fim é um instante da linha do tempo). Recusas: `MASTER_NOT_FOUND`, `MASTER_WAITING`, `BUILDING_HAS_MASTER`, `NOT_A_PRODUCTION_BUILDING`.
 - **Produção**: o fator `master` (23/20) entra em `productionFactors`, com o termo na explicação ("× 1,15 (Mestre Odo)").
@@ -473,111 +514,270 @@ O [README do app](../packages/web/README.md) descreve a estrutura. O que a v0.3 
 - **Fronteira de importação**: o bundle não leva frase nem número de regra da Guilda, do Mercado, das caravanas e dos Mestres (`bundle.test.ts`).
 - **Alarmes**: todo lote com um aviso essencial (atraso do soldo, herói que parte, emboscada) mostra ao menos um aviso, mesmo com a cota de três por hora cheia (pendência F-4).
 
-## 19b. O ferro, o Ferreiro e o reparo (v0.4, Fase B)
+## 19b. Ferro, Ferreiro, armas, desgaste e reparo
 
-Entram na v0.4 sem publicação (ADR 0019, decisões 3 a 5; estados 25 a 27):
+O ferro é o quinto recurso, no Armazém, sem ofício produtor. Vem do Mercado e da
+**Mina Abandonada** (`abandonedMine`, Guilda Nv2, descoberta na Floresta Antiga).
+O Mercado o negocia como os outros recursos; não é carga de caravana. Números em
+`balance.ts`, `items.ts` e nos grafos de `packages/content/src/missions/`.
 
-- **O ferro** é o quinto recurso (`RESOURCE_IDS`), guardado no Armazém com o mesmo cap da madeira e da pedra. Nenhum ofício o produz: ele chega pela **Mina Abandonada** (`abandonedMine`, Guilda Nv2, revelada pela Floresta Antiga; 40 a 80 no último nó com prova) e pelo **Mercado**, a 8,0 de ouro, com o mesmo volume e o mesmo passeio dos outros, sem fator de estação. O sorteio do passeio anda na ordem comida, madeira, pedra, ferro. **Não vai por caravana.**
-- **O Ferreiro** (`buildings.smithy`, Salão Nv4, até o Nv6) tem **uma fila** (`settlement.forge`). Um lote de armas custa 2 ferro + 1 madeira por arma, cobrado ao começar, e leva 6 min de jogo por arma, × 10/(10 + nível − 1); cancelar devolve 80%, e o que não cabe no depósito vai ao chão. As armas são uma contagem fora do estoque (`settlement.weapons`), sem cap e sem venda. O fim do lote é instante da linha do tempo, logo depois das obras.
-- **O desgaste e o reparo**: cada item tem `condition`, de 8, 10, 14 ou 20 pela raridade. Uma expedição concluída gasta um ponto de cada item da equipe; a perdida não volta com eles. O item em 0 fica sem bônus e no arsenal. O reparo usa a mesma fila da forja, custa 1 ferro por ponto (Comum e Incomum) ou 2 (Raro e Épico) e leva 2 min de jogo por ponto; não se cancela.
-- **Na tela** (V4B-T4): o ferro no estoque e no Mercado; o painel do Ferreiro na aba Feudo, com a forja em duas etapas e o lote em curso; a linha "Ferreiro" na árvore; `weaponsForged` no Retorno e nos avisos de "Todas"; e "Antes de partir" com o ferro parado e a forja parada. A tela do reparo é a parte que falta da V4B-T4.
+O Ferreiro pede Salão Nv4 e vai ao Nv6. `forgeWeapons` cobra ferro e madeira ao
+começar um lote; cancelar devolve 80% para baixo. Armas são unidades inteiras em
+`settlement.weapons`, fora dos recursos, dos depósitos e da venda. Forja e reparo
+dividem uma fila (`ForgeJob`): `repairItem` recebe um item desequipado no arsenal,
+cobra ferro pelos pontos faltantes e reserva seu lugar até a devolução. Reparo
+não se cancela. O nível acelera armas; não acelera reparo.
 
-## 19c. O Quartel, os soldados e as formações (v0.4, Fase C)
+`condition` limita a durabilidade por raridade. A volta de uma expedição e a
+batalha gastam equipamento; com zero, ele permanece e perde o bônus. O painel do
+Ferreiro na aba Feudo permite forjar, cancelar e reparar com custo/prazo derivados
+pelo motor. `smithy.ts`, `repairOrders.ts`, `equipment.ts` e `smithyView.ts`
+concentram a regra; `11-ferreiro.spec.ts` exercita a interface.
 
-Entram na v0.4 sem publicação (ADR 0019, decisões 7 a 9 e 25; estados 28 e 29):
+## 19c. Quartel, soldados, formações e Defesa ativa
 
-- **O Quartel** (`buildings.barracks`, Salão Nv4, até o Nv8; 150 de madeira, 150 de pedra e 100 de ouro, resposta do autor à pendência C-1) treina as cinco unidades de `units.ts` (Lanceiro, Espadachim, Arqueiro, Cavaleiro e Escudeiro, com o ciclo de contra-ataques). O exército fica em `state.army` (`units`, `training`), com limite de `10 × nível`. Um lote por vez, de até 10, cobrado ao começar (as armas inteiras do Ferreiro entram no custo do Espadachim e do Cavaleiro); cancelar devolve 80% e pede a identidade do lote (`army.training.lotKey`; `TRAINING_CHANGED` se o lote mudou).
-- **O soldado sai da população** no fim do treino (um aldeão sem ofício, ou do edifício com mais gente), continua nas casas, come 1,5 por hora de jogo e não deserta. O piso de 3 aldeões protege na ordem e no fim do treino; o que o piso tira do lote não volta (decisão C-3) e sai na Crônica (`trainingShortfall`). Dispensar devolve um aldeão sem ofício, sem devolver o custo.
-- **As formações** (`army.formations`, até 5, e `army.activeFormationId`): seis postos (três alas, frente e retaguarda, até 20 soldados por posto, 30 com o Quartel Nv5+), um comandante por ala e uma Defesa ativa. A formação é um plano: pode pedir mais do que há, e a visão diz o que falta (`shortfall`). O comandante da Defesa ativa não parte em expedição nem escolta (`HERO_BUSY`), e sai do comando quando é dispensado, capturado ou morre. **Ainda não há batalha** (Fase D).
-- **Na tela** (V4C-T3): a aba **Exército** (`#/exercito`), com o painel do Quartel (o treino em duas etapas, com o custo do lote vindo da visão, `army.offer[].options`), o editor de formação (seis postos por teclado, sem arrastar), a lista das salvas, a Defesa ativa, o aviso "Sem Defesa ativa" na barra e em "Antes de partir", e o comandante na ficha do herói.
-- **No simulador:** a política mínima de guerra (erguer o Quartel e treinar Lanceiros e Arqueiros com o que sobra) está nos perfis da rodada padrão, e o bot `militar` (fora das faixas) ergue também o Ferreiro e monta uma formação. **O treino quase não gasta ouro** (cerca de 110 por partida; [balance-v0.4.md](balance-v0.4.md), seção 6): o ouro parado do ritmo Rápido vai para a Muralha da Fase E, com o reparo também em ouro (resposta do autor, pendência C-9; números no ADR 0020).
-- A revisão independente da fase está em [reviews/v0.4-fase-c.md](reviews/v0.4-fase-c.md).
+O Quartel pede Salão Nv4 e vai ao Nv8; treina Lanceiros, Espadachins, Arqueiros,
+Cavaleiros e Escudeiros. Um lote é cobrado ao começar; só ao terminar o soldado
+sai dos aldeões. Continua nas casas, come mais e não deserta. O piso de três
+aldeões limita ordem e conclusão; redução do lote emite `trainingShortfall`, sem
+reembolso. Cancelar exige o `lotKey` conferido, devolve 80%; dispensar devolve
+aldeões sem devolver custo. Contas em `army.ts`, ordens em `armyOrders.ts` e
+conclusão em `armyTurn.ts`.
 
-## 19d. A batalha, a prévia e os comandantes (v0.4, Fase D)
+Até cinco formações salvas têm três alas, Frente e Retaguarda, e um comandante
+por ala. São planos, podem pedir mais soldados do que há; a visão mostra a falta.
+Uma só é a Defesa ativa (`activeFormationId`), usada offline com o efetivo
+**disponível naquele instante**. Seu comandante não parte em expedição nem
+escolta; dispensa, captura, morte e deserção limpam referências. Uma formação em
+campanha não pode ser apagada. `formations.ts` e `formationOrders.ts` validam;
+a aba Exército monta por teclado e só envia ao salvar.
 
-Entram na v0.4 sem publicação (ADR 0019, decisões 10 e 11, e as respostas D-1 a D-8 de 2026-10-23; estados 30 e 31):
+## 19d. Batalha e Conselho de Guerra
 
-- **A batalha** (`battle.ts`, `resolveBattle`) é uma função pura, em inteiros e frações: até 12 rodadas, iniciativa com desempate pelo defensor e por ala e linha, contra-ataques ×3/2, flanco ×5/4, a muralha por ala (o golpe que a rompe para nela), as torres, as auras de comandante, o Mago, a Clériga, o Escudeiro, a moral e a debandada; as baixas valem na hora, com um arredondamento só, no dano efetivo. Os oito inimigos estão em `enemies.ts` (`hordeUnits`). **Os sete cenários escritos à mão** em `docs/content-v0.4.md`, seção 2, são lidos por `battle.test.ts` e batem com o motor linha a linha.
-- **O sorteio** é a família de fluxo `battle:<id>` (`battleTurn.ts`, `fightBattle`): uma sorte de 90 a 110 por ataque, pedida só por quem ataca; o fluxo nasce e é apagado no mesmo instante, e por isso nunca é gravado. Desde a V4E-T2 toda incursão chama a batalha (seção 19e).
-- **O relatório** (`battleReport.ts`) traz as rodadas, os três fatores decisivos por atribuição de dano, as baixas por posto, a muralha e a experiência dos comandantes; `army.reports` guarda os três últimos (estado 30). `applyBattleOutcome` (`battleOutcome.ts`) aplica ao feudo o ferimento ou a morte do comandante (só em Rei de Ferro), a experiência e o desgaste do equipamento, e emite `battleFought`, `commanderInjured` e `commanderDied`.
-- **A prévia do Conselho de Guerra** (`warCouncil.ts`, `previewBattle`): 200 batalhas com o mesmo `resolveBattle`, cada uma com um gerador próprio semeado por `hash` (nunca `state.rng`), contra a composição-base da estação; cerca de 28 ms. Com o inimigo conhecido, a prévia dá o mesmo relatório que a batalha real (critério 2). A ordem `simulateBattle` grava `army.preview` (estado 31) e conta em `stats.battlesSimulated`; a visão traz os percentuais, o risco em uma frase e `previewStale`.
-- A Muralha de Pedra, o Baluarte e a Torre Nv3+ entraram no estado na V4E-T1 (estado 32: a vida da muralha por ala e o reparo).
+`resolveBattle(input, luck)` (`battle.ts`) é pura, em inteiros/frações: até doze
+rodadas, iniciativa com desempate pelo defensor, ala e linha, baixas imediatas,
+contra-ataques, flanco, muralha, torres, auras, Mago, Clériga, Escudeiro, moral e
+debandada. Os sete cenários calculados à mão em [content-v0.4.md](content-v0.4.md)
+são conferidos linha a linha por `battle.test.ts`. `fightBattle` fornece identidade
+e sorte pelo fluxo `battle:<id>`; `battleOutcome.ts` aplica experiência, desgaste
+e ferimento do comandante, ou morte só em Rei de Ferro. `army.reports` retém três
+relatórios, com rodadas, baixas, muralha e três fatores decisivos.
 
-## 19e. As incursões que viram batalha (v0.4, Fase E)
+`previewBattle` (`warCouncil.ts`) executa 200 vezes o mesmo resolvedor com geradores
+locais. `simulateBattle { formationId, siegeWave? }` guarda uma prévia por vez,
+sem mudar RNG ou ids da partida. Para defesa comum, usa somente o conhecimento
+público dos vigias ou o histórico do último relatório, com estimativas marcadas
+como incertas. Para `siegeWave: 1 | 2 | 3`, só usa presságios **não vagos da revisão
+atual daquela onda**; não consulta a composição oculta. Sem posto revelado, não
+simula e informa desconhecimento. Formação, efetivo disponível, muralha, Torre e
+conhecimento do alvo entram na assinatura de validade (`previewStale`).
 
-Entram na v0.4 sem publicação (ADR 0019, decisões 13 e 14; pendências D-11 e D-31 a D-38; estado 33):
+O app oferece **Simular defesa do feudo** para uma formação salva e mostra o
+resultado recebido. Ainda não oferece seletor de prévia por onda nem prévia
+ofensiva do Acampamento; a opção por onda existe no motor/protocolo e no simulador.
 
-- **Toda incursão é uma batalha** (`raids.ts`, `fightRaid`): o atacante é a composição da incursão, sorteada no fluxo `horde` quando ela é marcada (a do roteiro e a marcada antes do estado 33 usam a composição-base da estação, sem sorteio); o defensor é a Defesa ativa, e, sem ela, só a muralha e as torres lutam. A batalha sorteia no fluxo `battle:<id>`, danifica a muralha, mata soldados, fere comandantes e guarda o relatório em `army.reports` com a formação que lutou.
-- **A batalha só alivia a regra da v0.2** (decisão 14): a perda é a menor entre a que a Paliçada deixava passar e a do que passou pela batalha, na proporção. Sem exército, os lobos do 16º dia custam o mesmo que antes.
-- **O tamanho forte** e **o roteiro da guerra** (dias 25, 37 e 61 do ano 1; as duas primeiras leves e sem ferido, pela resposta do autor à D-39; o ensaio do cerco, forte, na Hora da Vigília da janela do 61º dia desde a V4G-T1, §19g), marcados 6 h de jogo antes, só sem outra incursão marcada e com quem ataque.
-- **A névoa**: `threat.incoming.compositionText` diz da composição só o que o nível da Torre revela (nada nos níveis 1 e 2; os tipos, as quantidades por ala e a composição exata nos 3, 4 e 5).
-- **No simulador**, o econômico e o preguiçoso montam e ativam a formação com o que treinam (decisão 25); a medição está em [balance-v0.4.md](balance-v0.4.md), seção 9.
+## 19e. Muralha, reparo e incursões como batalha
 
-## 19f. A Horda aprende (v0.4, V4E-T3)
+Paliçada, Muralha de Pedra e Baluarte são níveis do mesmo edifício, até o 6. A vida
+é por ala (`settlement.wall.hp`). Uma melhoria acrescenta a diferença de vida e
+preserva o dano anterior. `repairWall` paga pedra e ouro na hora, não se cancela e
+desloca as obras em curso pelo tempo do reparo; obras iniciadas durante ele esperam.
+O reparo termina antes das obras e da batalha (`wall.ts`, `wallRepair.ts`).
 
-Estado **34**, protocolo **3**, ainda sem publicação. O passo 33 → 34 preserva
-as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
-não consome sorteios, cria eventos ou recalcula o passado.
+Toda incursão passa por `fightRaid`: composição sorteada no fluxo `horde` na
+marcação; roteiro e incursão migrada com `composition: null` usam a base da estação.
+A Defesa ativa usa o que ficou em casa; sem formação, só muralha e torres lutam.
+Aplicam-se dano, baixas, efeitos e relatório antes de `raidRepelled`/`raidSuffered`.
+A perda de recursos/aldeões continua limitada pela regra anterior da Paliçada:
+a batalha pode aliviar, não agravar essa perda. Lobos do dia 16 preservam o caso
+antigo sem exército; as roteirizadas leves dos dias 25 e 37 não ferem. O ensaio
+forte cai na janela do dia 61 e usa a Vigília.
 
-`hordePlan.ts` observa os soldados que realmente entraram em batalha, antes das
-baixas, e guarda somente contagens por unidade. A próxima incursão usa os pesos
-por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). A memória zera no ano novo.
-O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; o Covil e o
-Acampamento ativos somam +2 por dia, e a Fortaleza não soma até o Cerco
-(`tileTypes[].threatPerDay` = 0, resposta do autor de 2026-10-27; seção 13 do balanceamento). A subida fecha o dia anterior, portanto o tile recém-nascido
-começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
+Torre Nv1/2 não revela composição; Nv3 revela tipos; Nv4, quantidades aproximadas
+por ala; Nv5, composição exata. O app recebe só `compositionText`, os textos da
+muralha e as ofertas de reparo, sem composição privada.
 
-As ondas são preparadas no outono e renovadas quando a formação vista muda,
-até o inverno. Cada preparação tem uma revisão: renovar retira do painel os
-presságios da revisão anterior; suas linhas permanecem como história na Crônica.
-No inverno a composição fica congelada. Presságios usam o fluxo `horde`, teto
-90% e seis registros; parcial revela um posto arredondado em múltiplos de cinco,
-exato revela todos os postos da onda, inclusive a ausência nos outros.
+## 19f. A Horda aprende e os presságios
 
-A visão não contém memória, preparação nem sorteios. A prévia usa apenas vigias,
-presságios e a composição histórica do último relatório; aproximações continuam
-marcadas como incertas. O relatório aponta a formação que lutou, mesmo depois de
-mudar a Defesa ativa. `battleFought` inclui `playerLost` e `hordeLost`, para conferir
-o saldo de soldados nos eventos sem depender dos três relatórios retidos.
+`hordePlan.ts` guarda contagens por unidade da última formação efetivamente vista,
+antes das baixas. `hordeMind.ts` combina os pesos da estação e a astúcia da
+dificuldade (3/10, 1/2, 4/5). Mesma memória e semente dão a mesma composição.
+A memória zera no ano novo; não há memória entre anos.
 
-O militar prepara uma isca de arqueiros perante uma incursão forte visível do
-outono e volta à defesa no inverno. `omens` e `fortress_day` foram acrescentadas
-ao final do CSV. Os outros bots não mudaram de política. Medição e limites:
-[balance-v0.4.md](balance-v0.4.md), seção 11.
+O Acampamento nasce no dia 25, a Fortaleza no outono. Covil e Acampamento ativos
+somam Ameaça; a Fortaleza soma zero, por decisão do autor. As ondas são preparadas
+no outono e regeneradas quando a observação muda; no inverno ficam congeladas.
+Uma revisão nova descarta os presságios antigos do painel, preservando a Crônica.
 
-**Integração ainda por fazer:** ataque e sabotagem já estão no motor (V4F-T1/T2);
-a resolução das ondas e o fim do cerco são da G. Até essa ligação, a Fortaleza
-permanece durante o inverno e é desativada na virada anual; isso é um estado
-intermediário da implementação, não o encerramento do cerco do GDD.
+Presságios usam `horde`, clareza da Torre, chance com teto de 90% e seis registros.
+O vago não revela onda; o parcial revela um posto aproximado; o exato, os postos.
+`siegeView.ts` só agrupa por onda o conhecimento público não vago. Memória, revisão
+interna, composição preparada e RNG nunca saem na visão. O fim do Cerco desativa
+a Fortaleza; o ano novo reinicia a preparação.
 
-## 19g. A Hora da Vigília (v0.4, V4G-T1)
+## 19g. Hora da Vigília e referência civil
 
-Estado **35**. `settings.realOriginMs` (de `games.created_at`) e `settings.vigil` (`hourLocal`, `utcOffsetMinutes`, `timezoneResolved`) entram pelo passo 34 → 35 com o contexto que o servidor dá a `migrateState` (`loadGame`), e na criação pelo `createGame`. O servidor resolve o fuso IANA com `Intl` (`games/vigil.ts`); o motor só faz a conta (`vigil.ts`): `real = realOriginMs + jogo / timeScale`, hora local `(real + deslocamento) mod 24 h`, a primeira Vigília a partir de +6 h de jogo dentro das 24 h de jogo do evento, senão +12 h, sem horário de verão. O fuso que o servidor não resolve entra com deslocamento 0 e a visão avisa (`settlement.vigil.warning`). O ensaio do dia 6 é marcado 6 h de jogo antes da chegada, num instante próprio da linha do tempo (`nextRehearsalMarkAt`), uma tentativa só (`stats.vigilRehearsalMarked`). As Preferências mudam hora e fuso pela ordem `setVigilHour`, que o servidor completa com o deslocamento (`CommandContext`, guardado em `commands.payload.resolvedVigil`); vale para o que ainda não foi marcado. O Cerco não existe.
+`settings.realOriginMs` vem de `games.created_at`. O servidor resolve o fuso IANA
+com `Intl` e fornece `hourLocal`, `utcOffsetMinutes` e `timezoneResolved`; o motor
+não consulta fuso ou relógio do sistema. `vigil.ts` procura a primeira hora local
+após +6 h **de jogo**, dentro da janela de 24 h **de jogo** do evento; sem ocorrência,
+usa +12 h de jogo. O offset fica fixo, sem ajuste automático de horário de verão.
+Ausência de contexto civil usa origem zero/offset não resolvido e gera aviso.
 
-## 19h. Ataque ao Acampamento (v0.4, V4F-T2)
+O ensaio usa a janela do dia 61; o Cerco usa o início do inverno. Alterar hora/fuso
+nas Preferências envia `setVigilHour`, com contexto civil resolvido e guardado pelo
+servidor para replay. Não remarca prazos já fixados. O ensaio tem uma tentativa de
+marcação, inclusive quando não encontra vaga; não é repetido ao mudar a preferência.
 
-Estado **39**, protocolo **3**, branch `v4f-t2-acampamento`, sem publicação. O passo
-38 → 39 cria `army.campaign: null`; nenhum prazo, tropa ou sorteio nasce na fronteira.
+## 19h. Ataque ao Acampamento
 
-A ordem `attackCamp { formationId }` reserva a fotografia dos postos que o exército
-consegue preencher e dos comandantes livres nas alas preenchidas. Os comandantes ficam
-em `campaign`, recebendo soldo. A Defesa ativa e a prévia usam apenas `availableUnits`,
-que subtrai a reserva; editar/apagar o plano não altera a tropa na estrada. O total do
-Quartel, a habitação e o consumo incluem a tropa até a volta, quando se descontam baixas.
+`attackCamp { formationId }` exige Acampamento conhecido e ativo, soldados e um
+comandante livre em ala preenchida. Reserva a fotografia dos postos/comandantes
+em `army.campaign`; editar a formação salva não muda quem partiu. Comandantes
+ficam `campaign`, recebem soldo e não podem fazer outra atividade. Uma formação
+secundária não leva comandante da Defesa ativa.
 
-A chegada e o retorno são instantes da linha do tempo, depois das expedições e antes
-das caravanas. A incursão do mesmo instante da volta ainda luta sem quem partiu.
-`fightBattle` usa o fluxo `battle:<id>` e o modo ofensivo: a paliçada pertence à Horda,
-sem muralha ou Torre do jogador. A guarnição vem do conteúdo por estação. Vitória limpa
-o Acampamento, reduz a Ameaça e traz saque ao voltar; derrota ou recuo não limpam.
-O relatório e os efeitos nos comandantes reutilizam a batalha existente. A cobrança do
-soldo acontece depois da linha do retorno; a previsão de moral exclui a campanha.
+`army.units` inclui a tropa enviada até a volta, para casas, consumo e limite;
+`availableUnits` a subtrai de defesa, prévia e dispensa. Chegada e retorno resolvem
+depois das expedições e antes das caravanas. Uma incursão no instante da volta
+ainda encontra os postos vazios. Na chegada, a batalha ofensiva usa paliçada e
+guarnição da Horda, sem Torre do feudo. Vitória limpa o tile e reduz Ameaça; saque
+e desconto das baixas entram no retorno. Recuo/derrota não limpam. O tile volta
+no ano novo. `campaign.ts`, `armyTurn.ts` e `armyView.ts` sustentam a tela de
+campanha, sua conferência e o vínculo com o relatório da batalha.
 
-O Acampamento limpo aparece em `threat.tiles` e `clearedText` e é restaurado na virada
-anual por `restoreTiles`. A visão acrescenta `army.campaign`, `campAssault`, aviso no
-editor e na prévia, sem expor gerador ou guarnição futura. A interface é da V4F-T3.
-As propostas F-3/F-4 e os textos em rascunho estão nos documentos da versão. Simulador,
-matriz, integração, navegador e verify inteiro ficaram para o coordenador nesta sessão.
+## 19i. Sabotagem da Fortaleza
+
+`sendExpedition` com `modelId: 'sabotage'` exige outono, Fortaleza ativa e exatamente
+três heróis; descobrir o destino não contorna esses requisitos. São até três
+tentativas anuais. Os três grafos têm jornada completa de seis horas de jogo,
+com encruzilhada que pode abreviar o percurso; a espera por resposta continua real.
+A dificuldade aumenta a cada tentativa. Desastre segue a dificuldade: ferimento
+em Camponês, captura em Senhor e morte em Rei de Ferro.
+
+Cada Sucesso reduz a onda correspondente em 15%, até 45%; o Xamã revela a terceira;
+o Desastre alerta a primeira, uma vez. Redução/alerta repartem o total em inteiros
+com restos determinísticos, preservam postos fixos e sobrevivem à regeneração.
+Presságios afetados saem do painel; linhas históricas não são reescritas.
+`horde.sabotages` zera no ano novo. Se a Fortaleza some, a equipe retorna pela
+fronteira. `sabotage.test.ts` e `hordeSabotage.test.ts` provam essas regras;
+a aba Guilda mostra tentativas, ondas enfraquecidas e alerta pelo `ViewState`.
+
+## 19j. Cerco, Plano, milícia e rescaldo
+
+`scheduleSiege` marca na primeira virada de outono/inverno com preparação do ano.
+A data usa a Vigília na abertura do inverno; migração que a encontra passada recebe
+antecedência futura, sem combate retroativo. Não agenda depois do fim daquele ano.
+Até a primeira onda, mudanças da preparação sincronizam o retrato em `siege.waves`.
+
+As bases 40/60/80 recebem **1/3 no ano 1, 2/3 no ano 2 e 1 a partir do ano 3**,
+antes do fator da dificuldade. Trunca-se a base anual, depois aplica-se a dificuldade;
+Xamã e Senhor da Guerra mantêm seus postos fixos. O chefe da terceira vem além da
+base. Sabotagem respeita os mínimos dos postos. Não há multiplicador progressivo
+de +10% por ano nem Votos (`content/src/horde.ts`, `hordePlan.ts`).
+
+`setBattlePlan` salva uma formação por onda antes do início; `null` significa usar
+a Defesa ativa **no instante da onda**. Apagar uma secundária limpa referências.
+Depois da onda 1 e da 2, uma decisão `siegeWave` oferece troca e reparo de emergência;
+a próxima chega **60 min reais** após a anterior, em qualquer ritmo. `swapWaveFormation`
+e `emergencyRepair` exigem a onda da decisão ainda aberta. O avanço vem primeiro:
+no prazo exato, a onda já ocorreu. O reparo é imediato, cobra pedra e ouro e não é
+automático; reparo normal em curso bloqueia outro. Sem resposta, vale o Plano.
+
+A milícia (`callMilitia`) pode usar até metade dos aldeões aptos, dentro da
+antecedência da Torre para incursão forte/onda, havendo posto livre. Afasta-os do
+trabalho, sofre dano ampliado, protege o piso de três aldeões e dissolve ao fim
+da batalha. A carta de prontidão reserva limite para a primeira onda e reconfere
+aptidão na batalha. `siege.militiaOffer` usa a mesma validação da ordem. **Não há
+controle de convocação no app desta base**; a oferta já é usada pelo simulador.
+
+O dano e as baixas persistem entre ondas. A primeira derrota fecha em **Queda**;
+resistir à terceira dá **Vitória Gloriosa** se nenhuma Frente ficou vazia/caiu,
+caso contrário **Vitória**. Derrubar o Senhor da Guerra encerra a terceira onda.
+A Fortaleza é retirada ao fechar o Cerco.
+
+A Queda leva 30% dos recursos e 20% dos aldeões com piso de três, zera a muralha e
+tira até dois níveis dos dois edifícios mais altos, preservando nível 1. Cancela
+suas obras sem reembolso e encerra o reparo da muralha. Não tira Mestres ou heróis;
+sobreviventes acima de um limite reduzido ficam, mas treino novo exige vaga.
+Gloriosa dá festa; havendo mortes e sem Gloriosa, há luto. O reparo da muralha tem
+desconto no rescaldo até o fim do inverno; após Queda, os dois primeiros dias da
+primavera seguinte reduzem o custo das novas obras para 4/5. Não há salto para o Degelo.
+
+A aba Exército já permite Plano, troca, reparo, progresso e resultado por teclado.
+A visão não oferece vínculo de relatório por onda nem resumo/prazo próprio do
+rescaldo. Hoje, barra, árvore, Retorno e Antes de partir mostram os prazos públicos;
+o Retorno reúne batalha/onda pelo `battleId`, sem duplicá-las nem inferir o inimigo.
+
+## 19k. Crônica do Ano e Feitos
+
+`yearEnd.ts` fecha o ano antes da abertura do seguinte e da restauração dos tiles.
+O evento `yearEnded` registra população máxima, batalhas, vitórias/resistências,
+expedições enviadas, cartas resolvidas, resultado do Cerco, pontuação inteira e
+ids dos Feitos. Pesos em `balance.score`; contadores anuais reiniciados no fecho,
+sem lista ilimitada de conquistas no estado.
+
+Os seis Feitos são Primeiro Inverno, Muralha Intacta, Regicida da Horda, A Finta,
+Sabotador e Resgate (`content/src/feats.ts`). São anuais e não dão poder ou Legado.
+O servidor oferece `GET /v1/games/:id/years/:year/chronicle.md`, autenticado e sob
+trava da partida: quatro estações, notas de continuação, Cerco, estatísticas,
+pontuação e Feitos, com eventos restritos ao ano. Ano não concluído retorna 404.
+O app recebe `yearEnded` no Retorno e abre a Crônica comum; o botão existente baixa
+a Crônica geral. **Ainda não há seleção/download anual no app ou SDK**.
+
+## 19l. Cartas dos lotes 2 e 3, Lobo Branco e objetivos
+
+O catálogo tem **59 cartas** nesta base; 60 continua sendo alvo do roadmap.
+Além das 22 herdadas, há Mestres por carta (Gil/Ximena), efeitos percentuais de
+estoque, mudanças temporárias de preço só na próxima virada, risco diferido,
+requisitos por herói presente/Carismático, soldados, descobertas e candidato extra.
+Participantes de encontros ficam fixados por identidade; só a linha do tempo
+sorteia o risco, sem morte/captura por carta. O lote 3 acrescenta bônus de forja,
+armas/itens, treino, obras, presságios, incursão, muralha e prontidão da milícia.
+Os ids e as fichas estão fixados nos testes de `content`; `councilWar.ts` aplica
+os ganchos, e `council.bonuses` guarda os temporários.
+
+As três cartas do **Lobo Branco** (`whitePaws`, `whiteWolf`, `forestReturns`)
+formam uma cadeia de outono, com Covil limpo e uma chegada por ano. Só a opção de
+caçar abre `whiteWolfHunt`, por seis dias de jogo contados da escolha, exigindo
+Guilda e herói apto. A expiração retira a oferta antes do Conselho, preservando
+equipe enviada. Não aceita outra equipe simultânea; voltar com a fera vencida
+fecha a janela. A continuação final tem prazo mínimo de cinco dias após a escolha;
+no ramo da caçada, espera a confirmação do abate (`whiteWolf.slain`). Sem abate,
+janela ou equipe na estrada, a continuação é cancelada e o ramo é limpo. O ramo
+da oferenda não exige abate. Recursos e moral seguem as opções das cartas, sem
+bônus no Cerco ou nos presságios. Essa condição já está em `council.ts` e nos testes,
+embora o README ainda descreva a chegada final como independente do resultado.
+A forma do prazo está no estado 42; `council.white-wolf-effects.test.ts` prova
+acesso, névoa, expiração, exclusividade e divisão de intervalo; `council.chains.test.ts`
+prova os ramos e a continuação condicionada.
+
+Os objetivos 17 a 21 usam Salão Nv4, treino, formação salva, prévia e incursão
+repelida; preservam os dezesseis anteriores e o limite de três ativos. O presságio
+gratuito espera preparação real, sem sortear. `objectives.v04.test.ts` cobre a
+entrega; Retorno e Antes de partir reaproveitam visão/eventos para a guerra.
+
+## 19m. Reino, ranking e Novidades
+
+O [ADR 0021](decisions/0021-estatisticas-e-ranking.md) acrescenta
+`accounts.ranking_listed` (SQL `0001_ranking_listed`) e três rotas autenticadas:
+`GET /v1/stats`, `GET`/`PUT /v1/me/ranking`. São leituras do estado **gravado**,
+sem avançar partidas. Totais e ordenação ficam em cache por instância durante
+60 s; a linha própria é lida na hora e a frente é filtrada pela preferência/exclusão
+atual. Mostram os dez primeiros por ouro, mais o jogador fora deles; empate favorece
+feudo mais antigo. De terceiros só saem nome do feudo e ouro, sem identificador.
+Contas excluídas, partidas arquivadas e contas `Bot ` ficam fora. Sair do ranking
+não retira dos totais anônimos. A aba `#/reino` lê somente a resposta de estatísticas;
+Preferências permite sair/voltar. Não é ranking de pontuação nem Temporadas.
+
+`#/novidades` é uma aba editorial local, acessível por Conta, Sobre e paleta, inclusive
+sem feudo/conexão. Não importa números ou regras do conteúdo. O selo considera a
+última entrada publicada compatível com a versão informada pela API; a marca de
+leitura é por conta (`lords.newsSeen:<accountId>`), só após renderizar à vista,
+sincronizada entre abas e tolerante a falhas de armazenamento. A entrada da v0.4
+continua **rascunho**, sem selo de publicação; data e escopo precisam de conferência
+antes da release. `news/*.test.ts`, `15-novidades.spec.ts`, `stats.test.ts` e
+`15-reino.spec.ts` cobrem esses fluxos.
 
 ## 20. Divergências aceitas em relação ao GDD
 
@@ -627,81 +827,46 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
 | O Covil limpo deixa o feudo sem incursão até o outono, quando os lobos descem a serra | ADR 0018, "Manter os lobos do outono" (D-24) |
 | O que venceu é cobrado: soldo e deserção por fome com a janela de 2 h reais | ADR 0017, "Respostas de 2026-10-06" |
 | A caravana paga +15% sobre o balcão; o soldo cresce com o nível; o piso de população protege 3 aldeões; a primeira alocação do Mestre é imediata | Respostas de 2026-10-07 |
-| O lote 2 do Conselho (24 cartas) e os Mestres Gil e Ximena ficam fora da v0.3.0 | Decisão do agente na retomada; **pergunta aberta ao autor** (F-3) |
+| O lote 2 e a origem por carta de Gil/Ximena ficaram fora da v0.3.0 | Registro histórico F-3; integrados na v0.4 (seção 19l) |
 | A tabela do soldo por nível e as marcas de preço da Crônica (85% e 115%) foram propostas por agentes | **Não confirmadas pelo autor** (E-51 e a nota da retomada) |
 
 ### 20.4 O que o GDD descreve e ainda não existe
 
-| Item | Estado |
+| Item | Estado nesta base |
 |---|---|
-| Catálogos de edifícios e cartas em `GET /catalog` (GDD §14.5) | O catálogo só traz as opções de nova partida; o `ViewState` leva o resto |
-| "Baixar cópia da partida (JSON)" (GDD §13.6) | Não existe; existe "Baixar Crônica (Markdown)" |
-| A Ameaça no cabeçalho (GDD §13.3) | Fica no painel "Ameaça" da aba Feudo |
-| Hora da Vigília no Cerco | Só o ensaio do dia 6 cai nela (V4G-T1); o Cerco é da V4G-T2 |
-| Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
-| O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| O lote 2 do Conselho, o efeito de carta que dá um Mestre (`addMaster`), os efeitos de carta sobre o preço (`market.effects`) e o requisito de carta por herói presente (V3F-T1) | Fora da v0.3.0 (F-3). A função que entrega um Mestre (`deliverMaster`) existe; nenhuma carta a chama |
-| Dispensar um Mestre ou fazê-lo ensinar o ofício; compra por caravana; um segundo destino de caravana | Não existem |
-| Ferro no Mercado, desgaste, reparo e venda de item (v0.4); relíquias e plantas (v0.5); mercado entre jogadores (v1.0); morte de herói fora de Rei de Ferro | Fora do escopo, por regra do projeto: nem "só a estrutura" |
-| Exército, mapa gráfico e níveis de Torre e Paliçada acima do 2 | Versões seguintes |
+| Catálogos de edifícios/cartas em `GET /catalog` | Só opções de nova partida; o restante chega na visão |
+| Exportação JSON da partida | Não existe; há Crônica geral e endpoint anual em Markdown |
+| Mapa gráfico, postos avançados, Veio de Ferro, Capela, relíquias, Legado e Votos | Continuam fora da v0.4 |
+| Memória entre anos e crescimento progressivo das ondas por ano | Não existem; só fatores 1/3, 2/3 e 1, e reinício da memória |
+| Temporadas e ranking de pontuação | Não existem; o Reino é ranking de ouro, ADR 0021 |
+| Notificações com a aba fechada | Não existem; sem serviço de push |
+| Dispensar Mestre/ensino de ofício, compra por caravana, segundo destino de caravana, venda de equipamento | Não existem |
+| Avançar para o Degelo | Não existe; o servidor continua sendo o relógio |
+| Milícia e prévia por onda na interface; download anual no app | Motor/protocolo/endpoint existem, controles ainda faltam |
 
-## 21. Limites conhecidos
+## 21. Limites conhecidos e fechamento
 
-Conferidos nos registros em 2026-10-15. Não são decisões: são coisas a resolver ou a verificar. A lista completa está em [pendencias-v0.3.md](pendencias-v0.3.md), no Registro do [roadmap da v0.3](roadmap-v0.3.md), §12, e, para a v0.2, em [pendencias-v0.2.md](pendencias-v0.2.md), seção 5.
-
-**O que a v0.3 sabidamente não cumpre**
-
-| Limite | Onde |
-|---|---|
-| **"Ouro com destino" não foi cumprido** (critério de fechamento do roadmap, §8.3; pendência C-23). O ouro parado não caiu: o soldo por nível baixou o ouro em menos de 0,5%, e a venda no Mercado só transforma excedente em ouro, não dá ao ouro uma saída. Vira a primeira pergunta do [roadmap da v0.4](roadmap-v0.4.md) | [balance-v0.3.md](balance-v0.3.md), seções 5, 10, 11 e 14 |
-| **Ninguém jogou a v0.3.** Todo teste é de agente, de bot ou automático; o roteiro de 15 minutos para o autor está em [pendencias-v0.3.md](pendencias-v0.3.md), seções 7 e 8, e em [manual-test-v0.3.md](manual-test-v0.3.md) | Fases C a F |
-| **O conteúdo novo é rascunho que o autor não leu**: nomes e frases dos candidatos, os dezoito grafos e as frases do relatório, as frases do Mercado, das caravanas e dos Mestres, os rótulos de risco | [content-v0.3.md](content-v0.3.md) |
-| Nenhuma partida de produção passou pela migração do estado 12 para o 24 | Seção 4.4 |
-| O lote 2 do Conselho ficou fora; os Mestres Gil e Ximena não têm de onde vir | F-3 |
-
-**Pendências abertas da Fase F** ([pendencias-v0.3.md](pendencias-v0.3.md))
-
-| Pendência | Resumo |
-|---|---|
-| F-1 | O objetivo 12 manda erguer a Guilda mesmo a quem não vai enviar expedição: o Preguiçoso da semana do Tranquilo termina com o Salão no nível 3, e não no 4, nas 50 sementes. Pergunta para o autor |
-| F-2 | O Explorador da semana do Tranquilo pode terminar sem contratar (semente `pedra-alta-023`). Registrado |
-| F-3 | O lote 2 do Conselho fica fora da v0.3.0; o branch `wip/v3f-t1-lote2` fica guardado para uma v0.3.1. Pergunta para o autor |
-| F-4 | Os alarmes passam do limite de 3 avisos por hora desde a correção da Fase E; o GDD §13.5 diz 3 por hora. Pergunta para o autor |
-| F-5 | A partida migrada não conta as Ruínas que já concluiu (o contador `expeditionsReturned:<modelo>` não é preenchido por passo). Hoje não alcança ninguém |
-| F-6 | A ordem de "Antes de partir" não é a do roadmap: o soldo vem antes da encruzilhada, e o herói livre perde para o depósito quando o teto de cinco aperta. Registrado |
-
-**Balanceamento e jogo**
-
-- Com uma visita por dia o jogador não decide encruzilhada nenhuma; com duas visitas a 12 h exatas decide todas, e nada se mediu com visitas irregulares ([balance-v0.3.md](balance-v0.3.md), seção 10).
-- Quase ninguém é capturado no simulador; o Mestre é raro (2 partidas em 50 na semana do Rápido); as caravanas rendem de 0% a 2,2% do que a Mina produz em quase toda célula; os bots usam de 0% a 3% do volume do Mercado (E-1).
-- A escolta não custa nada além do herói parado, e para quem tem um herói sem o que fazer é sempre a melhor escolha (E-21).
-- Tamanhos: com seis heróis, três expedições e três relatórios, o estado fica em 6,1 a 6,7 kB e a visão em 26,6 a 28,8 kB; cada recibo de comando guarda uma visão inteira.
-
-**Código herdado da v0.2**
-
-| Limite | Onde |
-|---|---|
-| Refazer por replay uma partida migrada exige o estado de cada fronteira | `packages/engine/src/migrations.ts`; pendência B-4 |
-| A dificuldade da linha (`games.difficulty`) não é conferida contra a do estado; só o ritmo é | `packages/server/src/games/repository.ts`; pendência B-5 |
-| `GAME_TIME_SCALE` aceita um ritmo que o jogo não oferece | `packages/server/src/games/service.ts`; pendência B-12 |
-| As previsões de lenha e de comida erram quando as duas acabam no mesmo inverno | `seasonView.ts`, `craftProjection.ts`; pendência C-8 |
-| A prévia da alocação repete no app uma regra do motor | `packages/web/src/ui/workers.ts`; pendência C-15 |
-| Os números de versão dos pacotes e de `GET /version` dizem `0.3.0` no `main` local, e `0.2.0` em produção; a tag `v0.3.0` é do autor | Retomada da v0.3 |
-| Herdados da v0.1: botões de fechar dentro do `tablist`; `server_time` regredido se o relógio voltar; a corrida que `storageSettle` previne nunca foi reproduzida | `EditorTabs.tsx`, `games/commands.ts`, `services/sessionLock.ts` |
-
-**Operação**
-
-| Pendência | Origem |
-|---|---|
-| A publicação da v0.3 é ato do autor: backup manual do banco imediatamente antes (obrigatório antes de todo `push` que sobe a versão do estado), conferência das três imagens e `git push origin main`. O ponto de retorno é o backup e o SHA `7bff36b` | [`deploy/README.md`](../deploy/README.md), "A primeira publicação da v0.3" |
-| A reversão atravessando uma migração de estado nunca foi ensaiada com imagens; o procedimento está escrito | [`deploy/README.md`](../deploy/README.md), "Ensaios de reversão" |
-| Backups no mesmo disco do banco; nenhum registro de cópia de `RECOVERY_CODE_SECRET` fora do Coolify; avisos do Coolify sem canal | Registro do MVP, F4-T2 a F4-T4 |
-
-**Verificação**
-
-| O que não foi verificado | Origem |
-|---|---|
-| Só Chromium nos testes automáticos; Firefox, Safari, celular e leitor de tela não foram usados | [acceptance-v0.3.md](acceptance-v0.3.md) |
-| A carga com 50 bots e o volume da tabela `commands` não foram medidos com a visão da v0.3 | Idem |
-| As capturas da página de apresentação precisam ser refeitas quando a aba Feudo muda (`pnpm capture:landing`, só à mão) | [`packages/landing/README.md`](../packages/landing/README.md) |
-| A evidência manual por critério de aceitação da v0.2 e da v0.3 continua do autor | [acceptance-v0.2.md](acceptance-v0.2.md), [acceptance-v0.3.md](acceptance-v0.3.md) |
+- **Aceitação humana pendente:** a evidência manual continua por preencher; automação
+  e bots não atestam diversão, legibilidade narrativa, Firefox, Safari, celular ou
+  leitor de tela. O roteiro de 15–20 min não substitui playtest com visitas reais.
+- **Balanceamento:** medidas e regressões estão datadas em
+  [balance-v0.4.md](balance-v0.4.md). `MEASURED` é linha de regressão observada,
+  não prova da meta de 65–80% de Vitória do Regular. Fase I ainda exige metas,
+  ouro por destino, extremos, tamanho máximo e carga `--remote`; medições de
+  `--perf` anteriores não equivalem ao fechamento no candidato final.
+- **Interface incompleta:** faltam controle de milícia, seletor de prévia por onda,
+  prévia ofensiva, download anual e vínculo de relatório por onda. Não inferir
+  esses dados a partir de posições na lista de três relatórios.
+- **Catálogo:** 59 cartas, frente ao alvo de 60; cobertura de ramos em testes
+  dirigidos não equivale a todas saírem espontaneamente em 50 sementes.
+- **Migração/replay:** retomar partida migrada exige os estados de fronteira para
+  replay exato; uma imagem anterior ao estado novo exige restaurar o backup.
+  `FROZEN` protege retratos históricos; goldens só mudam com `UPDATE_GOLDEN=1` e
+  leitura do diff. O ensaio com imagens atravessando a migração segue pendente.
+- **Previsões:** não contam com incursões, Cerco, campanha, expedições e caravanas
+  na cópia de moral; são estimativas sob as condições expostas, sem antecipar sorte.
+- **Operação:** portão completo e imagens devem ser conferidos no commit candidato,
+  com backup antes da subida do estado/protocolo e push feito pelo autor. Esta
+  atualização documental não executou testes de jogo, banco, navegador ou produção.
+  Procedimento em [deploy/README.md](../deploy/README.md); continuação em
+  [retomada-v0.4.md](retomada-v0.4.md).
