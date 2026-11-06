@@ -1797,3 +1797,140 @@ no Mercado. O limite por recurso/dia é conferido pelo nível reconstituído dos
 eventos de obra e Queda, com a cotação de cada negociação e o saldo de volume
 exato; o nível final reduzido não invalida uma venda anterior. Não se retirou a
 exigência de zero recusas.
+
+## 22. Terceira junção: medição final (2026-11-06)
+
+### 22.1 Base e método
+
+A retomada parte de `624fffc` (as ordens entre ondas levam a onda da decisão) e
+`d43044d` (o bundle descarta o conteúdo sem uso). A base reúne estado 42, protocolo 4,
+59 cartas, Acampamento, sabotagem, Crônica do Ano, Lobo Branco, Retorno com a guerra,
+tela do Cerco e correções das revisões. O primeiro Cerco usa 1/3 das ondas-base;
+o segundo, 2/3; a partir do terceiro vale o tamanho inteiro (GDD §11.2).
+
+Esta rodada usa diretamente o CLI, uma vez por dificuldade, com Node 22.22.3 e
+prioridade `nice -n 19`. São 24 células por dificuldade: duas janelas, três ritmos,
+quatro perfis e as 50 sementes fixas. Cada dificuldade completa tem 1.200 registros
+e 1.000 partidas distintas, pois semana e ano do ritmo Normal repetem a mesma partida.
+O Militar não pertence aos quatro perfis padrão e não foi medido nesta rodada.
+
+```bash
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord > m-lord.csv 2> m-lord.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > m-peasant.csv 2> m-peasant.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > m-ironKing.csv 2> m-ironKing.md
+```
+
+Os artefatos estão fora do repositório, em
+`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/matriz/`.
+Os arquivos `m-<d>.exit`, `.started` e `.finished` guardam a saída e os horários.
+A conferência dos CSVs exige exatamente 50 sementes distintas em cada uma das 24 células.
+
+### 22.2 Comparação com as faixas anteriores
+
+As violações abaixo usam as faixas anteriores à remedição, de `d43044d`.
+Cada contagem é de registros, incluindo a repetição das janelas no ritmo Normal;
+um registro pode violar mais de uma grandeza. A saída 1 do CLI informa essas
+violações; não significa uma interrupção da simulação quando há 1.200 registros e
+24 linhas `measured(` completas.
+
+| Dificuldade | Saída do CLI | Células alteradas / 24 | Células fora / 24 | Registros fora / 1.200 | Recusas | Fome máxima (h reais) | Frio máximo (h reais) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Senhor | 1 | 15 | 15 | 447 | 0 | 3 | 1 |
+
+| Grandeza fora da faixa anterior | Senhor |
+|---|---:|
+| população | 36 |
+| Salão | 32 |
+| fome | 4 |
+| frio | 3 |
+| madeira | 4 |
+| pedra | 11 |
+| ouro | 1 |
+| sequência de desperdício | 418 |
+| recusas | 0 |
+
+A comparação reúne mudanças intencionais já integradas, não um ajuste isolado de
+números: o catálogo atual muda os sorteios, e o preparo do Cerco prioriza Quartel,
+Torre e Muralha no outono, converte braços em soldados e preserva reservas de comida
+e lenha. As batalhas retiram tropas; a milícia retira braços temporariamente; uma
+Queda perde população e níveis de edifícios. Com isso mudam as filas, a produção,
+a chegada dos objetivos e os estoques. A semana do Rápido atravessa três Cercos;
+a semana do Tranquilo termina antes do primeiro. Não se atribui uma diferença
+de estoque exclusivamente às ondas por ano sem uma rodada controlada adicional.
+
+A remedição conserva `SLACK`: 10% para população e 5% para os tetos. A meta do
+Regular continua em 8 h de jogo seguidas de desperdício, independente das faixas.
+Uma nova linha de base descreve o jogo medido; não aprova fome, frio, ouro parado
+ou desperdício como metas de balanceamento.
+
+Em Senhor, as 15 células alteradas são dos três perfis preparados nas janelas que
+alcançam o outono. As seis do Preguiçoso e as três da semana do Tranquilo mantêm
+a linha anterior. O Regular chega a 81 h de jogo seguidas desperdiçando comida na
+semana do Rápido e a 22 h no Normal (semana e ano), acima da meta de 8 h.
+
+A fome aparece na semana do Rápido do Regular nas sementes 007 (3 h), 014 (1 h),
+015 e 035 (2 h cada), e na do Explorador na 030 (1 h). O frio aparece na semana
+do Rápido do Regular, semente 003 (1 h), e nas janelas semana e ano do Explorador,
+semente 009 (1 h em cada registro). São cinco registros com fome e três com frio;
+a repetição da semente 009 nas duas janelas não é um terceiro caso independente.
+São pioras a revisar: a remedição não as corrige nem remove os critérios dos testes.
+A causa de cada intervalo ainda pede a leitura dos eventos da semente; o CSV não
+permite atribuir sozinho cada falta ao treino, à milícia ou à Queda.
+
+### 22.3 Cerco por dificuldade, perfil e ritmo
+
+Os totais são os das 50 sementes de cada célula. Vitórias incluem Gloriosas;
+as ondas vencidas incluem as anteriores a uma Queda. Convocações somam os aldeões
+chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extrapolação.
+
+#### Senhor
+
+**7 dias reais**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 150 | 0 | 0 | 150 | 0 / 150 | 22 |
+| Rápido 3× | Regular | 150 | 0 | 0 | 150 | 0 / 150 | 290 |
+| Rápido 3× | Dedicado | 150 | 2 | 0 | 148 | 70 / 218 | 1.245 |
+| Rápido 3× | Explorador | 150 | 21 | 3 | 129 | 90 / 219 | 388 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 5 | 0 | 45 | 70 / 115 | 61 |
+| Normal 1× | Dedicado | 50 | 34 | 11 | 16 | 124 / 140 | 172 |
+| Normal 1× | Explorador | 50 | 23 | 6 | 27 | 104 / 131 | 182 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Regular | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Explorador | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+
+**Um ano de jogo**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Rápido 3× | Regular | 50 | 0 | 0 | 50 | 0 / 50 | 104 |
+| Rápido 3× | Dedicado | 50 | 0 | 0 | 50 | 8 / 58 | 305 |
+| Rápido 3× | Explorador | 50 | 0 | 0 | 50 | 5 / 55 | 113 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 5 | 0 | 45 | 70 / 115 | 61 |
+| Normal 1× | Dedicado | 50 | 34 | 11 | 16 | 124 / 140 | 172 |
+| Normal 1× | Explorador | 50 | 23 | 6 | 27 | 104 / 131 | 182 |
+| Tranquilo 0,5× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Tranquilo 0,5× | Regular | 50 | 24 | 6 | 26 | 106 / 132 | 99 |
+| Tranquilo 0,5× | Dedicado | 50 | 47 | 19 | 3 | 147 / 150 | 306 |
+| Tranquilo 0,5× | Explorador | 50 | 35 | 25 | 15 | 117 / 132 | 147 |
+
+### 22.4 Validações e ponto de continuação
+
+- Passo 2: unitários de engine/content/protocol/web, saída **0**, **203 arquivos**,
+  **19.853 testes aprovados e 1 falha esperada**, em 1.488,40 s.
+- Reprodução do bundle sem `sideEffects: false`: saída **1**, **11/12**; o export
+  indevido é `hordeWaveYearFactors`. Com a marcação restaurada: saída **0**, **12/12**.
+  O pacote só inicializa dados e schemas locais, sem efeitos externos; a marcação
+  conserva a fronteira do app sem liberar conteúdo na lista de exports permitidos.
+- Nenhum golden foi regravado e nenhum retrato `FROZEN` foi alterado.
+- Remedição ainda parcial: falta concluir **Camponês, Rei de Ferro**. `MEASURED` permanece
+  inteiro na linha de base anterior para não misturar dificuldades de rodadas distintas.
+- A suíte completa de sim-cli e as expectativas exatas ainda precisam ser verificadas.
+  Não houve `pnpm verify`, integração, build/e2e ou landing nesta retomada após o passo 2.
+- A atualização de `CLAUDE.md` e `deploy/README.md` continua no passo 6, depois dos portões.
+  Nenhuma junção ao `main`, publicação, backup de produção ou `push` foi feita.
