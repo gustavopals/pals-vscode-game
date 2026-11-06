@@ -95,6 +95,13 @@ function reachable(upgrade: Upgrade): boolean {
   );
 }
 
+/** A Queda pode deixar uma planejada num nível acima da próxima melhoria disponível. */
+export function hasBuildingPlan(view: ViewState, upgrade: Upgrade): boolean {
+  return (
+    upgrade.planned || view.constructions.planned.some((plan) => plan.building === upgrade.building)
+  );
+}
+
 /** O que um trabalhador rende no edifício, por hora, como a visão mostra agora. */
 function perWorker(view: ViewState, resource: ResourceId): number {
   return workplace(view, resource).perWorkerPerHour;
@@ -565,7 +572,7 @@ export const erguerGuilda: Policy = {
     // Presa ao Salão, a Guilda **por erguer** fica planejada assim mesmo: começa sozinha no
     // instante em que o Salão chega ao nível que a abre, sem esperar a visita seguinte.
     const canWait =
-      !upgrade.planned &&
+      !hasBuildingPlan(view, upgrade) &&
       upgrade.blockedCode !== 'MAX_LEVEL' &&
       (upgrade.blockedCode !== 'GATE_LOCKED' || !guild.built) &&
       upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
@@ -595,7 +602,7 @@ export const erguerFerreiro: Policy = {
       return act('startConstruction', { building: upgrade.building });
     }
     const canWait =
-      !upgrade.planned &&
+      !hasBuildingPlan(view, upgrade) &&
       upgrade.blockedCode !== 'MAX_LEVEL' &&
       upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
       upgrade.blockedCode !== 'EXCEEDS_STORAGE';
@@ -973,13 +980,13 @@ function firewoodOf(view: ViewState): FirewoodView | null {
  * Madeira que o estoque precisa ter para a lareira não apagar: o que ela vai queimar menos o
  * que a Serraria entrega no mesmo prazo, os dois números como a visão os mostra.
  */
-function firewoodReserve(view: ViewState): number {
+export function firewoodReserve(view: ViewState): number {
   const firewood = firewoodOf(view);
   return firewood === null ? 0 : Math.max(0, firewood.winterTotal - firewood.winterProduction);
 }
 
 /** A obra não gasta a madeira da lareira: o estoque continua cobrindo a reserva de lenha. */
-function keepsFirewood(view: ViewState, upgrade: Upgrade): boolean {
+export function keepsFirewood(view: ViewState, upgrade: Upgrade): boolean {
   const spare = stockOf(view, 'wood') - firewoodReserve(view);
   return upgrade.cost.every((cost) => cost.resource !== 'wood' || cost.amount <= spare);
 }
@@ -1135,7 +1142,7 @@ export const erguerPalicada: Policy = {
     // em `planejar automáticas`, uma obra que começa sozinha não pergunta pela lenha: enquanto a
     // lareira depende do estoque, a que gasta madeira não é marcada.
     const woodIsSafe = firewoodReserve(view) === 0 || !costsWood(upgrade);
-    return woodIsSafe && !upgrade.planned
+    return woodIsSafe && !hasBuildingPlan(view, upgrade)
       ? act('planConstruction', { building, autoStart: true, targetLevel: upgrade.targetLevel })
       : view;
   },
@@ -1182,7 +1189,9 @@ export const planejarAutomaticas: Policy = {
       return urgency === -1 ? wantedDepots.length : urgency;
     };
     const waiting = current.constructions.available
-      .filter((upgrade) => !upgrade.planned && upgrade.blockedCode !== 'MAX_LEVEL')
+      .filter(
+        (upgrade) => !hasBuildingPlan(current, upgrade) && upgrade.blockedCode !== 'MAX_LEVEL',
+      )
       .filter((upgrade) => !aside.has(upgrade.building) || wantedDepots.includes(upgrade.building))
       .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
       .sort((a, b) => rank(a) - rank(b) || price(a) - price(b));
@@ -1236,7 +1245,7 @@ async function pursue(view: ViewState, objective: Objective, act: Act): Promise<
     }
     // Uma obra que começa sozinha não pergunta pela lenha: a que gasta madeira só é marcada
     // quando a lareira não depende do estoque, como em `planejar automáticas`.
-    return !upgrade.planned && (woodIsSafe || !costsWood(upgrade))
+    return !hasBuildingPlan(view, upgrade) && (woodIsSafe || !costsWood(upgrade))
       ? act('planConstruction', { building, autoStart: true, targetLevel: upgrade.targetLevel })
       : view;
   }
@@ -1245,7 +1254,7 @@ async function pursue(view: ViewState, objective: Objective, act: Act): Promise<
       return view;
     }
     const [cheapest] = inTheRace(view)
-      .filter((upgrade) => !upgrade.planned && !deadEnd(upgrade))
+      .filter((upgrade) => !hasBuildingPlan(view, upgrade) && !deadEnd(upgrade))
       .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
       .sort((a, b) => price(a) - price(b));
     return cheapest === undefined
@@ -1520,7 +1529,15 @@ async function allocate(view: ViewState, act: Act, awayHours: number): Promise<V
   }
   const farm = workplace(view, 'food');
   const farmYield = farm.perWorkerPerHour;
-  const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
+  // No preparo do Cerco o lote pode converter muitos trabalhadores entre visitas. Protege
+  // a Fazenda contra essa retirada e cobre o consumo dos novos soldados antes de sair.
+  const siegeTraining =
+    (view.calendar.season === 'autumn' || view.calendar.season === 'winter') &&
+    view.siege?.result == null
+      ? (view.army.training?.amount ?? 0)
+      : 0;
+  const soldierFood = Number.parseFloat(view.army.units[0]?.foodPerHour.replace(',', '.') ?? '0');
+  const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten + siegeTraining * soldierFood;
   // A Mestra que já rende inteiro na Fazenda é um braço a menos que a conta pede dos aldeões.
   const masterArm = farm.master !== null && !farm.master.adapting ? 1 : 0;
   const feeding =
@@ -1530,13 +1547,19 @@ async function allocate(view: ViewState, act: Act, awayHours: number): Promise<V
   // indo ao chão, a sobra já existe: o lavrador a mais só aumentaria o desperdício.
   const food = view.resources.find((row) => row.id === 'food');
   const wasting = food !== undefined && food.full && food.wastingPerHour > 0;
-  const growing = view.population.vacancies > 0 && farmYield > 0 && !wasting ? 1 : 0;
-  const standard = Math.min(able, feeding + growing);
+  const armyGrowing =
+    (view.calendar.season === 'autumn' || view.calendar.season === 'winter') &&
+    view.siege?.result == null &&
+    view.army.total < view.army.cap;
+  // Com as casas cheias ainda há gente a treinar: a sobra também paga soldados.
+  const growing =
+    (view.population.vacancies > 0 || armyGrowing) && farmYield > 0 && !wasting ? 1 : 0;
+  const standard = Math.min(able, feeding + growing + siegeTraining);
   // Só os lavradores cuja colheita tem para onde ir durante a ausência: as bocas e o espaço que
   // resta na despensa (o que os recrutas desta visita gastaram volta a caber). É o que o painel
   // manda ("ponha parte dos lavradores em outro ofício"). Com fome, a conta é a de sempre.
   const fitting =
-    view.famine === null
+    view.famine === null && siegeTraining === 0
       ? farmersForAbsence(view, (villagers + inTraining) * eaten, standard, awayHours)
       : standard;
   // Um fazendeiro a mais do que a conta pede fica onde está, se a colheita dele ainda cabe.
@@ -2006,7 +2029,7 @@ export const erguerMercado: Policy = {
       return act('startConstruction', { building: upgrade.building });
     }
     const canWait =
-      !upgrade.planned &&
+      !hasBuildingPlan(view, upgrade) &&
       upgrade.blockedCode !== 'MAX_LEVEL' &&
       (upgrade.blockedCode !== 'GATE_LOCKED' || market.level === 0) &&
       upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
@@ -2356,6 +2379,15 @@ export const responderCerco: Policy = {
       if (active !== undefined && current.siege?.plan[decision.wave] !== active.id) {
         current = await act('swapWaveFormation', { wave: decision.wave, formationId: active.id });
       }
+    }
+    // O Preguiçoso também pode ter perdido todos os soldados antes da Vigília. Sem uma
+    // formação para simular, usa apenas a oferta já validada da última defesa disponível.
+    if (
+      active === undefined &&
+      current.siege?.militiaOffer.canCall &&
+      current.siege.militiaOffer.maxCount > 0
+    ) {
+      return act('callMilitia', { count: current.siege.militiaOffer.maxCount });
     }
     const wave3Id = current.siege?.plan[3] ?? active?.id ?? null;
     const wave3Formation =

@@ -1,14 +1,19 @@
 import { WING_IDS, type DifficultyId } from '@lotg/content';
 
 import { settleHordeTiles } from './hordePlan';
-import { AUTUMN, gameAt, HOUR } from './test-helpers';
+import { AUTUMN, gameAt, HOUR, YEAR } from './test-helpers';
 import type { Formation, GameState } from './types';
 import { scheduleSiege } from './siegeTurn';
 import { wallFullHp } from './wall';
 
-/** Cenário isolado: preparação real da Horda, sem Conselho, incursões ou produção. */
-export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1): GameState {
-  const state = gameAt(AUTUMN);
+/**
+ * Cenário isolado: preparação real da Horda, sem Conselho, incursões ou produção. O outono é o
+ * do ano pedido: as ondas do ano 1 têm um terço do tamanho, as do ano 2 dois terços, e as do
+ * ano 3 em diante o tamanho inteiro (respostas do autor de 2026-11-04).
+ */
+export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1, year = 1): GameState {
+  const autumn = (year - 1) * YEAR + AUTUMN;
+  const state = gameAt(autumn);
   state.seed = 'cerco-referencia-v4g';
   state.settings.difficulty = difficulty;
   state.settings.timeScale = timeScale;
@@ -43,7 +48,7 @@ export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1): Gam
   state.ids.formation = 1;
   state.army.formations = [formation];
   state.army.activeFormationId = formation.id;
-  settleHordeTiles(state, AUTUMN, []);
+  settleHordeTiles(state, autumn, []);
   return state;
 }
 
@@ -51,8 +56,8 @@ export const WINTER = 144 * HOUR;
 export const wingHp = (state: GameState) => WING_IDS.map((wing) => state.settlement.wall.hp[wing]);
 
 /** Instante imediatamente anterior à primeira onda, sem simular a economia do outono. */
-export function readySiege(difficulty: DifficultyId = 'lord', timeScale = 1): GameState {
-  const state = siegeYard(difficulty, timeScale);
+export function readySiege(difficulty: DifficultyId = 'lord', timeScale = 1, year = 1): GameState {
+  const state = siegeYard(difficulty, timeScale, year);
   scheduleSiege(state, state.lastProcessedAt, []);
   state.lastProcessedAt = state.siege!.atMs - 1;
   state.clock.gameTimeMs = state.lastProcessedAt;

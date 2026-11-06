@@ -1643,3 +1643,157 @@ Com a tela do Cerco integrada, a barra de status leva à decisão no Exército, 
 foco no título. O cenário de protocolo confere esse destino e depois abre Hoje,
 mantendo a leitura de `siegeWave`, a ausência de ações de carta/encruzilhada e o
 cabeçalho de protocolo 4. Os dois cenários passaram isoladamente, com saída 0.
+
+## 21. O Cerco medido com bots preparados (V4G-T5.3, 2026-11-04)
+
+### 21.1 Política e contratos preservados
+
+Regular/econômico, Dedicado, Explorador e Militar preparam a infraestrutura a partir
+do outono: melhoram Quartel, Torre e Muralha, reservam comida/lenha e tentam completar
+o teto público do Quartel. A alocação deixa lavradores para alimentar o lote e
+suportar os braços convertidos no fim do treino. O lavrador extra de crescimento
+continua produzindo para o exército mesmo com as casas cheias. Comparam duas disposições fixas
+pelas prévias públicas de cada onda, salvam o Plano e usam reparo/milícia somente
+quando a visão permite, nas visitas habituais. Sem inimigos conhecidos, a prévia
+vazia não é tratada como garantia de vitória. BOT-1 a BOT-3 nas pendências registram
+as leituras conservadoras. Não foram alterados números de conteúdo, combate,
+estado, protocolo, migrações, retratos ou goldens.
+
+A Queda conserva planejadas de nível alto enquanto a próxima melhoria disponível
+volta a um nível baixo. A conferência apenas de `upgrade.planned` produzia
+`ALREADY_PLANNED`. Os bots agora conferem a lista por edifício antes de planejar;
+não se retirou a exigência de zero recusas. Isso também corrigiu os testes antigos
+do Preguiçoso: as propriedades de comida positiva depois da adaptação e de ninguém
+sem ofício continuaram intactas e passaram.
+
+Duas expectativas foram atualizadas com motivo específico: o Quartel deixa de ser
+fixo no Nv1, e a Torre pode ser planejada/reconstruída depois da Queda, de modo que
+uma sequência fixa de uma ordem por nível não vale mais. Mantêm-se a primeira ordem
+exata, a chegada ao Nv3+ e zero recusas. A contabilidade militar inclui soldados
+concedidos pelo Conselho (`data.soldiers`); `battleFought.playerLost` inclui também
+milicianos, por isso a diferença deve caber na convocação. Sem milícia, a igualdade
+exata entre recrutados/concedidos, baixas e sobreviventes continua obrigatória.
+
+Passo 1: testes focados de `bots.test.ts`, `cerco.test.ts` e `militar.test.ts`,
+**159/159 em 3 arquivos, saída 0**, com `nice -n 19` e `--maxWorkers=2`.
+A remedição das faixas e a suíte completa do sim-cli ficam para o passo 3.
+
+### 21.2 Rodada curta em Senhor (10 sementes por célula)
+
+Versão do preparo: `fc00878`; motor 0.3.0, estado 42, protocolo 4, conteúdo
+`75d68aa79cf92571`, Node 22.22.3. CSVs e relatórios fora do repositório, em
+`/tmp/codex-bots-cerco-20261104/final-pilot-{lord,militar}.{csv,md}`.
+São 300 registros, 250 partidas distintas entre as janelas; o Normal se repete
+nas duas. Não somar as janelas: a semana do Rápido atravessa três cercos e a
+semana do Tranquilo termina antes do primeiro. Comandos, em sequência:
+
+```bash
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord --seeds 10
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord --profile militar --seeds 10
+```
+
+O primeiro retorna **1** por comparação com as faixas anteriores; o Militar,
+sem faixa própria, retorna **0**. Não há falha de execução.
+
+**7 dias reais**
+
+| Ritmo | Perfil | Vitórias / Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 0 / 30 | 0 / 30 | 0 |
+| Rápido 3× | Regular | 0 / 30 | 0 / 30 | 0 |
+| Rápido 3× | Dedicado | 1 / 29 | 15 / 44 | 108 |
+| Rápido 3× | Explorador | 2 / 28 | 14 / 42 | 38 |
+| Normal 1× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Regular | 0 / 10 | 2 / 12 | 18 |
+| Normal 1× | Dedicado | 0 / 10 | 10 / 20 | 32 |
+| Normal 1× | Explorador | 0 / 10 | 8 / 18 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Regular | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 0 / 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Explorador | 0 / 0 | 0 / 0 | 0 |
+| Rápido 3× | Militar | 0 / 30 | 0 / 30 | 19 |
+| Normal 1× | Militar | 0 / 10 | 3 / 13 | 0 |
+| Tranquilo 0,5× | Militar | 0 / 0 | 0 / 0 | 0 |
+
+**um ano de jogo**
+
+| Ritmo | Perfil | Vitórias / Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Regular | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Dedicado | 0 / 10 | 0 / 10 | 0 |
+| Rápido 3× | Explorador | 0 / 10 | 0 / 10 | 11 |
+| Normal 1× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Regular | 0 / 10 | 2 / 12 | 18 |
+| Normal 1× | Dedicado | 0 / 10 | 10 / 20 | 32 |
+| Normal 1× | Explorador | 0 / 10 | 8 / 18 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 0 / 10 | 0 / 10 | 0 |
+| Tranquilo 0,5× | Regular | 0 / 10 | 5 / 15 | 13 |
+| Tranquilo 0,5× | Dedicado | 0 / 10 | 16 / 26 | 10 |
+| Tranquilo 0,5× | Explorador | 1 / 9 | 11 / 20 | 11 |
+| Rápido 3× | Militar | 0 / 10 | 0 / 10 | 0 |
+| Normal 1× | Militar | 0 / 10 | 3 / 13 | 0 |
+| Tranquilo 0,5× | Militar | 0 / 10 | 6 / 16 | 29 |
+
+Não houve fome, frio ou ordem recusada nos 300 registros. Não houve Gloriosa.
+**Leitura:** há vitórias medidas com preparo, mas são raras: uma no primeiro ano
+do Explorador do Tranquilo e três cercos posteriores na semana do Rápido (um do
+Dedicado, dois do Explorador). Nenhum perfil vence o primeiro Cerco do Rápido nesta
+amostra; Regular e Militar não vencem nenhum Cerco medido. Portanto o preparo
+não demonstrou a faixa de vitória desejada para o Regular. Não se alterou nenhum
+número do Cerco para produzir uma vitória. BOT-4 a BOT-6 oferecem alternativas ao
+autor; a rodada de 50 sementes confirmará os limites antes de regravar faixas.
+
+As rodadas exploratórias anteriores a `fc00878` não são a linha de base: serviram
+para identificar a falta de comida destinada ao treino. A medição acima usa a
+versão final do bot, com produção para soldados e proteção da Fazenda.
+
+### 21.3 Milícia mesmo sem exército permanente
+
+A conferência do preparo encontrou um retorno antecipado quando `army.total` era
+zero. A política agora usa a oferta pública também nessa situação, sem tentar
+salvar formação vazia (o motor a recusa). O Preguiçoso também pode convocar pela
+oferta quando não tem Defesa ativa. A janela, o teto de aldeões e o posto continuam
+validados pelo motor. As duas políticas têm regressão de convocação sem soldados,
+sem Defesa ativa e sem repetição na visita seguinte.
+
+Essa última defesa altera a população e os recursos depois da Queda: em `bots`,
+o Econômico do Rápido já não conclui a Guilda dentro da janela do teste. A expectativa
+do marco foi atualizada; os dez objetivos básicos, a ordem e zero recusas permanecem
+obrigatórios. A primeira tentativa da matriz completa de Senhor foi interrompida
+antes de emitir dados (processo terminado com 143; invólucro do pnpm com 1) para que
+as três medições definitivas usem essa correção. Nenhuma faixa saiu dessa tentativa.
+A rodada curta da seção 21.2 continua sendo a medição identificada por `fc00878`.
+
+### 21.4 Método da remedição completa
+
+A remedição definitiva usa `234d70b` (inclui a última defesa sem soldados), motor
+0.3.0, estado 42, conteúdo `75d68aa79cf92571`, Node 22.22.3. São os quatro perfis
+padrão mais o Militar, nas duas janelas, nos três ritmos e nas 50 sementes fixas,
+em cada dificuldade: 30 células e 1.500 registros por dificuldade. Somente as
+24 células dos quatro perfis padrão têm faixa; o Militar continua sem faixa.
+
+O invólucro no scratchpad chama o mesmo `runMatrix` do CLI por perfil, preserva
+as sementes e o cache das janelas do Normal e junta os resultados na ordem usual.
+A igualdade exata com uma chamada única foi conferida em dois perfis, um ritmo,
+duas janelas e uma semente (saída 0). Ele guarda os resumos JSON para conferir as
+expectativas sem repetir simulações; CSV e Markdown saem dos formatadores do CLI.
+Todos os arquivos ficam em `/tmp/codex-bots-cerco-20261104/full-*`, fora do Git.
+
+```bash
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts lord
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts peasant
+nice -n 19 pnpm --filter @lotg/sim-cli exec tsx /tmp/codex-bots-cerco-20261104/measure-progress.mts ironKing
+```
+
+A motivação para substituir `MEASURED` é a política de preparo e a contabilidade
+real de treino, milícia e Quedas na base reunida com o catálogo de 59 cartas.
+A folga de `SLACK` continua em 10% para população e 5% para os tetos; a meta de
+desperdício continua em 8 h de jogo. Os resultados finais e a conferência das
+faixas são registrados abaixo depois de concluídas as três dificuldades.
+
+Na conferência dos testes, a soma das vendas passa a incluir o ferro já existente
+no Mercado. O limite por recurso/dia é conferido pelo nível reconstituído dos
+eventos de obra e Queda, com a cotação de cada negociação e o saldo de volume
+exato; o nível final reduzido não invalida uma venda anterior. Não se retirou a
+exigência de zero recusas.

@@ -10,6 +10,14 @@ function expectArmyLedger(result: SimulationResult): void {
   const trained = result.events
     .filter((event) => event.type === 'soldiersTrained')
     .reduce((sum, event) => sum + Number(event.data.amount), 0);
+  const granted = result.events.reduce(
+    (sum, event) =>
+      sum +
+      String(event.data.soldiers ?? '')
+        .split(',')
+        .reduce((count, entry) => count + Number(entry.split(':')[1] ?? 0), 0),
+    0,
+  );
   const lost = result.events
     .filter((event) => event.type === 'battleFought')
     .reduce((sum, event) => sum + Number(event.data.playerLost), 0);
@@ -18,7 +26,17 @@ function expectArmyLedger(result: SimulationResult): void {
     .reduce((sum, event) => sum + Number(event.data.amount), 0);
   expect(trained).toBeGreaterThan(0);
   expect(result.rows.some((row) => row.soldiers > 0 && row.armyFood > 0)).toBe(true);
-  expect(result.rows.at(-1)?.soldiers).toBe(trained - lost - disbanded);
+  // O Conselho também concede soldados; battleFought soma soldados e milicianos. A convocação agora é usada no preparo:
+  // o saldo permanente pode perder menos que playerLost, nunca mais, e a diferença
+  // precisa caber nos milicianos convocados (balance-v0.4.md, §21).
+  const militia = result.events
+    .filter((event) => event.type === 'militiaCalled')
+    .reduce((sum, event) => sum + Number(event.data.count), 0);
+  const permanentLost = trained + granted - disbanded - (result.rows.at(-1)?.soldiers ?? 0);
+  expect(permanentLost).toBeGreaterThanOrEqual(0);
+  expect(permanentLost).toBeLessThanOrEqual(lost);
+  expect(lost - permanentLost).toBeLessThanOrEqual(militia);
+  if (militia === 0) expect(permanentLost).toBe(lost);
 }
 
 /**
@@ -35,7 +53,8 @@ describe('os bots na guerra (V4C-T1.8)', () => {
       sessionsPerDay: 2,
     });
     const last = result.rows.at(-1);
-    expect(result.finalState.settlement.buildings.barracks).toBe(1);
+    // V4G-T5.3: o outono agora melhora o Quartel; o Nv1 fixo era a limitação a remover.
+    expect(result.finalState.settlement.buildings.barracks).toBeGreaterThan(1);
     expectArmyLedger(result);
     expect(last?.soldiersByUnit.swordsman).toBeUndefined();
     expect(last?.trainingBatches).toBeGreaterThan(0);

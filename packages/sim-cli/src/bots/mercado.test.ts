@@ -1,3 +1,4 @@
+import { balance } from '@lotg/content';
 import {
   applyCommand,
   type Command,
@@ -259,15 +260,38 @@ describe('o Mercado em uma partida inteira', () => {
     const sold = traded
       .filter((event) => event.data.direction === 'sell')
       .reduce((sum, event) => sum + Number(event.data.amount), 0);
-    expect(summary.market.sold.food + summary.market.sold.wood + summary.market.sold.stone).toBe(
-      sold,
-    );
+    // V4G-T5.3: as cartas também entregam ferro ao Econômico; os quatro recursos
+    // negociados entram na soma exata, sem omitir suas vendas (balance §21).
+    expect(Object.values(summary.market.sold).reduce((sum, amount) => sum + amount, 0)).toBe(sold);
     expect(summary.market.offered).toBeGreaterThan(0);
     expect(summary.market.volumeUsedPercent).toBeGreaterThan(0);
     expect(summary.market.volumeUsedPercent).toBeLessThanOrEqual(100);
-    // Nunca mais do que o volume de um dia por visita e por recurso.
-    for (const event of traded) {
-      expect(Number(event.data.amount)).toBeLessThanOrEqual(200 * summary.market.level);
+    // V4G-T5.3: a Queda pode reduzir o Mercado depois de uma venda. Confere o volume
+    // acumulado por recurso/cotação com o nível daquele instante, sem usar o nível final (§21).
+    let marketLevel = 0;
+    const volume = new Map<string, number>();
+    for (const event of economico.events) {
+      if (
+        ['buildingFounded', 'constructionFinished'].includes(event.type) &&
+        event.data.building === 'market'
+      ) {
+        marketLevel = Number(event.data.level);
+      }
+      if (event.type === 'siegeFell') {
+        for (const slot of [1, 2]) {
+          if (event.data[`building${slot}`] === 'market')
+            marketLevel -= Number(event.data[`levelsLost${slot}`]);
+        }
+      }
+      if (event.type === 'marketTraded') {
+        expect(marketLevel).toBeGreaterThan(0);
+        const key = `${event.data.quoteDay}/${event.data.resource}`;
+        const used = (volume.get(key) ?? 0) + Number(event.data.amount);
+        const limit = balance.market.dailyVolumePerLevel * marketLevel;
+        expect(used).toBeLessThanOrEqual(limit);
+        expect(Number(event.data.remainingToday)).toBe(limit - used);
+        volume.set(key, used);
+      }
     }
 
     const preguicoso = await simulate({

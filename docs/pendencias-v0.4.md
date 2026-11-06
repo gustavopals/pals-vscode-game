@@ -936,3 +936,52 @@ continua aberta até o prazo de seis dias).
 
 **H-12. Condição de chegada e recompensa da pele em `forestReturns` (`whiteWolf.hunt`).** _(Respondida pelo autor em 2026-11-04: "Só com a fera vencida" e pagamento único na carta.)_
 - **Resposta aplicada em `v4h-pele`:** a volta de `whiteWolfHunt` com Sucesso ou Sucesso Pleno no nó `whiteWolf` grava `whiteWolf.slain`; o `scheduleCard` da opção `hunt` de `whiteWolf` exige `ifFlags: ['whiteWolf.slain']` e, se a janela de seis dias fechar sem abate e sem equipe na estrada, a carta agendada é cancelada e a flag `whiteWolf.hunt` é limpa. O nó `whiteWolf` de `whiteWolfHunt` deixou de pagar o ouro e a comida da pele (só `forestReturns` paga, um pagamento só), e as frases do nó foram ajustadas para não anunciarem a pele como saque da expedição. Os textos aprovados das três cartas foram preservados.
+
+## V4G-T5.3 — preparo dos bots (2026-11-04)
+
+**BOT-1. Prioridades de outono.** _(Proposta do agente; não lida pelo autor.)_
+Regular, Dedicado, Explorador e Militar passam a melhorar Quartel, Torre e Muralha
+no outono e durante o Cerco ainda aberto. Priorizam os níveis abaixo de 3 e depois
+o menor nível disponível, pagando somente o que a visão libera e preservando a
+lenha. O treino deixa o limite heurístico de um quarto da população nesse período:
+tenta alcançar o teto público do Quartel com os lotes ofertados, reserva de moral
+coberta e braços para alimentar o lote. A alocação protege a Fazenda contra os
+trabalhadores que serão convertidos no fim do treino. Enquanto há espaço no exército,
+o lavrador extra de crescimento continua produzindo comida mesmo com as casas cheias. Não cria visitas adicionais, armamento, regra ou bônus.
+O Preguiçoso conserva as políticas mínimas anteriores.
+
+**BOT-2. Plano sem adivinhar a Horda.** _(Proposta do agente; não lida pelo autor.)_
+O bot preparado compara duas disposições fixas, distribuídas em três alas ou com
+uma frente livre para a milícia, com as prévias públicas de cada onda. Prefere maior
+vitória prevista, depois menores baixas e maior efetivo empregado. Sem informação
+de inimigos na prévia, não considera os 100% contra amostra vazia como segurança.
+Dentro da antecedência pública, reserva uma frente e convoca somente se a oferta
+atual permitir, quando o risco é alto ou a composição ainda é desconhecida.
+Comandantes e visitas continuam como antes; o Militar conserva sua finta de outono.
+
+**BOT-3. Planejadas após a Queda.** _(Proposta do agente; não lida pelo autor.)_
+A visão pode mostrar a melhoria imediata como não planejada e conservar uma
+planejada do mesmo edifício para um nível mais alto. Os bots passam a conferir
+ambas as listas antes de planejar. Conservam o plano alto e reconstroem os níveis
+intermediários por ordens aceitas; não apagam intenção nem mandam ordem para testar
+uma recusa. A exigência de zero recusas permanece nos testes.
+
+**BOT-4. Janela econômica de preparação.** _(Proposta do agente; não lida pelo autor.)_
+A rodada curta em Senhor continua sem vitória no primeiro Cerco do Rápido em todos
+os perfis. Se o autor quiser que o preparo tenha mais sessões disponíveis, permitir
+que os bots melhorem Quartel e acumulem comida no verão, mantendo o treino intensivo
+no outono. Não aplicado: a tarefa autorizou começar o preparo no outono.
+
+**BOT-5. Custo de montar a tropa no outono.** _(Proposta do agente; não lida pelo autor.)_
+Como alternativa à antecipação, revisar o custo em comida e o tempo dos lotes de
+treino: o Quartel maior não dá soldados prontos, e recrutamento, reserva para o
+inverno e soldados disputam a mesma despensa. Medir uma redução isolada antes de
+escolher valores; não mudar simultaneamente comida, teto e ondas. Nenhum custo foi
+alterado nesta tarefa.
+
+**BOT-6. Pressão das três ondas sobre a tropa sobrevivente.** _(Proposta do agente; não lida pelo autor.)_
+Se a preparação econômica permanecer como está, medir uma redução isolada da base
+das ondas, começando pela terceira. Quem visita duas vezes por dia deixa o Plano,
+mas geralmente não encontra a janela de uma hora para reparar e convocar outra
+milícia; vitórias parciais não bastam para vencer o Cerco. A base 40/60/80 e o chefe
+permaneceram intactos; qualquer ajuste depende do autor.

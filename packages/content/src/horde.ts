@@ -1,4 +1,4 @@
-import type { HordeUnitId, LineId, WingId } from './ids';
+import type { HordeUnitId, LineId, Ratio, WingId } from './ids';
 
 /** Preparação das ondas lidas pelos presságios (GDD §11.1–11.2; ADR 0020, 18–19). */
 export type HordeWaveDef = {
@@ -14,6 +14,19 @@ export type HordeWaveDef = {
     readonly extra: boolean;
   }[];
 };
+
+/** Fatores de tamanho das ondas do Cerco por ano de jogo (respostas do autor de 2026-11-04: um terço no ano 1, dois terços no ano 2). */
+export const hordeWaveYearFactors: readonly Ratio[] = [
+  { num: 1, den: 3 },
+  { num: 2, den: 3 },
+];
+
+/** Fator multiplicador do tamanho base da onda conforme o ano do Cerco (ano >= 1; ano 3+ é 1/1). */
+export function siegeWaveYearFactor(year: number): Ratio {
+  if (year <= 0) return hordeWaveYearFactors[0]!;
+  const index = year - 1;
+  return index < hordeWaveYearFactors.length ? hordeWaveYearFactors[index]! : { num: 1, den: 1 };
+}
 
 /** Pesos iniciais do agente, conforme os tipos de cada onda do GDD; medir na V4G-T2. */
 export const hordeWaves: readonly HordeWaveDef[] = [

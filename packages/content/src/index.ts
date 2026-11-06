@@ -51,7 +51,7 @@ export {
   wingLocatives,
 } from './formations';
 export { omenTexts } from './omens';
-export { hordeTiles, hordeWaves } from './horde';
+export { hordeTiles, hordeWaveYearFactors, hordeWaves, siegeWaveYearFactor } from './horde';
 export type { HordeWaveDef } from './horde';
 export { COUNTER_CYCLE, militiaUnit, unitTexts, units } from './units';
 export type { UnitDef, UnitLine } from './units';

@@ -5,9 +5,9 @@
     "breached": false,
     "deaths": 0,
     "wall": {
-      "left": 361,
-      "center": 736,
-      "right": 553
+      "left": 713,
+      "center": 775,
+      "right": 794
     },
     "army": {
       "spearman": 0,
@@ -33,46 +33,32 @@
           {
             "type": "omenSeen",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 8 saqueadores na frente pela ala esquerda; 9 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 8 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 2 saqueadores na frente pela ala esquerda; 3 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 2 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
             "data": {
               "wave": 1,
               "clarity": "exact"
             }
           },
           {
-            "type": "wallDamaged",
-            "atMs": 590400000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (770 de 800), o centro (761 de 800) e a ala direita (773 de 800).",
-            "data": {
-              "hp_left": 770,
-              "hp_center": 761,
-              "hp_right": 773
-            }
-          },
-          {
             "type": "battleFought",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais as torres, a muralha, que segurou o golpe e a tropa certa contra o inimigo.",
+            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a tropa certa contra o inimigo e o ataque pelo flanco.",
             "data": {
               "battleId": "battle-1",
               "playerLost": 0,
-              "hordeLost": 28,
+              "hordeLost": 9,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 2,
-              "factor1": "tower",
+              "rounds": 1,
+              "factor1": "counter",
               "factor1Owner": "player",
-              "factor1Amount": 108,
+              "factor1Amount": 81,
               "factor1Wing": "",
-              "factor2": "wallAbsorbed",
+              "factor2": "flank",
               "factor2Owner": "player",
-              "factor2Amount": 96,
-              "factor2Wing": "",
-              "factor3": "counter",
-              "factor3Owner": "player",
-              "factor3Amount": 81,
-              "factor3Wing": ""
+              "factor2Amount": 30,
+              "factor2Wing": ""
             }
           },
           {
@@ -89,9 +75,9 @@
           }
         ],
         "wall": {
-          "left": 770,
-          "center": 761,
-          "right": 773
+          "left": 800,
+          "center": 800,
+          "right": 800
         },
         "armyRemaining": {
           "spearman": 0,
@@ -109,37 +95,33 @@
           {
             "type": "wallDamaged",
             "atMs": 594000000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (467 de 800) e a ala direita (697 de 800).",
+            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (729 de 800) e a ala direita (794 de 800).",
             "data": {
-              "hp_left": 467,
-              "hp_center": 761,
-              "hp_right": 697
+              "hp_left": 729,
+              "hp_center": 800,
+              "hp_right": 794
             }
           },
           {
             "type": "battleFought",
             "atMs": 594000000,
-            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, as torres e a tropa certa contra o inimigo.",
+            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe e a tropa certa contra o inimigo.",
             "data": {
               "battleId": "battle-2",
               "playerLost": 0,
-              "hordeLost": 42,
+              "hordeLost": 14,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 2,
+              "rounds": 1,
               "factor1": "wallAbsorbed",
               "factor1Owner": "player",
-              "factor1Amount": 379,
+              "factor1Amount": 77,
               "factor1Wing": "",
-              "factor2": "tower",
+              "factor2": "counter",
               "factor2Owner": "player",
-              "factor2Amount": 108,
-              "factor2Wing": "",
-              "factor3": "counter",
-              "factor3Owner": "player",
-              "factor3Amount": 49,
-              "factor3Wing": "right"
+              "factor2Amount": 24,
+              "factor2Wing": "right"
             }
           },
           {
@@ -156,9 +138,9 @@
           }
         ],
         "wall": {
-          "left": 467,
-          "center": 761,
-          "right": 697
+          "left": 729,
+          "center": 800,
+          "right": 794
         },
         "armyRemaining": {
           "spearman": 0,
@@ -184,7 +166,7 @@
           {
             "type": "omenSeen",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 20 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 12 xamãs na retaguarda pelo centro; 20 esqueletos na frente pela ala direita; 4 xamãs na retaguarda pela ala direita.",
+            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 7 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 4 xamãs na retaguarda pelo centro; 6 esqueletos na frente pela ala direita; 1 xamã na retaguarda pela ala direita.",
             "data": {
               "wave": 3,
               "clarity": "exact"
@@ -193,36 +175,36 @@
           {
             "type": "wallDamaged",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (361 de 800), o centro (736 de 800) e a ala direita (553 de 800).",
+            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (713 de 800) e o centro (775 de 800).",
             "data": {
-              "hp_left": 361,
-              "hp_center": 736,
-              "hp_right": 553
+              "hp_left": 713,
+              "hp_center": 775,
+              "hp_right": 794
             }
           },
           {
             "type": "battleFought",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, as torres e os chefes do inimigo.",
+            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais as torres, a muralha, que segurou o golpe e os chefes do inimigo.",
             "data": {
               "battleId": "battle-3",
               "playerLost": 0,
-              "hordeLost": 9,
+              "hordeLost": 15,
               "mode": "defense",
               "outcome": "victory",
               "ending": "chiefFell",
               "rounds": 2,
-              "factor1": "wallAbsorbed",
+              "factor1": "tower",
               "factor1Owner": "player",
-              "factor1Amount": 275,
+              "factor1Amount": 108,
               "factor1Wing": "",
-              "factor2": "tower",
+              "factor2": "wallAbsorbed",
               "factor2Owner": "player",
-              "factor2Amount": 108,
+              "factor2Amount": 41,
               "factor2Wing": "",
               "factor3": "aura",
               "factor3Owner": "horde",
-              "factor3Amount": 103,
+              "factor3Amount": 17,
               "factor3Wing": ""
             }
           },
@@ -260,9 +242,9 @@
           }
         ],
         "wall": {
-          "left": 361,
-          "center": 736,
-          "right": 553
+          "left": 713,
+          "center": 775,
+          "right": 794
         },
         "armyRemaining": {
           "spearman": 0,
@@ -280,9 +262,9 @@
     "breached": false,
     "deaths": 0,
     "wall": {
-      "left": 0,
-      "center": 674,
-      "right": 387
+      "left": 666,
+      "center": 775,
+      "right": 749
     },
     "army": {
       "spearman": 0,
@@ -308,7 +290,7 @@
           {
             "type": "omenSeen",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
             "data": {
               "wave": 1,
               "clarity": "exact"
@@ -317,37 +299,33 @@
           {
             "type": "wallDamaged",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (741 de 800), o centro (699 de 800) e a ala direita (756 de 800).",
+            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (794 de 800).",
             "data": {
-              "hp_left": 741,
-              "hp_center": 699,
-              "hp_right": 756
+              "hp_left": 794,
+              "hp_center": 800,
+              "hp_right": 800
             }
           },
           {
             "type": "battleFought",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, a tropa certa contra o inimigo e as torres.",
+            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a tropa certa contra o inimigo e a muralha, que segurou o golpe.",
             "data": {
               "battleId": "battle-1",
               "playerLost": 0,
-              "hordeLost": 40,
+              "hordeLost": 13,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 2,
-              "factor1": "wallAbsorbed",
+              "rounds": 1,
+              "factor1": "counter",
               "factor1Owner": "player",
-              "factor1Amount": 204,
+              "factor1Amount": 81,
               "factor1Wing": "",
-              "factor2": "counter",
+              "factor2": "wallAbsorbed",
               "factor2Owner": "player",
-              "factor2Amount": 160,
-              "factor2Wing": "",
-              "factor3": "tower",
-              "factor3Owner": "player",
-              "factor3Amount": 144,
-              "factor3Wing": ""
+              "factor2Amount": 6,
+              "factor2Wing": "left"
             }
           },
           {
@@ -364,9 +342,9 @@
           }
         ],
         "wall": {
-          "left": 741,
-          "center": 699,
-          "right": 756
+          "left": 794,
+          "center": 800,
+          "right": 800
         },
         "armyRemaining": {
           "spearman": 0,
@@ -384,11 +362,11 @@
           {
             "type": "wallDamaged",
             "atMs": 594000000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (157 de 800) e a ala direita (603 de 800).",
+            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (694 de 800) e a ala direita (781 de 800).",
             "data": {
-              "hp_left": 157,
-              "hp_center": 699,
-              "hp_right": 603
+              "hp_left": 694,
+              "hp_center": 800,
+              "hp_right": 781
             }
           },
           {
@@ -398,22 +376,22 @@
             "data": {
               "battleId": "battle-2",
               "playerLost": 0,
-              "hordeLost": 60,
+              "hordeLost": 20,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 3,
+              "rounds": 1,
               "factor1": "wallAbsorbed",
               "factor1Owner": "player",
-              "factor1Amount": 737,
+              "factor1Amount": 119,
               "factor1Wing": "",
               "factor2": "tower",
               "factor2Owner": "player",
-              "factor2Amount": 216,
-              "factor2Wing": "",
+              "factor2Amount": 36,
+              "factor2Wing": "center",
               "factor3": "counter",
               "factor3Owner": "player",
-              "factor3Amount": 74,
+              "factor3Amount": 24,
               "factor3Wing": "right"
             }
           },
@@ -431,9 +409,9 @@
           }
         ],
         "wall": {
-          "left": 157,
-          "center": 699,
-          "right": 603
+          "left": 694,
+          "center": 800,
+          "right": 781
         },
         "armyRemaining": {
           "spearman": 0,
@@ -459,7 +437,7 @@
           {
             "type": "omenSeen",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 29 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 17 xamãs na retaguarda pelo centro; 28 esqueletos na frente pela ala direita; 6 xamãs na retaguarda pela ala direita.",
+            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 9 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 6 xamãs na retaguarda pelo centro; 9 esqueletos na frente pela ala direita; 2 xamãs na retaguarda pela ala direita.",
             "data": {
               "wave": 3,
               "clarity": "exact"
@@ -468,36 +446,36 @@
           {
             "type": "wallDamaged",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (0 de 800), o centro (674 de 800) e a ala direita (387 de 800).",
+            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (666 de 800), o centro (775 de 800) e a ala direita (749 de 800).",
             "data": {
-              "hp_left": 0,
-              "hp_center": 674,
-              "hp_right": 387
+              "hp_left": 666,
+              "hp_center": 775,
+              "hp_right": 749
             }
           },
           {
             "type": "battleFought",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, os chefes do inimigo e as torres.",
+            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais as torres, a muralha, que segurou o golpe e os chefes do inimigo.",
             "data": {
               "battleId": "battle-3",
               "playerLost": 0,
-              "hordeLost": 7,
+              "hordeLost": 16,
               "mode": "defense",
               "outcome": "victory",
               "ending": "chiefFell",
               "rounds": 2,
-              "factor1": "wallAbsorbed",
+              "factor1": "tower",
               "factor1Owner": "player",
-              "factor1Amount": 398,
+              "factor1Amount": 108,
               "factor1Wing": "",
-              "factor2": "aura",
-              "factor2Owner": "horde",
-              "factor2Amount": 148,
+              "factor2": "wallAbsorbed",
+              "factor2Owner": "player",
+              "factor2Amount": 85,
               "factor2Wing": "",
-              "factor3": "tower",
-              "factor3Owner": "player",
-              "factor3Amount": 108,
+              "factor3": "aura",
+              "factor3Owner": "horde",
+              "factor3Amount": 34,
               "factor3Wing": ""
             }
           },
@@ -535,9 +513,9 @@
           }
         ],
         "wall": {
-          "left": 0,
-          "center": 674,
-          "right": 387
+          "left": 666,
+          "center": 775,
+          "right": 749
         },
         "armyRemaining": {
           "spearman": 0,
@@ -553,17 +531,17 @@
     "difficulty": "ironKing",
     "result": "glorious",
     "breached": false,
-    "deaths": 5,
+    "deaths": 0,
     "wall": {
-      "left": 0,
-      "center": 604,
-      "right": 154
+      "left": 587,
+      "center": 768,
+      "right": 704
     },
     "army": {
       "spearman": 0,
       "swordsman": 0,
       "knight": 0,
-      "shieldbearer": 55,
+      "shieldbearer": 60,
       "archer": 20
     },
     "waves": [
@@ -583,7 +561,7 @@
           {
             "type": "omenSeen",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 15 saqueadores na frente pela ala esquerda; 18 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 15 saqueadores na frente pela ala direita; 3 bandoleiros arqueiros na retaguarda pela ala direita.",
+            "text": "No 11º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a primeira onda: 5 saqueadores na frente pela ala esquerda; 5 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 4 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
             "data": {
               "wave": 1,
               "clarity": "exact"
@@ -592,36 +570,36 @@
           {
             "type": "wallDamaged",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (693 de 800), o centro (629 de 800) e a ala direita (712 de 800).",
+            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (788 de 800) e o centro (793 de 800).",
             "data": {
-              "hp_left": 693,
-              "hp_center": 629,
-              "hp_right": 712
+              "hp_left": 788,
+              "hp_center": 793,
+              "hp_right": 800
             }
           },
           {
             "type": "battleFought",
             "atMs": 590400000,
-            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, as torres e a tropa certa contra o inimigo.",
+            "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a tropa certa contra o inimigo, as torres e a muralha, que segurou o golpe.",
             "data": {
               "battleId": "battle-1",
               "playerLost": 0,
-              "hordeLost": 52,
+              "hordeLost": 16,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 3,
-              "factor1": "wallAbsorbed",
+              "rounds": 1,
+              "factor1": "counter",
               "factor1Owner": "player",
-              "factor1Amount": 366,
+              "factor1Amount": 81,
               "factor1Wing": "",
               "factor2": "tower",
               "factor2Owner": "player",
-              "factor2Amount": 216,
-              "factor2Wing": "",
-              "factor3": "counter",
+              "factor2Amount": 36,
+              "factor2Wing": "center",
+              "factor3": "wallAbsorbed",
               "factor3Owner": "player",
-              "factor3Amount": 194,
+              "factor3Amount": 19,
               "factor3Wing": ""
             }
           },
@@ -639,9 +617,9 @@
           }
         ],
         "wall": {
-          "left": 693,
-          "center": 629,
-          "right": 712
+          "left": 788,
+          "center": 793,
+          "right": 800
         },
         "armyRemaining": {
           "spearman": 0,
@@ -659,11 +637,11 @@
           {
             "type": "wallDamaged",
             "atMs": 594000000,
-            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (0 de 800) e a ala direita (442 de 800).",
+            "text": "No 11º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (637 de 800) e a ala direita (768 de 800).",
             "data": {
-              "hp_left": 0,
-              "hp_center": 629,
-              "hp_right": 442
+              "hp_left": 637,
+              "hp_center": 793,
+              "hp_right": 768
             }
           },
           {
@@ -672,23 +650,23 @@
             "text": "No 11º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, as torres e a tropa certa contra o inimigo.",
             "data": {
               "battleId": "battle-2",
-              "playerLost": 2,
-              "hordeLost": 78,
+              "playerLost": 0,
+              "hordeLost": 26,
               "mode": "defense",
               "outcome": "victory",
               "ending": "annihilation",
-              "rounds": 4,
+              "rounds": 2,
               "factor1": "wallAbsorbed",
               "factor1Owner": "player",
-              "factor1Amount": 963,
+              "factor1Amount": 183,
               "factor1Wing": "",
               "factor2": "tower",
               "factor2Owner": "player",
-              "factor2Amount": 288,
+              "factor2Amount": 72,
               "factor2Wing": "",
               "factor3": "counter",
               "factor3Owner": "player",
-              "factor3Amount": 93,
+              "factor3Amount": 24,
               "factor3Wing": "right"
             }
           },
@@ -706,15 +684,15 @@
           }
         ],
         "wall": {
-          "left": 0,
-          "center": 629,
-          "right": 442
+          "left": 637,
+          "center": 793,
+          "right": 768
         },
         "armyRemaining": {
           "spearman": 0,
           "swordsman": 0,
           "knight": 0,
-          "shieldbearer": 58,
+          "shieldbearer": 60,
           "archer": 20
         }
       },
@@ -734,7 +712,7 @@
           {
             "type": "omenSeen",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 37 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 22 xamãs na retaguarda pelo centro; 37 esqueletos na frente pela ala direita; 8 xamãs na retaguarda pela ala direita.",
+            "text": "No 12º dia do Inverno, os vigias de Pedra Alta trouxeram um presságio: Um desertor desenha no chão, para a terceira onda: 12 esqueletos na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 7 xamãs na retaguarda pelo centro; 12 esqueletos na frente pela ala direita; 2 xamãs na retaguarda pela ala direita.",
             "data": {
               "wave": 3,
               "clarity": "exact"
@@ -743,36 +721,36 @@
           {
             "type": "wallDamaged",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: o centro (604 de 800) e a ala direita (154 de 800).",
+            "text": "No 12º dia do Inverno, a batalha deixou marcas na muralha de Pedra Alta: a ala esquerda (587 de 800), o centro (768 de 800) e a ala direita (704 de 800).",
             "data": {
-              "hp_left": 0,
-              "hp_center": 604,
-              "hp_right": 154
+              "hp_left": 587,
+              "hp_center": 768,
+              "hp_right": 704
             }
           },
           {
             "type": "battleFought",
             "atMs": 597600000,
-            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, os chefes do inimigo e as torres.",
+            "text": "No 12º dia do Inverno, o exército de Pedra Alta travou batalha: vitória. Pesou mais a muralha, que segurou o golpe, as torres e os chefes do inimigo.",
             "data": {
               "battleId": "battle-3",
-              "playerLost": 3,
-              "hordeLost": 7,
+              "playerLost": 0,
+              "hordeLost": 14,
               "mode": "defense",
               "outcome": "victory",
               "ending": "chiefFell",
               "rounds": 2,
               "factor1": "wallAbsorbed",
               "factor1Owner": "player",
-              "factor1Amount": 313,
+              "factor1Amount": 139,
               "factor1Wing": "",
-              "factor2": "aura",
-              "factor2Owner": "horde",
-              "factor2Amount": 195,
+              "factor2": "tower",
+              "factor2Owner": "player",
+              "factor2Amount": 108,
               "factor2Wing": "",
-              "factor3": "tower",
-              "factor3Owner": "player",
-              "factor3Amount": 108,
+              "factor3": "aura",
+              "factor3Owner": "horde",
+              "factor3Amount": 52,
               "factor3Wing": ""
             }
           },
@@ -805,20 +783,20 @@
             "data": {
               "year": 1,
               "waves": 3,
-              "deaths": 5
+              "deaths": 0
             }
           }
         ],
         "wall": {
-          "left": 0,
-          "center": 604,
-          "right": 154
+          "left": 587,
+          "center": 768,
+          "right": 704
         },
         "armyRemaining": {
           "spearman": 0,
           "swordsman": 0,
           "knight": 0,
-          "shieldbearer": 55,
+          "shieldbearer": 60,
           "archer": 20
         }
       }

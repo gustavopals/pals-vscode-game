@@ -164,13 +164,13 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -182,13 +182,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -199,19 +199,19 @@
       "wing": "left",
       "line": "front",
       "unit": "ogre",
-      "count": 15
+      "count": 5
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "count": 27
+      "count": 9
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "wolf",
-      "count": 18
+      "count": 6
      }
     ]
    },
@@ -222,7 +222,7 @@
       "wing": "left",
       "line": "front",
       "unit": "blackKnight",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -234,19 +234,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    }
@@ -294,13 +294,13 @@
        "wing": "left",
        "line": "front",
        "unit": "raider",
-       "count": 12
+       "count": 4
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "raider",
-       "count": 14
+       "count": 4
       },
       {
        "wing": "center",
@@ -312,13 +312,13 @@
        "wing": "right",
        "line": "front",
        "unit": "raider",
-       "count": 11
+       "count": 3
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "banditArcher",
-       "count": 2
+       "count": 1
       }
      ]
     },
@@ -329,19 +329,19 @@
        "wing": "left",
        "line": "front",
        "unit": "ogre",
-       "count": 15
+       "count": 5
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "wolf",
-       "count": 27
+       "count": 9
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "wolf",
-       "count": 18
+       "count": 6
       }
      ]
     },
@@ -352,7 +352,7 @@
        "wing": "left",
        "line": "front",
        "unit": "blackKnight",
-       "count": 29
+       "count": 9
       },
       {
        "wing": "center",
@@ -364,19 +364,19 @@
        "wing": "center",
        "line": "back",
        "unit": "shaman",
-       "count": 17
+       "count": 6
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "blackKnight",
-       "count": 28
+       "count": 9
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "shaman",
-       "count": 6
+       "count": 2
       }
      ]
     }
@@ -388,13 +388,13 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 3,
-    "text": "Um desertor desenha no chão, para a terceira onda: 29 cavaleiros negros na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 17 xamãs na retaguarda pelo centro; 28 cavaleiros negros na frente pela ala direita; 6 xamãs na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a terceira onda: 9 cavaleiros negros na frente pela ala esquerda; 1 senhor da guerra na frente pelo centro; 6 xamãs na retaguarda pelo centro; 9 cavaleiros negros na frente pela ala direita; 2 xamãs na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "blackKnight",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -406,19 +406,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    },
@@ -427,19 +427,19 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 1,
-    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -451,13 +451,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -466,19 +466,19 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 1,
-    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -490,13 +490,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -505,25 +505,25 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 2,
-    "text": "Um desertor desenha no chão, para a segunda onda: 15 ogros na frente pela ala esquerda; 27 lobos na frente pelo centro; 18 lobos na frente pela ala direita.",
+    "text": "Um desertor desenha no chão, para a segunda onda: 5 ogros na frente pela ala esquerda; 9 lobos na frente pelo centro; 6 lobos na frente pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "ogre",
-      "count": 15
+      "count": 5
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "wolf",
-      "count": 27
+      "count": 9
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "wolf",
-      "count": 18
+      "count": 6
      }
     ]
    },
@@ -532,19 +532,19 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 1,
-    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -556,13 +556,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -571,19 +571,19 @@
     "revision": 1,
     "clarity": "exact",
     "wave": 1,
-    "text": "Um desertor desenha no chão, para a primeira onda: 12 saqueadores na frente pela ala esquerda; 14 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 11 saqueadores na frente pela ala direita; 2 bandoleiros arqueiros na retaguarda pela ala direita.",
+    "text": "Um desertor desenha no chão, para a primeira onda: 4 saqueadores na frente pela ala esquerda; 4 saqueadores na frente pelo centro; 1 xamã na retaguarda pelo centro; 3 saqueadores na frente pela ala direita; 1 bandoleiro arqueiro na retaguarda pela ala direita.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -595,13 +595,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    }

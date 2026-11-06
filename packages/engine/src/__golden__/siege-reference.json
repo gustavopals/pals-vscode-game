@@ -6,7 +6,7 @@
       "atMs": 590400000,
       "outcome": "victory",
       "ending": "annihilation",
-      "rounds": 2,
+      "rounds": 1,
       "casualties": [
         {
           "owner": "player",
@@ -61,16 +61,16 @@
           "wing": "left",
           "line": "front",
           "unit": "raider",
-          "start": 12,
-          "lost": 12
+          "start": 4,
+          "lost": 4
         },
         {
           "owner": "horde",
           "wing": "center",
           "line": "front",
           "unit": "raider",
-          "start": 14,
-          "lost": 14
+          "start": 4,
+          "lost": 4
         },
         {
           "owner": "horde",
@@ -85,33 +85,33 @@
           "wing": "right",
           "line": "front",
           "unit": "raider",
-          "start": 11,
-          "lost": 11
+          "start": 3,
+          "lost": 3
         },
         {
           "owner": "horde",
           "wing": "right",
           "line": "back",
           "unit": "banditArcher",
-          "start": 2,
-          "lost": 2
+          "start": 1,
+          "lost": 1
         }
       ],
       "wall": [
         {
           "wing": "left",
           "start": 800,
-          "end": 741
+          "end": 794
         },
         {
           "wing": "center",
           "start": 800,
-          "end": 699
+          "end": 800
         },
         {
           "wing": "right",
           "start": 800,
-          "end": 756
+          "end": 800
         }
       ]
     },
@@ -120,7 +120,7 @@
       "atMs": 594000000,
       "outcome": "victory",
       "ending": "annihilation",
-      "rounds": 3,
+      "rounds": 1,
       "casualties": [
         {
           "owner": "player",
@@ -175,41 +175,41 @@
           "wing": "left",
           "line": "front",
           "unit": "wolf",
-          "start": 15,
-          "lost": 15
+          "start": 5,
+          "lost": 5
         },
         {
           "owner": "horde",
           "wing": "center",
           "line": "front",
           "unit": "wolf",
-          "start": 27,
-          "lost": 27
+          "start": 9,
+          "lost": 9
         },
         {
           "owner": "horde",
           "wing": "right",
           "line": "front",
           "unit": "raider",
-          "start": 18,
-          "lost": 18
+          "start": 6,
+          "lost": 6
         }
       ],
       "wall": [
         {
           "wing": "left",
-          "start": 741,
-          "end": 157
+          "start": 794,
+          "end": 694
         },
         {
           "wing": "center",
-          "start": 699,
-          "end": 699
+          "start": 800,
+          "end": 800
         },
         {
           "wing": "right",
-          "start": 756,
-          "end": 603
+          "start": 800,
+          "end": 781
         }
       ]
     },
@@ -273,8 +273,8 @@
           "wing": "left",
           "line": "front",
           "unit": "skeleton",
-          "start": 29,
-          "lost": 3
+          "start": 9,
+          "lost": 8
         },
         {
           "owner": "horde",
@@ -289,7 +289,7 @@
           "wing": "center",
           "line": "back",
           "unit": "shaman",
-          "start": 17,
+          "start": 6,
           "lost": 0
         },
         {
@@ -297,33 +297,33 @@
           "wing": "right",
           "line": "front",
           "unit": "skeleton",
-          "start": 28,
-          "lost": 3
+          "start": 9,
+          "lost": 7
         },
         {
           "owner": "horde",
           "wing": "right",
           "line": "back",
           "unit": "shaman",
-          "start": 6,
+          "start": 2,
           "lost": 0
         }
       ],
       "wall": [
         {
           "wing": "left",
-          "start": 157,
-          "end": 0
+          "start": 694,
+          "end": 666
         },
         {
           "wing": "center",
-          "start": 699,
-          "end": 674
+          "start": 800,
+          "end": 775
         },
         {
           "wing": "right",
-          "start": 603,
-          "end": 387
+          "start": 781,
+          "end": 749
         }
       ]
     }
@@ -336,9 +336,9 @@
     "archer": 20
   },
   "wall": [
-    0,
-    674,
-    387
+    666,
+    775,
+    749
   ],
   "ids": {
     "formation": 1,

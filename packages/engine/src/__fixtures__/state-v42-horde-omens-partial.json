@@ -164,13 +164,13 @@
       "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 12
+      "count": 4
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 14
+      "count": 4
      },
      {
       "wing": "center",
@@ -182,13 +182,13 @@
       "wing": "right",
       "line": "front",
       "unit": "raider",
-      "count": 11
+      "count": 3
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "banditArcher",
-      "count": 2
+      "count": 1
      }
     ]
    },
@@ -199,19 +199,19 @@
       "wing": "left",
       "line": "front",
       "unit": "wolf",
-      "count": 15
+      "count": 5
      },
      {
       "wing": "center",
       "line": "front",
       "unit": "raider",
-      "count": 27
+      "count": 9
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "ogre",
-      "count": 18
+      "count": 6
      }
     ]
    },
@@ -222,7 +222,7 @@
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "count": 29
+      "count": 9
      },
      {
       "wing": "center",
@@ -234,19 +234,19 @@
       "wing": "center",
       "line": "back",
       "unit": "shaman",
-      "count": 17
+      "count": 6
      },
      {
       "wing": "right",
       "line": "front",
       "unit": "blackKnight",
-      "count": 28
+      "count": 9
      },
      {
       "wing": "right",
       "line": "back",
       "unit": "shaman",
-      "count": 6
+      "count": 2
      }
     ]
    }
@@ -294,13 +294,13 @@
        "wing": "left",
        "line": "front",
        "unit": "raider",
-       "count": 12
+       "count": 4
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "raider",
-       "count": 14
+       "count": 4
       },
       {
        "wing": "center",
@@ -312,13 +312,13 @@
        "wing": "right",
        "line": "front",
        "unit": "raider",
-       "count": 11
+       "count": 3
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "banditArcher",
-       "count": 2
+       "count": 1
       }
      ]
     },
@@ -329,19 +329,19 @@
        "wing": "left",
        "line": "front",
        "unit": "wolf",
-       "count": 15
+       "count": 5
       },
       {
        "wing": "center",
        "line": "front",
        "unit": "raider",
-       "count": 27
+       "count": 9
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "ogre",
-       "count": 18
+       "count": 6
       }
      ]
     },
@@ -352,7 +352,7 @@
        "wing": "left",
        "line": "front",
        "unit": "skeleton",
-       "count": 29
+       "count": 9
       },
       {
        "wing": "center",
@@ -364,19 +364,19 @@
        "wing": "center",
        "line": "back",
        "unit": "shaman",
-       "count": 17
+       "count": 6
       },
       {
        "wing": "right",
        "line": "front",
        "unit": "blackKnight",
-       "count": 28
+       "count": 9
       },
       {
        "wing": "right",
        "line": "back",
        "unit": "shaman",
-       "count": 6
+       "count": 2
       }
      ]
     }
@@ -388,13 +388,13 @@
     "revision": 1,
     "clarity": "partial",
     "wave": 1,
-    "text": "Os vigias contam cerca de 15 saqueadores rumando para o vale, pelo centro, na primeira noite.",
+    "text": "Os vigias contam cerca de 5 saqueadores rumando para o vale, pela ala esquerda, na primeira noite.",
     "reveals": [
      {
-      "wing": "center",
+      "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 15
+      "count": 5
      }
     ]
    },
@@ -403,13 +403,13 @@
     "revision": 1,
     "clarity": "partial",
     "wave": 3,
-    "text": "Os vigias contam cerca de 30 esqueletos rumando para o vale, pela ala esquerda, na terceira noite.",
+    "text": "Os vigias contam cerca de 10 esqueletos rumando para o vale, pela ala esquerda, na terceira noite.",
     "reveals": [
      {
       "wing": "left",
       "line": "front",
       "unit": "skeleton",
-      "count": 30
+      "count": 10
      }
     ]
    },
@@ -418,13 +418,13 @@
     "revision": 1,
     "clarity": "partial",
     "wave": 1,
-    "text": "Os vigias contam cerca de 15 saqueadores rumando para o vale, pelo centro, na primeira noite.",
+    "text": "Os vigias contam cerca de 5 saqueadores rumando para o vale, pela ala esquerda, na primeira noite.",
     "reveals": [
      {
-      "wing": "center",
+      "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 15
+      "count": 5
      }
     ]
    },
@@ -433,13 +433,13 @@
     "revision": 1,
     "clarity": "partial",
     "wave": 1,
-    "text": "Os vigias contam cerca de 15 saqueadores rumando para o vale, pelo centro, na primeira noite.",
+    "text": "Os vigias contam cerca de 5 saqueadores rumando para o vale, pela ala esquerda, na primeira noite.",
     "reveals": [
      {
-      "wing": "center",
+      "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 15
+      "count": 5
      }
     ]
    },
@@ -448,13 +448,13 @@
     "revision": 1,
     "clarity": "partial",
     "wave": 1,
-    "text": "Os vigias contam cerca de 15 saqueadores rumando para o vale, pelo centro, na primeira noite.",
+    "text": "Os vigias contam cerca de 5 saqueadores rumando para o vale, pela ala esquerda, na primeira noite.",
     "reveals": [
      {
-      "wing": "center",
+      "wing": "left",
       "line": "front",
       "unit": "raider",
-      "count": 15
+      "count": 5
      }
     ]
    }

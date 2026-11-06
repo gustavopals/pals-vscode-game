@@ -110,6 +110,19 @@ export const HordeWavesSchema = z
     }
   });
 
+export const HordeWaveYearFactorsSchema = z
+  .array(
+    z.strictObject({
+      num: positiveInt,
+      den: positiveInt,
+    }),
+  )
+  .min(2)
+  .refine(
+    (factors) => factors.every(({ num, den }) => num <= den),
+    'fatores de ano das ondas não podem ser superiores a 1',
+  );
+
 const resourceId = z.enum(RESOURCE_IDS);
 const buildingId = z.enum(BUILDING_IDS);
 const productionBuildingId = z.enum(PRODUCTION_BUILDING_IDS);
@@ -815,6 +828,7 @@ const balanceFields = z.strictObject({
   siege: z
     .strictObject({
       waveIntervalRealMs: positiveInt,
+      waveYearFactors: HordeWaveYearFactorsSchema,
       fall: z.strictObject({
         resourcesLost: ratio,
         populationLost: ratio,

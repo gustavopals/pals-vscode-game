@@ -1395,9 +1395,14 @@ completo na Fase G. Alterar os pesos é alterar conteúdo, hash e goldens.
 | 2 | 60 | 50 lobos, 20 ogros, 30 saqueadores | Nenhum |
 | 3 | 80 | 45 cavaleiros negros, 40 esqueletos, 15 xamãs | Um Senhor da Guerra na frente central, além do total |
 
-Os pesos somam 100 por onda, antes da adaptação à última formação. O tamanho
-recebe o fator da dificuldade (7/10, 1, 13/10), com piso inteiro e distribuição do
-resto pelos postos. Arquivo: `packages/content/src/horde.ts`.
+Os pesos somam 100 por onda, antes da adaptação à última formação. A base da
+tabela é a do Ano 3 em diante: o tamanho recebe antes o fator do ano
+(`hordeWaveYearFactors`: 1/3 no Ano 1, 2/3 no Ano 2; respostas do autor de
+2026-11-04) e depois o fator da dificuldade (7/10, 1, 13/10), cada um com piso
+inteiro, e o resto é distribuído pelos postos. Em Senhor, 13/20/26 no Ano 1 e
+26/40/53 no Ano 2, com o Senhor da Guerra além; os postos fixos não mudam e a
+redução da sabotagem deixa ao menos um inimigo em cada posto. Arquivo:
+`packages/content/src/horde.ts`.
 
 Os textos em `omens.ts` continuam rascunho. Exemplos de estrutura:
 

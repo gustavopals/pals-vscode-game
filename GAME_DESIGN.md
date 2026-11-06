@@ -778,16 +778,19 @@ Em cada virada de outono e de inverno há `35% + 10% × (Torre − 1)` de chance
 
 ### 11.2 O Cerco `[v0.4]`
 
-| Onda | Tamanho base (Senhor) | Composição típica (antes da adaptação) |
+| Onda | Tamanho base (Senhor, do Ano 3 em diante) | Composição típica (antes da adaptação) |
 |---|---:|---|
 | 1 — "Os Saqueadores" | 40 unidades | Saqueadores, Bandoleiros Arqueiros, 1 Xamã |
 | 2 — "As Feras" | 60 unidades | Lobos, Ogros, Saqueadores |
 | 3 — "A Longa Noite" | 80 unidades + Senhor da Guerra | Cavaleiros Negros, Esqueletos, Xamãs, chefe no Centro |
 
 ```
-tamanho_da_onda = base × dificuldade × (1 − 0,15 × sabotagens_bem_sucedidas) × (1 + 0,10 × anos_anteriores) × votos
+tamanho_da_onda = base × fator_do_ano × dificuldade × (1 − 0,15 × sabotagens_bem_sucedidas) × (1 + 0,10 × anos_anteriores) × votos
+fator_do_ano: Ano 1 1/3 · Ano 2 2/3 · Ano 3 em diante 1
 dificuldade: Camponês 7/10 · Senhor 1 · Rei de Ferro 13/10
 ```
+
+**Ondas por ano** (respostas do autor de 2026-11-04): o primeiro Cerco tem **um terço** do tamanho base e o segundo, **dois terços**; do Ano 3 em diante vale a tabela. Cada fator é aplicado com piso inteiro, primeiro o do ano e depois o da dificuldade: em Senhor, 13/20/26 no Ano 1 e 26/40/53 no Ano 2, com o Senhor da Guerra sempre além. Os postos fixos (o Xamã da onda 1 e o chefe da onda 3) não mudam, e a sabotagem nunca deixa um posto sem ninguém. A Queda não muda. O termo dos anos anteriores e os votos são do Legado (§11.5, v0.5).
 
 - Ondas a cada **60 min reais** a partir da Hora da Vigília (§4.3), em qualquer ritmo: é a janela de uma pessoa trocar a formação ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 12). Dano na muralha persiste entre ondas. **O Plano de Batalha** é uma formação por onda, salva antes; entre uma onda e a seguinte há uma **decisão pendente de 60 min reais** para trocar a formação e pedir o **reparo de emergência** (pedra, na hora); sem resposta, o Plano vale. Não há "reparo automático se pedra ≥ X" ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 20).
 - **Resultados:** **Vitória Gloriosa** (sem ala rompida em onda nenhuma), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A **Queda** custa 30% dos recursos e 20% da população (aldeões, sem Mestres nem heróis), leva a muralha a 0 e tira 2 níveis dos dois edifícios de nível mais alto (o Salão incluído), sem sorteio. Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a **Primavera da Reconstrução**: custos ×4/5 por 2 dias de jogo ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 19).
