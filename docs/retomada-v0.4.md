@@ -1,61 +1,136 @@
-# Retomada da v0.4 — 2026-10-22
+# Retomada da v0.4 — 2026-11-06
 
-## Plano e escopo desta sessão
+**Ponto de continuação:** terceira junção local `v4-juncao3`, base **`ccbaa5c`**
+(“integre as ondas por ano e o preparo dos bots”), antes do fechamento documental.
+Esta trilha trabalha em **`v4-docs`**, sem integração ao `main`, push ou publicação.
+Estado **42**, protocolo **4**, catálogo de **59 cartas**; pacotes e motor ainda
+se identificam como **0.3.0**. Conferir `git status`, o SHA do candidato e os
+registros ao retomar; versões documentais não comprovam o que está em produção.
 
-Concluir a integração de V4C-T3 antes de iniciar outra mecânica. Base: `main` em
-`74f57e7`. O branch local `v4c-t3-resto`, em `834111e`, já continha T3.4 e T3.5;
-foi revisado e integrado em `codex/v0.4-fase-c-retomada` (`0e334f9`). Nenhuma
-migração ou alteração de protocolo: estado 29, protocolo 3, pacotes 0.3.0.
+## O que está pronto na terceira junção
 
-Arquivos: avisos em `ui/format.ts` e `game/beforeLeaving.ts`, descrição da árvore
-em `ui/army.ts`, Defesa ativa em `FormationList.tsx`, comandante em `HeroesPanel.tsx`,
-testes unitários e cenários `12-exercito` e `13-formacoes`. A montagem continua
-local até Salvar; as ordens seguem o controlador e os dados da visão.
+A junção de 2026-11-03 reuniu inicialmente o estado 41/protocolo 4. A base `ccbaa5c`
+contém também o Lobo Branco, as revisões e o preparo dos bots de 2026-11-04, além
+das ondas por ano. Não confundir o retrato inicial da junção com a base atual.
 
-## Entrega
+| Área | O que existe nesta base |
+|---|---|
+| Ferro e Ferreiro | Ferro no Armazém/Mercado e na Mina Abandonada; forja de armas, desgaste e reparo de item na mesma fila; interface no Feudo |
+| Exército | Quartel, cinco unidades, treino/dispensa, formações salvas, comandantes e Defesa ativa offline; editor por teclado |
+| Batalha e prévia | Motor único, sete contas à mão/goldens, relatórios e efeitos nos comandantes; Conselho de Guerra comum na tela e prévia por onda no motor/protocolo |
+| Muralha e incursões | Vida por ala, reparo com prioridade sobre obras, Torre Nv3+; toda incursão usa batalha e a Defesa disponível |
+| Horda | Memória da última formação efetiva, astúcia, presságios com névoa, Acampamento e Fortaleza; preparação/regeneração das ondas e congelamento no inverno |
+| Sabotagem e campanha | Sabotagem com três heróis, até três tentativas anuais, reduções/alerta; ataque ao Acampamento com reserva de tropas, batalha, retorno, saque e restauração anual do tile; telas e conferências |
+| Vigília e Cerco | Preferência de hora/fuso; Plano por onda, três ondas com intervalo de 60 min reais, decisão entre ondas, troca, reparo de emergência, milícia no motor/visão, resultado, Queda e rescaldo/Reconstrução |
+| Ondas por ano | Base ×1/3 no ano 1, ×2/3 no ano 2 e ×1 no ano 3+, antes da dificuldade; postos fixos preservados e redução sem zerar postos |
+| Ano e Feitos | `yearEnded`, pontuação e seis Feitos anuais; endpoint autenticado `GET /v1/games/:id/years/:year/chronicle.md`, sem mistura de anos |
+| Conselho e objetivos | Cartas dos lotes 2/3 e três cartas do Lobo Branco; caçada temporária no estado 42, uma equipe por vez e janela encerrada na vitória/expiração; objetivos 17 a 21; Retorno e Antes de partir com guerra |
+| Reino | Estatísticas e ranking de ouro pelo estado gravado, saída nas Preferências, ADR 0021; SQL `0001_ranking_listed`, SDK e aba Reino |
+| Novidades | Aba editorial, selo de leitura por conta/entre abas; entrada v0.4 ainda como rascunho |
+| Simulador | Preparo militar dos perfis, Plano, milícia pela oferta pública, contabilidade do Cerco e prévia de onda no Militar; faixas medidas continuam distintas de metas |
 
-- Defesa ativa pelo nome na árvore, aviso quando há soldados sem formação ativa,
-  atalho em Antes de partir e botão para tirar a Defesa ativa.
-- A ficha do herói informa a ala que ele comanda e o bloqueio da expedição.
-- Testes da prioridade do aviso: incursão, frio, soldo e encruzilhada continuam
-  prevalecendo; modo discreto e falta de conexão mantêm o comportamento.
-- O cenário estreito monta, salva e ativa pelo teclado em cada um dos três temas,
-  além de conferir contraste e ausência de rolagem horizontal em 720 px.
-- O teste de cancelamento espera o botão habilitado e focado antes de pressionar
-  Enter. A visão do lote pode chegar antes da liberação da trava de treino;
-  `focus()` não aguarda habilitação. Isso trata uma possível causa da
-  intermitência registrada no branch anterior, sem afirmar reproduzi-la.
+A descrição das regras, da ordem no mesmo instante, dos relógios, dos sorteios e
+dos limites está em [architecture.md](architecture.md). Não recalcular prazos já
+marcados, não alterar retratos `FROZEN` e não usar um golden divergente como motivo
+para regravá-lo sem `UPDATE_GOLDEN=1` e leitura do diff.
 
-## Verificação
+## Evidência e lacunas que permanecem
 
-Conferida em 2026-10-23, no commit da integração (`2a27faa`), antes da junção no `main`: `pnpm verify` (155 arquivos, 13.793 testes), integração (28 arquivos, 566) e `pnpm build` + navegador (152 cenários), todos verdes. Juntado no `main` em seguida, com a medição do ouro (V4C-T4.3), a revisão da Fase C (V4C-T4.1) e o roteiro do autor (V4C-T4.5).
+- [balance-v0.4.md](balance-v0.4.md), “Terceira junção”, revisões de 2026-11-04 e
+  seção 21, conserva as verificações focadas, correções de cenários e medições.
+  Saída verde de um subconjunto não é portão completo. Na base lida, §21.4 descreve
+  a remedição com bots preparados, sem consolidar os resultados finais; ondas
+  alteradas depois também precisam ser identificadas na medição usada.
+- [acceptance-v0.4.md](acceptance-v0.4.md) relaciona os seis critérios, QA-19 a
+  QA-34 e os nove itens de “pronto” à prova existente, com limites explícitos.
+  **A evidência manual continua por preencher pelo autor.**
+- Há endpoint anual, mas falta seletor/download anual no app e SDK. O botão atual
+  baixa a Crônica geral. Há ordem/oferta de milícia e prévia por onda, mas faltam
+  seus controles no app; não há prévia ofensiva do Acampamento, vínculo de
+  relatório por onda ou resumo/prazo próprio do rescaldo na visão.
+- **59 cartas não são o alvo de 60** do roadmap. Cobertura dirigida de cadeias
+  não demonstra que todas saem espontaneamente em 50 sementes. Conteúdo não lido
+  e perguntas de regra continuam em [content-v0.4.md](content-v0.4.md) e
+  [pendencias-v0.4.md](pendencias-v0.4.md).
+- O critério de **65–80% de Vitória do Regular não está provado**: `MEASURED`
+  protege regressão observada, sem impor essa meta. A Fase I continua necessária
+  para a aceitação final, mesmo que o autor autorize uma publicação intermediária.
 
-## Próximo marco seguro
+Não usar o antigo ponto “começar V4D-T1.3” deste arquivo: batalha, Horda e Cerco já
+existem. O histórico da retomada de outubro está nos commits anteriores do arquivo.
 
-V4C-T4: revisão independente da Fase C, correções comprovadas, medição do ouro
-com treino e ferro, documentação de arquitetura e roteiro do autor. A decisão 2
-do ADR 0019 exige levar a medição e propostas ao autor antes da Fase D; não
-mudar custos ou introduzir soldo de soldados sem essa decisão.
+## O que falta para publicar
 
-Verificar na revisão o cancelamento de treino com confirmação aberta enquanto
-outro lote idêntico substitui o anterior: hoje a paleta compara unidade,
-quantidade e duração, sem identidade do lote. É hipótese para reprodução,
-não defeito comprovado nesta sessão.
+Esta trilha não autoriza publicação. O coordenador integra as entregas e registra
+o candidato; o **autor faz o push**. A lista abaixo organiza os atos já previstos
+no roadmap e em [deploy/README.md](../deploy/README.md), sem substituir o procedimento.
 
-A Fase C não fecha apenas com a interface: revisão e medição continuam pendentes.
-Não publicar: a primeira publicação foi combinada para o fim da Fase E, com
-backup e os procedimentos operacionais do ADR 0019. O arquivo local `.hermes.md`
-não faz parte desta entrega.
+1. **Consolidar o candidato.** Integrar/revisar as trilhas, registrar SHA, estado 42,
+   protocolo 4 e hash de conteúdo. Conferir pendências, correções e o escopo da
+   publicação. Para a release 0.4.0, continuam previstos em V4I-T4 versões dos
+   oito pacotes/`ENGINE_VERSION`, changelog, relatório, capturas e página de
+   apresentação; não promovê-los a feitos por constarem nesta retomada.
+2. **Fechar o portão nesse SHA.** `verify`, integração, build, navegador e landing,
+   mais a remedição aplicável, com código de saída/contagens e leitura das falhas.
+   Registrar em balance/roadmap; se entrar correção, identificar o novo candidato.
+   Antes de começar, conferir processos e combinar o banco compartilhado. Tudo
+   com `nice -n 19`, Vitest `--maxWorkers=2`, uma suíte pesada por vez; não rodar
+   integração e Playwright ao mesmo tempo. **Não executar esse portão na trilha docs.**
+3. **Preparar operação e backup.** Conferir as três imagens e a migração SQL
+   `0001_ranking_listed`; fazer backup manual imediatamente antes da publicação
+   que sobe estado/protocolo, registrar arquivo e SHA de retorno. Seguir o
+   procedimento de restauração/reversão. Imagem antiga diante do estado novo
+   não é reversão: precisa do backup correspondente.
+4. **Entregar o aviso concreto ao autor.** SHA, resumo, saída do portão, arquivo
+   do backup, mudanças em partidas existentes e lacunas ainda abertas. No `main`,
+   push aciona a implantação automática; **nenhum agente desta trilha dá push**.
+5. **Depois do push do autor.** Conferir saúde e `GET /v1/version` (versão esperada,
+   protocolo 4 e `builtAt`), migração das partidas ativas para o estado 42 e a conta
+   do autor aberta. Registrar resultado, sem inferir sucesso só pelo CI verde.
 
-## Retomada em 2026-10-23
+O ensaio de restauração/reversão com imagens atravessando a migração continua sem
+evidência nesta entrega; ele é item expresso do “pronto” (§10.4, ato 23). Registro
+antigo de procedimento escrito não equivale a ensaio executado. Tag/release também
+permanecem atos do autor.
 
-A Fase C fechou no `main` (`33af479`), sem o autor jogar, por escolha dele, com o portão inteiro verde. Da Fase D estão no `main` a V4D-T1.1 (os sete cenários à mão, `docs/content-v0.4.md`, seção 2) e a T1.2 (os oito inimigos, `packages/content/src/enemies.ts`), e as respostas do autor às leituras D-1 a D-4 (ADR 0019, "Respostas de 2026-10-23"; GDD §10.4). Nenhum dos sete cenários tem arqueiro da Horda, então a D-3 não muda conta nenhuma.
+## O que fica para depois desta documentação
 
-**Plano da V4D-T1.3 em diante (próxima sessão):**
+**Fase I, V4I-T1:** matriz dos quatro perfis padrão e perfis adicionais previstos,
+três dificuldades, três ritmos, 50 sementes e duas janelas, identificando o conteúdo
+com ondas por ano. Converter as faixas de Vitória/Gloriosa em **metas** do GDD §15.2,
+sem apenas alargar a linha observada. Onde a medida não couber, levar propostas ao
+autor. Comparar ouro por fonte/destino com a linha de base. As rodadas das fases
+não substituem a matriz completa do fechamento.
 
-1. T1.3: `packages/engine/src/battle.ts`, `resolveBattle(defender, attacker, field, rng)` pura, em inteiros e frações, com a sorte injetada; os sete cenários viram `__golden__/battle-*.md` com a sorte fixada em 100 e têm de bater com a conta à mão.
-2. T1.4: a família de fluxo `battle:<id>` em `RNG_STREAM_FAMILIES`, apagada no fim do instante; a sorte de 90 a 110 por esquadrão por rodada, em ordem fixa.
-3. T1.5 e T1.6: `battleReport.ts` (os três fatores por atribuição de dano), `army.reports` com teto 3, e o estado 29 → 30 (`migrations/v29.ts` e `v30.ts`, retratos congelados).
-4. T1.7: as propriedades (termina em até 12 rodadas, baixas nunca passam dos efetivos, o relatório é função da entrada e do fluxo).
+Ainda em V4I-T1: `--perf` no candidato (avanços longos e Cerco), `--remote` com
+50 bots, tamanho máximo de estado/visão e custo dos recibos, mais repetição manual
+das sementes extremas por célula. Há medições anteriores de desempenho, mas esta
+trilha não as refez nem as declara válidas para o SHA final.
 
-Nenhuma incursão chama a batalha nesta tarefa (Fase E). Não publicar.
+**Aceitação e playtest, V4I-T2/T3:** o autor preenche a evidência por critério e joga
+[manual-test-v0.4.md](manual-test-v0.4.md) em 15–20 minutos. Registrar Firefox,
+Safari, celular e leitor de tela como vistos ou não vistos. O roteiro acelerado
+não prova a semana natural, a conveniência da Vigília ou a vantagem de preparação.
+O playtest externo continua por fazer; convite, formulário e relatório da v0.4
+ficam para essa tarefa. Não houve playtest nesta entrega.
+
+**Fechamento de produto, V4I-T4:** resolver ou obter decisão explícita para as
+lacunas da aceitação, conferir textos e fichas com o autor, concluir documentos e
+artefatos da release e conferir a entrada de Novidades antes de marcá-la publicada.
+O próximo roadmap é a V4I-T5; não antecipar mapa, Legado, Votos ou Temporadas.
+
+## Entrega desta trilha documental
+
+Foram atualizados somente `architecture.md`, `acceptance-v0.4.md`,
+`manual-test-v0.4.md` e esta retomada, um commit por arquivo, todos com prefixo
+`V4-DOCS`. Código, testes, `CLAUDE.md`, deploy, balanceamento, roadmap e pendências
+não foram editados.
+
+Verificação: apenas `nice -n 19 pnpm exec prettier --check` nos documentos tocados,
+com saída 0 por arquivo. O worktree não tem `node_modules` próprio: a primeira
+chamada falhou com **254** por não encontrar `prettier`; as chamadas seguintes
+usaram o executável já instalado na raiz compartilhada pelo `PATH`, sem instalar
+ou alterar dependências. **Markdown é ignorado por `.prettierignore`**; o resultado
+0 não atesta formatação desses textos. Referências e diff foram conferidos por
+leitura; nenhum teste de jogo foi executado, nenhum golden/retrato regravado,
+nenhum serviço iniciado, nenhum backup, push ou deploy feito.
