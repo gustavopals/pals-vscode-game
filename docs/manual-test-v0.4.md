@@ -1,222 +1,271 @@
-# Roteiro manual da v0.4 (parcial, até a Fase D)
+# Roteiro manual da v0.4 — 15 a 20 minutos
 
-Um roteiro curto para o autor jogar a v0.4 "Guerra e Cerco" **em desenvolvimento**, jornada por jornada, com o que observar em cada uma e como adiantar o tempo. Cada observação vai para a coluna "Evidência manual" de [acceptance-v0.4.md](acceptance-v0.4.md), com data, navegador e ritmo; cada decisão de regra que o jogo mostrar e você quiser mudar vai para [pendencias-v0.4.md](pendencias-v0.4.md).
+Para o autor jogar **em desenvolvimento**, no molde de
+[manual-test-v0.3.md](manual-test-v0.3.md). Base conferida em 2026-11-06:
+`ccbaa5c`, estado 42, protocolo 4. Registrar cada observação em
+[acceptance-v0.4.md](acceptance-v0.4.md), com data, quem, navegador, ritmo,
+dificuldade e resultado. Questões de regra/texto vão para
+[pendencias-v0.4.md](pendencias-v0.4.md).
 
-> **Estado em 2026-10-23.** Ninguém executou este roteiro, **nem o autor jogou nenhuma fase da v0.4**. Escrito no `main` em `c849bd8` (estado 31, protocolo 3) a partir do código (`tests/e2e/server.ts`, `tests/e2e/11-ferreiro.spec.ts`, `12-exercito.spec.ts`, `13-formacoes.spec.ts`) e dos roteiros de 15 minutos das Fases B e C ([pendencias-v0.4.md](pendencias-v0.4.md), seções 7 e 8). Cobre o que **existe hoje**: o ferro, a Mina Abandonada, o Ferreiro e a forja, o desgaste e o reparo, o Quartel, os soldados, as formações e a Defesa ativa, a aba Exército e a prévia do Conselho de Guerra, esta **só pela ordem `simulateBattle`** (o app ainda não tem botão "Simular": é da V4D-T4). O que ainda não existe aparece na seção "O que ainda não dá para jogar", com a fase que o entrega. **Nada da v0.4 está em produção** (a primeira publicação é a do fim da Fase E, decisão 26 do ADR 0019).
+**Este roteiro foi escrito pela leitura do código; não foi executado à mão nesta
+entrega.** Os atalhos abaixo existem em `tests/e2e/server.ts`. Eles preparam
+situações; não demonstram a progressão natural nem o balanceamento. A evidência
+humana continua por preencher.
 
-## Preparação
+## Preparação (3 minutos)
+
+Dependências e bancos já preparados. Use apenas o banco de teste, porta 5433.
+**O servidor abaixo esvazia esse banco ao subir.** Combine a janela com o
+coordenador: não o iniciar enquanto integração ou Playwright usam o mesmo banco.
+As rotas de controle afetam todos os feudos desse banco. Use uma única conta e
+um único feudo nesta rodada, em perfil novo do navegador.
 
 ```bash
-pnpm install
-pnpm dev:up && pnpm secrets:gen
-pnpm dev:api          # deixe rodando: http://localhost:3000/v1/health
-pnpm dev:web          # em outro terminal: http://localhost:5173
-curl -s localhost:3000/v1/version   # "protocol": 3
+export PATH=/home/g_pals/.nvm/versions/node/v22.22.3/bin:$PATH
+ps aux | grep -E "[v]itest|[p]laywright"
+# Terminal 1, quando o banco de teste estiver livre; manter em primeiro plano:
+GAME_TIME_SCALE=3 nice -n 19 pnpm --filter @lotg/server exec tsx ../../tests/e2e/server.ts
+# Terminal 2, com o mesmo PATH; manter em primeiro plano:
+LOTG_API_URL=http://127.0.0.1:3100 nice -n 19 pnpm dev:web
 ```
 
-Abra `http://localhost:5173` numa janela anônima (ou perfil novo) para começar sem conta. Nas boas-vindas, escolha o ritmo **Rápido** (3×) e a dificuldade **Senhor**. Repita a jornada 5 em **Rei de Ferro** (o comandante só morre nela) e a 3 em **Camponês**.
+Não é necessário alterar `.env`, gerar segredos ou subir a API normal de porta
+3000. Abra `http://localhost:5173`; “Jogar agora”, **Senhor**, **Rápido (3×)**.
+O calendário começa na primavera do ano 1. Confira `protocol: 4` em
+`http://127.0.0.1:3100/v1/version`.
 
-| O que                                                   | Tempo de jogo                  | Tempo real no Rápido |
-| ------------------------------------------------------- | ------------------------------ | -------------------- |
-| Um dia de jogo (uma virada)                             | 2 h                            | 40 min               |
-| Uma arma na forja                                       | 6 min no Ferreiro Nv1          | 2 min                |
-| Um ponto de reparo                                      | 2 min                          | cerca de 40 s        |
-| Treino de um lote de soldados                           | o prazo da conferência do app  | um terço do jogo     |
-| Primavera, verão, outono / inverno                      | 24 dias cada / 12 dias         | 16 h cada / 8 h      |
-| Relatório de Retorno                                    | —                              | 4 h sem abrir a página, ou com a aba fora de vista |
+No terminal 3, prepare os atalhos:
 
-O prazo exato de cada lote vem da tela ("Revisar"); confira-o contra o relógio, nunca contra esta tabela.
+```bash
+API=http://127.0.0.1:3100
+t() {
+  local test_payload='{}'
+  if [ "$#" -gt 1 ]; then test_payload="$2"; fi
+  curl --fail-with-body --silent --show-error --request POST \
+    "$API/__test/$1" --header 'content-type: application/json' \
+    --data "$test_payload"
+}
+t council-recess
+t horde-quiet
+t siege-quiet
+t raise '{"building":"townHall","level":4}'
+t raise '{"building":"housing","level":6}'
+t raise '{"building":"smithy","level":1}'
+t raise '{"building":"barracks","level":4}'
+t raise '{"building":"guild","level":4}'
+t raise '{"building":"market","level":1}'
+t raise '{"building":"watchtower","level":3}'
+t raise '{"building":"palisade","level":2}'
+for test_resource in food wood stone gold; do
+  t stock "{\"resource\":\"$test_resource\",\"amount\":100000}"
+done
+t stock '{"resource":"iron","amount":100}'
+```
+
+Recarregue a página. Os estoques acima do depósito são preparação artificial
+para não gastar a sessão com fome/soldo; não são recompensa ou capacidade real.
+O recesso segura audiências sorteadas, não apaga cartas já na mesa. `horde-quiet`
+substitui incursões por uma distante; os tiles e a passagem das estações continuam.
+`siege-quiet` adia o Cerco natural deste ano; o passo 5 o substituirá por um dirigido.
 
 ## Como adiantar o tempo
 
-Em produção o mundo anda no tempo de verdade e **nada** abaixo vale lá: nunca mexa no banco de produção. Em desenvolvimento use o servidor de teste com relógio adiantável, o mesmo da [v0.3](manual-test-v0.3.md):
+`t advance '{"ms":600000}'` adianta **10 minutos reais** no servidor. No Rápido,
+isso representa 30 minutos de jogo. O relógio do navegador não salta junto:
+**recarregue após cada salto e espere a visão/ordem terminar antes do próximo**.
+Em saltos longos o token vence; o app deve renovar a sessão ao voltar.
 
-```bash
-pnpm dev:up
-# terminal 1: a API de teste na porta 3100, com o Rápido como padrão
-GAME_TIME_SCALE=3 pnpm --filter @lotg/server exec tsx ../../tests/e2e/server.ts
-# terminal 2: o app falando com ela
-LOTG_API_URL=http://127.0.0.1:3100 pnpm dev:web
-# terminal 3: os atalhos
-API=http://127.0.0.1:3100
-t() { curl -s -X POST $API/__test/$1 -H 'content-type: application/json' -d "${2:-{\}}"; echo; }
-```
+| Atalho existente | Uso neste roteiro |
+|---|---|
+| `raise { building, level }`, `stock { resource, amount }` | Edifícios e estoque, sem pagar/esperar obra |
+| `item { defId, condition }` | Item gasto no arsenal |
+| `soldiers { units }` | Contagens de soldados; respeitar o limite do Quartel |
+| `raid-in { inSeconds }` | Incursão média anunciada, com composição dirigida |
+| `hero { name, classId, level }` | Herói livre; criar depois do salto ao outono |
+| `siege { inMinutes, opposition }` | Cerco dirigido; `small` ou `overwhelming` |
+| `wall { percent }` | Vida da muralha; não usar durante reparo |
+| `council-deal { cardId }`, `reveal { modelId }`, `omen` | Extras disponíveis; não substituem requisitos de sabotagem/caçada |
 
-O servidor de teste usa o `db_test` e **o esvazia ao subir**: não o rode junto com `pnpm test:integration` nem `pnpm test:e2e`, e encerre-o antes deles. As rotas valem para todos os feudos do banco, e o relógio da página não anda junto: as contagens regressivas saltam na leitura seguinte (até 30 s).
-
-| Atalho                                                | O que faz                                                                                                       |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `t advance '{"ms":3600000}'`                          | adianta o relógio do servidor (aqui, 1 hora real)                                                               |
-| `t council-recess` · `t horde-quiet`                  | sem cartas por sorteio; sem lobos (nem os do roteiro). **Comece por estes dois**                               |
-| `t raise '{"building":"townHall","level":4}'`         | põe um edifício no nível (`smithy`, `barracks`, `guild`, `market`, `watchtower`, `palisade`…)                   |
-| `t stock '{"resource":"iron","amount":200}'`          | põe o estoque de um recurso (`gold`, `food`, `wood`, `stone`, `iron`)                                           |
-| `t soldiers '{"units":{"spearman":6,"archer":4}}'`    | põe soldados no exército sem passar pelo treino (`spearman`, `swordsman`, `archer`, `knight`, `shieldbearer`)   |
-| `t hero '{"name":"Aldo"}'` · `t hero '{"name":"Brenna","classId":"archer"}'` | dá um herói ao feudo                                                    |
-| `t item '{"defId":"huntingSpear"}'`                   | põe um item no arsenal                                                                                          |
-| `t reveal '{"modelId":"abandonedMine"}'`              | revela um destino de expedição (aqui, a Mina Abandonada, que a Floresta Antiga revela de verdade)               |
-| `t captive '{"name":"Aldo"}'`                         | põe o herói livre em cativeiro                                                                                  |
-| `t threat '{"level":45}'`                             | põe a Ameaça em um valor                                                                                        |
-
-`t soldiers` só muda a contagem de `army.units`: a fome, o limite e as formações são as do motor. Não há atalho para o ferro além de `t stock`, nem para o desgaste: para gastar um item, mande a expedição.
-
-### O Relatório de Retorno depois de um salto
-
-O relatório depende do relógio do **navegador** (4 h desde a última leitura). Para vê-lo sem esperar, no console do navegador (F12), logo antes de recarregar:
-
-```js
-for (const key of Object.keys(localStorage).filter((k) => k.startsWith('lords.cache:'))) {
-  const cache = JSON.parse(localStorage.getItem(key));
-  cache.lastSeenAt -= 5 * 60 * 60 * 1000;
-  localStorage.setItem(key, JSON.stringify(cache));
-}
-location.reload();
-```
-
-É um atalho de desenvolvimento: uma ausência de verdade (uma noite) é a prova que vale.
+Não existem atalhos `/__test/sabotage`, `/__test/autumn`, `/__test/year-end` ou
+`/__test/chronicle`: as jornadas usam calendário e motor reais depois da preparação.
+O intervalo entre ondas continua **uma hora real nos três ritmos**; forja, treino,
+viagem e duração dos nós são tempo de jogo. A encruzilhada espera **12 h reais**:
+responda pela tela para não gastar essa janela no roteiro.
 
 ## Jornadas
 
-### 1. O ferro: Mercado e Mina Abandonada (cerca de 10 minutos)
+### 1. Forja, armas e reparo (2 minutos)
 
-Funda um feudo novo (Senhor, Rápido); `t council-recess` e `t horde-quiet`. Faz parte da Fase B (V4B-T1).
+1. Na aba **Feudo**, encontre o Ferreiro. Escolha **2 armas**, revise custo/prazo e
+   confirme uma vez. Confira o lote em curso e os recursos cobrados ao começar.
+2. `t advance '{"ms":600000}'`; recarregue. As duas armas chegaram, a fila liberou
+   e a Crônica registrou o lote? Armas não aparecem como mercadoria de venda.
+3. `t item '{"defId":"huntingSpear","condition":0}'`; recarregue. No reparo do
+   Ferreiro, selecione o item no arsenal e confira o ferro/prazo. Confirme.
+4. `t advance '{"ms":600000}'`; recarregue. O item voltou inteiro ao arsenal e a
+   fila liberou? Durante o reparo, outro lote estava bloqueado?
 
-1. `t raise '{"building":"townHall","level":3}'` e `t raise '{"building":"market","level":1}'`. Aba **Mercado**: a linha do **Ferro** está lá, a 8,00 de ouro na base? `t stock '{"resource":"gold","amount":400}'`.
-2. Compre 20 de ferro em duas etapas ("Revisar", "Confirmar"): o total é `quantidade × preço de hoje` e o ouro que sai do estoque é o que a conferência disse? Venda 10: paga menos do que cobrou?
-3. Abra o painel de caravana (Mercado Nv2 com `t raise '{"building":"market","level":2}'`): o ferro **não** é oferecido. A frase diz por quê?
-4. `t raise '{"building":"guild","level":2}'` e `t hero '{"name":"Aldo"}'`. Em "Expedições", mande a **Floresta Antiga** e adiante o tempo (`t advance '{"ms":900000}'`); na volta, a **Mina Abandonada** aparece entre os destinos? (Atalho: `t reveal '{"modelId":"abandonedMine"}'`.)
-5. Mande a Mina com um Guerreiro. O ferro do saque chega ao Armazém, e a Crônica diz de onde veio? Com o Armazém cheio de ferro, o excesso vai ao chão e a frase diz?
+Observar: ☐ custo/prazo antes da ordem; ☐ uma fila compartilhada; ☐ item sem bônus
+quando gasto; ☐ aviso de conclusão e texto legível. QA-20/21 e jornada do ferro.
 
-O que observar:
+### 2. Treino, formação e Conselho de Guerra (2 minutos)
 
-- ☐ O ferro parece algo que se **acha** (Mina) ou se **compra**, e não que se produz? Faz sentido não haver caravana de ferro?
-- ☐ O depósito de ferro cabe em tudo o que o Ferreiro e o Quartel pedem nos níveis iniciais?
+1. Abra **Exército**. Treine **2 Espadachins**: confira armas, recursos e prazo na
+   revisão. `t advance '{"ms":600000}'`; recarregue. Os soldados saíram dos aldeões,
+   ainda moram nas casas e aparecem no consumo? Anote a diferença.
+2. Prepare a pequena defesa: `t soldiers '{"units":{"spearman":6,"archer":4}}'`;
+   recarregue. No editor, nomeie **Guarda da Ponte**. Com setas e Enter, ponha
+   6 Lanceiros na Frente central e 4 Arqueiros na Retaguarda central. Salve e
+   **ative como Defesa**. Recarregue: o plano e o nome continuam?
+3. **Simular defesa do feudo**: leia percentuais, risco e perdas. Altere um posto,
+   salve e veja “Prévia desatualizada”; simule outra vez. A prévia desta tela é
+   defesa comum, sem seletor de onda ou simulação ofensiva.
 
-### 2. O Ferreiro, a forja e o reparo (cerca de 15 minutos)
+Observar: ☐ revisão do treino; ☐ editor por teclado; ☐ aviso sem Defesa some ao
+ativar; ☐ prévia explica o risco. Critérios 1/2; QA-22 a QA-25.
 
-Fase B (V4B-T2 a T4). Prova em navegador: `tests/e2e/11-ferreiro.spec.ts`.
+### 3. Incursão e relatório (1 minuto)
 
-1. Sem o Ferreiro, o painel (na aba **Feudo**) diz como erguê-lo? `t raise '{"building":"townHall","level":4}'` e erga o Ferreiro pelo painel com o custo à vista (atalho: `t raise '{"building":"smithy","level":1}'`).
-2. `t stock '{"resource":"iron","amount":100}'` e `t stock '{"resource":"wood","amount":100}'`. **Forje um lote de 3** em duas etapas: "Revisar a forja" mostra o custo (2 de ferro e 1 de madeira por arma) e o prazo; "Confirmar" cobra exatamente isso? Tente "O máximo que o estoque paga" e o botão com o estoque pobre.
-3. Com a forja ocupada, tente um segundo lote: é recusado com a frase? **Cancele** o lote: volta 80% do ferro e da madeira, arredondado para baixo, e a frase do que volta bate com o estoque?
-4. `t advance '{"ms":600000}'`: as armas chegam na hora que a tela anunciou, e a aba **Hoje** ("Antes de partir") lembrava da forja parada?
-5. **O desgaste.** `t item '{"defId":"huntingSpear"}'`, equipe-o em Aldo (aba **Guilda**, ficha) e mande uma expedição. Na volta a ficha diz a condição ("N de M usos")? Depois de gastar tudo (um item Comum tem 8 usos; adiante várias expedições, ou confira só o primeiro ponto perdido), o item em 0 mostra que **não dá bônus**?
-6. **O reparo.** No **Arsenal**, "Reparar" um item gasto: a conferência diz o ferro (1 por ponto no Comum e no Incomum, 2 no Raro e no Épico) e o prazo (2 min de jogo por ponto)? Com a forja ocupada pelo reparo, um lote novo é recusado, e o reparo não se cancela. No fim do prazo o item volta inteiro.
-7. Pela paleta (F1): "forjar", "cancelar forja" e "reparar" chegam às mesmas conferências, só com o teclado?
-
-O que observar:
-
-- ☐ A forja parada te dá vontade de ter um Quartel? As armas fazem sentido como um recurso que não se vende?
-- ☐ O reparo compensa o ferro, ou é mais barato achar outro item?
-
-### 3. O Quartel, os soldados e o treino (cerca de 15 minutos)
-
-Fase C (V4C-T1 e T3). Prova em navegador: `tests/e2e/12-exercito.spec.ts`.
-
-1. Com o Salão no nível 4 (`t raise '{"building":"townHall","level":4}'`) e a aba **Exército** depois do Mercado: sem o Quartel ela diz como erguê-lo? Erga-o pelo painel (150 de madeira, 150 de pedra e 100 de ouro; atalho: `t raise '{"building":"barracks","level":1}'`). A tabela das **cinco** unidades (Lanceiro, Espadachim, Arqueiro, Cavaleiro, Escudeiro) diz o custo, a comida por hora e contra quem cada uma é forte?
-2. `t stock` com o que a tela pedir. **Treine 3 Lanceiros** em duas etapas ("Revisar o treino", "Confirmar"): a conferência diz o custo do lote inteiro e o prazo? Os soldados saem da população (a contagem de aldeões **cai** ao fim do treino) e a comida por hora passa a contá-los (1,5 por soldado)? Os Espadachins e os Cavaleiros pedem armas: a tela diz quantas faltam?
-3. **Cancele** um segundo lote: a frase de devolução (80% do custo; armas inteiras que couberem) bate com o estoque?
-4. **Dispense** soldados: a confirmação diz que o custo **não volta** e que voltam aldeões sem ofício? Isso fecha a vaga de treino?
-5. Os limites: o lote máximo é 10; o limite de soldados cresce com o nível do Quartel. Tente passar: a recusa diz o motivo? Com poucos aldeões, o **piso de 3** protege (o lote encolhe ou é recusado, com frase), e soldado **não deserta** com fome (aldeões, sim).
-6. Em **Hoje**: com soldados e sem Defesa ativa, o aviso "Sem Defesa ativa" aparece (próxima jornada).
-
-O que observar:
-
-- ☐ Montar um exército parece uma troca econômica real (aldeões e comida contra soldados)?
-- ☐ O treino tem um lugar claro no dia, ou some atrás da economia?
-
-### 4. A formação, a Defesa ativa e o comandante (cerca de 15 minutos)
-
-Fase C (V4C-T2 e T3). Prova em navegador: `tests/e2e/13-formacoes.spec.ts`.
-
-1. `t soldiers '{"units":{"spearman":6,"archer":4,"shieldbearer":2}}'` e `t hero '{"name":"Aldo"}'`. No editor, ande pelos **seis postos** (três alas, Frente e Retaguarda) com as setas e aperte Enter para pôr tropa em três deles. O posto vazio se distingue do preenchido de relance? O Arqueiro só combate atrás: a tela barra pô-lo na Frente?
-2. Nomeie **Aldo comandante de uma ala**, dê um nome e **salve**. Marque como **Defesa ativa**: a árvore diz "Defesa: <nome>"?
-3. Mande **Aldo** em expedição: o app explica por que ele fica (o comandante da Defesa ativa não parte)? Em outra formação salva (que não é a ativa), ele parte?
-4. Tire a Defesa ativa (ou troque-a): Aldo parte de novo. A barra de status diz "Sem Defesa ativa", e "Antes de partir" oferece "Ativar uma formação"?
-5. **Apague** uma formação salva (confirma) e tente apagar a Defesa ativa (recusado com a frase). Salve seis formações: a sexta é recusada (o teto é de cinco).
-6. Dispense soldados com a formação pedindo mais do que há: a tela diz o que **falta** de cada unidade, e a formação não é apagada.
-7. Abra o app em **duas abas** e salve a mesma formação nas duas: uma vence, a outra é recusada ou sobrescreve? (A revisão da Fase C aceitou o caso; anote o que viu.)
-
-O que observar:
-
-- ☐ Montar a formação parece um quebra-cabeça rápido ou um formulário?
-- ☐ Sem batalha ainda, o exército parece servir para alguma coisa? (A resposta honesta hoje é "para a prévia".)
-
-### 5. A prévia do Conselho de Guerra, pela ordem (cerca de 10 minutos)
-
-Fase D (V4D-T2). **Sem tela ainda** (V4D-T4): o app não tem botão "Simular". A ordem existe e a visão traz o resultado; para olhá-la à mão, mande a ordem pelo console do navegador no app **logado** e leia a visão.
-
-1. Tenha uma formação salva (jornada 4) e anote o `id` dela (na visão, `army.formations`; por exemplo `formation-1`). Em desenvolvimento, no console (F12):
-
-```js
-const tokens = JSON.parse(localStorage.getItem('lords.tokens'));
-const auth = { authorization: `Bearer ${tokens.accessToken}`, 'x-lords-protocol': '3' };
-const games = await (await fetch('/v1/games', { headers: auth })).json();
-const gameId = games.games[0].id;
-const body = { commandId: crypto.randomUUID(), type: 'simulateBattle', payload: { formationId: 'formation-1' } };
-const sent = await fetch(`/v1/games/${gameId}/commands`, {
-  method: 'POST',
-  headers: { ...auth, 'content-type': 'application/json' },
-  body: JSON.stringify(body),
-});
-console.log(sent.status, await sent.json());
-const view = await (await fetch(`/v1/games/${gameId}/view`, { headers: auth })).json();
-console.log(view.view.army.preview);
+```bash
+t raid-in '{"inSeconds":60}'
+# Recarregar: ler aviso/composição antes de avançar.
+t advance '{"ms":61000}'
 ```
 
-   O token de acesso vale 15 minutos (se o `401` aparecer, recarregue a página para renová-lo e repita; confira o nome da chave em `localStorage` se `lords.tokens` vier vazio). O formato exato da resposta é o de `GET /v1/games/:id/view` (`ViewResponse`).
+Recarregue e abra o relatório no Exército: formação que lutou, fatores, rodadas,
+baixas e muralha. O feudo foi defendido sem outro clique? Sem Torre Nv5, não espere
+contagens inimigas exatas antes do combate. Não interprete resultado deste inimigo
+dirigido como dificuldade de uma incursão normal. Ao terminar, `t horde-quiet`
+para isolar o salto seguinte. Critério 1; QA-26/27.
 
-2. Leia `army.preview`: **Vitória, Gloriosa e Derrota** em percentuais (Vitória e Derrota somam 100), o **risco principal em uma frase**, as perdas esperadas por posto e o **inimigo suposto** (com `?` onde a informação não existe). A frase se entende sem ler o código?
-3. Mande a ordem **de novo**: dá o mesmo resultado (200 simulações com sementes derivadas) e a nova substitui a anterior. Mude a formação (salve outra composição com o mesmo `id`) e leia a visão: a prévia fica **desatualizada** (`previewStale` na linha dessa formação, em `army.formations`)?
-4. Sem soldados: a prévia diz que não há tropa e a Derrota é de 100%. Sem o Quartel: a ordem é recusada com `BARRACKS_REQUIRED`; com um `id` que não existe, `FORMATION_NOT_FOUND`.
-5. A ordem **não** deve mexer na Crônica, nem no gerador do feudo: leia a Crônica antes e depois.
+### 4. Outono, sabotagem e Acampamento (4 minutos)
 
-O que observar:
+1. `t advance '{"ms":115200000}'` (**32 h reais**, 48 dias de jogo); recarregue.
+   Esta rodada começou no ano 1 e agora deve estar no **outono**, com Acampamento
+   e Fortaleza ativos. Se o calendário divergir, registre: não force descoberta
+   de `sabotage`, pois ela não contorna estação/Fortaleza.
+2. Só agora dê os heróis, para não cobrar soldo durante o salto inicial:
 
-- ☐ A prévia ajuda a decidir, ou só mostra números? Dá vontade de ter o botão e o bloco do Conselho de Guerra na tela (V4D-T4)?
+```bash
+t hero '{"name":"Alda","classId":"warrior","level":10}'
+t hero '{"name":"Bela","classId":"mage","level":10}'
+t hero '{"name":"Ciro","classId":"cleric","level":10}'
+t hero '{"name":"Daro","classId":"warrior","level":10}'
+```
 
-### 6. O comandante em batalha (só pelo motor)
+3. Recarregue. Em **Guilda → Sabotagem da Fortaleza**, leia tentativas restantes,
+   risco e ondas enfraquecidas. Marque Alda, Bela e Ciro; tire um e veja o envio
+   bloquear. Marque os três e envie. Eles não podem ser comandantes da Defesa ativa.
+4. No **Exército**, edite a Guarda da Ponte e nomeie **Daro** comandante central;
+   salve. **Atacar o Acampamento**: leia a conferência e envie. Observe a tropa
+   ausente e o aviso de que esses postos não defendem enquanto viajam.
+5. `t advance '{"ms":2400001}'` (40 min reais e 1 ms); recarregue. A sabotagem deve
+   estar na encruzilhada após suas primeiras provas. Escolha um caminho liberado
+   que continue a missão, lendo o risco. Se a equipe perdeu todos os integrantes,
+   leia o relatório e registre o desfecho; não prometa sucesso pela preparação.
+6. `t advance '{"ms":4800000}'` (80 min reais); recarregue. Confira relatório da
+   sabotagem, tentativas, reduções/alerta se ocorreram; confira também retorno do
+   exército, suas baixas/saque e relatório do Acampamento. Vitória limpa o tile;
+   derrota ou recuo deixam-no ativo. O nome do herói e a história fazem sentido?
 
-Fase D (V4D-T3). **Não há como jogar isto na tela**: nenhuma incursão passa pela batalha ainda (V4E-T2). O motor tem a experiência do comandante, o ferimento (leve ou grave pela perda da ala), a morte **só em Rei de Ferro** e o desgaste do equipamento por batalha, provados em `packages/engine/src/battleOutcome.test.ts` e `battle.test.ts`. Ao fechar a Fase E, repita aqui: o herói ferido pela batalha, a morte em Rei de Ferro e a frase da Crônica ("battleFought" com os três fatores decisivos).
+A ida/volta do Acampamento leva uma hora real no Rápido; a sabotagem completa,
+duas, **além da espera pela escolha**. O salto final cobre o percurso depois da
+resposta. Se houver prazo restante, avance só o informado pela visão. QA-28 a QA-31.
 
-### 7. Uma partida migrada da v0.3 (estado 24 até o atual)
+### 5. Cerco com decisão entre ondas (3 minutos)
 
-**Em produção**, quando a Fase E for publicada, o feudo que você já joga na v0.3.0 passa pelos sete passos (24 a 31) na primeira leitura (ou no job de avanço). **Não publique para isso**: a publicação é decisão do autor, com o backup manual antes. Anote, depois: nada se perdeu (estoques, níveis, aldeões, objetivos, cartas pendentes, expedições em curso, a caravana na estrada); **ferro em zero**; nenhuma arma, soldado nem formação de graça; nenhum evento da v0.4 antes da fronteira; quem estava com o jogo aberto vê "Recarregue a página" (`426`) só se o protocolo tiver subido (hoje continua 3).
+As equipes devem ter voltado. Este atalho **substitui** formações por “Muralha
+Firme” e “Guarda do Inverno”, coloca 48 soldados de referência, Quartel Nv5,
+Torre Nv3, muralha danificada Nv3 e ondas pequenas. Não é o Cerco natural da Vigília
+nem uma amostra de balanceamento. As ordens e o combate seguintes são os reais.
+Zere as tropas anteriores só para essa preparação: o atalho `siege` define
+Cavaleiros/Arqueiros, mas preserva outros tipos; somá-los poderia ultrapassar o Quartel.
 
-**Em desenvolvimento**, monte uma partida da v0.3 com um retrato congelado do motor (por exemplo `packages/engine/src/__fixtures__/state-v24-raid-announced.json`, `state-v24-expedition-crossroads.json` ou `state-v24-warehouse-full.json`): crie uma partida pelo app, pare a API, grave o retrato por cima com `schema_version = 24` e `created_at` no passado o bastante, e suba a API de novo. Os mesmos pontos acima.
+```bash
+t soldiers '{"units":{"spearman":0,"swordsman":0,"archer":0,"knight":0,"shieldbearer":0}}'
+t siege '{"inMinutes":10,"opposition":"small"}'
+```
 
-- ☐ Nada se perdeu; os objetivos concluídos não pagam de novo.
-- ☐ Ferro 0, Ferreiro e Quartel por erguer (o Salão no nível 4 os libera).
-- ☐ A incursão que já estava marcada resolve como na v0.3 (a composição-base da batalha é da V4E-T2).
+1. Recarregue; no painel **Cerco do Inverno** do Exército, escolha “Guarda do
+   Inverno” para a onda 2 e **Salvar onda 2**. Só mudar o seletor não salva.
+   Leia o padrão das outras: Defesa ativa no instante da batalha.
+2. `t advance '{"ms":601000}'`; recarregue. A primeira onda foi enfrentada, a decisão
+   da **onda 2** está aberta e o prazo é de cerca de **60 min reais**?
+3. Pelo teclado, **Trocar formação…**, escolha “Muralha Firme” e confirme. **Reparar
+   agora…** mostra pedra e ouro; confirme e veja a muralha refeita. Se já estiver
+   inteira, registre o bloqueio, sem inventar dano de batalha.
+4. `t advance '{"ms":3600000}'`; recarregue. Onda 2 enfrentada, decisão da onda 3
+   aberta? Deixe o Plano decidir: `t advance '{"ms":3600000}'`; recarregue.
+5. Leia **Vitória Gloriosa/Vitória/Queda**, a Crônica e os relatórios guardados.
+   Verifique que uma onda não aparece duas vezes como batalha e progresso.
+   Não há controle de milícia na tela: a ordem/oferta existe, mas o roteiro não
+   a apresenta como fluxo disponível ao jogador.
 
-## O que ainda não dá para jogar
+Extra fora dos 20 min: repetir `t siege '{"inMinutes":1,"opposition":"overwhelming"}'`
+e avançar 61 s mostra Queda e cancela ondas restantes; fazer em rodada separada
+se quiser preservar o resultado anterior para a Crônica. Critério 4; QA-32/33.
 
-| O que                                                                                       | Entra com a Fase                    |
-| ------------------------------------------------------------------------------------------- | ----------------------------------- |
-| Botão "Simular" e o bloco do Conselho de Guerra na tela, o relatório de batalha na aba     | Fase D (V4D-T4)                     |
-| Incursão com batalha, a Defesa ativa que realmente defende (offline), a Muralha e a Paliçada ligadas ao estado | Fase E (V4E-T1, V4E-T2)             |
-| Muralha de Pedra, Baluarte e Torre acima do Nv2; o reparo da muralha (`repairWall`)         | Fase E (V4E-T1)                     |
-| A Horda que responde à última formação; os presságios por nível da Torre                    | Fase E (V4E-T3)                     |
-| Fortaleza, sabotagem e o Acampamento de Saqueadores                                         | Fase F (V4F-T1, V4F-T2)             |
-| O Cerco: a Hora da Vigília, três ondas, o Plano de Batalha, milícia, Queda e Reconstrução  | Fase G (V4G-T1, V4G-T2, V4G-T4)     |
-| A Crônica do Ano em Markdown                                                                | Fase G (V4G-T3)                     |
-| As cartas do lote 3 e os objetivos 17 a 21                                                  | Fase H                              |
-| O balanceamento de fechamento e a faixa de Vitória do Regular                               | Fase G (V4G-T2.10) e V4I-T1         |
+### 6. Crônica do Ano, Reino e Novidades (3 minutos)
+
+1. A rodada deve continuar no ano 1. Reponha comida, madeira e ouro com `stock`
+   como na preparação. `t advance '{"ms":86400000}'` (**24 h reais**); recarregue.
+   Com os saltos anteriores, isso cruza uma vez o fim do ano de 56 h do Rápido.
+   Confira ano 2, linha de fecho/pontuação e acesso à Crônica. Após Queda, observe
+   a Reconstrução nos primeiros dois dias de jogo da primavera; este salto pode
+   já passar dessa janela, então sua ausência aqui não é defeito.
+2. O botão da aba **Crônica** baixa a geral. Para conferir a **anual** existente
+   no servidor, use o console do app logado após a renovação da sessão:
+
+```js
+{
+  const tokens = JSON.parse(localStorage.getItem('lords.tokens'));
+  const headers = { authorization: `Bearer ${tokens.accessToken}`, 'x-lords-protocol': '4' };
+  const response = await fetch('/v1/games', { headers });
+  if (!response.ok) throw new Error(`Listar feudos: HTTP ${response.status}`);
+  const { games } = await response.json();
+  const game = games.find((entry) => entry.status === 'active');
+  if (!game) throw new Error('Nenhum feudo ativo.');
+  const annual = await fetch(`/v1/games/${game.id}/years/1/chronicle.md`, { headers });
+  if (!annual.ok) throw new Error(`Crônica anual: HTTP ${annual.status}`);
+  const url = URL.createObjectURL(await annual.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'cronica-ano-1.md';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+```
+
+   Não copie tokens para o relatório. Se houver 401, recarregue/espere a renovação
+   e repita; 404 do endpoint anual pede conferir se o ano terminou. Leia no arquivo
+   as quatro estações, resultado do Cerco, números, pontuação e Feitos. **A falta
+   de seletor/download anual no app é lacuna conhecida do critério 5**.
+3. F1 → **Lords: Reino**, ou a linha da conta na árvore. Leia totais, ranking de
+   ouro e estatísticas próprias. Em Preferências, desmarque **Mostrar meu feudo no
+   ranking** e volte ao Reino: a linha pública some, os totais continuam. Reative.
+   O agregado tem cache de um minuto e usa ouro gravado; “Atualizar” não avança
+   outros feudos.
+4. F1 → **Lords: Novidades**. O foco chega ao título? A v0.4 está marcada como
+   rascunho, sem parecer publicada? Abra uma segunda aba e confira a leitura por
+   conta da última entrada publicada compatível com a versão da API; o rascunho
+   v0.4 não deve gerar selo de publicação.
+
+Critério 5; jornadas Reino/Novidades. O critério 6 depende da Fase I, não desta rodada.
 
 ## Só para olhos humanos
 
-- ☐ **Diversão** (roadmap da v0.4, §10.3): as tensões e os alívios aparecem aos pares? Ferro e Mina; soldado e aldeão; formação e comandante; treino e comida.
-- ☐ **Peso da interface**: quantos cliques para forjar, treinar e salvar uma formação? A sessão cabe em 2 a 10 minutos? A v0.4 trocou diversão por microgerenciamento?
-- ☐ **Textos**: unidades, formações, relatório de batalha, Crônica de batalha. Tom de crônica, frases curtas. Anote o que você reescreveria primeiro; tudo é rascunho ([content-v0.4.md](content-v0.4.md)).
-- ☐ **Temas, teclado e 720 px**: as abas Feudo (Ferreiro), Guilda (Arsenal), Mercado (ferro) e Exército, o editor de formação e a conferência de forja, treino e reparo nos três temas, só pelo teclado e em janela estreita.
-- ☐ **No ritmo da produção**: repita a jornada 2 em **Normal** (`GAME_TIME_SCALE=1`) e **Tranquilo**: os prazos de forja e treino na tela são os da API, em horas de relógio.
+- ☐ O relatório explica por que ganhou/perdeu e sugere uma mudança de formação?
+- ☐ O que preparou parece ter valido a pena? A prévia e o presságio ajudam?
+- ☐ Custos, confirmação, foco e prazos ficam claros sem ler código?
+- ☐ Uma largura de 720 px cabe sem rolagem lateral? Escuro, claro e alto contraste
+  mantêm texto legível e estado expresso por palavra/ícone, além da cor?
+- ☐ Hora/fuso da Vigília nas Preferências se entendem? O Cerco dirigido não prova
+  que a hora natural é conveniente: isso exige uma rodada sem `siege-quiet`/`siege`.
 
-## Firefox, Safari, celular e leitor de tela
-
-**Esta versão não foi verificada em nenhum desses.** Só o Chromium automatizado (Playwright) viu as telas da v0.4; ninguém usou o Ferreiro, a aba Exército nem o editor de formação em Firefox, em Safari, em celular nem com leitor de tela, e **a ausência fica escrita aqui**, como na v0.3. O que registrar, ao testar:
-
-- ☐ **Firefox** (obrigatório à mão): jornadas 2 e 4, em duas abas, com o teclado: o foco do editor de formação (setas entre os seis postos, Enter abre o seletor, Esc volta) e o das conferências de forja e treino. Versão e sistema.
-- ☐ **Safari**: carrega o app (`navigator.locks`, `localStorage` entre abas) e o editor? Versão.
-- ☐ **Celular**: o editor de formação de seis postos cabe sem rolagem lateral (em 720 px os testes automáticos passam; em 360 px ninguém olhou)? O toque substitui o teclado, já que não há arrastar.
-- ☐ **Leitor de tela** (qual): o posto vazio e o preenchido se distinguem por texto, não só por cor ou ícone? A conferência de forja e de treino é anunciada?
-
-Registre cada um na tabela "Navegador e versão" de [acceptance-v0.4.md](acceptance-v0.4.md). Se não houver rodada, a linha continua "não", e a V4I-T2 fecha com a ausência escrita.
+Esta sessão curta não cobre todas as dificuldades/ritmos, partida migrada real,
+Lobo Branco completo, milícia pelo app, ausência real, calendário natural do Cerco
+ou playtest. Registrar Firefox, Safari, celular e leitor de tela como observados
+ou não observados na tabela de aceitação. Encerrar API/Vite com Ctrl+C ao terminar,
+para liberar o banco de teste ao coordenador. Nenhum comando daqui vale em produção.
