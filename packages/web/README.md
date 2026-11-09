@@ -480,6 +480,8 @@ O jogador informa a quantidade e depois confere a convocação. Cada etapa relê
 alteração de alvo, disponibilidade, máximo, termos, conta ou prazo cancela o fluxo.
 `prepare`/`guildOrder` preservam `commandId` na retentativa, limitada ao mesmo embate.
 O texto do custo em braços vem do motor, sem calcular população ou trabalhadores no app.
+A oferta concorda no singular com um aldeão; com zero, o painel mostra o motivo de bloqueio
+da visão. A recusa compartilhada explica quando nenhum aldeão está disponível para convocação.
 
 **Prévia por onda.** Cada seleção do Plano oferece **Simular onda N**, usando a formação
 escolhida ou a Defesa ativa pública. A ordem `simulateBattle` leva `siegeWave`; o resultado
@@ -499,7 +501,11 @@ sem atribuição inventada; os detalhes da Queda permanecem na Crônica/Retorno.
 
 ## Crônica do Ano (V4G-T4)
 
-A aba Crônica tem o seletor **Leitura**, com a Crônica completa e os anos do calendário público.
+A aba Crônica tem o seletor **Leitura**, com a Crônica completa e somente os anos encerrados
+oferecidos em `calendar.completedYears`. O motor monta a lista; o cliente apenas a exibe no
+seletor e na paleta. Sem anos encerrados, explica a espera e desabilita o download anual;
+o download geral permanece disponível. A lista é opcional no protocolo 4 para aceitar visões
+anteriores, que não oferecem leitura anual até a atualização da visão.
 O SDK lê `GET /v1/games/:id/years/:year/chronicle.md` por `getYearChronicleMarkdown`.
 `lords.selectChronicleYear` abre o documento; `lords.downloadYearChronicle` baixa
 **Baixar a Crônica do Ano**, com nome `cronica-<feudo>-ano-<ano>.md`. Na paleta, sem ano
@@ -510,10 +516,14 @@ uma falha de rede permite tentar de novo. Respostas de outro ano ou feudo são d
 
 Os testes Node cobrem oferta/conferência/retentativa, prévia por onda, rescaldo, leitura anual,
 download, falhas, troca de conta/ano, tabela e escape de HTML. `tests/e2e/13-cerco.spec.ts`
-escreve os cenários de ondas, troca, reparo, Queda, ritmo Rápido, milícia e Markdown anual;
-milícia e anual incluem teclado, três temas e 720 px. **Não foram executados nesta trilha**,
-nem integração, matriz, build global ou capturas da landing. A inspeção visual real e o
-playtest continuam com o coordenador/autor.
+prova ondas, troca, reparo, Queda, ritmo Rápido, milícia e Markdown anual. A preparação da
+milícia inclui Torre Nv3 e liberação de um posto da frente pela tela. Milícia e anual incluem
+teclado, três temas e 720 px. **Revisão de 2026-11-09: 14/14 cenários passaram.**
+`CAPTURE_DIR=<diretório> nice -n 19 pnpm test:e2e 13-cerco` grava opcionalmente 12 PNGs:
+planejamento com milícia e prévia simulada, rescaldo após a Queda e seletor anual, nos temas
+escuro/claro e larguras de 720/1280 px. A altura se ajusta para mostrar o painel inteiro.
+Sem `CAPTURE_DIR`, a suíte não grava essas capturas. Integração, matriz, build global e
+capturas da landing não foram executados nesta revisão; o playtest continua com o autor.
 
 
 
