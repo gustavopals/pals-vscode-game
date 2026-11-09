@@ -849,28 +849,39 @@ de protocolo ou forma foi antecipada nesta junção.
 ### V4G-T4 — limites da visão na interface (2026-11-03)
 
 **G-22. Milícia sem oferta pública.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
-O protocolo 4 desta base não oferece quantidade máxima, disponibilidade, motivo de bloqueio,
-custo em braços ou milícia ativa no `ViewState`. A tela não calcula metade da população nem
-deduz a antecedência da Torre. A convocação e sua confirmação ficam pendentes da oferta do
-motor; não há botão que envie uma ordem às cegas. Nenhuma mudança no motor nesta trilha.
+**Complemento V4G-T4 em 2026-11-09:** a base `879f0cc` já oferece máximo,
+disponibilidade, motivo, prazo e antecedência em `siege.militiaOffer`. O app agora tem painel,
+paleta e conferência em duas etapas. Foram acrescentados por adição `termsText`, `activeCount`
+e `targetId`, derivados pelo motor sem mudar estado 42/protocolo 4. O alvo protege a
+conferência e a retentativa contra outra batalha; custos em braços não são calculados no cliente.
+A limitação registrada em 2026-11-03 foi superada nesta base.
 
 **G-23. Relatório por onda e rescaldo completos.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
-`siege.waves` oferece número, título e presságios; não oferece resultado individual,
-`battleId`, formação efetivamente usada ou baixas. `army.reports` não identifica ano/onda.
-Exibir progresso com `current`, relatórios guardados sem atribuição inventada e os efeitos
-atuais da moral/muralha é possível; o vínculo persistente por onda fica pendente. Também
-faltam `rescaldoText`, seu prazo, o prazo do desconto e o resumo das perdas da Queda na visão.
-Não deduzir festa/luto pelo texto nem escrever percentuais no cliente. O reparo de emergência
-usa pedra/ouro da oferta pública de reparo da muralha: os dois comandos usam
-`currentRepairQuote` nesta base; a emergência é imediata e exige nova conferência se o custo
-ou a decisão mudar.
+**Complemento V4G-T4 em 2026-11-09, parcial:** `siege.aftermath` agora entrega resumo de
+ondas/mortos, prazo real do rescaldo, texto/prazo do desconto no reparo e texto/prazo da
+Reconstrução, somente com dados persistidos. O painel exibe os campos e agenda a leitura
+nos prazos. Os efeitos atuais de festa/luto continuam nos efeitos públicos da moral.
+
+**Vínculo por onda e detalhes da Queda permanecem pendentes:** o `BattleReport` persistido
+não tem ano/onda e `SiegeState` não guarda `battleId` por onda. `siegeWaveFought` guarda
+esse vínculo nos eventos, fora do estado recebido por `deriveViewState`. Relacionar por
+posição ou `atMs` seria ambíguo com uma incursão simultânea e com relatórios descartados.
+As perdas de recursos/aldeões/edifícios da Queda também só são discriminadas em `siegeFell`;
+recalculá-las pelos estoques atuais inventaria perdas. Uma adição só na visão não recupera
+esses fatos. Exigem persistência/migração ou leitura dos eventos pelo servidor; nenhuma foi
+antecipada nesta tarefa. O resumo de mortos inclui as baixas registradas e os aldeões da Queda,
+sem pretender substituir o detalhamento da Crônica/Retorno. O reparo de emergência conserva
+a oferta e as proteções já existentes.
 
 **G-24. Crônica do Ano e verificação visual adiadas.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
-O branch `v4g-t4-tela` parte de `7875e0b`, sem V4G-T3. A aba anual, pontuação, Feitos e download
-do Markdown anual ficam para a integração dessa tarefa. A Crônica existente continua acessível.
-Por instrução desta sessão, os cenários de navegador são escritos, sem execução; não foram
-feitos playtest do autor, captura da landing, integração, build global ou inspeção visual nos
-três temas/720 px. Esses itens não contam como verificados por testes de HTML estático.
+**Complemento V4G-T4 em 2026-11-09:** o SDK/app agora leem o endpoint anual existente.
+A aba Crônica tem seletor de ano, tabela de estatísticas, pontuação, Feitos e o botão
+“Baixar a Crônica do Ano”; a Crônica geral continua acessível. Anos sem `yearEnded`
+retornam a explicação de indisponibilidade; não se presume que todo ano antigo foi registrado.
+`13-cerco.spec.ts` acrescenta milícia e download anual nos três temas/720 px, por teclado,
+**escritos e não executados**. Integração, e2e, build, capturas e inspeção visual real continuam
+com o coordenador; playtest e evidência manual continuam com o autor. Testes de HTML em Node
+não substituem essas verificações.
 
 **G-18. Prioridade e padrão do Plano.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 A decisão entre ondas abre “Antes de partir” e o bloco de decisões do Retorno. A lembrança

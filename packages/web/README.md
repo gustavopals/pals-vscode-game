@@ -474,13 +474,47 @@ atuais da moral e acesso às obras/Crônica. O Retorno põe vitória e Reconstru
 “O feudo prosperou”, Queda em “O que exigiu um preço”; recursos tomados pela Queda entram em
 **Levado**, sem virar produção negativa ou desperdício de depósito.
 
-**Limites desta base:** não há oferta de milícia, vínculo por onda com `army.reports` nem
-resumo/prazo do rescaldo no `ViewState`. Os relatórios guardados continuam disponíveis abaixo
-do editor, sem atribuição inventada a uma onda. Crônica do Ano, pontuação, Feitos e download
-anual esperam V4G-T3. Pendências G-22–G-24 em `docs/pendencias-v0.4.md`.
-`tests/e2e/13-cerco.spec.ts` escreve os cenários de ondas, troca, reparo, Queda durante a
-ausência, ritmo Rápido, três temas, foco/teclado e 720 px. **Não foram executados nesta
-trilha**, nem os testes de integração ou capturas da landing.
+**Milícia.** O painel e `lords.callMilitia` na paleta usam `siege.militiaOffer`:
+quantidade máxima, disponibilidade, motivo, embate, prazo, termos e quantidade ativa.
+O jogador informa a quantidade e depois confere a convocação. Cada etapa relê a oferta;
+alteração de alvo, disponibilidade, máximo, termos, conta ou prazo cancela o fluxo.
+`prepare`/`guildOrder` preservam `commandId` na retentativa, limitada ao mesmo embate.
+O texto do custo em braços vem do motor, sem calcular população ou trabalhadores no app.
+
+**Prévia por onda.** Cada seleção do Plano oferece **Simular onda N**, usando a formação
+escolhida ou a Defesa ativa pública. A ordem `simulateBattle` leva `siegeWave`; o resultado
+mais recente aparece somente junto à onda/formação correspondentes, com probabilidades,
+risco, baixas esperadas, aviso de névoa e desatualização da visão. A prévia comum do Conselho
+continua separada da prévia do Cerco.
+
+**Rescaldo.** `siege.aftermath` acrescenta resumo de ondas/mortos, prazo real do rescaldo,
+texto/prazo do desconto no reparo e texto/prazo da Reconstrução. Esses prazos participam do
+ciclo de atualização. Os campos adicionais são opcionais no protocolo 4 para aceitar visões
+anteriores; sem termos/alvo públicos a convocação fica desabilitada.
+
+**Limites de G-23:** o estado 42 não guarda ano/onda nos relatórios de batalha nem a lista
+das perdas da Queda. Não é seguro atribuir relatórios por posição/horário: incursões e ondas
+podem ocorrer no mesmo instante e relatórios antigos saem da lista. Continuam abaixo do editor,
+sem atribuição inventada; os detalhes da Queda permanecem na Crônica/Retorno.
+
+## Crônica do Ano (V4G-T4)
+
+A aba Crônica tem o seletor **Leitura**, com a Crônica completa e os anos do calendário público.
+O SDK lê `GET /v1/games/:id/years/:year/chronicle.md` por `getYearChronicleMarkdown`.
+`lords.selectChronicleYear` abre o documento; `lords.downloadYearChronicle` baixa
+**Baixar a Crônica do Ano**, com nome `cronica-<feudo>-ano-<ano>.md`. Na paleta, sem ano
+selecionado, uma lista pergunta qual baixar. O download geral continua disponível na leitura
+completa. A apresentação anual inclui tabela de estatísticas, pontuação e Feitos do Markdown,
+sem recalculá-los e sem interpretar HTML. Um 404 explica que ainda não existe registro anual;
+uma falha de rede permite tentar de novo. Respostas de outro ano ou feudo são descartadas.
+
+Os testes Node cobrem oferta/conferência/retentativa, prévia por onda, rescaldo, leitura anual,
+download, falhas, troca de conta/ano, tabela e escape de HTML. `tests/e2e/13-cerco.spec.ts`
+escreve os cenários de ondas, troca, reparo, Queda, ritmo Rápido, milícia e Markdown anual;
+milícia e anual incluem teclado, três temas e 720 px. **Não foram executados nesta trilha**,
+nem integração, matriz, build global ou capturas da landing. A inspeção visual real e o
+playtest continuam com o coordenador/autor.
+
 
 
 ## Retorno com a guerra (V4H-T4)
