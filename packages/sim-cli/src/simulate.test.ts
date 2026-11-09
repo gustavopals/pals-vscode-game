@@ -386,10 +386,11 @@ describe('CSV de uma partida', () => {
     // caminho de obras) o ano termina em 57.
     // Segunda junção (docs/balance-v0.4.md, seção 19): com 13 novas cartas do lote 2 e a sabotagem,
     // o ano termina em 50.
-    // Terceira junção: com a resposta ao cerco e treino/reparos adicionais, a Torre termina no nível 3.
-    expect(summary.threat).toEqual({ final: 50, max: 100, watchtower: 3 });
+    // Terceira junção (docs/balance-v0.4.md, seção 22): com o preparo do Cerco (V4G-T5.3) e as ondas
+    // por ano, o bot leva a Torre ao nível 5 e o ano termina com Ameaça 54 (máxima 96).
+    expect(summary.threat).toEqual({ final: 54, max: 96, watchtower: 5 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 50 no fim (máxima 100) · Torre de Vigia Nv3, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 54 no fim (máxima 96) · Torre de Vigia Nv5, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -694,7 +695,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder ao cerco, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: preparar o Cerco, erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder ao cerco preparado, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
     );
   });
 
@@ -767,9 +768,9 @@ describe('resumo de uma partida', () => {
         iron: 0,
       },
       losses: Math.round(sum('raided_food') + sum('raided_wood')),
-      // Paliçada Nv3 (era 4 na V4E-T1, 2 antes dela): com as incursões-batalha o bot chega ao
-      // primeiro nível da Muralha de Pedra.
-      palisade: 4,
+      // Paliçada Nv3 (era 4 na V4E-T1, 2 antes dela): com o preparo do Cerco e a Queda no fim do
+      // inverno, a Muralha de Pedra fecha o ano no nível 3.
+      palisade: 3,
     });
     // A do roteiro e as da Ameaça: o bot sofre as primeiras e, com a Paliçada, repele o resto.
     expect(summary.raids.suffered).toBeGreaterThan(0);
@@ -784,7 +785,7 @@ describe('resumo de uma partida', () => {
     expect(formatSummary(twoSessions)).toContain(
       `Lobos: ${summary.raids.suffered} incursões sofridas, ${summary.raids.repelled} repelidas (${summary.raids.announced} anunciadas pela Torre) · ` +
         `levaram food ${summary.raids.lost.food}, wood ${summary.raids.lost.wood} · ${summary.raids.injured} feridos · ` +
-        `Paliçada Nv4, erguida na hora ${summary.milestones.palisade}\n`,
+        `Paliçada Nv3, erguida na hora ${summary.milestones.palisade}\n`,
     );
     // As colunas do CSV são as mesmas contas, acumuladas hora a hora: nunca diminuem.
     const last = twoSessions.rows[167];

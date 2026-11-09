@@ -36,6 +36,7 @@ describe('bot explorador', () => {
     // respondida, e a obra fica planejada nesta visita.
     expect(names(exploradorPolicies)).toEqual([
       'erguer a Guilda',
+      'preparar o Cerco',
       'erguer a Paliçada',
       'seguir os objetivos',
       'erguer o Quartel',
@@ -48,7 +49,7 @@ describe('bot explorador', () => {
       // A Defesa ativa, herdada do econômico (V4E-T2.7, decisão 25).
       'montar a formação',
       // Terceira junção: o plano e as decisões entre ondas vêm após a formação.
-      'responder ao cerco',
+      'responder ao cerco preparado',
       'responder a carta',
       'erguer a Guilda',
       'contratar',

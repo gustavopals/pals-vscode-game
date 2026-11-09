@@ -33,27 +33,28 @@ const emptyMatrix: MatrixResult = {
 };
 
 describe('medição do Cerco (V4G-T2.10)', () => {
-  it('salva o Plano, atravessa um ano com cerco e mantém o bot vivo após a Queda', () => {
+  it('salva o Plano, atravessa um ano com cerco e vence as três ondas do primeiro ano com o preparo', () => {
     expect(year.rows).toHaveLength(168);
     const plans = year.events.filter(({ type }) => type === 'battlePlanSet');
     expect(new Set(plans.map(({ data }) => data.wave))).toEqual(new Set([1, 2, 3]));
     expect(year.finalState.siege?.plan[1]).toEqual(expect.any(String));
     expect(year.events.filter(({ type }) => type === 'siegeScheduled')).toHaveLength(1);
-    expect(year.events.filter(({ type }) => type === 'siegeFell')).toHaveLength(1);
+    expect(year.events.filter(({ type }) => type === 'siegeWon')).toHaveLength(1);
+    expect(year.events.filter(({ type }) => type === 'siegeFell')).toHaveLength(0);
     const waves = year.events.filter(({ type }) => type === 'siegeWaveFought');
-    expect(waves).toHaveLength(1);
-    expect(year.finalState.siege?.result).toBe('fall');
+    expect(waves).toHaveLength(3);
+    expect(year.finalState.siege?.result).toBe('victory');
     expect(year.rows.at(-1)).toMatchObject({ year: 2, season: 'spring' });
     expect(year.finalState.settlement.population.villagers).toBeGreaterThanOrEqual(3);
     expect(year.commands.refused).toEqual({});
     expect(summary.siege).toEqual({
-      result: 'fall',
-      won: 0,
+      result: 'victory',
+      won: 1,
       glorious: 0,
-      fallen: 1,
-      wavesFought: 1,
-      wavesWon: 0,
-      militiaCalled: 52,
+      fallen: 0,
+      wavesFought: 3,
+      wavesWon: 3,
+      militiaCalled: 0,
     });
   });
 
@@ -61,10 +62,10 @@ describe('medição do Cerco (V4G-T2.10)', () => {
     const [header, ...rows] = toCsv(year.rows).trimEnd().split('\n');
     expect(header?.split(',').slice(-3)).toEqual(['siege_result', 'waves_won', 'militia_called']);
     expect(rows[0]?.split(',').slice(-3)).toEqual(['', '0', '0']);
-    expect(rows.at(-1)?.split(',').slice(-3)).toEqual(['fall', '0', '52']);
+    expect(rows.at(-1)?.split(',').slice(-3)).toEqual(['victory', '3', '0']);
     expect(year.rows[0]?.siege).toEqual(noSieges());
     expect(formatSummary(year)).toContain(
-      'Cerco: 1 encerrados · 0 vitórias (0 gloriosas) · 1 quedas · 0 de 1 ondas vencidas · 52 aldeões convocados',
+      'Cerco: 1 encerrados · 1 vitórias (0 gloriosas) · 0 quedas · 3 de 3 ondas vencidas · 0 aldeões convocados',
     );
   });
 
@@ -84,7 +85,7 @@ describe('medição do Cerco (V4G-T2.10)', () => {
     };
     const [header, row] = matrixCsv(result).trimEnd().split('\n');
     expect(header?.split(',').slice(-3)).toEqual(['siege_result', 'waves_won', 'militia_called']);
-    expect(row?.split(',').slice(-3)).toEqual(['fall', '0', '52']);
+    expect(row?.split(',').slice(-3)).toEqual(['victory', '3', '0']);
   });
 
   it('serializa vitórias e convocações positivas sem alterar as contagens de horas anteriores', () => {

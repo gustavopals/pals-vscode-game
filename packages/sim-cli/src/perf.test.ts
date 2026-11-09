@@ -44,8 +44,9 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
     expect(villagers('meio', 3)).toBeGreaterThanOrEqual(15);
     // Na v0.2 sem Cerco, o feudo de 7 dias mantinha > 60 aldeões. Na v0.4, o Cerco do inverno
     // (V4G-T2) com Queda consome 20% da população na ausência de 3 dias reais: 66 aldeões caem
-    // para 53 (medido: 53; docs/balance-v0.4.md §16).
-    expect(villagers('fim', 3)).toBeGreaterThanOrEqual(50);
+    // para 53 (medido: 53; docs/balance-v0.4.md §16). Na terceira junção (preparo militar e três
+    // cercos nos 7 dias jogados), a partida entra na ausência com 37 aldeões e volta com 49 (§22).
+    expect(villagers('fim', 3)).toBeGreaterThanOrEqual(49);
   });
 
   it('o estado é pequeno e a visão é várias vezes maior do que ele', () => {
