@@ -13,6 +13,7 @@ import {
   barracksLevel,
   soldierCount,
   soldierFoodRate,
+  trainingBatchMax,
   trainingDurationMs,
   trainingLotKey,
   trainingRefund,
@@ -24,7 +25,7 @@ import { formationEditorView, formationViews } from './formationsView';
 import { armyReportsView } from './battleReportView';
 import { armyPreviewView } from './warCouncilView';
 import type { ArmyView, BuildingId, GameState, UnitId } from './types';
-import { MILLI, realSecondsCeil } from './units';
+import { MILLI, paceScaled, realSecondsCeil } from './units';
 
 /**
  * O Quartel e o exército na visão (GDD §6.1 e §10.2; ADR 0019, decisão 7). Só lê o estado: não
@@ -55,13 +56,17 @@ function trainingPercent(level: number): number {
  * O que a obra do Quartel muda, para ficar ao lado do custo. No nível 1: o que ele passa a
  * fazer; nos seguintes: o limite e quanto do tempo de treino sobra. `null` para os outros.
  */
-export function armyEffect(building: BuildingId, targetLevel: number): string | null {
+export function armyEffect(
+  building: BuildingId,
+  targetLevel: number,
+  timeScale: number,
+): string | null {
   if (building !== 'barracks') {
     return null;
   }
   const cap = rules.capPerLevel * targetLevel;
   if (targetLevel <= 1) {
-    return `Treina soldados, um lote de até ${rules.batchMax} por vez: até ${cap} soldados, que comem ${decimal(rules.foodPerSoldierPerHour.num / rules.foodPerSoldierPerHour.den)} de ${food} por hora.`;
+    return `Treina soldados, um lote de até ${paceScaled(rules.batchMax, timeScale)} por vez: até ${cap} soldados, que comem ${decimal(rules.foodPerSoldierPerHour.num / rules.foodPerSoldierPerHour.den)} de ${food} por hora.`;
   }
   return `Cabem ${cap} soldados; cada um leva ${trainingPercent(targetLevel)}% do tempo do nível 1 para treinar.`;
 }
@@ -94,7 +99,8 @@ function costText(unit: keyof typeof units, amount = 1): string {
 /** O maior lote que `trainingBlock` aceita agora, de 0 a `batchMax`. */
 function maxAmount(state: GameState, unit: keyof typeof units): number {
   let best = 0;
-  for (let amount = 1; amount <= rules.batchMax; amount += 1) {
+  const batchMax = trainingBatchMax(state);
+  for (let amount = 1; amount <= batchMax; amount += 1) {
     if (trainingBlock(state, unit, amount) !== null) {
       break;
     }
@@ -223,7 +229,7 @@ function offerOf(state: GameState, id: UnitId, level: number, timeScale: number)
   return {
     unit: id,
     maxAmount: max,
-    batchMax: rules.batchMax,
+    batchMax: trainingBatchMax(state),
     blockedReason: trainingBlock(state, id, 1)?.message ?? null,
     options: Array.from({ length: max }, (_, index) => {
       const amount = index + 1;

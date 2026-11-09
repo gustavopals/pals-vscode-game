@@ -50,6 +50,7 @@ import {
   housingVacancy,
   recruitmentBlock,
   recruitmentDurationMs,
+  recruitmentLimits,
 } from './population';
 import {
   constructionDurationNote,
@@ -207,7 +208,7 @@ function upgradeEffect(state: GameState, building: BuildingId, targetLevel: numb
     guildEffect(building, targetLevel) ??
     marketEffect(building, targetLevel) ??
     smithyEffect(building, targetLevel) ??
-    armyEffect(building, targetLevel)
+    armyEffect(building, targetLevel, state.settings.timeScale)
   );
 }
 
@@ -375,7 +376,8 @@ export function deriveViewState(
     return slot === null ? null : activeView(state, slot, timeScale);
   });
   const nextRecruit = settlement.recruitmentQueue[0];
-  const { cost: recruitCost, maxPerOrder, maxQueue } = balance.recruitment;
+  const { cost: recruitCost } = balance.recruitment;
+  const { maxPerOrder, maxQueue } = recruitmentLimits(state);
   const maxQuantity = Math.max(
     0,
     Math.min(maxPerOrder, maxQueue - settlement.recruitmentQueue.length, housingVacancy(state)),

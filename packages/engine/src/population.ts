@@ -7,7 +7,7 @@ import { beginAdaptation, leaveAdaptation } from './craft';
 import { inhabitants } from './masters';
 import { reject } from './rejections';
 import type { GameEvent, GameState, ProductionBuildingId, Rejection } from './types';
-import { positiveEntries } from './units';
+import { paceScaled, positiveEntries } from './units';
 
 /** Capacidade habitacional: derivada dos níveis do Salão e das Habitações, nunca persistida. */
 export function housingCapacity(state: GameState): number {
@@ -107,15 +107,25 @@ export function releaseExcessWorkers(
   return released;
 }
 
+/** Tetos derivados por ritmo: a fila comporta a ordem ampliada, sem criar vagas nas casas. */
+export function recruitmentLimits(state: GameState): { maxPerOrder: number; maxQueue: number } {
+  const { maxPerOrder, maxQueue } = balance.recruitment;
+  return {
+    maxPerOrder: paceScaled(maxPerOrder, state.settings.timeScale),
+    maxQueue: paceScaled(maxQueue, state.settings.timeScale),
+  };
+}
+
 /** Motivo pelo qual uma ordem de `quantity` aldeões seria recusada agora; `null` se seria aceita. */
 export function recruitmentBlock(state: GameState, quantity: unknown): Rejection | null {
-  const { cost, maxPerOrder, maxQueue } = balance.recruitment;
+  const { cost } = balance.recruitment;
+  const { maxPerOrder, maxQueue } = recruitmentLimits(state);
   if (
     !Number.isInteger(quantity) ||
     (quantity as number) < 1 ||
     (quantity as number) > maxPerOrder
   ) {
-    return reject('INVALID_QUANTITY');
+    return reject('INVALID_QUANTITY', { count: maxPerOrder });
   }
   const wanted = quantity as number;
   if (state.settlement.famine) {
@@ -123,7 +133,7 @@ export function recruitmentBlock(state: GameState, quantity: unknown): Rejection
   }
   const queueRoom = maxQueue - state.settlement.recruitmentQueue.length;
   if (wanted > queueRoom) {
-    return reject('RECRUIT_QUEUE_FULL', { count: queueRoom });
+    return reject('RECRUIT_QUEUE_FULL', { count: queueRoom, capacity: maxQueue });
   }
   const vacancy = housingVacancy(state);
   if (wanted > vacancy) {

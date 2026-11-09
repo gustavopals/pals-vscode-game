@@ -118,6 +118,40 @@ describe('a paleta e os comandos do Quartel', () => {
 });
 
 describe('treinar', () => {
+  it('aceita o lote de 30 e seus termos prontos quando a visão os oferece (R2)', async () => {
+    const view: ViewState = {
+      ...armyIdleView,
+      army: {
+        ...armyIdleView.army,
+        offer: armyIdleView.army.offer.map((offer) =>
+          offer.unit !== 'spearman'
+            ? offer
+            : {
+                ...offer,
+                batchMax: 30,
+                maxAmount: 30,
+                options: Array.from({ length: 30 }, (_, index) => ({
+                  amount: index + 1,
+                  label: `${index + 1} lanceiros`,
+                  costText: '900 de comida, 300 de ouro, 150 de madeira',
+                  seconds: 600,
+                })),
+              },
+        ),
+      },
+    };
+    const { run, answers, shown, orders } = await setup(view);
+    answers.push(0, 29, true);
+    await run('lords.trainSoldiers');
+    expect(shown[2]).toMatchObject({
+      kind: 'confirm',
+      title: expect.stringContaining('900 de comida, 300 de ouro, 150 de madeira'),
+    });
+    expect(orders()).toEqual([
+      { type: 'trainSoldiers', payload: { unit: 'spearman', amount: 30 } },
+    ]);
+  });
+
   it('pela paleta: a unidade, o lote, a confirmação com a linha da visão e a ordem', async () => {
     const { run, answers, shown, orders } = await setup(armyIdleView);
     // O Arqueiro (terceiro da lista), 4 soldados (quarto da lista de 1 a 6; a lista responde por posição), confirma.

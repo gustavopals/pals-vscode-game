@@ -14002,7 +14002,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -14023,9 +14023,9 @@
       ],
       "secondsPerVillager": 320,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
-      "maxQuantity": 5,
+      "maxQuantity": 10,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Com as casas cheias a moral perde 10: para evitar, chame até 9."
     },
     "famine": null,
     "morale": {
@@ -14834,35 +14834,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -15637,7 +15637,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -15658,9 +15658,9 @@
       ],
       "secondsPerVillager": 320,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
-      "maxQuantity": 5,
+      "maxQuantity": 10,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Com as casas cheias a moral perde 10: para evitar, chame até 9."
     },
     "famine": null,
     "morale": {
@@ -16452,35 +16452,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -17266,7 +17266,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -17287,9 +17287,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 8,
       "blockedReason": null,
-      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 7."
     },
     "famine": null,
     "morale": {
@@ -18032,35 +18032,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -18886,7 +18886,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -18907,9 +18907,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 8,
       "blockedReason": null,
-      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 7."
     },
     "famine": null,
     "morale": {
@@ -19662,35 +19662,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -20516,7 +20516,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -20537,9 +20537,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 8,
       "blockedReason": null,
-      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 7."
     },
     "famine": null,
     "morale": {
@@ -21293,35 +21293,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -22206,7 +22206,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -22227,9 +22227,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 13,
       "blockedReason": null,
-      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 12."
     },
     "famine": null,
     "morale": {
@@ -22982,35 +22982,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -23825,7 +23825,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -23846,9 +23846,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 11,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 6 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 10."
     },
     "famine": null,
     "morale": {
@@ -24605,35 +24605,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -25408,7 +25408,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -26076,35 +26076,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -29669,7 +29669,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -29690,9 +29690,9 @@
       ],
       "secondsPerVillager": 320,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
-      "maxQuantity": 5,
+      "maxQuantity": 15,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 12 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 14."
     },
     "famine": null,
     "morale": {
@@ -30483,35 +30483,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -32981,7 +32981,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -33002,9 +33002,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 15,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 12 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 14."
     },
     "famine": null,
     "morale": {
@@ -33915,35 +33915,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -38421,7 +38421,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -38442,9 +38442,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 15,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 12 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 14."
     },
     "famine": null,
     "morale": {
@@ -39430,35 +39430,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -45780,7 +45780,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -45801,9 +45801,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 15,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 14 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 14."
     },
     "famine": null,
     "morale": {
@@ -46587,35 +46587,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -49128,7 +49128,7 @@
           "blockedCode": "GATE_LOCKED",
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -49149,9 +49149,9 @@
       ],
       "secondsPerVillager": 400,
       "durationNote": null,
-      "maxQuantity": 5,
+      "maxQuantity": 15,
       "blockedReason": null,
-      "moraleNote": null
+      "moraleNote": "Chamar mais de 9 aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 14."
     },
     "famine": null,
     "morale": {
@@ -50093,35 +50093,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }
@@ -52464,7 +52464,7 @@
           "blockedCode": "QUEUE_LOCKED",
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
-          "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+          "effect": "Treina soldados, um lote de até 30 por vez: até 10 soldados, que comem 1,5 de comida por hora."
         }
       ]
     },
@@ -53190,35 +53190,35 @@
         {
           "unit": "spearman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "swordsman",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "archer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "knight",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         },
         {
           "unit": "shieldbearer",
           "maxAmount": 0,
-          "batchMax": 10,
+          "batchMax": 30,
           "blockedReason": "Erga o Quartel primeiro: é nele que se treinam soldados. O Quartel pede o Salão do Senhor no nível 4.",
           "options": []
         }

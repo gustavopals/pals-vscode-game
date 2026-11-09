@@ -1,0 +1,401 @@
+[
+  {
+    "timeScale": 0.5,
+    "cap": 30,
+    "spearman": {
+      "unit": "spearman",
+      "maxAmount": 10,
+      "batchMax": 10,
+      "blockedReason": null,
+      "options": [
+        {
+          "amount": 1,
+          "label": "1 lanceiro",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "seconds": 1091
+        },
+        {
+          "amount": 2,
+          "label": "2 lanceiros",
+          "costText": "60 de comida, 20 de ouro, 10 de madeira",
+          "seconds": 2182
+        },
+        {
+          "amount": 3,
+          "label": "3 lanceiros",
+          "costText": "90 de comida, 30 de ouro, 15 de madeira",
+          "seconds": 3273
+        },
+        {
+          "amount": 4,
+          "label": "4 lanceiros",
+          "costText": "120 de comida, 40 de ouro, 20 de madeira",
+          "seconds": 4364
+        },
+        {
+          "amount": 5,
+          "label": "5 lanceiros",
+          "costText": "150 de comida, 50 de ouro, 25 de madeira",
+          "seconds": 5455
+        },
+        {
+          "amount": 6,
+          "label": "6 lanceiros",
+          "costText": "180 de comida, 60 de ouro, 30 de madeira",
+          "seconds": 6546
+        },
+        {
+          "amount": 7,
+          "label": "7 lanceiros",
+          "costText": "210 de comida, 70 de ouro, 35 de madeira",
+          "seconds": 7637
+        },
+        {
+          "amount": 8,
+          "label": "8 lanceiros",
+          "costText": "240 de comida, 80 de ouro, 40 de madeira",
+          "seconds": 8728
+        },
+        {
+          "amount": 9,
+          "label": "9 lanceiros",
+          "costText": "270 de comida, 90 de ouro, 45 de madeira",
+          "seconds": 9819
+        },
+        {
+          "amount": 10,
+          "label": "10 lanceiros",
+          "costText": "300 de comida, 100 de ouro, 50 de madeira",
+          "seconds": 10910
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1920,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    }
+  },
+  {
+    "timeScale": 1,
+    "cap": 30,
+    "spearman": {
+      "unit": "spearman",
+      "maxAmount": 10,
+      "batchMax": 10,
+      "blockedReason": null,
+      "options": [
+        {
+          "amount": 1,
+          "label": "1 lanceiro",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "seconds": 546
+        },
+        {
+          "amount": 2,
+          "label": "2 lanceiros",
+          "costText": "60 de comida, 20 de ouro, 10 de madeira",
+          "seconds": 1091
+        },
+        {
+          "amount": 3,
+          "label": "3 lanceiros",
+          "costText": "90 de comida, 30 de ouro, 15 de madeira",
+          "seconds": 1637
+        },
+        {
+          "amount": 4,
+          "label": "4 lanceiros",
+          "costText": "120 de comida, 40 de ouro, 20 de madeira",
+          "seconds": 2182
+        },
+        {
+          "amount": 5,
+          "label": "5 lanceiros",
+          "costText": "150 de comida, 50 de ouro, 25 de madeira",
+          "seconds": 2728
+        },
+        {
+          "amount": 6,
+          "label": "6 lanceiros",
+          "costText": "180 de comida, 60 de ouro, 30 de madeira",
+          "seconds": 3273
+        },
+        {
+          "amount": 7,
+          "label": "7 lanceiros",
+          "costText": "210 de comida, 70 de ouro, 35 de madeira",
+          "seconds": 3819
+        },
+        {
+          "amount": 8,
+          "label": "8 lanceiros",
+          "costText": "240 de comida, 80 de ouro, 40 de madeira",
+          "seconds": 4364
+        },
+        {
+          "amount": 9,
+          "label": "9 lanceiros",
+          "costText": "270 de comida, 90 de ouro, 45 de madeira",
+          "seconds": 4910
+        },
+        {
+          "amount": 10,
+          "label": "10 lanceiros",
+          "costText": "300 de comida, 100 de ouro, 50 de madeira",
+          "seconds": 5455
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 960,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    }
+  },
+  {
+    "timeScale": 3,
+    "cap": 30,
+    "spearman": {
+      "unit": "spearman",
+      "maxAmount": 30,
+      "batchMax": 30,
+      "blockedReason": null,
+      "options": [
+        {
+          "amount": 1,
+          "label": "1 lanceiro",
+          "costText": "30 de comida, 10 de ouro, 5 de madeira",
+          "seconds": 182
+        },
+        {
+          "amount": 2,
+          "label": "2 lanceiros",
+          "costText": "60 de comida, 20 de ouro, 10 de madeira",
+          "seconds": 364
+        },
+        {
+          "amount": 3,
+          "label": "3 lanceiros",
+          "costText": "90 de comida, 30 de ouro, 15 de madeira",
+          "seconds": 546
+        },
+        {
+          "amount": 4,
+          "label": "4 lanceiros",
+          "costText": "120 de comida, 40 de ouro, 20 de madeira",
+          "seconds": 728
+        },
+        {
+          "amount": 5,
+          "label": "5 lanceiros",
+          "costText": "150 de comida, 50 de ouro, 25 de madeira",
+          "seconds": 910
+        },
+        {
+          "amount": 6,
+          "label": "6 lanceiros",
+          "costText": "180 de comida, 60 de ouro, 30 de madeira",
+          "seconds": 1091
+        },
+        {
+          "amount": 7,
+          "label": "7 lanceiros",
+          "costText": "210 de comida, 70 de ouro, 35 de madeira",
+          "seconds": 1273
+        },
+        {
+          "amount": 8,
+          "label": "8 lanceiros",
+          "costText": "240 de comida, 80 de ouro, 40 de madeira",
+          "seconds": 1455
+        },
+        {
+          "amount": 9,
+          "label": "9 lanceiros",
+          "costText": "270 de comida, 90 de ouro, 45 de madeira",
+          "seconds": 1637
+        },
+        {
+          "amount": 10,
+          "label": "10 lanceiros",
+          "costText": "300 de comida, 100 de ouro, 50 de madeira",
+          "seconds": 1819
+        },
+        {
+          "amount": 11,
+          "label": "11 lanceiros",
+          "costText": "330 de comida, 110 de ouro, 55 de madeira",
+          "seconds": 2000
+        },
+        {
+          "amount": 12,
+          "label": "12 lanceiros",
+          "costText": "360 de comida, 120 de ouro, 60 de madeira",
+          "seconds": 2182
+        },
+        {
+          "amount": 13,
+          "label": "13 lanceiros",
+          "costText": "390 de comida, 130 de ouro, 65 de madeira",
+          "seconds": 2364
+        },
+        {
+          "amount": 14,
+          "label": "14 lanceiros",
+          "costText": "420 de comida, 140 de ouro, 70 de madeira",
+          "seconds": 2546
+        },
+        {
+          "amount": 15,
+          "label": "15 lanceiros",
+          "costText": "450 de comida, 150 de ouro, 75 de madeira",
+          "seconds": 2728
+        },
+        {
+          "amount": 16,
+          "label": "16 lanceiros",
+          "costText": "480 de comida, 160 de ouro, 80 de madeira",
+          "seconds": 2910
+        },
+        {
+          "amount": 17,
+          "label": "17 lanceiros",
+          "costText": "510 de comida, 170 de ouro, 85 de madeira",
+          "seconds": 3091
+        },
+        {
+          "amount": 18,
+          "label": "18 lanceiros",
+          "costText": "540 de comida, 180 de ouro, 90 de madeira",
+          "seconds": 3273
+        },
+        {
+          "amount": 19,
+          "label": "19 lanceiros",
+          "costText": "570 de comida, 190 de ouro, 95 de madeira",
+          "seconds": 3455
+        },
+        {
+          "amount": 20,
+          "label": "20 lanceiros",
+          "costText": "600 de comida, 200 de ouro, 100 de madeira",
+          "seconds": 3637
+        },
+        {
+          "amount": 21,
+          "label": "21 lanceiros",
+          "costText": "630 de comida, 210 de ouro, 105 de madeira",
+          "seconds": 3819
+        },
+        {
+          "amount": 22,
+          "label": "22 lanceiros",
+          "costText": "660 de comida, 220 de ouro, 110 de madeira",
+          "seconds": 4000
+        },
+        {
+          "amount": 23,
+          "label": "23 lanceiros",
+          "costText": "690 de comida, 230 de ouro, 115 de madeira",
+          "seconds": 4182
+        },
+        {
+          "amount": 24,
+          "label": "24 lanceiros",
+          "costText": "720 de comida, 240 de ouro, 120 de madeira",
+          "seconds": 4364
+        },
+        {
+          "amount": 25,
+          "label": "25 lanceiros",
+          "costText": "750 de comida, 250 de ouro, 125 de madeira",
+          "seconds": 4546
+        },
+        {
+          "amount": 26,
+          "label": "26 lanceiros",
+          "costText": "780 de comida, 260 de ouro, 130 de madeira",
+          "seconds": 4728
+        },
+        {
+          "amount": 27,
+          "label": "27 lanceiros",
+          "costText": "810 de comida, 270 de ouro, 135 de madeira",
+          "seconds": 4910
+        },
+        {
+          "amount": 28,
+          "label": "28 lanceiros",
+          "costText": "840 de comida, 280 de ouro, 140 de madeira",
+          "seconds": 5091
+        },
+        {
+          "amount": 29,
+          "label": "29 lanceiros",
+          "costText": "870 de comida, 290 de ouro, 145 de madeira",
+          "seconds": 5273
+        },
+        {
+          "amount": 30,
+          "label": "30 lanceiros",
+          "costText": "900 de comida, 300 de ouro, 150 de madeira",
+          "seconds": 5455
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 320,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 15,
+      "blockedReason": null,
+      "moraleNote": null
+    }
+  }
+]

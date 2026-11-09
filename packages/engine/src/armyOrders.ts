@@ -6,6 +6,7 @@ import {
   barracksRequiresText,
   isUnitId,
   soldierCount,
+  trainingBatchMax,
   trainingCost,
   trainingDurationMs,
   trainingLotKey,
@@ -39,7 +40,7 @@ export function trainingBlock(state: GameState, unit: unknown, amount: unknown):
   if (level === 0) {
     return reject('BARRACKS_REQUIRED', { note: barracksRequiresText(state) });
   }
-  const { batchMax } = balance.army;
+  const batchMax = trainingBatchMax(state);
   if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 1 || amount > batchMax) {
     return reject('INVALID_AMOUNT', {
       note: `Treine um número inteiro de soldados, de 1 a ${batchMax}.`,

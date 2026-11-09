@@ -45,6 +45,21 @@ const panel = (view: ViewState, online = true, busy: ReadonlySet<string> = NONE,
   );
 
 describe('o painel do Quartel (V4C-T3.2)', () => {
+  it('exibe o teto de 30 e o máximo disponível recebidos na visão (R2)', () => {
+    const view: ViewState = {
+      ...armyIdleView,
+      army: {
+        ...armyIdleView.army,
+        offer: armyIdleView.army.offer.map((offer) =>
+          offer.unit === 'spearman' ? { ...offer, batchMax: 30, maxAmount: 27 } : offer,
+        ),
+      },
+    };
+    const markup = text(panel(view));
+    expect(markup).toContain('Lote de até 30.');
+    expect(markup).toContain('O máximo que se paga agora (27)');
+  });
+
   it('sem o Quartel: a frase do servidor, a obra e as unidades; nenhum treino', () => {
     const markup = panel(initialView);
     expect(text(markup)).toContain(initialView.army.text);

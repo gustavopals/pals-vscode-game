@@ -1962,6 +1962,24 @@ describe('decidir carta do Conselho (GDD §7 e §13.6)', () => {
 });
 
 describe('recrutar, renomear e nova partida', () => {
+  it('o recrutamento aceita 15 quando esse máximo vem na visão (R2)', async () => {
+    const { run, answers, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = {
+          ...goldenView,
+          recruitment: { ...goldenView.recruitment, maxQuantity: 15 },
+        };
+      },
+    });
+    answers.push('15');
+    await run('lords.recruit');
+    const input = shownAs(shown, 0, 'input');
+    expect(input.placeholder).toBe('de 1 a 15');
+    expect(input.validate?.('15')).toBeNull();
+    expect(input.validate?.('16')?.severity).toBe('error');
+    expect(orders()).toEqual([{ type: 'recruitVillagers', payload: { quantity: 15 } }]);
+  });
+
   it('recrutar diz o custo, o prazo e as vagas, e valida a quantidade', async () => {
     const { run, answers, shown, orders } = await setup();
     answers.push('2');
