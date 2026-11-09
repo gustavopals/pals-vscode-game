@@ -1,5 +1,15 @@
 # CLAUDE.md
 
+> **Revisão independente F/G em 2026-11-09 (`v4-revisao-fg`, base `879f0cc`): estado 42, protocolo 4.**
+> A equipe em sabotagem retorna no instante em que o Cerco remove a Fortaleza;
+> a guarda v40 aceita milícia nos relatórios defensivos, preservando a guarda v39;
+> o agendamento reserva as três ondas antes da Crônica anual (fallback de +12 h
+> e omissão da migração tardia sem espaço, hipótese G-25 para o autor).
+> Relatórios: `docs/reviews/v0.4-fase-f.md` e `docs/reviews/v0.4-fase-g.md`.
+> Verificados 565 testes distintos focados, lint e typecheck, saída 0; sem banco,
+> matriz, integração, e2e, verify, interface, merge ao main, push ou publicação.
+> `packages/web` intacto. Limites e contagens no Registro V4F-T4/V4G-T5.1/T5.2.
+
 > **V4H-T1.4 em 2026-11-04 (`v4h-t1-lobo`): estado 42, protocolo 4.**
 > As três cartas do Lobo Branco seguem §§6.4, 6.5 e 7.1 aprovados, somando
 > 59 cartas no catálogo. A carta abre `whiteWolfHunt`, expedição de três nós,
