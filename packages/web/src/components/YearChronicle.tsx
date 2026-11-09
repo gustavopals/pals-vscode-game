@@ -3,7 +3,7 @@ import { Icon } from './shared';
 
 /** O documento anual vem pronto do servidor; o seletor apenas escolhe o ano solicitado. */
 export function YearChronicle(props: {
-  currentYear: number;
+  completedYears: readonly number[];
   selected: number | null;
   loading: boolean;
   actions: Actions;
@@ -15,8 +15,9 @@ export function YearChronicle(props: {
           <Icon name="book" /> Crônica do Ano
         </h2>
         <p class="muted" id="year-chronicle-note">
-          Cada ano encerrado reúne as estações, o Cerco, a pontuação e os Feitos. Anos sem registro
-          de encerramento ficam indisponíveis.
+          {props.completedYears.length === 0
+            ? 'Ainda não há anos encerrados para ler. A Crônica completa continua disponível.'
+            : 'Cada ano encerrado reúne as estações, o Cerco, a pontuação e os Feitos. Anos sem registro de encerramento ficam indisponíveis.'}
         </p>
       </div>
       <div class="year-chronicle-controls">
@@ -33,16 +34,20 @@ export function YearChronicle(props: {
           }
         >
           <option value="">Crônica completa</option>
-          {Array.from({ length: props.currentYear }, (_, index) => (
-            <option key={index} value={index + 1}>
-              Ano {index + 1}
+          {props.completedYears.map((year) => (
+            <option key={year} value={year}>
+              Ano {year}
             </option>
           ))}
         </select>
         <button
           type="button"
           class="secondary"
-          disabled={props.selected === null || props.loading}
+          disabled={
+            props.selected === null ||
+            !props.completedYears.includes(props.selected) ||
+            props.loading
+          }
           aria-busy={props.loading}
           onClick={() => props.actions.run('lords.downloadYearChronicle', props.selected)}
         >

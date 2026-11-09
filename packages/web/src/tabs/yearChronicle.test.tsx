@@ -13,13 +13,17 @@ afterEach(() => {
   for (const controller of controllers.splice(0)) controller.dispose();
 });
 
-async function setup(options: Parameters<typeof makeController>[0] = {}) {
+async function setup(options: Parameters<typeof makeController>[0] = {}, year = 2) {
   const made = makeController({ signedIn: true, ...options });
   controllers.push(made.controller);
   made.api.state.yearChronicles[1] = markdown;
   made.api.state.view = {
     ...made.api.state.view,
-    calendar: { ...made.api.state.view.calendar, year: 2 },
+    calendar: {
+      ...made.api.state.view.calendar,
+      year,
+      completedYears: Array.from({ length: year - 1 }, (_, index) => index + 1),
+    },
   };
   const script = scriptedDialogs();
   const downloads: { name: string; text: string }[] = [];
@@ -53,12 +57,14 @@ describe('Crônica do Ano no app', () => {
         document={{ status: 'ready', value: '# Crônica completa' }}
         yearDocument={{ status: 'ready', value: markdown }}
         selectedYear={1}
-        currentYear={2}
+        completedYears={[1]}
         actions={{ run: () => {}, order: () => {}, playNow: () => {} }}
       />,
     );
     expect(html).toContain('for="chronicle-year"');
     expect(html).toContain('Crônica completa');
+    expect(html).toContain('value="1"');
+    expect(html).not.toContain('value="2"');
     expect(html).toContain('Baixar a Crônica do Ano');
     expect(html).toContain('<table>');
     expect(html).toContain('<th scope="col">Medida</th>');
@@ -81,11 +87,18 @@ describe('Crônica do Ano no app', () => {
     await made.run('lords.selectChronicleYear', null);
     expect(made.controller.selectedChronicleYear).toBeNull();
   });
-  it('a paleta pergunta o ano; desistir não baixa e um ano ainda não publicado explica a ausência', async () => {
-    const made = await setup();
+  it('a paleta só oferece anos encerrados; desistir não baixa e um ano sem registro explica a ausência', async () => {
+    const made = await setup({}, 3);
     made.answers.push(undefined);
     await made.run('lords.downloadYearChronicle');
     expect(made.downloads).toEqual([]);
+    expect(made.shown[0]).toMatchObject({
+      kind: 'pick',
+      items: [
+        { label: 'Ano 1', value: 1 },
+        { label: 'Ano 2', value: 2 },
+      ],
+    });
     made.answers.push(0);
     await made.run('lords.downloadYearChronicle');
     expect(made.downloads).toHaveLength(1);
@@ -94,6 +107,35 @@ describe('Crônica do Ano no app', () => {
       status: 'error',
       message: expect.stringContaining('ainda não foi registrada'),
     });
+  });
+  it('sem ano encerrado explica a espera, desabilita o download anual e não abre uma lista vazia', async () => {
+    const made = await setup({}, 1);
+    const html = renderToString(
+      <ChronicleTab
+        document={{ status: 'ready', value: '# Crônica completa' }}
+        completedYears={[]}
+        actions={{ run: () => {}, order: () => {}, playNow: () => {} }}
+      />,
+    );
+    expect(html).toContain('Ainda não há anos encerrados para ler.');
+    expect(html).toContain('Baixar Crônica (Markdown)');
+    expect(html).toMatch(/<button[^>]*disabled[^>]*>[\s\S]*?Baixar a Crônica do Ano/);
+    expect(html).not.toContain('value="1"');
+    await made.run('lords.downloadYearChronicle');
+    expect(made.shown).toEqual([]);
+    expect(made.downloads).toEqual([]);
+    expect(made.api.state.yearChronicleQueries).toEqual([]);
+    expect(
+      made.controller.toasts.some((toast) => toast.text.includes('Ainda não há anos encerrados')),
+    ).toBe(true);
+  });
+  it('recusa o ano corrente na seleção e no download mesmo com argumento direto', async () => {
+    const made = await setup();
+    await made.run('lords.selectChronicleYear', 2);
+    await made.run('lords.downloadYearChronicle', 2);
+    expect(made.controller.selectedChronicleYear).toBeNull();
+    expect(made.downloads).toEqual([]);
+    expect(made.api.state.yearChronicleQueries).toEqual([]);
   });
   it('resposta antiga não substitui outro ano selecionado nem baixa após sair da conta', async () => {
     const api = fakeApi();

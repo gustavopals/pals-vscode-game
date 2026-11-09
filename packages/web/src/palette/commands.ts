@@ -3793,6 +3793,11 @@ export function createCommands(
   const downloadYearChronicle = oneAtATime(async (arg) => {
     const view = requireView();
     if (view === null) return;
+    const years = view.calendar.completedYears ?? [];
+    if (years.length === 0) {
+      controller.toast({ kind: 'info', text: 'Ainda não há anos encerrados para ler.' });
+      return;
+    }
     const gameId = controller.session.gameId;
     const year =
       typeof arg === 'number'
@@ -3801,17 +3806,16 @@ export function createCommands(
           (await dialogs.pick<number>({
             title: 'Baixar a Crônica do Ano',
             placeholder: 'Escolha o ano',
-            items: Array.from({ length: view.calendar.year }, (_, index) => ({
-              label: `Ano ${index + 1}`,
-              value: index + 1,
+            items: years.map((year) => ({
+              label: `Ano ${year}`,
+              value: year,
             })),
           })));
     if (
       year === undefined ||
       !sameGame(gameId) ||
       !Number.isSafeInteger(year) ||
-      year < 1 ||
-      year > view.calendar.year
+      !(controller.view?.calendar.completedYears ?? []).includes(year)
     )
       return;
     const markdown = await controller.loadYearChronicle(year);
@@ -4366,8 +4370,7 @@ export function createCommands(
           arg === null ||
           (typeof arg === 'number' &&
             Number.isSafeInteger(arg) &&
-            arg > 0 &&
-            arg <= (controller.view?.calendar.year ?? 0))
+            (controller.view?.calendar.completedYears ?? []).includes(arg))
         )
           await controller.selectChronicleYear(arg);
       },

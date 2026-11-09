@@ -1423,6 +1423,7 @@ export const ViewStateSchema = z.strictObject({
   }),
   calendar: z.strictObject({
     year: z.number(),
+    completedYears: z.array(z.number().int().positive()).optional(),
     season: z.enum(SEASON_IDS),
     seasonLabel: z.string(),
     dayOfSeason: z.number(),

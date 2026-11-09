@@ -103,4 +103,18 @@ describe('protocolo 4: o Cerco', () => {
     delete view.siege!.aftermath;
     expect(ViewStateSchema.parse(view)).toEqual(view);
   });
+  it('valida os anos encerrados e aceita a visão anterior sem a lista', () => {
+    const state = readySiege();
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.calendar.completedYears).toEqual([]);
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+    for (const completedYears of [[0], [1.5], ['1']]) {
+      expect(
+        ViewStateSchema.safeParse({ ...view, calendar: { ...view.calendar, completedYears } })
+          .success,
+      ).toBe(false);
+    }
+    delete view.calendar.completedYears;
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+  });
 });

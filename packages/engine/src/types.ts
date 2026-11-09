@@ -2800,6 +2800,8 @@ export type ViewState = {
   };
   calendar: {
     year: number;
+    /** Anos já encerrados; ausente em visões anteriores à oferta anual. */
+    completedYears?: number[] | undefined;
     season: SeasonId;
     seasonLabel: string;
     dayOfSeason: number;

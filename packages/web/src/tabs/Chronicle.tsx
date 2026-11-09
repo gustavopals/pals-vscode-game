@@ -91,7 +91,7 @@ export function ChronicleTab(props: {
   document: Loadable<string>;
   yearDocument?: Loadable<string>;
   selectedYear?: number | null;
-  currentYear?: number | undefined;
+  completedYears?: readonly number[] | undefined;
   /** As expedições que têm relatório guardado na visão. */
   reports?: ReadonlySet<string>;
   actions: Actions;
@@ -102,9 +102,9 @@ export function ChronicleTab(props: {
   const chronicle = annual ? (props.yearDocument ?? { status: 'idle' as const }) : props.document;
   return (
     <div class="document">
-      {props.currentYear === undefined ? null : (
+      {props.completedYears === undefined ? null : (
         <YearChronicle
-          currentYear={props.currentYear}
+          completedYears={props.completedYears}
           selected={year}
           loading={annual && chronicle.status === 'loading'}
           actions={actions}
