@@ -226,23 +226,26 @@ describe('faixas a partir da linha de base medida', () => {
     // (docs/balance-v0.4.md, seção 16). O ouro máximo e a sequência continuam iguais.
     // Segunda junção (docs/balance-v0.4.md, seção 19): 71–84 aldeões (faixa de 63 a 93),
     // até 5.439 de pedra e 110.380 de ouro parado com as treze cartas e a sabotagem.
+    // Terceira junção (docs/balance-v0.4.md, seção 22): 19–45 aldeões (faixa de 17 a 50),
+    // Salão Nv3, até 3 h de fome e 1 h de frio, e sequência de até 81 h após três cercos e o preparo militar.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 63, max: 93 },
-      townHallMin: 7,
-      famineHoursMax: 0,
-      coldHoursMax: 0,
-      surplusMax: { wood: 5_460, stone: 5_439, gold: 110_380 },
-      wasteStreakMax: 35,
+      villagers: { min: 17, max: 50 },
+      townHallMin: 3,
+      famineHoursMax: 4,
+      coldHoursMax: 2,
+      surplusMax: { wood: 3_598, stone: 4_136, gold: 37_761 },
+      wasteStreakMax: 86,
     });
   });
 
   it('há faixa nas três dificuldades, cada uma com a sua medida, e só nos ritmos medidos', () => {
     const cell = cellKey('week', 3, 'regular');
     expect(bandFor(cell, 'lord')).toEqual(bandFor(cell));
-    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 8 (a Muralha, V4E-T1, tirou o Salão do 8 em Senhor e em Rei de Ferro, mas não em Camponês, onde o Armazém maior sustenta as duas obras); em Rei de Ferro guarda
-    // 20% a menos, e o teto de madeira parada cai junto.
-    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(8);
-    expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(7);
+    // Em Camponês o Armazém guarda 25% a mais; em Rei de Ferro guarda 20% a menos, e o teto de
+    // pedra parada acompanha a capacidade de cada dificuldade. Na terceira junção (três cercos na
+    // semana do Rápido), o piso do Salão medido nas 50 sementes é 3 em Camponês e Senhor e 5 em Rei de Ferro.
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(3);
+    expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(5);
     expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
       bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,
     );
