@@ -1,5 +1,6 @@
-import type { Page } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import type { Locator, Page } from '@playwright/test';
+import { mkdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import {
   applyTheme,
@@ -21,6 +22,31 @@ import {
 // V4G-T4: a rota só prepara o Cerco; a tela envia as ordens e o motor resolve as ondas.
 // A terceira junção executa estes cenários contra a API real, inclusive nos três temas.
 const panel = (page: Page) => page.getByTestId('siege-panel');
+
+/** Evidência opcional: nunca grava capturas na execução habitual da suíte. */
+async function capture(
+  page: Page,
+  theme: (typeof THEMES)[number],
+  subject: string,
+  target: Locator,
+) {
+  const directory = process.env.CAPTURE_DIR;
+  if (!directory || theme === 'high-contrast') return;
+  const original = page.viewportSize()!;
+  await mkdir(directory, { recursive: true });
+  for (const width of [720, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(target).toBeVisible();
+    const bounds = await target.boundingBox();
+    // Mostra o painel inteiro, inclusive as três ondas, dentro do editor que tem rolagem própria.
+    await page.setViewportSize({ width, height: Math.max(900, Math.ceil(bounds!.height) + 220) });
+    await target.scrollIntoViewIfNeeded();
+    await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+    expect(await lowContrast(page)).toEqual([]);
+    await page.screenshot({ path: join(directory, `cerco-${subject}-${theme}-${width}.png`) });
+  }
+  await page.setViewportSize(original);
+}
 
 async function openSiege(
   world: World,
@@ -138,6 +164,12 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     expect(view.siege?.result).toBe('fall');
     await expect(returned.getByTestId('siege-aftermath')).toContainText('Queda');
     await expect(panel(returned)).toContainText('O feudo segue.');
+    if (process.env.CAPTURE_DIR) {
+      for (const theme of ['dark', 'light'] as const) {
+        await applyTheme(returned, theme);
+        await capture(returned, theme, 'rescaldo-queda', panel(returned));
+      }
+    }
     await panel(returned).getByRole('button', { name: 'Ver as obras' }).click();
     await expect(returned.getByRole('heading', { name: 'Construções', exact: true })).toBeFocused();
   });
@@ -193,12 +225,14 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       const page = await world.open(context);
       await page.setViewportSize({ width: 720, height: 900 });
       await openSiege(world, page, 'small', 20);
+      // A convocação precisa da antecedência da Torre, além do posto livre.
+      await world.raise('watchtower', 3);
       await applyTheme(page, theme);
       const view = await serverView(page, request);
       const formation = page.getByTestId(`formation-${view.army.formations[0]!.id}`);
-      // Um posto livre pela própria tela: a oferta é recalculada pelo motor após salvar.
+      // A milícia ocupa a frente: libere o posto pela tela e deixe o motor recalcular a oferta.
       await formation.getByTestId('formation-edit').click();
-      await page.getByTestId('post-right-back').click();
+      await page.getByTestId('post-right-front').click();
       await page.getByTestId('post-clear').click();
       await page.getByTestId('formation-save').click();
       const summon = panel(page).getByRole('button', { name: 'Convocar milícia…' });
@@ -233,6 +267,11 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       await expect(panel(page)).toContainText('1 aldeão convocado.');
       expect(sent).toHaveLength(1);
       expect((await serverView(page, request)).siege!.militiaOffer.activeCount).toBe(1);
+      // A prévia vem de uma simulação real da onda, sem resposta de rede fabricada.
+      await panel(page).getByRole('button', { name: 'Simular onda 1' }).click();
+      await expect(panel(page).locator('.siege-preview')).toContainText('Prévia da onda 1');
+      expect((await serverView(page, request)).army.preview?.siegeWave).toBe(1);
+      await capture(page, theme, 'planejamento-milicia-previa', panel(page));
       await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
       expect(await lowContrast(page)).toEqual([]);
     });
@@ -288,8 +327,11 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       ])
         expect(markdown).toContain(`## ${heading}`);
       expect(markdown).not.toContain('Crônica do Ano 2');
-      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('2');
-      await expect(chronicle.getByRole('alert')).toContainText('ainda não foi registrada');
+      await expect(chronicle.getByLabel('Leitura', { exact: true }).locator('option')).toHaveText([
+        'Crônica completa',
+        'Ano 1',
+      ]);
+      await capture(page, theme, 'cronica-ano', chronicle.locator('.year-chronicle'));
       await chronicle.getByLabel('Leitura', { exact: true }).selectOption('');
       await expect(
         chronicle.getByRole('button', { name: 'Baixar Crônica (Markdown)' }),
