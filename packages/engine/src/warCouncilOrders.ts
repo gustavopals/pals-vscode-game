@@ -21,8 +21,7 @@ import { seasonAt } from './clock';
 import { findFormation, nominationReason, postEntries } from './formations';
 import { hashText } from './hash';
 import { reject } from './rejections';
-import { raidSizeAt, watchtowerLevel } from './threat';
-import { watchtowerPerks, watchtowerWarningMs } from './threat';
+import { raidSizeAt, sightedRaid, watchtowerLevel, watchtowerPerks } from './threat';
 import { baseRaidComposition } from './raidArmy';
 import { wallForBattle } from './wallRepair';
 import type { Formation, GameEvent, GameState, Rejection, SiegeWaveNumber } from './types';
@@ -166,20 +165,16 @@ function publicEnemyKnowledge(state: GameState): {
   const enemy = estimatedEnemy(state);
   const perks = watchtowerPerks(watchtowerLevel(state));
   const now = state.lastProcessedAt;
-  const sighted =
-    perks === null
-      ? undefined
-      : state.horde.scheduledRaids
-          .filter(
-            (raid) =>
-              raid.atMs >= now &&
-              (raid.announcedAtMs !== null || raid.atMs - watchtowerWarningMs(state, perks) <= now),
-          )
-          .sort((a, b) => a.atMs - b.atMs)[0];
-  if (sighted !== undefined && perks !== null && perks.composition !== 'none') {
+  const sighted = sightedRaid(state);
+  // A carta torna a composição pública também para a prévia, como no aviso da incursão.
+  const clarity =
+    sighted !== null && state.council.bonuses.revealedRaidId === sighted.id
+      ? 'exact'
+      : (perks?.composition ?? 'none');
+  if (sighted !== null && clarity !== 'none') {
     const posts =
       sighted.composition ?? baseRaidComposition(sighted.size, seasonAt(sighted.atMs).id);
-    if (perks.composition === 'exact') {
+    if (clarity === 'exact') {
       for (const wing of WING_IDS) for (const line of LINE_IDS) enemy[wing][line] = null;
       for (const post of posts)
         enemy[post.wing][post.line] = { kind: 'known', unit: post.unit, count: post.count };
@@ -199,7 +194,7 @@ function publicEnemyKnowledge(state: GameState): {
         enemy[wing].back = null;
       }
     }
-    if (perks.composition === 'approximate') {
+    if (clarity === 'approximate') {
       for (const wing of WING_IDS) {
         const total = posts
           .filter((post) => post.wing === wing)
