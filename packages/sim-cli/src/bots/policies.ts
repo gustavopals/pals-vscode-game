@@ -2118,8 +2118,6 @@ export const guardarLenha: Policy = {
 
 type UnitId = ViewState['army']['units'][number]['id'];
 
-/** A folga que o bot exige para erguer o Quartel: o custo inteiro de cada recurso em estoque. */
-const BARRACKS_SPEND_SHARE = 1;
 /** O Quartel só vale a obra com gente: abaixo disso cada braço rende mais que um soldado. */
 const BARRACKS_MIN_VILLAGERS = 12;
 /** O exército de uma partida do bot nunca passa de um quarto dos aldeões. */
@@ -2139,17 +2137,30 @@ export const erguerQuartel: Policy = {
     if (
       upgrade === undefined ||
       view.army.built ||
-      upgrade.blockedCode !== null ||
       view.famine !== null ||
-      view.population.villagers < BARRACKS_MIN_VILLAGERS ||
-      !keepsFirewood(view, upgrade)
+      view.population.villagers < BARRACKS_MIN_VILLAGERS
     ) {
       return view;
     }
-    const slack = upgrade.cost.every(
-      (cost) => stockOf(view, cost.resource) >= BARRACKS_SPEND_SHARE * cost.amount,
-    );
-    return slack ? act('startConstruction', { building: 'barracks' }) : view;
+    if (upgrade.blockedCode === null && keepsFirewood(view, upgrade)) {
+      return act('startConstruction', { building: 'barracks' });
+    }
+    // Preso ao Salão Nv4 (GATE_LOCKED), o Quartel por erguer fica planejado com autoStart:
+    // começa sozinho no instante em que o Salão Nv4 termina, sem esperar a visita seguinte.
+    const townHallLevel =
+      view.constructions.available.find((entry) => entry.building === 'townHall')?.fromLevel ?? 1;
+    if (
+      townHallLevel >= 3 &&
+      !hasBuildingPlan(view, upgrade) &&
+      (firewoodReserve(view) === 0 || !costsWood(upgrade))
+    ) {
+      return act('planConstruction', {
+        building: 'barracks',
+        autoStart: true,
+        targetLevel: upgrade.targetLevel,
+      });
+    }
+    return view;
   },
 };
 
@@ -2224,10 +2235,13 @@ export const montarFormacao: Policy = {
   name: 'montar a formação',
   run: async (view, act) => {
     const { army } = view;
-    if (!army.built || army.total === 0) {
+    const totalWithTraining = army.total + (army.training?.amount ?? 0);
+    if (!army.built || totalWithTraining === 0) {
       return view;
     }
-    const have = (id: UnitId): number => army.units.find((entry) => entry.id === id)?.count ?? 0;
+    const have = (id: UnitId): number =>
+      (army.units.find((entry) => entry.id === id)?.count ?? 0) +
+      (army.training?.unit === id ? army.training.amount : 0);
     const cap = (id: UnitId): number => Math.min(have(id), army.editor.postMax);
     const front = have('shieldbearer') > 0 ? 'shieldbearer' : 'spearman';
     const post = (id: UnitId) => (cap(id) > 0 ? { unit: id, count: cap(id) } : null);

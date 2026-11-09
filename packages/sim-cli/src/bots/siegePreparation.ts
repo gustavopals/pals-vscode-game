@@ -9,41 +9,58 @@ type Formation = ViewState['army']['formations'][number];
 type Posts = Extract<Command, { type: 'saveFormation' }>['payload']['posts'];
 const WINGS = ['left', 'center', 'right'] as const;
 const NAMES = ['Defesa do bot', 'Defesa do bot B'];
-const FOOD_HOURS = 6;
+const FOOD_HOURS = 2;
 const MIN_WINS = 50;
 
-/** O calendário é público; o rescaldo já não pede investimento militar naquele ano. */
+/** O calendário é público; a partir do verão a preparação militar ganha prioridade; o rescaldo já não pede investimento militar naquele ano. */
 export function preparingSiege(view: ViewState): boolean {
   return (
-    (view.calendar.season === 'autumn' || view.calendar.season === 'winter') &&
+    (view.calendar.season === 'summer' ||
+      view.calendar.season === 'autumn' ||
+      view.calendar.season === 'winter') &&
     (view.siege === null || view.siege.result === null)
   );
 }
 
 /**
- * No outono a defesa passa à frente da corrida econômica. Planejar inclui seus custos na
- * demanda dos ofícios; não automatiza madeira reservada à lareira. Os níveis e bloqueios
- * vêm da lista pública: nenhuma obra ou custo do motor é reproduzido aqui.
+ * A partir do verão a defesa passa à frente da corrida econômica: o Salão é priorizado até
+ * o nível 4 para abrir o Quartel com folga, e as obras essenciais (Quartel, Paliçada e Torre)
+ * são adiantadas. Planejar inclui seus custos na demanda dos ofícios; não automatiza madeira
+ * reservada à lareira. Não sobe o Quartel além do nível 1 enquanto houver ao menos 10 vagas
+ * livres. Os níveis e bloqueios vêm da lista pública: nenhuma obra ou custo do motor é reproduzido aqui.
  */
 export const prepareSiege: Policy = {
   name: 'preparar o Cerco',
   run: async (view, act) => {
     if (!preparingSiege(view) || view.famine !== null) return view;
     let current = view;
-    const priorities = ['barracks', 'watchtower', 'palisade'] as const;
+    const priorities = ['townHall', 'barracks', 'palisade', 'watchtower'] as const;
     const upgrades = priorities.flatMap((building) => {
       const upgrade = view.constructions.available.find((row) => row.building === building);
-      return upgrade === undefined ? [] : [upgrade];
+      if (upgrade === undefined) return [];
+      if (building === 'townHall' && upgrade.fromLevel >= 4) return [];
+      if (building === 'barracks' && view.army.built && view.army.cap - view.army.total >= 10) {
+        return [];
+      }
+      return [upgrade];
     });
-    // Primeiro a infraestrutura mínima; depois, cada melhoria que o estoque puder pagar.
+    // Primeiro o Salão até Nv4 e a infraestrutura mínima; depois, cada melhoria que o estoque puder pagar.
     upgrades.sort(
       (a, b) =>
+        Number(b.building === 'townHall') - Number(a.building === 'townHall') ||
         Number(b.fromLevel < 3) - Number(a.fromLevel < 3) ||
         a.fromLevel - b.fromLevel ||
         priorities.indexOf(a.building as (typeof priorities)[number]) -
           priorities.indexOf(b.building as (typeof priorities)[number]),
     );
     for (const wanted of upgrades) {
+      if (
+        wanted.building === 'barracks' &&
+        current.army.built &&
+        current.army.cap - current.army.total >= 10
+      ) {
+        continue;
+      }
       const upgrade = current.constructions.available.find(
         (row) => row.building === wanted.building,
       );
@@ -52,7 +69,13 @@ export const prepareSiege: Policy = {
         current = await act('startConstruction', { building: upgrade.building });
       } else if (
         !hasBuildingPlan(current, upgrade) &&
-        ['INSUFFICIENT_RESOURCES', 'QUEUE_BUSY', 'QUEUE_LOCKED'].includes(upgrade.blockedCode ?? '')
+        [
+          'INSUFFICIENT_RESOURCES',
+          'QUEUE_BUSY',
+          'QUEUE_LOCKED',
+          'GATE_LOCKED',
+          'BUILDING_REQUIRED',
+        ].includes(upgrade.blockedCode ?? '')
       ) {
         current = await act('planConstruction', {
           building: upgrade.building,
@@ -75,8 +98,9 @@ export const prepareSiege: Policy = {
 };
 
 /**
- * O teto é o do Quartel, sem a antiga trava de um quarto dos aldeões. A reserva de comida e
- * os braços disponíveis cobrem o consumo adicional; o lote nunca excede a oferta aceita pela visão.
+ * O teto é o do Quartel, sem a antiga trava de um quarto dos aldeões. A folga da comida
+ * estocada no Celeiro e os braços disponíveis cobrem o consumo adicional; o lote nunca excede
+ * a oferta aceita pela visão. Garante uma frente mínima de lanceiros antes de priorizar arqueiros.
  * Fora do preparo conserva exatamente o treino mínimo anterior.
  */
 export function siegeTrainingPolicy(units: readonly UnitId[]): Policy {
@@ -89,13 +113,17 @@ export function siegeTrainingPolicy(units: readonly UnitId[]): Policy {
       const eats = Number.parseFloat(view.army.units[0]?.foodPerHour.replace(',', '.') ?? '0');
       if (view.famine !== null || food === undefined || eats <= 0 || view.army.training !== null)
         return view;
+      const countOf = (u: UnitId): number =>
+        view.army.units.find((row) => row.id === u)?.count ?? 0;
       const candidates = view.army.offer
         .filter((offer) => units.includes(offer.unit) && offer.maxAmount > 0)
-        .sort(
-          (a, b) =>
-            (view.army.units.find((row) => row.id === a.unit)?.count ?? 0) -
-            (view.army.units.find((row) => row.id === b.unit)?.count ?? 0),
-        );
+        .sort((a, b) => {
+          const weightA =
+            a.unit === 'spearman' ? countOf(a.unit) : Math.max(12, countOf(a.unit) * 2);
+          const weightB =
+            b.unit === 'spearman' ? countOf(b.unit) : Math.max(12, countOf(b.unit) * 2);
+          return weightA - weightB || b.maxAmount - a.maxAmount;
+        });
       const pick = candidates[0];
       if (pick === undefined) return view;
       let amount = Math.min(
@@ -106,10 +134,16 @@ export function siegeTrainingPolicy(units: readonly UnitId[]): Policy {
       const farm = view.workers.find((row) => row.resource === 'food');
       if (farm === undefined || farm.perWorkerPerHour <= 0) return view;
       const able = view.population.free + view.workers.reduce((sum, row) => sum + row.assigned, 0);
-      const keepMaterials = view.workers
-        .filter((row) => row.resource !== 'food')
-        .reduce((sum, row) => sum + row.occupiedFrom, 0);
-      const consumption = farm.grossPerHour - food.perHour;
+      const keepMaterials =
+        view.calendar.season === 'winter' || view.army.total < 10
+          ? 0
+          : Math.floor(
+              view.workers
+                .filter((row) => row.resource !== 'food')
+                .reduce((sum, row) => sum + row.occupiedFrom, 0) / 2,
+            );
+      const stockSlack = Math.max(0, food.stock - view.morale.foodReserve.needed) / 8;
+      const consumption = Math.max(0, farm.grossPerHour - food.perHour - stockSlack);
       // Reserva lavradores para o consumo novo e para a pior retirada possível no fim do
       // treino. Os demais ofícios conservam os braços que a visão pede para ficarem ocupados.
       while (
@@ -125,6 +159,17 @@ export function siegeTrainingPolicy(units: readonly UnitId[]): Policy {
 
 export const trainForSiege = siegeTrainingPolicy(['spearman', 'archer']);
 
+/** Treino no inverno antes de obras mais baratas e recrutamento: assegura a tropa antes de gastar materiais. */
+export function winterTrainingPolicy(units: readonly UnitId[]): Policy {
+  const policy = siegeTrainingPolicy(units);
+  return {
+    name: 'treinar no inverno',
+    run: async (view, act) => (view.calendar.season === 'winter' ? policy.run(view, act) : view),
+  };
+}
+
+export const treinarNoInverno = winterTrainingPolicy(['spearman', 'archer']);
+
 /** Duas disposições fixas, sem buscar combinações: três alas ou uma frente livre à milícia. */
 function postsFor(view: ViewState, reserve: boolean): Posts {
   const posts: Posts = {
@@ -132,11 +177,16 @@ function postsFor(view: ViewState, reserve: boolean): Posts {
     center: { front: null, back: null },
     right: { front: null, back: null },
   };
+  const training = view.army.training;
   for (const line of ['front', 'back'] as const) {
     const wings = reserve && line === 'front' ? WINGS.slice(0, 2) : WINGS;
     const units = view.army.editor.units
-      .filter((unit) => unit.line === line && unit.available > 0)
-      .map((unit) => ({ id: unit.id, remaining: unit.available }));
+      .map((unit) => ({
+        id: unit.id,
+        line: unit.line,
+        remaining: unit.available + (training?.unit === unit.id ? training.amount : 0),
+      }))
+      .filter((unit) => unit.line === line && unit.remaining > 0);
     for (const [index, wing] of wings.entries()) {
       units.sort((a, b) => b.remaining - a.remaining);
       const unit = units[0];
@@ -156,20 +206,31 @@ function postsFor(view: ViewState, reserve: boolean): Posts {
 
 async function saveCandidates(view: ViewState, act: Act): Promise<ViewState> {
   let current = view;
+  const centerHero =
+    current.calendar.season === 'winter'
+      ? (current.army.editor.heroes.find((h) => h.reason === null)?.heroId ?? null)
+      : null;
   for (const [index, name] of NAMES.entries()) {
     const posts = postsFor(current, index === 1);
+    const hasAnyPost = WINGS.some((w) => posts[w].front !== null || posts[w].back !== null);
+    if (!hasAnyPost) continue;
     const saved = current.army.formations.find((formation) => formation.name === name);
     if (saved === undefined && !current.army.editor.canSaveNew) continue;
-    const unchanged = saved?.posts.every((post) => {
-      const next = posts[post.wing][post.line];
-      return post.unit === (next?.unit ?? null) && post.count === (next?.count ?? 0);
-    });
+    const existingCenterHero = saved?.commanders.find((c) => c.wing === 'center')?.heroId ?? null;
+    const effectiveCenterHero = centerHero ?? existingCenterHero;
+    const unchanged =
+      saved !== undefined &&
+      existingCenterHero === effectiveCenterHero &&
+      saved.posts.every((post) => {
+        const next = posts[post.wing][post.line];
+        return post.unit === (next?.unit ?? null) && post.count === (next?.count ?? 0);
+      });
     if (!unchanged) {
       current = await act('saveFormation', {
         id: saved?.id ?? null,
         name,
         posts,
-        commanders: { left: null, center: null, right: null },
+        commanders: { left: null, center: effectiveCenterHero, right: null },
       });
     }
   }
@@ -185,9 +246,10 @@ export const respondPreparedSiege: Policy = {
   name: 'responder ao cerco preparado',
   run: async (view, act) => {
     if (!preparingSiege(view) || view.siege === null) return view;
-    // Sem soldados não há formação nova válida para salvar. A milícia ainda pode defender
+    // Sem soldados nem lote em treino não há formação nova válida para salvar. A milícia ainda pode defender
     // sozinha: a oferta pública já confere prazo, braços e posto, inclusive sem Defesa ativa.
-    if (view.army.total === 0) {
+    const totalWithTraining = view.army.total + (view.army.training?.amount ?? 0);
+    if (totalWithTraining === 0) {
       const offer = view.siege.militiaOffer;
       return offer.canCall && offer.maxCount > 0
         ? act('callMilitia', { count: offer.maxCount })

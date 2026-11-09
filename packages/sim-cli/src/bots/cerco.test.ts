@@ -6,8 +6,14 @@ import { readySiege } from '../../../engine/src/siege.test-helpers';
 import { HOUR } from '../../../engine/src/test-helpers';
 import { applySimCommand, type SimCommand } from '../engine';
 import { strategyPolicies } from './index';
-import { responderCerco, planejarAutomaticas } from './policies';
-import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
+import { responderCerco, planejarAutomaticas, erguerQuartel, montarFormacao } from './policies';
+import {
+  prepareSiege,
+  preparingSiege,
+  respondPreparedSiege,
+  trainForSiege,
+  treinarNoInverno,
+} from './siegePreparation';
 import type { Act } from './types';
 
 function scenario(initial = readySiege()) {
@@ -356,5 +362,265 @@ describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
     expect(prepared.every(({ shortfall }) => shortfall.length === 0)).toBe(true);
     expect(prepared[0]!.total).toBe(game.view().army.total);
     expect(game.refused).toEqual([]);
+  });
+
+  describe('preparação militar refinada do bot (Proposta 1)', () => {
+    it('preparingSiege ativa no verão, outono e inverno, e desativa na primavera', () => {
+      const state = readySiege();
+      const game = scenario(state);
+      const view = game.view();
+      view.calendar.season = 'summer';
+      expect(preparingSiege(view)).toBe(true);
+      view.calendar.season = 'autumn';
+      expect(preparingSiege(view)).toBe(true);
+      view.calendar.season = 'winter';
+      expect(preparingSiege(view)).toBe(true);
+      view.calendar.season = 'spring';
+      expect(preparingSiege(view)).toBe(false);
+    });
+
+    it('prepareSiege prioriza Salão até Nv4 no verão e infraestrutura mínima', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 60 * HOUR;
+      state.clock.gameTimeMs = 60 * HOUR;
+      state.settlement.buildings.townHall = 2;
+      state.settlement.buildings.barracks = 0;
+      state.settlement.buildings.palisade = 0;
+      state.settlement.buildings.watchtower = 0;
+      // Estoque farto para pagar qualquer obra
+      Object.assign(state.settlement.resources, { wood: 500_000, stone: 500_000, gold: 500_000 });
+      const game = scenario(state);
+      expect(game.view().calendar.season).toBe('summer');
+
+      await prepareSiege.run(game.view(), game.act);
+      // Deve iniciar townHall 2 -> 3 primeiro
+      expect(game.orders[0]).toEqual(
+        expect.objectContaining({ type: 'startConstruction', payload: { building: 'townHall' } }),
+      );
+    });
+
+    it('prepareSiege planeja o Quartel com autoStart quando bloqueado por GATE_LOCKED', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 60 * HOUR;
+      state.clock.gameTimeMs = 60 * HOUR;
+      state.settlement.buildings.townHall = 3;
+      state.settlement.buildings.barracks = 0;
+      state.settlement.planned = [];
+      const game = scenario(state);
+      const barracksUpgrade = game
+        .view()
+        .constructions.available.find((b) => b.building === 'barracks');
+      expect(barracksUpgrade?.blockedCode).toBe('GATE_LOCKED');
+
+      await prepareSiege.run(game.view(), game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'planConstruction',
+          payload: expect.objectContaining({ building: 'barracks', autoStart: true }),
+        }),
+      );
+      expect(game.refused).toEqual([]);
+    });
+
+    it('prepareSiege não sobe o Quartel além do nível 1 se houver >= 10 vagas livres', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 100 * HOUR;
+      state.clock.gameTimeMs = 100 * HOUR;
+      state.settlement.buildings.barracks = 1;
+      state.settlement.buildings.townHall = 4;
+      // 0 soldados -> 10 vagas livres no Quartel Nv1 (cap 10, total 0)
+      state.army.units = { spearman: 0, archer: 0, swordsman: 0, knight: 0, shieldbearer: 0 };
+      Object.assign(state.settlement.resources, { wood: 500_000, stone: 500_000, gold: 500_000 });
+      const game = scenario(state);
+      expect(game.view().army.cap - game.view().army.total).toBeGreaterThanOrEqual(10);
+
+      await prepareSiege.run(game.view(), game.act);
+      expect(
+        game.orders.some(
+          (o) =>
+            ['startConstruction', 'planConstruction'].includes(o.type) &&
+            'building' in o.payload &&
+            o.payload.building === 'barracks',
+        ),
+      ).toBe(false);
+    });
+
+    it('erguerQuartel planeja o Quartel com autoStart quando o Salão for Nv3+ e estiver bloqueado', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 60 * HOUR;
+      state.clock.gameTimeMs = 60 * HOUR;
+      state.settlement.buildings.townHall = 3;
+      state.settlement.buildings.barracks = 0;
+      state.settlement.population.villagers = 20;
+      state.settlement.planned = [];
+      const game = scenario(state);
+      const upgrade = game.view().constructions.available.find((b) => b.building === 'barracks')!;
+      expect(upgrade.blockedCode).toBe('GATE_LOCKED');
+
+      await erguerQuartel.run(game.view(), game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'planConstruction',
+          payload: expect.objectContaining({ building: 'barracks', autoStart: true }),
+        }),
+      );
+      expect(game.refused).toEqual([]);
+    });
+
+    it('montarFormacao considera o lote em treino ao montar e salvar a formação', async () => {
+      const state = readySiege();
+      state.army.units = { spearman: 0, archer: 0, swordsman: 0, knight: 0, shieldbearer: 0 };
+      state.army.formations = [];
+      state.army.activeFormationId = null;
+      state.army.training = {
+        unit: 'spearman',
+        amount: 8,
+        startedAtMs: 0,
+        endsAtMs: 3_600_000,
+      };
+      const game = scenario(state);
+      expect(game.view().army.total).toBe(0);
+      expect(game.view().army.training?.amount).toBe(8);
+
+      await montarFormacao.run(game.view(), game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'saveFormation',
+          payload: expect.objectContaining({
+            posts: expect.objectContaining({
+              center: expect.objectContaining({
+                front: { unit: 'spearman', count: 8 },
+              }),
+            }),
+          }),
+        }),
+      );
+      expect(game.refused).toEqual([]);
+    });
+
+    it('respondPreparedSiege nomeia herói ocioso como comandante central no inverno', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 150 * HOUR;
+      state.clock.gameTimeMs = 150 * HOUR;
+      state.guild.heroes = [
+        {
+          id: 'hero-1',
+          name: 'Gareth',
+          gender: 'm',
+          classId: 'warrior',
+          level: 1,
+          xp: 0,
+          traits: [],
+          status: 'idle',
+          injury: null,
+          captivity: null,
+          equipment: { weapon: null, armor: null, accessory: null },
+          discontent: false,
+          joinedAtMs: 0,
+          freedAtMs: null,
+        },
+      ];
+      state.army.formations[0]!.commanders = { left: null, center: null, right: null };
+      const game = scenario(state);
+      expect(game.view().calendar.season).toBe('winter');
+      expect(game.view().army.editor.heroes.find((h) => h.heroId === 'hero-1')?.reason).toBeNull();
+
+      await respondPreparedSiege.run(game.view(), game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'saveFormation',
+          payload: expect.objectContaining({
+            commanders: { left: null, center: 'hero-1', right: null },
+          }),
+        }),
+      );
+      expect(game.refused).toEqual([]);
+    });
+
+    it('respondPreparedSiege não nomeia comandante no outono', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 100 * HOUR;
+      state.clock.gameTimeMs = 100 * HOUR;
+      state.guild.heroes = [
+        {
+          id: 'hero-1',
+          name: 'Gareth',
+          gender: 'm',
+          classId: 'warrior',
+          level: 1,
+          xp: 0,
+          traits: [],
+          status: 'idle',
+          injury: null,
+          captivity: null,
+          equipment: { weapon: null, armor: null, accessory: null },
+          discontent: false,
+          joinedAtMs: 0,
+          freedAtMs: null,
+        },
+      ];
+      state.army.formations[0]!.commanders = { left: null, center: null, right: null };
+      const game = scenario(state);
+      expect(game.view().calendar.season).toBe('autumn');
+
+      await respondPreparedSiege.run(game.view(), game.act);
+      const saves = game.orders.filter((o) => o.type === 'saveFormation');
+      for (const save of saves) {
+        expect(save.payload.commanders.center).toBeNull();
+      }
+    });
+
+    it('siegeTrainingPolicy prioriza lanceiros enquanto houver menos de 12 ou menos que 2x arqueiros', async () => {
+      const state = readySiege();
+      state.army.units = { spearman: 2, archer: 2, swordsman: 0, knight: 0, shieldbearer: 0 };
+      state.settlement.population.villagers = 80;
+      const game = scenario(state);
+      const view = game.view();
+      view.resources.find(({ id }) => id === 'food')!.perHour = 100;
+
+      await trainForSiege.run(view, game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'trainSoldiers',
+          payload: expect.objectContaining({ unit: 'spearman' }),
+        }),
+      );
+    });
+
+    it('siegeTrainingPolicy treina arqueiros quando há lanceiros suficientes (>= 12 e >= 2x)', async () => {
+      const state = readySiege();
+      state.army.units = { spearman: 16, archer: 2, swordsman: 0, knight: 0, shieldbearer: 0 };
+      state.settlement.population.villagers = 80;
+      const game = scenario(state);
+      const view = game.view();
+      view.resources.find(({ id }) => id === 'food')!.perHour = 100;
+
+      await trainForSiege.run(view, game.act);
+      expect(game.orders).toContainEqual(
+        expect.objectContaining({
+          type: 'trainSoldiers',
+          payload: expect.objectContaining({ unit: 'archer' }),
+        }),
+      );
+    });
+
+    it('treinarNoInverno só executa o treino no inverno', async () => {
+      const state = readySiege();
+      state.lastProcessedAt = 100 * HOUR;
+      state.clock.gameTimeMs = 100 * HOUR;
+      const game = scenario(state);
+      await treinarNoInverno.run(game.view(), game.act);
+      expect(game.orders).toEqual([]);
+
+      state.lastProcessedAt = 150 * HOUR;
+      state.clock.gameTimeMs = 150 * HOUR;
+      state.army.units = { spearman: 2, archer: 2, swordsman: 0, knight: 0, shieldbearer: 0 };
+      state.settlement.population.villagers = 80;
+      const winterGame = scenario(state);
+      const view = winterGame.view();
+      view.resources.find(({ id }) => id === 'food')!.perHour = 100;
+      await treinarNoInverno.run(view, winterGame.act);
+      expect(winterGame.orders.some((o) => o.type === 'trainSoldiers')).toBe(true);
+    });
   });
 });
