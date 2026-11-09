@@ -740,3 +740,40 @@ describe('withRetry', () => {
     expect(attempts).toBe(1);
   });
 });
+
+describe('Crônica do Ano em Markdown', () => {
+  it('usa a rota anual autenticada e conserva o texto com suas quebras de linha', async () => {
+    const markdown = '# Ano 1\n\n## Feitos\n\n- O primeiro inverno\n';
+    const calls: string[] = [];
+    const client = createClient({
+      baseUrl: 'http://servidor',
+      clientVersion: 'teste',
+      tokenStore: memoryTokenStore(tokens),
+      fetch: async (input, init) => {
+        calls.push(String(input));
+        expect(new Headers(init?.headers).get('authorization')).toBe('Bearer jwt-velho');
+        return new Response(markdown, {
+          status: 200,
+          headers: { 'content-type': 'text/markdown' },
+        });
+      },
+    });
+    expect(await client.getYearChronicleMarkdown(gameId, 1)).toBe(markdown);
+    expect(calls).toEqual([`http://servidor/v1/games/${gameId}/years/1/chronicle.md`]);
+  });
+  it('renova a sessão na rota anual e propaga o 404 de um ano sem fecho', async () => {
+    const path = `/games/${gameId}/years/2/chronicle.md`;
+    const made = setup((call) =>
+      call.path === '/auth/refresh'
+        ? renewed
+        : call.headers.authorization === 'Bearer jwt-velho'
+          ? unauthorized
+          : { status: 404, body: { code: 'NOT_FOUND', message: 'Crônica do ano não encontrada.' } },
+    );
+    await expect(made.client.getYearChronicleMarkdown(gameId, 2)).rejects.toMatchObject({
+      status: 404,
+      code: 'NOT_FOUND',
+    });
+    expect(made.callsTo(path)).toHaveLength(2);
+  });
+});
