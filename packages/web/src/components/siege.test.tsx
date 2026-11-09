@@ -256,6 +256,9 @@ describe('o Plano, as ondas e o rescaldo', () => {
       expect(html).toContain('Ver as obras');
       expect(html).not.toContain('Salvar onda');
       expect(html).not.toContain('Trocar formação');
+      expect(html).not.toContain('Milícia');
+      expect(html).not.toContain('Convocar milícia');
+      expect(html).not.toContain('siege-militia');
       if (result === 'fall') expect(html).toContain('Não ocorreu');
     }
   });

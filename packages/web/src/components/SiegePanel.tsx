@@ -130,45 +130,47 @@ export function SiegePanel(props: {
           batalha. O plano vale também durante a sua ausência.
         </p>
       ) : null}
-      <div
-        class="siege-militia"
-        aria-labelledby="siege-militia-title"
-        aria-busy={props.busy.has('siege:militia')}
-      >
-        <h3 id="siege-militia-title">
-          <Icon name="organization" /> Milícia
-        </h3>
-        {siege.militiaOffer.termsText ? <p>{siege.militiaOffer.termsText}</p> : null}
-        <p class="muted" id="siege-militia-terms">
-          {siege.militiaOffer.activeCount
-            ? `${siege.militiaOffer.activeCount} ${siege.militiaOffer.activeCount === 1 ? 'aldeão convocado' : 'aldeões convocados'}.`
-            : siege.militiaOffer.maxCount > 0
-              ? `Até ${siege.militiaOffer.maxCount} ${siege.militiaOffer.maxCount === 1 ? 'aldeão disponível' : 'aldeões disponíveis'}.`
-              : null}{' '}
-          {siege.militiaOffer.blockedReason}
-          {siege.militiaOffer.untilInSeconds === null
-            ? null
-            : ` Embate em ${formatDuration(remainingNow(siege.militiaOffer.untilInSeconds, elapsed))}.`}
-        </p>
-        <button
-          type="button"
-          class="secondary"
-          aria-describedby="siege-militia-terms"
-          disabled={
-            props.disabled ||
-            props.busy.has('siege:militia') ||
-            !siege.militiaOffer.canCall ||
-            !siege.militiaOffer.termsText ||
-            siege.militiaOffer.targetId == null ||
-            siege.militiaOffer.untilInSeconds === null ||
-            remainingNow(siege.militiaOffer.untilInSeconds, elapsed) <= 0
-          }
-          onClick={() => actions.run('lords.callMilitia')}
+      {ended ? null : (
+        <div
+          class="siege-militia"
+          aria-labelledby="siege-militia-title"
+          aria-busy={props.busy.has('siege:militia')}
         >
-          <Icon name="organization" />{' '}
-          {props.busy.has('siege:militia') ? 'Convocando…' : 'Convocar milícia…'}
-        </button>
-      </div>
+          <h3 id="siege-militia-title">
+            <Icon name="organization" /> Milícia
+          </h3>
+          {siege.militiaOffer.termsText ? <p>{siege.militiaOffer.termsText}</p> : null}
+          <p class="muted" id="siege-militia-terms">
+            {siege.militiaOffer.activeCount
+              ? `${siege.militiaOffer.activeCount} ${siege.militiaOffer.activeCount === 1 ? 'aldeão convocado' : 'aldeões convocados'}.`
+              : siege.militiaOffer.maxCount > 0
+                ? `Até ${siege.militiaOffer.maxCount} ${siege.militiaOffer.maxCount === 1 ? 'aldeão disponível' : 'aldeões disponíveis'}.`
+                : null}{' '}
+            {siege.militiaOffer.blockedReason}
+            {siege.militiaOffer.untilInSeconds === null
+              ? null
+              : ` Embate em ${formatDuration(remainingNow(siege.militiaOffer.untilInSeconds, elapsed))}.`}
+          </p>
+          <button
+            type="button"
+            class="secondary"
+            aria-describedby="siege-militia-terms"
+            disabled={
+              props.disabled ||
+              props.busy.has('siege:militia') ||
+              !siege.militiaOffer.canCall ||
+              !siege.militiaOffer.termsText ||
+              siege.militiaOffer.targetId == null ||
+              siege.militiaOffer.untilInSeconds === null ||
+              remainingNow(siege.militiaOffer.untilInSeconds, elapsed) <= 0
+            }
+            onClick={() => actions.run('lords.callMilitia')}
+          >
+            <Icon name="organization" />{' '}
+            {props.busy.has('siege:militia') ? 'Convocando…' : 'Convocar milícia…'}
+          </button>
+        </div>
+      )}
       {planning ? (
         <p class="siege-countdown">
           <Icon name="watch" /> Primeira onda em{' '}

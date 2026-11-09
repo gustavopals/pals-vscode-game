@@ -2263,7 +2263,6 @@ table.ranking tr.ranking-mine td:first-child {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: auto;
 }
 
 .siege-wave-plan select {
