@@ -208,7 +208,10 @@ export function checkMilitiaCall(
       maxCount,
       warningMs,
       untilMs,
-      rejection: { code: 'INVALID_MILITIA_AMOUNT', message: siegeTexts.militiaAmount },
+      rejection: {
+        code: 'INVALID_MILITIA_AMOUNT',
+        message: maxCount === 0 ? siegeTexts.militiaUnavailable : siegeTexts.militiaAmount,
+      },
     };
   }
 

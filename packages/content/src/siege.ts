@@ -16,6 +16,7 @@ export const siegeTexts = {
   militiaTerms:
     'Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.',
   militiaAmount: 'Convoque até metade dos aldeões em condição de lutar.',
+  militiaUnavailable: 'Nenhum aldeão disponível para convocar a milícia.',
   militiaNoSlot: 'A formação que vai lutar não tem posto livre para a milícia.',
   aftermath: {
     summary: 'Ondas enfrentadas: {ondas}. Mortos no feudo: {mortos}.',

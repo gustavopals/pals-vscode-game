@@ -412,6 +412,22 @@ describe('a Queda no Retorno e os avisos essenciais', () => {
 });
 
 describe('complementos públicos do painel', () => {
+  it('concorda a disponibilidade e a convocação no singular e usa o bloqueio da visão com zero', () => {
+    const offer = planned.siege!.militiaOffer;
+    const render = (patch: Partial<typeof offer>) =>
+      panel({ ...planned, siege: { ...planned.siege, militiaOffer: { ...offer, ...patch } } });
+    expect(render({ maxCount: 1, activeCount: 0 })).toContain('Até 1 aldeão disponível.');
+    expect(render({ activeCount: 1 })).toContain('1 aldeão convocado.');
+    const empty = render({
+      maxCount: 0,
+      activeCount: 0,
+      canCall: false,
+      blockedReason: 'Sem aldeões aptos: aguarde a recuperação do feudo.',
+    });
+    expect(empty).toContain('Sem aldeões aptos: aguarde a recuperação do feudo.');
+    expect(empty).not.toContain('Até 0');
+    expect(empty).toMatch(/<button[^>]*aria-describedby="siege-militia-terms"[^>]*disabled/);
+  });
   it('mostra oferta, milícia ativa, bloqueio e conferência sem calcular braços', () => {
     const offer = {
       ...planned.siege!.militiaOffer,

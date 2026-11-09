@@ -7,6 +7,17 @@ import { YEAR } from './test-helpers';
 
 // Adições públicas sem gravação de estado nem sorteio na leitura.
 describe('complementos da visão do Cerco', () => {
+  it('explica a convocação bloqueada quando não há aldeões disponíveis', () => {
+    const state = readySiege();
+    state.settlement.population.villagers = 1;
+    const offer = deriveViewState(state, state.lastProcessedAt).siege!.militiaOffer;
+    expect(offer).toMatchObject({
+      maxCount: 0,
+      activeCount: 0,
+      canCall: false,
+      blockedReason: siegeTexts.militiaUnavailable,
+    });
+  });
   it('oferece termos, identidade do embate e quantidade ativa sem mutar a entrada', () => {
     const state = readySiege();
     const snapshot = JSON.stringify(state);

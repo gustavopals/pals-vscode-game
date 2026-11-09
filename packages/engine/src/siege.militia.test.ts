@@ -274,7 +274,7 @@ describe('V4G-T2.5 · Milícia (GDD §11.3; ADR 0020, decisão 21)', () => {
     const zeroAbleOffer = deriveViewState(injuredState, now).siege!.militiaOffer;
     expect(zeroAbleOffer.maxCount).toBe(0);
     expect(zeroAbleOffer.canCall).toBe(false);
-    expect(zeroAbleOffer.blockedReason).toBe(siegeTexts.militiaAmount);
+    expect(zeroAbleOffer.blockedReason).toBe(siegeTexts.militiaUnavailable);
     expect(zeroAbleOffer.blockedReason).toBe(
       callMilitia(injuredState, zeroAbleOffer.maxCount, now, [])?.message,
     );

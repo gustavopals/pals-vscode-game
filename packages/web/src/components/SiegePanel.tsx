@@ -142,7 +142,9 @@ export function SiegePanel(props: {
         <p class="muted" id="siege-militia-terms">
           {siege.militiaOffer.activeCount
             ? `${siege.militiaOffer.activeCount} ${siege.militiaOffer.activeCount === 1 ? 'aldeão convocado' : 'aldeões convocados'}.`
-            : `Até ${siege.militiaOffer.maxCount} aldeões disponíveis.`}{' '}
+            : siege.militiaOffer.maxCount > 0
+              ? `Até ${siege.militiaOffer.maxCount} ${siege.militiaOffer.maxCount === 1 ? 'aldeão disponível' : 'aldeões disponíveis'}.`
+              : null}{' '}
           {siege.militiaOffer.blockedReason}
           {siege.militiaOffer.untilInSeconds === null
             ? null
