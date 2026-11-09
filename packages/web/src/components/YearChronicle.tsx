@@ -21,7 +21,7 @@ export function YearChronicle(props: {
         </p>
       </div>
       <div class="year-chronicle-controls">
-        <label for="chronicle-year">Leitura</label>
+        <label for="chronicle-year">Ano</label>
         <select
           id="chronicle-year"
           value={props.selected ?? ''}

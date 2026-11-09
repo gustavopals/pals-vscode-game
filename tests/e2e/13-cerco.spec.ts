@@ -164,6 +164,7 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     expect(view.siege?.result).toBe('fall');
     await expect(returned.getByTestId('siege-aftermath')).toContainText('Queda');
     await expect(panel(returned)).toContainText('O feudo segue.');
+    await expect(panel(returned).getByRole('heading', { name: 'Milícia' })).toHaveCount(0);
     if (process.env.CAPTURE_DIR) {
       for (const theme of ['dark', 'light'] as const) {
         await applyTheme(returned, theme);
@@ -297,7 +298,7 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       await palette(page, 'Abrir a Crônica');
       await page.keyboard.press('Enter');
       const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
-      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('1');
+      await chronicle.getByLabel('Ano', { exact: true }).selectOption('1');
       await expect(chronicle.getByRole('heading', { level: 1 })).toHaveText(
         'Crônica do Ano 1 — Pedra Alta',
       );
@@ -327,12 +328,12 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
       ])
         expect(markdown).toContain(`## ${heading}`);
       expect(markdown).not.toContain('Crônica do Ano 2');
-      await expect(chronicle.getByLabel('Leitura', { exact: true }).locator('option')).toHaveText([
+      await expect(chronicle.getByLabel('Ano', { exact: true }).locator('option')).toHaveText([
         'Crônica completa',
         'Ano 1',
       ]);
       await capture(page, theme, 'cronica-ano', chronicle.locator('.year-chronicle'));
-      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('');
+      await chronicle.getByLabel('Ano', { exact: true }).selectOption('');
       await expect(
         chronicle.getByRole('button', { name: 'Baixar Crônica (Markdown)' }),
       ).toBeVisible();

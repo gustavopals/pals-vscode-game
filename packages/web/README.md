@@ -490,7 +490,8 @@ risco, baixas esperadas, aviso de névoa e desatualização da visão. A prévia
 continua separada da prévia do Cerco.
 
 **Rescaldo.** `siege.aftermath` acrescenta resumo de ondas/mortos, prazo real do rescaldo,
-texto/prazo do desconto no reparo e texto/prazo da Reconstrução. Esses prazos participam do
+texto/prazo do desconto no reparo e texto/prazo da Reconstrução; quando o Cerco tem resultado,
+o bloco da Milícia fica oculto. Esses prazos participam do
 ciclo de atualização. Os campos adicionais são opcionais no protocolo 4 para aceitar visões
 anteriores; sem termos/alvo públicos a convocação fica desabilitada.
 
@@ -501,7 +502,7 @@ sem atribuição inventada; os detalhes da Queda permanecem na Crônica/Retorno.
 
 ## Crônica do Ano (V4G-T4)
 
-A aba Crônica tem o seletor **Leitura**, com a Crônica completa e somente os anos encerrados
+A aba Crônica tem o seletor **Ano**, com a Crônica completa e somente os anos encerrados
 oferecidos em `calendar.completedYears`. O motor monta a lista; o cliente apenas a exibe no
 seletor e na paleta. Sem anos encerrados, explica a espera e desabilita o download anual;
 o download geral permanece disponível. A lista é opcional no protocolo 4 para aceitar visões

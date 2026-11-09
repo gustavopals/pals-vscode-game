@@ -61,7 +61,7 @@ describe('Crônica do Ano no app', () => {
         actions={{ run: () => {}, order: () => {}, playNow: () => {} }}
       />,
     );
-    expect(html).toContain('for="chronicle-year"');
+    expect(html).toContain('<label for="chronicle-year">Ano</label>');
     expect(html).toContain('Crônica completa');
     expect(html).toContain('value="1"');
     expect(html).not.toContain('value="2"');
