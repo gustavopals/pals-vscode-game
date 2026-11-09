@@ -93,4 +93,14 @@ describe('protocolo 4: o Cerco', () => {
       expect(CommandSchema.safeParse({ commandId, ...command }).success).toBe(false);
     }
   });
+
+  it('aceita a visão anterior às adições de milícia e rescaldo no mesmo protocolo', () => {
+    const state = readySiege();
+    const view = deriveViewState(state, state.lastProcessedAt);
+    delete view.siege!.militiaOffer.targetId;
+    delete view.siege!.militiaOffer.termsText;
+    delete view.siege!.militiaOffer.activeCount;
+    delete view.siege!.aftermath;
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+  });
 });
