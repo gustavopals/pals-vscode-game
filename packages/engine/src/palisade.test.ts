@@ -426,13 +426,7 @@ describe('a Paliçada e a ordem do mesmo instante', () => {
   it('a obra que termina no instante da incursão já vale nele: o nível subiu antes da virada do dia', () => {
     const { state, events } = advanceTo(racing(arrival), arrival);
     const types = events.map((event) => event.type);
-    expect(types).toEqual([
-      'raidAnnounced',
-      'buildingFounded',
-      'dayStarted',
-      'battleFought',
-      'raidRepelled',
-    ]);
+    expect(types).toEqual(['raidAnnounced', 'buildingFounded', 'dayStarted', 'raidRepelled']);
     expect(palisadeLevel(state)).toBe(1);
     expect(palisadeAgainst(palisadeLevel(state), 'light')).toEqual({ kind: 'held' });
     expect(view(state).defense.palisadeLevel).toBe(1);
@@ -459,7 +453,6 @@ describe('a Paliçada e a ordem do mesmo instante', () => {
       'raidAnnounced',
       'constructionFinished',
       'dayStarted',
-      'battleFought',
       'raidRepelled',
     ]);
     expect(palisadeAgainst(palisadeLevel(state), 'medium')).toEqual({ kind: 'held' });

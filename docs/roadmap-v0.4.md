@@ -1114,6 +1114,7 @@ Como V4B-T5, mais a revisão editorial carta a carta (como a dos 18 grafos na v0
 **GDD:** §15.2, §15.3, §16.2 (critério 6). **Depende de:** Fase H. **Decisões:** 25.
 **Entregáveis:** `packages/sim-cli/src/bands.ts`, `balance.test.ts`, `matrix.ts`; `docs/balance-v0.4.md`, seção 9; `docs/pendencias-v0.4.md`.
 
+- [x] V4I-T1.R1 Aplicar a resposta do autor de 2026-11-09: Paliçada que segura resolve sem batalha, sem baixas/aprendizado/relatório; objetivos, estatísticas, Crônica, milícia e Cerco coerentes. Testes focados nos três ritmos e golden alterado lido.
 - [ ] V4I-T1.1 A matriz inteira; a faixa do Regular **como meta**, não como medida com folga (é o critério 6); o que não cabe volta ao autor com propostas de número.
 - [ ] V4I-T1.2 O ouro por fonte e por destino no fim da versão contra a linha de base de V4A-T1 (§13): o número que a v0.4 promete baixar.
 - [ ] V4I-T1.3 `--perf` com cerco, `--remote` com 50 bots, tamanho do estado e da visão no pior caso.
@@ -1428,7 +1429,7 @@ Preencher ao fechar cada tarefa: tarefa, data, commit, sessões, o que foi feito
 | V4H-T4 | 2026-11-04 | `af0d409`, `11eb477`, `77ab401` e o desta linha | duas sessões (subagentes Gemini) | Integração da tela do Cerco (V4G-T4) à terceira junção. Relatório de Retorno (`game/returnReport.ts`) com forja, treino, batalhas (com fatores da visão e nome da onda), cerco, presságios, sabotagem e fechamento anual (`yearEnded`) nos três blocos sem duplicar batalhas nem reconstruir relatórios arquivados. "Antes de partir" (`game/beforeLeaving.ts`) com a ordem escrita e testada da guerra (decisão do cerco, incursão, Plano padrão, muralha, Ameaça, Defesa ativa, forja com `blockedReason`; pendências F-6 e H-7). `yearEnded` categorizado em `notifications/policy.ts` e rota para a Crônica no `controller.ts`. Cenário em navegador V4H-T4.2 (`tests/e2e/03-retorno-e-conexao.spec.ts`) para reabertura após 4 h com cerco, batalha e forja, nos três temas e em 720 px. README do app atualizado. 2.192 testes de unidade em 65 arquivos de `packages/web` verdes, typecheck e lint código 0 | Cenários Playwright não executados (ficam para o coordenador). Sem suítes de integração com banco, matriz do simulador, verify global, build de imagens ou git push |
 | V4H-T5 | | | | | |
 | V4H (integração) | | | | | |
-| V4I-T1 | | | | | |
+| V4I-T1 (R1) | 2026-11-09 | Resposta do autor: Paliçada resolve `held` antes da batalha; sem baixas, dano, relatório, aprendizado ou XP indevida; milícia dissolvida; Cerco preservado. Estado 42/protocolo 4. | 338 testes focados em 12 arquivos do motor e typecheck do motor, saída 0. Golden semanal regravado com `UPDATE_GOLDEN=1` só no teste afetado e diff inteiro lido: seis batalhas removidas, contagem anual 10 → 4; sem alteração dos recursos ou sorteios do cenário. | Sem matriz, verify, integração, e2e, banco, publicação ou sim-cli; portão pelo coordenador. R2 segue na mesma tarefa. | ADR 0019, Respostas de 2026-11-09. |
 | V4I-T2 | | | | | |
 | V4I-T3 | | | | | |
 | V4I-T4 | | | | | |

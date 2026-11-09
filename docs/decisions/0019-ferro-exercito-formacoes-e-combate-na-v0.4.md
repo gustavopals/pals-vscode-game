@@ -81,3 +81,7 @@ Antes do motor de batalha (V4D-T1.3), o autor fechou as quatro leituras dos sete
 3. **O arqueiro da Horda mira a Retaguarda por cima da Frente** (o Escudeiro a protege); os outros atacam a Frente e passam à Retaguarda quando ela cai.
 4. **A aura do Senhor da Guerra vale também para ele**; o Lobo ataca a ala lateral do mesmo lado e, se ela caiu, flanqueia.
 
+
+## Respostas de 2026-11-09
+
+**R1 — Paliçada segura, sem batalha (decisão 14; V4I-T1).** O autor determinou que a incursão resolvida só pela Paliçada não põe a Defesa ativa em combate. A condição é a regra existente por nível (`palisadeAgainst`, sem consultar HP): Nv1 segura leves; Nv2 a Nv6 seguram leves, médias e fortes (`legacySize`, confirmação da D-35). Não se cria batalha, relatório ou observação da formação; não há baixas, dano à muralha, ferimento, experiência ou desgaste. O ensaio repelido assim não registra postos que não lutaram para o Feito da Finta. Ameaça e estatística de incursão repelida continuam; a Crônica usa a frase de recuo diante da Paliçada. O objetivo pode concluir, mas não premia comandantes de relatórios anteriores; o marcador existente recebe zero para ausência de batalha. A milícia convocada se dissolve sem baixas. Ondas do Cerco continuam sempre em batalha. Estado 42 e protocolo 4 preservados, sem migração.

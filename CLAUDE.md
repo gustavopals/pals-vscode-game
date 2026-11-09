@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **V4I-T1, R1 em 2026-11-09:** a Paliçada que segura por nível resolve a incursão sem batalha. Nv1 segura leves; Nv2+ seguram também médias e fortes. A Defesa ativa não sofre baixas, a Horda não aprende uma formação que não lutou e não há relatório ou dano à muralha. O Cerco sempre luta. Estado 42, protocolo 4; resposta no ADR 0019.
+
 > **Revisão independente F/G em 2026-11-09 (`v4-revisao-fg`, base `879f0cc`): estado 42, protocolo 4.**
 > A equipe em sabotagem retorna no instante em que o Cerco remove a Fortaleza;
 > a guarda v40 aceita milícia nos relatórios defensivos, preservando a guarda v39;
