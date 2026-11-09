@@ -208,6 +208,9 @@ export function processEventsAt(
   // desta virada: estava fora) e depois das incursões e da Taverna, que não dependem delas.
   // Antes das planejadas, dos objetivos e da conta do ouro: o saque que entra agora já paga a
   // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
+  // O Cerco pode remover a Fortaleza neste instante: a equipe sem caminho volta antes
+  // de resolver outro nó, também quando o avanço atravessa o Cerco em uma única chamada.
+  recallStranded(draft, atMs, events);
   settleExpeditions(draft, atMs, events);
   // O exército chega e volta após as expedições; a incursão deste instante já foi resolvida.
   settleCampaign(draft, atMs, events);

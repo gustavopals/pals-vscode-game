@@ -869,7 +869,9 @@ outono, com Fortaleza ativa e até três tentativas por ano. Os contadores ficam
 `horde.sabotages` e zeram no ano novo. Sucessos enfraquecem a onda marcada, até 45%;
 o Xamã revela a terceira onda, e o Desastre alerta a primeira. A captura ou morte
 segue a dificuldade. A dificuldade cresce por tentativa; a Fortaleza que some
-faz a equipe voltar pela fronteira. As ofertas, recusas e notas dos relatórios
+faz a equipe que ainda não iniciou o retorno voltar no mesmo instante, antes de
+resolver outro nó, inclusive no avanço que atravessa o Cerco inteiro. A fronteira
+também recolhe equipes cujo destino já sumiu. As ofertas, recusas e notas dos relatórios
 chegam ao app pela visão. O passo 37 → 38 apenas acrescenta contadores zerados.
 A duração conservada do grafo está na pendência F-1; as ondas do Cerco são
 agendadas e resolvidas pela V4G-T2, descrita abaixo.

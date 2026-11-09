@@ -659,8 +659,10 @@ Cada Sucesso reduz a onda correspondente em 15%, até 45%; o Xamã revela a terc
 o Desastre alerta a primeira, uma vez. Redução/alerta repartem o total em inteiros
 com restos determinísticos, preservam postos fixos e sobrevivem à regeneração.
 Presságios afetados saem do painel; linhas históricas não são reescritas.
-`horde.sabotages` zera no ano novo. Se a Fortaleza some, a equipe retorna pela
-fronteira. `sabotage.test.ts` e `hordeSabotage.test.ts` provam essas regras;
+`horde.sabotages` zera no ano novo. Se a Fortaleza some, a equipe que ainda não
+iniciou o retorno volta no mesmo instante, antes de resolver outro nó; a acomodação
+também recolhe equipes já sem destino na fronteira. `sabotage.test.ts`,
+`sabotage.siege.test.ts` e `hordeSabotage.test.ts` provam essas regras;
 a aba Guilda mostra tentativas, ondas enfraquecidas e alerta pelo `ViewState`.
 
 ## 19j. Cerco, Plano, milícia e rescaldo
