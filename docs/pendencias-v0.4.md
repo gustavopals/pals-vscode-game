@@ -2,6 +2,10 @@
 
 > **Para ler primeiro.** A v0.3.0 está no ar desde 2026-10-15 (estado 24, protocolo 3). Em 2026-10-16 o autor respondeu, uma a uma, às decisões do lote 1 da v0.4 e à herança da v0.3: todas com a premissa recomendada ([ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)). Este arquivo é a caixa de entrada do autor durante a v0.4, no molde de [pendencias-v0.3.md](pendencias-v0.3.md). Cada item diz o que vale enquanto não houver resposta.
 
+## Resposta do autor de 2026-11-09
+
+1. **Catálogo da v0.4 fechado em 59 cartas (V4H-T1 / V4H-T2):** a v0.4 fecha com **59 cartas** no catálogo (`22` da base anterior + `22` aprovadas do lote 2 + `15` aprovadas do lote 3). A 60ª ficha prevista inicialmente no planejamento seria `"O aprendiz e o Mestre"` (`masterApprentice`, §4.5 de [content-v0.4.md](content-v0.4.md)), proibida pelo autor desde 2026-10-23; não entra carta substituta na v0.4, e a definição de "pronto" da versão passa a cobrar as **59 cartas** com ficha.
+
 ## Respostas do autor de 2026-11-04
 
 1. **H-12 (Lobo Branco), "Só com a fera vencida":** a carta `forestReturns` ([content-v0.4.md](content-v0.4.md), §7.1), na variante da caçada (`whiteWolf.hunt`), só chega se a expedição `whiteWolfHunt` voltou tendo **vencido o nó da fera** (`whiteWolf` com Sucesso ou Sucesso Pleno). Na volta da caçada vencedora, o motor grava `whiteWolf.slain`; a carta agendada pela opção `hunt` exige essa flag (`ifFlags: ['whiteWolf.slain']`) e, se a janela de seis dias fechar sem abate (e sem equipe `whiteWolfHunt` ainda na estrada), a carta agendada é **cancelada** e a flag `whiteWolf.hunt` é limpa (escolha mais simples e conservadora). **A expedição deixa de pagar a pele:** o nó `whiteWolf` em `packages/content/src/missions/whiteWolfHunt.ts` não paga mais o ouro e a comida da pele (só a carta `forestReturns` paga, um pagamento só), e as frases do nó deixam de anunciar a pele como saque da expedição. Os textos das cartas aprovados não mudam.

@@ -52,8 +52,8 @@ para regravá-lo sem `UPDATE_GOLDEN=1` e leitura do diff.
   (G-23); somente acrescentar campos derivados não recupera dados ausentes do estado.
   Milícia/Markdown anual em navegador estão escritos nos três temas/720 px, sem execução;
   as verificações focadas e seus limites estão no Registro V4G-T4 do roadmap.
-- **59 cartas não são o alvo de 60** do roadmap. Cobertura dirigida de cadeias
-  não demonstra que todas saem espontaneamente em 50 sementes. Conteúdo não lido
+- **Decisão do autor de 2026-11-09: a v0.4 fecha com 59 cartas** (a 60ª prevista inicialmente seria `"O aprendiz e o Mestre"`, proibida pelo autor). Cobertura dirigida de cadeias
+  não demonstra que todas saem espontaneamente em 50 sementes (em `coverage.test.ts`, o perfil Regular abre espontaneamente 47 das 59 cartas no ano do ritmo Normal; as 12 restantes exigem promessa, hostilidade, Covil limpo, dois heróis livres, herói ferido, Ferreiro no verão ou rescaldo, cobertas nos testes de contrato do motor). Conteúdo não lido
   e perguntas de regra continuam em [content-v0.4.md](content-v0.4.md) e
   [pendencias-v0.4.md](pendencias-v0.4.md).
 - O critério de **65–80% de Vitória do Regular não está provado**: `MEASURED`

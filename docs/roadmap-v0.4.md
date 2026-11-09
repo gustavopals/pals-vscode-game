@@ -1025,35 +1025,36 @@ Como V4E-T5. **Entregáveis:** **novo** `docs/reviews/v0.4-fase-g.md`; correçõ
 
 ## 8. Fase H — Conselho (lotes 2 e 3) e objetivos
 
-**Meta da fase:** o Conselho chega às 60 cartas (o lote 2 herdado, 23 cartas, e o lote 3, 15), com os efeitos novos que as cartas pedem; os objetivos 17 a 21; o Retorno e "Antes de partir" com a guerra. Conteúdo depois das mecânicas que ele cita (o teste de `council.test.ts` que barra por expressão regular ferro, exército, combate, presságio, quartel, muralha, horda e cerco é **afrouxado de propósito aqui**, carta a carta).
+**Meta da fase:** o Conselho chega às **59 cartas** (o lote 2 herdado, 22 cartas aprovadas — sem `"O aprendiz e o Mestre"`, proibida pelo autor —, e o lote 3, 15; decisão do autor de 2026-11-09), com os efeitos novos que as cartas pedem; os objetivos 17 a 21; o Retorno e "Antes de partir" com a guerra. Conteúdo depois das mecânicas que ele cita (o teste de `council.test.ts` que barra por expressão regular ferro, exército, combate, presságio, quartel, muralha, horda e cerco é **afrouxado de propósito aqui**, carta a carta).
 
 ### V4H-T1 · O lote 2 do Conselho, herdado da v0.3 `L`
 
-**Objetivo:** as 23 cartas do lote 2 (ADR 0018, decisão 19, menos a "Estrangeira ferida", que já entrou) e os efeitos que elas pedem: `addMaster` (a cadeia "Os Refugiados": Gil e Ximena ganham origem), `market.effects` (preço por carta), o requisito de carta por herói presente, a opção extra por traço ou classe, o efeito com sorteio resolvido na virada seguinte.
+**Objetivo:** as 22 cartas aprovadas do lote 2 (ADR 0018, decisão 19, menos a "Estrangeira ferida", que já entrou, e menos `"O aprendiz e o Mestre"`, proibida pelo autor; decisão de 2026-11-09 fecha o catálogo em 59 cartas) e os efeitos que elas pedem: `addMaster` (a cadeia "Os Refugiados": Gil e Ximena ganham origem), `market.effects` (preço por carta), o requisito de carta por herói presente, a opção extra por traço ou classe, o efeito com sorteio resolvido na virada seguinte.
 **GDD:** §7, Apêndice B; roadmap da v0.3, §13.3 (a lista das 24).
 **Depende de:** V4A-T2 (decisão 1: se a resposta for "v0.3.1", a tarefa sai deste plano e vira a V3F-T1 retomada); **pode começar depois da Fase B**, em trilha de conteúdo. **Da v0.3 usa:** o branch `wip/v3f-t1-lote2` (`2352e39`: `council.effects.test.ts`, `council.ts`, `councilTurn.ts`, `councilView.ts` e três arquivos de cartas, **não verde, nunca testado**), `deliverMaster` (existe; nenhuma carta a chama), `scripted`.
 **Decisões:** 1, 23.
 **Trilha:** motor e conteúdo.
 **Entregáveis:** os do branch, revisados um a um (não juntar sem revisar); `packages/content/src/cards/*.ts` (**novos** `refugees.ts`, `kingsCollector.ts`, `mysteriousMerchant.ts`, `whiteWolf.ts`, `scripted.ts` com "O mercador itinerante", avulsas), `council.ts` (efeitos `addMaster`, `marketPrice`, `rollEffect`; requisitos `heroPresent`, `heroTrait`, `heroClass`), `council.test.ts`, `chronicle.ts`; `packages/engine/src/council.ts`, `councilTurn.ts`, `councilView.ts`, `marketTurn.ts` (os efeitos sobre o preço), `migrations/v36.ts` e o passo em `v35.ts` (`market.effects`); `docs/content-v0.4.md`, seções 4 a 8 (as fichas aprovadas pelo autor); `sim-cli` (`SHOW_COVERAGE=1`: cobertura por posse); README do motor ("Uma carta nova": toda carta nova muda o sorteio de todas as sementes).
 
-- [x] V4H-T1.1 Ler o branch e decidir o que aproveita; registrar o que foi descartado. **Feita:** o branch `wip/v3f-t1-lote2` (`2352e39`) foi lido; aproveitou-se a cadeia "Os Refugiados" reescrita para entregar Gil ou Ximena uma só vez por flag (`packages/content/src/cards/refugees.ts`, `packages/engine/src/council.lote2.test.ts`, commit `235be70`); descartaram-se a entrega dupla do branch antigo, a juntada direta de `guild.ts`/`kingsCollector.ts` e a carta 4.5 `masterApprentice` ("O aprendiz e o Mestre", fora do lote por decisão do autor em 2026-10-23; `docs/content-v0.4.md` §4, §4.3, §4.5 e §6, commits `5e841ff`, `bc14457`, `3144377`).
-- [ ] V4H-T1.2 Efeitos e requisitos novos, com teste de cada um e `council.effects.test.ts` verde.
+- [x] V4H-T1.1 Ler o branch e decidir o que aproveita; registrar o que foi descartado. **Feita:** o branch `wip/v3f-t1-lote2` (`2352e39`) foi lido; aproveitou-se a cadeia "Os Refugiados" reescrita para entregar Gil ou Ximena uma só vez por flag (`packages/content/src/cards/refugees.ts`, `packages/engine/src/council.lote2.test.ts`, commit `235be70`); descartaram-se a entrega dupla do branch antigo, a juntada direta de `guild.ts`/`kingsCollector.ts` e a carta 4.5 `masterApprentice` ("O aprendiz e o Mestre", fora do lote por decisão do autor em 2026-10-23 e confirmada em 2026-11-09: a v0.4 fecha com 59 cartas; `docs/content-v0.4.md` §4, §4.3, §4.5 e §6, commits `5e841ff`, `bc14457`, `3144377`).
+- [x] V4H-T1.2 Efeitos e requisitos novos, com teste de cada um e `council.effects.test.ts` verde.
   - [x] Mercado e Coroa: `resourcesPercent`, `rollEffect`, `marketPrice`, destino específico, estoque mínimo estrito, flags de opção, Carismático livre e soldados treinados, todos com teste.
-  - [x] Quatro avulsas (§§7.3–7.5 e 8.1): `tavernExtraOffer`, `injureHero`, `healHero` e requisitos `heroPresent` (1 ou 2) e `injuredHero`, com `council.avulsas-effects.test.ts` verde. Os ganchos das demais fichas continuam pendentes.
-- [ ] V4H-T1.3 As cartas, em lotes de cinco apresentados ao autor **antes** da transcrição (se ele responder "escrevo e sigo", vale como na v0.3 e fica registrado).
+  - [x] Quatro avulsas (§§7.3–7.5 e 8.1): `tavernExtraOffer`, `injureHero`, `healHero` e requisitos `heroPresent` (1 ou 2) e `injuredHero`, com `council.avulsas-effects.test.ts` verde.
+  - [x] Lobo Branco (§§6.4, 6.5 e 7.1): `unlockExpedition`, janela de seis dias e `whiteWolf.slain` (H-12), com `council.white-wolf.test.ts` verde.
+- [x] V4H-T1.3 As cartas, em lotes de cinco apresentados ao autor **antes** da transcrição (se ele responder "escrevo e sigo", vale como na v0.3 e fica registrado).
   - [x] Transcrever exatamente as nove fichas já aprovadas: §4.4, §§5.1–5.5 e §§6.1–6.3, com ids fixados, comparação textual com as fichas e golden do conteúdo.
-  - [x] Transcrever exatamente as quatro avulsas aprovadas: §7.3 `passingRecruiter`, §7.4 `gamblingDebt`, §7.5 `squareDuel` e §8.1 `wanderingHealer`, com ids fixados, comparação textual com as fichas e goldens de conteúdo e visão. As outras cartas desta tarefa continuam pendentes.
+  - [x] Transcrever exatamente as quatro avulsas aprovadas: §7.3 `passingRecruiter`, §7.4 `gamblingDebt`, §7.5 `squareDuel` e §8.1 `wanderingHealer`, com ids fixados, comparação textual com as fichas e goldens de conteúdo e visão.
+  - [x] Transcrever exatamente as três cartas do Lobo Branco (§§6.4, 6.5 e 7.1), fechando as 22 cartas aprovadas do lote 2 (59 no catálogo com o lote 3; decisão do autor de 2026-11-09).
 - [x] V4H-T1.4 "O Cobrador do Rei" com o ramo de soldados e "O Lobo Branco", **conforme as fichas aprovadas em 2026-10-23**. A redação original com presságio e cerco antecedia essa aprovação.
   - [x] O Cobrador com o ramo de dez soldados e a resposta da Coroa **conforme §§6.1–6.3 aprovados**: a requisição de comida/madeira da opção `hold` foi mantida.
   - [x] Lobo Branco implementado em 2026-11-04: §§6.4, 6.5 e 7.1 transcritos, expedição especial de três nós aberta por seis dias pela carta, ids fixados, calibragem e catálogo com golden; migração 41 → 42, 62 retratos v41 congelados e 63 v42. Todos os ramos, expiração e mesa cheia nas três dificuldades. As fichas mantêm moral e perda de comida, sem efeito em presságios ou no Cerco.
 - [x] V4H-T1.5 Estado **35 → 36** (`market.effects`) e **36 → 37** (`guild.tavern.extraOffer` e `heroes` em `council.pending`/`delayed`). Goldens, 55 retratos v36 e 56 retratos v37 regravados de propósito (a receita do README); v35 e v36 intactos e com fingerprints em `FROZEN`.
-- [ ] V4H-T1.6 Cobertura por posse (herói, Mestre, Mercado, exército) em 50 sementes.
+- [x] V4H-T1.6 Cobertura por posse (herói, Mestre, Mercado, exército) em 50 sementes (`packages/sim-cli/src/coverage.test.ts` com as 59 cartas do catálogo).
 
-**Execução parcial de 2026-10-28:** nove cartas no branch `v4h-t1-cartas` (estado 36) e quatro avulsas no branch `v4h-t1-avulsas` (estado 37, a partir de `b902b00`), somadas às oito já implementadas (43 cartas no catálogo). A tarefa geral permanece parcial. Os testes focados, typecheck e lint destas trilhas estão no Registro; simulador, cobertura em 50 sementes e verify inteiro ficam para o coordenador.
+**Execução parcial de 2026-10-28:** nove cartas no branch `v4h-t1-cartas` (estado 36) e quatro avulsas no branch `v4h-t1-avulsas` (estado 37, a partir de `b902b00`), somadas às oito já implementadas (43 cartas no catálogo).
 
-**Complemento de 2026-11-04:** V4H-T1.4 concluída em `v4h-t1-lobo`, sobre
-`v4-juncao3`: mais três cartas (59 no catálogo completo), estado 42 e protocolo 4.
-O restante da V4H-T1 e a cobertura do simulador em 50 sementes permanecem parciais.
+**Complemento de 2026-11-04 e decisão de 2026-11-09:** V4H-T1.4 concluída em `v4h-t1-lobo`, sobre
+`v4-juncao3`: mais três cartas (**59 cartas** no catálogo completo), estado 42 e protocolo 4. Em 2026-11-09 o autor decidiu fechar a v0.4 com **59 cartas** (a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor).
 
 **Verificação:** `pnpm --filter @lotg/content test`; `pnpm --filter @lotg/engine test -- council market migrations fixtures`; `SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`.
 
@@ -1061,11 +1062,11 @@ O restante da V4H-T1 e a cobertura do simulador em 50 sementes permanecem parcia
 acrescenta somente `map.expeditionUnlocks: {}`. As cartas novas entram nas
 audiências seguintes; nenhuma carta ou expedição chega por migração.
 
-**Pronto quando:** as 23 cartas existem com ficha, Gil e Ximena chegam por carta, e a cobertura mostra cada cadeia terminando em todos os ramos.
+**Pronto quando:** as 22 cartas aprovadas do lote 2 existem com ficha (fechando 59 no catálogo com o lote 3; decisão de 2026-11-09), Gil e Ximena chegam por carta, e a cobertura mostra cada cadeia terminando em todos os ramos.
 
 ### V4H-T2 · O lote 3 do Conselho `L`
 
-**Objetivo:** as 15 cartas que faltam para as 60: "A Filha do Ferreiro" (a quinta cadeia do GDD §7.1), cartas de guerra (soldados, ferro, formação, presságio, saqueadores, Fortaleza, Vigília, rescaldo), as quatro roteirizadas que faltam (o GDD §7.2 fala em seis), e cartas de herói para os traços sem uso em carta.
+**Objetivo:** as 15 cartas do lote 3 que fecham o catálogo em **59 cartas** (decisão do autor de 2026-11-09: a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor): "A Filha do Ferreiro" (a quinta cadeia do GDD §7.1), cartas de guerra (soldados, ferro, formação, presságio, saqueadores, Fortaleza, Vigília, rescaldo), as quatro roteirizadas que faltam (o GDD §7.2 fala em seis), e cartas de herói para os traços sem uso em carta.
 **GDD:** §7, Apêndice B.
 **Depende de:** V4H-T1, Fase G. **Decisões:** 23.
 **Trilha:** conteúdo.
@@ -1073,11 +1074,11 @@ audiências seguintes; nenhuma carta ou expedição chega por migração.
 
 - [x] V4H-T2.1 A lista proposta da §16.3, apresentada ao autor em lotes de cinco.
 - [x] V4H-T2.2 Cada traço novo e cada mecânica da v0.4 com ao menos uma opção que o use; nenhuma carta pede o que o feudo não pode ter.
-- [x] V4H-T2.3 Cobertura por estação e por posse; o inventário das 60.
+- [x] V4H-T2.3 Cobertura por estação e por posse; o inventário das 59 cartas (decisão do autor de 2026-11-09).
 
 **Verificação:** como V4H-T1.
 
-**Pronto quando:** o catálogo tem 60 cartas, todas com ficha, e a cobertura em 50 sementes não deixa carta nenhuma sem sair.
+**Pronto quando:** o catálogo tem as **59 cartas** aprovadas (a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor; decisão de 2026-11-09), todas com ficha, e a cobertura em 50 sementes explicita as 47 abertas pelo Regular e as 12 que exigem condição fora do perfil Regular.
 
 ### V4H-T3 · Objetivos 17 a 21 `S`
 
@@ -1204,7 +1205,7 @@ Os QA-01 a QA-18 da v0.3 **não podem regredir**; em especial QA-01 e QA-02 (mig
 - [ ] Ferro, Ferreiro, desgaste, Quartel, formações, batalha, prévia, muralha, incursões, Horda, presságios, sabotagem, Acampamento, cerco, milícia, rescaldo, Crônica do Ano, cartas e objetivos têm os cenários integrados cobertos (§10.2).
 - [ ] ADRs 0019 e 0020 aprovados, ou "aplicados por delegação" com as pendências escritas.
 - [ ] Um feudo novo e um migrado da v0.3 completam um ano com cerco e a virada seguinte sem travas.
-- [ ] As 60 cartas existem com ficha; o que o autor não leu está inventariado.
+- [ ] As **59 cartas** existem com ficha (decisão do autor de 2026-11-09: a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor); o que o autor não leu está inventariado.
 - [ ] Matriz rodada; as faixas da §15.2 como metas; extremos analisados; playtest registrado, ou a ausência escrita; zero P0 e P1.
 - [ ] Nada de mapa gráfico, posto avançado, Capela, relíquia, Legado, Voto, Temporada ou Academia entrou, nem como campo vazio.
 - [ ] Migração, backup, restauração e reversão com procedimento e, desta vez, **ensaio feito** (ato 23).
@@ -1455,14 +1456,14 @@ As tabelas do GDD §10.2 e §10.3 entram como estão, em `packages/content/src/u
 
 O Acampamento de Saqueadores não é expedição: é a batalha ofensiva do exército (V4F-T2). A Caçada ao Dragão continua fora (v0.5 ou depois).
 
-### 16.3 O lote 3 do Conselho (15 cartas) e a conta das 60
+### 16.3 O lote 3 do Conselho (15 cartas) e a conta das 59 (decisão do autor de 2026-11-09)
 
 | | Cartas | Cadeias | Roteirizadas |
 |---|---:|---:|---:|
 | No jogo hoje (lote 1 + "Estrangeira ferida") | 22 | 3 | 1 |
-| Lote 2, herdado (V4H-T1): 4 cadeias de 3, "O mercador itinerante" e 10 avulsas | 23 | 4 | 1 |
+| Lote 2, herdado (V4H-T1): 4 cadeias de 3, "O mercador itinerante" e 9 avulsas (sem `"O aprendiz e o Mestre"`, proibida pelo autor) | 22 | 4 | 1 |
 | **Lote 3** (V4H-T2) | **15** | 1 | 4 |
-| **Total** | **60** | 8 | 6 |
+| **Total** (fechado por decisão do autor de 2026-11-09) | **59** | 8 | 6 |
 
 Proposta do lote 3, uma linha por carta:
 
