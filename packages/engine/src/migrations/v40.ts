@@ -21,6 +21,41 @@ import { stateV39 } from './v39';
 
 const object = (value: unknown): value is StoredState =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
+
+/**
+ * A milícia estreia na v40, somente na Frente defensora. Projeta apenas esses
+ * postos para a guarda herdada: formas, inteiros, ids e limites continuam sendo
+ * conferidos pela v39, sem mudar sua aceitação histórica nem o relatório gravado.
+ */
+function reportForV39(value: unknown): unknown {
+  if (!object(value) || value.mode !== 'defense') return value;
+  const militiaPost = (post: unknown, position: unknown) =>
+    object(post) &&
+    post.unit === 'militia' &&
+    object(position) &&
+    position.owner === 'player' &&
+    position.line === 'front'
+      ? { ...post, unit: 'spearman' }
+      : post;
+  return {
+    ...value,
+    casualties: Array.isArray(value.casualties)
+      ? value.casualties.map((post) => militiaPost(post, post))
+      : value.casualties,
+    log: Array.isArray(value.log)
+      ? value.log.map((round: unknown) =>
+          object(round) && Array.isArray(round.attacks)
+            ? {
+                ...round,
+                attacks: round.attacks.map((attack: unknown) =>
+                  object(attack) ? militiaPost(attack, attack.actor) : attack,
+                ),
+              }
+            : round,
+        )
+      : value.log,
+  };
+}
 const waveNumber: Shape = (value, path) =>
   [1, 2, 3].includes(value as number) ? null : `${path}: onda fora de 1 a 3`;
 const current: Shape = (value, path) =>
@@ -174,7 +209,19 @@ export const stateV40: Shape = (value, path) => {
       };
     }
   }
-  const inherited = stateV39({ ...rest, schemaVersion: 39, settlement: inheritedSettlement }, path);
+  const inheritedArmy =
+    object(value.army) && Array.isArray(value.army.reports)
+      ? { ...value.army, reports: value.army.reports.map(reportForV39) }
+      : value.army;
+  const inherited = stateV39(
+    {
+      ...rest,
+      schemaVersion: 39,
+      settlement: inheritedSettlement,
+      army: inheritedArmy,
+    },
+    path,
+  );
   if (inherited !== null) return inherited;
   const now = value.lastProcessedAt as number;
   if (militia !== null) {

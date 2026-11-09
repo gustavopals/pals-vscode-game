@@ -918,3 +918,9 @@ conteúdo; a proposta G-8 conserva ao menos nível 1, cancela obras dos edifíci
 sem devolução e encerra o reparo da muralha. Mestres e heróis não entram na perda populacional.
 Sobreviventes e formações que ultrapassam o novo teto do Quartel continuam existindo; o
 treino novo exige vaga. A guarda v40 trata essa consequência sem alterar guardas antigas.
+
+A guarda v40 também aceita `militia` nas baixas e nos ataques da Frente defensora
+dos relatórios, inclusive depois de dissolver a milícia. A validação herdada recebe
+uma projeção desses postos; o JSON persistido conserva `militia`, e a v39 continua
+recusando essa unidade. `siege.militia-persistence.test.ts` cobre Queda, vitória,
+incursão e releitura do estado em JSON.
