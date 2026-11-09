@@ -36,7 +36,6 @@
   ]
  },
  "ids": {
-  "battle": 3,
   "hero": 1
  },
  "settlement": {
@@ -530,157 +529,7 @@
   "training": null,
   "formations": [],
   "activeFormationId": null,
-  "reports": [
-   {
-    "id": "battle-1",
-    "foughtAtMs": 108000000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "wolf",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "wolf",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "wolf",
-      "start": 7,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
-   },
-   {
-    "id": "battle-2",
-    "foughtAtMs": 172800000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "raider",
-      "start": 7,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 1,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
-   },
-   {
-    "id": "battle-3",
-    "foughtAtMs": 259200000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "raider",
-      "start": 7,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 3,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 1,
-      "lost": 0
-     }
-    ],
-    "wall": [],
-    "commanders": [],
-    "log": []
-   }
-  ],
+  "reports": [],
   "preview": null
  },
  "objectives": {
@@ -702,9 +551,8 @@
   "wasted_food": 3292109,
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_wood": 1771396,
-  "chronicle:battles": 3,
   "raids_repelled": 3,
-  "lastRaidRepelledBattle": 3,
+  "lastRaidRepelledBattle": 0,
   "cardsExpired": 5,
   "chronicle:cards": 5,
   "cardsDrawn:woundedStranger": 1,
