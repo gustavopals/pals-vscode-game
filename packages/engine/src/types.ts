@@ -1027,6 +1027,9 @@ export type SiegeWaveDecisionView = {
   options: Array<{ formationId: string | null; label: string; selected: boolean }>;
 };
 export type SiegeMilitiaOfferView = {
+  targetId?: string | null | undefined;
+  termsText?: string | undefined;
+  activeCount?: number | undefined;
   /** O máximo de aldeões convocáveis agora: `min(floor(villagers / 2), ableVillagers)`. */
   maxCount: number;
   /** A ordem `callMilitia` com `count: maxCount` seria aceita agora. */
@@ -1039,6 +1042,17 @@ export type SiegeMilitiaOfferView = {
   warningSeconds: number;
 };
 export type SiegeView = {
+  aftermath?:
+    | {
+        summary: string;
+        endsInSeconds: number;
+        repairText: string | null;
+        repairEndsInSeconds: number | null;
+        reconstructionText: string | null;
+        reconstructionEndsInSeconds: number | null;
+      }
+    | null
+    | undefined;
   year: number;
   scheduledInSeconds: number;
   current: number;
@@ -2786,6 +2800,8 @@ export type ViewState = {
   };
   calendar: {
     year: number;
+    /** Anos já encerrados; ausente em visões anteriores à oferta anual. */
+    completedYears?: number[] | undefined;
     season: SeasonId;
     seasonLabel: string;
     dayOfSeason: number;

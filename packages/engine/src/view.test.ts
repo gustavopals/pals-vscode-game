@@ -41,6 +41,8 @@ import {
   masterWaitingScenario,
   caravanScenario,
   smithyStall,
+  gameAt,
+  YEAR,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -53,6 +55,16 @@ const smithyForgingScenario = (): GameState => {
 const farmers = accept(newGame(), command('setWorkers', { building: 'farm', count: 2 })).state;
 
 describe('deriveViewState', () => {
+  it('oferece só anos encerrados, inclusive na fronteira exata do ano', () => {
+    for (const [atMs, years] of [
+      [YEAR - 1, []],
+      [YEAR, [1]],
+      [2 * YEAR, [1, 2]],
+    ] as const) {
+      const state = gameAt(atMs);
+      expect(view(state).calendar.completedYears).toEqual(years);
+    }
+  });
   it('estado inicial: 5 aldeões livres, 10 vagas e nada em andamento', () => {
     const initial = view(newGame());
     expect(initial.settlement).toEqual({
@@ -65,6 +77,7 @@ describe('deriveViewState', () => {
     });
     expect(initial.calendar).toEqual({
       year: 1,
+      completedYears: [],
       season: 'spring',
       seasonLabel: 'Primavera',
       dayOfSeason: 1,

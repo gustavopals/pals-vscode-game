@@ -708,9 +708,13 @@ Gloriosa dá festa; havendo mortes e sem Gloriosa, há luto. O reparo da muralha
 desconto no rescaldo até o fim do inverno; após Queda, os dois primeiros dias da
 primavera seguinte reduzem o custo das novas obras para 4/5. Não há salto para o Degelo.
 
-A aba Exército já permite Plano, troca, reparo, progresso e resultado por teclado.
-A visão não oferece vínculo de relatório por onda nem resumo/prazo próprio do
-rescaldo. Hoje, barra, árvore, Retorno e Antes de partir mostram os prazos públicos;
+A aba Exército permite Plano, troca, reparo, convocação de milícia em duas etapas e
+prévia por onda, com progresso e resultado. `siege.militiaOffer` inclui termos, quantidade
+ativa e identidade do embate; `siege.aftermath` oferece resumo de ondas/mortos e prazos
+reais do rescaldo, desconto de reparo e Reconstrução. São adições opcionais do protocolo 4.
+O estado não guarda o vínculo de relatório por onda nem a discriminação das perdas da Queda;
+esses fatos não podem ser recuperados só por adição de campos derivados (G-23).
+Hoje, barra, árvore, Retorno e Antes de partir mostram os prazos públicos;
 o Retorno reúne batalha/onda pelo `battleId`, sem duplicá-las nem inferir o inimigo.
 
 ## 19k. Crônica do Ano e Feitos
@@ -726,8 +730,11 @@ Sabotador e Resgate (`content/src/feats.ts`). São anuais e não dão poder ou L
 O servidor oferece `GET /v1/games/:id/years/:year/chronicle.md`, autenticado e sob
 trava da partida: quatro estações, notas de continuação, Cerco, estatísticas,
 pontuação e Feitos, com eventos restritos ao ano. Ano não concluído retorna 404.
-O app recebe `yearEnded` no Retorno e abre a Crônica comum; o botão existente baixa
-a Crônica geral. **Ainda não há seleção/download anual no app ou SDK**.
+O app recebe `yearEnded` no Retorno e abre a Crônica. O seletor permite a leitura completa
+ou anual; `getYearChronicleMarkdown` no SDK e `lords.downloadYearChronicle` no app usam
+a rota anual. Tabela, pontuação e Feitos são apresentados pelo Markdown do servidor.
+O download geral permanece na leitura completa; um ano sem fecho registrado mostra a
+indisponibilidade. Respostas antigas são descartadas ao trocar ano ou feudo.
 
 ## 19l. Cartas dos lotes 2 e 3, Lobo Branco e objetivos
 
@@ -858,9 +865,10 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
   não prova da meta de 65–80% de Vitória do Regular. Fase I ainda exige metas,
   ouro por destino, extremos, tamanho máximo e carga `--remote`; medições de
   `--perf` anteriores não equivalem ao fechamento no candidato final.
-- **Interface incompleta:** faltam controle de milícia, seletor de prévia por onda,
-  prévia ofensiva, download anual e vínculo de relatório por onda. Não inferir
-  esses dados a partir de posições na lista de três relatórios.
+- **Interface incompleta:** faltam prévia ofensiva do Acampamento, vínculo de relatório
+  por onda e detalhes das perdas da Queda na visão. Não inferir esses dados por posição
+  ou horário dos relatórios. Milícia, prévia por onda e Crônica anual entraram na
+  V4G-T4 de 2026-11-09; inspeção visual/e2e dessa entrega continuam pendentes.
 - **Catálogo:** 59 cartas, frente ao alvo de 60; cobertura de ramos em testes
   dirigidos não equivale a todas saírem espontaneamente em 50 sementes.
 - **Migração/replay:** retomar partida migrada exige os estados de fronteira para

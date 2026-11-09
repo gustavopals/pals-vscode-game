@@ -44,10 +44,14 @@ para regravá-lo sem `UPDATE_GOLDEN=1` e leitura do diff.
 - [acceptance-v0.4.md](acceptance-v0.4.md) relaciona os seis critérios, QA-19 a
   QA-34 e os nove itens de “pronto” à prova existente, com limites explícitos.
   **A evidência manual continua por preencher pelo autor.**
-- Há endpoint anual, mas falta seletor/download anual no app e SDK. O botão atual
-  baixa a Crônica geral. Há ordem/oferta de milícia e prévia por onda, mas faltam
-  seus controles no app; não há prévia ofensiva do Acampamento, vínculo de
-  relatório por onda ou resumo/prazo próprio do rescaldo na visão.
+- Complemento V4G-T4 em `v4g-t4-fim` (2026-11-09, base `879f0cc`): o app tem
+  milícia com conferência e prévia por onda; o SDK/aba Crônica têm seleção/download anual.
+  A visão acrescenta termos/quantidade ativa/alvo da milícia e resumo/prazos do rescaldo.
+  Estado 42 e protocolo 4 preservados. **Ainda faltam** prévia ofensiva do Acampamento,
+  vínculo persistente de relatório por onda e discriminação das perdas da Queda na visão
+  (G-23); somente acrescentar campos derivados não recupera dados ausentes do estado.
+  Milícia/Markdown anual em navegador estão escritos nos três temas/720 px, sem execução;
+  as verificações focadas e seus limites estão no Registro V4G-T4 do roadmap.
 - **59 cartas não são o alvo de 60** do roadmap. Cobertura dirigida de cadeias
   não demonstra que todas saem espontaneamente em 50 sementes. Conteúdo não lido
   e perguntas de regra continuam em [content-v0.4.md](content-v0.4.md) e

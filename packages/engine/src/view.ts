@@ -398,6 +398,7 @@ export function deriveViewState(
     },
     calendar: {
       year: date.year,
+      completedYears: Array.from({ length: date.year - 1 }, (_, index) => index + 1),
       season: date.season.id,
       seasonLabel: date.season.label,
       dayOfSeason: date.dayOfSeason,

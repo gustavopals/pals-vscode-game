@@ -203,7 +203,7 @@ describe('o Plano, as ondas e o rescaldo', () => {
     expect(html).toContain('1:04:00');
     expect(html.match(/Defesa ativa · Muralha Firme/g)).toHaveLength(6);
     expect(html).toContain('O plano vale também durante a sua ausência.');
-    expect(html).not.toContain('Milícia');
+    expect(html).toContain('Convocar milícia…');
     expect(html).not.toContain('Xamã');
     expect(html).toContain('id="siege-title" tabindex="-1"');
   });
@@ -256,6 +256,9 @@ describe('o Plano, as ondas e o rescaldo', () => {
       expect(html).toContain('Ver as obras');
       expect(html).not.toContain('Salvar onda');
       expect(html).not.toContain('Trocar formação');
+      expect(html).not.toContain('Milícia');
+      expect(html).not.toContain('Convocar milícia');
+      expect(html).not.toContain('siege-militia');
       if (result === 'fall') expect(html).toContain('Não ocorreu');
     }
   });
@@ -408,5 +411,108 @@ describe('a Queda no Retorno e os avisos essenciais', () => {
     expect(decideNotifications(options).show).toEqual(events);
     expect(decideNotifications({ ...options, discreetMode: true }).show).toEqual([]);
     expect(decideNotifications({ ...options, level: 'silent' }).show).toEqual([]);
+  });
+});
+
+describe('complementos públicos do painel', () => {
+  it('concorda a disponibilidade e a convocação no singular e usa o bloqueio da visão com zero', () => {
+    const offer = planned.siege!.militiaOffer;
+    const render = (patch: Partial<typeof offer>) =>
+      panel({ ...planned, siege: { ...planned.siege, militiaOffer: { ...offer, ...patch } } });
+    expect(render({ maxCount: 1, activeCount: 0 })).toContain('Até 1 aldeão disponível.');
+    expect(render({ activeCount: 1 })).toContain('1 aldeão convocado.');
+    const empty = render({
+      maxCount: 0,
+      activeCount: 0,
+      canCall: false,
+      blockedReason: 'Sem aldeões aptos: aguarde a recuperação do feudo.',
+    });
+    expect(empty).toContain('Sem aldeões aptos: aguarde a recuperação do feudo.');
+    expect(empty).not.toContain('Até 0');
+    expect(empty).toMatch(/<button[^>]*aria-describedby="siege-militia-terms"[^>]*disabled/);
+  });
+  it('mostra oferta, milícia ativa, bloqueio e conferência sem calcular braços', () => {
+    const offer = {
+      ...planned.siege!.militiaOffer,
+      maxCount: 11,
+      termsText: 'Termos públicos da convocação.',
+      targetId: 'embate',
+      untilInSeconds: 500,
+      canCall: true,
+      blockedReason: null,
+      activeCount: 0,
+    };
+    const view = { ...planned, siege: { ...planned.siege, militiaOffer: offer } };
+    expect(panel(view)).toContain('Até 11 aldeões disponíveis.');
+    expect(panel(view)).toContain('Termos públicos da convocação.');
+    for (const html of [
+      panel(view, 0, true),
+      panel(view, 500),
+      panel(view, 0, false, new Set(['siege:militia'])),
+    ])
+      expect(html).toMatch(/<button[^>]*aria-describedby="siege-militia-terms"[^>]*disabled/);
+    const active = panel({
+      ...view,
+      siege: {
+        ...view.siege,
+        militiaOffer: { ...offer, activeCount: 4, canCall: false, blockedReason: 'Já convocada.' },
+      },
+    });
+    expect(active).toContain('4 aldeões convocados.');
+    expect(active).toContain('Já convocada.');
+  });
+  it('mostra o resumo e os prazos do rescaldo com as frases da visão', () => {
+    const html = panel({
+      ...planned,
+      siege: {
+        ...planned.siege,
+        result: 'fall',
+        resultText: 'Queda',
+        aftermath: {
+          summary: 'Resumo público das perdas.',
+          endsInSeconds: 8000,
+          repairText: 'Reparo mais barato.',
+          repairEndsInSeconds: 8000,
+          reconstructionText: 'Reconstrução em curso.',
+          reconstructionEndsInSeconds: 5000,
+        },
+      },
+    });
+    expect(html).toContain('Resumo público das perdas.');
+    expect(html).toContain('Reparo mais barato.');
+    expect(html).toContain('Reconstrução em curso.');
+  });
+  it('uma prévia pertence à onda e à formação selecionadas, preservando aviso e desatualização', () => {
+    const preview = {
+      formationId: 'formation-1',
+      siegeWave: 2 as const,
+      runs: 200,
+      winsPercent: 63,
+      gloriousPercent: 12,
+      lossesPercent: 37,
+      riskText: 'Risco público da segunda onda.',
+      warning: 'Composição desconhecida.',
+      expectedLosses: [],
+      knownEnemy: [],
+      knownMix: [],
+    };
+    const view = {
+      ...planned,
+      army: {
+        ...planned.army,
+        preview,
+        formations: planned.army.formations.map((entry) => ({ ...entry, previewStale: true })),
+      },
+    };
+    const html = panel(view);
+    expect(html).toContain('Simular onda 1');
+    expect(html).toContain('Simular onda 2');
+    expect(html).toContain('Simular onda 3');
+    expect(html.match(/Risco público da segunda onda/g)).toHaveLength(1);
+    expect(html).toContain('Composição desconhecida.');
+    expect(html).toContain('Prévia desatualizada');
+    expect(
+      panel({ ...view, army: { ...view.army, preview: { ...preview, formationId: 'outra' } } }),
+    ).not.toContain('Risco público');
   });
 });

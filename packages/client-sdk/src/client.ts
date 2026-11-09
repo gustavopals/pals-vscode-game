@@ -513,6 +513,16 @@ export function createClient(options: ClientOptions) {
       }
       return response.text;
     },
+
+    /** Crônica de um ano encerrado; 404 quando o fecho anual ainda não foi registrado. */
+    getYearChronicleMarkdown: async (gameId: string, year: number): Promise<string> => {
+      const response = await send('GET', `/games/${gameId}/years/${year}/chronicle.md`, {
+        auth: true,
+        retry: true,
+      });
+      if (response.status !== 200) throw toError(response);
+      return response.text;
+    },
   };
 }
 

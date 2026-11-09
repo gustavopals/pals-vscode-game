@@ -1,4 +1,6 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+import { mkdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import {
   applyTheme,
@@ -7,6 +9,7 @@ import {
   lowContrast,
   MINUTE,
   overflow,
+  palette,
   playNow,
   serverView,
   statusBar,
@@ -19,6 +22,31 @@ import {
 // V4G-T4: a rota só prepara o Cerco; a tela envia as ordens e o motor resolve as ondas.
 // A terceira junção executa estes cenários contra a API real, inclusive nos três temas.
 const panel = (page: Page) => page.getByTestId('siege-panel');
+
+/** Evidência opcional: nunca grava capturas na execução habitual da suíte. */
+async function capture(
+  page: Page,
+  theme: (typeof THEMES)[number],
+  subject: string,
+  target: Locator,
+) {
+  const directory = process.env.CAPTURE_DIR;
+  if (!directory || theme === 'high-contrast') return;
+  const original = page.viewportSize()!;
+  await mkdir(directory, { recursive: true });
+  for (const width of [720, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(target).toBeVisible();
+    const bounds = await target.boundingBox();
+    // Mostra o painel inteiro, inclusive as três ondas, dentro do editor que tem rolagem própria.
+    await page.setViewportSize({ width, height: Math.max(900, Math.ceil(bounds!.height) + 220) });
+    await target.scrollIntoViewIfNeeded();
+    await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+    expect(await lowContrast(page)).toEqual([]);
+    await page.screenshot({ path: join(directory, `cerco-${subject}-${theme}-${width}.png`) });
+  }
+  await page.setViewportSize(original);
+}
 
 async function openSiege(
   world: World,
@@ -136,6 +164,13 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
     expect(view.siege?.result).toBe('fall');
     await expect(returned.getByTestId('siege-aftermath')).toContainText('Queda');
     await expect(panel(returned)).toContainText('O feudo segue.');
+    await expect(panel(returned).getByRole('heading', { name: 'Milícia' })).toHaveCount(0);
+    if (process.env.CAPTURE_DIR) {
+      for (const theme of ['dark', 'light'] as const) {
+        await applyTheme(returned, theme);
+        await capture(returned, theme, 'rescaldo-queda', panel(returned));
+      }
+    }
     await panel(returned).getByRole('button', { name: 'Ver as obras' }).click();
     await expect(returned.getByRole('heading', { name: 'Construções', exact: true })).toBeFocused();
   });
@@ -183,6 +218,129 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
   });
 
   for (const theme of THEMES) {
+    test(`${theme}: milícia pelo teclado exige duas etapas, devolve foco e não convoca duas vezes`, async ({
+      context,
+      world,
+      request,
+    }) => {
+      const page = await world.open(context);
+      await page.setViewportSize({ width: 720, height: 900 });
+      await openSiege(world, page, 'small', 20);
+      // A convocação precisa da antecedência da Torre, além do posto livre.
+      await world.raise('watchtower', 3);
+      await applyTheme(page, theme);
+      const view = await serverView(page, request);
+      const formation = page.getByTestId(`formation-${view.army.formations[0]!.id}`);
+      // A milícia ocupa a frente: libere o posto pela tela e deixe o motor recalcular a oferta.
+      await formation.getByTestId('formation-edit').click();
+      await page.getByTestId('post-right-front').click();
+      await page.getByTestId('post-clear').click();
+      await page.getByTestId('formation-save').click();
+      const summon = panel(page).getByRole('button', { name: 'Convocar milícia…' });
+      await expect(summon).toBeEnabled();
+      const sent: unknown[] = [];
+      page.on('request', (outgoing) => {
+        if (outgoing.method() === 'POST' && outgoing.url().endsWith('/commands')) {
+          const command = outgoing.postDataJSON() as { type: string };
+          if (command.type === 'callMilitia') sent.push(command);
+        }
+      });
+      await summon.focus();
+      await page.keyboard.press('Enter');
+      const input = page.getByRole('dialog', { name: 'Convocar milícia' });
+      await expect(input.getByRole('textbox')).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(summon).toBeFocused();
+      expect(sent).toHaveLength(0);
+      await page.keyboard.press('Enter');
+      await input.getByRole('textbox').fill('1');
+      await input.getByRole('button', { name: 'Conferir convocação' }).click();
+      const review = page.getByRole('dialog', { name: 'Conferir a milícia' });
+      await expect(review).toContainText('Convocar 1 aldeão.');
+      await expect(review).toContainText(
+        (await serverView(page, request)).siege!.militiaOffer.termsText!,
+      );
+      expect(sent).toHaveLength(0);
+      await review.getByRole('button', { name: 'Confirmar convocação' }).focus();
+      await page.keyboard.press('Enter');
+      await expect(review).toHaveCount(0);
+      await expect(summon).toBeDisabled();
+      await expect(panel(page)).toContainText('1 aldeão convocado.');
+      expect(sent).toHaveLength(1);
+      expect((await serverView(page, request)).siege!.militiaOffer.activeCount).toBe(1);
+      // A prévia vem de uma simulação real da onda, sem resposta de rede fabricada.
+      await panel(page).getByRole('button', { name: 'Simular onda 1' }).click();
+      await expect(panel(page).locator('.siege-preview')).toContainText('Prévia da onda 1');
+      expect((await serverView(page, request)).army.preview?.siegeWave).toBe(1);
+      await capture(page, theme, 'planejamento-milicia-previa', panel(page));
+      await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+      expect(await lowContrast(page)).toEqual([]);
+    });
+
+    test(`${theme}: ano encerrado abre a Crônica anual e baixa o Markdown com pontuação e Feitos`, async ({
+      context,
+      world,
+      request,
+    }) => {
+      const page = await world.open(context);
+      await page.setViewportSize({ width: 720, height: 900 });
+      await openSiege(world, page);
+      await world.passTime(2 * MINUTE, page);
+      await world.passTime(HOUR, page);
+      await world.passTime(HOUR, page);
+      // Os saltos seguem os prazos públicos, sem inventar um fecho anual pela rota de teste.
+      let view = await serverView(page, request);
+      while (view.calendar.year === 1) {
+        await world.passTime(view.calendar.secondsToNextSeason * 1000 + MINUTE, page);
+        view = await serverView(page, request);
+      }
+      await applyTheme(page, theme);
+      await palette(page, 'Abrir a Crônica');
+      await page.keyboard.press('Enter');
+      const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
+      await chronicle.getByLabel('Ano', { exact: true }).selectOption('1');
+      await expect(chronicle.getByRole('heading', { level: 1 })).toHaveText(
+        'Crônica do Ano 1 — Pedra Alta',
+      );
+      await expect(chronicle.getByRole('table')).toContainText('População máxima');
+      await expect(
+        chronicle.getByRole('heading', { name: 'Pontuação', exact: true }),
+      ).toBeVisible();
+      await expect(
+        chronicle.getByRole('heading', { name: 'Feitos do ano', exact: true }),
+      ).toBeVisible();
+      const pending = page.waitForEvent('download');
+      await chronicle.getByRole('button', { name: 'Baixar a Crônica do Ano' }).focus();
+      await page.keyboard.press('Enter');
+      const file = await pending;
+      expect(file.suggestedFilename()).toBe('cronica-pedra-alta-ano-1.md');
+      const markdown = await readFile((await file.path())!, 'utf8');
+      expect(markdown).toContain('# Crônica do Ano 1 — Pedra Alta');
+      for (const heading of [
+        'Primavera',
+        'Verão',
+        'Outono',
+        'Inverno',
+        'O Cerco do Inverno',
+        'O ano em números',
+        'Pontuação',
+        'Feitos do ano',
+      ])
+        expect(markdown).toContain(`## ${heading}`);
+      expect(markdown).not.toContain('Crônica do Ano 2');
+      await expect(chronicle.getByLabel('Ano', { exact: true }).locator('option')).toHaveText([
+        'Crônica completa',
+        'Ano 1',
+      ]);
+      await capture(page, theme, 'cronica-ano', chronicle.locator('.year-chronicle'));
+      await chronicle.getByLabel('Ano', { exact: true }).selectOption('');
+      await expect(
+        chronicle.getByRole('button', { name: 'Baixar Crônica (Markdown)' }),
+      ).toBeVisible();
+      await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+      expect(await lowContrast(page)).toEqual([]);
+    });
+
     test(`${theme}: plano e decisão em 720 px, contraste, árvore e foco de retorno`, async ({
       context,
       world,

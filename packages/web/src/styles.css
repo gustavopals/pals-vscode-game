@@ -2195,6 +2195,7 @@ table.ranking tr.ranking-mine td:first-child {
 }
 
 .siege-decision,
+.siege-militia,
 .siege-aftermath {
   padding: 14px;
   margin-top: 14px;
@@ -2202,6 +2203,7 @@ table.ranking tr.ranking-mine td:first-child {
 }
 
 .siege-decision h3,
+.siege-militia h3,
 .siege-aftermath h3 {
   margin: 0 0 8px;
   color: var(--vscode-foreground);
@@ -2261,7 +2263,6 @@ table.ranking tr.ranking-mine td:first-child {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: auto;
 }
 
 .siege-wave-plan select {
@@ -2287,4 +2288,49 @@ table.ranking tr.ranking-mine td:first-child {
   .siege-waves {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.year-chronicle {
+  padding: 14px;
+  margin: 16px 0;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+  min-width: 0;
+}
+
+.year-chronicle h2 {
+  margin: 0 0 8px;
+  color: var(--vscode-foreground);
+  font-size: 1em;
+}
+
+.year-chronicle-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.year-chronicle-controls select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chronicle-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chronicle-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.chronicle-table th,
+.chronicle-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  text-align: left;
 }

@@ -16,7 +16,8 @@ export type ChronicleLine = { n: number; text: string; echo?: Echo; expeditionId
 
 export type Block =
   | { kind: 'title' | 'heading' | 'paragraph' | 'note'; text: string }
-  | { kind: 'list'; items: ChronicleLine[] };
+  | { kind: 'list'; items: ChronicleLine[] }
+  | { kind: 'table'; header: string[]; rows: string[][] };
 
 /** `Sua escolha voltou: “No 3º dia da Primavera, o senhor…”`: o rótulo e a linha citada. */
 const ECHO = /^(.+?): “(.*)”$/;
@@ -40,7 +41,15 @@ export function parseChronicle(markdown: string): Block[] {
       continue;
     }
     const last = blocks[blocks.length - 1];
-    if (line.startsWith('## ')) {
+    if (line.startsWith('|') && line.endsWith('|')) {
+      const cells = line
+        .slice(1, -1)
+        .split('|')
+        .map((cell) => cell.trim());
+      if (cells.every((cell) => /^:?-+:?$/.test(cell))) continue;
+      if (last?.kind === 'table') last.rows.push(cells);
+      else blocks.push({ kind: 'table', header: cells, rows: [] });
+    } else if (line.startsWith('## ')) {
       blocks.push({ kind: 'heading', text: line.slice(3).trim() });
     } else if (line.startsWith('# ')) {
       blocks.push({ kind: 'title', text: line.slice(2).trim() });

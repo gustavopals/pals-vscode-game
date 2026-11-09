@@ -416,6 +416,7 @@ describe('itens da paleta (paletteItems)', () => {
     expect(search('cronica')).toEqual([
       'Lords: Abrir a Crônica',
       'Lords: Baixar Crônica (Markdown)',
+      'Lords: Baixar a Crônica do Ano',
     ]);
     expect(search('codigo reino')).toEqual(['Lords: Conta: gerar Código do Reino']);
     expect(search('ALOCAR')).toEqual(['Lords: Alocar trabalhadores']);

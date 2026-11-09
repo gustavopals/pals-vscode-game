@@ -15,6 +15,7 @@ export type PickItem<T> = {
 };
 
 export type ConfirmOptions = {
+  signal?: AbortSignal;
   title: string;
   detail?: string[];
   confirmLabel: string;
@@ -22,6 +23,7 @@ export type ConfirmOptions = {
 };
 
 export type InputOptions = {
+  signal?: AbortSignal;
   title: string;
   prompt?: string;
   value?: string;
@@ -135,11 +137,22 @@ export class DialogService implements Dialogs {
   }
 
   async confirm(options: ConfirmOptions): Promise<boolean> {
-    return (await this.open<boolean | undefined>({ kind: 'confirm', ...options }).result) === true;
+    return (
+      (await this.openCancellable<boolean>({ kind: 'confirm', ...options }, options.signal)) ===
+      true
+    );
   }
 
   input(options: InputOptions): Promise<string | undefined> {
-    return this.open<string | undefined>({ kind: 'input', ...options }).result;
+    return this.openCancellable<string>({ kind: 'input', ...options }, options.signal);
+  }
+
+  private openCancellable<T>(state: DialogState, signal?: AbortSignal): Promise<T | undefined> {
+    if (signal?.aborted) return Promise.resolve(undefined);
+    const { id, result } = this.open<T | undefined>(state);
+    const abort = () => this.resolve(id, undefined);
+    signal?.addEventListener('abort', abort, { once: true });
+    return result.finally(() => signal?.removeEventListener('abort', abort));
   }
 
   pick<T>(options: PickOptions<T>): Promise<T | undefined> {

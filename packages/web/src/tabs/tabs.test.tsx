@@ -655,6 +655,10 @@ describe('ações das abas', () => {
         return;
       }
       const { type, props } = node as VNodeLike;
+      if (typeof type === 'function') {
+        click((type as (props: unknown) => unknown)(props));
+        return;
+      }
       if (type === 'button' && typeof props?.onClick === 'function') {
         (props.onClick as () => void)();
       }

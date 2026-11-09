@@ -15,6 +15,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 1,
@@ -1261,6 +1262,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 1,
@@ -2533,6 +2535,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 4,
@@ -3842,6 +3845,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 23,
@@ -5381,6 +5385,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "winter",
       "seasonLabel": "Inverno",
       "dayOfSeason": 4,
@@ -6925,12 +6930,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 9,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 0
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -6955,6 +6964,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 4,
@@ -8665,6 +8675,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 4,
@@ -10214,6 +10225,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "winter",
       "seasonLabel": "Inverno",
       "dayOfSeason": 3,
@@ -11759,6 +11771,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 6,
@@ -13295,6 +13308,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 13,
@@ -14929,6 +14943,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 13,
@@ -16546,6 +16561,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 5,
@@ -18131,12 +18147,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 6,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 3600
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -18161,6 +18181,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 5,
@@ -19756,12 +19777,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 6,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 7200
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -19786,6 +19811,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 6,
@@ -21441,12 +21467,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 6,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 3600
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -21471,6 +21501,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 5,
@@ -23066,12 +23097,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 6,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 7200
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -23096,6 +23131,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 11,
@@ -24678,6 +24714,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 6,
@@ -26167,6 +26204,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 17,
@@ -27658,6 +27696,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 13,
@@ -28936,6 +28975,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 15,
@@ -30559,6 +30599,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 19,
@@ -32246,6 +32287,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 4,
@@ -33995,6 +34037,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 22,
@@ -35835,6 +35878,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 21,
@@ -37683,6 +37727,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 8,
@@ -39507,6 +39552,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 4,
@@ -41533,12 +41579,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 2,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 0
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -41563,6 +41613,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 13,
@@ -43393,6 +43444,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 18,
@@ -45023,6 +45075,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 3,
@@ -46649,12 +46702,16 @@
         }
       ],
       "militiaOffer": {
+        "targetId": null,
+        "termsText": "Os convocados ficam indisponíveis para o trabalho até a batalha. Os sobreviventes ficam livres para trabalhar; as baixas são permanentes.",
+        "activeCount": 0,
         "maxCount": 2,
         "canCall": false,
         "blockedReason": "A milícia só pode ser convocada para uma incursão forte ou onda do Cerco dentro da antecedência da Torre de Vigia.",
         "untilInSeconds": null,
         "warningSeconds": 0
-      }
+      },
+      "aftermath": null
     },
     "masters": [],
     "mastersWaiting": {
@@ -46679,6 +46736,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 9,
@@ -48365,6 +48423,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "autumn",
       "seasonLabel": "Outono",
       "dayOfSeason": 3,
@@ -50156,6 +50215,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "summer",
       "seasonLabel": "Verão",
       "dayOfSeason": 6,
@@ -51749,6 +51809,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 21,
@@ -53295,6 +53356,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 1,
@@ -54824,6 +54886,7 @@
     },
     "calendar": {
       "year": 1,
+      "completedYears": [],
       "season": "spring",
       "seasonLabel": "Primavera",
       "dayOfSeason": 1,

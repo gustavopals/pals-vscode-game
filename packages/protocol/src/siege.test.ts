@@ -93,4 +93,28 @@ describe('protocolo 4: o Cerco', () => {
       expect(CommandSchema.safeParse({ commandId, ...command }).success).toBe(false);
     }
   });
+
+  it('aceita a visão anterior às adições de milícia e rescaldo no mesmo protocolo', () => {
+    const state = readySiege();
+    const view = deriveViewState(state, state.lastProcessedAt);
+    delete view.siege!.militiaOffer.targetId;
+    delete view.siege!.militiaOffer.termsText;
+    delete view.siege!.militiaOffer.activeCount;
+    delete view.siege!.aftermath;
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+  });
+  it('valida os anos encerrados e aceita a visão anterior sem a lista', () => {
+    const state = readySiege();
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.calendar.completedYears).toEqual([]);
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+    for (const completedYears of [[0], [1.5], ['1']]) {
+      expect(
+        ViewStateSchema.safeParse({ ...view, calendar: { ...view.calendar, completedYears } })
+          .success,
+      ).toBe(false);
+    }
+    delete view.calendar.completedYears;
+    expect(ViewStateSchema.parse(view)).toEqual(view);
+  });
 });

@@ -1,6 +1,7 @@
 import type { Loadable } from '../app/controller';
 import type { Actions } from '../components/actions';
 import { Icon } from '../components/shared';
+import { YearChronicle } from '../components/YearChronicle';
 import { chronicleAnchor, type ChronicleLine, parseChronicle } from './markdown';
 
 /**
@@ -11,6 +12,23 @@ function goToLine(n: number): void {
   const line = document.getElementById(chronicleAnchor(n));
   line?.scrollIntoView({ block: 'center' });
   line?.focus();
+}
+
+/** Só o negrito editorial do Markdown; HTML continua sendo escapado pelo Preact. */
+function ChronicleText(props: { text: string }) {
+  return (
+    <>
+      {props.text
+        .split(/(\*\*[^*]+\*\*)/)
+        .map((part, index) =>
+          part.startsWith('**') && part.endsWith('**') ? (
+            <strong key={index}>{part.slice(2, -2)}</strong>
+          ) : (
+            part
+          ),
+        )}
+    </>
+  );
 }
 
 /**
@@ -25,7 +43,7 @@ function Line(props: { line: ChronicleLine; report: string | undefined; actions:
   return (
     // O foco só chega aqui pelo botão de uma continuação: a linha não entra na ordem do Tab.
     <li id={chronicleAnchor(n)} tabIndex={-1}>
-      {text}
+      <ChronicleText text={text} />
       {report === undefined ? null : (
         <>
           {' '}
@@ -71,18 +89,57 @@ function Line(props: { line: ChronicleLine; report: string | undefined; actions:
  */
 export function ChronicleTab(props: {
   document: Loadable<string>;
+  yearDocument?: Loadable<string>;
+  selectedYear?: number | null;
+  completedYears?: readonly number[] | undefined;
   /** As expedições que têm relatório guardado na visão. */
   reports?: ReadonlySet<string>;
   actions: Actions;
 }) {
+  const { actions } = props;
+  const year = props.selectedYear ?? null;
+  const annual = year !== null;
+  const chronicle = annual ? (props.yearDocument ?? { status: 'idle' as const }) : props.document;
+  return (
+    <div class="document">
+      {props.completedYears === undefined ? null : (
+        <YearChronicle
+          completedYears={props.completedYears}
+          selected={year}
+          loading={annual && chronicle.status === 'loading'}
+          actions={actions}
+        />
+      )}
+      <ChronicleDocument
+        {...props}
+        document={chronicle}
+        retry={() =>
+          actions.run(
+            annual ? 'lords.selectChronicleYear' : 'lords.openChronicle',
+            annual ? year : undefined,
+          )
+        }
+        annual={annual}
+      />
+    </div>
+  );
+}
+
+function ChronicleDocument(props: {
+  document: Loadable<string>;
+  reports?: ReadonlySet<string>;
+  actions: Actions;
+  retry: () => void;
+  annual: boolean;
+}) {
   const { document: chronicle, actions } = props;
   if (chronicle.status === 'error') {
     return (
-      <div class="document">
+      <div>
         <p class="warning" role="alert">
           {chronicle.message}
         </p>
-        <button type="button" onClick={() => actions.run('lords.openChronicle')}>
+        <button type="button" onClick={props.retry}>
           Tentar de novo
         </button>
       </div>
@@ -96,18 +153,45 @@ export function ChronicleTab(props: {
     );
   }
   return (
-    <article class="document">
-      <div class="row">
-        <button
-          type="button"
-          class="secondary"
-          onClick={() => actions.run('lords.downloadChronicle')}
-        >
-          Baixar Crônica (Markdown)
-        </button>
-      </div>
+    <article aria-busy="false">
+      {props.annual ? null : (
+        <div class="row">
+          <button
+            type="button"
+            class="secondary"
+            onClick={() => actions.run('lords.downloadChronicle')}
+          >
+            Baixar Crônica (Markdown)
+          </button>
+        </div>
+      )}
       {parseChronicle(chronicle.value).map((block, index) => {
         switch (block.kind) {
+          case 'table':
+            return (
+              <div class="chronicle-table" key={index}>
+                <table>
+                  <thead>
+                    <tr>
+                      {block.header.map((cell, n) => (
+                        <th key={n} scope="col">
+                          {cell}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((row, n) => (
+                      <tr key={n}>
+                        {row.map((cell, c) => (
+                          <td key={c}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
           case 'title':
             return <h1 key={index}>{block.text}</h1>;
           case 'heading':

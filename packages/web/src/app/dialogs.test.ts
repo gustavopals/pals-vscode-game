@@ -492,3 +492,23 @@ describe('seleção na lista (moveSelection)', () => {
     }
   });
 });
+
+describe('prazo da conferência', () => {
+  it('fecha o campo e a confirmação quando a oferta expira, inclusive se já expirou antes de abrir', async () => {
+    for (const alreadyAborted of [true, false]) {
+      const dialogs = new DialogService();
+      const signal = new AbortController();
+      if (alreadyAborted) signal.abort();
+      const input = dialogs.input({ title: 'Milícia', signal: signal.signal });
+      const confirm = dialogs.confirm({
+        title: 'Conferir',
+        confirmLabel: 'Convocar',
+        signal: signal.signal,
+      });
+      signal.abort();
+      expect(await input).toBeUndefined();
+      expect(await confirm).toBe(false);
+      expect(dialogs.current).toBeNull();
+    }
+  });
+});

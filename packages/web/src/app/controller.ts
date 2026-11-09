@@ -242,6 +242,9 @@ export class Controller {
   viewReceivedAt = 0;
   toasts: Toast[] = [];
   chronicleDocument: Loadable<string> = { status: 'idle' };
+  selectedChronicleYear: number | null = null;
+  yearChronicleDocument: Loadable<string> = { status: 'idle' };
+  private yearChronicleRequest = 0;
   server: Loadable<VersionResponse> = { status: 'idle' };
   /** A aba Reino: os totais, o ranking de ouro e o jogador (`GET /stats`, ADR 0021). */
   stats: Loadable<StatsResponse> = { status: 'idle' };
@@ -675,6 +678,9 @@ export class Controller {
         this.rankingListed = null;
       }
       this.chronicleDocument = { status: 'idle' };
+      this.selectedChronicleYear = null;
+      this.yearChronicleDocument = { status: 'idle' };
+      this.yearChronicleRequest += 1;
       this.report = null;
       this.unseen = 0;
       this.seasonChanges.clear();
@@ -1958,6 +1964,30 @@ export class Controller {
     );
   }
 
+  /** A retentativa pertence ao mesmo embate e à oferta que foi conferida. */
+  callMilitia(count: number): Promise<boolean> {
+    const original = this.view?.siege?.militiaOffer;
+    return this.guildOrder(
+      'siege:militia',
+      'callMilitia',
+      { count },
+      'à milícia',
+      () => {
+        const offer = this.view?.siege?.militiaOffer;
+        return (
+          original?.targetId != null &&
+          offer?.targetId === original.targetId &&
+          offer.canCall &&
+          offer.maxCount === original.maxCount &&
+          offer.termsText === original.termsText &&
+          offer.untilInSeconds !== null &&
+          offer.untilInSeconds > (this.now() - this.viewReceivedAt) / 1000
+        );
+      },
+      'A oferta da milícia mudou ou o prazo acabou: confira de novo antes de convocar.',
+    );
+  }
+
   /**
    * `wave` é a onda da decisão que o jogador conferiu: vai na ordem, e o motor recusa se a onda
    * já foi lutada quando ela chega (revisão da Fase G). Outra onda na visão também não envia.
@@ -2051,11 +2081,11 @@ export class Controller {
   }
 
   /** Pede a prévia do Conselho de Guerra para uma formação salva; a trava é `preview:<formação>`. */
-  simulateBattle(formationId: string): Promise<boolean> {
+  simulateBattle(formationId: string, siegeWave?: 1 | 2 | 3): Promise<boolean> {
     return this.guildOrder(
       `preview:${formationId}`,
       'simulateBattle',
-      { formationId },
+      { formationId, ...(siegeWave === undefined ? {} : { siegeWave }) },
       'ao Exército',
     );
   }
@@ -2178,6 +2208,42 @@ export class Controller {
     // Os avisos do jogo à vista somem junto: foi isso que o jogador pediu.
     this.dropGameToasts();
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
+  }
+
+  async selectChronicleYear(year: number | null): Promise<void> {
+    this.selectedChronicleYear = year;
+    this.yearChronicleRequest += 1;
+    this.yearChronicleDocument = { status: 'idle' };
+    this.changes.emit();
+    if (year !== null) await this.loadYearChronicle(year);
+  }
+
+  async loadYearChronicle(year: number): Promise<string | null> {
+    const gameId = this.session.gameId;
+    if (gameId === null) return null;
+    const request = ++this.yearChronicleRequest;
+    this.selectedChronicleYear = year;
+    this.yearChronicleDocument = { status: 'loading' };
+    this.changes.emit();
+    const current = () => this.session.gameId === gameId && this.yearChronicleRequest === request;
+    try {
+      const markdown = await this.client.getYearChronicleMarkdown(gameId, year);
+      if (!current()) return null;
+      this.yearChronicleDocument = { status: 'ready', value: markdown };
+      this.changes.emit();
+      return markdown;
+    } catch (error) {
+      if (!current()) return null;
+      this.yearChronicleDocument = {
+        status: 'error',
+        message:
+          error instanceof ApiClientError && error.status === 404
+            ? 'A Crônica deste ano ainda não foi registrada. Escolha outro ano ou tente após o encerramento.'
+            : describeError(error).message,
+      };
+      this.changes.emit();
+      return null;
+    }
   }
 
   /**

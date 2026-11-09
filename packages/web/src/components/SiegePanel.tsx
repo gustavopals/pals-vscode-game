@@ -14,6 +14,8 @@ import {
 import type { Actions } from './actions';
 import { formatCountdown } from './format';
 import { WallPanel } from './WallPanel';
+import { BattlePreview } from './WarCouncilPanel';
+import { activeFormation } from '../ui/format';
 import { Icon } from './shared';
 
 function WavePlan(props: {
@@ -21,6 +23,7 @@ function WavePlan(props: {
   wave: Wave;
   disabled: boolean;
   busy: boolean;
+  previewBusy: ReadonlySet<string>;
   actions: Actions;
 }) {
   const { view, wave } = props;
@@ -29,6 +32,12 @@ function WavePlan(props: {
   useLayoutEffect(() => setChoice(saved), [saved]);
   const formation = view.army.formations.find((entry) => entry.id === choice);
   const missing = choice !== null && formation === undefined;
+  const previewFormation = choice === null ? activeFormation(view.army) : formation;
+  const preview = view.army.preview;
+  const matching =
+    preview !== null && preview.siegeWave === wave && preview.formationId === previewFormation?.id;
+  const simulating =
+    previewFormation != null && props.previewBusy.has(`preview:${previewFormation.id}`);
   return (
     <div class="siege-wave-plan" aria-busy={props.busy}>
       <label for={`siege-plan-${wave}`}>Formação da onda {wave}</label>
@@ -60,6 +69,24 @@ function WavePlan(props: {
       >
         <Icon name="save" /> {props.busy ? 'Salvando…' : `Salvar onda ${wave}`}
       </button>
+      <button
+        type="button"
+        class="secondary"
+        disabled={props.disabled || simulating || previewFormation == null}
+        onClick={() =>
+          props.actions.run('lords.simulateBattle', { id: previewFormation?.id, siegeWave: wave })
+        }
+      >
+        <Icon name="law" /> Simular onda {wave}
+      </button>
+      {matching ? (
+        <div class="siege-preview" aria-live="polite">
+          <p class="muted">
+            Prévia da onda {wave} · {previewFormation?.name}
+          </p>
+          <BattlePreview preview={preview} stale={previewFormation?.previewStale ?? false} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -103,6 +130,47 @@ export function SiegePanel(props: {
           batalha. O plano vale também durante a sua ausência.
         </p>
       ) : null}
+      {ended ? null : (
+        <div
+          class="siege-militia"
+          aria-labelledby="siege-militia-title"
+          aria-busy={props.busy.has('siege:militia')}
+        >
+          <h3 id="siege-militia-title">
+            <Icon name="organization" /> Milícia
+          </h3>
+          {siege.militiaOffer.termsText ? <p>{siege.militiaOffer.termsText}</p> : null}
+          <p class="muted" id="siege-militia-terms">
+            {siege.militiaOffer.activeCount
+              ? `${siege.militiaOffer.activeCount} ${siege.militiaOffer.activeCount === 1 ? 'aldeão convocado' : 'aldeões convocados'}.`
+              : siege.militiaOffer.maxCount > 0
+                ? `Até ${siege.militiaOffer.maxCount} ${siege.militiaOffer.maxCount === 1 ? 'aldeão disponível' : 'aldeões disponíveis'}.`
+                : null}{' '}
+            {siege.militiaOffer.blockedReason}
+            {siege.militiaOffer.untilInSeconds === null
+              ? null
+              : ` Embate em ${formatDuration(remainingNow(siege.militiaOffer.untilInSeconds, elapsed))}.`}
+          </p>
+          <button
+            type="button"
+            class="secondary"
+            aria-describedby="siege-militia-terms"
+            disabled={
+              props.disabled ||
+              props.busy.has('siege:militia') ||
+              !siege.militiaOffer.canCall ||
+              !siege.militiaOffer.termsText ||
+              siege.militiaOffer.targetId == null ||
+              siege.militiaOffer.untilInSeconds === null ||
+              remainingNow(siege.militiaOffer.untilInSeconds, elapsed) <= 0
+            }
+            onClick={() => actions.run('lords.callMilitia')}
+          >
+            <Icon name="organization" />{' '}
+            {props.busy.has('siege:militia') ? 'Convocando…' : 'Convocar milícia…'}
+          </button>
+        </div>
+      )}
       {planning ? (
         <p class="siege-countdown">
           <Icon name="watch" /> Primeira onda em{' '}
@@ -206,6 +274,7 @@ export function SiegePanel(props: {
                   wave={wave.number}
                   disabled={props.disabled || remainingNow(siege.scheduledInSeconds, elapsed) <= 0}
                   busy={props.busy.has(`siege:plan:${wave.number}`)}
+                  previewBusy={props.busy}
                   actions={actions}
                 />
               ) : (
@@ -230,6 +299,35 @@ export function SiegePanel(props: {
             <Icon name={icon} /> {siege.resultText} · Rescaldo
           </h3>
           <p>O feudo segue. Consulte a muralha, a moral e as obras para preparar o próximo ano.</p>
+          {siege.aftermath == null ? null : (
+            <div class="siege-aftermath-summary">
+              <p>{siege.aftermath.summary}</p>
+              {remainingNow(siege.aftermath.endsInSeconds, elapsed) > 0 ? (
+                <p class="muted">
+                  Rescaldo até o fim do inverno ·{' '}
+                  {formatDuration(remainingNow(siege.aftermath.endsInSeconds, elapsed))}
+                </p>
+              ) : null}
+              {siege.aftermath.repairText === null ||
+              siege.aftermath.repairEndsInSeconds === null ||
+              remainingNow(siege.aftermath.repairEndsInSeconds, elapsed) <= 0 ? null : (
+                <p>
+                  {siege.aftermath.repairText} ·{' '}
+                  {formatDuration(remainingNow(siege.aftermath.repairEndsInSeconds, elapsed))}
+                </p>
+              )}
+              {siege.aftermath.reconstructionText === null ||
+              siege.aftermath.reconstructionEndsInSeconds === null ||
+              remainingNow(siege.aftermath.reconstructionEndsInSeconds, elapsed) <= 0 ? null : (
+                <p>
+                  {siege.aftermath.reconstructionText} ·{' '}
+                  {formatDuration(
+                    remainingNow(siege.aftermath.reconstructionEndsInSeconds, elapsed),
+                  )}
+                </p>
+              )}
+            </div>
+          )}
           {view.morale.effects.length === 0 ? null : (
             <details>
               <summary>Efeitos atuais na moral</summary>

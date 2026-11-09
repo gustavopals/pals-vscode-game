@@ -472,7 +472,22 @@ const SiegeSchema = z.strictObject({
     blockedReason: z.string().nullable(),
     untilInSeconds: z.number().nullable(),
     warningSeconds: z.number(),
+    /** Adições do protocolo 4; ausentes nas visões anteriores. */
+    targetId: z.string().nullable().optional(),
+    termsText: z.string().optional(),
+    activeCount: z.number().optional(),
   }),
+  aftermath: z
+    .strictObject({
+      summary: z.string(),
+      endsInSeconds: z.number(),
+      repairText: z.string().nullable(),
+      repairEndsInSeconds: z.number().nullable(),
+      reconstructionText: z.string().nullable(),
+      reconstructionEndsInSeconds: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
 });
 
 /**
@@ -1408,6 +1423,7 @@ export const ViewStateSchema = z.strictObject({
   }),
   calendar: z.strictObject({
     year: z.number(),
+    completedYears: z.array(z.number().int().positive()).optional(),
     season: z.enum(SEASON_IDS),
     seasonLabel: z.string(),
     dayOfSeason: z.number(),

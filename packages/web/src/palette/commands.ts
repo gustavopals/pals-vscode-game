@@ -1646,6 +1646,79 @@ export function createCommands(
     await controller.emergencyRepair(decision.wave);
   });
 
+  const callMilitia = oneAtATime(async () => {
+    const view = requireView();
+    const offer = view?.siege?.militiaOffer;
+    if (offer === undefined) return;
+    if (!offer.canCall || !offer.termsText || offer.targetId == null) {
+      controller.toast({
+        kind: 'info',
+        text: offer.blockedReason ?? 'Atualize a oferta da milícia.',
+        actions: [seeSiege],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const valid = () => {
+      const now = controller.view?.siege?.militiaOffer;
+      return (
+        sameGame(gameId) &&
+        now?.canCall === true &&
+        now.targetId === offer.targetId &&
+        now.maxCount === offer.maxCount &&
+        now.termsText === offer.termsText &&
+        now.untilInSeconds !== null &&
+        remainingNow(now.untilInSeconds, elapsed()) > 0
+      );
+    };
+    const gone = new AbortController();
+    const stop = controller.onChange(() => {
+      if (!valid()) gone.abort();
+    });
+    try {
+      const countText = await dialogs.input({
+        title: 'Convocar milícia',
+        prompt: `Quantos aldeões? Até ${formatNumber(offer.maxCount)} disponíveis. ${offer.termsText}`,
+        value: String(offer.maxCount),
+        confirmLabel: 'Conferir convocação',
+        validate: (value) =>
+          Number.isSafeInteger(Number(value)) &&
+          Number(value) > 0 &&
+          Number(value) <= offer.maxCount
+            ? null
+            : {
+                message: `Informe uma quantidade inteira até ${formatNumber(offer.maxCount)}.`,
+                severity: 'error',
+              },
+        signal: gone.signal,
+      });
+      if (!valid()) {
+        changedSiege();
+        return;
+      }
+      if (countText === undefined) return;
+      const count = Number(countText);
+      if (!Number.isSafeInteger(count) || count <= 0 || count > offer.maxCount) return;
+      const confirmed = await dialogs.confirm({
+        title: 'Conferir a milícia',
+        detail: [
+          `Convocar ${formatNumber(count)} ${count === 1 ? 'aldeão' : 'aldeões'}.`,
+          offer.termsText,
+        ],
+        confirmLabel: 'Confirmar convocação',
+        cancelLabel: 'Manter os aldeões no trabalho',
+        signal: gone.signal,
+      });
+      if (!valid()) {
+        changedSiege();
+        return;
+      }
+      if (confirmed) await controller.callMilitia(count);
+    } finally {
+      stop();
+    }
+  });
+
   // --- Quartel ----------------------------------------------------------------------
 
   const seeArmy = {
@@ -2009,6 +2082,8 @@ export function createCommands(
       }
       const gameId = controller.session.gameId;
       const record = formationArg(arg);
+      const siegeWave = view.siege?.waves.find((wave) => wave.number === record.siegeWave)?.number;
+      if (record.siegeWave !== undefined && siegeWave === undefined) return;
       if (view.army.formations.length === 0) {
         controller.toast({
           kind: 'info',
@@ -2045,7 +2120,7 @@ export function createCommands(
         });
         return;
       }
-      await controller.simulateBattle(id);
+      await controller.simulateBattle(id, siegeWave);
     },
     (arg) => `simulate:${String(formationArg(arg).id ?? '')}`,
   );
@@ -3715,6 +3790,56 @@ export function createCommands(
       env.download(`cronica-${slug || 'feudo'}.md`, stripChronicleLinks(markdown));
     });
 
+  const downloadYearChronicle = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) return;
+    const years = view.calendar.completedYears ?? [];
+    if (years.length === 0) {
+      controller.toast({ kind: 'info', text: 'Ainda não há anos encerrados para ler.' });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const year =
+      typeof arg === 'number'
+        ? arg
+        : (controller.selectedChronicleYear ??
+          (await dialogs.pick<number>({
+            title: 'Baixar a Crônica do Ano',
+            placeholder: 'Escolha o ano',
+            items: years.map((year) => ({
+              label: `Ano ${year}`,
+              value: year,
+            })),
+          })));
+    if (
+      year === undefined ||
+      !sameGame(gameId) ||
+      !Number.isSafeInteger(year) ||
+      !(controller.view?.calendar.completedYears ?? []).includes(year)
+    )
+      return;
+    const markdown = await controller.loadYearChronicle(year);
+    if (!sameGame(gameId)) return;
+    if (markdown === null) {
+      const failure = controller.yearChronicleDocument;
+      if (controller.selectedChronicleYear === year && failure.status === 'error') {
+        controller.toast({
+          kind: 'warning',
+          text: failure.message,
+          actions: [{ label: 'Ver a Crônica', run: () => controller.navigate('chronicle') }],
+        });
+      }
+      return;
+    }
+    const slug = view.settlement.name
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    env.download(`cronica-${slug || 'feudo'}-ano-${year}.md`, stripChronicleLinks(markdown));
+  });
+
   // --- Conta ---------------------------------------------------------------------
 
   const chooseConflict = (details: AccountConflictDetails): Promise<ConflictChoice | undefined> =>
@@ -4122,6 +4247,13 @@ export function createCommands(
       run: emergencyRepair,
     },
     {
+      id: 'lords.callMilitia',
+      title: 'Convocar milícia…',
+      palette: true,
+      when: hasGame,
+      run: callMilitia,
+    },
+    {
       id: 'lords.repairItem',
       title: 'Reparar um item…',
       palette: true,
@@ -4220,6 +4352,27 @@ export function createCommands(
       when: hasGame,
       run: async () => {
         await downloadChronicle();
+      },
+    },
+    {
+      id: 'lords.downloadYearChronicle',
+      title: 'Baixar a Crônica do Ano',
+      palette: true,
+      when: hasGame,
+      run: downloadYearChronicle,
+    },
+    {
+      id: 'lords.selectChronicleYear',
+      palette: false,
+      title: 'Escolher ano da Crônica',
+      run: async (arg) => {
+        if (
+          arg === null ||
+          (typeof arg === 'number' &&
+            Number.isSafeInteger(arg) &&
+            (controller.view?.calendar.completedYears ?? []).includes(arg))
+        )
+          await controller.selectChronicleYear(arg);
       },
     },
     {
