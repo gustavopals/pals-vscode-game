@@ -2195,6 +2195,7 @@ table.ranking tr.ranking-mine td:first-child {
 }
 
 .siege-decision,
+.siege-militia,
 .siege-aftermath {
   padding: 14px;
   margin-top: 14px;
@@ -2202,6 +2203,7 @@ table.ranking tr.ranking-mine td:first-child {
 }
 
 .siege-decision h3,
+.siege-militia h3,
 .siege-aftermath h3 {
   margin: 0 0 8px;
   color: var(--vscode-foreground);

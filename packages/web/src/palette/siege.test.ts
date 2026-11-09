@@ -211,3 +211,125 @@ describe('o Plano e a decisão entre ondas', () => {
     );
   });
 });
+
+const militiaView: ViewState = {
+  ...scheduled,
+  siege: {
+    ...scheduled.siege!,
+    militiaOffer: {
+      maxCount: 7,
+      canCall: true,
+      blockedReason: null,
+      untilInSeconds: 900,
+      warningSeconds: 3600,
+      targetId: 'embate-1',
+      activeCount: 0,
+      termsText: 'Aldeões deixam o trabalho; baixas permanentes.',
+    },
+  },
+};
+
+describe('milícia pela oferta pública', () => {
+  it('a paleta pede quantidade e confere os termos antes de enviar uma ordem', async () => {
+    const made = await setup(militiaView);
+    made.answers.push('3', true);
+    await made.run('lords.callMilitia');
+    expect(made.shown).toHaveLength(2);
+    expect(made.shown[0]).toMatchObject({
+      kind: 'input',
+      value: '7',
+      prompt: expect.stringContaining('Até 7'),
+    });
+    expect(made.shown[1]).toMatchObject({
+      kind: 'confirm',
+      detail: ['Convocar 3 aldeões.', militiaView.siege!.militiaOffer.termsText],
+    });
+    expect(made.orders()).toEqual([{ type: 'callMilitia', payload: { count: 3 } }]);
+  });
+  it('cancelar qualquer etapa, informar quantidade inválida ou ter oferta bloqueada não envia', async () => {
+    for (const answers of [[undefined], ['3', false], ['8'], ['1.5']]) {
+      const made = await setup(militiaView);
+      made.answers.push(...answers);
+      await made.run('lords.callMilitia');
+      expect(made.orders()).toEqual([]);
+    }
+    const made = await setup({
+      ...militiaView,
+      siege: {
+        ...militiaView.siege!,
+        militiaOffer: {
+          ...militiaView.siege!.militiaOffer,
+          canCall: false,
+          blockedReason: 'Sem posto livre.',
+        },
+      },
+    });
+    await made.run('lords.callMilitia');
+    expect(made.shown).toEqual([]);
+    expect(made.toasts()).toContain('Sem posto livre.');
+  });
+  it('reconfere quantidade, alvo e disponibilidade após cada etapa', async () => {
+    for (const step of [0, 1]) {
+      for (const patch of [{ maxCount: 2 }, { targetId: 'embate-2' }, { canCall: false }]) {
+        const made = await setup(militiaView);
+        const change = async () => {
+          made.api.state.view = {
+            ...militiaView,
+            siege: {
+              ...militiaView.siege!,
+              militiaOffer: { ...militiaView.siege!.militiaOffer, ...patch },
+            },
+          };
+          made.api.state.stateVersion += 1;
+          await made.controller.session.syncNow();
+          return step === 0 ? '3' : true;
+        };
+        made.answers.push(...(step === 0 ? [change] : ['3', change]));
+        await made.run('lords.callMilitia');
+        expect(made.orders()).toEqual([]);
+      }
+    }
+  });
+  it('duplo acionamento compartilha o fluxo; trocar de conta na conferência cancela', async () => {
+    const made = await setup(militiaView);
+    made.answers.push('3', true);
+    await Promise.all([made.run('lords.callMilitia'), made.run('lords.callMilitia')]);
+    expect(made.orders()).toHaveLength(1);
+    const other = await setup(militiaView);
+    other.answers.push('3', async () => {
+      await other.controller.signOut();
+      return true;
+    });
+    await other.run('lords.callMilitia');
+    expect(other.orders()).toEqual([]);
+  });
+  it('a prévia da onda leva o alvo ao servidor; a prévia comum mantém seu payload', async () => {
+    const view = {
+      ...militiaView,
+      army: {
+        ...militiaView.army,
+        formations: [
+          {
+            id: 'formation-1',
+            name: 'Guarda',
+            isActive: true,
+            posts: [],
+            commanders: [],
+            total: 0,
+            shortfall: [],
+            shortfallText: '',
+            canDelete: true,
+            previewStale: false,
+          },
+        ],
+      },
+    };
+    const made = await setup(view);
+    await made.run('lords.simulateBattle', { id: 'formation-1', siegeWave: 3 });
+    await made.run('lords.simulateBattle', { id: 'formation-1' });
+    expect(made.orders()).toEqual([
+      { type: 'simulateBattle', payload: { formationId: 'formation-1', siegeWave: 3 } },
+      { type: 'simulateBattle', payload: { formationId: 'formation-1' } },
+    ]);
+  });
+});

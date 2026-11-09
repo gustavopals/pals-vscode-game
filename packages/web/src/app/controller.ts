@@ -1958,6 +1958,30 @@ export class Controller {
     );
   }
 
+  /** A retentativa pertence ao mesmo embate e à oferta que foi conferida. */
+  callMilitia(count: number): Promise<boolean> {
+    const original = this.view?.siege?.militiaOffer;
+    return this.guildOrder(
+      'siege:militia',
+      'callMilitia',
+      { count },
+      'à milícia',
+      () => {
+        const offer = this.view?.siege?.militiaOffer;
+        return (
+          original?.targetId != null &&
+          offer?.targetId === original.targetId &&
+          offer.canCall &&
+          offer.maxCount === original.maxCount &&
+          offer.termsText === original.termsText &&
+          offer.untilInSeconds !== null &&
+          offer.untilInSeconds > (this.now() - this.viewReceivedAt) / 1000
+        );
+      },
+      'A oferta da milícia mudou ou o prazo acabou: confira de novo antes de convocar.',
+    );
+  }
+
   /**
    * `wave` é a onda da decisão que o jogador conferiu: vai na ordem, e o motor recusa se a onda
    * já foi lutada quando ela chega (revisão da Fase G). Outra onda na visão também não envia.
@@ -2051,11 +2075,11 @@ export class Controller {
   }
 
   /** Pede a prévia do Conselho de Guerra para uma formação salva; a trava é `preview:<formação>`. */
-  simulateBattle(formationId: string): Promise<boolean> {
+  simulateBattle(formationId: string, siegeWave?: 1 | 2 | 3): Promise<boolean> {
     return this.guildOrder(
       `preview:${formationId}`,
       'simulateBattle',
-      { formationId },
+      { formationId, ...(siegeWave === undefined ? {} : { siegeWave }) },
       'ao Exército',
     );
   }

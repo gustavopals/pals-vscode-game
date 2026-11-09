@@ -63,6 +63,10 @@ export function siegeDeadlines(view: ViewState): number[] {
   return [
     view.siege?.current === 0 && view.siege.result === null ? view.siege.scheduledInSeconds : null,
     view.siege?.result === null ? view.siege.nextWaveInSeconds : null,
+    view.siege?.militiaOffer.untilInSeconds,
+    view.siege?.aftermath?.endsInSeconds,
+    view.siege?.aftermath?.repairEndsInSeconds,
+    view.siege?.aftermath?.reconstructionEndsInSeconds,
     ...view.pendingDecisions
       .filter((entry) => entry.kind === 'siegeWave')
       .map((entry) => entry.expiresInSeconds),

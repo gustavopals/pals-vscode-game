@@ -131,7 +131,12 @@ describe('retentativa das ordens do Cerco', () => {
       { type: 'swapWaveFormation', payload: { wave: 2, formationId: null } },
     ]);
   });
-  for (const type of ['setBattlePlan', 'swapWaveFormation', 'emergencyRepair'] as const) {
+  for (const type of [
+    'setBattlePlan',
+    'swapWaveFormation',
+    'emergencyRepair',
+    'callMilitia',
+  ] as const) {
     it(`${type}: a falha de rede e Tentar de novo conservam commandId e payload`, async () => {
       const api = fakeApi();
       const requests: Command[] = [];
@@ -154,7 +159,22 @@ describe('retentativa das ordens do Cerco', () => {
               siege: { ...siegeWaveView.siege!, current: 0, scheduledInSeconds: 3600 },
               pendingDecisions: [],
             }
-          : siegeWaveView;
+          : type === 'callMilitia'
+            ? {
+                ...siegeWaveView,
+                siege: {
+                  ...siegeWaveView.siege!,
+                  militiaOffer: {
+                    ...siegeWaveView.siege!.militiaOffer,
+                    canCall: true,
+                    blockedReason: null,
+                    targetId: 'embate-1',
+                    termsText: 'Termos conferidos.',
+                    untilInSeconds: 3600,
+                  },
+                },
+              }
+            : siegeWaveView;
       await made.controller.start();
       await settle(made.controller);
       api.state.online = false;
@@ -163,7 +183,9 @@ describe('retentativa das ordens do Cerco', () => {
           ? () => made.controller.setBattlePlan(2, null)
           : type === 'swapWaveFormation'
             ? () => made.controller.swapWaveFormation(2, null)
-            : () => made.controller.emergencyRepair(2);
+            : type === 'callMilitia'
+              ? () => made.controller.callMilitia(3)
+              : () => made.controller.emergencyRepair(2);
       expect(await send()).toBe(false);
       const retry = made.controller.toasts
         .flatMap((toast) => toast.actions)
@@ -180,4 +202,41 @@ describe('retentativa das ordens do Cerco', () => {
       expect(api.state.commands).toEqual([requests[0]]);
     });
   }
+});
+
+describe('validade da retentativa da milícia', () => {
+  it('uma oferta para outro embate ou quantidade não reaproveita a conferência anterior', async () => {
+    for (const patch of [{ targetId: 'embate-2' }, { maxCount: 2 }]) {
+      const made = await opened();
+      const offer = {
+        ...siegeWaveView.siege!.militiaOffer,
+        canCall: true,
+        blockedReason: null,
+        targetId: 'embate-1',
+        termsText: 'Termos conferidos.',
+        untilInSeconds: 3600,
+      };
+      made.api.state.view = {
+        ...siegeWaveView,
+        siege: { ...siegeWaveView.siege!, militiaOffer: offer },
+      };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      made.api.state.online = false;
+      expect(await made.controller.callMilitia(3)).toBe(false);
+      const retry = made.controller.toasts
+        .flatMap((toast) => toast.actions)
+        .find((action) => action.label === 'Tentar de novo');
+      expect(retry).toBeDefined();
+      made.api.state.online = true;
+      made.api.state.view = {
+        ...siegeWaveView,
+        siege: { ...siegeWaveView.siege!, militiaOffer: { ...offer, ...patch } },
+      };
+      made.api.state.stateVersion += 1;
+      await made.controller.session.syncNow();
+      await retry!.run();
+      expect(made.api.state.commands).toEqual([]);
+    }
+  });
 });

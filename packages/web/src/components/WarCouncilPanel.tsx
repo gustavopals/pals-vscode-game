@@ -6,6 +6,52 @@ import { Icon } from './shared';
 
 type Army = ViewState['army'];
 
+/** Os resultados públicos da prévia, compartilhados pelo Conselho e pelo Plano. */
+export function BattlePreview(props: { preview: NonNullable<Army['preview']>; stale: boolean }) {
+  const { preview } = props;
+  return (
+    <div data-testid="war-preview">
+      {preview.warning !== null ? (
+        <p class="warning" data-testid="war-preview-warning">
+          <Icon name="warning" /> {preview.warning}
+        </p>
+      ) : null}
+      {props.stale ? (
+        <p class="blocked" data-testid="war-stale">
+          <Icon name="warning" /> Prévia desatualizada: a formação mudou depois dela. Simule de
+          novo.
+        </p>
+      ) : null}
+      <dl class="war-odds">
+        <div>
+          <dt>Vitória</dt>
+          <dd data-testid="war-wins">{formatNumber(preview.winsPercent)}%</dd>
+        </div>
+        <div>
+          <dt>Gloriosa</dt>
+          <dd data-testid="war-glorious">{formatNumber(preview.gloriousPercent)}%</dd>
+        </div>
+        <div>
+          <dt>Derrota</dt>
+          <dd data-testid="war-losses">{formatNumber(preview.lossesPercent)}%</dd>
+        </div>
+      </dl>
+      <p data-testid="war-risk">{preview.riskText}</p>
+      {preview.expectedLosses.length === 0 ? null : (
+        <>
+          <h4>Perdas esperadas</h4>
+          <ul class="war-losses" data-testid="war-expected">
+            {preview.expectedLosses.map((entry) => (
+              <li key={`${entry.wing}:${entry.line}`}>{entry.text}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p class="muted">Baseada em {formatNumber(preview.runs)} simulações.</p>
+    </div>
+  );
+}
+
 /**
  * O Conselho de Guerra de uma formação salva (GDD §13.4): a prévia mais recente que o servidor
  * guardou, em percentual, o risco em uma frase e as perdas esperadas por posto. Nada é calculado
@@ -23,7 +69,11 @@ export function WarCouncilPanel(props: {
   const { army, formationId } = props;
   const saved = army.formations.find((entry) => entry.id === formationId);
   const preview =
-    army.preview !== null && army.preview.formationId === formationId ? army.preview : null;
+    army.preview !== null &&
+    army.preview.siegeWave === null &&
+    army.preview.formationId === formationId
+      ? army.preview
+      : null;
   const working = formationId !== null && props.busy.has(`preview:${formationId}`);
   const attacking = props.busy.has('campaign');
   const assault =
@@ -76,45 +126,7 @@ export function WarCouncilPanel(props: {
         </p>
       ) : null}
       {saved !== undefined && preview !== null ? (
-        <div data-testid="war-preview">
-          {preview.warning !== null ? (
-            <p class="warning" data-testid="war-preview-warning">
-              <Icon name="warning" /> {preview.warning}
-            </p>
-          ) : null}
-          {saved.previewStale ? (
-            <p class="blocked" data-testid="war-stale">
-              <Icon name="warning" /> Prévia desatualizada: a formação mudou depois dela. Simule de
-              novo.
-            </p>
-          ) : null}
-          <dl class="war-odds">
-            <div>
-              <dt>Vitória</dt>
-              <dd data-testid="war-wins">{formatNumber(preview.winsPercent)}%</dd>
-            </div>
-            <div>
-              <dt>Gloriosa</dt>
-              <dd data-testid="war-glorious">{formatNumber(preview.gloriousPercent)}%</dd>
-            </div>
-            <div>
-              <dt>Derrota</dt>
-              <dd data-testid="war-losses">{formatNumber(preview.lossesPercent)}%</dd>
-            </div>
-          </dl>
-          <p data-testid="war-risk">{preview.riskText}</p>
-          {preview.expectedLosses.length === 0 ? null : (
-            <>
-              <h4>Perdas esperadas</h4>
-              <ul class="war-losses" data-testid="war-expected">
-                {preview.expectedLosses.map((entry) => (
-                  <li key={`${entry.wing}:${entry.line}`}>{entry.text}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          <p class="muted">Baseada em {formatNumber(preview.runs)} simulações.</p>
-        </div>
+        <BattlePreview preview={preview} stale={saved.previewStale} />
       ) : null}
     </section>
   );

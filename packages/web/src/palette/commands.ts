@@ -1646,6 +1646,79 @@ export function createCommands(
     await controller.emergencyRepair(decision.wave);
   });
 
+  const callMilitia = oneAtATime(async () => {
+    const view = requireView();
+    const offer = view?.siege?.militiaOffer;
+    if (offer === undefined) return;
+    if (!offer.canCall || !offer.termsText || offer.targetId == null) {
+      controller.toast({
+        kind: 'info',
+        text: offer.blockedReason ?? 'Atualize a oferta da milícia.',
+        actions: [seeSiege],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const valid = () => {
+      const now = controller.view?.siege?.militiaOffer;
+      return (
+        sameGame(gameId) &&
+        now?.canCall === true &&
+        now.targetId === offer.targetId &&
+        now.maxCount === offer.maxCount &&
+        now.termsText === offer.termsText &&
+        now.untilInSeconds !== null &&
+        remainingNow(now.untilInSeconds, elapsed()) > 0
+      );
+    };
+    const gone = new AbortController();
+    const stop = controller.onChange(() => {
+      if (!valid()) gone.abort();
+    });
+    try {
+      const countText = await dialogs.input({
+        title: 'Convocar milícia',
+        prompt: `Quantos aldeões? Até ${formatNumber(offer.maxCount)} disponíveis. ${offer.termsText}`,
+        value: String(offer.maxCount),
+        confirmLabel: 'Conferir convocação',
+        validate: (value) =>
+          Number.isSafeInteger(Number(value)) &&
+          Number(value) > 0 &&
+          Number(value) <= offer.maxCount
+            ? null
+            : {
+                message: `Informe uma quantidade inteira até ${formatNumber(offer.maxCount)}.`,
+                severity: 'error',
+              },
+        signal: gone.signal,
+      });
+      if (!valid()) {
+        changedSiege();
+        return;
+      }
+      if (countText === undefined) return;
+      const count = Number(countText);
+      if (!Number.isSafeInteger(count) || count <= 0 || count > offer.maxCount) return;
+      const confirmed = await dialogs.confirm({
+        title: 'Conferir a milícia',
+        detail: [
+          `Convocar ${formatNumber(count)} ${count === 1 ? 'aldeão' : 'aldeões'}.`,
+          offer.termsText,
+        ],
+        confirmLabel: 'Confirmar convocação',
+        cancelLabel: 'Manter os aldeões no trabalho',
+        signal: gone.signal,
+      });
+      if (!valid()) {
+        changedSiege();
+        return;
+      }
+      if (confirmed) await controller.callMilitia(count);
+    } finally {
+      stop();
+    }
+  });
+
   // --- Quartel ----------------------------------------------------------------------
 
   const seeArmy = {
@@ -2009,6 +2082,8 @@ export function createCommands(
       }
       const gameId = controller.session.gameId;
       const record = formationArg(arg);
+      const siegeWave = view.siege?.waves.find((wave) => wave.number === record.siegeWave)?.number;
+      if (record.siegeWave !== undefined && siegeWave === undefined) return;
       if (view.army.formations.length === 0) {
         controller.toast({
           kind: 'info',
@@ -2045,7 +2120,7 @@ export function createCommands(
         });
         return;
       }
-      await controller.simulateBattle(id);
+      await controller.simulateBattle(id, siegeWave);
     },
     (arg) => `simulate:${String(formationArg(arg).id ?? '')}`,
   );
@@ -4120,6 +4195,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: emergencyRepair,
+    },
+    {
+      id: 'lords.callMilitia',
+      title: 'Convocar milícia…',
+      palette: true,
+      when: hasGame,
+      run: callMilitia,
     },
     {
       id: 'lords.repairItem',
