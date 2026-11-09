@@ -882,7 +882,11 @@ agendadas e resolvidas pela V4G-T2, descrita abaixo.
 A primeira virada de outono/inverno marca `siege` com as ondas já preparadas. Alterações
 por observação ou sabotagem sincronizam seu retrato até a primeira onda. A Vigília é
 fixada na marcação; migração tardia recebe antecedência futura (proposta G-6), sem combate
-retroativo. `settleSiege` vem logo depois de `settleRaids`, antes da Taverna e das voltas de
+retroativo. O agendamento reserva os dois intervalos entre ondas antes do fechamento
+anual: Vigília sem espaço usa +12 h de jogo; migração tardia sem espaço não agenda
+aquele Cerco. A última onda exatamente na virada também não cabe, pois a Crônica
+fecha antes das batalhas do mesmo instante (hipótese de revisão G-25).
+`settleSiege` vem logo depois de `settleRaids`, antes da Taverna e das voltas de
 expedições/campanha: obras prontas e incursões daquele instante já contam, tropas que ainda
 não voltaram continuam fora. `nextSiegeEventAt` dá o instante próprio de cada onda.
 

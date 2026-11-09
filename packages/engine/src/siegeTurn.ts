@@ -30,11 +30,18 @@ export function scheduleSiege(draft: GameState, atMs: number, events: GameEvent[
     draft.siege?.year === year
   )
     return;
-  const intended = vigilAt(draft.settings, winterStartsAt(year));
+  const winterStart = winterStartsAt(year);
+  const interval = realToGameMs(balance.siege.waveIntervalRealMs, draft.settings.timeScale);
+  const duration = interval * (draft.horde.wavePlan.waves.length - 1);
+  const vigil = vigilAt(draft.settings, winterStart);
+  // A Crônica fecha antes das batalhas do mesmo instante: a última onda precisa
+  // terminar antes do ano novo. Sem espaço, usa a alternativa já prevista da Vigília.
+  const intended =
+    vigil + duration < year * YEAR_MS ? vigil : winterStart + vigilRules.fallbackDelayMs;
   const perks = watchtowerPerks(watchtowerLevel(draft));
   const lead = perks === null ? vigilRules.minimumDelayMs : watchtowerWarningMs(draft, perks);
   const scheduled = intended > atMs ? intended : atMs + lead;
-  if (scheduled >= year * YEAR_MS) return;
+  if (scheduled + duration >= year * YEAR_MS) return;
   draft.siege = {
     year,
     atMs: scheduled,

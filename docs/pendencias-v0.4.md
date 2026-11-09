@@ -665,8 +665,19 @@ O passo efetivo é 39 → 40, sem sorteio ou prazo. Na primeira virada de outono
 a linha do tempo usa a preparação existente. Se a Vigília daquele inverno já passou,
 a primeira onda fica uma antecedência da Torre adiante (ou o mínimo da Vigília sem Torre),
 sem cobrar batalha retroativa; as outras esperam 60 min reais cada. Uma sequência que
-atravesse a primavera conserva o retrato das ondas, embora a Horda reinicie a memória anual.
-**Decisão do coordenador:** se a primeira onda calculada pela migração tardia cairia após o término do inverno (`scheduled >= year * YEAR_MS`), o cerco não é marcado para aquele ano (`draft.siege = null`), impedindo que ondas ocorram fora do inverno (GDD §10).
+atravesse a primavera conservava o retrato das ondas, embora a Horda reiniciasse a memória anual.
+**Decisão do coordenador:** se a primeira onda calculada pela migração tardia cairia após o término do inverno (`scheduled >= year * YEAR_MS`), o cerco não é marcado para aquele ano (`draft.siege = null`). **Revisão de 2026-11-09:** a checagem só da primeira onda não impedia a segunda/terceira de atravessar o inverno; G-25 registra o endurecimento e a hipótese de fallback adotada.
+
+**G-25. Reservar a sequência completa antes da Crônica.** _(Hipótese adotada na revisão V4G-T5.1 em 2026-11-09; confirmação do autor pendente.)_
+O caso real no ritmo 3 com Vigília às 7 h UTC produzia ondas em 165/168/171 h de jogo,
+mas `yearEnded` já fechava o ano 1 em 168 h com resultado `none`. A checagem passa a
+reservar também os dois intervalos: a terceira precisa ocorrer **antes** do fechamento
+anual. Quando a Vigília não comporta as três, usa-se +12 h de jogo, a alternativa já
+existente; na migração com Vigília passada, não se agenda aquele Cerco se a antecedência
+futura mais os dois intervalos não couberem. Não se comprimem intervalos nem se altera
+um anúncio existente. Testes: `siege.year-boundary.test.ts`, incluindo a última onda
+exatamente na virada, nos três ritmos oferecidos. A pergunta ao autor foi enviada durante
+a revisão; esta é a hipótese conservadora aplicada enquanto não houver outra preferência.
 
 **G-7. Plano e comandos internos antes do protocolo 4.** _(Respondida pelo autor em 2026-11-04: aprovada em bloco.)_
 O Plano fica em `siege.plan`, sem segunda cópia em `army.battlePlan`. Campos nulos usam a

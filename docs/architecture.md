@@ -669,7 +669,9 @@ a aba Guilda mostra tentativas, ondas enfraquecidas e alerta pelo `ViewState`.
 
 `scheduleSiege` marca na primeira virada de outono/inverno com preparação do ano.
 A data usa a Vigília na abertura do inverno; migração que a encontra passada recebe
-antecedência futura, sem combate retroativo. Não agenda depois do fim daquele ano.
+antecedência futura, sem combate retroativo. A última onda precisa anteceder o
+fechamento anual: se a Vigília não comportar as três, usa +12 h de jogo; na
+migração tardia, não agenda quando as três já não couberem naquele ano (G-25).
 Até a primeira onda, mudanças da preparação sincronizam o retrato em `siege.waves`.
 
 As bases 40/60/80 recebem **1/3 no ano 1, 2/3 no ano 2 e 1 a partir do ano 3**,

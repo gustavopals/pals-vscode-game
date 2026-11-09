@@ -796,6 +796,12 @@ dificuldade: Camponês 7/10 · Senhor 1 · Rei de Ferro 13/10
 - **Resultados:** **Vitória Gloriosa** (sem ala rompida em onda nenhuma), **Vitória** (resistiu com brechas), **Queda** (uma onda venceu). A **Queda** custa 30% dos recursos e 20% da população (aldeões, sem Mestres nem heróis), leva a muralha a 0 e tira 2 níveis dos dois edifícios de nível mais alto (o Salão incluído), sem sorteio. Nunca há game over: "Pedra Alta sobrevive em ruínas" e o Ano 2 começa com a **Primavera da Reconstrução**: custos ×4/5 por 2 dias de jogo ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 19).
 - Derrotar o Senhor da Guerra encerra a onda 3 imediatamente e vale um Feito (decisão 19).
 
+No agendamento, as três ondas precisam terminar antes da virada anual, que fecha a
+Crônica antes das batalhas do mesmo instante. Se a Vigília escolhida não comportar
+os dois intervalos, usa-se o fallback de +12 h de jogo. Uma partida migrada tarde
+demais para acomodar as três ondas não recebe Cerco naquele ano. Essa extensão da
+janela está registrada para confirmação do autor em G-25 (`docs/pendencias-v0.4.md`).
+
 ### 11.3 Milícia `[v0.4]`
 
 O jogador pode **convocar a milícia** só com uma incursão forte ou o cerco **marcados e dentro da antecedência da Torre de Vigia** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md)), decisão 21): até 50% dos aldeões viram Milicianos (3/2/12, ×5/4). Enquanto convocados, não produzem. A milícia se dissolve ao fim da batalha e as baixas reduzem a população, com o piso de 3 aldeões. É a carta desesperada que torna a última onda dramática.
