@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 import {
   applyTheme,
@@ -7,6 +8,7 @@ import {
   lowContrast,
   MINUTE,
   overflow,
+  palette,
   playNow,
   serverView,
   statusBar,
@@ -183,6 +185,119 @@ test.describe('o Cerco do Inverno (V4G-T4)', () => {
   });
 
   for (const theme of THEMES) {
+    test(`${theme}: milícia pelo teclado exige duas etapas, devolve foco e não convoca duas vezes`, async ({
+      context,
+      world,
+      request,
+    }) => {
+      const page = await world.open(context);
+      await page.setViewportSize({ width: 720, height: 900 });
+      await openSiege(world, page, 'small', 20);
+      await applyTheme(page, theme);
+      const view = await serverView(page, request);
+      const formation = page.getByTestId(`formation-${view.army.formations[0]!.id}`);
+      // Um posto livre pela própria tela: a oferta é recalculada pelo motor após salvar.
+      await formation.getByTestId('formation-edit').click();
+      await page.getByTestId('post-right-back').click();
+      await page.getByTestId('post-clear').click();
+      await page.getByTestId('formation-save').click();
+      const summon = panel(page).getByRole('button', { name: 'Convocar milícia…' });
+      await expect(summon).toBeEnabled();
+      const sent: unknown[] = [];
+      page.on('request', (outgoing) => {
+        if (outgoing.method() === 'POST' && outgoing.url().endsWith('/commands')) {
+          const command = outgoing.postDataJSON() as { type: string };
+          if (command.type === 'callMilitia') sent.push(command);
+        }
+      });
+      await summon.focus();
+      await page.keyboard.press('Enter');
+      const input = page.getByRole('dialog', { name: 'Convocar milícia' });
+      await expect(input.getByRole('textbox')).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(summon).toBeFocused();
+      expect(sent).toHaveLength(0);
+      await page.keyboard.press('Enter');
+      await input.getByRole('textbox').fill('1');
+      await input.getByRole('button', { name: 'Conferir convocação' }).click();
+      const review = page.getByRole('dialog', { name: 'Conferir a milícia' });
+      await expect(review).toContainText('Convocar 1 aldeão.');
+      await expect(review).toContainText(
+        (await serverView(page, request)).siege!.militiaOffer.termsText!,
+      );
+      expect(sent).toHaveLength(0);
+      await review.getByRole('button', { name: 'Confirmar convocação' }).focus();
+      await page.keyboard.press('Enter');
+      await expect(review).toHaveCount(0);
+      await expect(summon).toBeDisabled();
+      await expect(panel(page)).toContainText('1 aldeão convocado.');
+      expect(sent).toHaveLength(1);
+      expect((await serverView(page, request)).siege!.militiaOffer.activeCount).toBe(1);
+      await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+      expect(await lowContrast(page)).toEqual([]);
+    });
+
+    test(`${theme}: ano encerrado abre a Crônica anual e baixa o Markdown com pontuação e Feitos`, async ({
+      context,
+      world,
+      request,
+    }) => {
+      const page = await world.open(context);
+      await page.setViewportSize({ width: 720, height: 900 });
+      await openSiege(world, page);
+      await world.passTime(2 * MINUTE, page);
+      await world.passTime(HOUR, page);
+      await world.passTime(HOUR, page);
+      // Os saltos seguem os prazos públicos, sem inventar um fecho anual pela rota de teste.
+      let view = await serverView(page, request);
+      while (view.calendar.year === 1) {
+        await world.passTime(view.calendar.secondsToNextSeason * 1000 + MINUTE, page);
+        view = await serverView(page, request);
+      }
+      await applyTheme(page, theme);
+      await palette(page, 'Abrir a Crônica');
+      await page.keyboard.press('Enter');
+      const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
+      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('1');
+      await expect(chronicle.getByRole('heading', { level: 1 })).toHaveText(
+        'Crônica do Ano 1 — Pedra Alta',
+      );
+      await expect(chronicle.getByRole('table')).toContainText('População máxima');
+      await expect(
+        chronicle.getByRole('heading', { name: 'Pontuação', exact: true }),
+      ).toBeVisible();
+      await expect(
+        chronicle.getByRole('heading', { name: 'Feitos do ano', exact: true }),
+      ).toBeVisible();
+      const pending = page.waitForEvent('download');
+      await chronicle.getByRole('button', { name: 'Baixar a Crônica do Ano' }).focus();
+      await page.keyboard.press('Enter');
+      const file = await pending;
+      expect(file.suggestedFilename()).toBe('cronica-pedra-alta-ano-1.md');
+      const markdown = await readFile((await file.path())!, 'utf8');
+      expect(markdown).toContain('# Crônica do Ano 1 — Pedra Alta');
+      for (const heading of [
+        'Primavera',
+        'Verão',
+        'Outono',
+        'Inverno',
+        'O Cerco do Inverno',
+        'O ano em números',
+        'Pontuação',
+        'Feitos do ano',
+      ])
+        expect(markdown).toContain(`## ${heading}`);
+      expect(markdown).not.toContain('Crônica do Ano 2');
+      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('2');
+      await expect(chronicle.getByRole('alert')).toContainText('ainda não foi registrada');
+      await chronicle.getByLabel('Leitura', { exact: true }).selectOption('');
+      await expect(
+        chronicle.getByRole('button', { name: 'Baixar Crônica (Markdown)' }),
+      ).toBeVisible();
+      await expect.poll(() => overflow(page)).toEqual({ page: 0, content: 0 });
+      expect(await lowContrast(page)).toEqual([]);
+    });
+
     test(`${theme}: plano e decisão em 720 px, contraste, árvore e foco de retorno`, async ({
       context,
       world,
