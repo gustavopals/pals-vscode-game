@@ -639,6 +639,8 @@ export function fakeApi() {
     events: [] as GameEvent[],
     chronicleMarkdown: '# Crônica de Pedra Alta\n\n## Ano 1\n\n*Ainda não há nada a contar.*\n',
     chronicleQueries: [] as string[],
+    yearChronicles: {} as Record<number, string>,
+    yearChronicleQueries: [] as number[],
     githubDevice: true,
     /** O que `GET /catalog` responde; `null` é um servidor de uma versão anterior (404). */
     catalog: catalogFixture() as CatalogResponse | null,
@@ -817,6 +819,15 @@ export function fakeApi() {
           )
           .slice(-limit),
       });
+    }
+    const annual = /^years\/(\d+)\/chronicle\.md$/.exec(resource);
+    if (annual) {
+      const year = Number(annual[1]);
+      state.yearChronicleQueries.push(year);
+      const markdown = state.yearChronicles[year];
+      return markdown === undefined
+        ? error(404, 'NOT_FOUND', 'Crônica do ano não encontrada.')
+        : new Response(markdown, { status: 200, headers: { 'content-type': 'text/markdown' } });
     }
     if (resource === 'chronicle.md') {
       // O que foi pedido ao documento (`?links=1`), para o teste conferir.

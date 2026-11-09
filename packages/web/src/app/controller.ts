@@ -242,6 +242,9 @@ export class Controller {
   viewReceivedAt = 0;
   toasts: Toast[] = [];
   chronicleDocument: Loadable<string> = { status: 'idle' };
+  selectedChronicleYear: number | null = null;
+  yearChronicleDocument: Loadable<string> = { status: 'idle' };
+  private yearChronicleRequest = 0;
   server: Loadable<VersionResponse> = { status: 'idle' };
   /** A aba Reino: os totais, o ranking de ouro e o jogador (`GET /stats`, ADR 0021). */
   stats: Loadable<StatsResponse> = { status: 'idle' };
@@ -675,6 +678,9 @@ export class Controller {
         this.rankingListed = null;
       }
       this.chronicleDocument = { status: 'idle' };
+      this.selectedChronicleYear = null;
+      this.yearChronicleDocument = { status: 'idle' };
+      this.yearChronicleRequest += 1;
       this.report = null;
       this.unseen = 0;
       this.seasonChanges.clear();
@@ -2202,6 +2208,42 @@ export class Controller {
     // Os avisos do jogo à vista somem junto: foi isso que o jogador pediu.
     this.dropGameToasts();
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
+  }
+
+  async selectChronicleYear(year: number | null): Promise<void> {
+    this.selectedChronicleYear = year;
+    this.yearChronicleRequest += 1;
+    this.yearChronicleDocument = { status: 'idle' };
+    this.changes.emit();
+    if (year !== null) await this.loadYearChronicle(year);
+  }
+
+  async loadYearChronicle(year: number): Promise<string | null> {
+    const gameId = this.session.gameId;
+    if (gameId === null) return null;
+    const request = ++this.yearChronicleRequest;
+    this.selectedChronicleYear = year;
+    this.yearChronicleDocument = { status: 'loading' };
+    this.changes.emit();
+    const current = () => this.session.gameId === gameId && this.yearChronicleRequest === request;
+    try {
+      const markdown = await this.client.getYearChronicleMarkdown(gameId, year);
+      if (!current()) return null;
+      this.yearChronicleDocument = { status: 'ready', value: markdown };
+      this.changes.emit();
+      return markdown;
+    } catch (error) {
+      if (!current()) return null;
+      this.yearChronicleDocument = {
+        status: 'error',
+        message:
+          error instanceof ApiClientError && error.status === 404
+            ? 'A Crônica deste ano ainda não foi registrada. Escolha outro ano ou tente após o encerramento.'
+            : describeError(error).message,
+      };
+      this.changes.emit();
+      return null;
+    }
   }
 
   /**

@@ -118,6 +118,9 @@ function TabContent(props: {
       return (
         <ChronicleTab
           document={controller.chronicleDocument}
+          yearDocument={controller.yearChronicleDocument}
+          selectedYear={controller.selectedChronicleYear}
+          currentYear={controller.view?.calendar.year}
           reports={keptReports(controller.view?.guild)}
           actions={actions}
         />

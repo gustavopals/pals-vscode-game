@@ -3790,6 +3790,52 @@ export function createCommands(
       env.download(`cronica-${slug || 'feudo'}.md`, stripChronicleLinks(markdown));
     });
 
+  const downloadYearChronicle = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) return;
+    const gameId = controller.session.gameId;
+    const year =
+      typeof arg === 'number'
+        ? arg
+        : (controller.selectedChronicleYear ??
+          (await dialogs.pick<number>({
+            title: 'Baixar a Crônica do Ano',
+            placeholder: 'Escolha o ano',
+            items: Array.from({ length: view.calendar.year }, (_, index) => ({
+              label: `Ano ${index + 1}`,
+              value: index + 1,
+            })),
+          })));
+    if (
+      year === undefined ||
+      !sameGame(gameId) ||
+      !Number.isSafeInteger(year) ||
+      year < 1 ||
+      year > view.calendar.year
+    )
+      return;
+    const markdown = await controller.loadYearChronicle(year);
+    if (!sameGame(gameId)) return;
+    if (markdown === null) {
+      const failure = controller.yearChronicleDocument;
+      if (controller.selectedChronicleYear === year && failure.status === 'error') {
+        controller.toast({
+          kind: 'warning',
+          text: failure.message,
+          actions: [{ label: 'Ver a Crônica', run: () => controller.navigate('chronicle') }],
+        });
+      }
+      return;
+    }
+    const slug = view.settlement.name
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    env.download(`cronica-${slug || 'feudo'}-ano-${year}.md`, stripChronicleLinks(markdown));
+  });
+
   // --- Conta ---------------------------------------------------------------------
 
   const chooseConflict = (details: AccountConflictDetails): Promise<ConflictChoice | undefined> =>
@@ -4302,6 +4348,28 @@ export function createCommands(
       when: hasGame,
       run: async () => {
         await downloadChronicle();
+      },
+    },
+    {
+      id: 'lords.downloadYearChronicle',
+      title: 'Baixar a Crônica do Ano',
+      palette: true,
+      when: hasGame,
+      run: downloadYearChronicle,
+    },
+    {
+      id: 'lords.selectChronicleYear',
+      palette: false,
+      title: 'Escolher ano da Crônica',
+      run: async (arg) => {
+        if (
+          arg === null ||
+          (typeof arg === 'number' &&
+            Number.isSafeInteger(arg) &&
+            arg > 0 &&
+            arg <= (controller.view?.calendar.year ?? 0))
+        )
+          await controller.selectChronicleYear(arg);
       },
     },
     {
