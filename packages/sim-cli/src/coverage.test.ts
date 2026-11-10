@@ -47,19 +47,26 @@ if (process.env.SHOW_COVERAGE !== undefined) {
  *
  * "Duelo na praça" (`squareDuel`) pede dois heróis livres fora do inverno e "O curandeiro errante"
  * (`wanderingHealer`) pede herói ferido. O bot econômico não contrata na Taverna (só o Explorador
- * contrata), mas pode contratar o capitão veterano por conselho (`veteranCaptain`), permitindo
- * `squareDuel` em sementes com folga de ouro (2 partidas em 50 na terceira junção).
- * "O curandeiro errante" continua inalcançado pelo bot Regular.
+ * contrata) e, com o preparo do Cerco e o treino militar (V4G-T5.3), aplica o ouro nas defesas e na
+ * tropa antes de contratar o capitão veterano por conselho (`veteranCaptain`), de modo que ambas
+ * continuam fora do alcance do bot Regular.
  * "A Filha do Ferreiro" (`smithsDaughter`) e suas continuações (`temperingSecret`, `lordsSword`)
  * exigem a Ferraria no verão, o que o bot Regular ainda não ergueu no verão do ano 1.
  * "Depois da tempestade" (`afterTheStorm`) exige a fase de rescaldo do Cerco (`aftermath`);
  * no ritmo Normal, o Cerco ocorre após as audiências do inverno e o ano fecha na hora 168
  * antes de nova audiência no rescaldo, de modo que só é vista no ritmo Rápido.
+ * "Pegadas brancas" (`whitePaws`) e suas continuações (`whiteWolf`, `forestReturns`, V4H-T1.4)
+ * exigem o Covil de Lobos limpo (`clearedTiles: ['wolfDen']`), o que só o bot Explorador faz;
+ * a cadeia inteira é coberta em `packages/engine/src/council.white-wolf.test.ts`.
  */
 const neverOpened = [
   'palisadePromiseDeadline',
   'palisadePromiseReckoning',
   'merchantBoycott',
+  'whitePaws',
+  'whiteWolf',
+  'forestReturns',
+  'squareDuel',
   'smithsDaughter',
   'temperingSecret',
   'lordsSword',
@@ -164,9 +171,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       // (sem tirar o material da próxima obra), e ainda assim abre a cadeia em mais da metade.
       // 45 → 40 com as oito cartas do lote 2 (V4E-T1): elas disputam a mesa (44 em 50 na Ponte).
       // Segunda junção (docs/balance-v0.4.md, seção 19): 40 → 35 com as treze cartas adicionais disputando a mesa (37 em 50 na Ponte).
-      // Terceira junção: 35 → 20 com as treze cartas do lote 3 (56 no catálogo completo).
+      // Terceira junção (docs/balance-v0.4.md, seção 22): com 59 cartas no catálogo e o preparo do Cerco, o piso da segunda carta passa de 20 para 17.
       expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(35);
-      expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(20);
+      expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(17);
       // As continuações vêm em 2 dias depois da resposta, respeitando o lugar na mesa.
       // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
       // do ano não alcança o desfecho antes da última leitura (2 de 35 no Celeiro Comum): a
@@ -174,9 +181,9 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       expect(runsOf(normal, ending), ending).toBeLessThanOrEqual(runsOf(normal, middle));
     }
     // Segunda junção (docs/balance-v0.4.md, seção 19): 33 segundas cartas e 27 desfechos.
-    // Terceira junção: 21 segundas cartas e 21 desfechos concluídos no ano.
-    expect(runsOf(normal, 'commonGranaryShare')).toBe(21);
-    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(21);
+    // Terceira junção (docs/balance-v0.4.md, seção 22): 17 segundas cartas e 17 desfechos concluídos no ano.
+    expect(runsOf(normal, 'commonGranaryShare')).toBe(17);
+    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(17);
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
     // Desde os objetivos da v0.2 (V2E-T4) a folga do começo vai para a Torre de Vigia e para o

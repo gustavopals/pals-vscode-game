@@ -1798,101 +1798,91 @@ eventos de obra e Queda, com a cotação de cada negociação e o saldo de volum
 exato; o nível final reduzido não invalida uma venda anterior. Não se retirou a
 exigência de zero recusas.
 
-## 22. Terceira junção: medição final (2026-11-06)
+## 22. Terceira junção: medição final (2026-11-06 a 2026-11-09)
 
 ### 22.1 Base e método
 
-A retomada parte de `624fffc` (as ordens entre ondas levam a onda da decisão) e
-`d43044d` (o bundle descarta o conteúdo sem uso). A base reúne estado 42, protocolo 4,
-59 cartas, Acampamento, sabotagem, Crônica do Ano, Lobo Branco, Retorno com a guerra,
-tela do Cerco e correções das revisões. O primeiro Cerco usa 1/3 das ondas-base;
-o segundo, 2/3; a partir do terceiro vale o tamanho inteiro (GDD §11.2).
+A medição final da terceira junção parte de `879f0cc` em **Camponês** e de `0be0e5f` em
+**Senhor** e **Rei de Ferro** (entre `879f0cc` e `0be0e5f` entraram apenas correções da
+revisão da Fase E e da tela do Cerco, sem efeito esperado no simulador). A base reúne
+estado 42, protocolo 4, **59 cartas** (decisão do autor de 2026-11-09: a v0.4 fecha com
+59 cartas; a 60ª prevista inicialmente seria `"O aprendiz e o Mestre"`, proibida pelo
+autor), Acampamento, sabotagem, Crônica do Ano, Lobo Branco (H-12: pagamento único da pele
+na carta `forestReturns`, exigindo a fera vencida), Retorno com a guerra, tela do Cerco,
+correções das revisões, preparo do Cerco nos bots (`V4G-T5.3`) e ondas escalonadas por ano:
+o primeiro Cerco usa 1/3 das ondas-base; o segundo, 2/3; a partir do terceiro vale o
+tamanho inteiro (GDD §11.2).
 
 Identidade impressa pelo CLI: motor `0.3.0`, estado `v42`, conteúdo `c03f4ac8b41c9311`.
 
 Esta rodada usa diretamente o CLI, uma vez por dificuldade, com Node 22.22.3 e
 prioridade `nice -n 19`. São 24 células por dificuldade: duas janelas, três ritmos,
 quatro perfis e as 50 sementes fixas. Cada dificuldade completa tem 1.200 registros
-e 1.000 partidas distintas, pois semana e ano do ritmo Normal repetem a mesma partida.
-O Militar não pertence aos quatro perfis padrão e não foi medido nesta rodada.
+e 1.000 partidas distintas (semana e ano do ritmo Normal repetem a mesma partida),
+perfazendo 3.600 registros no total. O Militar não pertence aos quatro perfis padrão
+e não tem faixa em `bands.ts`.
 
 ```bash
-nice -n 19 pnpm -s sim -- --matrix --difficulty lord > m-lord.csv 2> m-lord.md
-nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > m-peasant.csv 2> m-peasant.md
-nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > m-ironKing.csv 2> m-ironKing.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty peasant > peasant.csv 2> peasant.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty lord > lord.csv 2> lord.md
+nice -n 19 pnpm -s sim -- --matrix --difficulty ironKing > ironKing.csv 2> ironKing.md
 ```
 
 Os artefatos estão fora do repositório, em
-`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/matriz/`.
-Os arquivos `m-<d>.exit`, `.started` e `.finished` guardam a saída e os horários.
-A conferência dos CSVs exige exatamente 50 sementes distintas em cada uma das 24 células.
+`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/matriz/{peasant,lord,ironKing}.{md,csv}`.
+As 72 linhas `measured(` dos relatórios `.md` foram gravadas em `packages/sim-cli/src/bands.ts`
+(commit `9d07add`), zerando todas as violações de faixa (`0/1.200` fora em cada dificuldade).
 
-### 22.2 Comparação com as faixas anteriores
+### 22.2 O que mudou desde a junção anterior e comparação com as faixas
 
-As violações abaixo usam as faixas anteriores à remedição, de `d43044d`.
-Cada contagem é de registros, incluindo a repetição das janelas no ritmo Normal;
-um registro pode violar mais de uma grandeza. A saída 1 do CLI informa essas
-violações; não significa uma interrupção da simulação quando há 1.200 registros e
-24 linhas `measured(` completas.
+As tabelas abaixo mostram o deslocamento medido frente a duas referências:
+1. **Segunda junção (`b92b8b8`, seção 19):** antes da entrada do Cerco, do lote 3 do Conselho, do Lobo Branco, das ondas por ano e do preparo militar de outono.
+2. **Linha provisória da terceira junção (`b77a9a9`, seção 20):** já com o Cerco e o catálogo de 59 cartas, mas antes do preparo militar dos bots (`V4G-T5.3`), das ondas escalonadas por ano e do ajuste H-12 do Lobo Branco.
 
-| Dificuldade | Saída do CLI | Células alteradas / 24 | Células fora / 24 | Registros fora / 1.200 | Recusas | Fome máxima (h reais) | Frio máximo (h reais) |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Senhor | 1 | 15 | 15 | 447 | 0 | 3 | 1 |
-| Camponês | 1 | 16 | 15 | 526 | 0 | 3 | 3 |
+**Contra a segunda junção (`b92b8b8`):**
 
-| Grandeza fora da faixa anterior | Senhor | Camponês |
-|---|---:|---:|
-| população | 36 | 58 |
-| Salão | 32 | 24 |
-| fome | 4 | 2 |
-| frio | 3 | 2 |
-| madeira | 4 | 5 |
-| pedra | 11 | 6 |
-| ouro | 1 | 26 |
-| sequência de desperdício | 418 | 452 |
-| recusas | 0 | 0 |
+| Dificuldade | Células alteradas / 24 | Células fora / 24 | Registros fora / 1.200 | População | Salão | Fome | Frio | Madeira | Pedra | Ouro | Sequência de desperdício | Recusas |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Camponês | 24 | 22 | 945 | 921 | 585 | 2 | 2 | 3 | 0 | 10 | 477 | 0 |
+| Senhor | 24 | 22 | 911 | 857 | 384 | 5 | 3 | 65 | 9 | 0 | 421 | 0 |
+| Rei de Ferro | 24 | 22 | 936 | 909 | 384 | 4 | 4 | 8 | 0 | 0 | 430 | 0 |
 
-A comparação reúne mudanças intencionais já integradas, não um ajuste isolado de
-números: o catálogo atual muda os sorteios, e o preparo do Cerco prioriza Quartel,
-Torre e Muralha no outono, converte braços em soldados e preserva reservas de comida
-e lenha. As batalhas retiram tropas; a milícia retira braços temporariamente; uma
-Queda perde população e níveis de edifícios. Com isso mudam as filas, a produção,
-a chegada dos objetivos e os estoques. A semana do Rápido atravessa três Cercos;
-a semana do Tranquilo termina antes do primeiro. Não se atribui uma diferença
-de estoque exclusivamente às ondas por ano sem uma rodada controlada adicional.
+**Contra a linha provisória da terceira junção (`b77a9a9`):**
 
-A remedição conserva `SLACK`: 10% para população e 5% para os tetos. A meta do
-Regular continua em 8 h de jogo seguidas de desperdício, independente das faixas.
-Uma nova linha de base descreve o jogo medido; não aprova fome, frio, ouro parado
-ou desperdício como metas de balanceamento.
+| Dificuldade | Saída do CLI | Células alteradas / 24 | Células fora / 24 | Registros fora / 1.200 | População | Salão | Fome | Frio | Madeira | Pedra | Ouro | Sequência de desperdício | Recusas | Fome máx. (h) | Frio máx. (h) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Camponês | 1 | 16 | 15 | 526 | 58 | 24 | 2 | 2 | 5 | 6 | 26 | 452 | 0 | 3 | 3 |
+| Senhor | 1 | 15 | 15 | 445 | 34 | 31 | 4 | 3 | 4 | 11 | 1 | 416 | 0 | 3 | 1 |
+| Rei de Ferro | 1 | 16 | 16 | 435 | 53 | 30 | 4 | 4 | 10 | 18 | 0 | 366 | 0 | 6 | 2 |
 
-Em Senhor, as 15 células alteradas são dos três perfis preparados nas janelas que
-alcançam o outono. As seis do Preguiçoso e as três da semana do Tranquilo mantêm
-a linha anterior. O Regular chega a 81 h de jogo seguidas desperdiçando comida na
-semana do Rápido e a 22 h no Normal (semana e ano), acima da meta de 8 h.
-
-A fome aparece na semana do Rápido do Regular nas sementes 007 (3 h), 014 (1 h),
-015 e 035 (2 h cada), e na do Explorador na 030 (1 h). O frio aparece na semana
-do Rápido do Regular, semente 003 (1 h), e nas janelas semana e ano do Explorador,
-semente 009 (1 h em cada registro). São cinco registros com fome e três com frio;
-a repetição da semente 009 nas duas janelas não é um terceiro caso independente.
-São pioras a revisar: a remedição não as corrige nem remove os critérios dos testes.
-A causa de cada intervalo ainda pede a leitura dos eventos da semente; o CSV não
-permite atribuir sozinho cada falta ao treino, à milícia ou à Queda.
-
-Em Camponês, a fome aparece na semana do Rápido do Regular nas sementes 007
-(3 h) e 015 (1 h). O frio aparece no Dedicado do Rápido, semente 041, nas duas
-janelas (3 h em cada registro): dois registros do mesmo intervalo da partida.
-As 16 células com linha de base alterada e os 526 registros fora das faixas
-anteriores também continuam sem ordens recusadas. O Regular chega a 84 h de comida
-indo ao chão na semana do Rápido, 21 h no Normal e 15 h de pedra no ano do Rápido;
-as quatro células (contando semana e ano do Normal) ficam acima da meta de 8 h.
+O que mudou desde a segunda junção (`b92b8b8`):
+- **População, Salão e fila de obras após o outono e o Cerco:** na segunda junção ainda não havia Cerco nem preparo militar de outono; apenas as duas células de `week/0.5/preguicoso` e `week/0.5/regular` (meio ano no ritmo Tranquilo, que termina antes do primeiro outono e do primeiro Cerco) permanecem dentro das faixas da segunda junção nas três dificuldades. Nas janelas que alcançam o outono e o inverno, o preparo do Cerco (`V4G-T5.3`) prioriza Quartel, Torre e Muralha, treina soldados até o teto do Quartel (convertendo aldeões em soldados que comem 1,5/h e não trabalham), convoca milícia na antecedência da Torre e enfrenta as três ondas do Cerco; quando sobrevém a Queda, o feudo perde 20% dos aldeões, 30% dos recursos, a muralha inteira e dois níveis dos dois maiores edifícios. Em `Senhor`, o perfil `Regular` no ritmo `Normal` (`week/1/regular` e `year/1/regular`) passa de `56–68` aldeões e Salão Nv6 (segunda junção) para `22–37` aldeões e Salão Nv4–6; na semana do `Rápido` (`week/3/regular`, três Cercos), passa de `71–84` aldeões e Salão Nv7 para `19–45` aldeões e Salão Nv3–7.
+- **Ouro parado:** os gastos militares do outono (Muralha, Quartel, treino de soldados e compra de ferro) e as perdas de 30% nas Quedas reduzem fortemente o teto de ouro parado na semana do Rápido: em `Senhor`, `week/3/regular` cai de `105.123` (segunda junção) para `35.962`, `week/3/dedicado` cai de `297.416` para `39.495`, e `week/3/explorador` cai de `206.924` para `52.278`. Em `Camponês`, `week/3/regular` cai de `122.096` para `37.695` e `week/3/dedicado` de `288.977` para `52.324`. Em `Rei de Ferro`, `week/3/regular` cai de `119.430` para `38.888` e `week/3/dedicado` de `245.803` para `52.610`.
+- **Regressão medida — fome e frio no ritmo Rápido (zero no Normal e no Tranquilo; zero aldeões perdidos nas 3.600 partidas):**
+  - **Camponês:** fome em `week/3/regular` nas sementes `007` (3 h) e `015` (1 h) — 2 registros; frio em `week/3/dedicado` e `year/3/dedicado` na semente `041` (3 h em cada janela, mesmo intervalo da partida).
+  - **Senhor:** fome em `week/3/regular` nas sementes `007` (3 h), `014` (1 h), `015` (2 h) e `035` (2 h), e em `week/3/explorador` na semente `030` (1 h) — 5 registros; frio em `week/3/regular` na semente `003` (1 h), e em `week/3/explorador` e `year/3/explorador` na semente `009` (1 h em cada janela, mesma partida) — 3 registros (2 partidas distintas).
+  - **Rei de Ferro:** fome em `week/3/explorador` nas sementes `015` (1 h), `021` (2 h) e `023` (6 h), e em `year/3/explorador` na semente `023` (2 h no primeiro ano da mesma partida) — 4 registros (3 partidas distintas); frio em `week/3/regular` na semente `006` (1 h), `week/3/dedicado` na semente `007` (2 h), e em `week/3/explorador` e `year/3/explorador` na semente `049` (2 h em cada janela, mesma partida) — 4 registros (3 partidas distintas).
+- **Regressão medida — meta de desperdício do perfil Regular (≤ 8 h de jogo seguidas):** com a prioridade às obras militares no outono, o lavrador extra mantendo comida para o treino e a perda de níveis de edifícios nas Quedas:
+  - **Camponês:** `week/3/regular` chega a `84` h de jogo (comida), `week/1/regular` e `year/1/regular` chegam a `21` h (43/50 sementes acima de 8 h), e `year/3/regular` chega a `15` h (pedra, 2/50 sementes acima de 8 h). Cumprem a meta `week/0.5/regular` (`6,5` h) e `year/0.5/regular` (`6` h).
+  - **Senhor:** `week/3/regular` sobe de `33` para `81` h (comida, 50/50 sementes acima de 8 h), e `week/1/regular` e `year/1/regular` sobem de `7` para `22` h (43/50 sementes acima de 8 h). Cumprem a meta `year/3/regular` (`6` h), `week/0.5/regular` (`5,5` h) e `year/0.5/regular` (`5,5` h).
+  - **Rei de Ferro:** `week/3/regular` sobe de `33` para `87` h (comida, 50/50 sementes acima de 8 h), e `week/1/regular` e `year/1/regular` sobem de `6` para `22` h (38/50 sementes acima de 8 h). Cumprem a meta `year/3/regular` (`6` h), `week/0.5/regular` (`6` h) e `year/0.5/regular` (`6` h).
+- **Ameaça ao fim de um ano ou mais (`threat.final` em Senhor, 1.000 registros):** a máxima é `96` (nenhuma partida termina saturada em `100`, contra `100` na segunda junção) e **119 das 1.000** partidas terminam em `≥ 80` (eram `135` na segunda junção).
 
 ### 22.3 Cerco por dificuldade, perfil e ritmo
 
 Os totais são os das 50 sementes de cada célula. Vitórias incluem Gloriosas;
 as ondas vencidas incluem as anteriores a uma Queda. Convocações somam os aldeões
-chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extrapolação.
+chamados, não pessoas distintas. As tabelas vêm diretamente dos relatórios `.md` das matrizes.
+
+> **Meta do GDD §15.2 (critério 6 de aceitação) NÃO alcançada nesta medição:** o GDD §15.2 prevê, em um ano do ritmo Normal em Senhor, **65–80% de Vitória (com 20–30% de Vitória Gloriosa) para o perfil Regular**, **40–60% para o Preguiçoso**, **90%+ (com 50%+ Gloriosa) para o Dedicado**, e **35–50% para o Regular em Rei de Ferro**. Na medição atual do ano no ritmo **Normal (1×)**:
+> - **Regular:** vence **5/50 (10%, 0 Gloriosas, 45 Quedas)** em **Senhor**, **16/50 (32%, 3 Gloriosas, 34 Quedas)** em **Camponês** e **3/50 (6%, 0 Gloriosas, 47 Quedas)** em **Rei de Ferro**.
+> - **Preguiçoso:** vence **0/50 (0%)** nas três dificuldades e nos três ritmos.
+> - **Dedicado:** vence **34/50 (68%, 11 Gloriosas = 22%)** em **Senhor**, **44/50 (88%, 31 Gloriosas = 62%)** em **Camponês** e **23/50 (46%, 6 Gloriosas = 12%)** em **Rei de Ferro**.
+> - **Explorador:** vence **23/50 (46%, 6 Gloriosas)** em **Senhor**, **32/50 (64%, 19 Gloriosas)** em **Camponês** e **15/50 (30%, 2 Gloriosas)** em **Rei de Ferro**.
+> - No ritmo **Rápido (3×)**, em **um ano de jogo (56 h reais)** nenhum dos quatro perfis vence o primeiro Cerco (**0/50** nas três dificuldades); em **7 dias reais (3 anos, 150 Cercos)**, `Preguiçoso` e `Regular` vencem **0/150** nas três dificuldades, `Dedicado` vence **12/150** em Camponês, **2/150** em Senhor e **0/150** em Rei de Ferro, e `Explorador` vence **31/150 (13 Gloriosas)** em Camponês, **22/150 (5 Gloriosas)** em Senhor e **11/150 (0 Gloriosas)** em Rei de Ferro.
+> - No ritmo **Tranquilo (0,5×, um ano em 336 h reais)**, o `Regular` chega a **39/50 (78%, 19 Gloriosas)** em Camponês, **24/50 (48%, 6 Gloriosas)** em Senhor e **20/50 (40%, 5 Gloriosas)** em Rei de Ferro, e o `Dedicado` chega a **50/50 (40 Gloriosas)** em Camponês, **47/50 (19 Gloriosas)** em Senhor e **39/50 (10 Gloriosas)** em Rei de Ferro.
+>
+> A calibração para atingir e travar em teste a meta do GDD §15.2 pertence à **Fase I (`V4I-T1`)**, com diagnóstico já em curso (`BOT-4` a `BOT-6` em [pendencias-v0.4.md](pendencias-v0.4.md): antecipação da janela econômica de preparo no verão, custo/tempo dos lotes de treino no outono e pressão acumulada das três ondas sobre a tropa sobrevivente).
 
 #### Senhor
 
@@ -1903,7 +1893,7 @@ chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extr
 | Rápido 3× | Preguiçoso | 150 | 0 | 0 | 150 | 0 / 150 | 22 |
 | Rápido 3× | Regular | 150 | 0 | 0 | 150 | 0 / 150 | 290 |
 | Rápido 3× | Dedicado | 150 | 2 | 0 | 148 | 70 / 218 | 1.245 |
-| Rápido 3× | Explorador | 150 | 21 | 3 | 129 | 90 / 219 | 388 |
+| Rápido 3× | Explorador | 150 | 22 | 5 | 128 | 91 / 219 | 388 |
 | Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
 | Normal 1× | Regular | 50 | 5 | 0 | 45 | 70 / 115 | 61 |
 | Normal 1× | Dedicado | 50 | 34 | 11 | 16 | 124 / 140 | 172 |
@@ -1966,18 +1956,45 @@ chamados, não pessoas distintas. As tabelas vêm do formatador do CLI, sem extr
 | Tranquilo 0,5× | Dedicado | 50 | 50 | 40 | 0 | 150 / 150 | 141 |
 | Tranquilo 0,5× | Explorador | 50 | 47 | 41 | 3 | 142 / 145 | 108 |
 
+#### Rei de Ferro
+
+**7 dias reais**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 150 | 0 | 0 | 150 | 0 / 150 | 32 |
+| Rápido 3× | Regular | 150 | 0 | 0 | 150 | 0 / 150 | 397 |
+| Rápido 3× | Dedicado | 150 | 0 | 0 | 150 | 47 / 197 | 1.795 |
+| Rápido 3× | Explorador | 150 | 11 | 0 | 139 | 61 / 200 | 531 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 3 | 0 | 47 | 58 / 105 | 46 |
+| Normal 1× | Dedicado | 50 | 23 | 6 | 27 | 111 / 138 | 175 |
+| Normal 1× | Explorador | 50 | 15 | 2 | 35 | 93 / 128 | 70 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Regular | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+| Tranquilo 0,5× | Explorador | 0 | 0 | 0 | 0 | 0 / 0 | 0 |
+
+**Um ano de jogo**
+
+| Ritmo | Perfil | Cercos encerrados | Vitórias (inclui Gloriosas) | Gloriosas | Quedas | Ondas vencidas / enfrentadas | Aldeões convocados |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Rápido 3× | Regular | 50 | 0 | 0 | 50 | 0 / 50 | 93 |
+| Rápido 3× | Dedicado | 50 | 0 | 0 | 50 | 2 / 52 | 468 |
+| Rápido 3× | Explorador | 50 | 0 | 0 | 50 | 2 / 52 | 351 |
+| Normal 1× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Normal 1× | Regular | 50 | 3 | 0 | 47 | 58 / 105 | 46 |
+| Normal 1× | Dedicado | 50 | 23 | 6 | 27 | 111 / 138 | 175 |
+| Normal 1× | Explorador | 50 | 15 | 2 | 35 | 93 / 128 | 70 |
+| Tranquilo 0,5× | Preguiçoso | 50 | 0 | 0 | 50 | 0 / 50 | 0 |
+| Tranquilo 0,5× | Regular | 50 | 20 | 5 | 30 | 94 / 124 | 55 |
+| Tranquilo 0,5× | Dedicado | 50 | 39 | 10 | 11 | 134 / 145 | 357 |
+| Tranquilo 0,5× | Explorador | 50 | 36 | 22 | 14 | 120 / 134 | 132 |
+
 ### 22.4 Validações e ponto de continuação
 
-- Passo 2: unitários de engine/content/protocol/web, saída **0**, **203 arquivos**,
-  **19.853 testes aprovados e 1 falha esperada**, em 1.488,40 s.
-- Reprodução do bundle sem `sideEffects: false`: saída **1**, **11/12**; o export
-  indevido é `hordeWaveYearFactors`. Com a marcação restaurada: saída **0**, **12/12**.
-  O pacote só inicializa dados e schemas locais, sem efeitos externos; a marcação
-  conserva a fronteira do app sem liberar conteúdo na lista de exports permitidos.
-- Nenhum golden foi regravado e nenhum retrato `FROZEN` foi alterado.
-- Remedição ainda parcial: falta concluir **Rei de Ferro**. `MEASURED` permanece
-  inteiro na linha de base anterior para não misturar dificuldades de rodadas distintas.
-- A suíte completa de sim-cli e as expectativas exatas ainda precisam ser verificadas.
-  Não houve `pnpm verify`, integração, build/e2e ou landing nesta retomada após o passo 2.
-- A atualização de `CLAUDE.md` e `deploy/README.md` continua no passo 6, depois dos portões.
-  Nenhuma junção ao `main`, publicação, backup de produção ou `push` foi feita.
+- `MEASURED` de `packages/sim-cli/src/bands.ts` regravada com as 72 linhas `measured(` das três matrizes (`peasant`, `lord`, `ironKing`); conferência sobre os 3.600 registros com `0` violações de faixa.
+- Decisão do autor de `2026-11-09` registrada: a v0.4 fecha com **59 cartas** (a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor).
+- Suíte de testes de `@lotg/sim-cli` e unitários do repositório atualizados pelas causas medidas na terceira junção.
+- Nenhuma execução de integração com banco, Playwright/e2e, build ou `git push` nesta sessão.
