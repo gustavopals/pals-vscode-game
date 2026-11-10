@@ -7,8 +7,7 @@ export const SECOND_MS = 1000;
 
 /**
  * O ritmo é o único número não inteiro que o estado guarda (`settings.timeScale`). Ele não entra
- * em nenhuma conta contínua: só converte prazos de tempo real em tempo de jogo no instante em
- * que o prazo nasce, e tempo de jogo em tempo real na visão.
+ * em nenhuma conta contínua: converte prazos e escala tetos de lote com frações inteiras.
  */
 export function assertTimeScale(timeScale: unknown): asserts timeScale is number {
   if (typeof timeScale !== 'number' || !Number.isFinite(timeScale) || !(timeScale > 0)) {
@@ -33,6 +32,16 @@ export function amountsToMilli(amounts: ResourceAmounts): Record<ResourceId, num
 
 export function scaleDown(value: number, ratio: Ratio): number {
   return Math.floor((value * ratio.num) / ratio.den);
+}
+
+/**
+ * Teto de lote no ritmo da partida (R2, 2026-11-09): teto(value × ritmo), nunca abaixo da
+ * base do conteúdo. Nos ritmos oferecidos (0,5/1/3), 0,5 vira 1/2 antes da conta inteira.
+ */
+export function paceScaled(value: number, timeScale: number): number {
+  const num = timeScale === 0.5 ? 1 : timeScale;
+  const den = timeScale === 0.5 ? 2 : 1;
+  return Math.max(value, Math.floor((value * num + den - 1) / den));
 }
 
 /**

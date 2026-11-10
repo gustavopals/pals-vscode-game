@@ -103,11 +103,11 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `Essa ordem ficou para trás: a obra ${label} agora é ${
       level === undefined ? 'a de outro nível' : `a do nível ${level}`
     }. Confira a lista e peça de novo.`,
-  INVALID_QUANTITY: () => `Recrute de 1 a ${maxPerOrder} aldeões por ordem.`,
+  INVALID_QUANTITY: ({ count = maxPerOrder }) => `Recrute de 1 a ${count} aldeões por ordem.`,
   FAMINE: () => 'Ninguém se junta a um feudo com fome. Ponha comida na mesa primeiro.',
-  RECRUIT_QUEUE_FULL: ({ count = 0 }) =>
+  RECRUIT_QUEUE_FULL: ({ count = 0, capacity = maxQueue }) =>
     count === 0
-      ? `Já há ${maxQueue} aldeões a caminho. Espere algum chegar.`
+      ? `Já há ${capacity} aldeões a caminho. Espere algum chegar.`
       : `Só cabem mais ${count} na fila de recrutamento.`,
   HOUSING_FULL: ({ count = 0 }) =>
     count === 0

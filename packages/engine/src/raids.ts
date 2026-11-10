@@ -463,11 +463,6 @@ function fightRaid(
     ),
     atMs,
   );
-  if (draft.settlement.militia !== null) {
-    draft.settlement.militia = null;
-    releaseExcessWorkers(draft);
-    emit(events, draft, atMs, 'militiaDisbanded');
-  }
   if (report.outcome !== 'defeat' || start <= 0 || left <= 0) {
     return { num: 0, den: 1 };
   }
@@ -522,13 +517,20 @@ function resolveRaid(
   };
   const params = { inimigo: enemy.label, bando: bandText(raid.enemy, raid.size) };
 
-  const passed = fightRaid(draft, raid, atMs, events);
-  data.battleId = draft.army.reports[draft.army.reports.length - 1]?.id ?? '';
-  if (outcome.kind === 'held' || passed.num === 0) {
+  // R1 (resposta do autor de 2026-11-09): o nível que segura resolve sozinho,
+  // antes de criar batalha, observar formação, aplicar dano ou premiar comandantes.
+  const held = outcome.kind === 'held';
+  const passed = held ? { num: 0, den: 1 } : fightRaid(draft, raid, atMs, events);
+  if (!held) data.battleId = draft.army.reports[draft.army.reports.length - 1]!.id;
+  if (settlement.militia !== null) {
+    settlement.militia = null;
+    releaseExcessWorkers(draft);
+    emit(events, draft, atMs, 'militiaDisbanded');
+  }
+  if (passed.num === 0) {
     stats.raids_repelled = (stats.raids_repelled ?? 0) + 1;
-    // A Paliçada pode repelir mesmo quando a conta da batalha termina em derrota (D-36).
-    // Guarda a identidade já existente para o prêmio do objetivo achar quem de fato comandou.
-    stats.lastRaidRepelledBattle = draft.ids.battle ?? 0;
+    // Zero impede que o objetivo premie comandantes de um relatório anterior.
+    stats.lastRaidRepelledBattle = held ? 0 : (draft.ids.battle ?? 0);
     emit(
       events,
       draft,

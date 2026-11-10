@@ -9,7 +9,7 @@ import {
 
 import { plural } from './format';
 import type { GameState } from './types';
-import { MILLI } from './units';
+import { MILLI, paceScaled } from './units';
 
 /**
  * O exército (GDD §5.2, §6.1 e §10.2; ADR 0019, decisão 7): as contas puras. Nada aqui sorteia
@@ -35,6 +35,11 @@ export function soldierCount(state: GameState): number {
 /** O limite de soldados no nível de agora: `10 × nível`; 0 sem o Quartel. */
 export function armyCap(state: GameState): number {
   return balance.army.capPerLevel * barracksLevel(state);
+}
+
+/** Teto de um lote de treino: cresce com o ritmo, sem alterar as vagas do Quartel. */
+export function trainingBatchMax(state: GameState): number {
+  return paceScaled(balance.army.batchMax, state.settings.timeScale);
 }
 
 /**

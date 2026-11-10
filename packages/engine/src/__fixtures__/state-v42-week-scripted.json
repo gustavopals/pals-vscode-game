@@ -42,7 +42,7 @@
   ]
  },
  "ids": {
-  "battle": 10,
+  "battle": 4,
   "hero": 1,
   "item": 1
  },
@@ -395,79 +395,8 @@
   "activeFormationId": null,
   "reports": [
    {
-    "id": "battle-8",
-    "foughtAtMs": 547200000,
-    "formationId": null,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0,
-    "decisive": [],
-    "casualties": [
-     {
-      "owner": "horde",
-      "wing": "left",
-      "line": "front",
-      "unit": "raider",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "front",
-      "unit": "raider",
-      "start": 12,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "center",
-      "line": "back",
-      "unit": "banditArcher",
-      "start": 6,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "front",
-      "unit": "raider",
-      "start": 10,
-      "lost": 0
-     },
-     {
-      "owner": "horde",
-      "wing": "right",
-      "line": "back",
-      "unit": "shaman",
-      "start": 2,
-      "lost": 0
-     }
-    ],
-    "wall": [
-     {
-      "wing": "left",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "center",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "right",
-      "start": 100,
-      "end": 100
-     }
-    ],
-    "commanders": [],
-    "log": []
-   },
-   {
-    "id": "battle-9",
-    "foughtAtMs": 583200000,
+    "id": "battle-2",
+    "foughtAtMs": 172800000,
     "formationId": null,
     "mode": "defense",
     "outcome": "defeat",
@@ -487,8 +416,8 @@
       "owner": "horde",
       "wing": "center",
       "line": "front",
-      "unit": "ogre",
-      "start": 1,
+      "unit": "raider",
+      "start": 7,
       "lost": 0
      },
      {
@@ -503,41 +432,80 @@
       "owner": "horde",
       "wing": "right",
       "line": "front",
-      "unit": "blackKnight",
-      "start": 3,
+      "unit": "raider",
+      "start": 6,
       "lost": 0
      },
      {
       "owner": "horde",
       "wing": "right",
       "line": "back",
-      "unit": "shaman",
+      "unit": "banditArcher",
       "start": 1,
       "lost": 0
      }
     ],
-    "wall": [
-     {
-      "wing": "left",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "center",
-      "start": 100,
-      "end": 100
-     },
-     {
-      "wing": "right",
-      "start": 100,
-      "end": 100
-     }
-    ],
+    "wall": [],
     "commanders": [],
     "log": []
    },
    {
-    "id": "battle-10",
+    "id": "battle-3",
+    "foughtAtMs": 259200000,
+    "formationId": null,
+    "mode": "defense",
+    "outcome": "defeat",
+    "ending": "annihilation",
+    "rounds": 0,
+    "decisive": [],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 7,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 3,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 0
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 1,
+      "lost": 0
+     }
+    ],
+    "wall": [],
+    "commanders": [],
+    "log": []
+   },
+   {
+    "id": "battle-4",
     "foughtAtMs": 590400000,
     "formationId": null,
     "mode": "defense",
@@ -666,7 +634,7 @@
   "omens": 16,
   "threatCrossed:70": 6,
   "raids_repelled": 6,
-  "lastRaidRepelledBattle": 9,
+  "lastRaidRepelledBattle": 0,
   "cardsDrawn:harvestFeast": 1,
   "cardsDrawn:commonGranaryPlanks": 1,
   "vigilRehearsalMarked": 1,

@@ -375,8 +375,8 @@ describe('cenário golden de 7 dias', () => {
       // O objetivo 11 (acolher o primeiro herói) paga em peça: a lança de caça vai ao arsenal.
       inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
-    // Os tiles novos e o novo sorteio levam o roteiro a dez batalhas.
-    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 10 });
+    // Seis incursões são resolvidas só pela Paliçada (R1); restam quatro batalhas.
+    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 4 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a

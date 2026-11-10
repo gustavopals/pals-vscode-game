@@ -2441,7 +2441,7 @@
   },
   {
    "day": 5,
-   "eventsSoFar": 237,
+   "eventsSoFar": 236,
    "state": {
     "schemaVersion": 42,
     "seed": "pedra-alta-golden",
@@ -2486,7 +2486,7 @@
      ]
     },
     "ids": {
-     "battle": 4,
+     "battle": 3,
      "hero": 1,
      "item": 1
     },
@@ -3037,6 +3037,45 @@
      "activeFormationId": null,
      "reports": [
       {
+       "id": "battle-1",
+       "foughtAtMs": 108000000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "wolf",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "wolf",
+         "start": 10,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "wolf",
+         "start": 7,
+         "lost": 0
+        }
+       ],
+       "wall": [],
+       "commanders": [],
+       "log": []
+      },
+      {
        "id": "battle-2",
        "foughtAtMs": 172800000,
        "formationId": null,
@@ -3145,77 +3184,6 @@
        "wall": [],
        "commanders": [],
        "log": []
-      },
-      {
-       "id": "battle-4",
-       "foughtAtMs": 388800000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "blackKnight",
-         "start": 5,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "blackKnight",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "shaman",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 10,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 2,
-         "lost": 0
-        }
-       ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
-       "commanders": [],
-       "log": []
       }
      ],
      "preview": null
@@ -3255,7 +3223,7 @@
      "constructionsStarted:quarry": 3,
      "constructionsStarted:watchtower": 2,
      "cardsDrawn:thawBridgeSlab": 1,
-     "chronicle:battles": 4,
+     "chronicle:battles": 3,
      "raids_suffered": 3,
      "constructionsStarted:warehouse": 1,
      "cardsExpired": 4,
@@ -3279,14 +3247,14 @@
      "omens": 5,
      "threatCrossed:70": 2,
      "raids_repelled": 1,
-     "lastRaidRepelledBattle": 4,
+     "lastRaidRepelledBattle": 0,
      "cardsDrawn:harvestFeast": 1
     }
    }
   },
   {
    "day": 6,
-   "eventsSoFar": 293,
+   "eventsSoFar": 289,
    "state": {
     "schemaVersion": 42,
     "seed": "pedra-alta-golden",
@@ -3331,7 +3299,7 @@
      ]
     },
     "ids": {
-     "battle": 7,
+     "battle": 3,
      "hero": 1,
      "item": 1
     },
@@ -3859,8 +3827,8 @@
      "activeFormationId": null,
      "reports": [
       {
-       "id": "battle-5",
-       "foughtAtMs": 439200000,
+       "id": "battle-1",
+       "foughtAtMs": 108000000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -3872,137 +3840,34 @@
          "owner": "horde",
          "wing": "left",
          "line": "front",
-         "unit": "ogre",
-         "start": 4,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 19,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "shaman",
-         "start": 9,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 16,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "shaman",
-         "start": 3,
-         "lost": 0
-        }
-       ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
-       "commanders": [],
-       "log": []
-      },
-      {
-       "id": "battle-6",
-       "foughtAtMs": 468000000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "blackKnight",
-         "start": 5,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 12,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
+         "unit": "wolf",
          "start": 6,
          "lost": 0
         },
         {
          "owner": "horde",
-         "wing": "right",
+         "wing": "center",
          "line": "front",
-         "unit": "raider",
+         "unit": "wolf",
          "start": 10,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "right",
-         "line": "back",
-         "unit": "shaman",
-         "start": 2,
+         "line": "front",
+         "unit": "wolf",
+         "start": 7,
          "lost": 0
         }
        ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
+       "wall": [],
        "commanders": [],
        "log": []
       },
       {
-       "id": "battle-7",
-       "foughtAtMs": 504000000,
+       "id": "battle-2",
+       "foughtAtMs": 172800000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -4015,7 +3880,7 @@
          "wing": "left",
          "line": "front",
          "unit": "raider",
-         "start": 16,
+         "start": 6,
          "lost": 0
         },
         {
@@ -4023,51 +3888,90 @@
          "wing": "center",
          "line": "front",
          "unit": "raider",
-         "start": 19,
+         "start": 7,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 9,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 16,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
          "line": "back",
          "unit": "banditArcher",
          "start": 3,
          "lost": 0
-        }
-       ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
         },
         {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
+         "owner": "horde",
          "wing": "right",
-         "start": 100,
-         "end": 100
+         "line": "front",
+         "unit": "raider",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 1,
+         "lost": 0
         }
        ],
+       "wall": [],
+       "commanders": [],
+       "log": []
+      },
+      {
+       "id": "battle-3",
+       "foughtAtMs": 259200000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "start": 7,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 3,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 1,
+         "lost": 0
+        }
+       ],
+       "wall": [],
        "commanders": [],
        "log": []
       }
@@ -4109,7 +4013,7 @@
      "constructionsStarted:quarry": 3,
      "constructionsStarted:watchtower": 2,
      "cardsDrawn:thawBridgeSlab": 1,
-     "chronicle:battles": 7,
+     "chronicle:battles": 3,
      "raids_suffered": 3,
      "constructionsStarted:warehouse": 1,
      "cardsExpired": 5,
@@ -4133,47 +4037,11 @@
      "omens": 10,
      "threatCrossed:70": 5,
      "raids_repelled": 4,
-     "lastRaidRepelledBattle": 7,
+     "lastRaidRepelledBattle": 0,
      "cardsDrawn:harvestFeast": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
      "vigilRehearsalMarked": 1,
      "cardsDrawn:commonGranaryShare": 1,
-     "chronicle:rehearsal:left:front:spearman": 0,
-     "chronicle:rehearsal:left:front:swordsman": 0,
-     "chronicle:rehearsal:left:front:archer": 0,
-     "chronicle:rehearsal:left:front:knight": 0,
-     "chronicle:rehearsal:left:front:shieldbearer": 0,
-     "chronicle:rehearsal:left:front:militia": 0,
-     "chronicle:rehearsal:left:back:spearman": 0,
-     "chronicle:rehearsal:left:back:swordsman": 0,
-     "chronicle:rehearsal:left:back:archer": 0,
-     "chronicle:rehearsal:left:back:knight": 0,
-     "chronicle:rehearsal:left:back:shieldbearer": 0,
-     "chronicle:rehearsal:left:back:militia": 0,
-     "chronicle:rehearsal:center:front:spearman": 0,
-     "chronicle:rehearsal:center:front:swordsman": 0,
-     "chronicle:rehearsal:center:front:archer": 0,
-     "chronicle:rehearsal:center:front:knight": 0,
-     "chronicle:rehearsal:center:front:shieldbearer": 0,
-     "chronicle:rehearsal:center:front:militia": 0,
-     "chronicle:rehearsal:center:back:spearman": 0,
-     "chronicle:rehearsal:center:back:swordsman": 0,
-     "chronicle:rehearsal:center:back:archer": 0,
-     "chronicle:rehearsal:center:back:knight": 0,
-     "chronicle:rehearsal:center:back:shieldbearer": 0,
-     "chronicle:rehearsal:center:back:militia": 0,
-     "chronicle:rehearsal:right:front:spearman": 0,
-     "chronicle:rehearsal:right:front:swordsman": 0,
-     "chronicle:rehearsal:right:front:archer": 0,
-     "chronicle:rehearsal:right:front:knight": 0,
-     "chronicle:rehearsal:right:front:shieldbearer": 0,
-     "chronicle:rehearsal:right:front:militia": 0,
-     "chronicle:rehearsal:right:back:spearman": 0,
-     "chronicle:rehearsal:right:back:swordsman": 0,
-     "chronicle:rehearsal:right:back:archer": 0,
-     "chronicle:rehearsal:right:back:knight": 0,
-     "chronicle:rehearsal:right:back:shieldbearer": 0,
-     "chronicle:rehearsal:right:back:militia": 0,
      "seasonsSurvived:autumn": 1,
      "cardsDrawn:hordeDeserter": 1
     }
@@ -4181,7 +4049,7 @@
   },
   {
    "day": 7,
-   "eventsSoFar": 359,
+   "eventsSoFar": 353,
    "state": {
     "schemaVersion": 42,
     "seed": "pedra-alta-golden",
@@ -4226,7 +4094,7 @@
      ]
     },
     "ids": {
-     "battle": 10,
+     "battle": 4,
      "hero": 1,
      "item": 1
     },
@@ -4579,79 +4447,8 @@
      "activeFormationId": null,
      "reports": [
       {
-       "id": "battle-8",
-       "foughtAtMs": 547200000,
-       "formationId": null,
-       "mode": "defense",
-       "outcome": "defeat",
-       "ending": "annihilation",
-       "rounds": 0,
-       "decisive": [],
-       "casualties": [
-        {
-         "owner": "horde",
-         "wing": "left",
-         "line": "front",
-         "unit": "raider",
-         "start": 10,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "front",
-         "unit": "raider",
-         "start": 12,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "center",
-         "line": "back",
-         "unit": "banditArcher",
-         "start": 6,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "front",
-         "unit": "raider",
-         "start": 10,
-         "lost": 0
-        },
-        {
-         "owner": "horde",
-         "wing": "right",
-         "line": "back",
-         "unit": "shaman",
-         "start": 2,
-         "lost": 0
-        }
-       ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
-       "commanders": [],
-       "log": []
-      },
-      {
-       "id": "battle-9",
-       "foughtAtMs": 583200000,
+       "id": "battle-2",
+       "foughtAtMs": 172800000,
        "formationId": null,
        "mode": "defense",
        "outcome": "defeat",
@@ -4671,8 +4468,8 @@
          "owner": "horde",
          "wing": "center",
          "line": "front",
-         "unit": "ogre",
-         "start": 1,
+         "unit": "raider",
+         "start": 7,
          "lost": 0
         },
         {
@@ -4687,41 +4484,80 @@
          "owner": "horde",
          "wing": "right",
          "line": "front",
-         "unit": "blackKnight",
-         "start": 3,
+         "unit": "raider",
+         "start": 6,
          "lost": 0
         },
         {
          "owner": "horde",
          "wing": "right",
          "line": "back",
-         "unit": "shaman",
+         "unit": "banditArcher",
          "start": 1,
          "lost": 0
         }
        ],
-       "wall": [
-        {
-         "wing": "left",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "center",
-         "start": 100,
-         "end": 100
-        },
-        {
-         "wing": "right",
-         "start": 100,
-         "end": 100
-        }
-       ],
+       "wall": [],
        "commanders": [],
        "log": []
       },
       {
-       "id": "battle-10",
+       "id": "battle-3",
+       "foughtAtMs": 259200000,
+       "formationId": null,
+       "mode": "defense",
+       "outcome": "defeat",
+       "ending": "annihilation",
+       "rounds": 0,
+       "decisive": [],
+       "casualties": [
+        {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front",
+         "unit": "raider",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front",
+         "unit": "raider",
+         "start": 7,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 3,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front",
+         "unit": "raider",
+         "start": 6,
+         "lost": 0
+        },
+        {
+         "owner": "horde",
+         "wing": "right",
+         "line": "back",
+         "unit": "banditArcher",
+         "start": 1,
+         "lost": 0
+        }
+       ],
+       "wall": [],
+       "commanders": [],
+       "log": []
+      },
+      {
+       "id": "battle-4",
        "foughtAtMs": 590400000,
        "formationId": null,
        "mode": "defense",
@@ -4850,7 +4686,7 @@
      "omens": 16,
      "threatCrossed:70": 6,
      "raids_repelled": 6,
-     "lastRaidRepelledBattle": 9,
+     "lastRaidRepelledBattle": 0,
      "cardsDrawn:harvestFeast": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
      "vigilRehearsalMarked": 1,
@@ -6808,20 +6644,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 388800000,
-   "text": "No 7º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-4",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 388800000,
    "text": "No 7º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
@@ -6832,8 +6654,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 65,
-    "previousThreat": 100,
-    "battleId": "battle-4"
+    "previousThreat": 100
    }
   },
   {
@@ -7132,20 +6953,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 439200000,
-   "text": "No 14º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-5",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 439200000,
    "text": "No 14º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma alcateia inteira, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
@@ -7156,8 +6963,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 65,
-    "previousThreat": 100,
-    "battleId": "battle-5"
+    "previousThreat": 100
    }
   },
   {
@@ -7301,20 +7107,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 468000000,
-   "text": "No 18º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-6",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 468000000,
    "text": "No 18º dia do Outono, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
@@ -7325,8 +7117,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 58,
-    "previousThreat": 93,
-    "battleId": "battle-6"
+    "previousThreat": 93
    }
   },
   {
@@ -7549,20 +7340,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 504000000,
-   "text": "No 23º dia do Outono, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-7",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 504000000,
    "text": "No 23º dia do Outono, tropas da Horda chegaram a Pedra Alta do Norte: uma hoste de guerra, como os vigias contaram. A defesa resistiu: nada se perdeu e ninguém se feriu.",
@@ -7573,8 +7350,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 58,
-    "previousThreat": 93,
-    "battleId": "battle-7"
+    "previousThreat": 93
    }
   },
   {
@@ -7845,20 +7621,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 547200000,
-   "text": "No 5º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-8",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 547200000,
    "text": "No 5º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha grande, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
@@ -7869,8 +7631,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 53,
-    "previousThreat": 88,
-    "battleId": "battle-8"
+    "previousThreat": 88
    }
   },
   {
@@ -8058,20 +7819,6 @@
    }
   },
   {
-   "type": "battleFought",
-   "atMs": 583200000,
-   "text": "No 10º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
-   "data": {
-    "battleId": "battle-9",
-    "playerLost": 0,
-    "hordeLost": 0,
-    "mode": "defense",
-    "outcome": "defeat",
-    "ending": "annihilation",
-    "rounds": 0
-   }
-  },
-  {
    "type": "raidRepelled",
    "atMs": 583200000,
    "text": "No 10º dia do Inverno, os lobos chegaram a Pedra Alta do Norte: uma matilha pequena, como os vigias tinham contado. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.",
@@ -8082,8 +7829,7 @@
     "warning": "sized",
     "palisadeLevel": 2,
     "threat": 38,
-    "previousThreat": 73,
-    "battleId": "battle-9"
+    "previousThreat": 73
    }
   },
   {
@@ -8146,7 +7892,7 @@
    "atMs": 590400000,
    "text": "No 11º dia do Inverno, o exército de Pedra Alta do Norte travou batalha: derrota. Pesou mais a força dos braços.",
    "data": {
-    "battleId": "battle-10",
+    "battleId": "battle-4",
     "playerLost": 0,
     "hordeLost": 0,
     "mode": "defense",
@@ -8162,7 +7908,7 @@
    "data": {
     "year": 1,
     "wave": 1,
-    "battleId": "battle-10",
+    "battleId": "battle-4",
     "outcome": "defeat",
     "formationId": ""
    }
@@ -8230,7 +7976,7 @@
    "data": {
     "year": 1,
     "populationMax": 25,
-    "battles": 10,
+    "battles": 4,
     "battlesWon": 0,
     "expeditions": 0,
     "cards": 13,

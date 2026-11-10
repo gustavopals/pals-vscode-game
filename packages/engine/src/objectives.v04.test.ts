@@ -68,7 +68,7 @@ describe('objetivos da v0.4 (V4H-T3)', () => {
     expect(state.settlement.resources.gold - gold).toBe(20 * MILLI);
     expect(state.rng).toEqual(rng);
     state = take(accept(state, command('setActiveFormation', { id: 'formation-1' })));
-    // Muralha pronta para os lobos do roteiro; a batalha é a incursão real do dia 16.
+    // Paliçada pronta para os lobos do roteiro; repele sem batalha (R1).
     state = cloneState(state);
     state.settlement.buildings.palisade = 2;
     state.settlement.wall.hp = { left: 100, center: 100, right: 100 };
@@ -171,9 +171,13 @@ describe('objetivos da v0.4 (V4H-T3)', () => {
       addHero(draft, { level: 4 });
       addHero(draft, { level: 4 });
       draft.army.units.spearman = 10;
-      draft.settlement.buildings.palisade = 6;
-      draft.settlement.wall.hp = { left: 800, center: 800, right: 800 };
+      draft.settlement.buildings.palisade = 0;
+      draft.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+      draft.settlement.buildings.watchtower = 5;
       draft.horde.scheduledRaids = newGame().horde.scheduledRaids;
+      draft.horde.scheduledRaids[0]!.composition = [
+        { wing: 'center', line: 'front', unit: 'wolf', count: 1 },
+      ];
     });
     before = accept(
       before,

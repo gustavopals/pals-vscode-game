@@ -20,6 +20,8 @@ const END = WOLVES_AT + 4 * DAY_MS;
 function feud(withArmy: boolean, repairing: boolean): GameState {
   const state = advanceTo(newGame(), START).state;
   state.settlement.buildings.palisade = 1;
+  // Média atravessa Nv1: este cenário continua exercitando a batalha (R1).
+  state.horde.scheduledRaids[0]!.size = 'medium';
   state.settlement.wall.hp = { left: 20, center: 60, right: 35 };
   if (repairing) {
     // O reparo termina no instante exato da virada e da incursão.
