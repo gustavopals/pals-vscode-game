@@ -1,3 +1,9 @@
+# Retomada em 2026-11-10 — R1, R2 e amostra do Cerco
+
+No `v4-juncao3`, o WIP `82360fd` preserva a medição antiga. As regras e o bot foram juntados nos commits `7ebde70` e `5c7d1e8`; o teste histórico foi ajustado em `e8f3c64`. A guarda v42 valida o lote diretamente, sem importar `units` ou depender da mensagem da v41; as guardas v28 a v41 continuam rejeitando lote acima de 10. Testes focados: ritmo 21, Paliçada 75, bot do Cerco 31, todos verdes; `pnpm typecheck` verde. A revisão das trilhas ainda deve ser concluída.
+
+Amostra com cinco sementes, ano de jogo: Regular em Senhor, Rápido 0/5, Normal 5/5, Tranquilo 4/5; Dedicado em Senhor, 4/5, 5/5, 5/5; Regular em Camponês, 0/5, 5/5, 5/5. Os três comandos saíram 1 por violarem as faixas anteriores; CSVs e relatórios em `/tmp/lotg-v04-medicao/`. O Rápido do Regular ganhou 1–2 ondas em cada semente. Antes das matrizes completas, investigar a causa do 0/5, inclusive vagas do Quartel e o tamanho efetivo do treino e da formação; ainda não há conclusão ou proposta medida. Não atualizar MEASURED com esta amostra. Não houve publicação ou push.
+
 # Retomada da v0.4 — 2026-11-06
 
 **Ponto de continuação:** terceira junção local `v4-juncao3`, base **`ccbaa5c`**
