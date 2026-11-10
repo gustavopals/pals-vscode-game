@@ -1,4 +1,9 @@
-import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
+import {
+  prepareSiege,
+  respondPreparedSiege,
+  treinarNoInverno,
+  trainForSiege,
+} from './siegePreparation';
 import {
   alocarPorDemanda,
   alocarPorDemandaFor,
@@ -81,22 +86,23 @@ export const economicoPolicies: readonly Policy[] = [
   erguerPalicada,
   seguirObjetivos,
   erguerQuartel,
+  treinarNoInverno,
   erguerTorre,
   obraMaisBarata,
   ampliarEstoque,
   planejarAutomaticas,
   recrutar,
-  trainForSiege,
-  montarFormacao,
-  respondPreparedSiege,
   responderCartas,
   alocarPorDemanda,
   alocarMestre,
   mandarCaravana,
   venderExcedente,
+  trainForSiege,
   erguerMercado,
   comprarLenha,
   guardarLenha,
+  montarFormacao,
+  respondPreparedSiege,
 ];
 
 export const economico = botOf(economicoPolicies);

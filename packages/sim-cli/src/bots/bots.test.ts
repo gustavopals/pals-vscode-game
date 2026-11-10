@@ -14,7 +14,12 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { botFor, strategies, strategyPolicies } from './index';
-import { prepareSiege, respondPreparedSiege, trainForSiege } from './siegePreparation';
+import {
+  prepareSiege,
+  respondPreparedSiege,
+  treinarNoInverno,
+  trainForSiege,
+} from './siegePreparation';
 import {
   alocarPorDemanda,
   alocarMestre,
@@ -186,15 +191,12 @@ describe('um bot é uma lista de políticas', () => {
       seguirObjetivos,
       // O Quartel (V4C-T1.8): a política mínima de guerra, antes das obras, como a Torre.
       erguerQuartel,
+      treinarNoInverno,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
-      trainForSiege,
-      // A Defesa ativa (V4E-T2.7, decisão 25): toda incursão é batalha.
-      montarFormacao,
-      respondPreparedSiege,
       responderCartas,
       // O Mercado (V3E-T1): vende o que enche depois de as obras, os recrutas e as cartas
       // levarem o que queriam e de a alocação dizer quanto cada ofício vai render na ausência;
@@ -204,9 +206,13 @@ describe('um bot é uma lista de políticas', () => {
       alocarMestre,
       mandarCaravana,
       venderExcedente,
+      trainForSiege,
       erguerMercado,
       comprarLenha,
       guardarLenha,
+      // A Defesa ativa (V4E-T2.7, decisão 25): toda incursão é batalha.
+      montarFormacao,
+      respondPreparedSiege,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
       erguerPalicada,
