@@ -2,7 +2,6 @@ import { keyedRecordOf, natural, literal, type Shape } from './shape';
 import type { StoredState } from './step';
 import { stateV41 } from './v41';
 import { ARMY_CAP_PER_LEVEL_V28, TRAINING_BATCH_MAX_V28 } from './v28';
-import { paceScaled } from '../units';
 
 const object = (value: unknown): value is StoredState =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -30,16 +29,29 @@ export const stateV42: Shape = (value, path) => {
     }
   }
   const inherited = { ...value, schemaVersion: 41, map };
-  const error = stateV41(inherited, path);
   const armyPath = path === '' ? 'army' : `${path}.army`;
-  // R2 muda a faixa de um inteiro, sem mudar a forma. Só a guarda atual aceita o teto
-  // por ritmo; as guardas históricas continuam exigindo o lote de até dez.
-  if (error !== `${armyPath}.training.amount: lote acima do máximo`) return error;
-  const army = value.army as StoredState;
-  const training = army.training as StoredState;
+  const army = value.army;
+  const training = object(army) ? army.training : null;
+  if (
+    !object(army) ||
+    !object(training) ||
+    !Number.isInteger(training.amount) ||
+    (training.amount as number) <= TRAINING_BATCH_MAX_V28
+  ) {
+    return stateV41(inherited, path);
+  }
+  // Valida todas as demais propriedades pela guarda histórica antes de lê-las.
+  const normalized = {
+    ...inherited,
+    army: { ...army, training: { ...training, amount: TRAINING_BATCH_MAX_V28 } },
+  };
+  const error = stateV41(normalized, path);
+  if (error !== null) return error;
   const amount = training.amount as number;
   const settings = value.settings as StoredState;
-  if (amount > paceScaled(TRAINING_BATCH_MAX_V28, settings.timeScale as number)) return error;
+  // Ritmos fixados na v42: 0,5 e 1 conservam a base; 3 a triplica.
+  const maximum = settings.timeScale === 3 ? 3 * TRAINING_BATCH_MAX_V28 : TRAINING_BATCH_MAX_V28;
+  if (amount > maximum) return `${armyPath}.training.amount: lote acima do máximo`;
   const settlement = value.settlement as StoredState;
   const level = (settlement.buildings as StoredState).barracks as number;
   const total =
@@ -52,11 +64,5 @@ export const stateV42: Shape = (value, path) => {
     (stats.siegesFallen ?? 0) > 0 && level > 0 && total <= 8 * ARMY_CAP_PER_LEVEL_V28;
   if (total > level * ARMY_CAP_PER_LEVEL_V28 && !afterFall)
     return `${armyPath}.training.amount: soldados e lote acima do limite do Quartel`;
-  return stateV41(
-    {
-      ...inherited,
-      army: { ...army, training: { ...training, amount: TRAINING_BATCH_MAX_V28 } },
-    },
-    path,
-  );
+  return null;
 };

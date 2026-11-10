@@ -1,10 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { balance, units } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { trainingDurationMs } from './army';
 import { trainingBlock } from './armyOrders';
-import { currentShape, migrateState } from './migrations';
+import { currentShape, migrateState, migrationSteps } from './migrations';
 import { stateV41 } from './migrations/v41';
 import { recruitmentBlock, recruitmentDurationMs } from './population';
 import { seasonAt } from './clock';
@@ -209,4 +210,16 @@ it('congela as ofertas de lotes derivadas nos três ritmos', async () => {
   await expect(`${JSON.stringify(views, null, 2)}\n`).toMatchFileSnapshot(
     './__golden__/pace-batches.json',
   );
+});
+
+it('as guardas v28 a v41 recusam lotes acima de dez', () => {
+  for (let version = 28; version <= 41; version += 1) {
+    const path = new URL(`./__fixtures__/state-v${version}-raid-announced.json`, import.meta.url);
+    const state = JSON.parse(readFileSync(path, 'utf8'));
+    state.settlement.buildings.barracks = 3;
+    state.army.training = { unit: 'spearman', amount: 11, startedAtMs: 0, endsAtMs: 1 };
+    expect(migrationSteps[version - 1]!.shape(state, ''), `v${version}`).toBe(
+      'army.training.amount: lote acima do máximo',
+    );
+  }
 });
