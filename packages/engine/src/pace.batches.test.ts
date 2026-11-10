@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { balance, units } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
@@ -213,9 +212,13 @@ it('congela as ofertas de lotes derivadas nos três ritmos', async () => {
 });
 
 it('as guardas v28 a v41 recusam lotes acima de dez', () => {
+  const files = import.meta.glob<string>('./__fixtures__/state-v*-raid-announced.json', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
   for (let version = 28; version <= 41; version += 1) {
-    const path = new URL(`./__fixtures__/state-v${version}-raid-announced.json`, import.meta.url);
-    const state = JSON.parse(readFileSync(path, 'utf8'));
+    const state = JSON.parse(files[`./__fixtures__/state-v${version}-raid-announced.json`]!);
     state.settlement.buildings.barracks = 3;
     state.army.training = { unit: 'spearman', amount: 11, startedAtMs: 0, endsAtMs: 1 };
     expect(migrationSteps[version - 1]!.shape(state, ''), `v${version}`).toBe(
