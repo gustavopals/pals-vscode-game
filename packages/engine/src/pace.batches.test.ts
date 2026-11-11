@@ -103,12 +103,17 @@ describe.each([0.5, 1, 3])('lotes crescem com o ritmo %s (R2)', (timeScale) => {
     ).toContain(`um lote de até ${batchMax} por vez`);
   });
 
-  it('não multiplica vagas do Quartel e conserva os demais bloqueios', () => {
+  it('multiplica vagas do Quartel pela mesma escala e conserva os demais bloqueios', () => {
     const before = roomy(timeScale, 1);
-    const wanted = Math.min(batchMax, balance.army.capPerLevel);
-    expect(deriveViewState(before, 0).army.cap).toBe(balance.army.capPerLevel);
+    const wanted = Math.min(batchMax, balance.army.capPerLevel * factor);
+    expect(deriveViewState(before, 0).army.cap).toBe(balance.army.capPerLevel * factor);
     expect(deriveViewState(before, 0).army.offer[0]!.maxAmount).toBe(wanted);
-    if (timeScale === 3) expect(trainingBlock(before, 'spearman', 11)?.code).toBe('ARMY_LIMIT');
+    before.army.units.spearman = balance.army.capPerLevel * factor - 1;
+    expect(trainingBlock(before, 'spearman', 2)).toMatchObject({
+      code: 'ARMY_LIMIT',
+      message: expect.stringContaining(`${balance.army.capPerLevel * factor} soldados por nível`),
+    });
+    before.army.units.spearman = 0;
     before.settlement.buildings.barracks = 3;
     before.settlement.population.villagers = balance.morale.populationFloor;
     expect(trainingBlock(before, 'spearman', 1)?.code).toBe('NOT_ENOUGH_VILLAGERS');
@@ -176,13 +181,14 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   invalid.army.training.amount = 31;
   expect(currentShape(invalid, '')).toBe('army.training.amount: lote acima do máximo');
   invalid.army.training.amount = 30;
-  invalid.settlement.buildings.barracks = 2;
+  invalid.settlement.buildings.barracks = 1;
+  invalid.army.units.spearman = 1;
   expect(currentShape(invalid, '')).toBe(
     'army.training.amount: soldados e lote acima do limite do Quartel',
   );
   invalid.stats.siegesFallen = 1;
   expect(currentShape(invalid, '')).toBeNull();
-  invalid.army.units.spearman = 60;
+  invalid.army.units.spearman = 211;
   expect(currentShape(invalid, '')).not.toBeNull();
   invalid.army.units.spearman = 0;
   invalid.settlement.buildings.barracks = 3;
@@ -194,6 +200,41 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   expect(apply(roomy(1), command('trainSoldiers', { unit: 'spearman', amount: 30 })).ok).toBe(
     false,
   );
+});
+
+describe.each([0.5, 1, 3])('persistência das vagas no ritmo %s (R3)', (timeScale) => {
+  const factor = timeScale === 3 ? 3 : 1;
+  it.each([1, 8])(
+    'aceita o teto do Quartel Nv%s, com e sem treino, e recusa o excedente',
+    (level) => {
+      const state = roomy(timeScale, level);
+      const cap = balance.army.capPerLevel * factor * level;
+      state.army.units.spearman = cap;
+      const original = JSON.stringify(state);
+      expect(currentShape(state, '')).toBeNull();
+      expect(JSON.stringify(state)).toBe(original);
+      state.army.units.spearman += 1;
+      expect(currentShape(state, '')).not.toBeNull();
+      state.army.units.spearman = cap - factor;
+      state.army.training = { unit: 'spearman', amount: factor, startedAtMs: 0, endsAtMs: MINUTE };
+      expect(currentShape(state, '')).toBeNull();
+      state.army.units.spearman += 1;
+      expect(currentShape(state, '')).not.toBeNull();
+      state.stats.siegesFallen = 1;
+      expect(currentShape(state, '')).toEqual(level < 8 ? null : expect.any(String));
+      state.settlement.buildings.barracks = 0;
+      expect(currentShape(state, '')).not.toBeNull();
+    },
+  );
+  it('não aceita contagens inválidas ou campos extras na fachada', () => {
+    const state = roomy(timeScale, 1);
+    state.army.units.spearman = 10 * factor;
+    state.army.units.archer = -1;
+    expect(currentShape(state, '')).not.toBeNull();
+    state.army.units.archer = 0.5;
+    expect(currentShape(state, '')).not.toBeNull();
+    expect(currentShape({ ...state, extra: true }, '')).not.toBeNull();
+  });
 });
 
 it('congela as ofertas de lotes derivadas nos três ritmos', async () => {
@@ -220,6 +261,10 @@ it('as guardas v28 a v41 recusam lotes acima de dez', () => {
   for (let version = 28; version <= 41; version += 1) {
     const state = JSON.parse(files[`./__fixtures__/state-v${version}-raid-announced.json`]!);
     state.settlement.buildings.barracks = 3;
+    state.army.training = null;
+    state.army.units.spearman = 31;
+    expect(migrationSteps[version - 1]!.shape(state, ''), `v${version}`).not.toBeNull();
+    state.army.units.spearman = 0;
     state.army.training = { unit: 'spearman', amount: 11, startedAtMs: 0, endsAtMs: 1 };
     expect(migrationSteps[version - 1]!.shape(state, ''), `v${version}`).toBe(
       'army.training.amount: lote acima do máximo',

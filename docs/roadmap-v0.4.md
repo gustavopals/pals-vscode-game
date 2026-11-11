@@ -1116,7 +1116,9 @@ Como V4B-T5, mais a revisão editorial carta a carta (como a dos 18 grafos na v0
 **Entregáveis:** `packages/sim-cli/src/bands.ts`, `balance.test.ts`, `matrix.ts`; `docs/balance-v0.4.md`, seção 9; `docs/pendencias-v0.4.md`.
 
 - [x] V4I-T1.R1 Aplicar a resposta do autor de 2026-11-09: Paliçada que segura resolve sem batalha, sem baixas/aprendizado/relatório; objetivos, estatísticas, Crônica, milícia e Cerco coerentes. Testes focados nos três ritmos e golden alterado lido.
-- [x] V4I-T1.R2 Aplicar a resposta do autor de 2026-11-09: tetos de treino/recrutamento por ritmo, conta inteira no motor, visão com ofertas ampliadas e carregamento sem versão nova. Fila de recrutamento acompanha o fator para comportar a ordem (interpretação explicitada ao autor); custos, tempos e vagas do Quartel preservados. Testes nos três ritmos e goldens lidos.
+- [x] V4I-T1.R2 Aplicar a resposta do autor de 2026-11-09: tetos de treino/recrutamento por ritmo, conta inteira no motor, visão com ofertas ampliadas e carregamento sem versão nova. Fila de recrutamento acompanha o fator para comportar a ordem (interpretação explicitada ao autor); custos e tempos preservados; vagas passam a escalar por R3. Testes nos três ritmos e goldens lidos.
+- [x] V4I-T1.R3 Aplicar D1 de 2026-11-11: `capPerLevel` pela mesma escala de R2, motor/visão/recusas/guarda v42 coerentes, app sem teto fixo e guardas históricas preservadas; três ritmos e golden com diff lido.
+- [x] V4I-T1.D2 Registrar o desvio aceito pelo autor em 2026-11-11: Regular Senhor Normal 92% (meta 65–80%), Tranquilo 78%; ajuste fino no playtest/v0.5.
 - [ ] V4I-T1.1 A matriz inteira; a faixa do Regular **como meta**, não como medida com folga (é o critério 6); o que não cabe volta ao autor com propostas de número.
 - [ ] V4I-T1.2 O ouro por fonte e por destino no fim da versão contra a linha de base de V4A-T1 (§13): o número que a v0.4 promete baixar.
 - [ ] V4I-T1.3 `--perf` com cerco, `--remote` com 50 bots, tamanho do estado e da visão no pior caso.
@@ -1124,7 +1126,7 @@ Como V4B-T5, mais a revisão editorial carta a carta (como a dos 18 grafos na v0
 
 **Verificação:** as cinco matrizes; `pnpm -s sim -- --perf`; `pnpm --filter @lotg/sim-cli test`.
 
-**Pronto quando:** o critério 6 é um teste que falha se o Regular sair de 65 a 80%, e o ouro parado está medido contra a linha de base.
+**Pronto quando:** a matriz compara o critério 6 à meta de 65–80%, explicita o desvio D2 aceito para a v0.4, e o ouro parado está medido contra a linha de base.
 
 ### V4I-T2 · Critérios de aceitação da v0.4 `M`
 

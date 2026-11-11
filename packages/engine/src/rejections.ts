@@ -246,10 +246,10 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     `Erga ${buildings.barracks.article} ${buildings.barracks.label} primeiro: é nele que se treinam soldados.${note}`,
   TRAINING_BUSY: () =>
     'O pátio já tem um lote em treino: espere ele terminar, ou cancele para pôr outro.',
-  ARMY_LIMIT: ({ count = 0, level = 0 }) =>
+  ARMY_LIMIT: ({ count = 0, level = 0, capacity = balance.army.capPerLevel }) =>
     count === 0
-      ? `O Quartel Nv${level} já está cheio: o limite é ${balance.army.capPerLevel} soldados por nível.`
-      : `O Quartel Nv${level} só comporta mais ${count}: o limite é ${balance.army.capPerLevel} soldados por nível.`,
+      ? `O Quartel Nv${level} já está cheio: o limite é ${capacity} soldados por nível.`
+      : `O Quartel Nv${level} só comporta mais ${count}: o limite é ${capacity} soldados por nível.`,
   NOT_ENOUGH_WEAPONS: ({ count = 0 }) =>
     count === 1
       ? 'Falta 1 arma: o Ferreiro a forja.'

@@ -24,7 +24,7 @@ import { amountsData, missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import { storeResource } from './storage';
 import type { Formation, GameEvent, GameState, Rejection } from './types';
-import { MILLI } from './units';
+import { MILLI, paceScaled } from './units';
 
 /**
  * As ordens do Quartel (GDD §10.2; ADR 0019, decisão 7). **Nenhuma sorteia**: o lote termina no
@@ -51,7 +51,11 @@ export function trainingBlock(state: GameState, unit: unknown, amount: unknown):
   }
   const room = armyCap(state) - soldierCount(state);
   if (amount > room) {
-    return reject('ARMY_LIMIT', { count: Math.max(0, room), level });
+    return reject('ARMY_LIMIT', {
+      count: Math.max(0, room),
+      level,
+      capacity: paceScaled(balance.army.capPerLevel, state.settings.timeScale),
+    });
   }
   const { populationFloor } = balance.morale;
   const spare = Math.max(0, state.settlement.population.villagers - populationFloor);

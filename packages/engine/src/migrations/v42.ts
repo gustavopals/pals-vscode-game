@@ -31,38 +31,49 @@ export const stateV42: Shape = (value, path) => {
   const inherited = { ...value, schemaVersion: 41, map };
   const armyPath = path === '' ? 'army' : `${path}.army`;
   const army = value.army;
-  const training = object(army) ? army.training : null;
-  if (
-    !object(army) ||
-    !object(training) ||
-    !Number.isInteger(training.amount) ||
-    (training.amount as number) <= TRAINING_BATCH_MAX_V28
-  ) {
+  const settlement = value.settlement;
+  if (!object(army) || !object(settlement) || !object(settlement.buildings))
     return stateV41(inherited, path);
-  }
-  // Valida todas as demais propriedades pela guarda histórica antes de lê-las.
+  const level = settlement.buildings.barracks;
+  const levelError = natural(
+    level,
+    `${path === '' ? '' : `${path}.`}settlement.buildings.barracks`,
+  );
+  if (levelError !== null) return levelError;
+  const training = army.training;
+  // A fachada conserva unidades, campanha e demais relações intactas. Só adapta
+  // nível/lote para a guarda antiga; os tetos reais são conferidos abaixo.
+  const factor = object(value.settings) && value.settings.timeScale === 3 ? 3 : 1;
+  const amount = object(training) ? training.amount : 0;
+  const validAmount = Number.isSafeInteger(amount) && (amount as number) > 0;
+  const soldiers = object(army.units)
+    ? Object.values(army.units).reduce<number>((sum, count) => sum + (count as number), 0)
+    : NaN;
+  const total = soldiers + (amount as number);
+  const fallen = object(value.stats) && (value.stats.siegesFallen as number) > 0;
+  const afterFall = fallen && (level as number) > 0 && total <= 8 * ARMY_CAP_PER_LEVEL_V28 * factor;
+  const normalizedLevel = afterFall
+    ? Math.max((level as number) * factor, Math.ceil(total / ARMY_CAP_PER_LEVEL_V28))
+    : (level as number) * factor;
   const normalized = {
     ...inherited,
-    army: { ...army, training: { ...training, amount: TRAINING_BATCH_MAX_V28 } },
+    settlement: {
+      ...settlement,
+      buildings: { ...settlement.buildings, barracks: normalizedLevel },
+    },
+    army: {
+      ...army,
+      training:
+        object(training) && validAmount
+          ? { ...training, amount: Math.min(amount as number, TRAINING_BATCH_MAX_V28) }
+          : training,
+    },
   };
   const error = stateV41(normalized, path);
   if (error !== null) return error;
-  const amount = training.amount as number;
-  const settings = value.settings as StoredState;
-  // Ritmos fixados na v42: 0,5 e 1 conservam a base; 3 a triplica.
-  const maximum = settings.timeScale === 3 ? 3 * TRAINING_BATCH_MAX_V28 : TRAINING_BATCH_MAX_V28;
-  if (amount > maximum) return `${armyPath}.training.amount: lote acima do máximo`;
-  const settlement = value.settlement as StoredState;
-  const level = (settlement.buildings as StoredState).barracks as number;
-  const total =
-    Object.values(army.units as Record<string, number>).reduce((sum, count) => sum + count, 0) +
-    amount;
-  const stats = value.stats as Record<string, number>;
-  // Mesma exceção da Queda na guarda v40: sobreviventes/lote podem exceder o Quartel
-  // reduzido, preservando o teto absoluto de oito níveis. A R2 não cria vagas.
-  const afterFall =
-    (stats.siegesFallen ?? 0) > 0 && level > 0 && total <= 8 * ARMY_CAP_PER_LEVEL_V28;
-  if (total > level * ARMY_CAP_PER_LEVEL_V28 && !afterFall)
+  if ((amount as number) > TRAINING_BATCH_MAX_V28 * factor)
+    return `${armyPath}.training.amount: lote acima do máximo`;
+  if (total > (level as number) * ARMY_CAP_PER_LEVEL_V28 * factor && !afterFall)
     return `${armyPath}.training.amount: soldados e lote acima do limite do Quartel`;
   return null;
 };

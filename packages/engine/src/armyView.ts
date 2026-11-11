@@ -64,7 +64,7 @@ export function armyEffect(
   if (building !== 'barracks') {
     return null;
   }
-  const cap = rules.capPerLevel * targetLevel;
+  const cap = paceScaled(rules.capPerLevel, timeScale) * targetLevel;
   if (targetLevel <= 1) {
     return `Treina soldados, um lote de até ${paceScaled(rules.batchMax, timeScale)} por vez: até ${cap} soldados, que comem ${decimal(rules.foodPerSoldierPerHour.num / rules.foodPerSoldierPerHour.den)} de ${food} por hora.`;
   }

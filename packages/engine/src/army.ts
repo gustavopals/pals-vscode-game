@@ -32,12 +32,12 @@ export function soldierCount(state: GameState): number {
   return UNIT_IDS.reduce((sum, id) => sum + state.army.units[id], 0);
 }
 
-/** O limite de soldados no nível de agora: `10 × nível`; 0 sem o Quartel. */
+/** Vagas por nível escaladas pelo ritmo (R3); 0 sem o Quartel. */
 export function armyCap(state: GameState): number {
-  return balance.army.capPerLevel * barracksLevel(state);
+  return paceScaled(balance.army.capPerLevel, state.settings.timeScale) * barracksLevel(state);
 }
 
-/** Teto de um lote de treino: cresce com o ritmo, sem alterar as vagas do Quartel. */
+/** Teto de um lote de treino: cresce com o ritmo, assim como as vagas do Quartel. */
 export function trainingBatchMax(state: GameState): number {
   return paceScaled(balance.army.batchMax, state.settings.timeScale);
 }
