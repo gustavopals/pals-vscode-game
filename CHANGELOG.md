@@ -22,11 +22,12 @@ estatísticas, pontuação, Feitos e download em Markdown. Há **59 cartas**, in
 lotes 2/3 e Lobo Branco com caçada temporária, objetivos 17 a 21, Retorno com guerra,
 aba Reino com ranking de ouro/saída nas Preferências e aba Novidades.
 
-**Mudado, conforme respostas de 2026-11-09:** R1 resolve sem batalha a incursão
+**Mudado, conforme respostas de 2026-11-09 e 2026-11-11:** R1 resolve sem batalha a incursão
 que a Paliçada segura, preservando tropas, comandantes, equipamento e muralha;
 não há aprendizado ou relatório de uma formação que não lutou. O Cerco sempre
 luta. R2 escala os tetos de treino e recrutamento pelo ritmo, nunca abaixo da base;
-a fila acompanha a ordem ampliada. Vagas do Quartel e custo/tempo por unidade não mudam.
+a fila acompanha a ordem ampliada. R3 aplica a mesma escala às vagas por nível
+do Quartel. Custo e tempo por unidade não mudam.
 
 **Corrigido nas revisões E/F/G:** prévia considera a composição revelada pelo
 Conselho; a equipe de sabotagem volta no instante em que o Cerco remove a Fortaleza;

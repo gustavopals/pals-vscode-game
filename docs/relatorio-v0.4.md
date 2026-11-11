@@ -17,10 +17,9 @@ A última publicação registrada é a v0.3.0 (estado 24, protocolo 3).
 | Ano e conteúdo | Fecho anual, pontuação e seis Feitos; seleção e download da Crônica do Ano; 59 cartas, Lobo Branco e caçada temporária; objetivos 17 a 21, Retorno e Antes de partir com guerra |
 | Reino e Novidades | Totais e ranking de ouro com saída por conta (ADR 0021, SQL `0001_ranking_listed`); histórico editorial com selo por conta/entre abas, v0.4 ainda rascunho |
 
-**R1/R2:** a Paliçada que segura repele sem batalha, baixas, dano, relatório ou
+**R1–R3:** a Paliçada que segura repele sem batalha, baixas, dano, relatório ou
 aprendizado; ondas do Cerco sempre lutam. Os lotes de treino e recrutamento crescem
-pelo ritmo, com fila compatível, sem ampliar vagas do Quartel nem alterar custo e
-tempo por unidade. As respostas de regra estão no
+pelo ritmo, com fila compatível; R3 aplica a mesma escala às vagas do Quartel, sem alterar custo e tempo por unidade. D2 aceita na v0.4 o Regular em Senhor Normal com 92% de Vitória (meta 65–80%) e Tranquilo 78%, deixando o ajuste fino para playtest/v0.5. As respostas de regra estão no
 [ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md).
 
 As revisões [E](reviews/v0.4-fase-e.md), [F](reviews/v0.4-fase-f.md) e
@@ -33,15 +32,13 @@ As contagens históricas e seus limites permanecem nos relatórios e no
 
 CLAUDE, [arquitetura](architecture.md), [aceitação](acceptance-v0.4.md), retomada,
 READMEs do motor/servidor/app/landing e [changelog](../CHANGELOG.md) descrevem o
-produto atual, com provas R1/R2 e revisões E/F/G por critério. A landing retira a
+produto atual, com provas R1–R3 e revisões E/F/G por critério. A landing retira a
 guerra/Cerco do horizonte e apresenta ferro, defesa e rescaldo; capturas permanecem
 com a trilha responsável. Novidades mantém `draft`, com redação de 2026-11-11;
 a publicação exige conferir escopo, data real e então promover a entrada.
 
-Raiz, **sete pacotes** e constantes públicas (motor, API, app, conteúdo, protocolo
-e SDK) estão em **0.4.0**. `packages/sim-cli` foi reservado à outra trilha e não
-foi editado: o coordenador deve alinhar `package.json`, `SIM_CLI_VERSION` em
-`src/index.ts` e `clientVersion` em `src/remote.ts`, ainda em 0.3.0.
+Raiz, **oito pacotes** e constantes públicas (motor, API, app, conteúdo, protocolo
+e SDK) estão em **0.4.0**. A integração alinhou também `packages/sim-cli`: pacote, `SIM_CLI_VERSION`, `remote` e `smoke`.
 
 ## Verificações desta trilha
 
