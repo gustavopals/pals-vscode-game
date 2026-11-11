@@ -22,12 +22,20 @@ export function preparingSiege(view: ViewState): boolean {
   );
 }
 
+/** Conserva materiais quando o Quartel já comporta mais um lote inteiro do ritmo atual. */
+function hasRoomForBatch(view: ViewState): boolean {
+  const batch = Math.max(0, ...view.army.offer.map((offer) => offer.batchMax));
+  const reserved = view.army.training?.amount ?? 0;
+  return view.army.built && view.army.cap - view.army.total - reserved >= batch;
+}
+
 /**
  * A partir do verão a defesa passa à frente da corrida econômica: o Salão é priorizado até
  * o nível 4 para abrir o Quartel com folga, e as obras essenciais (Quartel, Paliçada e Torre)
  * são adiantadas. Planejar inclui seus custos na demanda dos ofícios; não automatiza madeira
- * reservada à lareira. Não sobe o Quartel além do nível 1 enquanto houver ao menos 10 vagas
- * livres. Os níveis e bloqueios vêm da lista pública: nenhuma obra ou custo do motor é reproduzido aqui.
+ * reservada à lareira. Conserva materiais se as vagas livres já comportam outro lote do ritmo,
+ * descontando os soldados em treino. Teto do lote, níveis e bloqueios vêm da lista pública:
+ * nenhuma obra ou custo do motor é reproduzido aqui.
  */
 export const prepareSiege: Policy = {
   name: 'preparar o Cerco',
@@ -39,7 +47,7 @@ export const prepareSiege: Policy = {
       const upgrade = view.constructions.available.find((row) => row.building === building);
       if (upgrade === undefined) return [];
       if (building === 'townHall' && upgrade.fromLevel >= 4) return [];
-      if (building === 'barracks' && view.army.built && view.army.cap - view.army.total >= 10) {
+      if (building === 'barracks' && hasRoomForBatch(view)) {
         return [];
       }
       return [upgrade];
@@ -54,11 +62,7 @@ export const prepareSiege: Policy = {
           priorities.indexOf(b.building as (typeof priorities)[number]),
     );
     for (const wanted of upgrades) {
-      if (
-        wanted.building === 'barracks' &&
-        current.army.built &&
-        current.army.cap - current.army.total >= 10
-      ) {
+      if (wanted.building === 'barracks' && hasRoomForBatch(current)) {
         continue;
       }
       const upgrade = current.constructions.available.find(

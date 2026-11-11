@@ -422,28 +422,52 @@ describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
       expect(game.refused).toEqual([]);
     });
 
-    it('prepareSiege não sobe o Quartel além do nível 1 se houver >= 10 vagas livres', async () => {
-      const state = readySiege();
-      state.lastProcessedAt = 100 * HOUR;
-      state.clock.gameTimeMs = 100 * HOUR;
-      state.settlement.buildings.barracks = 1;
-      state.settlement.buildings.townHall = 4;
-      // 0 soldados -> 10 vagas livres no Quartel Nv1 (cap 10, total 0)
-      state.army.units = { spearman: 0, archer: 0, swordsman: 0, knight: 0, shieldbearer: 0 };
-      Object.assign(state.settlement.resources, { wood: 500_000, stone: 500_000, gold: 500_000 });
-      const game = scenario(state);
-      expect(game.view().army.cap - game.view().army.total).toBeGreaterThanOrEqual(10);
+    it.each([
+      { pace: 0.5, level: 1, training: 0, improves: false },
+      { pace: 1, level: 1, training: 0, improves: false },
+      { pace: 3, level: 1, training: 0, improves: true },
+      { pace: 3, level: 3, training: 0, improves: false },
+      { pace: 3, level: 3, training: 10, improves: true },
+    ])(
+      'prepara vagas para o lote público: ritmo $pace, Quartel $level, treino $training',
+      async ({ pace, level, training, improves }) => {
+        const state = readySiege();
+        state.settings.timeScale = pace;
+        state.lastProcessedAt = 100 * HOUR;
+        state.clock.gameTimeMs = 100 * HOUR;
+        state.settlement.buildings.barracks = level;
+        state.settlement.buildings.townHall = 4;
+        state.army.units = { spearman: 0, archer: 0, swordsman: 0, knight: 0, shieldbearer: 0 };
+        state.army.training =
+          training === 0
+            ? null
+            : {
+                unit: 'spearman',
+                amount: training,
+                startedAtMs: 100 * HOUR,
+                endsAtMs: 101 * HOUR,
+              };
+        Object.assign(state.settlement.resources, {
+          wood: 5_000_000,
+          stone: 5_000_000,
+          gold: 5_000_000,
+        });
+        const game = scenario(state);
+        // O lote ofertado agora é limitado pelas vagas; batchMax continua revelando o teto do ritmo.
+        expect(game.view().army.offer[0]?.batchMax).toBe(pace === 3 ? 30 : 10);
 
-      await prepareSiege.run(game.view(), game.act);
-      expect(
-        game.orders.some(
-          (o) =>
-            ['startConstruction', 'planConstruction'].includes(o.type) &&
-            'building' in o.payload &&
-            o.payload.building === 'barracks',
-        ),
-      ).toBe(false);
-    });
+        await prepareSiege.run(game.view(), game.act);
+        expect(
+          game.orders.some(
+            (o) =>
+              ['startConstruction', 'planConstruction'].includes(o.type) &&
+              'building' in o.payload &&
+              o.payload.building === 'barracks',
+          ),
+        ).toBe(improves);
+        expect(game.refused).toEqual([]);
+      },
+    );
 
     it('erguerQuartel planeja o Quartel com autoStart quando o Salão for Nv3+ e estiver bloqueado', async () => {
       const state = readySiege();
