@@ -1,10 +1,35 @@
-# Retomada em 2026-11-10 — R1, R2 e amostra do Cerco
+# Retomada em 2026-11-11 — documentação V4I-T4
+
+Trilha `v4i-t4-docs`, a partir de `075b8f0`: CLAUDE, arquitetura, deploy, aceitação,
+READMEs e landing atualizados para estado **42**, protocolo **4**, **59 cartas**,
+R1/R2 e revisões E/F/G. Versão **0.4.0** na raiz, oito pacotes e constantes públicas, incluindo `ENGINE_VERSION`, API, app e sim-cli (também clientes remotos/smoke, alinhados na integração). Novidades
+permanece rascunho; data de redação 2026-11-11. Main local não movido, sem push.
+
+A verificação desta trilha é somente focada, lint e typecheck; contagens e limites
+na linha V4I-T4 do Registro do roadmap. Não há matriz, verify inteiro, integração,
+e2e, build ou captura nesta entrega. As capturas da landing são da outra trilha.
+Changelog e relatório estão em rascunho; falta consolidar medição/portão do coordenador.
+
+Milícia, prévia por onda e seleção/download anual **já existem no app**. A revisão
+de tela de 2026-11-09 registra 14/14 cenários `13-cerco` e 12 PNGs; não reexecutados
+aqui. R1 preserva a guarda quando a Paliçada segura sem batalha; R2 escala lotes e
+fila pelo ritmo; R3 (D1 de 2026-11-11) amplia também as vagas pela mesma escala. D2 aceita o desvio do Regular em Senhor Normal (92%, meta 65–80%) e Tranquilo 78%, com ajuste fino no playtest/v0.5. Permanecem a prévia ofensiva do
+Acampamento (F-5), G-23 (vínculo de relatório por onda e perdas da Queda) e G-25
+(hipótese do calendário).
+O critério 6 e a aceitação humana não foram concluídos por esta documentação.
+
+Os blocos datados abaixo são históricos: preservam as amostras e o ponto de
+investigação da trilha de medição. O coordenador atualiza os resultados ao integrar,
+sem usar a amostra curta como matriz final. O autor faz roteiro, backup/SHA de
+retorno e ensaio, push, conferências de versão/migração, tag/release e playtest.
+
+## Histórico: retomada em 2026-11-10 — R1, R2 e amostra do Cerco
 
 No `v4-juncao3`, o WIP `82360fd` preserva a medição antiga. As regras e o bot foram juntados nos commits `7ebde70` e `5c7d1e8`; o teste histórico foi ajustado em `e8f3c64`. A guarda v42 valida o lote diretamente, sem importar `units` ou depender da mensagem da v41; as guardas v28 a v41 continuam rejeitando lote acima de 10. Testes focados: ritmo 21, Paliçada 75, bot do Cerco 31, todos verdes; `pnpm typecheck` verde. A revisão das trilhas ainda deve ser concluída.
 
 Amostra com cinco sementes, ano de jogo: Regular em Senhor, Rápido 0/5, Normal 5/5, Tranquilo 4/5; Dedicado em Senhor, 4/5, 5/5, 5/5; Regular em Camponês, 0/5, 5/5, 5/5. Os três comandos saíram 1 por violarem as faixas anteriores; CSVs e relatórios em `/tmp/lotg-v04-medicao/`. O Rápido do Regular ganhou 1–2 ondas em cada semente. Antes das matrizes completas, investigar a causa do 0/5, inclusive vagas do Quartel e o tamanho efetivo do treino e da formação; ainda não há conclusão ou proposta medida. Não atualizar MEASURED com esta amostra. Não houve publicação ou push.
 
-# Retomada da v0.4 — 2026-11-06
+## Histórico: retomada da v0.4 — 2026-11-06
 
 **Ponto de continuação:** terceira junção local `v4-juncao3`, base **`ccbaa5c`**
 (“integre as ondas por ano e o preparo dos bots”), antes do fechamento documental.
@@ -23,11 +48,11 @@ das ondas por ano. Não confundir o retrato inicial da junção com a base atual
 |---|---|
 | Ferro e Ferreiro | Ferro no Armazém/Mercado e na Mina Abandonada; forja de armas, desgaste e reparo de item na mesma fila; interface no Feudo |
 | Exército | Quartel, cinco unidades, treino/dispensa, formações salvas, comandantes e Defesa ativa offline; editor por teclado |
-| Batalha e prévia | Motor único, sete contas à mão/goldens, relatórios e efeitos nos comandantes; Conselho de Guerra comum na tela e prévia por onda no motor/protocolo |
-| Muralha e incursões | Vida por ala, reparo com prioridade sobre obras, Torre Nv3+; toda incursão usa batalha e a Defesa disponível |
+| Batalha e prévia | Motor único, sete contas à mão/goldens, relatórios e efeitos nos comandantes; Conselho de Guerra comum e prévia por onda na tela, motor/protocolo |
+| Muralha e incursões | Vida por ala, reparo com prioridade sobre obras, Torre Nv3+; R1 posterior preserva a Defesa quando a Paliçada segura sem batalha |
 | Horda | Memória da última formação efetiva, astúcia, presságios com névoa, Acampamento e Fortaleza; preparação/regeneração das ondas e congelamento no inverno |
 | Sabotagem e campanha | Sabotagem com três heróis, até três tentativas anuais, reduções/alerta; ataque ao Acampamento com reserva de tropas, batalha, retorno, saque e restauração anual do tile; telas e conferências |
-| Vigília e Cerco | Preferência de hora/fuso; Plano por onda, três ondas com intervalo de 60 min reais, decisão entre ondas, troca, reparo de emergência, milícia no motor/visão, resultado, Queda e rescaldo/Reconstrução |
+| Vigília e Cerco | Preferência de hora/fuso; Plano por onda, três ondas com intervalo de 60 min reais, decisão entre ondas, troca, reparo de emergência, milícia no motor/visão e app, resultado, Queda e rescaldo/Reconstrução |
 | Ondas por ano | Base ×1/3 no ano 1, ×2/3 no ano 2 e ×1 no ano 3+, antes da dificuldade; postos fixos preservados e redução sem zerar postos |
 | Ano e Feitos | `yearEnded`, pontuação e seis Feitos anuais; endpoint autenticado `GET /v1/games/:id/years/:year/chronicle.md`, sem mistura de anos |
 | Conselho e objetivos | Cartas dos lotes 2/3 e três cartas do Lobo Branco; caçada temporária no estado 42, uma equipe por vez e janela encerrada na vitória/expiração; objetivos 17 a 21; Retorno e Antes de partir com guerra |
@@ -56,7 +81,7 @@ para regravá-lo sem `UPDATE_GOLDEN=1` e leitura do diff.
   Estado 42 e protocolo 4 preservados. **Ainda faltam** prévia ofensiva do Acampamento,
   vínculo persistente de relatório por onda e discriminação das perdas da Queda na visão
   (G-23); somente acrescentar campos derivados não recupera dados ausentes do estado.
-  Milícia/Markdown anual em navegador estão escritos nos três temas/720 px, sem execução;
+  Milícia/Markdown anual em navegador passaram nos 14 cenários de 2026-11-09, incluindo três temas/720 px;
   as verificações focadas e seus limites estão no Registro V4G-T4 do roadmap.
 - **Decisão do autor de 2026-11-09: a v0.4 fecha com 59 cartas** (a 60ª prevista inicialmente seria `"O aprendiz e o Mestre"`, proibida pelo autor). Cobertura dirigida de cadeias
   não demonstra que todas saem espontaneamente em 50 sementes (em `coverage.test.ts`, o perfil Regular abre espontaneamente 47 das 59 cartas no ano do ritmo Normal; as 12 restantes exigem promessa, hostilidade, Covil limpo, dois heróis livres, herói ferido, Ferreiro no verão ou rescaldo, cobertas nos testes de contrato do motor). Conteúdo não lido

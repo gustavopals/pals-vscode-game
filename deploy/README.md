@@ -21,6 +21,10 @@ Arquivos desta pasta:
 - `analytics/ops.sql`: consultas de operação.
 - `docker-compose.dev.yml` e `.env.example`: desenvolvimento local.
 
+## Regras do candidato v0.4.0 — 2026-11-11
+
+R1 resolve sem batalha as incursões que a Paliçada segura, preservando a Defesa; o Cerco sempre luta. R2 escala lotes de treino e recrutamento/fila pelo ritmo, e R3 escala as vagas por nível do Quartel pela mesma função: ×3 no Rápido, ×1 no Normal/Tranquilo. Bases no conteúdo, regras no motor e tetos prontos na visão/app. Guarda v42 compatível com soldados e lote no teto escalado; guardas históricas preservadas. Estado 42 e protocolo 4 mantidos. D2 aceita o desvio de vitória do Regular no Normal (92%, meta 65–80%); ajuste fino no playtest/v0.5. Ver ADR 0019 e balance final.
+
 ## Instalação atual
 
 | Item                 | Valor                                                             |
@@ -128,25 +132,47 @@ Para saber em que versão as partidas estão:
 select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
 ```
 
-### Protocolo 4 e estado 41 — candidato da terceira junção da v0.4 (2026-11-03)
+### A primeira publicação da v0.4: do estado 24 ao 42, protocolo 3 ao 4
 
-O candidato `v4-juncao3` traz o Cerco e passa de protocolo 3 para **4**:
-`pendingDecisions` ganha o tipo `siegeWave`, que o app antigo não sabe ler.
-O servidor aceita `X-Lords-Protocol: 4`; clientes anteriores recebem
-`426 UPGRADE_REQUIRED` ("Recarregue a página"). O cache do app descarta a visão
-do protocolo anterior e mantém o cursor dos eventos. As rotas continuam em `/v1`.
+A última publicação registrada é a v0.3.0 (estado 24, protocolo 3). A primeira
+v0.4 leva a terceira junção inteira: **18 passos, 24 → … → 42**, na primeira
+leitura/comando novo ou no job de avanço de cada partida ativa. Não dá ferro,
+armas, soldados ou muralha retroativos. Prazos novos contam da fronteira de seu
+passo; a Vigília passada não causa combate retroativo. Partidas arquivadas só
+migram em memória e conservam a versão gravada.
 
-A migração SQL **`0001_ranking_listed`** acrescenta a preferência pública do
-ranking em `accounts`; o arranque aplica o SQL sob a trava de migração existente.
-A versão do estado é **41**: o ataque ao Acampamento é 38 → 39, o Cerco é
-39 → 40 e os bônus das cartas do lote 3 são 40 → 41. A Crônica do Ano usa os
-contadores já existentes, sem um passo adicional. Antes de uma publicação autorizada,
-fazer o backup manual, anotar o SHA e conferir o portão do candidato; atualizar a API
-antes do app. Depois conferir `GET /v1/version` (`protocol: 4`, `builtAt` novo),
-`schema_version = 41` nas partidas avançadas e a coluna `accounts.ranking_listed`.
-A reversão após migrar o estado exige restaurar o backup correspondente; uma imagem
-anterior não pode escrever sobre o estado novo. Esta nota prepara a operação:
-**a terceira junção não publica nem altera o `main`**.
+O Cerco sobe o protocolo de **3 para 4**: `pendingDecisions` inclui `siegeWave`.
+O app antigo aberto recebe **426 UPGRADE_REQUIRED**, com “Recarregue a página”.
+Ao recarregar, o cache descarta a visão antiga e preserva o cursor dos eventos.
+As rotas continuam em `/v1`; recibos históricos não são reescritos.
+
+A migração SQL **`0001_ranking_listed`** acrescenta `accounts.ranking_listed`,
+com padrão `true` para contas existentes. O arranque a aplica sob
+`pg_advisory_lock(727)`; é separada das migrações do JSON do jogo. Publicar a API
+antes do app; o fluxo automático faz isso e atualiza a landing por último.
+
+**Antes do push, pelo autor:** fechar o portão no SHA candidato, conferir as três
+imagens e fazer backup manual do banco imediatamente antes de publicar. Registrar
+arquivo, instante UTC, **SHA de retorno que está em produção** e SHA candidato;
+guardar cópia do backup e do `RECOVERY_CODE_SECRET` fora do servidor. Não usar um
+SHA local mais novo como retorno. O backup e o SHA de 2026-10-15 são históricos,
+não substituem esse ponto de retorno. O push em `main` dispara o deploy; esta
+entrega documental não o executa.
+
+**Depois do push:** conferir `GET /v1/health` e `GET /v1/version`: `server: "0.4.0"`,
+**`protocol: 4`**, `builtAt` do build candidato e `contentHash` esperado. Abrir a
+conta do autor com o app recarregado; conferir SQL aplicado, logs do job e partidas
+ativas migradas para **`schema_version = 42`** (consulta acima, distinguindo
+arquivadas). Não inferir migração de todas só pela saúde/CI: partidas ainda não
+lidas nem avançadas podem conservar a versão anterior. Registrar as conferências.
+
+**Reversão só com o backup correspondente:** parar a API, seguir “Backup e
+restauração” e “Reverter depois de uma migração de estado”, restaurar o ponto
+anterior ao push e voltar API/app ao SHA de retorno. Trocar apenas a imagem não
+reverte estado 42 nem o SQL. A imagem anterior recusa o estado novo; não apagar a
+coluna de ranking isoladamente. Preservar os segredos e tratar exclusões/sessões
+conforme o procedimento. O ensaio com imagens atravessando a migração (ato 23),
+a tag e a release continuam do autor, sem evidência de execução nesta trilha.
 
 ### A primeira publicação da v0.3: do estado 12 ao 24 de uma vez (nota de 2026-10-06, revista em 2026-10-15)
 

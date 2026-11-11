@@ -131,7 +131,7 @@ export async function runSmoke(options: SmokeOptions): Promise<SmokeReport> {
   const client: Client = createClient({
     baseUrl: options.baseUrl,
     tokenStore: memoryTokenStore(),
-    clientVersion: 'sim-cli/0.3.0',
+    clientVersion: 'sim-cli/0.4.0',
     ...(options.fetch ? { fetch: options.fetch } : {}),
   });
   const report: SmokeReport = {
