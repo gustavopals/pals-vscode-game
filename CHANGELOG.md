@@ -4,7 +4,47 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 
 ## [Não lançado]
 
-Nada ainda.
+### 0.4.0 — Guerra e Cerco (candidata, sem data de publicação)
+
+A terceira junção está no estado **42**, protocolo **4**. Esta nota é rascunho:
+a versão ainda não foi publicada, a entrada de Novidades continua em preparação
+e o portão final, a medição e o aceite humano permanecem abertos. Entregas e limites
+em [relatorio-v0.4.md](docs/relatorio-v0.4.md); provas por critério em
+[acceptance-v0.4.md](docs/acceptance-v0.4.md).
+
+**Adicionado:** ferro no Mercado e na Mina Abandonada; Ferreiro, armas, desgaste
+e reparo; Quartel, cinco unidades, formações, Defesa ativa e comandantes; batalha,
+relatórios e prévia; Muralha de Pedra, Baluarte, vida por ala e reparo; Horda que
+aprende, presságios, sabotagem da Fortaleza e ataque ao Acampamento. O Cerco tem
+Hora da Vigília, Plano por onda, decisões, reparo de emergência, milícia, Vitória,
+Gloriosa, Queda e rescaldo/Primavera da Reconstrução. A Crônica do Ano oferece
+estatísticas, pontuação, Feitos e download em Markdown. Há **59 cartas**, incluindo
+lotes 2/3 e Lobo Branco com caçada temporária, objetivos 17 a 21, Retorno com guerra,
+aba Reino com ranking de ouro/saída nas Preferências e aba Novidades.
+
+**Mudado, conforme respostas de 2026-11-09:** R1 resolve sem batalha a incursão
+que a Paliçada segura, preservando tropas, comandantes, equipamento e muralha;
+não há aprendizado ou relatório de uma formação que não lutou. O Cerco sempre
+luta. R2 escala os tetos de treino e recrutamento pelo ritmo, nunca abaixo da base;
+a fila acompanha a ordem ampliada. Vagas do Quartel e custo/tempo por unidade não mudam.
+
+**Corrigido nas revisões E/F/G:** prévia considera a composição revelada pelo
+Conselho; a equipe de sabotagem volta no instante em que o Cerco remove a Fortaleza;
+a guarda aceita milícia nos relatórios atuais; as três ondas precisam caber antes
+da Crônica anual. A hipótese de calendário G-25 e as demais pendências continuam
+identificadas para o autor, sem aceite inferido desta nota.
+
+#### O que muda nas partidas em andamento
+
+- A produção registrada na v0.3 (estado 24) passa por **18 passos até 42**, sob a trava da partida, na primeira leitura/comando novo ou no job de avanço. Arquivadas conservam a versão gravada e migram só em memória.
+- A migração preserva o que já existe, não dá ferro, armas, soldados ou muralha nem emite acontecimentos retroativos. Os prazos novos usam a fronteira de cada passo; a Vigília passada não cobra combate anterior à migração.
+- O protocolo sobe de **3 para 4** por causa das decisões entre ondas. O app antigo aberto recebe **426**, pedindo recarga. A visão antiga do cache é descartada e o cursor dos eventos é mantido; recibos históricos não são reescritos.
+- A migração SQL **`0001_ranking_listed`** acrescenta a preferência de ranking, inicialmente ligada para contas existentes; pode ser desligada nas Preferências sem sair dos totais anônimos do reino.
+- Antes do push do autor, fazer **backup manual** e anotar arquivo/instante e **SHA de retorno em produção**. Depois de migrar, a imagem antiga só volta com o backup correspondente. Procedimento e conferências de `GET /v1/version`, `builtAt` e partidas migradas em [deploy/README.md](deploy/README.md).
+
+A meta de Vitória do Regular, o roteiro do autor, o playtest externo, as capturas
+atualizadas, o ensaio de reversão e a publicação não são declarados concluídos aqui.
+Mapa gráfico, relíquias, Legado, Votos e Temporadas continuam fora desta versão.
 
 ## [0.3.0] — 2026-10-15
 

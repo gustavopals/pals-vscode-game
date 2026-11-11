@@ -1,10 +1,11 @@
 # Arquitetura até a v0.4
 
-O que está construído em Lords of the Guild, conferido em **2026-11-06** no branch
-`v4-docs`, a partir da terceira junção `v4-juncao3` (`ccbaa5c`). O estado está na
-**versão 42**, o protocolo na **4** e os pacotes ainda em **0.3.0**. Esta é uma
-base local de desenvolvimento, sem publicação da v0.4. Antes de afirmar o que
-está no ar, conferir `protocol`, `version` e `builtAt` em `GET /v1/version`.
+O que está construído em Lords of the Guild, reconferido em **2026-11-11** na
+terceira junção (base `075b8f0`, trilha `v4i-t4-docs`). Estado **42**, protocolo
+**4**, versão candidata **0.4.0** no motor, API, app e demais pacotes desta trilha;
+a versão de `sim-cli` fica para a trilha responsável. A v0.4 ainda não foi
+publicada. Antes de afirmar o que está no ar, conferir `server`, `protocol` e
+`builtAt` em `GET /v1/version`.
 
 O [GDD](../GAME_DESIGN.md), §14, continua sendo o contrato. As regras da guerra
 seguem os ADRs [0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)
@@ -322,7 +323,7 @@ O motor do Conselho fica em `council.ts` (o que não sorteia), `councilTurn.ts` 
 - **A carta roteirizada** (v0.3, `scripted: { atGameDay: 13 }`; seção 12): a "Estrangeira ferida" sai no sorteio da audiência, na frente das sorteadas, uma vez por partida, e pede lugar na mesa sem reservá-lo.
 - **"Sua escolha voltou."** O evento da continuação leva a escolha anterior (`previousCardId`, `previousOptionId`, `previousInstanceId`); o servidor escreve, no Markdown da Crônica, a nota que a cita (`games/chronicleMarkdown.ts`), e a aba Crônica leva o foco à linha citada.
 
-- **Lotes 2 e 3 na v0.4.** A herança de 22 cartas da v0.3 foi ampliada para 59 nesta base, incluindo os ganchos de Mestre, Mercado, encontros, guerra e Lobo Branco (seção 19l). O alvo de 60 do roadmap ainda não é a contagem do catálogo.
+- **Lotes 2 e 3 na v0.4.** A herança de 22 cartas da v0.3 foi ampliada para 59 nesta base, incluindo os ganchos de Mestre, Mercado, encontros, guerra e Lobo Branco (seção 19l). A decisão do autor de 2026-11-09 fixa o fechamento em 59; a 60ª carta foi proibida.
 ## 9. A Ameaça e as incursões
 
 As regras ficam em `threat.ts`, `hordeTurn.ts` (o sorteio) e `raids.ts` (roteiro, aviso, resolução e feridos, com a batalha delegada a `battleTurn.ts`); os números em `balance.threat` e `balance.raids`, e os tiles em `tiles.ts` (GDD §8.2 e §12.3; ADR 0014, decisões 10, 11 e 20).
@@ -330,11 +331,11 @@ As regras ficam em `threat.ts`, `hordeTurn.ts` (o sorteio) e `raids.ts` (roteiro
 - **Tiles abstratos.** O Covil de Lobos é um tile sem mapa (`map.tiles`); o mapa gráfico é da v0.5. A Ameaça (`map.threat`) sobe na virada do dia com os tiles ativos e com o outono, e cai a cada incursão, repelida ou sofrida.
 - **A névoa é aplicada no servidor.** `ViewState.threat` é uma união fechada: sem a Torre de Vigia (`known: false`) só saem a frase, a Torre e a defesa; o número, a tendência, os tiles e as incursões marcadas não saem, e o schema do protocolo recusa o resto. Os eventos só levam a Ameaça para quem tem a Torre. Testes conferem que dois feudos iguais, um com a Ameaça em zero e outro com uma incursão à porta, têm a mesma visão sem a Torre.
 - **Incursões marcadas** (`horde.scheduledRaids`, no máximo uma por vez): a do roteiro do ano 1 nasce com a partida (os uivos no 10º dia, os lobos no 16º); as outras são sorteadas pela Ameaça na virada do dia e chegam em outra virada. O sorteio não vira evento nem linha: a incursão só aparece quando os vigias a avistam e, sem Torre, quando chega.
-- **Torre até o nível 5 e Paliçada até o 6.** A Torre informa tamanho/composição conforme o nível, dispara em batalha e clareia presságios. A Paliçada tem vida por ala e reparo. `palisadeAgainst` ainda limita as perdas econômicas da incursão; a batalha e os níveis novos estão nas seções 19d e 19e.
+- **Torre até o nível 5 e Paliçada até o 6.** A Torre informa tamanho/composição conforme o nível, dispara em batalha e clareia presságios. A Paliçada tem vida por ala e reparo. `palisadeAgainst` resolve sem batalha quando segura (R1) e limita perdas econômicas quando não segura; ver seções 19d/19e.
 - **O Covil de Lobos limpo** (v0.3, seção 14): uma expedição ao Covil bem-sucedida desliga o tile e tira 30 da Ameaça (`threat.tileClearedDrop`); os lobos voltam na virada do ano (`restoreTiles`, antes de a Ameaça subir). Na v0.3, com o Covil limpo a Ameaça só subia no outono; na v0.4, o Acampamento ativo também contribui e permite incursões. O outono continua tendo lobos mesmo com o Covil limpo: os lobos descem a serra (`threat.seasonEnemy`, `raidingEnemy`; regra confirmada pelo autor em 2026-10-06, "Manter os lobos do outono").
 - **Feridos** não trabalham por um dia de jogo, continuam comendo e voltam sozinhos ao edifício de onde saíram; ninguém parte por causa dos lobos.
 
-O comportamento medido em 2026-10-02 (a Ameaça sobe até perto do máximo e fica lá, e quase toda incursão sorteada é média) está em [balance-v0.2.md](balance-v0.2.md), seção 14.4, e é o que o balanceamento de fechamento (V2F-T1) está revendo.
+O comportamento medido em 2026-10-02 (a Ameaça sobe até perto do máximo e fica lá, e quase toda incursão sorteada é média) está em [balance-v0.2.md](balance-v0.2.md), seção 14.4, e retrata os números daquela fase; não descreve o balanceamento atual da v0.4.
 
 ## 10. O catálogo, o protocolo e o 426
 
@@ -544,6 +545,16 @@ reembolso. Cancelar exige o `lotKey` conferido, devolve 80%; dispensar devolve
 aldeões sem devolver custo. Contas em `army.ts`, ordens em `armyOrders.ts` e
 conclusão em `armyTurn.ts`.
 
+**R2 (resposta de 2026-11-09):** `paceScaled(base, settings.timeScale)` calcula
+os limites em inteiros, arredondando para cima e nunca abaixo da base. Treino
+permite até 10 nos ritmos 0,5/1 e 30 no ritmo 3; recrutamento por ordem e fila,
+5/5/15. Recursos, moradia, aldeões aptos e vagas do Quartel continuam limitando
+a oferta; custo e tempo por unidade não mudam. A visão fornece todos os lotes
+em `army.offer[].options` e `recruitment.maxQuantity`; o app não fixa esses tetos.
+A guarda v42 confere o lote diretamente, sem importar conteúdo nem comparar
+mensagens da v41; v28 a v41 conservam o máximo histórico de 10.
+`pace.batches.test.ts` prova limites, persistência, ofertas e três ritmos.
+
 Até cinco formações salvas têm três alas, Frente e Retaguarda, e um comandante
 por ala. São planos, podem pedir mais soldados do que há; a visão mostra a falta.
 Uma só é a Defesa ativa (`activeFormationId`), usada offline com o efetivo
@@ -572,9 +583,11 @@ atual daquela onda**; não consulta a composição oculta. Sem posto revelado, n
 simula e informa desconhecimento. Formação, efetivo disponível, muralha, Torre e
 conhecimento do alvo entram na assinatura de validade (`previewStale`).
 
-O app oferece **Simular defesa do feudo** para uma formação salva e mostra o
-resultado recebido. Ainda não oferece seletor de prévia por onda nem prévia
-ofensiva do Acampamento; a opção por onda existe no motor/protocolo e no simulador.
+O app oferece **Simular defesa do feudo** para uma formação salva e **Simular
+onda N** junto do Plano do Cerco. Mostra a prévia da formação/onda correspondentes,
+com névoa e desatualização fornecidas pelo motor. Não há prévia ofensiva do Acampamento.
+A revisão E corrigiu o uso da composição exata revelada pela carta Conselho de
+Guerra e sua assinatura (`warCouncil.revealedRaid.test.ts`).
 
 ## 19e. Muralha, reparo e incursões como batalha
 
@@ -584,14 +597,21 @@ preserva o dano anterior. `repairWall` paga pedra e ouro na hora, não se cancel
 desloca as obras em curso pelo tempo do reparo; obras iniciadas durante ele esperam.
 O reparo termina antes das obras e da batalha (`wall.ts`, `wallRepair.ts`).
 
-Toda incursão passa por `fightRaid`: composição sorteada no fluxo `horde` na
-marcação; roteiro e incursão migrada com `composition: null` usam a base da estação.
+**R1 (resposta de 2026-11-09):** `resolveRaid` consulta primeiro a Paliçada por
+nível, independentemente do HP: Nv1 segura leves; Nv2+ também médias e fortes.
+Quando segura, emite `raidRepelled`, conta a resistência e reduz Ameaça, sem
+batalha, relatório, identidade/fluxo de batalha, baixas, desgaste ou dano à muralha.
+A Horda não aprende a formação que não lutou; não conta batalha/vitória anual nem
+XP de comandantes de um relatório anterior. A milícia se dissolve sem baixas.
+
+As demais incursões passam por `fightRaid`: composição sorteada no fluxo `horde`
+na marcação; roteiro e migrada com `composition: null` usam a base da estação.
 A Defesa ativa usa o que ficou em casa; sem formação, só muralha e torres lutam.
 Aplicam-se dano, baixas, efeitos e relatório antes de `raidRepelled`/`raidSuffered`.
-A perda de recursos/aldeões continua limitada pela regra anterior da Paliçada:
-a batalha pode aliviar, não agravar essa perda. Lobos do dia 16 preservam o caso
-antigo sem exército; as roteirizadas leves dos dias 25 e 37 não ferem. O ensaio
-forte cai na janela do dia 61 e usa a Vigília.
+A batalha pode aliviar, não agravar a perda econômica herdada. O ensaio forte cai
+na janela do dia 61 e usa a Vigília. **O Cerco sempre luta**, mesmo com Paliçada Nv6.
+`raids.palisade.test.ts` cobre níveis/tamanhos, três ritmos, instante exato,
+divisão com persistência, objetivo, milícia e Cerco.
 
 Torre Nv1/2 não revela composição; Nv3 revela tipos; Nv4, quantidades aproximadas
 por ala; Nv5, composição exata. O app recebe só `compositionText`, os textos da
@@ -692,8 +712,10 @@ A milícia (`callMilitia`) pode usar até metade dos aldeões aptos, dentro da
 antecedência da Torre para incursão forte/onda, havendo posto livre. Afasta-os do
 trabalho, sofre dano ampliado, protege o piso de três aldeões e dissolve ao fim
 da batalha. A carta de prontidão reserva limite para a primeira onda e reconfere
-aptidão na batalha. `siege.militiaOffer` usa a mesma validação da ordem. **Não há
-controle de convocação no app desta base**; a oferta já é usada pelo simulador.
+aptidão na batalha. `siege.militiaOffer` usa a mesma validação da ordem;
+painel e paleta oferecem convocação com conferência. A guarda v40 aceita a milícia
+nos relatórios persistidos, mantendo a recusa histórica da v39
+(`siege.militia-persistence.test.ts`, revisão G).
 
 O dano e as baixas persistem entre ondas. A primeira derrota fecha em **Queda**;
 resistir à terceira dá **Vitória Gloriosa** se nenhuma Frente ficou vazia/caiu,
@@ -738,7 +760,8 @@ indisponibilidade. Respostas antigas são descartadas ao trocar ano ou feudo.
 
 ## 19l. Cartas dos lotes 2 e 3, Lobo Branco e objetivos
 
-O catálogo tem **59 cartas** nesta base; 60 continua sendo alvo do roadmap.
+O catálogo fecha com **59 cartas**, conforme decisão do autor de 2026-11-09;
+a 60ª seria “O aprendiz e o Mestre”, proibida por ele.
 Além das 22 herdadas, há Mestres por carta (Gil/Ximena), efeitos percentuais de
 estoque, mudanças temporárias de preço só na próxima virada, risco diferido,
 requisitos por herói presente/Carismático, soldados, descobertas e candidato extra.
@@ -757,8 +780,7 @@ fecha a janela. A continuação final tem prazo mínimo de cinco dias após a es
 no ramo da caçada, espera a confirmação do abate (`whiteWolf.slain`). Sem abate,
 janela ou equipe na estrada, a continuação é cancelada e o ramo é limpo. O ramo
 da oferenda não exige abate. Recursos e moral seguem as opções das cartas, sem
-bônus no Cerco ou nos presságios. Essa condição já está em `council.ts` e nos testes,
-embora o README ainda descreva a chegada final como independente do resultado.
+bônus no Cerco ou nos presságios. Essa condição está em `council.ts` e nos testes.
 A forma do prazo está no estado 42; `council.white-wolf-effects.test.ts` prova
 acesso, névoa, expiração, exclusividade e divisão de intervalo; `council.chains.test.ts`
 prova os ramos e a continuação condicionada.
@@ -853,7 +875,6 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
 | Notificações com a aba fechada | Não existem; sem serviço de push |
 | Dispensar Mestre/ensino de ofício, compra por caravana, segundo destino de caravana, venda de equipamento | Não existem |
 | Avançar para o Degelo | Não existe; o servidor continua sendo o relógio |
-| Milícia e prévia por onda na interface; download anual no app | Motor/protocolo/endpoint existem, controles ainda faltam |
 
 ## 21. Limites conhecidos e fechamento
 
@@ -868,8 +889,9 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
 - **Interface incompleta:** faltam prévia ofensiva do Acampamento, vínculo de relatório
   por onda e detalhes das perdas da Queda na visão. Não inferir esses dados por posição
   ou horário dos relatórios. Milícia, prévia por onda e Crônica anual entraram na
-  V4G-T4 de 2026-11-09; inspeção visual/e2e dessa entrega continuam pendentes.
-- **Catálogo:** 59 cartas, frente ao alvo de 60; cobertura de ramos em testes
+  V4G-T4 de 2026-11-09, com 14/14 cenários e2e e capturas registrados naquela revisão;
+  esta trilha não os reexecutou nem substitui o portão do candidato.
+- **Catálogo:** 59 cartas, escopo aprovado; cobertura de ramos em testes
   dirigidos não equivale a todas saírem espontaneamente em 50 sementes.
 - **Migração/replay:** retomar partida migrada exige os estados de fronteira para
   replay exato; uma imagem anterior ao estado novo exige restaurar o backup.
@@ -879,6 +901,7 @@ Os ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) (decisõ
   na cópia de moral; são estimativas sob as condições expostas, sem antecipar sorte.
 - **Operação:** portão completo e imagens devem ser conferidos no commit candidato,
   com backup antes da subida do estado/protocolo e push feito pelo autor. Esta
-  atualização documental não executou testes de jogo, banco, navegador ou produção.
+  atualização executou somente as verificações focadas registradas em V4I-T4,
+  sem banco, navegador ou produção.
   Procedimento em [deploy/README.md](../deploy/README.md); continuação em
   [retomada-v0.4.md](retomada-v0.4.md).
