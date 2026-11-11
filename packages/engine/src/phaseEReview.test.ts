@@ -210,7 +210,8 @@ describe('V4E-T5.1: revisão adversarial da Fase E', () => {
 
   describe('5. reparo durante uma batalha', () => {
     it.each(['antes', 'junto'] as const)('a incursão chega %s do fim do reparo', (when) => {
-      const state = wallSite(3, { left: 100 });
+      // R1: Nv2+ repelem esta incursão sem batalha; Nv1 deixa a forte lutar.
+      const state = wallSite(1, { left: 30 });
       const troops = defense();
       state.settlement.buildings.barracks = 2;
       state.army = troops.army;
