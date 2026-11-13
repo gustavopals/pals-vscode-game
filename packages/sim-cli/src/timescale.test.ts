@@ -11,7 +11,8 @@ const HOUR_MS = 3_600_000;
 
 /**
  * O estado sem o que depende do ritmo: o que tem de coincidir entre duas partidas de ritmos
- * diferentes. São três coisas: o ritmo gravado nele; o prazo de resposta das cartas do
+ * diferentes quando as ordens usam os mesmos tetos e não atravessam regras de prazo real.
+ * São três campos retirados da comparação: o ritmo gravado nele; o prazo de resposta das cartas do
  * Conselho, que é de tempo real (24 h em qualquer ritmo) e por isso cai em outro instante de
  * jogo; e o instante em que os vigias avistaram a incursão que vem, porque a antecedência do
  * aviso da Torre também é tempo real (1 h e 2 h reais, ADR 0016). Enquanto as cartas são
@@ -49,15 +50,14 @@ const base: SimulationOptions = {
 // 3 dias reais no ritmo 3 são 9 dias reais no ritmo 1: 216 h de jogo. Com 3 sessões por dia no
 // ritmo 3 e 1 por dia no ritmo 1, as sessões caem nos mesmos instantes de jogo (a cada 24 h).
 //
-// O que tem de coincidir é o jogo: as mesmas ordens, nos mesmos instantes de jogo, dão o mesmo
-// feudo em qualquer ritmo. O bot decide em tempo real (o depósito que "enche em menos de 8 horas
-// reais" é outro no ritmo 3), e por isso a partida do ritmo 1 não pergunta de novo ao bot: ela
-// repete, sessão a sessão, as ordens que ele deu no ritmo 3.
+// O replay conserva as ordens nos mesmos instantes de jogo. Desde R2/R3, o Rápido
+// pode ordenar lotes que o Normal recusa: esse par registra a divergência intencional.
+// A equivalência de relógio fica no par de tetos compatíveis construído abaixo.
 type Order = { type: Command['type']; payload: Command['payload'] };
 type LooseAct = (type: Order['type'], payload: Order['payload']) => ReturnType<Act>;
 
 /** O bot econômico com um gravador: anota, sessão a sessão, as ordens que ele deu. */
-function recorder(): { bot: Bot; sessions: Order[][] } {
+function recorder(sessionsPerDay = base.sessionsPerDay): { bot: Bot; sessions: Order[][] } {
   const sessions: Order[][] = [];
   const bot: Bot = async (view, act) => {
     const orders: Order[] = [];
@@ -66,8 +66,8 @@ function recorder(): { bot: Bot; sessions: Order[][] } {
       orders.push({ type, payload });
       return (act as LooseAct)(type, payload);
     };
-    // O bot que `simulate` montaria para estas sessões: o econômico de três visitas por dia.
-    await botFor(base.strategy, base.sessionsPerDay)(view, noted as Act);
+    // O mesmo econômico que simulate montaria para a cadência pedida no cenário.
+    await botFor(base.strategy, sessionsPerDay)(view, noted as Act);
   };
   return { bot, sessions };
 }
@@ -91,24 +91,48 @@ const fast = await simulate({ ...base, timeScale: 3, bot: recorded.bot });
 const replay = replayer(sessions);
 const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1, bot: replay.bot });
 
-describe('simulação no ritmo 3', () => {
-  it('3 dias no ritmo 3 terminam no mesmo estado de jogo que 9 dias no ritmo 1', () => {
-    // Nove sessões em cada partida, com as mesmas ordens; e há obras que começaram sozinhas no
-    // caminho, nos mesmos instantes de jogo nos dois ritmos.
+// R2/R3 tornam legítima a divergência do replay Rápido/Normal: ordens de quinze
+// recrutas ou trinta soldados não são aceitas no Normal. A equivalência do relógio
+// usa ritmos com os mesmos tetos (1 e 0,5), visitas a cada seis horas de jogo e uma
+// janela de 72 h de jogo, anterior ao Cerco cujos intervalos também são reais.
+const compatibleTape = recorder(4);
+const compatibleOne = await simulate({
+  ...base,
+  days: 3,
+  sessionsPerDay: 4,
+  timeScale: 1,
+  bot: compatibleTape.bot,
+});
+const compatibleHalf = await simulate({
+  ...base,
+  days: 6,
+  sessionsPerDay: 2,
+  timeScale: 0.5,
+  bot: replayer(compatibleTape.sessions).bot,
+});
+
+describe('ritmos da simulação e limites R2/R3', () => {
+  it('preserva o relógio com tetos iguais e explicita a divergência intencional de R2/R3', () => {
     expect(sessions).toHaveLength(9);
     expect(replay.replayed()).toBe(9);
-    expect(
-      fast.events.filter((event) => event.type === 'constructionAutoStarted').length,
-    ).toBeGreaterThan(3);
     expect(fast.finalState.lastProcessedAt).toBe(216 * HOUR_MS);
+    expect(normal.finalState.lastProcessedAt).toBe(216 * HOUR_MS);
     expect(fast.finalState.settings.timeScale).toBe(3);
     expect(normal.finalState.settings.timeScale).toBe(1);
-    expect(world(fast.finalState)).toStrictEqual(world(normal.finalState));
-    expect(withoutAlarms(fast.events)).toStrictEqual(withoutAlarms(normal.events));
-    expect(fast.commands).toStrictEqual(normal.commands);
+    expect(fast.commands.refused).toEqual({});
+    expect(normal.commands.refused).not.toEqual({});
+    expect(world(fast.finalState)).not.toStrictEqual(world(normal.finalState));
+
+    expect(compatibleTape.sessions).toHaveLength(12);
+    expect(compatibleOne.finalState.lastProcessedAt).toBe(72 * HOUR_MS);
+    expect(compatibleHalf.finalState.lastProcessedAt).toBe(72 * HOUR_MS);
+    expect(compatibleOne.commands.refused).toEqual({});
+    expect(compatibleHalf.commands).toStrictEqual(compatibleOne.commands);
+    expect(world(compatibleOne.finalState)).toStrictEqual(world(compatibleHalf.finalState));
+    expect(withoutAlarms(compatibleOne.events)).toStrictEqual(withoutAlarms(compatibleHalf.events));
   });
 
-  it('só o alarme dos vigias cai em outro instante de jogo: no ritmo 3 ele soa mais cedo, com a mesma antecedência real', () => {
+  it('com o mesmo mundo, a Torre respeita a antecedência real nos ritmos Normal e Tranquilo', () => {
     // Para cada incursão anunciada e já resolvida: quantas horas de jogo antes o alarme soou.
     const gaps = (events: typeof fast.events) =>
       new Map(
@@ -123,27 +147,27 @@ describe('simulação no ritmo 3', () => {
             : [[String(alarm.data.raidId), (raid.atMs - alarm.atMs) / HOUR_MS] as const];
         }),
       );
-    const inNormal = gaps(normal.events);
-    const inFast = gaps(fast.events);
+    const inNormal = gaps(compatibleHalf.events);
+    const inFast = gaps(compatibleOne.events);
     expect(inNormal.size).toBeGreaterThan(0);
     expect([...inFast.keys()]).toEqual([...inNormal.keys()]);
     let earlier = 0;
     for (const [raidId, hours] of inNormal) {
       const fastHours = inFast.get(raidId) ?? 0;
       // No máximo a antecedência do nível 5 (V4E-T1: o bot leva a Torre além do 2 e o conteúdo
-      // tem os níveis 3 a 5, de 3 a 5 h reais): 5 h reais, que são 5 h de jogo no ritmo 1 e 15 h
-      // no ritmo 3. Desde a D-39 o bot chega ao nível 4 nesta partida (4 h). A Torre que fica
+      // tem os níveis 3 a 5, de 3 a 5 h reais): 5 h reais são 5 h de jogo no Normal e
+      // 2,5 h de jogo no Tranquilo. A Torre que fica
       // pronta com a incursão já à vista avisa com menos.
-      expect(hours).toBeLessThanOrEqual(5);
-      expect(fastHours).toBeLessThanOrEqual(15);
+      expect(hours).toBeLessThanOrEqual(2.5);
+      expect(fastHours).toBeLessThanOrEqual(5);
       expect(fastHours).toBeGreaterThanOrEqual(hours);
       earlier += fastHours > hours ? 1 : 0;
     }
     expect(earlier).toBeGreaterThan(0);
-    // A incursão que ainda está por vir pode já ter sido avistada no ritmo 3, e não no ritmo 1.
+    // A incursão futura pode já ter sido avistada no Normal, antes do Tranquilo em tempo de jogo.
     const count = (events: typeof fast.events) => alarms(events).length;
-    expect(count(fast.events)).toBeGreaterThanOrEqual(count(normal.events));
-    expect(count(fast.events) - count(normal.events)).toBeLessThanOrEqual(1);
+    expect(count(compatibleOne.events)).toBeGreaterThanOrEqual(count(compatibleHalf.events));
+    expect(count(compatibleOne.events) - count(compatibleHalf.events)).toBeLessThanOrEqual(1);
   });
 
   it('uma linha por hora real: 72 em 3 dias, cada uma com 3 horas de jogo', () => {
@@ -159,14 +183,14 @@ describe('simulação no ritmo 3', () => {
     expect(fast.rows[0]).toMatchObject({ year: 1, season: 'spring', dayOfSeason: 2 });
   });
 
-  it('a hora real h no ritmo 3 é o retrato da hora 3h no ritmo 1, com taxas por hora real', () => {
-    for (const [index, row] of fast.rows.entries()) {
-      const same = normal.rows[3 * (index + 1) - 1];
+  it('a hora real h no Normal é o retrato da hora 2h no Tranquilo, com taxas por hora real', () => {
+    for (const [index, row] of compatibleOne.rows.entries()) {
+      const same = compatibleHalf.rows[2 * (index + 1) - 1];
       if (same === undefined) {
-        throw new Error(`Falta a hora ${3 * (index + 1)} no ritmo 1.`);
+        throw new Error(`Falta a hora ${2 * (index + 1)} no ritmo 1.`);
       }
-      // O retrato de jogo é o mesmo; só mudam a hora real, as taxas (o saldo e a produção
-      // bruta, as duas por hora real) e a contagem dos alarmes dos vigias, que no ritmo 3 soam
+      // O retrato de jogo é o mesmo; mudam hora real, taxas e a contagem dos alarmes,
+      // que no Normal soam
       // mais cedo em tempo de jogo (a antecedência é tempo real).
       const pictured = (entry: typeof row) => ({
         ...entry,
@@ -176,7 +200,7 @@ describe('simulação no ritmo 3', () => {
         armyFood: null,
         gross: null,
         raids: { ...entry.raids, announced: 0 },
-        // A equipe parada é uma amostra por hora real: no ritmo 3 há um terço das amostras.
+        // A equipe parada é uma amostra por hora real: no Normal há metade das amostras.
         expeditions: { ...entry.expeditions, heroIdleHours: 0 },
         // O volume que o Mercado ofereceu também é uma amostra por hora real: o nível que sobe
         // entre duas amostras entra na conta em dias diferentes.
@@ -184,14 +208,14 @@ describe('simulação no ritmo 3', () => {
       });
       expect(pictured(row)).toStrictEqual(pictured(same));
       expect(row.raids.announced).toBeGreaterThanOrEqual(same.raids.announced);
-      // A visão arredonda cada taxa a uma casa: o triplo de um valor arredondado pode ficar a
-      // até três meias casas do valor de verdade, que por sua vez é arredondado a meia casa.
+      // A visão arredonda cada taxa a uma casa: o dobro do arredondado acumula duas
+      // meias casas, além da meia casa do valor de referência.
       for (const [resource, value] of Object.entries(row.perHour)) {
-        const tripled = same.perHour[resource as keyof typeof same.perHour] * 3;
+        const tripled = same.perHour[resource as keyof typeof same.perHour] * 2;
         expect(Math.abs(value - tripled)).toBeLessThanOrEqual(0.2 + 1e-9);
       }
       for (const [resource, value] of Object.entries(row.gross)) {
-        const tripled = same.gross[resource as keyof typeof same.gross] * 3;
+        const tripled = same.gross[resource as keyof typeof same.gross] * 2;
         expect(Math.abs(value - tripled)).toBeLessThanOrEqual(0.2 + 1e-9);
       }
     }
@@ -217,10 +241,11 @@ describe('simulação no ritmo 3', () => {
       'Semente pedra-alta-golden · estratégia economico · 3 dias · 3 sessões/dia · ritmo 3×',
     );
     expect(summarize(fast).hours).toBe(72);
-    expect(summarize(fast)).toMatchObject({
-      villagers: summarize(normal).villagers,
-      capacity: summarize(normal).capacity,
-      townHall: summarize(normal).townHall,
+    // A contagem de horas é real; aldeões/capacidade já podem divergir por R2/R3.
+    expect(summarize(compatibleOne)).toMatchObject({
+      villagers: summarize(compatibleHalf).villagers,
+      capacity: summarize(compatibleHalf).capacity,
+      townHall: summarize(compatibleHalf).townHall,
     });
   });
 });

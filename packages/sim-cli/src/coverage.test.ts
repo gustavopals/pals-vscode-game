@@ -49,7 +49,9 @@ if (process.env.SHOW_COVERAGE !== undefined) {
  * (`wanderingHealer`) pede herói ferido. O bot econômico não contrata na Taverna (só o Explorador
  * contrata) e, com o preparo do Cerco e o treino militar (V4G-T5.3), aplica o ouro nas defesas e na
  * tropa antes de contratar o capitão veterano por conselho (`veteranCaptain`), de modo que ambas
- * continuam fora do alcance do bot Regular.
+ * continuavam fora do alcance do bot Regular (§22). Após R1–R3, o capitão chega
+ * cedo o suficiente para abrir squareDuel em uma das 50 sementes do Normal;
+ * wanderingHealer continua ausente. Não é mudança de pré-requisito.
  * "A Filha do Ferreiro" (`smithsDaughter`) e suas continuações (`temperingSecret`, `lordsSword`)
  * exigem a Ferraria no verão, o que o bot Regular ainda não ergueu no verão do ano 1.
  * "Depois da tempestade" (`afterTheStorm`) exige a fase de rescaldo do Cerco (`aftermath`);
@@ -66,7 +68,6 @@ const neverOpened = [
   'whitePaws',
   'whiteWolf',
   'forestReturns',
-  'squareDuel',
   'smithsDaughter',
   'temperingSecret',
   'lordsSword',
@@ -155,7 +156,17 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // Terceira junção: com 56 cartas no catálogo, mysteriousMerchant sai em 3 partidas,
     // tornMap (peso 1) sai em 8 partidas e as demais saem em ao menos 10.
     for (const row of normal.byCard.filter((entry) => drawable.includes(entry.cardId))) {
-      const minRuns = row.cardId === 'mysteriousMerchant' ? 3 : row.cardId === 'tornMap' ? 8 : 10;
+      // R1–R3: as janelas de tropa, muralha danificada e incursão ativa mudam;
+      // os testes dirigidos do motor cobrem os contratos destas cartas raras.
+      const measuredRare: Record<string, number> = {
+        mysteriousMerchant: 3,
+        tornMap: 8,
+        squareDuel: 1,
+        passingMercenaries: 6,
+        crackedWall: 1,
+        warCouncil: 3,
+      };
+      const minRuns = measuredRare[row.cardId] ?? 10;
       expect(row.runs, row.cardId).toBeGreaterThanOrEqual(minRuns);
     }
   });
@@ -172,7 +183,8 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
       // 45 → 40 com as oito cartas do lote 2 (V4E-T1): elas disputam a mesa (44 em 50 na Ponte).
       // Segunda junção (docs/balance-v0.4.md, seção 19): 40 → 35 com as treze cartas adicionais disputando a mesa (37 em 50 na Ponte).
       // Terceira junção (docs/balance-v0.4.md, seção 22): com 59 cartas no catálogo e o preparo do Cerco, o piso da segunda carta passa de 20 para 17.
-      expect(runsOf(normal, opening), opening).toBeGreaterThanOrEqual(35);
+      // R1–R3 (§23): o Celeiro abre em 34 sementes, a Ponte em 38.
+      expect(runsOf(normal, opening), opening).toBe(opening === 'commonGranaryPlanks' ? 34 : 38);
       expect(runsOf(normal, middle), middle).toBeGreaterThanOrEqual(17);
       // As continuações vêm em 2 dias depois da resposta, respeitando o lugar na mesa.
       // Com as oito cartas do lote 2 (V4E-T1) o sorteio mudou e uma cadeia aberta nos últimos dias
@@ -182,8 +194,8 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     }
     // Segunda junção (docs/balance-v0.4.md, seção 19): 33 segundas cartas e 27 desfechos.
     // Terceira junção (docs/balance-v0.4.md, seção 22): 17 segundas cartas e 17 desfechos concluídos no ano.
-    expect(runsOf(normal, 'commonGranaryShare')).toBe(17);
-    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(17);
+    expect(runsOf(normal, 'commonGranaryShare')).toBe(25);
+    expect(runsOf(normal, 'commonGranaryOutcome')).toBe(25);
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
     // Desde os objetivos da v0.2 (V2E-T4) a folga do começo vai para a Torre de Vigia e para o
@@ -199,7 +211,8 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     // docs/balance-v0.4.md, seção 13): quatro, como depois da D-39.
     // Segunda junção (docs/balance-v0.4.md, seção 19): 7 das 50 sementes abrem a cadeia no ritmo Rápido com o novo sorteio de cartas.
     // Terceira junção: treino militar e cerco absorvem a folga do início no ritmo Rápido; nenhuma cadeia abre.
-    expect(runsOf(fast, 'commonGranaryShare')).toBe(0);
+    // R1–R3 (§23): a folga volta em sete sementes; não se reduz o bot para manter zero.
+    expect(runsOf(fast, 'commonGranaryShare')).toBe(7);
   });
 
   it('cada continuação sem desfecho no fim do ano permanece na mesa ou agendada, sem se perder', () => {

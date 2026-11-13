@@ -228,13 +228,15 @@ describe('faixas a partir da linha de base medida', () => {
     // até 5.439 de pedra e 110.380 de ouro parado com as treze cartas e a sabotagem.
     // Terceira junção (docs/balance-v0.4.md, seção 22): 19–45 aldeões (faixa de 17 a 50),
     // Salão Nv3, até 3 h de fome e 1 h de frio, e sequência de até 81 h após três cercos e o preparo militar.
+    // R1–R3 (§23): mais tropas preservadas e vagas no Rápido, com menos braços civis;
+    // a escassez aumenta e a fila militar muda os estoques. A folga continua a mesma.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 17, max: 50 },
-      townHallMin: 3,
-      famineHoursMax: 4,
-      coldHoursMax: 2,
-      surplusMax: { wood: 3_598, stone: 4_136, gold: 37_761 },
-      wasteStreakMax: 86,
+      villagers: { min: 5, max: 61 },
+      townHallMin: 5,
+      famineHoursMax: 14,
+      coldHoursMax: 11,
+      surplusMax: { wood: 3_453, stone: 4_200, gold: 36_221 },
+      wasteStreakMax: 73,
     });
   });
 
@@ -244,8 +246,9 @@ describe('faixas a partir da linha de base medida', () => {
     // Em Camponês o Armazém guarda 25% a mais; em Rei de Ferro guarda 20% a menos, e o teto de
     // pedra parada acompanha a capacidade de cada dificuldade. Na terceira junção (três cercos na
     // semana do Rápido), o piso do Salão medido nas 50 sementes é 3 em Camponês e Senhor e 5 em Rei de Ferro.
-    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(3);
-    expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(5);
+    // R1–R3 (§23): os gastos militares e as Quedas mudam também o piso do Salão.
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(4);
+    expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(4);
     expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
       bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,
     );

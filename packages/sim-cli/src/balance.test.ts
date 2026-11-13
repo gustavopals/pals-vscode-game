@@ -106,7 +106,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         // A estrangeira entrega sempre o primeiro herói. Desde as oito cartas do lote 2 (V4E-T1) o
         // "capitão veterano" pode entregar um segundo, de graça, a quem o acolhe: a regra certa é
         // "um herói da estrangeira, mais os contratados, mais no máximo um da carta nova".
-        expect(guild.heroes, where).toBeGreaterThanOrEqual(1 + guild.hired);
+        // O Rei de Ferro permite morte de comandante; o primeiro herói entregue
+        // continua provado por firstHeroAtHour, mesmo quando já morreu no Cerco.
+        if (difficulty !== 'ironKing') {
+          expect(guild.heroes, where).toBeGreaterThanOrEqual(1 + guild.hired);
+        }
         expect(guild.heroes, where).toBeLessThanOrEqual(2 + guild.hired);
         if (run.profile.id !== 'explorador') {
           expect(guild.hired, where).toBe(0);
@@ -156,8 +160,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Terceira junção (docs/balance-v0.4.md, seção 22): na semana do Rápido o Explorador atrasa o
     // soldo em duas das 50 sementes (025: 6,6 h; 027: 9,8 h) depois das despesas militares e das
     // Quedas nos Cercos de inverno, ainda bem abaixo das 24 h de partida de herói.
+    // R1–R3 (§23): no Explorador Rápido o atraso máximo agora é 3,6 h, sem partida.
     expect(Object.entries(arrears).filter(([, [, max]]) => (max ?? 0) > 0)).toEqual([
-      ['week/3/explorador', [0, 9.8]],
+      ['week/3/explorador', [0, 3.6]],
       ['week/1/preguicoso', [21, 21]],
       ['year/1/preguicoso', [21, 21]],
     ]);
@@ -187,9 +192,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         );
         if (run.profile.id === 'explorador') {
           // Quem contrata não atrasa o soldo, fora a semana do Rápido em Senhor (duas sementes com
-          // até 9,8 h de atraso após as despesas militares e os Cercos, longe das 24 h de partida).
+          // até 3,6 h na remedição R1–R3, após as despesas militares e os Cercos).
           if (difficulty === 'lord' && run.window === 'week' && run.timeScale === 3) {
-            expect(guild.arrearsHours, where).toBeLessThanOrEqual(9.8);
+            expect(guild.arrearsHours, where).toBeLessThanOrEqual(3.6);
           } else {
             expect(guild.arrearsHours, where).toBe(0);
           }
@@ -213,6 +218,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // à Taverna no nível 5 ele enche os seis lugares; no ano do Rápido (56 h reais) a Taverna
     // fica no nível 3 e ele termina com três, porque o cofre só paga dois contratos e um dia de
     // soldo; na semana do Tranquilo (meio ano de jogo) ele tem de três a cinco.
+    // R1–R3 (§23) muda o caminho de obras, a folga de contratação e os sobreviventes.
+    // As expectativas atuais abaixo preservam o histórico comentado, sem ampliar folga.
     const heroes = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
     // Desde a Mina Abandonada (V4B-T1), que captura no veio fundo, em uma semente o resgatado
@@ -225,7 +232,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // seção 10), em alguma semente chegam os dois de carta com a casa cheia: de seis a oito.
     // Segunda junção (docs/balance-v0.4.md, seção 19): o novo sorteio de cartas mantém a semana
     // do Rápido com seis a sete heróis (nenhuma semente acumula os dois de carta com a casa cheia).
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
+    expect(heroes('week/3/explorador')).toEqual({ min: 5, max: 7 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -258,12 +265,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // D-39 (seção 10): de um a cinco.
     // Segunda junção (docs/balance-v0.4.md, seção 19): de um a quatro heróis com o novo sorteio de cartas.
     // Terceira junção (docs/balance-v0.4.md, seção 22): de um a cinco heróis.
-    expect(heroes('week/0.5/explorador')).toEqual({ min: 1, max: 5 });
+    expect(heroes('week/0.5/explorador')).toEqual({ min: 4, max: 5 });
     // No ano do Rápido o cofre não paga o contrato em uma semente (V4E-T1): de um a três.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de dois a três.
     // D-39 (seção 10): de um a três. Junção da Fase E (objetivos 17 a 21 e Vigília): de dois a três.
     // Terceira junção (docs/balance-v0.4.md, seção 22): de um a três com os gastos do preparo do Cerco.
-    expect(heroes('year/3/explorador')).toEqual({ min: 1, max: 3 });
+    expect(heroes('year/3/explorador')).toEqual({ min: 1, max: 4 });
     // No ano do Normal também, com a política mínima de guerra (V4C-T1.8): seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de quatro a sete.
     // Junção da Fase E (seção 16.2: a Vigília e os objetivos 17 a 21): de seis a oito.
@@ -273,73 +280,106 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // E no ano do Tranquilo, pelo mesmo resgatado acima do limite (V4B-T1); com a política
     // mínima de guerra (V4C-T1.8), seis em todas.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de seis a sete.
-    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 7 });
+    expect(heroes('year/0.5/explorador')).toEqual({ min: 5, max: 7 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
     const tavernAt = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.tavernAtHour;
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): de 26 a 34.
     // D-39 (seção 10): de 25 a 27.
-    expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
+    expect(tavernAt('week/3/regular')).toEqual({ min: 27, max: 28 });
     // V4E-T1: de 51 a 63 (era até 59): a Muralha e a Torre entram na fila antes da Taverna.
     // Segunda junção (docs/balance-v0.4.md, seção 19): de 51 a 60 com o novo sorteio de cartas.
-    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 60 });
+    expect(tavernAt('week/1/regular')).toEqual({ min: 52, max: 60 });
     // Com o Mercado (V3E-T1), que o Regular ergue assim que o Salão chega ao nível 3: na pior
     // das 50 sementes do Tranquilo a Taverna fica pronta na hora 105 (era até a 97); com os
     // objetivos 11 a 16 (V3F-T2), na hora 103.
-    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 103 });
+    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 104 });
     expect(tavernAt('week/3/explorador')).toEqual(tavernAt('week/3/regular'));
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): o Preguiçoso do ano do Rápido não erguia a Taverna em semente nenhuma (D-39).
     // Com as do roteiro dos dias 25 e 37 leves e sem ferido (seção 10) ele a ergue na hora 55
     // em parte das sementes.
     // V4G-T5.3: catálogo de 59 cartas e Cerco reunidos; marco medido nas 50 sementes (§21).
-    expect(tavernAt('year/3/preguicoso')).toEqual({ min: 56, max: null });
-    // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
-    // gasta. Na semana do Rápido o Explorador termina com mais ouro parado do que o Regular.
+    expect(tavernAt('year/3/preguicoso')).toEqual({ min: null, max: null });
+    // O ouro parado é comparado entre os perfis. Na linha anterior (§22), o Explorador
+    // terminava com mais do que o Regular; a remedição R1–R3 abaixo inverte essa ordem.
     const gold = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.surplus.gold.max ?? 0;
     // V4E-T1: a Muralha cara em ouro absorve parte da sobra (docs/balance-v0.4.md, seção 8); o
     // piso cai de 150.000 para 90.000.
     // Terceira junção (docs/balance-v0.4.md, seção 22): o preparo do Cerco, o treino de soldados e
     // as três batalhas de inverno absorvem mais ouro (teto de 52.278 no Explorador e 35.962 no Regular).
-    expect(gold('week/3/explorador')).toBeGreaterThan(50_000);
-    expect(gold('week/3/regular')).toBeGreaterThan(30_000);
-    expect(gold('week/3/explorador')).toBeGreaterThan(gold('week/3/regular'));
+    // R1–R3 (§23): mais treino e menos braços civis; o Explorador ainda paga a equipe.
+    // O estoque final deixa de seguir a antiga ordem entre os dois perfis.
+    expect(gold('week/3/explorador')).toBe(17_595);
+    expect(gold('week/3/regular')).toBe(34_496);
+    expect(gold('week/3/explorador')).toBeLessThan(gold('week/3/regular'));
   });
 
-  it('em toda dificuldade e em todo perfil: ninguém vai embora, e fome e frio ficam restritos ao Rápido após os Cercos (regressão medida na terceira junção)', () => {
+  it('registra a escassez e as partidas de aldeões no Rápido após R1–R3, sem ocultar regressões', () => {
+    // §23: 50 sementes em Senhor, três nas outras dificuldades. As faixas não tornam
+    // estas perdas desejáveis. Com mais treino, civis viram soldados e podem chegar ao piso.
+    // Colunas: fome mín./máx., frio mín./máx., aldeões perdidos mín./máx.
+    const measured: Record<string, [number, number, number, number, number, number]> = {
+      'peasant/week/3/regular': [0, 0, 0, 7, 0, 0],
+      'peasant/week/3/dedicado': [0, 0, 0, 6, 0, 0],
+      'peasant/week/3/explorador': [0, 3, 0, 5, 0, 0],
+      'peasant/year/3/regular': [0, 0, 0, 7, 0, 0],
+      'peasant/year/3/dedicado': [0, 0, 0, 6, 0, 0],
+      'peasant/year/3/explorador': [0, 0, 0, 5, 0, 0],
+      'lord/week/3/regular': [0, 13, 0, 10, 0, 2],
+      'lord/week/3/dedicado': [0, 0, 0, 6, 0, 0],
+      'lord/week/3/explorador': [0, 13, 0, 9, 0, 3],
+      'lord/year/3/regular': [0, 5, 0, 7, 0, 1],
+      'lord/year/3/dedicado': [0, 0, 0, 6, 0, 0],
+      'lord/year/3/explorador': [0, 7, 0, 7, 0, 2],
+      'ironKing/week/3/preguicoso': [0, 10, 0, 0, 0, 0],
+      'ironKing/week/3/regular': [0, 0, 4, 6, 0, 0],
+      'ironKing/week/3/explorador': [0, 5, 0, 6, 0, 0],
+      'ironKing/year/3/regular': [0, 0, 4, 6, 0, 0],
+      'ironKing/year/3/explorador': [0, 0, 0, 6, 0, 0],
+    };
     for (const difficulty of DIFFICULTY_IDS) {
       for (const cell of byDifficulty[difficulty].cells) {
-        const where = `${difficulty} ${cell.key}`;
-        // REGRESSÃO MEDIDA na terceira junção (docs/balance-v0.4.md, seção 22): em Senhor, no
-        // ritmo Rápido, após as Quedas nos Cercos de inverno e o saque de comida e lenha, quatro
-        // sementes de week/3/regular têm de 1 a 3 h de fome (007, 014, 015 e 035) e uma tem 1 h
-        // de frio (003); em week/3/explorador uma tem 1 h de fome (030) e uma tem 1 h de frio
-        // (009), também em year/3/explorador (009). Em nenhuma partida alguém vai embora.
-        if (difficulty === 'lord' && cell.key === 'week/3/regular') {
-          expect(cell.measure.famineHours, where).toEqual({ min: 0, max: 3 });
-          expect(cell.measure.coldHours, where).toEqual({ min: 0, max: 1 });
-        } else if (difficulty === 'lord' && cell.key === 'week/3/explorador') {
-          expect(cell.measure.famineHours, where).toEqual({ min: 0, max: 1 });
-          expect(cell.measure.coldHours, where).toEqual({ min: 0, max: 1 });
-        } else if (difficulty === 'lord' && cell.key === 'year/3/explorador') {
-          expect(cell.measure.famineHours, where).toEqual({ min: 0, max: 0 });
-          expect(cell.measure.coldHours, where).toEqual({ min: 0, max: 1 });
-        } else {
-          expect(cell.measure.famineHours, where).toEqual({ min: 0, max: 0 });
-          expect(cell.measure.coldHours, where).toEqual({ min: 0, max: 0 });
-        }
-        expect(cell.measure.villagersLost, where).toEqual({ min: 0, max: 0 });
-        // A menor população é a das primeiras horas: o feudo de bot nenhum encolhe.
-        expect(cell.measure.villagersMin.min, where).toBeGreaterThanOrEqual(5);
+        const where = `${difficulty}/${cell.key}`;
+        const [hungryMin, hungryMax, coldMin, coldMax, lostMin, lostMax] = measured[where] ?? [
+          0, 0, 0, 0, 0, 0,
+        ];
+        expect(cell.measure.famineHours, where).toEqual({ min: hungryMin, max: hungryMax });
+        expect(cell.measure.coldHours, where).toEqual({ min: coldMin, max: coldMax });
+        expect(cell.measure.villagersLost, where).toEqual({ min: lostMin, max: lostMax });
+        expect(cell.measure.villagersMin.min, where).toBeGreaterThanOrEqual(
+          balance.morale.populationFloor,
+        );
       }
     }
+    // Enumera cada ocorrência para uma perda nova não passar só por caber no máximo.
+    const losses = DIFFICULTY_IDS.flatMap((difficulty) =>
+      byDifficulty[difficulty].runs
+        .filter((run) => run.summary.villagersLeft + run.summary.villagersDeserted > 0)
+        .map(
+          (run) =>
+            `${difficulty}/${run.window}/${run.timeScale}/${run.profile.id}/${run.seed}:${run.summary.villagersLeft + run.summary.villagersDeserted}`,
+        ),
+    );
+    expect(losses).toEqual([
+      'lord/week/3/regular/pedra-alta-017:2',
+      'lord/week/3/regular/pedra-alta-036:2',
+      'lord/week/3/regular/pedra-alta-043:1',
+      'lord/week/3/explorador/pedra-alta-001:1',
+      'lord/week/3/explorador/pedra-alta-009:1',
+      'lord/week/3/explorador/pedra-alta-036:3',
+      'lord/year/3/regular/pedra-alta-036:1',
+      'lord/year/3/regular/pedra-alta-043:1',
+      'lord/year/3/explorador/pedra-alta-036:2',
+    ]);
   });
 
-  it('em cada dificuldade há caminho de compras até os desbloqueios da fase (V2C-T7.3)', () => {
+  it('registra os desbloqueios e os dois atrasos do Salão Nv4 no primeiro ano do Rápido (R1–R3)', () => {
     // O Celeiro e o Armazém (Salão no nível 2) e a segunda fila de obras (Salão no nível 4): o
-    // perfil Regular chega a todos, em todo ritmo, dentro de um ano de jogo, só com ordens que o
-    // motor aceita. O que o catálogo anuncia e nenhum caminho alcança está no teste do motor
+    // caminho do perfil Regular é medido em um ano de jogo, só com ordens que o motor aceita.
+    // As duas exceções atuais do Rápido estão explicitadas abaixo. O que o catálogo anuncia
+    // e nenhum caminho alcança está no teste do motor
     // (`storage.test.ts`, "alcançabilidade") e em docs/balance-v0.2.md, seção 9.5. A Torre de
     // Vigia e a Paliçada têm os testes delas, logo abaixo.
     //
@@ -356,6 +396,20 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       'watchtower',
       'palisade',
     ]);
+    // R1–R3 (§23): em Senhor 016/042 o preparo disputa recursos com as demais obras.
+    // Replays dos eventos confirmam que o Salão Nv4 não termina nas 56 h reais;
+    // isto não é uma passagem entre amostras horárias. As demais partidas seguem cobradas.
+    const missedHall = DIFFICULTY_IDS.flatMap((difficulty) =>
+      byDifficulty[difficulty].runs
+        .filter(
+          (run) =>
+            run.window === 'year' &&
+            run.profile.id === 'regular' &&
+            run.summary.milestones.townHall4 === null,
+        )
+        .map((run) => `${difficulty}/${run.timeScale}/${run.seed}`),
+    );
+    expect(missedHall).toEqual(['lord/3/pedra-alta-016', 'lord/3/pedra-alta-042']);
     const phaseC = MILESTONES.filter(({ id }) => id !== 'watchtower' && id !== 'palisade');
     for (const difficulty of DIFFICULTY_IDS) {
       const regular = byDifficulty[difficulty].cells.filter(
@@ -366,6 +420,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         for (const { id } of phaseC) {
           const hours = cell.measure.milestones[id];
           const where = `${difficulty} ${cell.key} ${id}`;
+          if (difficulty === 'lord' && cell.timeScale === 3 && id === 'townHall4') {
+            expect(hours, where).toEqual({ min: 36, max: null });
+            continue;
+          }
           expect(hours?.max, where).not.toBeNull();
           expect(hours?.max ?? Infinity, where).toBeLessThan(cell.realHours);
         }
@@ -413,7 +471,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         // reais), com o preparo do Cerco disputando a fila de obras, parte das sementes de
         // year/3/regular e year/3/explorador termina com 11 objetivos (sem erguer ou vender no
         // Mercado antes da hora 56).
-        const minObjectives = difficulty === 'lord' && cell.timeScale === 3 ? 11 : 12;
+        // R1–R3 (§23): as 56 h do Rápido terminam com o preparo disputando a fila
+        // também nas outras dificuldades; a meta de concluir a sequência não foi reduzida.
+        const minObjectives = cell.timeScale === 3 ? 11 : 12;
         expect(cell.measure.objectivesDone.min, where).toBeGreaterThanOrEqual(minObjectives);
         if (cell.profile.id !== 'explorador') {
           expect(cell.measure.objectivesDone.max, where).toBeLessThanOrEqual(13);
@@ -423,7 +483,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       // V4H-T3: o Explorador também cumpre os cinco da guerra e chega a 21, em vez de 16.
       // Medição conjunta: docs/balance-v0.4.md, seção 16.
       const tranquil = year.find((cell) => cell.key === 'year/0.5/explorador');
-      expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(21);
+      // As outras dificuldades usam três sementes neste teste; em Camponês nenhuma
+      // fecha o último objetivo (20 em Camponês, 19 em Rei de Ferro; matriz completa em §23).
+      expect(tranquil?.measure.objectivesDone.max, difficulty).toBe(
+        { peasant: 20, lord: 21, ironKing: 19 }[difficulty],
+      );
     }
     // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 ficam nove, mais
     // os da v0.3 que já couberam na lista.
@@ -445,7 +509,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Na V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9) caíram para quatro (eram
     // onze; pendência D-39). Com as do roteiro dos dias 25 e 37 leves e sem ferido (resposta do
     // autor, seção 10), de nove a onze.
-    expect(lazy('year/3/preguicoso')).toEqual({ min: 9, max: 11 });
+    // R1–R3 (§23): o piso sobe para dez; a Guilda segue fora do primeiro ano do Rápido.
+    expect(lazy('year/3/preguicoso')).toEqual({ min: 10, max: 11 });
     expect(lazy('week/3/preguicoso')).toEqual({ min: 12, max: 12 });
   });
 
@@ -487,7 +552,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Rápido passou a sair entre as horas 74 e 85 (era 50 e 51), e no Normal na 80 (era 78;
     // pendência D-39). Com a resposta do autor (seção 10): de 50 a 57 no Rápido e 78 no Normal.
     // V4G-T5.3: o Preguiçoso conserva a economia; o catálogo atual desloca uma chegada (§21).
-    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 58 });
+    // R1–R3 (§23): lotes de recrutamento ampliados antecipam a obra nas sementes tardias.
+    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 51 });
     expect(tower('week/1/preguicoso')).toEqual({ min: 78, max: 78 });
     expect(tower('week/0.5/preguicoso')).toEqual({ min: 80, max: 80 });
     // A Ameaça não satura: com +2 por dia, −35 por incursão e as médias a partir de 70, ela
@@ -542,8 +608,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Com a Muralha, a Torre acima do 2 e as oito cartas do lote 2 (V4E-T1; docs/balance-v0.4.md,
     // seção 8): no Normal entre as horas 49 e 55.
     // V4E-T2 (incursões-batalha; docs/balance-v0.4.md, seção 9): no Normal entre 49 e 54, no Rápido entre 26 e 27.
-    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 54 });
-    expect(palisade('year/3/regular')).toEqual({ min: 26, max: 27 });
+    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 55 });
+    expect(palisade('year/3/regular')).toEqual({ min: 26, max: 26 });
     expect(palisade('year/0.5/regular')).toEqual({ min: 83, max: 86 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
       const tower = cell.measure.milestones.watchtower;
@@ -575,11 +641,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(year?.suffered).toEqual({ min: 2, max: 2 });
     // Segunda junção (docs/balance-v0.4.md, seção 19): de seis a oito repelidas nas 50 sementes.
     // Terceira junção (docs/balance-v0.4.md, seção 22): de cinco a oito repelidas e Ameaça final entre 29 e 93.
-    expect(year?.repelled).toEqual({ min: 5, max: 8 });
+    // R1–R3 (§23): a preparação mais cedo muda os encontros, sem mudar a regra da Ameaça.
+    expect(year?.repelled).toEqual({ min: 6, max: 7 });
     // Junção: a Vigília desloca a descarga da Ameaça e os sorteios; intervalo medido das
     // mesmas 50 sementes (docs/balance-v0.4.md, seção 16).
     // Segunda junção (docs/balance-v0.4.md, seção 19): intervalo medido de 22 a 100.
-    expect(year?.threatFinal).toEqual({ min: 29, max: 93 });
+    expect(year?.threatFinal).toEqual({ min: 39, max: 97 });
   });
 
   it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo e em nenhuma dificuldade', () => {
@@ -591,21 +658,19 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.runs.every((run) => run.summary.commandsAccepted > 5)).toBe(true);
   });
 
-  it('com 2 sessões por dia não há fome no Normal nem no Tranquilo (na semana do Rápido há até 3 h após os Cercos)', () => {
+  it('a fome do Regular fica no Rápido: até 13 h na semana e 5 h no primeiro ano (R1–R3)', () => {
     const regular = matrix.cells.filter((cell) => cell.profile.id === 'regular');
     expect(regular).toHaveLength(WINDOWS.length * paces.length);
     for (const cell of regular) {
-      if (cell.key === 'week/3/regular') {
-        expect(cell.measure.famineHours, cell.key).toEqual({ min: 0, max: 3 });
-        expect(cell.band?.famineHoursMax, cell.key).toBe(4);
-      } else {
-        expect(cell.measure.famineHours, cell.key).toEqual({ min: 0, max: 0 });
-        expect(cell.band?.famineHoursMax, cell.key).toBe(0);
-      }
+      // R1–R3 (§23): o lote e as vagas maiores consomem reservas antes da visita seguinte.
+      // A faixa conserva 5% de folga; a ausência de fome no Normal/Tranquilo continua cobrada.
+      const maximum = cell.timeScale === 3 ? (cell.window === 'week' ? 13 : 5) : 0;
+      expect(cell.measure.famineHours, cell.key).toEqual({ min: 0, max: maximum });
+      expect(cell.band?.famineHoursMax, cell.key).toBe(Math.ceil((maximum * 105) / 100));
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 64 a 75 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('registra os aldeões civis do Regular Normal depois do preparo militar e dos Cercos', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
@@ -639,12 +704,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // militar mais forte na transição outono/inverno) e a Queda do Cerco no fim do ano 1 em 45 das
     // 50 sementes (que reduz o Salão e a população), a medida vai de 22 a 37 aldeões (faixa de 19
     // a 41) e o Salão fica no mínimo no nível 4.
-    expect(band?.villagers).toEqual({ min: 19, max: 41 });
-    expect(band?.townHallMin).toBe(4);
+    // R1–R3 (§23): 13–51 aldeões civis; soldados não entram nesta contagem.
+    expect(band?.villagers).toEqual({ min: 11, max: 57 });
+    expect(band?.townHallMin).toBe(5);
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Normal e no Rápido, não (regressão medida com a Taverna)', () => {
+  it('a meta de desperdício é cumprida no Normal e no Tranquilo; no Rápido, não (R1–R3)', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -722,14 +788,16 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // inverno derrubando níveis de construções, o Normal passa para 22 h de jogo (43 das 50
     // sementes acima de 8 h) e a semana do Rápido sobe de 33 para 81 h. O ano do Rápido e o
     // Tranquilo continuam dentro da meta.
+    // R1–R3 (§23): o Normal sofre menos Quedas e fica em até 6 h; a semana do
+    // Rápido desce para 69 h, mas o primeiro ano sobe para 15 h. A meta segue em 8 h.
     expect(over).toEqual({
-      'week/3/regular': 81,
-      'week/1/regular': 22,
-      'year/1/regular': 22,
+      'week/3/regular': 69,
+      'year/3/regular': 15,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
+      'week/1/regular',
       'week/0.5/regular',
-      'year/3/regular',
+      'year/1/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -739,59 +807,16 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual([
-      'pedra-alta-001',
-      'pedra-alta-002',
-      'pedra-alta-003',
-      'pedra-alta-004',
-      'pedra-alta-005',
-      'pedra-alta-006',
-      'pedra-alta-007',
-      'pedra-alta-008',
-      'pedra-alta-009',
-      'pedra-alta-010',
-      'pedra-alta-011',
-      'pedra-alta-012',
-      'pedra-alta-014',
-      'pedra-alta-015',
-      'pedra-alta-016',
-      'pedra-alta-017',
-      'pedra-alta-018',
-      'pedra-alta-019',
-      'pedra-alta-020',
-      'pedra-alta-021',
-      'pedra-alta-023',
-      'pedra-alta-024',
-      'pedra-alta-025',
-      'pedra-alta-027',
-      'pedra-alta-028',
-      'pedra-alta-029',
-      'pedra-alta-030',
-      'pedra-alta-031',
-      'pedra-alta-032',
-      'pedra-alta-034',
-      'pedra-alta-035',
-      'pedra-alta-036',
-      'pedra-alta-037',
-      'pedra-alta-039',
-      'pedra-alta-040',
-      'pedra-alta-042',
-      'pedra-alta-043',
-      'pedra-alta-044',
-      'pedra-alta-046',
-      'pedra-alta-047',
-      'pedra-alta-048',
-      'pedra-alta-049',
-      'pedra-alta-050',
-    ]);
-    // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro no Tranquilo e no ano
-    // do Rápido, acima na semana do Rápido e no Normal.
+    // R1–R3: nenhuma das 50 sementes do Normal ultrapassa a meta.
+    expect(beyond.map((run) => run.seed)).toEqual([]);
+    // R1–R3: nas três sementes das outras dificuldades, só as duas janelas
+    // do Rápido continuam acima da meta; Normal e Tranquilo a cumprem.
     const overIn = (difficulty: 'peasant' | 'ironKing') =>
       wasteGoalCells(others[difficulty].cells)
         .filter(({ met }) => !met)
         .map(({ cell }) => cell.key);
-    expect(overIn('peasant')).toEqual(['week/3/regular', 'week/1/regular', 'year/1/regular']);
-    expect(overIn('ironKing')).toEqual(['week/3/regular', 'week/1/regular', 'year/1/regular']);
+    expect(overIn('peasant')).toEqual(['week/3/regular', 'year/3/regular']);
+    expect(overIn('ironKing')).toEqual(['week/3/regular', 'year/3/regular']);
   });
 
   it('o excedente parado de madeira caiu em relação à v0.1, em todo ritmo', () => {

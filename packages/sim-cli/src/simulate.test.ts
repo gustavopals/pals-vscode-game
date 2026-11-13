@@ -388,9 +388,9 @@ describe('CSV de uma partida', () => {
     // o ano termina em 50.
     // Terceira junção (docs/balance-v0.4.md, seção 22): com o preparo do Cerco (V4G-T5.3) e as ondas
     // por ano, o bot leva a Torre ao nível 5 e o ano termina com Ameaça 54 (máxima 96).
-    expect(summary.threat).toEqual({ final: 54, max: 96, watchtower: 5 });
+    expect(summary.threat).toEqual({ final: 57, max: 100, watchtower: 5 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 54 no fim (máxima 96) · Torre de Vigia Nv5, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 57 no fim (máxima 100) · Torre de Vigia Nv5, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
@@ -695,7 +695,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: preparar o Cerco, erguer a Paliçada, seguir os objetivos, erguer o Quartel, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, treinar soldados, montar a formação, responder ao cerco preparado, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, erguer o Mercado, comprar lenha, guardar lenha',
+      'Políticas: preparar o Cerco, erguer a Paliçada, seguir os objetivos, erguer o Quartel, treinar no inverno, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, alocar o Mestre, mandar caravana, vender o excedente, treinar soldados, erguer o Mercado, comprar lenha, guardar lenha, montar a formação, responder ao cerco preparado',
     );
   });
 
@@ -706,14 +706,15 @@ describe('resumo de uma partida', () => {
     const summary = summarize(twoSessions);
     // 13: eram 13 até a V4E-T2, 12 com as incursões-batalha do roteiro, e 13 de novo desde que
     // as dos dias 25 e 37 são leves e não ferem (D-39).
-    expect(summary.objectives).toEqual({ done: 13, total: objectives.length, allDoneAtHour: null });
+    // R1–R3 (§23): a infraestrutura militar adia a venda no Mercado nesta semente.
+    expect(summary.objectives).toEqual({ done: 12, total: objectives.length, allDoneAtHour: null });
     // V4H-T3: a lista passou de 16 a 21; este bot segue com 13 concluídos.
     // Medição e limites: docs/balance-v0.4.md, seção 13 (a remedir na junção).
-    expect(formatSummary(twoSessions)).toContain('Objetivos: 13 de 21 concluídos\n');
+    expect(formatSummary(twoSessions)).toContain('Objetivos: 12 de 21 concluídos\n');
     // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
     const done = twoSessions.rows.map((row) => row.objectives);
     expect(done[0]).toBeGreaterThanOrEqual(2);
-    expect(done[done.length - 1]).toBe(13);
+    expect(done[done.length - 1]).toBe(12);
     expect(done.every((count, index) => index === 0 || count >= (done[index - 1] ?? 0))).toBe(true);
     // Dois dias reais não bastam: falta o que o Salão no nível 3 e o inverno trazem.
     const twoDays = await simulate({ ...twoSessions.options, days: 2 });

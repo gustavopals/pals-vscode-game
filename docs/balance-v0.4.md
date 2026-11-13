@@ -1998,3 +1998,218 @@ chamados, não pessoas distintas. As tabelas vêm diretamente dos relatórios `.
 - Decisão do autor de `2026-11-09` registrada: a v0.4 fecha com **59 cartas** (a 60ª seria `"O aprendiz e o Mestre"`, proibida pelo autor).
 - Suíte de testes de `@lotg/sim-cli` e unitários do repositório atualizados pelas causas medidas na terceira junção.
 - Nenhuma execução de integração com banco, Playwright/e2e, build ou `git push` nesta sessão.
+
+## 23. Fechamento após R1–R3 (V4I-T1, 2026-11-13)
+
+### 23.1 Base, método e regressões
+
+Base de código `e5c64593` (R3 em `5804ab42`, após R1/R2 e o preparo do bot), Node **22.22.3**, motor **0.4.0**, estado **42**, protocolo **4**, conteúdo **`5e98bf9410ddcd98`**. R1 preserva a Defesa quando a Paliçada repele sem batalha; R2 escala os lotes e a fila de recrutamento; R3/D1 escala também as vagas por nível do Quartel (×3 no Rápido, ×1 nos demais). Custos e tempos por unidade permanecem os aprovados. Nenhum número de jogo mudou neste fechamento.
+
+Amostras de cinco sementes (ano de jogo): Regular Senhor Rápido **2/5**, Normal **5/5**, Tranquilo **4/5**; Dedicado Senhor **4/5, 5/5, 5/5**; Regular Camponês **4/5, 5/5, 5/5**. As três saíram 1 contra as faixas anteriores. São diagnóstico, não a matriz final.
+
+As três matrizes completas rodaram **uma por vez**, com `nice -n 19 pnpm -s sim -- --matrix --difficulty <peasant|lord|ironKing>`. Cada uma tem 24 células × 50 sementes, duas janelas e quatro perfis: **3.600 registros**, **3.000 partidas distintas** (as duas janelas do Normal repetem a mesma partida). Artefatos em `/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/matriz/r3-{peasant,lord,ironKing}.{csv,md}`; amostras em `r3-curta-*`.
+
+A coluna `threat` dos CSVs é a **máxima** da jornada; a Ameaça final é a da tabela Lobos do relatório (`measure.raids.threatFinal`). Não usar a máxima para contar finais saturados.
+
+Comparação com `MEASURED` anterior (`9d07add7`, §22), antes da regravação:
+
+| Dificuldade | Células alteradas / 24 | Registros fora antes / 1.200 | Fora depois / 1.200 | Recusas |
+|---|---|---|---|---|
+| Camponês | 23 | 710 | 0 | 0 |
+| Senhor | 23 | 738 | 0 | 0 |
+| Rei de Ferro | 23 | 568 | 0 | 0 |
+
+As saídas originais 1 refletem as faixas antigas. As **72 linhas `measured(`** foram copiadas dos relatórios completos, com a mesma folga `SLACK`, e conferidas sobre cada registro dos CSVs; não são metas nem correção de regra. O arquivo `r3-analise.json` preserva as causas por grandeza e as sementes com fome/frio.
+
+### 23.2 Cerco e meta de vitória
+
+Um ano de jogo, **50 Cercos por célula**. Vitória inclui Gloriosa. A semana do Rápido atravessa três Cercos; o CSV traz o último resultado e a tabela do relatório soma todos os anos, por isso os denominadores não se misturam.
+
+**Escassez e população — registros das duas janelas:**
+
+| Dificuldade | Registros com fome | Fome máx. (h reais) | Registros com frio | Frio máx. (h reais) | Registros com perdas / partidas distintas | Menor população |
+|---|---|---|---|---|---|---|
+| Camponês | 28 | 8 | 203 | 14 | 2 / 1 | 3 |
+| Senhor | 23 | 13 | 168 | 10 | 9 / 6 | 3 |
+| Rei de Ferro | 37 | 10 | 159 | 9 | 2 / 1 | 3 |
+
+R3 comporta mais soldados cedo, sem mudar os custos, o consumo, a reserva do treino nem a cadência das visitas. A fome e o frio não podem mais ser atribuídos apenas às Quedas. Replay dirigido de Camponês Regular Rápido `pedra-alta-043`: frio em 550.172.773 ms de jogo; fome em 563.722.092; um aldeão sai por moral **18** em 576.000.000; as três ondas são vencidas. Nas horas reais 51–56, há **28 soldados** e a madeira fica em zero; a comida acaba na hora 53. O mesmo episódio aparece nas duas janelas. Artefato `r3-extremo-peasant-043.json`; não substitui a repetição manual de todos os extremos (V4I-T1.4).
+
+**Camponês — primeiro ano:**
+
+| Ritmo | Perfil | Vitórias / 50 | Vitória | Gloriosas / 50 | Quedas / 50 |
+|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Rápido 3× | Regular | 43 | 86% | 41 | 7 |
+| Rápido 3× | Dedicado | 50 | 100% | 41 | 0 |
+| Rápido 3× | Explorador | 43 | 86% | 33 | 7 |
+| Normal 1× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Normal 1× | Regular | 50 | 100% | 49 | 0 |
+| Normal 1× | Dedicado | 50 | 100% | 45 | 0 |
+| Normal 1× | Explorador | 50 | 100% | 50 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Tranquilo 0,5× | Regular | 49 | 98% | 44 | 1 |
+| Tranquilo 0,5× | Dedicado | 50 | 100% | 49 | 0 |
+| Tranquilo 0,5× | Explorador | 49 | 98% | 47 | 1 |
+
+**Senhor — primeiro ano:**
+
+| Ritmo | Perfil | Vitórias / 50 | Vitória | Gloriosas / 50 | Quedas / 50 |
+|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Rápido 3× | Regular | 19 | 38% | 7 | 31 |
+| Rápido 3× | Dedicado | 39 | 78% | 32 | 11 |
+| Rápido 3× | Explorador | 27 | 54% | 11 | 23 |
+| Normal 1× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Normal 1× | Regular | 46 | 92% | 17 | 4 |
+| Normal 1× | Dedicado | 50 | 100% | 36 | 0 |
+| Normal 1× | Explorador | 48 | 96% | 24 | 2 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Tranquilo 0,5× | Regular | 39 | 78% | 22 | 11 |
+| Tranquilo 0,5× | Dedicado | 50 | 100% | 43 | 0 |
+| Tranquilo 0,5× | Explorador | 47 | 94% | 37 | 3 |
+
+**Rei de Ferro — primeiro ano:**
+
+| Ritmo | Perfil | Vitórias / 50 | Vitória | Gloriosas / 50 | Quedas / 50 |
+|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Rápido 3× | Regular | 13 | 26% | 1 | 37 |
+| Rápido 3× | Dedicado | 17 | 34% | 4 | 33 |
+| Rápido 3× | Explorador | 15 | 30% | 0 | 35 |
+| Normal 1× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Normal 1× | Regular | 36 | 72% | 5 | 14 |
+| Normal 1× | Dedicado | 45 | 90% | 21 | 5 |
+| Normal 1× | Explorador | 43 | 86% | 13 | 7 |
+| Tranquilo 0,5× | Preguiçoso | 0 | 0% | 0 | 50 |
+| Tranquilo 0,5× | Regular | 38 | 76% | 4 | 12 |
+| Tranquilo 0,5× | Dedicado | 48 | 96% | 26 | 2 |
+| Tranquilo 0,5× | Explorador | 43 | 86% | 33 | 7 |
+
+Metas do GDD §15.2: Regular Senhor 65–80% de Vitória e 20–30% Gloriosa; Dedicado 90%+ e 50%+ Gloriosa; Regular Rei de Ferro 35–50%; Preguiçoso 40–60%. A tabela apresenta a medida, sem aprovar os desvios.
+
+**D2, decisão já registrada em 2026-11-11:** o autor aceita na v0.4 os **92%** do Regular Senhor Normal (meta **65–80%**) e os **78%** do Tranquilo, deixando ajuste fino para playtest/v0.5. Essa decisão não aprova automaticamente outro desvio do Rápido. A meta de Gloriosa, o Dedicado, o Preguiçoso e o Rei de Ferro continuam comparados às metas do GDD; `MEASURED` verde não prova o critério 6.
+
+O Regular Senhor Rápido não conclui o Salão Nv4 até as 56 h reais nas sementes `016` e `042` (2/50). Os eventos foram repetidos e conferidos em `r3-desbloqueio.json`: na 016 a obra só começa na virada seguinte, e na 042 ainda não começa. O teste conserva essas exceções explícitas e cobra o prazo nas demais partidas; isto não prova o desbloqueio antes do primeiro Cerco em toda semente.
+
+### 23.3 Ouro por fonte e destino contra V4A-T1 (V4I-T1.2)
+
+Senhor, média por partida em 50 sementes. Mesmas colunas de §1.3, acrescentando o gasto de treino em **Exército**. Mina e soldo são amostrados por hora real pelo simulador; são estimativas, não conciliação exata do cofre. Os demais fluxos vêm de `gained_gold`/`spent_gold` dos eventos. **Perdas `lost_gold` da Queda não são incluídas na coluna de gastos**; a diminuição do cofre inclui essas perdas e mudanças de produção, além dos gastos voluntários. Não atribuir toda redução de ouro parado aos sumidouros.
+
+**7 dias reais:**
+
+| Ritmo | Perfil | Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas) | Destinos por partida (soldo · Taverna · obras · recrutamento · compras · exército · cartas e outros) | Ouro parado no fim, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 17.390 · 0 · 0 · 0 · 100 | 720 · 0 · 5.535 · 457 · 0 · 89 · 0 | 6.811 |
+| Rápido 3× | Regular | 41.319 · 1.131 · 593 · 0 · 135 | 1.501 · 0 · 24.708 · 914 · 67 · 980 · 1.223 | 11.236 |
+| Rápido 3× | Dedicado | 60.595 · 1.565 · 1.574 · 0 · 161 | 1.781 · 0 · 36.111 · 743 · 92 · 922 · 2.524 | 19.995 |
+| Rápido 3× | Explorador | 35.901 · 2.970 · 1.224 · 214 · 184 | 4.522 · 966 · 21.335 · 850 · 148 · 999 · 1.021 | 9.520 |
+| Normal 1× | Preguiçoso | 4.008 · 0 · 0 · 0 · 100 | 196 · 0 · 3.251 · 260 · 0 · 0 · 0 | 474 |
+| Normal 1× | Regular | 14.582 · 237 · 74 · 0 · 104 | 322 · 0 · 9.980 · 480 · 0 · 330 · 457 | 3.459 |
+| Normal 1× | Dedicado | 21.295 · 288 · 258 · 0 · 119 | 344 · 0 · 15.495 · 536 · 13 · 432 · 582 | 4.619 |
+| Normal 1× | Explorador | 16.845 · 442 · 88 · 149 · 154 | 1.039 · 716 · 10.943 · 472 · 2 · 344 · 474 | 3.730 |
+| Tranquilo 0,5× | Preguiçoso | 1.278 · 0 · 0 · 0 · 100 | 120 · 0 · 1.011 · 239 · 0 · 0 · 0 | 241 |
+| Tranquilo 0,5× | Regular | 5.205 · 17 · 0 · 0 · 100 | 123 · 0 · 3.768 · 385 · 0 · 0 · 87 | 1.152 |
+| Tranquilo 0,5× | Dedicado | 6.665 · 94 · 0 · 0 · 121 | 122 · 0 · 5.454 · 387 · 0 · 0 · 159 | 906 |
+| Tranquilo 0,5× | Explorador | 5.635 · 12 · 0 · 54 · 115 | 225 · 432 · 3.332 · 377 · 0 · 0 · 85 | 1.546 |
+
+**Um ano de jogo:**
+
+| Ritmo | Perfil | Fontes por partida (Mina · balcão · caravanas · saque · prêmios e cartas) | Destinos por partida (soldo · Taverna · obras · recrutamento · compras · exército · cartas e outros) | Ouro parado no fim, por partida |
+| --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 705 · 0 · 0 · 0 · 100 | 48 · 0 · 514 · 110 · 0 · 0 · 0 | 335 |
+| Rápido 3× | Regular | 3.895 · 0 · 0 · 0 · 128 | 202 · 0 · 2.144 · 380 · 7 · 241 · 147 | 876 |
+| Rápido 3× | Dedicado | 15.200 · 141 · 47 · 0 · 100 | 274 · 0 · 10.308 · 528 · 36 · 283 · 356 | 3.494 |
+| Rápido 3× | Explorador | 3.900 · 4 · 0 · 16 · 145 | 256 · 215 · 2.339 · 372 · 9 · 250 · 139 | 571 |
+| Normal 1× | Preguiçoso | 4.008 · 0 · 0 · 0 · 100 | 196 · 0 · 3.251 · 260 · 0 · 0 · 0 | 474 |
+| Normal 1× | Regular | 14.582 · 237 · 74 · 0 · 104 | 322 · 0 · 9.980 · 480 · 0 · 330 · 457 | 3.459 |
+| Normal 1× | Dedicado | 21.295 · 288 · 258 · 0 · 119 | 344 · 0 · 15.495 · 536 · 13 · 432 · 582 | 4.619 |
+| Normal 1× | Explorador | 16.845 · 442 · 88 · 149 · 154 | 1.039 · 716 · 10.943 · 472 · 2 · 344 · 474 | 3.730 |
+| Tranquilo 0,5× | Preguiçoso | 17.909 · 0 · 0 · 0 · 100 | 288 · 0 · 12.445 · 529 · 0 · 40 · 130 | 3.873 |
+| Tranquilo 0,5× | Regular | 25.736 · 106 · 140 · 0 · 111 | 337 · 0 · 14.992 · 593 · 4 · 304 · 537 | 8.721 |
+| Tranquilo 0,5× | Dedicado | 20.582 · 168 · 220 · 0 · 162 | 356 · 0 · 12.994 · 502 · 98 · 486 · 674 | 6.158 |
+| Tranquilo 0,5× | Explorador | 23.970 · 1.276 · 344 · 347 · 161 | 1.528 · 746 · 16.134 · 509 · 43 · 383 · 522 | 6.168 |
+
+**Ouro parado comparado à v0.3 publicada (§1.3):**
+
+| Janela | Ritmo | Perfil | v0.3 | R1–R3 | Variação |
+|---|---|---|---|---|---|
+| Semana | Rápido 3× | Preguiçoso | 5.208 | 6.811 | +30,8% |
+| Semana | Rápido 3× | Regular | 185.969 | 11.236 | -94,0% |
+| Semana | Rápido 3× | Dedicado | 352.628 | 19.995 | -94,3% |
+| Semana | Rápido 3× | Explorador | 236.003 | 9.520 | -96,0% |
+| Semana | Normal 1× | Preguiçoso | 221 | 474 | +114,5% |
+| Semana | Normal 1× | Regular | 14.790 | 3.459 | -76,6% |
+| Semana | Normal 1× | Dedicado | 10.819 | 4.619 | -57,3% |
+| Semana | Normal 1× | Explorador | 9.205 | 3.730 | -59,5% |
+| Semana | Tranquilo 0,5× | Preguiçoso | 261 | 241 | -7,7% |
+| Semana | Tranquilo 0,5× | Regular | 737 | 1.152 | +56,3% |
+| Semana | Tranquilo 0,5× | Dedicado | 581 | 906 | +55,9% |
+| Semana | Tranquilo 0,5× | Explorador | 667 | 1.546 | +131,8% |
+| Ano | Rápido 3× | Preguiçoso | 142 | 335 | +135,9% |
+| Ano | Rápido 3× | Regular | 1.915 | 876 | -54,3% |
+| Ano | Rápido 3× | Dedicado | 9.378 | 3.494 | -62,7% |
+| Ano | Rápido 3× | Explorador | 1.750 | 571 | -67,4% |
+| Ano | Normal 1× | Preguiçoso | 221 | 474 | +114,5% |
+| Ano | Normal 1× | Regular | 14.790 | 3.459 | -76,6% |
+| Ano | Normal 1× | Dedicado | 10.819 | 4.619 | -57,3% |
+| Ano | Normal 1× | Explorador | 9.205 | 3.730 | -59,5% |
+| Ano | Tranquilo 0,5× | Preguiçoso | 3.375 | 3.873 | +14,8% |
+| Ano | Tranquilo 0,5× | Regular | 12.498 | 8.721 | -30,2% |
+| Ano | Tranquilo 0,5× | Dedicado | 26.954 | 6.158 | -77,2% |
+| Ano | Tranquilo 0,5× | Explorador | 11.942 | 6.168 | -48,4% |
+
+A fila militar, os soldados saindo da população e consumindo comida, as novas obras e as Quedas mudam simultaneamente gastos e produção. A linha de base é a v0.3 com conteúdo `3a006cc05fed0b0f`; não é um experimento que isola cada regra. Ouro parado menor não basta para declarar a economia resolvida.
+
+Os perfis adicionais Ousado e Especulador, a carga de 50 bots e a repetição manual dos extremos não foram executados nesta rodada; não marcar V4I-T1 inteiro como concluído. O portão e o desempenho são registrados separadamente abaixo.
+
+### 23.4 Opções medidas para o Rápido — decisão do autor, sem aplicação
+
+O Regular Senhor Rápido continua em **38%**, abaixo da meta de **65–80%**. D2 aceita o Normal, não este desvio. Quatro ensaios em processos descartáveis alteraram **somente em memória** o fator das ondas do ano 1; cada um repetiu as mesmas 50 sementes de Senhor/Rápido/Regular, com as mesmas visitas, bot e R1–R3. Nenhum arquivo de conteúdo foi modificado, e esses resultados **não** alimentam `MEASURED`.
+
+| Fator no ano 1 | Vitória / 50 | Gloriosa / 50 | Fome máx. | Frio máx. | Aldeões perdidos | Recusas |
+|---|---:|---:|---:|---:|---:|---:|
+| 1/3 (candidato) | 19 (38%) | 7 (14%) | 5 h | 7 h | 2 | 0 |
+| 1/4 | 41 (82%) | 37 (74%) | 5 h | 7 h | 2 | 0 |
+| 1/5 | 43 (86%) | 42 (84%) | 5 h | 7 h | 2 | 0 |
+| 2/7 | 38 (76%) | 13 (26%) | 5 h | 7 h | 2 | 0 |
+| 4/15 | 40 (80%) | 37 (74%) | 5 h | 7 h | 2 | 0 |
+
+**Recomendação ao autor:** levar **2/7 no primeiro ano do Rápido** para uma nova rodada de candidato: mede **76% de Vitória e 26% de Gloriosa**, dentro das duas metas. Os demais fatores medidos excedem a meta de Gloriosa; 1/4 e 1/5 excedem também a de Vitória. **Não aplicado.** Hoje o fator anual é global; aplicar 2/7 só ao Rápido exigiria decisão e implementação explícitas, mantendo o Normal/Tranquilo de D2. Aplicá-lo globalmente não tem efeito medido aqui nos outros ritmos. Nenhum ensaio cobre o ano 2+, os três Cercos da semana ou outras dificuldades.
+
+A escassez e as duas partidas de aldeões do primeiro ano persistem em todos os ensaios: ondas menores não resolvem o custo econômico da tropa preservada. A alternativa sem mudança é manter R3 e registrar os 38% como desvio adicional, que **ainda não tem aceite do autor**. Artefatos: `r3-opcoes{,-intermediarias}.{json,log}` e roteiros `scratchpad/codex/opcoes{,-intermediarias}-r3.ts`. Todos os 200 estados finais experimentais passaram na guarda v42; recusas em zero.
+
+### 23.5 Ajustes dos testes pela causa
+
+A primeira suíte de sim-cli sem `balance.test.ts` teve **377 aprovados e 22 falhos
+em 20 arquivos (saída 1)**. A rodada dirigida seguinte teve **218 aprovados e dois
+falhos em seis arquivos (saída 1)**; os dois remanescentes eram contagens de
+objetivos ainda antigas, corrigidas para 12 no resumo da semente golden e 11 no
+meio ano Tranquilo do CSV. Esses resultados não são o portão completo.
+
+- O preparo nomeia um herói livre para o centro, e as alas laterais continuam sem
+  comandante; a prova confere também que o identificador pertence ao feudo.
+  Rei de Ferro permite morte de comandante: herói entregue não equivale a herói
+  vivo no fim; a entrega continua provada por `firstHeroAtHour`, e o limite de
+  sobreviventes continua cobrado.
+- A partida militar de quatro visitas do teste vence agora com **Gloriosa**;
+  relatório, evento e CSV passam a exigir `siegeGlorious`, mantendo três ondas
+  vencidas, zero Quedas e zero recusas.
+- O replay de ordens Rápido no Normal deixou de ser equivalência válida: R2/R3
+  mudam lotes e vagas, e os intervalos do Cerco também são reais. O teste continua
+  cobrando a divergência/rejeição intencional do Rápido; a equivalência de relógio,
+  eventos, taxas e alarmes usa Normal/Tranquilo (mesmos tetos), visitas a cada
+  seis horas de jogo e 72 h de jogo antes do Cerco. Os **13 testes de ritmo** passaram
+  na rodada dirigida, sem alterar o bot ou neutralizar as regras no motor.
+- Cobertura em 50 sementes: o Regular Normal abre **48/59 cartas**, incluindo
+  `squareDuel` em uma semente; as 11 restantes têm prova dirigida no motor.
+  Celeiro Comum: **34** aberturas, **25** continuações e **25** desfechos no Normal;
+  no Rápido, **7** continuações. As janelas de Quartel, dano à muralha e incursão
+  ativa explicam pisos próprios para as cartas militares raras; nenhuma carta
+  foi retirada do catálogo para melhorar o resultado.
+- O teste curto de desempenho (ausências de 1 e 3 dias, uma repetição) mediu até
+  **27.353 bytes de estado / 75.664 de visão**. Os tetos passam a **29.000/80.000**
+  (5% e próximo kB) porque os três relatórios guardam rodadas mais longas. A antiga
+  proporção obrigatória de visão maior que três estados não era contrato: o
+  estado retém o log, a visão resume. População ao retorno de 3 dias: **23/39** nos
+  feudos de 2/7 dias jogados. A rodada `--perf` final é registrada separadamente.

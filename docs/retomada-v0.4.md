@@ -1,4 +1,51 @@
-# Retomada em 2026-11-11 — documentação V4I-T4
+# Retomada em 2026-11-13 — fechamento V4I em execução
+
+Worktree `codex-juncao3`, branch `v4-juncao3`, base recebida `86cad3c2`.
+O commit `e5c64593` concluiu os dois testes pendentes de R3: **67 testes em dois
+arquivos, saída 0**, com nice 19 e Vitest com dois workers. Estado **42**,
+protocolo **4**, versão **0.4.0**, conteúdo **`5e98bf9410ddcd98`**.
+
+**Medição concluída:** três matrizes completas sequenciais, 1.200 registros por
+dificuldade, saídas originais **1** contra as faixas antigas. Camponês teve
+710 registros fora, Senhor 738 e Rei de Ferro 568; **zero recusas**. As 72 linhas
+`MEASURED` foram regravadas sem ampliar `SLACK`; conferência dos 3.600 registros dos CSVs:
+**zero violações com as novas faixas**. Não equivale a meta de vitória cumprida.
+Detalhes, ouro por fonte/destino e custos em [balance-v0.4.md](balance-v0.4.md), §23.
+
+**Decisão que continua com o autor:** Regular Senhor Rápido **19/50 (38%)**.
+D2 permanece confirmado: Normal **92%**, Tranquilo **78%**. Ensaios isolados de
+50 sementes: fator de ondas **2/7 → 76% Vitória / 26% Gloriosa**, recomendado para
+nova avaliação apenas no primeiro ano do Rápido; 4/15 → 80% / 74%, 1/4 → 82% / 74%,
+1/5 → 86% / 84%. **Nenhum número alterado no candidato.** O fator anual atual é
+global; outros ritmos, dificuldades e anos não foram medidos com as hipóteses.
+As duas perdas de aldeões, fome de até 5 h e frio de até 7 h persistem nos ensaios.
+O aceite de D2 não aprova automaticamente os 38% do Rápido.
+
+**Ponto exato:** expectativas do simulador em ajuste pelas causas medidas. A primeira suíte de sim-cli sem `balance.test.ts` terminou com **377/399**
+aprovados e **22 falhas**; a rodada dirigida seguinte, **218/220** e duas falhas
+de contagens antigas, já corrigidas. A suíte ainda não está declarada verde;
+o próximo passo é `verify` inteiro neste candidato, com dois workers. Faltam `verify` inteiro (inclui a matriz de Senhor em 50 sementes),
+integração, build/e2e, captura e inspeção/conversão da landing, e2e landing e perf.
+Main local ainda não movido; sem push, publicação, backup ou ensaio.
+
+Artefatos e roteiros fora do repositório em
+`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/`:
+`matriz/r3-*` e `codex/fecho3-final.md`. O maior cenário de tamanho já montado e
+validado na guarda v42 tem **102.407 bytes de estado / 161.694 de visão**, com
+12 heróis equipados, 30 itens, cinco formações, três expedições, duas caravanas,
+seis presságios, encruzilhada, duas cartas e três relatórios de 12 rodadas.
+É estresse sintético, não teto absoluto nem partida comum; tempos finais pendentes.
+
+Continuar uma suíte pesada por vez, nice 19, Vitest com dois workers, corrigindo
+pela causa. Registrar contagens no §15 do roadmap e aqui. Só fazer fast-forward
+local do main após o portão inteiro verde no último commit, sem push. O autor faz
+roteiro/evidência humana, decisão dos desvios, backup/SHA de retorno, ensaio de
+restauração/reversão, push, conferência de versão/migração, tag/release e playtest.
+Ousado/Especulador, carga de 50 bots e todos os extremos manuais não foram refeitos.
+
+## Histórico documental anterior
+
+### Retomada em 2026-11-11 — documentação V4I-T4
 
 Trilha `v4i-t4-docs`, a partir de `075b8f0`: CLAUDE, arquitetura, deploy, aceitação,
 READMEs e landing atualizados para estado **42**, protocolo **4**, **59 cartas**,
@@ -84,7 +131,7 @@ para regravá-lo sem `UPDATE_GOLDEN=1` e leitura do diff.
   Milícia/Markdown anual em navegador passaram nos 14 cenários de 2026-11-09, incluindo três temas/720 px;
   as verificações focadas e seus limites estão no Registro V4G-T4 do roadmap.
 - **Decisão do autor de 2026-11-09: a v0.4 fecha com 59 cartas** (a 60ª prevista inicialmente seria `"O aprendiz e o Mestre"`, proibida pelo autor). Cobertura dirigida de cadeias
-  não demonstra que todas saem espontaneamente em 50 sementes (em `coverage.test.ts`, o perfil Regular abre espontaneamente 47 das 59 cartas no ano do ritmo Normal; as 12 restantes exigem promessa, hostilidade, Covil limpo, dois heróis livres, herói ferido, Ferreiro no verão ou rescaldo, cobertas nos testes de contrato do motor). Conteúdo não lido
+  não demonstra que todas saem espontaneamente em 50 sementes (em `coverage.test.ts`, a medição anterior (§22) abria 47 das 59 cartas; R1–R3 (§23) abre 48 no ano Normal, com Duelo na praça em uma semente. As 11 restantes exigem promessa, hostilidade, Covil limpo, herói ferido, Ferreiro no verão ou rescaldo, cobertas nos testes de contrato do motor). Conteúdo não lido
   e perguntas de regra continuam em [content-v0.4.md](content-v0.4.md) e
   [pendencias-v0.4.md](pendencias-v0.4.md).
 - O critério de **65–80% de Vitória do Regular não está provado**: `MEASURED`

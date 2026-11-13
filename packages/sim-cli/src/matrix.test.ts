@@ -250,7 +250,8 @@ describe('relatório da matriz', () => {
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Segunda junção (docs/balance-v0.4.md, seção 19): 13 cartas adicionais do lote 2 e sabotagem.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco, ondas por ano e três cercos na semana.
-      '| Rápido 3× | Regular | 17 a 50 | ≥ 3 | ≤ 4 | ≤ 2 | ≤ 3.598 | ≤ 4.136 | ≤ 37.761 | ≤ 86 | 0 |',
+      // R1–R3 (§23): mesma folga sobre os novos 50 resultados, inclusive a escassez medida.
+      '| Rápido 3× | Regular | 5 a 61 | ≥ 5 | ≤ 14 | ≤ 11 | ≤ 3.453 | ≤ 4.200 | ≤ 36.221 | ≤ 73 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -290,12 +291,13 @@ describe('relatório da matriz', () => {
       // no Normal a comida vai ao chão por até 1 h.
       // Segunda junção (docs/balance-v0.4.md, seção 19): novos sorteios de cartas.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco e ondas por ano.
-      '| 7 dias reais | Rápido 3× | Regular | 57 a 75 | 6 a 24 | 0 a 18 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 9 a 12 | 0 a 2 | 0 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 9 a 12 | 0 a 2 | 0 | ≤ 8 | **acima** |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 4 a 5,5 | 0 a 1 | 0 | ≤ 8 | dentro |',
+      // R1–R3 (§23): o Normal passa a caber na meta; o ano do Rápido passa dela.
+      '| 7 dias reais | Rápido 3× | Regular | 21 a 30 | 0 a 18 | 3 a 15 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 | 0 a 2 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 3 a 15 | 0 | 3 | ≤ 8 | **acima** |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 1 | 0 a 1,5 | 0 a 2 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -311,7 +313,8 @@ describe('relatório da matriz', () => {
       // e na junção da Fase E (a Vigília e os objetivos 17 a 21; seção "Junção da Fase E").
       // Segunda junção (docs/balance-v0.4.md, seção 19): 13 cartas e sabotagem.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco e ondas por ano nas três sementes.
-      "  'week/3/regular': measured([26, 40], 4, 0, 1, 3426, 2382, 19086, 75),",
+      // As três sementes deste teste, com os lotes/vagas e o preparo de R1–R3 (§23).
+      "  'week/3/regular': measured([10, 21], 5, 0, 2, 1470, 3288, 23655, 30),",
     );
   });
 
@@ -347,12 +350,12 @@ describe('relatório da matriz', () => {
       // conclui treze objetivos.
       // Segunda junção (docs/balance-v0.4.md, seção 19): fim das obras 165 a — e 13 objetivos concluídos.
       // Terceira junção (docs/balance-v0.4.md, seção 22): as Quedas do Cerco reabrem obras; nenhuma semente esgota as obras na semana.
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 26 a 27 | — | 53 a 71 | 7 | 13 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 43 | 15 | 37 | 20 | 26 | — | 56 a 69 | 7 | 13 | — |',
     );
     expect(year).toContain(
       // Segunda junção (docs/balance-v0.4.md, seção 19): obras que começaram sozinhas 32 a 34.
       // Terceira junção (docs/balance-v0.4.md, seção 22): obras que começaram sozinhas 31 a 33.
-      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 26 a 27 | — | 31 a 33 | 7 | 12 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 43 | 15 | 37 | 20 | 26 | — | 32 a 33 | 7 | 11 a 12 | — |',
     );
     // A V4E-T2 deixou o Preguiçoso do ano do Rápido no Salão Nv1, sem Torre e com quatro
     // objetivos (pendência D-39). Com a resposta do autor (as do roteiro dos dias 25 e 37 leves
@@ -361,14 +364,14 @@ describe('relatório da matriz', () => {
     expect(year).toContain(
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Terceira junção (docs/balance-v0.4.md, seção 22): Salão Nv3 na hora 54, Paliçada na 56 e de 11 a 15 obras automáticas.
-      '| Rápido 3× | Preguiçoso | 29 | 54 a — | — | 31 | 33 | 50 a — | 56 a — | — | 11 a 15 | 7 | 9 a 11 | — |',
+      '| Rápido 3× | Preguiçoso | 29 | 55 a — | — | 32 | 33 | 50 a 51 | 52 a — | — | 14 a 15 | 7 | 10 a 11 | — |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
-      townHall4: { min: 35, max: 35 },
+      townHall4: { min: 43, max: 43 },
       granary: { min: 15, max: 15 },
       watchtower: { min: 20, max: 20 },
-      palisade: { min: 26, max: 27 },
+      palisade: { min: 26, max: 26 },
     });
     // Com a política mínima de guerra (V4C-T1.8) uma das três sementes esgota as obras uma
     // hora depois.
@@ -383,12 +386,12 @@ describe('relatório da matriz', () => {
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
-    expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: null });
+    expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: 51 });
     // Na junção da Fase E (objetivos 17 a 21) a Paliçada sai uma hora antes na melhor semente.
     // Terceira junção (docs/balance-v0.4.md, seção 22): a Paliçada sai na hora 56 na melhor semente.
-    expect(lazy?.measure.milestones.palisade).toEqual({ min: 56, max: null });
+    expect(lazy?.measure.milestones.palisade).toEqual({ min: 52, max: null });
     expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
-    expect(lazy?.measure.objectivesDone).toEqual({ min: 9, max: 11 });
+    expect(lazy?.measure.objectivesDone).toEqual({ min: 10, max: 11 });
     expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: null, max: null });
   });
 
@@ -413,13 +416,13 @@ describe('relatório da matriz', () => {
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Segunda junção (docs/balance-v0.4.md, seção 19): novas incursões e sorteios.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco e três cercos na semana.
-      '| Rápido 3× | Regular | 3 a 5 | 26 a 29 | 29 a 30 | 1 a 3 | 139 a 294 | 43 a 74 | 36 a 77 |',
+      '| Rápido 3× | Regular | 3 a 5 | 25 a 28 | 28 a 30 | 1 a 3 | 139 a 319 | 43 a 55 | 57 a 85 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
       suffered: { min: 3, max: 5 },
-      repelled: { min: 26, max: 29 },
-      threatFinal: { min: 36, max: 77 },
+      repelled: { min: 25, max: 28 },
+      threatFinal: { min: 57, max: 85 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
     // a Paliçada sai nas últimas horas do ano.
@@ -427,9 +430,9 @@ describe('relatório da matriz', () => {
     // Na V4E-T2 ele nem chegava à Torre; desde a resposta do autor à D-39 chega em duas das
     // três sementes. Com o Acampamento e a Fortaleza (V4E-T3) há mais incursões no fim do
     // ano, e os vigias anunciam no máximo duas (docs/balance-v0.4.md, seção 12).
-    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 2 });
+    expect(lazy?.measure.raids.announced).toEqual({ min: 1, max: 2 });
     // Com a Paliçada pronta só na hora 56 (a última do ano), nenhuma incursão é repelida nas três sementes.
-    expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 0 });
+    expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 1 });
     expect(lazy?.measure.raids.suffered.min).toBeGreaterThan(0);
   });
 
@@ -451,7 +454,7 @@ describe('relatório da matriz', () => {
       // Fortaleza sem Ameaça até o Cerco (resposta do autor de 2026-10-27; docs/balance-v0.4.md, seção 13): a pedra, de 32% a 49%, com sequências de 36 a 51 h.
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Terceira junção (docs/balance-v0.4.md, seção 22): três Quedas no Cerco mudam a produção e o estoque do Preguiçoso.
-      '| Rápido 3× | Preguiçoso | 19% a 26% | 13% a 27% | 8% a 35% | 54 | 48 | 24 a 33 |',
+      '| Rápido 3× | Preguiçoso | 18% a 24% | 34% a 56% | 36% a 53% | 54 a 63 | 48 a 123 | 45 a 126 |',
     );
     // Com o Mercado (V3E-T1; docs/balance-v0.3.md, seção 11) o Regular do ritmo 3 perde de 14% a
     // 17% da comida e até 11% da madeira nestas três sementes, com sequências de até 30 h. Com
@@ -468,9 +471,9 @@ describe('relatório da matriz', () => {
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Segunda junção (docs/balance-v0.4.md, seção 19): comida 1% a 14%, madeira 19% a 22%, pedra 13% a 14%.
       // Terceira junção (docs/balance-v0.4.md, seção 22): o preparo do Cerco aumenta a produção de comida e as Quedas reduzem o Celeiro.
-      '| Rápido 3× | Regular | 37% a 59% | 1% a 15% | 0% a 14% | 57 a 75 | 6 a 24 | 0 a 18 |',
+      '| Rápido 3× | Regular | 20% a 26% | 0% a 5% | 2% a 11% | 21 a 30 | 0 a 18 | 3 a 15 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 a 1 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% a 3% | 0 | 0 | 0 a 2 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -509,11 +512,11 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 3598 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 17 a 50 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 3453 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: população 3, fora da faixa de 5 a 61 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 17 a 50 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 5 a 61 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });
@@ -614,7 +617,7 @@ describe('CSV da matriz', () => {
     // à D-39 chega de novo, na hora 53, nesta semente; com o Acampamento e a Fortaleza somando
     // Ameaça (V4E-T3) deixou de chegar, e com a Fortaleza sem Ameaça até o Cerco (resposta do
     // autor de 2026-10-27; docs/balance-v0.4.md, seção 13) volta à hora 53; na terceira junção, chega na hora 54.
-    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('54');
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
     // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum. O
@@ -626,7 +629,7 @@ describe('CSV da matriz', () => {
     // Na semana do ritmo Tranquilo o inverno ainda não chegou: dos dez da v0.2 falta um, e o
     // primeiro herói e a Guilda já caíram.
     const short = lines.find((line) => line.startsWith('week,0.5,regular,'))?.split(',');
-    expect(short?.[header.indexOf('objectives_done')]).toBe('12');
+    expect(short?.[header.indexOf('objectives_done')]).toBe('11');
     expect(short?.[header.indexOf('objectives_done_hour')]).toBe('');
   });
 

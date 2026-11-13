@@ -93,15 +93,23 @@ describe('os bots na guerra (V4C-T1.8)', () => {
     });
     expect(result.finalState.settlement.buildings.smithy).toBeGreaterThan(0);
     expectArmyLedger(result);
-    // A formação do bot: monta com o que tem e a ativa, sem comandante (V4C-T2).
+    // O preparo atual nomeia um herói ocioso para o centro; alas laterais ficam livres.
     const { formations, activeFormationId } = result.finalState.army;
     // Uma, ou duas se a prévia da primeira deu menos de 50% e o bot tentou a outra (V4D-T2.5).
     expect(formations.length).toBeGreaterThanOrEqual(1);
     expect(formations.length).toBeLessThanOrEqual(3);
     expect(formations.map((entry) => entry.id)).toContain(activeFormationId);
     expect(
-      formations.every((entry) => Object.values(entry.commanders).every((id) => id === null)),
+      formations.every(
+        (entry) => entry.commanders.left === null && entry.commanders.right === null,
+      ),
     ).toBe(true);
+    expect(formations.some((entry) => entry.commanders.center !== null)).toBe(true);
+    const heroes = result.finalState.guild.heroes.map((hero) => hero.id);
+    for (const formation of formations) {
+      if (formation.commanders.center !== null)
+        expect(heroes).toContain(formation.commanders.center);
+    }
   });
 
   it('o militar simula a formação antes de ativá-la e só guarda a de melhor prévia (V4D-T2.5)', async () => {

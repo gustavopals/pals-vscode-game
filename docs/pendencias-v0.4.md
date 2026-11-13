@@ -2,6 +2,10 @@
 
 > **Para ler primeiro.** A v0.3.0 está no ar desde 2026-10-15 (estado 24, protocolo 3). Em 2026-10-16 o autor respondeu, uma a uma, às decisões do lote 1 da v0.4 e à herança da v0.3: todas com a premissa recomendada ([ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)). Este arquivo é a caixa de entrada do autor durante a v0.4, no molde de [pendencias-v0.3.md](pendencias-v0.3.md). Cada item diz o que vale enquanto não houver resposta.
 
+## Medição para decisão — 2026-11-13 (sem resposta do autor)
+
+- **Regular Senhor Rápido após R3:** **19/50 (38%)**, meta 65–80%; D2 segue confirmado no Normal (92%) e Tranquilo (78%), sem aprovar o desvio novo. Ensaios isolados, 50 sementes cada: ondas do ano 1 com **2/7 → 76% Vitória / 26% Gloriosa**; 4/15 → 80% / 74%; 1/4 → 82% / 74%; 1/5 → 86% / 84%. **Recomendação:** avaliar 2/7 apenas no primeiro ano do Rápido em nova rodada, mediante decisão; o fator atual é global e os outros ritmos/dificuldades/anos não foram medidos com essa hipótese. **Nenhum número alterado no candidato.** Manter R3 com 38% é outra opção, ainda sem aceite. Escassez (até 5 h de fome e 7 h de frio) e duas perdas de aldeões persistem nos ensaios; não equivalem a equilíbrio econômico. Método, ouro e custos em [balance-v0.4.md](balance-v0.4.md), §23.
+
 ## Respostas do autor de 2026-11-11
 
 - **D1 / R3 — Vagas do Quartel × ritmo (V4I-T1).** Multiplicar `balance.army.capPerLevel` pela mesma `paceScaled` de R2: ritmo 3 → ×3; 1 e 0,5 → ×1. A base continua no conteúdo; regra no motor; visão e app mostram o teto derivado. A guarda v42 aceita o teto escalado, inclusive lote e sobreviventes da Queda, sem comparação de mensagem ou importação de content/units. Guardas históricas preservadas. Amostra exploratória cap30, cinco sementes: Regular Rápido Camponês 4/5, Senhor 2/5; não substitui a matriz final.
