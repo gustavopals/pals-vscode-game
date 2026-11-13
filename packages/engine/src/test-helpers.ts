@@ -121,10 +121,16 @@ export function quietSiege(draft: GameState): void {
   probe.horde.wavePlan = null;
   const autumn = Math.floor(draft.lastProcessedAt / YEAR) * YEAR + AUTUMN;
   settleHordeTiles(probe, autumn, []);
+  // As duas funções preenchem os campos; o compilador não acompanha a mutação feita pela chamada.
+  if ((probe as GameState).horde.wavePlan === null)
+    throw new Error('A preparação do cenário não montou o plano de ondas do Cerco.');
   scheduleSiege(probe, autumn, []);
-  // scheduleSiege preenche o campo; o compilador não acompanha a mutação feita pela chamada.
   const prepared = (probe as GameState).siege;
-  if (prepared === null) throw new Error('A preparação do cenário não marcou o Cerco.');
+  // Sem Cerco marcado com o plano pronto, as três ondas não cabem no inverno deste ritmo
+  // (G-25, desde 36383833): num ritmo alto, como o 7 das propriedades de estação, os dois
+  // intervalos reais entre as ondas passam do que resta do inverno depois da Vigília ou da
+  // alternativa de +12 h. O motor também não o marca: não há o que adiar.
+  if (prepared === null) return;
   draft.siege = { ...prepared, atMs: 1000 * YEAR, nextWaveAtMs: 1000 * YEAR };
 }
 

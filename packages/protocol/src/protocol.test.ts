@@ -2928,12 +2928,14 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
   });
 
   it('valida siege.militiaOffer na visão do Cerco e recusa chaves ou tipos inválidos', () => {
+    // Ritmo 3, o da produção: no ritmo 16 as três ondas não cabem no inverno e o motor não
+    // marca o Cerco (G-25), e a visão não teria `siege` para validar.
     const state = createInitialState('pedra-alta', {
       settlementName: 'Pedra Alta',
       timezone: 'America/Sao_Paulo',
       vigilHourLocal: 21,
       difficulty: 'lord',
-      timeScale: 16,
+      timeScale: 3,
     });
     const winterStart = 3 * 90 * 24 * 3600_000;
     const atSiege = advanceTo(state, winterStart + 6 * 24 * 3600_000).state;
