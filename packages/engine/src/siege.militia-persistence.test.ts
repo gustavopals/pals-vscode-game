@@ -7,6 +7,7 @@ import { stateV39 } from './migrations/v39';
 import { readySiege } from './siege.test-helpers';
 import { cloneState } from './state';
 import { accept, command } from './test-helpers';
+import { wallFullHp } from './wall';
 
 describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () => {
   it.each(['peasant', 'lord', 'ironKing'] as const)(
@@ -84,6 +85,10 @@ describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () 
     const state = readySiege();
     const atMs = state.siege!.atMs;
     state.siege = null;
+    // R1: a Paliçada Nv2+ do pátio do Cerco repele a incursão forte sem batalha nem relatório;
+    // a Nv1 só segura a leve e deixa esta lutar, com a milícia no relatório.
+    state.settlement.buildings.palisade = 1;
+    state.settlement.wall.hp = wallFullHp(1);
     state.army.formations[0]!.posts.center.front = null;
     state.horde.scheduledRaids.push({
       id: 'review-militia-raid',
