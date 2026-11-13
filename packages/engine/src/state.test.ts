@@ -1,10 +1,11 @@
-import { DIFFICULTY_IDS } from '@lotg/content';
+import { balance, DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { CURRENT_SCHEMA_VERSION } from './migrations';
 import { createInitialState } from './state';
 import { settings } from './test-helpers';
-import type { GameSettings } from './types';
+import type { GameSettings, ViewState } from './types';
+import { paceScaled } from './units';
 import { deriveViewState } from './view';
 
 describe('createInitialState', () => {
@@ -81,9 +82,38 @@ describe('o ritmo gravado na partida', () => {
 
   it('cede a `options.timeScale`, para ver o mesmo estado em outro ritmo', () => {
     const fast = createInitialState('s', { ...settings, timeScale: 3 });
-    expect(deriveViewState(fast, 0, { timeScale: 1 })).toStrictEqual(
-      deriveViewState(createInitialState('s', settings), 0),
+    const seen = deriveViewState(fast, 0, { timeScale: 1 });
+    const normal = deriveViewState(createInitialState('s', settings), 0);
+    // R2 e R3 (ADR 0019) são regra do ritmo gravado, não da leitura: o lote de treino e as
+    // vagas do Quartel continuam os do ritmo 3 (×3) mesmo vistos no ritmo 1. Só eles diferem,
+    // e de propósito.
+    const batch = paceScaled(balance.army.batchMax, 3);
+    const cap = paceScaled(balance.army.capPerLevel, 3);
+    expect(batch).toBe(3 * balance.army.batchMax);
+    expect(seen.army.offer.map((offer) => offer.batchMax)).toStrictEqual(
+      normal.army.offer.map(() => batch),
     );
+    expect(normal.army.offer.map((offer) => offer.batchMax)).toStrictEqual(
+      normal.army.offer.map(() => balance.army.batchMax),
+    );
+    const barracks = (view: ViewState) =>
+      view.constructions.available.find((upgrade) => upgrade.building === 'barracks')!.effect;
+    expect(barracks(seen)).toContain(`um lote de até ${batch} por vez: até ${cap} soldados`);
+    expect(barracks(normal)).toContain(
+      `um lote de até ${balance.army.batchMax} por vez: até ${balance.army.capPerLevel} soldados`,
+    );
+    // Fora desses campos, a visão no ritmo 1 é a mesma da partida do ritmo 1.
+    const withoutPaceRules = (view: ViewState): ViewState => ({
+      ...view,
+      army: { ...view.army, offer: view.army.offer.map((offer) => ({ ...offer, batchMax: 0 })) },
+      constructions: {
+        ...view.constructions,
+        available: view.constructions.available.map((upgrade) =>
+          upgrade.building === 'barracks' ? { ...upgrade, effect: null } : upgrade,
+        ),
+      },
+    });
+    expect(withoutPaceRules(seen)).toStrictEqual(withoutPaceRules(normal));
   });
 
   it('um ritmo inválido informado à visão é recusado', () => {
