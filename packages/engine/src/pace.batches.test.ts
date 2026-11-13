@@ -237,6 +237,27 @@ describe.each([0.5, 1, 3])('persistência das vagas no ritmo %s (R3)', (timeScal
   });
 });
 
+it('preserva a reserva da campanha ao validar um exército acima do teto histórico', () => {
+  const files = import.meta.glob<string>('./__fixtures__/state-v42-campaign-marching.json', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+  const state = JSON.parse(files['./__fixtures__/state-v42-campaign-marching.json']!);
+  state.settings.timeScale = 3;
+  state.settlement.buildings.barracks = 8;
+  state.army.units = { spearman: 120, swordsman: 90, archer: 30, knight: 0, shieldbearer: 0 };
+  for (const wing of Object.values(state.army.campaign.formation.posts) as Array<
+    Record<string, { count: number } | null>
+  >) {
+    for (const post of Object.values(wing)) if (post !== null) post.count = 30;
+  }
+  expect(currentShape(state, '')).toBeNull();
+  state.army.units.archer = 29;
+  state.army.units.swordsman = 91;
+  expect(currentShape(state, '')).toBe('army.campaign: reserva maior que o exército');
+});
+
 it('congela as ofertas de lotes derivadas nos três ritmos', async () => {
   const views = [0.5, 1, 3].map((timeScale) => {
     const view = deriveViewState(roomy(timeScale), 0);

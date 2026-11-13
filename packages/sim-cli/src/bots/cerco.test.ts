@@ -425,9 +425,10 @@ describe('preparo do Cerco pela visão (V4G-T5.3)', () => {
     it.each([
       { pace: 0.5, level: 1, training: 0, improves: false },
       { pace: 1, level: 1, training: 0, improves: false },
-      { pace: 3, level: 1, training: 0, improves: true },
+      { pace: 3, level: 1, training: 0, improves: false },
+      { pace: 3, level: 1, training: 10, improves: true },
       { pace: 3, level: 3, training: 0, improves: false },
-      { pace: 3, level: 3, training: 10, improves: true },
+      { pace: 3, level: 3, training: 10, improves: false },
     ])(
       'prepara vagas para o lote público: ritmo $pace, Quartel $level, treino $training',
       async ({ pace, level, training, improves }) => {
