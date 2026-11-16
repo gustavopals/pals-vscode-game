@@ -191,7 +191,12 @@ test.describe('teclado', () => {
     }
     // Busca sem acento e sem maiúsculas.
     await page.keyboard.type('cronica');
-    await expect(dialog.getByRole('option')).toHaveCount(2);
+    // A Crônica do Ano acrescenta o terceiro comando à busca sem acentos.
+    await expect(dialog.getByRole('option')).toHaveText([
+      'Lords: Abrir a Crônica',
+      'Lords: Baixar Crônica (Markdown)',
+      'Lords: Baixar a Crônica do Ano',
+    ]);
     await expect(dialog.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ArrowDown');
     await expect(dialog.getByRole('option').nth(1)).toHaveAttribute('aria-selected', 'true');
