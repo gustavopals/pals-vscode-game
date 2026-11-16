@@ -1,3 +1,4 @@
+import { balance } from '@lotg/content';
 import type {
   ApiError,
   ChronicleResponse,
@@ -157,6 +158,34 @@ function atPace(view: ViewState, pace: number): ViewState {
   // O que resta das 24 h reais de uma carta, vista no outro ritmo no mesmo instante de jogo.
   const CARD_DEADLINE = 24 * 3600;
   const deadline = (seconds: number) => CARD_DEADLINE - down(CARD_DEADLINE - seconds);
+  // R2 amplia a ordem e a fila; vagas nas casas continuam as mesmas.
+  const { maxPerOrder, maxQueue } = balance.recruitment;
+  const { inTraining, vacancies } = view.population;
+  const normalMax = Math.max(0, Math.min(maxPerOrder, maxQueue - inTraining, vacancies));
+  expect(view.recruitment.maxQuantity).toBe(normalMax);
+  const maxQuantity = Math.max(
+    0,
+    Math.min(
+      Math.max(maxPerOrder, Math.ceil(maxPerOrder * pace)),
+      Math.max(maxQueue, Math.ceil(maxQueue * pace)) - inTraining,
+      vacancies,
+    ),
+  );
+  let moraleNote = view.recruitment.moraleNote;
+  if (
+    view.famine === null &&
+    maxQuantity > 0 &&
+    normalMax < vacancies &&
+    maxQuantity >= vacancies
+  ) {
+    // A oferta ampliada pode ocupar a última cama, que a ordem Normal não alcançava.
+    const penalty = `Com as casas cheias a moral perde ${Math.abs(balance.morale.housingFull)}`;
+    const housing =
+      vacancies > 1
+        ? `${penalty}: para evitar, chame até ${vacancies - 1}.`
+        : `${penalty}: é o que custa ocupar a última cama.`;
+    moraleNote = [moraleNote, housing].filter(Boolean).join(' ');
+  }
   const underway = (work: ViewState['constructions']['active']) =>
     work === null
       ? null
@@ -263,6 +292,8 @@ function atPace(view: ViewState, pace: number): ViewState {
     recruitment: {
       ...view.recruitment,
       secondsPerVillager: up(view.recruitment.secondsPerVillager),
+      maxQuantity,
+      moraleNote,
     },
     famine:
       view.famine === null
@@ -542,8 +573,38 @@ function withoutNetRates(view: ViewState): ViewState {
 
 function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
   const expected = atPace(normalView, PACE);
-  expect(withoutNetRates(withoutRateTexts(fastView))).toEqual(
-    withoutNetRates(withoutRateTexts(expected)),
+  // R2/R3: além dos relógios, o ritmo gravado muda o lote e as vagas do Quartel.
+  // Estes cenários ainda não treinam soldados; confira os limites anunciados à parte
+  // e mantenha a igualdade estrita de todo o restante da visão.
+  const batch = balance.army.batchMax;
+  const cap = balance.army.capPerLevel;
+  expect(normalView.army.offer.map((offer) => offer.batchMax)).toEqual(
+    normalView.army.offer.map(() => batch),
+  );
+  expect(fastView.army.offer.map((offer) => offer.batchMax)).toEqual(
+    normalView.army.offer.map(() => batch * PACE),
+  );
+  const barracks = upgradeOf(expected, 'barracks');
+  const counts = `um lote de até ${batch} por vez: até ${cap * barracks.targetLevel} soldados`;
+  expect(barracks.effect).toContain(counts);
+  expect(upgradeOf(fastView, 'barracks').effect).toBe(
+    barracks.effect?.replace(
+      counts,
+      `um lote de até ${batch * PACE} por vez: até ${cap * PACE * barracks.targetLevel} soldados`,
+    ),
+  );
+  const withoutPaceRules = (view: ViewState): ViewState => ({
+    ...view,
+    army: { ...view.army, offer: view.army.offer.map((offer) => ({ ...offer, batchMax: 0 })) },
+    constructions: {
+      ...view.constructions,
+      available: view.constructions.available.map((upgrade) =>
+        upgrade.building === 'barracks' ? { ...upgrade, effect: null } : upgrade,
+      ),
+    },
+  });
+  expect(withoutNetRates(withoutRateTexts(withoutPaceRules(fastView)))).toEqual(
+    withoutNetRates(withoutRateTexts(withoutPaceRules(expected))),
   );
   // O saldo por hora sai da visão arredondado a uma casa. O triplo de um valor já arredondado
   // pode ficar a até duas casas decimais de distância do triplo de verdade, também arredondado
