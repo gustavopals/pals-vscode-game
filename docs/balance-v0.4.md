@@ -2254,3 +2254,30 @@ de Camponês/043 pertencem à remedição de 50 sementes, não à amostra de tr�
 As duas execuções de comparação com a base anterior saíram **0**; seus eventos,
 linhas horárias e estados estão em `/tmp/lotg-fecho4/{antes-r3,candidato}-*.json`.
 O portão completo ainda não foi executado neste ponto.
+
+### 23.7 Armazém do Regular Camponês no primeiro ano do Rápido
+
+Na amostra de três sementes do teste, só `peasant/year/3/regular/pedra-alta-001`
+fica sem o Armazém até **56 h reais**. Nas 50 sementes repetidas, são **21/50**:
+`001, 004, 005, 006, 010, 013, 014, 017, 018, 024, 025, 026, 029, 030, 033, 034,
+035, 043, 044, 045, 047`. Na semana, todas o concluem entre **37 e 63 h**.
+Não é falha na amostragem horária nem obra inalcançável.
+
+Replay da 001: às **48 h**, antes da visita, há **625 de madeira**, **402 de pedra**
+e **2.871 de ouro**. Antes de R3, o Quartel ganha o Nv2 (240 de madeira), treina
+10 lanceiros (50 de madeira) e sobra para iniciar o Armazém (160 de madeira),
+concluído em **48,083 h**, marco horário **49**. Com R3, o Quartel Nv1 já tem
+vagas para o lote; a política conserva esse nível e treina **28 lanceiros**
+(840 de comida, 140 de madeira e 280 de ouro). `obraMaisBarata`, antes de
+`ampliarEstoque`, inicia a **Taverna Nv3** por 461 de madeira, deixando só 24:
+o Armazém não começa. Ele inicia automaticamente em **60,870 h**, termina em
+**60,926 h** e aparece no marco **61** da semana.
+
+É a mesma família de causa das exceções do Salão Senhor/016 e /042: obras
+planejadas disputam recursos e a ordem das políticas decide o que cabe antes do
+corte anual. Os dois atrasos do Salão também se reproduzem na cópia anterior a
+R3; não se atribuem ao novo teto do Quartel. O teste enumera a ausência adicional
+do Armazém na amostra e conserva as duas do Salão, exige os outros marcos no prazo
+e continua cobrando zero recusas. Nenhuma política, regra ou número foi alterado.
+Eventos e visitas em `/tmp/lotg-fecho4/peasant-economico-pedra-alta-001.json` e
+comparação em `/tmp/lotg-fecho4/{antes-r3,candidato}-peasant-economico-1.json`.

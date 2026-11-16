@@ -384,10 +384,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     ]);
   });
 
-  it('registra os desbloqueios e os dois atrasos do Salão Nv4 no primeiro ano do Rápido (R1–R3)', () => {
+  it('registra os desbloqueios e os atrasos do Salão Nv4 e do Armazém no primeiro ano do Rápido (R1–R3)', () => {
     // O Celeiro e o Armazém (Salão no nível 2) e a segunda fila de obras (Salão no nível 4): o
     // caminho do perfil Regular é medido em um ano de jogo, só com ordens que o motor aceita.
-    // As duas exceções atuais do Rápido estão explicitadas abaixo. O que o catálogo anuncia
+    // As exceções atuais do Rápido estão explicitadas abaixo. O que o catálogo anuncia
     // e nenhum caminho alcança está no teste do motor
     // (`storage.test.ts`, "alcançabilidade") e em docs/balance-v0.2.md, seção 9.5. A Torre de
     // Vigia e a Paliçada têm os testes delas, logo abaixo.
@@ -419,6 +419,20 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         .map((run) => `${difficulty}/${run.timeScale}/${run.seed}`),
     );
     expect(missedHall).toEqual(['lord/3/pedra-alta-016', 'lord/3/pedra-alta-042']);
+    // Camponês/001: R3 troca a melhoria do Quartel pelo treino de 28 lanceiros e a
+    // Taverna Nv3 na visita de 48 h; o Armazém só termina em 60,93 h (§23.7).
+    // Como o Salão acima, é disputa de recursos/prioridades, não um marco perdido na amostragem.
+    const missedWarehouse = DIFFICULTY_IDS.flatMap((difficulty) =>
+      byDifficulty[difficulty].runs
+        .filter(
+          (run) =>
+            run.window === 'year' &&
+            run.profile.id === 'regular' &&
+            run.summary.milestones.warehouse === null,
+        )
+        .map((run) => `${difficulty}/${run.timeScale}/${run.seed}`),
+    );
+    expect(missedWarehouse).toEqual(['peasant/3/pedra-alta-001']);
     const phaseC = MILESTONES.filter(({ id }) => id !== 'watchtower' && id !== 'palisade');
     for (const difficulty of DIFFICULTY_IDS) {
       const regular = byDifficulty[difficulty].cells.filter(
@@ -431,6 +445,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           const where = `${difficulty} ${cell.key} ${id}`;
           if (difficulty === 'lord' && cell.timeScale === 3 && id === 'townHall4') {
             expect(hours, where).toEqual({ min: 36, max: null });
+            continue;
+          }
+          if (difficulty === 'peasant' && cell.timeScale === 3 && id === 'warehouse') {
+            expect(hours, where).toEqual({ min: 49, max: null });
             continue;
           }
           expect(hours?.max, where).not.toBeNull();
