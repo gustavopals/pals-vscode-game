@@ -434,8 +434,8 @@ function atPace(view: ViewState, pace: number): ViewState {
               view.siege.nextWaveInSeconds === null ? null : up(view.siege.nextWaveInSeconds),
             // Rescaldo e descontos também terminam em instantes de jogo.
             aftermath:
-              view.siege.aftermath === null
-                ? null
+              view.siege.aftermath === undefined || view.siege.aftermath === null
+                ? view.siege.aftermath
                 : {
                     ...view.siege.aftermath,
                     endsInSeconds: up(view.siege.aftermath.endsInSeconds),

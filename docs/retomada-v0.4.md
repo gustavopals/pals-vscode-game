@@ -42,7 +42,11 @@ conteúdo, política do bot ou retrato congelado alterado neste fechamento.**
 
 Falhas anteriores preservadas no registro: `verify-1` saiu **1 antes dos testes**
 por repasse do parâmetro; `integration-1`, **596/600 (1)**; `e2e-1`, **189/191 (1)**.
-Causas e correções em [balance-v0.4.md](balance-v0.4.md), §§23.6–23.10.
+A primeira confirmação em `9c6117a3` saiu **2 no typecheck, antes dos testes**:
+o helper de rescaldo ainda não tratava o campo ausente permitido pelo protocolo.
+Guarda corrigida neste adendo, preservando `undefined`/`null`; typecheck do
+servidor **0** e ritmo focado **33/33 (0)**. Portão integral reiniciado após o
+commit da correção. Causas e correções em [balance-v0.4.md](balance-v0.4.md), §§23.6–23.10.
 A falha esperada preexistente é a previsão da Serraria quando a fome abre no
 caminho (`seasonView.test.ts`); continua documentada, não corrigida nesta rodada.
 

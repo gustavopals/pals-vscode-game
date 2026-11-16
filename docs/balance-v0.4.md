@@ -2328,6 +2328,7 @@ somente da tabela de preparação.
 | `capture-1` / `capture-og-1` | `a0a029a7` + imagens então no worktree | **0 / 0**; **2/2** e **1/1**. Quatro PNG convertidos para WebP sem perda: zero diferenças de pixels nas quatro comparações. Prévia refeita após a conversão, 1200 × 630. |
 | `landing-1` | `a0a029a7` + imagens então no worktree | **0**; **39 aprovados / 7 ignorados**, 13,1 s. Os ignorados são cenários específicos da outra disposição, executados no projeto correspondente. |
 | `perf-1` | `a0a029a7`, mesmo motor/conteúdo | **0**; nove medidas (três feudos × três ausências), nove repetições por medida; tabela no §23.10. |
+| `verify-final-9c6117a3` | `9c6117a3` | **2 no typecheck, antes dos testes**. O helper HTTP de rescaldo tratava `null`, mas não a ausência permitida pelo protocolo. Corrigido neste adendo; typecheck do servidor **0** e ritmo focado **33/33 (0)**. Portão integral reiniciado no commit da correção. |
 
 Correções adicionais, cada causa em seu commit; nenhum motor, número de conteúdo,
 política do bot, migração ou retrato congelado mudou:
