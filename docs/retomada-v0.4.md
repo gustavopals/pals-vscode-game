@@ -1,4 +1,78 @@
-# Retomada em 2026-11-13 — fechamento V4I em execução
+# Retomada em 2026-11-16 — fechamento 4 e portão do candidato
+
+Worktree `codex-juncao3`, branch `v4-juncao3`, recebido em `26e97af4`.
+Estado **42**, protocolo **4**, versão **0.4.0**, conteúdo **`5e98bf9410ddcd98`**.
+Revisados `942b9b65`, `fa5137da` e `26e97af4`: sem discordância; cenários coerentes
+com G-25, R2/R3 e R1, cobertos pela unidade integral. **Nenhuma regra, número de
+conteúdo, política do bot ou retrato congelado alterado neste fechamento.**
+
+- **`c8ad5e1b` — soldo:** 1.472 registros remedidos, zero heróis partindo e zero
+  recusas. Camponês Explorador/003: **9,6 h**; nas 50 sementes da semana,
+  **19/50** com atraso, máximo **14,4 h**. Rei de Ferro/002: **8,1 h** na semana /
+  **4,1 h** no ano. Comparação isolada anterior a R3 confirma menos civis na Mina
+  pelo treino ampliado. Os seis atrasos da amostra estão enumerados, sem folga geral.
+- **`11820770` — Armazém:** Camponês Regular/001 termina em **60,926 h**, além das
+  56 h do ano (antes de R3: 48,083 h). Treino de 28 lanceiros e Taverna Nv3 na
+  visita de 48 h gastam os recursos. Nas 50 sementes, **21/50** adiam além do
+  primeiro ano; todas concluem na semana. Exceção da amostra explícita, mínimo
+  **49 h** nas três sementes; o mínimo **37 h** é das 50. Mesma família de disputa
+  de recursos/prioridades do Salão Senhor/016 e /042, também repetidos antes de R3.
+- **`49898d2f` — Ameaça:** **88/1.000 finais ≥80**, **37 ≥90**, máxima **100**.
+  Os 135 eram da segunda junção, antes do Cerco. Seu encerramento retira a
+  Fortaleza; R1 altera a observação das formações. Medida acumulada da junção,
+  sem atribuir o delta somente a R3 nem mudar taxas/tolerância.
+- Integração: **`3319a22f`** confere tetos/oferta e aviso de moral de R2/R3;
+  **`cb4341e8`** converte os prazos do rescaldo; **`5fc39e86`** cobra a incursão
+  repelida sem batalha na migração v15. Focados: **33/33** e **106/106**, saída 0.
+- Navegador: **`733ba144`** exige os três comandos exatos da Crônica na paleta;
+  **`a0a029a7`** espera 0.4.0 em Sobre. **`f8b6fd95`** renova as capturas e o
+  `og.png`, com conversão sem perda e inspeção das quatro capturas, da imagem
+  social e das páginas completas em computador/celular.
+
+**Preparação concluída, uma suíte pesada por vez:**
+
+| Etapa | Saída e contagem |
+|---|---|
+| `verify-2`, base `49898d2f` | **0**, lint/typecheck 0; **250 arquivos / 20.687 aprovados / uma falha esperada**, 1.913,65 s |
+| `integration-2`, base `5fc39e86` | **0**, **600/600 em 32 arquivos**, 59,45 s |
+| `build-1` e `e2e-2` | **0 / 0**; **191/191** no navegador, 4,5 min |
+| Captura e prévia refeita | **0 / 0**, **2/2** e **1/1**; quatro comparações de pixels em zero |
+| `landing-1` | **0**, **39 aprovados / 7 ignorados pelo roteiro**, 13,1 s |
+| `perf-1` | **0**; pior avanço **83,9 ms**, máximos **27.353/75.664 bytes** de estado/visão |
+
+Falhas anteriores preservadas no registro: `verify-1` saiu **1 antes dos testes**
+por repasse do parâmetro; `integration-1`, **596/600 (1)**; `e2e-1`, **189/191 (1)**.
+Causas e correções em [balance-v0.4.md](balance-v0.4.md), §§23.6–23.10.
+A falha esperada preexistente é a previsão da Serraria quando a fome abre no
+caminho (`seasonView.test.ts`); continua documentada, não corrigida nesta rodada.
+
+**Portão final:** repetir a sequência completa **no commit deste registro**,
+com nice 19, `pnpm verify -- --maxWorkers=2` e integração com `--maxWorkers=2`.
+O SHA exato, cada saída dessa reexecução e o resultado do fast-forward local
+ficam no resumo externo, evitando criar outro SHA só para registrar o próprio
+SHA. Logs e medidas em `/tmp/lotg-fecho4/` (`*-final.{log,sha,exit,start,end}`).
+Resumo atualizado durante a execução:
+`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/codex/fecho4-final.md`.
+O avanço de `main` é autorizado **somente após todas as saídas finais verdes** e
+checkout limpo salvo `.claude/prompt-codex-v0.4.md`. **Sem push ou publicação.**
+
+**Autor:** aceitar os **38%** do Regular Senhor Rápido no primeiro Cerco como
+novo desvio ou ajustar? Recomendação já medida: avaliar **2/7 só no ano 1 do
+Rápido** (76% vitória / 26% Gloriosa no ensaio), sem aplicação neste candidato.
+D2 continua aceitando Normal **92%** e Tranquilo **78%**. Decidir também a
+escassez/perdas da semana do Rápido (pergunta recebida: **fome até 14 h / perda de
+5 aldeões**), aceitar como desvio ou ajustar. A remedição atual de Senhor registra
+até **13 h** de fome e **três saídas civis por feudo**, sem contar nessas saídas
+as baixas da milícia/Queda. Não confundir as medidas nem o portão com aceite.
+
+**Não verificado/executado neste fechamento:** Ousado/Especulador, carga de 50
+bots, todos os extremos manuais, novo cronômetro do estresse sintético de
+102.407/161.694 bytes, Firefox, Safari, aparelho físico ou leitor de tela.
+Roteiro/evidência humana, backup/SHA de retorno, ensaio de restauração/reversão,
+push, conferência de versão/migração em produção, tag/release e playtest seguem
+com o autor. V4I-T1, critério 6 e aceitação humana não estão declarados completos.
+
+## Histórico: fechamento de 2026-11-13
 
 Worktree `codex-juncao3`, branch `v4-juncao3`, base recebida `86cad3c2`.
 O commit `e5c64593` concluiu os dois testes pendentes de R3: **67 testes em dois

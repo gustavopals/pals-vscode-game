@@ -2305,3 +2305,93 @@ introduziu tolerância nem se alterou conteúdo ou política para baixar a Amea�
 Revisão rápida de `942b9b65`, `fa5137da` e `26e97af4`: cenários coerentes com
 G-25, R2/R3 e R1 respectivamente; sem discordância. A execução completa de seus
 testes fica no portão, a seguir.
+
+### 23.9 Portão e correções de integração — 2026-11-16
+
+Uma suíte pesada por vez, **nice 19**, **Vitest `--maxWorkers=2`**, banco de teste
+em `localhost:5433`; Playwright do jogo com um worker e da landing com dois.
+Cada saída foi conferida diretamente e gravada, sem pipeline que a esconda.
+Estas são as execuções de preparação; o portão completo é repetido **depois do
+commit deste registro**, e o SHA exato, cada saída final e o fast-forward local
+ficam no resumo externo indicado abaixo. Não inferir validação do último SHA
+somente da tabela de preparação.
+
+| Etapa / artefato em `/tmp/lotg-fecho4/` | Base | Resultado de preparação |
+|---|---|---|
+| `verify-1` | `f74d6635` (antes da incorporação do mínimo correto da amostra) | **1 antes de executar testes**; lint/typecheck 0. O alias `pnpm test` recusou o parâmetro sem `--`. |
+| `verify-2` | `49898d2f` | **0**; lint/typecheck 0; **250 arquivos, 20.687 aprovados e uma falha esperada**, 1.913,65 s. Comando: `nice -n 19 pnpm verify -- --maxWorkers=2`. |
+| `integration-1` | `49898d2f` | **1**; **596/600**, 30/32 arquivos, 57,42 s. Quatro expectativas antigas, discriminadas abaixo. |
+| `integration-2` | `5fc39e86` | **0**; **600/600, 32 arquivos**, 59,45 s. |
+| `build-1` | `5fc39e86` | **0**; API, app e landing compilados. |
+| `e2e-1` | `5fc39e86` | **1**; **189/191**, 5,3 min. Duas expectativas antigas. |
+| `e2e-2` | `a0a029a7` | **0**; **191/191**, 4,5 min, Chromium. Inclui Cerco, milícia, Crônica anual, formações, sabotagem/campanha, três temas e 720 px. |
+| `capture-1` / `capture-og-1` | `a0a029a7` + imagens então no worktree | **0 / 0**; **2/2** e **1/1**. Quatro PNG convertidos para WebP sem perda: zero diferenças de pixels nas quatro comparações. Prévia refeita após a conversão, 1200 × 630. |
+| `landing-1` | `a0a029a7` + imagens então no worktree | **0**; **39 aprovados / 7 ignorados**, 13,1 s. Os ignorados são cenários específicos da outra disposição, executados no projeto correspondente. |
+| `perf-1` | `a0a029a7`, mesmo motor/conteúdo | **0**; nove medidas (três feudos × três ausências), nove repetições por medida; tabela no §23.10. |
+
+Correções adicionais, cada causa em seu commit; nenhum motor, número de conteúdo,
+política do bot, migração ou retrato congelado mudou:
+
+- **`3319a22f`:** a comparação HTTP entre ritmos ainda exigia lote/vagas iguais.
+  Agora confere separadamente os limites de R2/R3 e o texto completo do Quartel,
+  deriva a oferta de recrutamento pela ordem/fila ampliadas e pelas vagas públicas,
+  e exige o aviso adicional de moral quando a oferta alcança a última cama.
+  O restante da visão continua em igualdade estrita.
+- **`cb4341e8`:** o oráculo HTTP não convertia os três prazos do rescaldo. Exemplo:
+  **28.800 s** no Normal são **9.600 s** no Rápido. Ritmo focado: 31/33, depois
+  32/33 e, com o rescaldo, **33/33 (0)**; sem retirar os campos da comparação.
+- **`5fc39e86`:** o job que migra o retrato v15 `week-scripted` ainda esperava uma
+  batalha. Sua Paliçada Nv2 repele por R1: exige o evento `raidRepelled`, seu nível,
+  zero `battleFought`, nenhum `battleId` e somente o item da recompensa como id
+  novo. Migração focada: **106/106 (0)**; heróis e Taverna preservados.
+- **`733ba144`:** a busca por “cronica” ganhou o terceiro comando, o download anual.
+  O navegador exige a lista exata dos três; seleção, teclado e foco continuam provados.
+- **`a0a029a7`:** “Sobre” já mostrava corretamente app/servidor **0.4.0**; as duas
+  expectativas ainda eram 0.3.0. Hash, privacidade e navegação continuam cobrados.
+- **`f8b6fd95`:** capturas refeitas e inspecionadas, incluindo as páginas completas
+  em computador/celular. Três WebP ficaram idênticos; a captura larga e o `og.png`
+  mudaram. A geometria dos cinco pontos rotulados passou; sem mudança de layout.
+
+A falha esperada da unidade é preexistente: `seasonView.test.ts`, “a conta da lenha
+vê a fome que abre no caminho e corta a Serraria”. Continua como `it.fails`, não
+foi corrigida nem ocultada nesta rodada. Saída 0 não significa inexistência desse
+limite conhecido nem aceite de balanceamento. D2, os **38%** no Rápido, os custos
+de R3 e as lacunas humanas continuam distintos do portão técnico.
+
+Não executados: carga de 50 bots, novas matrizes de Ousado/Especulador, repetição
+manual de todos os extremos, Firefox, Safari, aparelho físico, leitor de tela,
+roteiro/aceite do autor, backup de produção, ensaio de restauração/reversão,
+publicação, tag/release e playtest externo. O cenário sintético de
+102.407/161.694 bytes da retomada anterior não foi cronometrado novamente.
+
+Resumo atualizado ao longo do trabalho, com a confirmação no último commit:
+`/tmp/claude-1000/-opt-pals-vscode-game/220c2719-684e-4dfc-93f2-404687422251/scratchpad/codex/fecho4-final.md`.
+Os logs têm arquivos `.sha`, `.exit`, `.start` e `.end`. O `main` local só pode
+receber fast-forward após todas as etapas finais verdes, com checkout limpo salvo
+`.claude/prompt-codex-v0.4.md`. **Nunca push nesta sessão.**
+
+### 23.10 Desempenho do fechamento — 2026-11-16
+
+`nice -n 19 pnpm -s sim -- --perf`, saída **0**, mesma identidade de motor e conteúdo
+do candidato; medida de preparação antes do registro documental. Tempos variam
+entre execuções; a reexecução do último SHA também fica no resumo externo.
+Maior mediana de `advanceTo`: **46,8 ms**; pior amostra **83,9 ms**. Maior mediana
+da visão: **2,6 ms**. Maiores JSONs: **27.353 bytes de estado / 75.664 de visão**.
+São três feudos e três ausências, não o teto absoluto de estado nem custo de
+banco, rede ou recibos.
+
+Motor 0.4.0 · estado v42 · conteúdo 5e98bf9410ddcd98 · ritmo 3× · Node v22.22.3 · linux x64 · 9 repetições por medida
+
+Cada linha é um `advanceTo` só, do instante em que o jogador saiu ao da volta, seguido de um `deriveViewState`. O tempo é de processo, sem banco nem rede; estado e visão são o JSON que o servidor grava e responde.
+
+| Feudo | Ausência (dias reais) | Viradas de dia de jogo | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Eventos emitidos | Estado (bytes) | Visão (bytes) | Habitantes na volta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Feudo novo, sem nenhuma ordem | 1 | 36 | 1,8 | 3,6 | 1 | 52 | 5.047 | 30.240 | 4 |
+| Feudo novo, sem nenhuma ordem | 7 | 252 | 12,7 | 17,9 | 1,6 | 481 | 7.200 | 32.991 | 3 |
+| Feudo novo, sem nenhuma ordem | 30 | 1.080 | 35,9 | 41 | 1,3 | 2.124 | 8.906 | 32.986 | 3 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 2 | 2,4 | 1,3 | 106 | 8.523 | 47.643 | 28 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 9,1 | 12 | 1,5 | 736 | 11.516 | 48.820 | 19 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 37 | 41,2 | 1,2 | 3.103 | 10.949 | 41.893 | 3 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 2 | 3,9 | 2,3 | 98 | 27.353 | 75.664 | 32 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 10,8 | 21,2 | 2,2 | 786 | 11.975 | 63.057 | 44 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 46,8 | 83,9 | 2,6 | 3.238 | 15.188 | 61.089 | 13 |
