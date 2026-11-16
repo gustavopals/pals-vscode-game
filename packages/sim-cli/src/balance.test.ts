@@ -160,7 +160,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Terceira junção (docs/balance-v0.4.md, seção 22): na semana do Rápido o Explorador atrasa o
     // soldo em duas das 50 sementes (025: 6,6 h; 027: 9,8 h) depois das despesas militares e das
     // Quedas nos Cercos de inverno, ainda bem abaixo das 24 h de partida de herói.
-    // R1–R3 (§23): no Explorador Rápido o atraso máximo agora é 3,6 h, sem partida.
+    // R1–R3 (§23): no Explorador Rápido de Senhor há três atrasos (015: 0,8 h;
+    // 038: 3,6 h; 040: 3,3 h), sem partida.
     expect(Object.entries(arrears).filter(([, [, max]]) => (max ?? 0) > 0)).toEqual([
       ['week/3/explorador', [0, 3.6]],
       ['week/1/preguicoso', [21, 21]],
@@ -172,6 +173,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // docs/balance-v0.3.md, seção 4. A Taverna é uma obra como as outras: `obra mais barata` a
     // ergue nos três bots. Só o Explorador contrata (enquanto o ouro paga o preço e 24 h reais
     // de soldo da equipe) e dá festival (com folga de três vezes o custo).
+    const explorerArrears: string[] = [];
     for (const difficulty of DIFFICULTY_IDS) {
       for (const run of byDifficulty[difficulty].runs) {
         const where = `${difficulty} ${run.window}/${run.timeScale}/${run.profile.id} ${run.seed}`;
@@ -191,13 +193,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           3 + guild.tavernLevel + run.summary.expeditions.fates.rescued,
         );
         if (run.profile.id === 'explorador') {
-          // Quem contrata não atrasa o soldo, fora a semana do Rápido em Senhor (duas sementes com
-          // até 3,6 h na remedição R1–R3, após as despesas militares e os Cercos).
-          if (difficulty === 'lord' && run.window === 'week' && run.timeScale === 3) {
-            expect(guild.arrearsHours, where).toBeLessThanOrEqual(3.6);
-          } else {
-            expect(guild.arrearsHours, where).toBe(0);
-          }
+          // R3 permite mais treino: menos civis na Mina podem deixar o soldo em atraso.
+          // A comparação com a base anterior a R3 confirma o custo em Camponês/003 e
+          // Rei de Ferro/002 (§23.6). Enumere cada atraso medido, sem uma folga geral;
+          // a ausência de partidas por soldo continua cobrada acima em toda partida.
+          if (guild.arrearsHours > 0) explorerArrears.push(`${where}: ${guild.arrearsHours}`);
           // Na semana do Tranquilo (meio ano de jogo) o ouro é curto: desde os objetivos 11 a
           // 16 (V3F-T2) o bot ergue a Guilda e o Mercado que eles apontam, e em uma das 50
           // sementes de Senhor (pedra-alta-023) o cofre nunca paga um contrato com um dia de
@@ -214,6 +214,15 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         }
       }
     }
+    // Senhor usa 50 sementes; Camponês e Rei de Ferro, as três do começo da lista.
+    expect(explorerArrears).toEqual([
+      'peasant week/3/explorador pedra-alta-003: 9.6',
+      'lord week/3/explorador pedra-alta-015: 0.8',
+      'lord week/3/explorador pedra-alta-038: 3.6',
+      'lord week/3/explorador pedra-alta-040: 3.3',
+      'ironKing week/3/explorador pedra-alta-002: 8.1',
+      'ironKing year/3/explorador pedra-alta-002: 4.1',
+    ]);
     // Em Senhor, nas 50 sementes: quantos heróis o Explorador tem no fim. Onde a partida chega
     // à Taverna no nível 5 ele enche os seis lugares; no ano do Rápido (56 h reais) a Taverna
     // fica no nível 3 e ele termina com três, porque o cofre só paga dois contratos e um dia de

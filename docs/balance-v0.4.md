@@ -2213,3 +2213,44 @@ meio ano Tranquilo do CSV. Esses resultados não são o portão completo.
   proporção obrigatória de visão maior que três estados não era contrato: o
   estado retém o log, a visão resume. População ao retorno de 3 dias: **23/39** nos
   feudos de 2/7 dias jogados. A rodada `--perf` final é registrada separadamente.
+
+### 23.6 Soldo após R3 — fechamento de 2026-11-16
+
+Remedição em `26e97af4`, mesmo conteúdo `5e98bf9410ddcd98`, sem alterar motor,
+conteúdo ou bot: Senhor completo (**1.200 registros**), Camponês Rápido Regular e
+Explorador nas **50 sementes / duas janelas (200 registros)** e Rei de Ferro na
+amostra do teste (**72 registros**, três sementes, todos os perfis/ritmos/janelas).
+**Zero heróis partiram por soldo e zero comandos foram recusados nos 1.472 registros.**
+O roteiro de diagnóstico terminou com saída **0**. Artefatos desta rodada em
+`/tmp/lotg-fecho4/{peasant,lord,ironKing}.json`.
+
+| Camponês Rápido, 50 sementes | Partidas com atraso | Atraso máximo (h reais) |
+|---|---:|---:|
+| Regular, semana | 18/50 | 17,5 |
+| Regular, ano | 14/50 | 8 |
+| Explorador, semana | 19/50 | 14,4 |
+| Explorador, ano | 10/50 | 7,7 |
+
+O resumo soma os intervalos entre `wageArrearsStarted` e `wageArrearsEnded`, cortados
+pelo fim da janela; não é a maior duração contínua nem uma dívida acumulada. No
+Explorador Camponês/003, os **9,6 h** são dois intervalos: **108,028–110 h** e
+**112,396–120 h**. No segundo inverno, o feudo chega a **48 soldados / 7 civis**;
+o saldo de ouro passa a **−39/h**. Uma venda de ferro fecha o primeiro atraso, o
+soldo esgota o cofre novamente e a realocação da visita de 120 h fecha o segundo.
+
+Comparação com cópia isolada de `5804ab42^` (antes de R3, mesmo bot e R1/R2):
+Camponês Explorador/003 passa de **0 para 9,6 h**, /043 de **0 para 14,4 h**;
+Rei de Ferro Explorador/002 de **0 para 8,1 h** na semana. Neste último, o único
+atraso vai de **51,867 a 60 h**; a janela anual termina na hora 56 e registra
+**4,1 h**. A vaga ampliada muda o treino e o caminho de obras; mais soldados
+consomem comida e reduzem os braços civis, inclusive os da Mina. **É custo medido
+de R3, sem partida de herói**, não uma falha na contagem do soldo.
+
+Em Senhor, os três atrasos semanais do Explorador são /015 **0,8 h**, /038
+**3,6 h** e /040 **3,3 h**. O teste agora enumera esses três, Camponês/003 e
+Rei de Ferro/002 nas duas janelas; qualquer atraso novo na sua amostra falha.
+Continua exigindo zero partidas e zero dispensas em todas as partidas. Os **14,4 h**
+de Camponês/043 pertencem à remedição de 50 sementes, não à amostra de três do teste.
+As duas execuções de comparação com a base anterior saíram **0**; seus eventos,
+linhas horárias e estados estão em `/tmp/lotg-fecho4/{antes-r3,candidato}-*.json`.
+O portão completo ainda não foi executado neste ponto.
