@@ -2281,3 +2281,27 @@ do Armazém na amostra e conserva as duas do Salão, exige os outros marcos no p
 e continua cobrando zero recusas. Nenhuma política, regra ou número foi alterado.
 Eventos e visitas em `/tmp/lotg-fecho4/peasant-economico-pedra-alta-001.json` e
 comparação em `/tmp/lotg-fecho4/{antes-r3,candidato}-peasant-economico-1.json`.
+
+### 23.8 Finais de Ameaça: referência anterior ao Cerco
+
+A matriz completa de Senhor repetida em `26e97af4` confirma **88/1.000 registros**
+de um ano ou mais com Ameaça final **≥80**, **37/1.000 ≥90** e máxima **100**.
+Conta o valor **final**, não a máxima da jornada. O denominador conserva a
+repetição das duas janelas do Normal, como no teste histórico.
+
+Os **135** que restavam no teste eram da **segunda junção**, antes de integrar o
+Cerco, não a medida anterior imediatamente a R3. A conferência do histórico
+(`3e4eb663` contra o candidato) mostra as taxas diárias e a queda por incursão
+intactas: entrou `scheduleSiege` na virada e `finishSiege` passou a remover a
+Fortaleza ao terminar o Cerco. O preparo militar, as ondas por ano e R1–R3 mudam
+tropa, obras e respostas; R1 também evita observar a formação nas incursões que a
+Paliçada segura, alterando a memória usada pela Horda. A alteração é o resultado
+acumulado da junção, **não uma estimativa do efeito isolado de R3**. O §22.2 já
+identificava a ausência do Cerco na referência da segunda junção.
+
+O teste troca somente **135 por 88**, com essa causa no comentário, e conserva a
+máxima exata em 100 e a prova de finais abaixo do limiar das incursões. Não se
+introduziu tolerância nem se alterou conteúdo ou política para baixar a Ameaça.
+Revisão rápida de `942b9b65`, `fa5137da` e `26e97af4`: cenários coerentes com
+G-25, R2/R3 e R1 respectivamente; sem discordância. A execução completa de seus
+testes fica no portão, a seguir.

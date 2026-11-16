@@ -613,8 +613,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // tolerância; a comparação com as seções 9/10 está em balance-v0.4.md, seção 16.
     // Segunda junção (docs/balance-v0.4.md, seção 19): 135 dos 1.000 registros terminam em ≥80
     // com as treze cartas adicionais do lote 2 e o sorteio novo.
+    // Fechamento (§23.8): 135 ainda era a referência anterior ao Cerco. Seu encerramento
+    // retira a Fortaleza, e R1 também dispensa observar a formação quando a Paliçada segura.
+    // Com o preparo, as ondas por ano e R1–R3, são 88 finais ≥80 (37 ≥90), sem mudar as
+    // taxas da Ameaça nem a queda por incursão. É a medida da junção, não um efeito isolado de R3.
     expect(Math.max(...finals)).toBe(100);
-    expect(finals.filter((value) => value >= 80).length).toBe(135);
+    expect(finals.filter((value) => value >= 80).length).toBe(88);
     expect(Math.min(...finals)).toBeLessThan(balance.threat.raidChanceAbove);
   });
 
