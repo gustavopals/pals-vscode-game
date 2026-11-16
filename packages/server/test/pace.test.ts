@@ -432,6 +432,22 @@ function atPace(view: ViewState, pace: number): ViewState {
             scheduledInSeconds: up(view.siege.scheduledInSeconds),
             nextWaveInSeconds:
               view.siege.nextWaveInSeconds === null ? null : up(view.siege.nextWaveInSeconds),
+            // Rescaldo e descontos também terminam em instantes de jogo.
+            aftermath:
+              view.siege.aftermath === null
+                ? null
+                : {
+                    ...view.siege.aftermath,
+                    endsInSeconds: up(view.siege.aftermath.endsInSeconds),
+                    repairEndsInSeconds:
+                      view.siege.aftermath.repairEndsInSeconds === null
+                        ? null
+                        : up(view.siege.aftermath.repairEndsInSeconds),
+                    reconstructionEndsInSeconds:
+                      view.siege.aftermath.reconstructionEndsInSeconds === null
+                        ? null
+                        : up(view.siege.aftermath.reconstructionEndsInSeconds),
+                  },
           },
     // V4F-T2: a viagem ao Acampamento é tempo de jogo, mostrada em segundos reais.
     army: {
