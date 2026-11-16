@@ -1496,16 +1496,23 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       );
       // Nenhum herói novo. O único identificador novo é o item do objetivo 11 ("Acolha ou
       // contrate o primeiro herói", V3F-T2.2): a heroína que já servia conta na avaliação
-      // seguinte à migração, e a recompensa sai uma vez. E a batalha da incursão deste dia: desde
-      // a V4E-T2 (estado 33) toda incursão é uma batalha, com identificador próprio.
-      expect(row.state.ids).toEqual({ ...before.ids, item: 1, battle: 1 });
+      // seguinte à migração, e a recompensa sai uma vez. R1: a Paliçada Nv2 deste retrato
+      // repele a incursão sem batalha, relatório ou identificador de batalha novo.
+      expect(before.settlement.buildings.palisade).toBe(2);
+      expect(row.state.ids).toEqual({ ...before.ids, item: 1 });
       expect(
         await countRows(
           app.pool,
           'game_events',
           `game_id = '${game.id}' and kind = 'battleFought'`,
         ),
-      ).toBe(1);
+      ).toBe(0);
+      const { rows: repelled } = await app.pool.query<{
+        payload: { data: Record<string, string | number> };
+      }>("select payload from game_events where game_id = $1 and kind = 'raidRepelled'", [game.id]);
+      expect(repelled).toHaveLength(1);
+      expect(repelled[0]!.payload.data).toMatchObject({ palisadeLevel: 2 });
+      expect(repelled[0]!.payload.data).not.toHaveProperty('battleId');
       expect(Object.keys(row.state.rng)).not.toContain('tavern');
       expect(
         await countRows(
