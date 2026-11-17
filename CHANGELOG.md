@@ -4,13 +4,11 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 
 ## [Não lançado]
 
-### 0.4.0 — Guerra e Cerco (candidata, sem data de publicação)
+## [0.4.0] — 2026-11-17
 
-A terceira junção está no estado **42**, protocolo **4**. Esta nota é rascunho:
-a versão ainda não foi publicada, a entrada de Novidades continua em preparação
-e o portão final, a medição e o aceite humano permanecem abertos. Entregas e limites
-em [relatorio-v0.4.md](docs/relatorio-v0.4.md); provas por critério em
-[acceptance-v0.4.md](docs/acceptance-v0.4.md).
+**v0.4 "Guerra e Cerco"**: o feudo arma-se, treina soldados e enfrenta a Horda no Cerco do Inverno. Publicada em 2026-11-17 (commit `333df054`; estado **42**, protocolo **4**), com a CI verde em todos os jobs. Entregas e limites em [relatorio-v0.4.md](docs/relatorio-v0.4.md); provas por critério em [acceptance-v0.4.md](docs/acceptance-v0.4.md).
+
+**A produção começou do zero**: a pedido do autor, contas, sessões e partidas foram apagadas logo antes da publicação, depois de um backup manual do banco (`pg-dump-lotg-1794913918-…dmp`). Nenhuma partida real passou pela migração do estado 24 para o 42.
 
 **Adicionado:** ferro no Mercado e na Mina Abandonada; Ferreiro, armas, desgaste
 e reparo; Quartel, cinco unidades, formações, Defesa ativa e comandantes; batalha,
@@ -29,6 +27,8 @@ luta. R2 escala os tetos de treino e recrutamento pelo ritmo, nunca abaixo da ba
 a fila acompanha a ordem ampliada. R3 aplica a mesma escala às vagas por nível
 do Quartel. Custo e tempo por unidade não mudam.
 
+**Desvios aceitos pelo autor:** D2 (2026-11-11), o Regular em Senhor vence 92% do primeiro Cerco no Normal e 78% no Tranquilo, acima da meta de 65–80%; D3 (2026-11-17), vence 38% no Rápido, abaixo da meta; D4 (2026-11-17), na semana do Rápido chega a 14 h de fome e a 5 aldeões. Ajuste fino no playtest/v0.5 ([balance-v0.4.md](docs/balance-v0.4.md), §23).
+
 **Corrigido nas revisões E/F/G:** prévia considera a composição revelada pelo
 Conselho; a equipe de sabotagem volta no instante em que o Cerco remove a Fortaleza;
 a guarda aceita milícia nos relatórios atuais; as três ondas precisam caber antes
@@ -37,15 +37,12 @@ identificadas para o autor, sem aceite inferido desta nota.
 
 #### O que muda nas partidas em andamento
 
-- A produção registrada na v0.3 (estado 24) passa por **18 passos até 42**, sob a trava da partida, na primeira leitura/comando novo ou no job de avanço. Arquivadas conservam a versão gravada e migram só em memória.
-- A migração preserva o que já existe, não dá ferro, armas, soldados ou muralha nem emite acontecimentos retroativos. Os prazos novos usam a fronteira de cada passo; a Vigília passada não cobra combate anterior à migração.
-- O protocolo sobe de **3 para 4** por causa das decisões entre ondas. O app antigo aberto recebe **426**, pedindo recarga. A visão antiga do cache é descartada e o cursor dos eventos é mantido; recibos históricos não são reescritos.
-- A migração SQL **`0001_ranking_listed`** acrescenta a preferência de ranking, inicialmente ligada para contas existentes; pode ser desligada nas Preferências sem sair dos totais anônimos do reino.
-- Antes do push do autor, fazer **backup manual** e anotar arquivo/instante e **SHA de retorno em produção**. Depois de migrar, a imagem antiga só volta com o backup correspondente. Procedimento e conferências de `GET /v1/version`, `builtAt` e partidas migradas em [deploy/README.md](deploy/README.md).
+- **Nenhuma partida foi migrada**: a produção foi zerada antes da publicação. Para quem joga uma cópia antiga (estado 24), a migração existe e foi provada em retratos congelados: **18 passos até 42**, sob a trava da partida, sem dar ferro, armas, soldados ou muralha nem emitir acontecimentos retroativos.
+- O protocolo sobe de **3 para 4** por causa das decisões entre ondas. O app antigo aberto recebe **426**, pedindo recarga.
+- A migração SQL **`0001_ranking_listed`** acrescenta a preferência de ranking, que pode ser desligada nas Preferências.
+- **Reversão**: o ponto de retorno é o backup manual de antes da publicação e o SHA `d6483177`; procedimento em [deploy/README.md](deploy/README.md).
 
-A meta de Vitória do Regular, o roteiro do autor, o playtest externo, as capturas
-atualizadas, o ensaio de reversão e a publicação não são declarados concluídos aqui.
-Mapa gráfico, relíquias, Legado, Votos e Temporadas continuam fora desta versão.
+O roteiro do autor, o playtest externo e o ensaio de reversão não foram feitos. Só o Chromium foi testado. Mapa gráfico, relíquias, Legado, Votos e Temporadas continuam fora desta versão.
 
 ## [0.3.0] — 2026-10-15
 
