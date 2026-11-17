@@ -1,249 +1,340 @@
 # Roadmap da v0.5 — "Mundo e Legado"
 
-> **Versão 0.1 do plano**, escrita em 2026-11-17, logo depois da publicação da v0.4.0
-> (`333df054`, estado 42, protocolo 4). Rascunho para o autor responder às decisões da §4.
-> Fonte das regras: GDD §8.1, §11.5, §11.6, a tabela de edifícios (Capela) e o Apêndice D
-> (relíquias); critérios de aceitação no GDD §16.2.
+> **Versão 0.2 do plano** (2026-11-17), revisada contra o código do `main` (`b7640394`; estado
+> **42**, protocolo **4**, v0.4.0 publicada). **Nada aqui está aprovado**: o autor responde à §4.
+> Regras: GDD §8.1, §11.5, §11.6, §6 (Capela, Posto Avançado), Apêndice D (relíquias); critérios
+> no GDD §16.2. "Proposta" marca nome ou símbolo que **ainda não existe** no código.
 
-## 0. Por que este plano é diferente dos anteriores
+## 0. Princípios
 
-A v0.4 levou um mês. Medido no próprio Registro, a maior parte do tempo **não** foi escrever
-mecânica: foi esperar e consertar o portão inteiro (o `pnpm verify` com a matriz do
-simulador leva ~32 min; o portão completo, ~1h30), remedir faixas de balanceamento a cada
-mudança de número, reescrever testes de expectativa exata e manter documentos de registro
-muito longos. O autor pediu (2026-11-17): **entregar rápido, sem rodar a suíte inteira a cada
-alteração, com funções que divirtam quem joga.**
+A v0.4 levou um mês, e a maior parte foi portão, remedição de faixas e registro, não mecânica
+(`pnpm verify` ~32 min; portão completo ~1h30). Pedido do autor: **entregar rápido** e **divertir**.
 
-Princípios desta versão:
+1. **Jogador primeiro.** Toda fase termina em algo que se vê e se usa, e é publicada.
+2. **O agente roda o que tocou; a CI roda o resto**, em branch, antes de publicar (§2).
+3. **Matriz só no fechamento de fase.** Os bots só aprendem as mecânicas novas na Fase H: as
+   faixas do Ano 1 não devem se mexer antes disso, e faixa que se mexe é regressão.
+4. **Uma linha por tarefa** no Registro (§11). Sem relatório por fase.
+5. **Escopo mínimo que diverte.** O que o GDD pede a mais vai para a v0.6, por decisão (§4).
 
-1. **Jogador primeiro.** Cada fase termina com algo que o jogador vê e usa, e é publicada.
-   Nada de fase "só de motor" que fica semanas parada esperando a tela.
-2. **Publicar por fase.** Cada fase é uma publicação pequena (como na v0.2), com backup
-   antes. Feedback real de jogadores vale mais que mais uma rodada de matriz.
-3. **A CI é o portão pesado; o agente roda só o que tocou.** Ver §2.
-4. **Balanceamento por observação, não por faixa exata.** A matriz roda uma vez por fase,
-   no fechamento. Faixa que sai do lugar vira linha no balance e pergunta ao autor, não
-   bloqueio de tarefa.
-5. **Documentar curto.** Uma linha por tarefa no Registro (§9). O CLAUDE.md deixa de
-   acumular a história (§3, tarefa V5A-T1).
-6. **Escopo enxuto do GDD.** Onde o GDD pede muito (Legado com cenários, classes e unidades
-   novas; dois inimigos novos), a v0.5 entrega o **mínimo que já diverte** e deixa o resto
-   para a v0.6, com a decisão do autor (§4).
-
-## 1. O que o jogador sente ao fim da v0.5
+## 1. O que o jogador sente
 
 > "Quero jogar o Ano 2 de outro jeito."
 
-- Abre a aba **Mapa** e vê Pedra Alta no centro de uma grade de hexágonos, com névoa, o
-  Covil, o Acampamento, a Fortaleza no norte e os destinos das expedições **no lugar**.
-- **Reivindica postos avançados** (Veio de Ferro, Floresta, Campos, Colinas) que produzem e
-  que a Horda pode atacar.
-- Ergue a **Capela** e guarda **relíquias** lendárias achadas nas expedições, cada uma com
-  um efeito que muda o jeito de jogar.
-- Fecha o ano, ganha **Legado** e começa o **Ano 2** escolhendo **Votos** (dificuldade a mais
-  em troca de mais Legado), contra uma Horda maior e com um **inimigo novo**.
-- Toda segunda-feira entra numa **Temporada**: a mesma semente para todos, e um **ranking da
-  semana** com a Crônica do Ano de cada feudo.
+- Ergue a **Capela** e escolhe quais **relíquias** ficam nos poucos espaços dela.
+- Chega ao **Ano 2** e ele é outro: Horda maior, **Trolls**, **Votos** que valem mais pontos.
+- Vê a **semente**, desafia um amigo com ela e acumula **Legado** na conta.
+- Abre a aba **Mapa**: hexágonos, névoa, o Covil e a Fortaleza no lugar, **postos avançados**.
+- Toda segunda entra na **Temporada**: a mesma prova para todos e um ranking da semana.
 
-## 2. Regime de trabalho rápido (vale para toda a v0.5)
+## 2. Regime rápido
 
-### 2.1 O que o agente roda em cada tarefa (minutos, não horas)
+### 2.1 O ciclo de uma tarefa (minutos)
 
-- `pnpm typecheck` (ou só do pacote tocado).
-- **Os testes dos arquivos que tocou**, pelo nome: `pnpm --filter @lotg/engine test -- relics`.
-- Goldens tocados: `UPDATE_GOLDEN=1` no arquivo, conferir o diff e seguir.
-- Mexeu na tela? Um cenário e2e **novo ou alterado**, só ele: `pnpm test:e2e 12-mapa`.
-- **Não** roda `pnpm verify` inteiro, a matriz, a integração inteira nem o e2e inteiro.
-- `nice -n 19` e Vitest com `--maxWorkers=2` continuam valendo (a máquina é do autor).
+| Passo | Comando | Quando |
+| --- | --- | --- |
+| Tipos | `pnpm typecheck` | Sempre: pega protocolo ≠ motor (igualdade de tipos). |
+| Foco | `pnpm --filter @lotg/<pacote> test -- <nome>` | Os arquivos da lista "Testes" da tarefa. |
+| Sentinelas | `pnpm test:guards` (proposta, V5A-T2) | Antes de cada commit que toca motor, conteúdo ou protocolo. |
+| Tela | `pnpm test:e2e <arquivo>` | Só o cenário novo ou alterado. |
+| Formato | `pnpm exec prettier --check <arquivos>` e `pnpm exec eslint <arquivos>` | Antes do commit. |
 
-### 2.2 Quem roda o pesado
+- `nice -n 19` e `--maxWorkers=2` continuam. Uma suíte pesada por vez.
+- Golden: `UPDATE_GOLDEN=1` **só no arquivo da tarefa**; o diff é lido e explicado na mensagem
+  do commit. Golden de outra mecânica que muda sem a tarefa pedir é defeito, não regravação.
+- **Não** rodar localmente: `pnpm verify`, a matriz, a integração inteira, o e2e inteiro.
 
-- **A CI no GitHub**, em branch: a tarefa V5A-T2 faz o `ci.yml` rodar em `push` para branches
-  `v5-*` **sem o job de deploy**. O agente dá `push` no branch da fase (não no `main`) e
-  confere o resultado com `gh run watch`. O computador do autor fica livre.
-- **A matriz do simulador sai do `pnpm test`** (V5A-T2): vira `pnpm test:matrix`, que roda
-  na CI do fechamento de fase e quando o agente mexer em número de balanceamento.
-- **Portão completo local** só se a CI não puder provar algo (ex.: captura da landing).
+### 2.2 Sentinelas: o que o teste focado não vê
 
-### 2.3 O que não muda (são as regras que protegem os jogadores)
+`pnpm test:guards` (proposta) roda só os arquivos que amarram um pacote ao outro:
 
-- O motor decide, o servidor orquestra, o app exibe; nenhum número fora de `content`.
-- Toda mudança de forma do `GameState` tem passo de migração (`migrations/`) e retrato.
-- Determinismo: sorteios só em `advanceTo`, fluxos nomeados, `nextId`.
-- Névoa no servidor: o que o jogador não sabe não sai na visão (agora vale também para o mapa).
-- Backup manual antes de todo `push` no `main` que sobe a versão do estado.
+| Sentinela | Protege |
+| --- | --- |
+| `engine`: `purity`, `fixtures`, `migrations`, `state`, `view` | API pública, retratos, cadeia de migração, golden da visão (que o app importa). |
+| `content`: `content`, `council`, `expeditions` | Schemas e ids publicados (cartas, modelos, nós). |
+| `protocol`: `protocol` | Schemas do `ViewState` e dos comandos. |
+| `web`: `bundle`, `tabs` | Nenhum número ou frase do conteúdo no navegador; as abas renderizam o golden. |
+| `landing`: `page` | A página só diz o que o jogo diz (o "horizonte" muda a cada publicação). |
+
+Complemento antes do `push` do branch: `pnpm test:changed` (proposta: `vitest run --project
+unit --changed main`, sem os arquivos pesados do `sim-cli`). Como os pacotes são consumidos como
+fonte, o grafo de importação atravessa os pacotes.
+
+### 2.3 "Toquei X, rodo Y"
+
+| Tocou | Roda |
+| --- | --- |
+| `packages/content` | foco + sentinelas + o teste do motor da mecânica. |
+| `packages/engine` (regra) | foco + sentinelas. |
+| `packages/engine` (forma do estado) | acima + `fixtures`, `migrations` e o teste do passo novo. |
+| `packages/protocol` | `typecheck` + sentinelas. |
+| `packages/server` | `TEST_DATABASE_URL=… pnpm test:integration <nome>` (**sem** `--`). |
+| `packages/web` | o teste da aba ou do módulo + `bundle` + um e2e. |
+| Número de balanceamento | acima + `pnpm test:matrix` (proposta) **na CI**, não local. |
+
+### 2.4 A CI como portão pesado
+
+Conferido em `.github/workflows/ci.yml`: roda em `push` no `main` e em **todo `pull_request`**;
+o job `deploy` já tem `if: push && refs/heads/main`. Logo:
+
+- **Não é preciso mudar gatilho**: o agente dá `push` no branch `v5-<fase>` e abre **PR
+  rascunho** (`gh pr create --draft`); a CI inteira roda sem implantar. `gh pr checks --watch`.
+- **Mudanças propostas no `ci.yml` (V5A-T2):**
+  1. Separar o pesado: job `verify` roda `pnpm verify:fast`; job novo `matrix` roda
+     `pnpm test:matrix`, em paralelo. `deploy.needs` passa a incluir `matrix`.
+  2. No `matrix`, em PR, rodar só quando o diff toca `packages/{engine,content,sim-cli}`
+     (um passo com `git diff --name-only`; sem action de terceiros). No `main` roda sempre.
+- **Scripts propostos no `package.json`:** `test:fast` (unit sem os arquivos pesados do
+  `sim-cli`), `test:matrix` (só eles), `test:guards`, `test:changed`,
+  `verify:fast` (`lint && typecheck && test:fast`). **`pnpm test` e `pnpm verify` continuam
+  completos**: é o que o `main` exige.
+- Quais arquivos do `sim-cli` são "pesados" **não foi medido nesta revisão**: a V5A-T2 mede
+  (`vitest --reporter=verbose`) e fixa a lista (candidatos: `balance`, `coverage`,
+  `siege-report`, `perf`, `matrix`).
+
+### 2.5 Publicar por fase sem `main` vermelho
+
+1. Branch `v5-<fase>` rebaseado no `main`; PR rascunho com a CI **verde naquele SHA**.
+2. Sessão principal revisa o diff e as capturas (artefato `e2e` da CI).
+3. Backup manual do banco (sempre que a versão do estado sobe); SHA de retorno anotado.
+4. Com a autorização do autor para a fase: `git push origin <sha-verde>:main` (avanço rápido,
+   **o mesmo SHA testado**; nunca um merge novo). A CI do `main` roda de novo e só então implanta.
+5. Conferir `GET /v1/version` e uma linha no Registro.
+
+- Se a CI do `main` falhar, nada é implantado; corrige-se no branch e repete-se.
+- `main` local só anda por avanço rápido de um SHA verde. Sem commits de fase direto nele.
+- Landing: tirar do "No horizonte" (`packages/landing/src/index.html`) o que a fase entregou,
+  **na mesma publicação**.
+
+### 2.6 Trilhas paralelas
+
+- **Uma trilha de estado por vez.** Só um branch mexe em `GameState`/migrações; as junções da
+  v0.4 custaram retratos regravados. Em paralelo só o que não muda a forma: tela, servidor,
+  landing, conteúdo de texto.
+- Versões do estado **reservadas** (§5.1). Ninguém pega número fora da tabela.
+
+### 2.7 O que não muda
+
+- Motor decide, servidor orquestra, app exibe; números só em `content`; app sem conta de regra.
+- Toda forma nova do `GameState` tem passo de migração, retrato e guarda de forma.
+- Só `advanceTo` sorteia; criação, migração, ordem e visão **nunca**. `nextId` para entidades.
+- Névoa no servidor (agora também no mapa e na semente da Temporada).
+- CSP: sem `style="…"`; cores só em `theme/themes.css`; nenhuma dependência nova sem ADR.
 - `push` no `main` é publicar: só com o autor autorizando a fase.
 
-### 2.4 Agentes e modelos
+### 2.8 Agentes
 
-Ordem já combinada para este repositório: Codex (gpt-6.1-sol, xhigh) → Gemini Argon → outros
-do agy → Claude por último. A sessão principal coordena, revisa o diff e as capturas de tela,
-e recusa código ruim ou tela feia. Tarefas independentes da mesma fase podem correr em
-worktrees separados (ex.: tela do mapa e relíquias), com uma junção por fase.
+Ordem do repositório: Codex → Gemini Argon → outros do agy → Claude por último. A sessão
+principal coordena, revisa todo diff externo e as capturas, e recusa código ruim ou tela feia.
 
-## 3. Ponto de partida (o que a v0.4 deixa pronto)
+## 3. Ponto de partida (conferido no código)
 
-- **Tiles abstratos** desde a v0.2 (`map.tiles`: Covil, Acampamento, Fortaleza) e destinos por
-  descoberta (`map.discovered`) desde a v0.3: o mapa é, em boa parte, **uma camada de
-  interface e de geometria** sobre dados que já existem.
-- **Semente** por partida (`world.seed`) e sorteio determinístico: falta só mostrá-la e deixar
-  escolher.
-- **Ano 2 já começa**: o Cerco termina, vem o rescaldo e a "Primavera da Reconstrução"; o
-  feudo continua. Falta o que muda no Ano 2 (ondas maiores, inimigo novo, Votos, Legado).
-- **Crônica do Ano** com pontuação e Feitos, exportável: é a base do Legado e do ranking.
-- **Aba Reino** com totais e ranking de ouro ([ADR 0021](decisions/0021-estatisticas-e-ranking.md)):
-  base do ranking da Temporada.
-- **Uma partida ativa por conta** (`games_one_active_per_account`): a Temporada precisa decidir
-  como convive com a partida pessoal (D-5).
-- **Itens** com quatro raridades; o Lendário ficou reservado às relíquias.
+| Assunto | O que existe | O que falta |
+| --- | --- | --- |
+| Tiles | `map.tiles: Record<id, { type, threatActive }>`, só os **de ameaça** (`TILE_TYPE_IDS`: `wolfDen`, `raiderCamp`, `hordeFortress`; cada tipo exige `enemy`). Na visão: `threat.tiles[]` (`id`, `label`, `active`). | Coordenadas, terrenos e névoa: **não existem**. O mapa não é "só interface". |
+| Destinos | `map.discovered: string[]` (ids de modelo) e `map.expeditionUnlocks`. Nove modelos em `EXPEDITION_MODEL_IDS`. | Posição de cada destino. |
+| Semente | `state.seed` (raiz do estado) e coluna `games.seed`; sorteada no servidor (`randomBytes`). `POST /games` só aceita `seed` com `allowGameSeed` (**só em teste**). | **Não sai no `ViewState`** nem pode ser escolhida em produção. |
+| Ano 2 | O feudo continua; `siegeWaveYearFactor` já dá 1/3, 2/3 e 1 (Anos 1, 2, 3+); Primavera da Reconstrução. | O termo `1 + 0,10 × anos anteriores` e `votos` da fórmula (GDD §11.2). |
+| Memória da Horda | `horde.lastFormationSeen`; `resetHordeYear` **zera** tudo na virada. | Lembrar o ano anterior pede campo novo. |
+| Fim do ano | `endYear` (`yearEnd.ts`): `stats.yearScore`, `yearFeats`, `yearsEnded`; evento `yearEnded` (`score`, `feats`, `siegeResult`); seis Feitos (`feats.ts`); `GET /games/:id/years/:year/chronicle.md`. | Legado (nada na conta). |
+| Ranking | Aba Reino (`tabs/Kingdom.tsx`), `GET /v1/stats`, `accounts.ranking_listed` (ADR 0021). | Ranking por Temporada. |
+| Partidas | `games.status` `active`/`archived`; índice único `games_one_active_per_account`; `POST /games` com `replaceActive` arquiva a atual. `/v1/stats` assume uma ativa por conta. | Segunda partida ativa. |
+| Itens | `ITEM_RARITY_IDS`: quatro raridades; sem Lendário. | Relíquias. |
+| Combate | Moral de batalha (`rules.morale.start`, aura do comandante); astúcia por dificuldade (`cunning`: 3/10, 1/2, 4/5); `heroCapture: 'death'`. | Trolls. |
+| Ferro | `accumulators` tem `iron`, mas nada o produz de forma contínua. | Taxa contínua (Veio de Ferro). |
+| Impostos | **Não existem** como mecânica: só as cartas `kingsTax` e `kingsCollector`. | Leitura do "Selo do Rei Antigo" (D-10). |
+| Ritmo | Padrão 3× ("um ano em 56 horas"); 1× é 168 h. | Ritmo da Temporada (D-16). |
+| `CLAUDE.md` | 258 linhas, **55 KB**; ainda diz estado 38 e protocolo 3. | Enxugar e corrigir (V5A-T1). |
 
-## 4. Decisões do autor (um lote só, com recomendação)
+## 4. Decisões do autor
 
-Responder de uma vez antes da Fase B. Sem resposta, vale a recomendada.
+Responder em um lote antes da Fase B. **Sem resposta, a fase que depende dela não começa**
+(regra 7 do `CLAUDE.md`), salvo se o autor aprovar "vale a recomendada" na D-1.
 
 | # | Pergunta | Recomendação |
-|---|---|---|
-| D-1 | **Regime rápido** da §2 (CI em branch, matriz fora do `pnpm test`, testes só do que tocou, publicação por fase). | **Aprovar.** |
-| D-2 | **Ordem das fases.** | **Capela → Mapa → Postos → Ano 2 e Votos → Temporadas**: começa pelo que é rápido e visível; o mapa vem cedo porque o resto se apoia nele. |
-| D-3 | **Mapa:** grade hexagonal em SVG na aba nova "Mapa", raio 3 (37 tiles) crescendo até 5 com a Torre; navegável por teclado; a árvore e as listas continuam existindo. | **Aprovar.** Sem bibliotecas novas (SVG à mão). |
-| D-4 | **Partidas em andamento ganham o mapa?** | **Sim**: o passo de migração gera a grade pela semente e posiciona os tiles e destinos que a partida já conhece; o que ela já explorou fica Explorado. |
-| D-5 | **Temporada e partida pessoal.** | **Uma conta tem a pessoal e, por semana, uma da Temporada** (duas partidas ativas, trocadas por um seletor). A da Temporada termina com o ano e vai para o arquivo. |
-| D-6 | **Legado na v0.5.** | **Mínimo:** pontos de Legado (pontuação do ano + Feitos) guardados na conta e gastos em **Votos mais fortes e um cenário novo (Serra do Ferro)**. Classes e unidades novas ficam para a v0.6. |
-| D-7 | **Votos.** | Os cinco do GDD (Sem muralhas, Inverno longo, Horda astuta, Comida escassa, Heróis mortais), escolhidos na Primavera do Ano 2 em diante, com o bônus de Legado do GDD. |
-| D-8 | **Inimigo novo do Ano 2.** | **Só os Trolls** na v0.5 (lentos, muita vida, fracos contra lanceiros). O Necromante fica para a v0.6. Ondas +10% por ano, como no GDD. |
-| D-9 | **Relíquias.** | As **oito** do GDD, achadas em **expedições lendárias** (uma por variante nova das Ruínas e do Pântano) e no tile Santuário do mapa; a Capela tem 1 espaço por nível (até 3). |
-| D-10 | **Postos avançados.** | Até 3, como no GDD; incursão pode **danificar** um posto (para de produzir até o reparo, que custa madeira e pedra). Sem guarnição própria na v0.5. |
-| D-11 | **Ranking da Temporada.** | Pontuação da Crônica do Ano, com resultado do Cerco e Feitos; nome do feudo (como o ranking de ouro), com a mesma opção de sair. Ler a Crônica de outro feudo da mesma Temporada: **sim**, só a Crônica do Ano já fechada. |
-| D-12 | **Conteúdo narrativo** (nomes de tiles, relíquias, frases). | Agente escreve, autor lê **por amostra** na publicação de cada fase. |
+| --- | --- | --- |
+| D-1 | Regime rápido (§2) e "sem resposta vale a recomendada". | Aprovar os dois. |
+| D-2 | Ordem das fases. | **Capela → Ano 2 → Sementes e Legado → Mapa → Postos → Temporadas.** No ritmo padrão quem começou na v0.4 chega ao Ano 2 em 56 h: é o que falta primeiro. O mapa é a fase mais cara e nada antes depende dele. |
+| D-3 | Agente dá `push` em branch `v5-*` e abre PR rascunho (não publica)? | Sim. `push` no `main` continua só com autorização por fase. |
+| D-4 | **Uma versão do estado por fase publicada**, em vez de uma por tarefa. | Sim: forma intermediária nunca chega à produção; retratos só no fechamento da fase. |
+| D-5 | Relíquias: as oito do GDD; espaços = nível da Capela (até 3). | Aprovar. |
+| D-6 | De onde vêm as relíquias. | Duas **expedições lendárias em modelos novos** (não variante nova: muda o ciclo de variantes de quem já joga), relíquia certa no Sucesso, em ordem fixa, sem sorteio; `whiteWolfHunt` dá o Osso de Lobo (GDD, Apêndice B); o Santuário entra com o mapa. |
+| D-7 | Expedição lendária já no Ano 1? (GDD: "Ano 2+") | Sim, pedindo Capela e Guilda Nv4: a relíquia chega antes do primeiro Cerco. |
+| D-8 | Trocar relíquia de lugar. | Livre, mas **vale na próxima virada de dia**: trocar por estação vira decisão, sem truque de minuto. |
+| D-9 | Relíquias com contrapartida (GDD §17.2, em aberto)? | Não na v0.5. |
+| D-10 | "Selo do Rei Antigo (impostos −50%)": não há impostos. | Metade do ouro pedido pelas cartas da Coroa (`kingsTax`, `kingsCollector`). |
+| D-11 | Termo "+10 × relíquias de moral" (GDD §5.7): nenhuma das oito é de moral. | Tirar o termo do GDD; a Capela já dá +5. |
+| D-12 | Plantas (blueprints, GDD §9.2). | Fora da v0.5. |
+| D-13 | Ano N: `1 + 0,10 × anos anteriores` sobre o fator que já existe. | Aprovar (Ano 2 = 2/3 × 11/10). |
+| D-14 | Memória entre anos (GDD §17.2: 50%). | 50%, só no primeiro plano de ondas do ano. |
+| D-15 | Inimigo novo. | Só **Trolls**; Necromante na v0.6. |
+| D-16 | Votos: quais. | **Quatro**: Sem muralhas, Horda astuta, Comida escassa, Heróis mortais. "Inverno longo" mexe no calendário (base do Cerco e da Vigília): v0.6. Voto que a dificuldade já impõe (astúcia e morte em Rei de Ferro) não é oferecido. |
+| D-17 | Votos: quando. | Do fim do Cerco até **24 h reais** depois da virada do ano (um dia de jogo são 40 min no ritmo 3×). Sem resposta, nenhum Voto. Também na criação de uma partida nova. |
+| D-18 | Legado na v0.5. | **Mínimo**: pontos na conta (pontuação + Feitos, × Votos), à vista na aba Reino. Único gasto: o cenário **Serra do Ferro**, depois do mapa. Votos são livres ("Votos mais fortes" não é do GDD). Classes, unidades e estilos de Crônica: v0.6. |
+| D-19 | Semente escolhida em produção e visível. | Sim (GDD §11.5). Quem lê o código pode prever sorteios: aceito na partida pessoal. |
+| D-20 | Mapa: SVG à mão, aba "Mapa", raio 3 → 5; árvore e listas continuam. | Aprovar. |
+| D-21 | Névoa: GDD §8.1 diz quatro estados, §16.2 diz três. | Quatro; corrigir o §16.2. |
+| D-22 | Partidas em andamento ganham o mapa? | Sim: a grade sai de `state.seed` por conta, sem sorteio; o que já foi descoberto fica Explorado. |
+| D-23 | Posto Avançado: custo do GDD (250 madeira, 150 pedra, 100 ouro, 45 min), até 3, Salão Nv5. | Aprovar; obra com prazo próprio, fora da fila de obras. |
+| D-24 | Posto atacado. | Sem sorteio: a incursão que **rompe** a defesa danifica o posto mais distante; reparo em madeira e pedra. Sem guarnição. |
+| D-25 | Temporada e partida pessoal. | Duas ativas: a pessoal e uma da Temporada, com seletor. A da Temporada é arquivada ao fechar o ranking. |
+| D-26 | Temporada: ritmo, dificuldade, fuso. | **3×, Senhor**, iguais para todos; segunda 00:00 de Brasília, mostrado na tela. Quem entra até terça fecha o ano até sexta; ranking publicado no domingo 23:59. |
+| D-27 | Semente da Temporada. | Escondida até o ranking fechar (evita prever a prova). |
+| D-28 | Ranking da Temporada e leitura de Crônicas. | Pontuação do Ano 1; nome do feudo, com a saída do ADR 0021. Ler só a Crônica do Ano fechada de quem está listado. |
+| D-29 | Moderar nomes de feudo (GDD §17.2). | Não na v0.5; registrar na pendência da política de privacidade. |
+| D-30 | Conteúdo narrativo. | Agente escreve; autor lê por amostra em cada publicação. |
+| D-31 | Ideias da §8. | Escolher quais entram. |
 
-## 5. Fases e tarefas
+## 5. Contratos transversais
 
-Cada tarefa traz **tamanho** (P = uma sessão curta, M = uma sessão, G = duas ou mais),
-**entregas**, **pronto quando** e **teste mínimo**. Commits `V5B-T1: …`.
+### 5.1 Versões do estado (com a D-4)
 
-### Fase A — Preparar o terreno (P, 1 sessão)
+| Fase | Versão | Forma nova (nomes propostos) |
+| --- | --- | --- |
+| B | 43 | `buildings.chapel`; `settlement.relics`. |
+| C | 44 | `vows`; `horde.previousYearFormation`. |
+| D | — | Nenhuma (visão, servidor e dado novo em `yearEnded`). |
+| E | 45 | `map.hexes`, `map.radius`. |
+| F | 46 | `map.outposts`; `ids.outpost`. |
+| G | — | Nenhuma (tabelas do servidor). |
 
-- **V5A-T1 · CLAUDE.md enxuto (P).** Mover os parágrafos de história das v0.2–v0.4 para
-  `docs/historico.md`; o CLAUDE.md fica com o que orienta o trabalho (regras, comandos,
-  arquitetura, regime da v0.5) e menos de ~350 linhas. *Pronto quando* nenhuma regra se perde
-  (conferir item a item) e o arquivo cabe na leitura de um agente sem estourar contexto.
-- **V5A-T2 · Portão rápido (P).** `pnpm test` sem a matriz (`test:matrix` à parte); `ci.yml`
-  roda em `push` para `v5-*` sem o deploy; `pnpm verify:fast` (lint + typecheck + unit sem
-  matriz). *Teste:* um `push` de branch dispara a CI e não implanta.
-- **V5A-T3 · Decisões (P).** Registrar as respostas da §4 em `docs/decisions/0022-regras-da-v0.5.md`
-  e criar `docs/pendencias-v0.5.md` (caixa de entrada curta).
+Sem a D-4: uma versão por tarefa, na mesma ordem. Receita: README do motor, "Uma mecânica que
+muda o estado sobe a versão". O passo não importa `@lotg/content`, não sorteia e não emite evento.
 
-### Fase B — Capela e relíquias (M) · publica
+### 5.2 Regras que evitam retrabalho
 
-Ganho rápido: um edifício novo e oito objetos com personalidade.
+- **Sorteio novo só onde algo novo pode acontecer** (sem Capela, sem posto, Ano 1): os goldens
+  e a matriz do Ano 1 ficam como estão. Golden do Ano 1 que muda é defeito.
+- **Protocolo continua 4**: tudo entra por adição. Não criar `kind` novo em `pendingDecisions`
+  (sobe o protocolo): Votos e ofertas saem em campos próprios da visão.
+- Ids novos publicados entram nos testes de ids do conteúdo no mesmo commit.
+- Toda mecânica: dados em `content`, recusa legível, evento na Crônica, explicação na visão, teste.
+- Prazo novo que muda a tela ao vencer entra em `nextPollMs` (`game/gameSession.ts`).
+- e2e novos a partir de `17-…` (01 a 16 existem).
 
-- **V5B-T1 · Capela (M).** Edifício `chapel` (Salão Nv5; 200 madeira, 300 pedra, 200 ouro;
-  até Nv3): +5 moral, heróis curam 25% mais rápido, 1 espaço de relíquia por nível. Estado novo
-  (`settlement.relics`, `guild.relicVault`), migração, recusas legíveis, Crônica.
-- **V5B-T2 · As oito relíquias (M).** Conteúdo em `packages/content/src/relics.ts`; efeitos
-  como fatores já existentes (produção, moral, lenha, cap de comida, presságio, velocidade de
-  expedição, impostos, ataque dos lobos). Ordem `placeRelic`/`removeRelic`. Origem:
-  recompensa de expedição lendária (D-9). *Teste:* cada efeito com um teste de motor.
-- **V5B-T3 · Expedições lendárias (M).** Uma variante lendária nas Ruínas de Vel'Thar e uma
-  no Pântano, com relíquia garantida no Sucesso e risco alto.
-- **V5B-T4 · Tela (M).** Capela na aba Feudo e um painel "Relíquias" na Guilda (o que cada
-  uma faz, onde está, colocar/retirar); paleta e árvore. *Teste:* um cenário e2e.
-- **Fechamento:** CI verde no branch, matriz uma vez, backup, publicação, 1 linha no Registro.
+## 6. Fases e tarefas
 
-### Fase C — O mapa (G) · publica
+Tamanho: **P** (sessão curta), **M** (uma sessão), **G** (duas ou mais). Commits `V5B-T1: …`.
+Fechamento de toda fase que publica: §2.5.
 
-A maior mudança visual desde a v0.1.
+### Fase A — Terreno (P)
 
-- **V5C-T1 · Grade e névoa no motor (G).** `map.grid` (coordenadas axiais, raio 3→5), tipos
-  de tile do GDD, névoa em 4 estados (Desconhecido, Avistado, Explorado, Reivindicado), a
-  geração determinística pela semente, os tiles atuais (Covil, Acampamento, Fortaleza) e os
-  destinos de expedição **posicionados** na grade. Migração (D-4). *Teste:* mesma semente →
-  mesmo mapa (critério do GDD); névoa nunca vaza na visão.
-- **V5C-T2 · Revelação (M).** Torre revela anéis; Patrulha revela vizinhos do explorado;
-  expedição explora o tile do destino; o Rastreador revela um tile a mais (o traço finalmente
-  completo). Eventos e frases na Crônica.
-- **V5C-T3 · Aba Mapa (G).** SVG de hexágonos com a paleta dos três temas, ícones Codicons,
-  foco e navegação por setas, ficha do tile ao lado ("o que há aqui, o que dá para fazer":
-  enviar expedição, atacar o Acampamento, sabotar a Fortaleza, reivindicar). Celular: a grade
-  cabe na largura. *Teste:* um e2e de navegação e um de ação a partir do mapa.
-- **Fechamento** como na Fase B, mais a captura da landing (`pnpm capture:landing`) com o mapa.
+| Tarefa | Arquivos | Pronto quando |
+| --- | --- | --- |
+| **V5A-T1** `CLAUDE.md` enxuto (P) | `CLAUDE.md`, novo `docs/historico.md` | Abaixo de ~20 KB; estado 42 e protocolo 4; regra 6 reescrita para a v0.5; toda regra de "Regras de arquitetura", "Motor", "Servidor", "Cliente" e "Nunca" conferida item a item; regime da §2 no lugar do ritual antigo. |
+| **V5A-T2** Portão rápido (P) | `package.json`, `.github/workflows/ci.yml`, `packages/sim-cli` (só se precisar de marca nos arquivos) | Scripts da §2.4 existem; lista dos pesados medida e escrita; `verify:fast` < 10 min local (medir); PR rascunho roda a CI sem `deploy`; `pnpm verify` continua completo. |
+| **V5A-T3** Decisões (P) | novo `docs/decisions/0022-regras-da-v0.5.md`, novo `docs/pendencias-v0.5.md`, `GAME_DESIGN.md` | Respostas da §4 registradas; GDD corrigido onde a resposta muda regra (D-11, D-21). |
 
-### Fase D — Postos avançados (M) · publica
+### Fase B — Capela e relíquias (M) · estado 43 · publica
 
-- **V5D-T1 · Reivindicar e produzir (M).** Ordem `claimOutpost { tileId }` (pede o tile
-  Explorado e o Salão Nv5); até 3; produção: Veio de Ferro 3 ferro/h, Floresta +15% madeira,
-  Campos +15% comida, Colinas +15% pedra (termos novos na explicação da produção).
-- **V5D-T2 · Postos sob ataque (M).** A incursão pode mirar um posto (sorteio na marcação, no
-  fluxo `horde`); posto danificado para de produzir até `repairOutpost`. A Horda que aprende
-  passa a considerar postos expostos.
-- **V5D-T3 · Tela (P).** Ações no mapa e linha na árvore; aviso de posto atacado.
+| Tarefa | Arquivos principais | Estado, ordens, visão (propostas) | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5B-T1** Capela (M) | `content`: `ids.ts`, `buildings.ts`, `balance.ts`, `schemas.ts`; `engine`: `construction.ts`, `morale.ts`, `outcomes.ts`, `migrations/v43.ts` | `buildings.chapel` (Salão Nv5; 200 madeira, 300 pedra, 200 ouro; até Nv3). +5 de moral (termo com explicação). Cura 25% mais rápida: fator aplicado **quando o ferimento é marcado** (`injury.untilMs`), sem recontar os em curso. | `construction`, `morale`, `outcomes`, `migrations`, `fixtures` | Capela erguida muda a moral e o prazo de um ferimento novo; partida v42 migra. |
+| **V5B-T2** Relíquias (M) | `content`: novo `relics.ts`, `chronicle.ts`; `engine`: novos `relics.ts`, `relicOrders.ts`, `relicsView.ts`; pontos de efeito em `economy.ts`, `storage.ts`, `cold.ts`, `expeditionOrders.ts`, `battle.ts`, `raidArmy.ts`, omens, cartas da Coroa; `protocol`: `commands.ts`, `view.ts` | `settlement.relics: { defId, placed, effectiveFromMs }[]`. Ordens `placeRelic`/`removeRelic { relicId }`. Recusas `CHAPEL_REQUIRED`, `RELIC_NOT_FOUND`, `NO_RELIC_SLOT`. Eventos `relicFound`, `relicPlaced`, `relicRemoved`. Visão `relics { slots, items[] }` com o texto do efeito e o motivo do bloqueio. | novo `relics.test.ts`: **um teste por efeito**, com e sem a relíquia; `commands`; `protocol` | Os oito efeitos medidos; o termo aparece na explicação de cada conta; sem relíquia, nenhum golden muda. |
+| **V5B-T3** Expedições lendárias (M) | `content`: `ids.ts`, `expeditions.ts`; `engine`: `expeditionTurn.ts`, `expeditionReport.ts` | Dois modelos novos (ids a propor), três variantes cada; recompensa `relic` no último nó com prova, **sem sorteio** (a próxima da lista do modelo que o feudo não tem). `whiteWolfHunt` passa a dar o Osso de Lobo (conferir a recompensa atual). | `expeditions.catalog`, `expeditions.calibration` (golden cresce), `content/expeditions` (ids) | Sucesso entrega a relíquia; névoa da expedição intacta; goldens antigos sem diff além das linhas novas. |
+| **V5B-T4** Tela (M) | `web`: novo `components/RelicsPanel.tsx`, `tabs/Guild.tsx`, `ui/treeModel.ts`, `palette/commands.ts`, `app/controller.ts`, `game/returnReport.ts` | Comandos `lords.placeRelic`, `lords.removeRelic` pelo molde de `guildOrder` (trava `relic:<id>`). | teste do painel com `preact-render-to-string`; `bundle`; `17-capela.spec.ts` | Colocar e retirar pela tela, pela árvore e pela paleta; "vale a partir de…" à vista. |
 
-### Fase E — O Ano 2 de outro jeito (G) · publica
+### Fase C — O Ano 2 de outro jeito (M/G) · estado 44 · publica
 
-- **V5E-T1 · Escala do Ano N (M).** Ondas +10% por ano; a Horda lembra a formação do ano
-  anterior com peso reduzido; a Crônica do Ano numera os anos.
-- **V5E-T2 · Trolls (M).** Unidade inimiga nova a partir do Ano 2 (D-8), com presságio
-  próprio e entrada na prévia do Conselho de Guerra.
-- **V5E-T3 · Votos (M).** Escolha na abertura do ano (ordem `takeVows`, até a primeira
-  virada da Primavera); cinco efeitos e o bônus de Legado; a Crônica e o Relatório os mostram.
-- **V5E-T4 · Legado mínimo (M).** Pontos na **conta** (coluna nova no servidor; o motor só
-  calcula quantos o ano rende); loja curta: Votos mais fortes e o cenário **Serra do Ferro**
-  (semente com mais Veios e mais Colinas, Horda com mais Saqueadores). Não dá poder bruto.
-- **V5E-T5 · Tela (M).** Folha "Fim do ano" com Legado ganho, a escolha dos Votos e a loja.
+| Tarefa | Arquivos principais | Estado, ordens, visão (propostas) | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5C-T1** Escala e memória (M) | `content/horde.ts`; `engine`: `hordePlan.ts`, `hordeTurn.ts`, `migrations/v44.ts` | Fator `1 + 0,10 × (ano − 1)` depois do fator do ano. `horde.previousYearFormation` gravada em `resetHordeYear`, com o peso da D-14. | `hordeMind`, `siege.waves`, `siege.year-boundary` | Ano 1 idêntico (golden do Cerco sem diff); Ano 2 em Senhor com os números escritos no teste. |
+| **V5C-T2** Trolls (M) | `content`: `ids.ts` (unidades inimigas), `enemies.ts`, `horde.ts`, `omens.ts`; `engine`: `battle.ts`, `warCouncil.ts` | Unidade `troll` (lenta, muita vida, fraca contra lanceiros) na mistura das ondas **só do Ano 2 em diante**; presságio próprio. | `battle`, `warCouncil` (prévia = batalha), `content/enemies`, `content/omens` | Prévia e batalha iguais com Trolls; nenhum Troll no Ano 1. |
+| **V5C-T3** Votos (M) | `content`: novo `vows.ts`; `engine`: novos `vows.ts`, `vowOrders.ts`, `vowsView.ts`; efeitos em `economy.ts`, `wall.ts`/`battle.ts`, `hordeMind.ts`, `outcomes.ts`, `yearEnd.ts`; `protocol` | `vows: { year, taken: VowId[], closesAtMs }`. Ordem `takeVows { vows }`, uma vez por ano, na janela da D-17 (tempo real, por `realToGameMs`; o fim é instante de `nextEventAt`). Recusas `VOWS_CLOSED`, `VOW_UNAVAILABLE`. `yearEnded` ganha `vows` e `legacy` (**opcionais** no schema: eventos antigos não têm). Visão `vows { offer[], taken[], closesInSeconds }`. | novo `vows.test.ts`: um teste por Voto e o bônus; `yearEnd`; `advance` (ordem do instante) | Cada Voto muda só o que diz; pontos de Legado do ano saem no evento; sem Votos, `yearEnded` igual ao de hoje. |
+| **V5C-T4** Tela (M) | `web`: novo `components/VowsPanel.tsx`, `components/YearChronicle.tsx`, `tabs/Today.tsx`, `game/beforeLeaving.ts`, `palette/commands.ts` | `lords.takeVows`, conferência em duas etapas (escolha irreversível no ano). | teste do painel; `18-ano-2.spec.ts` (servidor de teste adianta o relógio até a virada) | Escolha dos Votos aparece no rescaldo e em "Você ainda pode decidir"; Trolls na prévia. |
 
-### Fase F — Sementes e Temporadas (G) · publica
+### Fase D — Sementes e Legado (P/M) · sem versão de estado · publica
 
-- **V5F-T1 · Semente visível e desafio (P).** A semente aparece nas Preferências e na Crônica;
-  "Nova partida com esta semente" (amigos jogam o mesmo mundo sem servidor especial).
-- **V5F-T2 · Temporada no servidor (G).** Job semanal: segunda 00:00 (horário de Brasília)
-  abre a Temporada com semente única; entrada até terça 23:59; partida da Temporada ao lado
-  da pessoal (D-5; muda `games_one_active_per_account`); rotas `GET /seasons/current` e
-  `GET /leaderboard?season=` do GDD.
-- **V5F-T3 · Ranking e Crônicas (M).** Ranking da semana (D-11) na aba Reino; ler a Crônica
-  do Ano de outro feudo da mesma Temporada. Nada de dado pessoal (ADR 0021).
-- **V5F-T4 · Tela (M).** Seletor "Minha partida / Temporada da semana", cartão da Temporada
-  com contagem regressiva e ranking.
+| Tarefa | Arquivos principais | Entrega | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5D-T1** Semente visível e escolhida (P) | `engine/view.ts`, `protocol/view.ts` e `api.ts`, `server`: `config.ts`, `games/service.ts`; `web`: `tabs/Settings.tsx`, `components/Welcome.tsx`, `app/router.ts` | `seed` na visão; `POST /games` aceita `seed` em produção (validada como hoje); "Nova partida com esta semente" e link `#/nova?seed=…` (proposta). | `view`, integração `games`, um e2e | Duas partidas com a mesma semente e ritmo: mesmas cartas elegíveis e mesma Horda base (teste de motor). |
+| **V5D-T2** Legado na conta (M) | `server`: `db/schema.ts` (tabela `legacy_ledger`, proposta: `account_id`, `game_id`, `year`, `points`, único por partida e ano), `games/repository.ts` (`persistState` credita ao gravar `yearEnded`), `stats/service.ts`, `routes/stats.ts`; `deploy/migrations` via `db:generate`; `client-sdk`; `web/tabs/Kingdom.tsx` | O motor calcula; o servidor **só soma**. Crédito na mesma transação do evento, idempotente pelo índice único. Total na resposta de `/v1/stats` (bloco do jogador). | integração `stats`/`legacy`; `kingdom.test.tsx` | Fechar um ano credita uma vez; reenvio e job de avanço não duplicam; conta excluída some no expurgo. |
 
-### Fase G — Fechamento da v0.5 (M)
+### Fase E — O mapa (G) · estado 45 · publica
 
-- Matriz completa uma vez (com a política do princípio 4), portão completo na CI, roteiro
-  de 15 min para o autor, landing com o mapa e o horizonte atualizado, CHANGELOG, tag e
-  release. Revisão independente **só das partes de risco** (migração do mapa, Temporada no
-  servidor, névoa no mapa), não da versão inteira.
+| Tarefa | Arquivos principais | Estado e visão (propostas) | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5E-T1** Grade no motor (G) | `content`: `ids.ts` (`TERRAIN_IDS`: floresta, colinas, campos, lago, pântano, ruínas, veio de ferro, santuário), novo `map.ts`; `engine`: novos `hexmap.ts` (geração e vizinhança), `mapView.ts`; `state.ts`, `hash.ts`, `migrations/v45.ts`; `protocol/view.ts` | `map.hexes: Record<"q,r", { terrain, fog, site? }>` com os 91 hexágonos do raio 5; `map.radius`. `site` aponta para a chave de `map.tiles` ou para um modelo de expedição. **Geração por conta sobre `state.seed`** (`hash.ts`), nunca pelo gerador: vale na criação e na migração. `map.tiles` e `tileTypes` não mudam. Fortaleza na borda norte. Visão `map.hexes[]`: Desconhecido só com coordenada; Avistado com o tipo; Explorado com detalhes e ações. | novo `hexmap.test.ts`: mesma semente → mesmo mapa; v42 migrada = partida nova da mesma semente (grade); **névoa** (duas partidas que diferem só no Desconhecido dão a mesma visão); `fixtures`, `migrations` | O passo de migração traz o gerador **congelado** no arquivo e um teste o compara ao do motor. |
+| **V5E-T2** Revelação (M) | `engine`: `construction.ts` (Torre), `expeditionTurn.ts`, novo `mapTurn.ts`; `content/chronicle.ts` | A névoa **só avança** e é gravada (a Queda derruba a Torre, não o que já se viu). Torre concluída avista um anel; Patrulha explora o vizinho mais próximo (ordem fixa, **sem sorteio**); expedição explora o hexágono do destino; Rastreador, um a mais. Evento `mapRevealed`. | `hexmap`, `expeditions` (ordem dos sorteios do nó **inalterada**) | Goldens de expedição sem diff de sorteio; névoa nunca regride (propriedade). |
+| **V5E-T3** Aba Mapa (G) | `web`: novos `tabs/Map.tsx`, `components/HexMap.tsx`, `ui/hexmap.ts` (axial → pontos do SVG), `workbench/hexNav.ts`; `app/router.ts` (`#/mapa`), `theme/themes.css`, `ui/treeModel.ts` | SVG com atributos (sem `style`), cor por classe e variável de tema, ícones Codicons, foco único com setas, ficha do hexágono ao lado com as ações que **já existem** (`lords.sendExpedition`, campanha, sabotagem). | `ui/hexmap.test.ts`; contraste nos três temas; `19-mapa.spec.ts` (teclado, ação pelo mapa, largura de celular) | Capturas dos três temas e do celular aprovadas pela sessão principal; `pnpm capture:landing` refeito. |
+| **V5E-T4** Santuário e Serra do Ferro (P) | `content/map.ts`, `relics.ts`; `server/games/service.ts`; `web/components/Welcome.tsx` | Santuário explorado entrega uma relíquia (uma vez). Cenário `ironRidge` (proposta): parâmetros do gerador, escolhido na criação; o servidor confere o Legado da conta (D-18). | `hexmap`, integração `games` | Sem o Legado, a criação recusa com frase legível. |
 
-## 6. Ordem, paralelismo e publicações
+### Fase F — Postos avançados (M) · estado 46 · publica
+
+| Tarefa | Arquivos principais | Estado, ordens, visão (propostas) | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5F-T1** Reivindicar e produzir (M) | `content`: `balance.ts` (`outposts`), `map.ts`; `engine`: novos `outposts.ts`, `outpostOrders.ts`; `economy.ts`, `timeline.ts`, `advance.ts`, `ids.ts`, `migrations/v46.ts`; `protocol` | `map.outposts: { id, hex, status: 'building' \| 'active' \| 'damaged', readyAtMs }[]`; id de `nextId(draft, 'outpost')`. Ordem `claimOutpost { hex }` (hexágono Explorado de tipo que produz, Salão Nv5, até 3, custo da D-23). Fim da obra é instante de `nextEventAt`, com lugar escolhido em `processEventsAt`. Veio: 3 ferro/h contínuos (respeita o cap do Armazém); os outros, fator 23/20 em `productionFactors`, com termo na explicação. Recusas `HEX_NOT_EXPLORED`, `OUTPOST_LIMIT`, `NOT_CLAIMABLE`. | novo `outposts.test.ts`; `advance` (instante exato); propriedade de divisão de intervalo com posto | Posto produz (critério do GDD); invariante de `advanceTo` exato com ferro contínuo. |
+| **V5F-T2** Posto sob ataque (P) | `engine`: `battleTurn.ts`/`raids.ts`, `outpostOrders.ts` | Regra da D-24; ordem `repairOutpost { outpostId }`; eventos `outpostDamaged`, `outpostRepaired`. | `outposts`, `raids.battle` | Sem posto, nenhuma incursão muda (goldens sem diff). |
+| **V5F-T3** Tela (P) | `web`: `components/HexMap.tsx`, `ui/treeModel.ts`, `notifications/policy.ts`, `game/returnReport.ts` | `lords.claimOutpost`, `lords.repairOutpost`; aviso de posto danificado; linha no Relatório de Retorno. | `20-postos.spec.ts` | Reivindicar e reparar pelo mapa e pela paleta. |
+
+### Fase G — Temporadas (G) · sem versão de estado · publica
+
+| Tarefa | Arquivos principais | Entrega (propostas) | Testes | Pronto quando |
+| --- | --- | --- | --- | --- |
+| **V5G-T1** Temporada no servidor (G) | `server`: `db/schema.ts` (tabela `seasons`; `games.season_id` nulo; o índice único vira dois parciais: pessoal e por Temporada), novo `seasons/service.ts`, `routes/seasons.ts`, `games/service.ts`, `stats/service.ts` (só partidas pessoais), `jobs/` (arquivar ao fechar); `deploy/migrations`; `protocol/api.ts`; `client-sdk` | `GET /v1/seasons/current` **abre a Temporada da semana se faltar** (sob `pg_advisory_lock`; sem agendador novo). `POST /v1/seasons/current/join` cria a partida com a semente, o ritmo e a dificuldade da linha. Sempre `ctx.clock()`. A semente não sai antes do fecho (D-27). | integração `seasons`: abre uma vez com chamadas simultâneas; entrada recusada depois de terça; pessoal e Temporada convivem; `ACTIVE_GAME_EXISTS` continua valendo em cada trilho; exclusão de conta | Critério do GDD: abre na segunda, aceita até terça. |
+| **V5G-T2** Ranking e Crônicas (M) | `server`: `seasons/service.ts`, `games/chronicleMarkdown.ts`; `web/tabs/Kingdom.tsx` | `GET /v1/leaderboard?season=`: pontuação do `yearEnded` do Ano 1, resultado do Cerco, Feitos; nome do feudo; respeita `ranking_listed`; publicado no fecho. `GET /v1/seasons/:id/chronicles/:posição` (proposta): só Crônica do Ano fechada, de quem está listado, para quem está na mesma Temporada. | integração `leaderboard`: empate, saída do ranking, nenhum identificador na resposta | Critério do GDD: ranking publicado ao fim da semana. |
+| **V5G-T3** Tela (M) | `web`: `app/controller.ts` (partida corrente entre duas), `components/Header.tsx` ou barra de status (seletor), `tabs/Kingdom.tsx`, `tabs/Today.tsx`, cache por partida (`cacheKey` já separa) | Seletor "Meu feudo / Temporada", cartão com contagem regressiva, ranking e leitura de Crônica. Ordem preparada em um feudo não vale no outro (`StaleOrderError` já cobre). | testes do controller; `21-temporada.spec.ts` | Trocar de partida não mistura avisos, cache nem retentativas. |
+
+### Fase H — Fechamento (M)
+
+- **V5H-T1 Bots e matriz.** Os perfis aprendem Capela, relíquias, Votos e postos; matriz
+  completa uma vez; `MEASURED` remedida pelo procedimento de `bands.ts`; `docs/balance-v0.5.md`.
+- **V5H-T2 Revisão independente só do risco:** migração do mapa, névoa do mapa, Temporada no
+  servidor, crédito de Legado.
+- **V5H-T3 Entrega:** GDD (versão nova, §16.2), `docs/architecture.md`, READMEs, CHANGELOG,
+  roteiro de 15 min para o autor, landing sem "horizonte" vencido. Tag e release são do autor.
+
+## 7. Ordem e dependências
 
 ```
-A ──► B (Capela) ──► publica
- └──► C (Mapa) ─────► publica ──► D (Postos) ──► publica
-                                └► E (Ano 2) ───► publica ──► F (Temporadas) ──► publica ──► G
+A ─► B Capela ─► C Ano 2 ─► D Sementes+Legado ─► E Mapa ─► F Postos ─► G Temporadas ─► H
+        (telas e servidor em paralelo; uma trilha de estado por vez)
 ```
 
-- B e C podem andar juntas em worktrees diferentes (pouco contato no código).
-- D depende do mapa; E depende pouco do mapa (só a Serra do Ferro usa a grade); F depende de
-  E (o ranking usa a Crônica do Ano com Votos e Legado).
-- Cinco publicações. Cada uma: CI verde no branch, backup, `push` autorizado pelo autor.
+- **Seis publicações** (B a G). B, C e D não dependem do mapa.
+- D depende de C (`legacy` no `yearEnded`). F depende de E. E-T4 depende de D-T2 e de B.
+- G depende de D (semente escolhida na criação) e ganha com C (Votos na criação).
+- Paralelo seguro: V5D-T2 e V5G-T1 (servidor) enquanto a trilha de estado está em C ou E; a
+  aba Mapa (V5E-T3) contra um `ViewState` de exemplo assim que a V5E-T1 fixar a visão.
 
-## 7. Riscos e como reduzir
+**Cortes se o prazo apertar** (do menos doloroso ao mais): Serra do Ferro (V5E-T4) → leitura da
+Crônica alheia (parte da V5G-T2) → posto sob ataque (V5F-T2) → raio 5 (ficar no 3) → memória
+entre anos (parte da V5C-T1).
+
+## 8. Ideias de diversão (sugestões; fora do escopo até a D-31)
+
+| # | Ideia | Custo | Por que diverte |
+| --- | --- | --- | --- |
+| 1 | **Pontuação do ano ao vivo**: a conta de `endYear` exposta na visão ("se o ano fechasse hoje: N pontos; falta M para o próximo Feito"), na aba Hoje e no Reino. | P (motor + visão) | Dá meta à semana inteira, não só ao último dia; é o que o ranking vai comparar. |
+| 2 | **"Copiar resultado do ano"**: texto curto para colar em conversa (pontos, Cerco, Feitos, Votos) com o link da semente. | P (app, depois da V5D-T1) | Convite pronto: "tenta fazer melhor na mesma semente". Sem servidor novo. |
+| 3 | **Feito "Cartógrafo"** (GDD, Apêndice E) e "N de 37 explorados" na aba Mapa. | P (depois da Fase E) | Explorar ganha fim e recompensa. |
+| 4 | **Batizar o posto avançado**: nome dado pelo jogador, usado na Crônica e no mapa. | P (validação `isStorableText` já existe) | Apego: a perda de "Vigia do Corvo" dói mais que a do "posto 2". Atenção: aparece na Crônica que outros leem (D-28, D-29). |
+| 5 | **Oferenda no Santuário**: uma vez por ano, uma de três bênçãos fixas para o ano. | M | Mais uma decisão anual com cara própria, ao lado dos Votos. |
+
+## 9. Riscos
 
 | Risco | Redução |
-|---|---|
-| Migração do mapa quebra partidas vivas | Retrato real da produção (anônimo) no teste de migração; publicação da Fase C em horário de pouco movimento. |
-| O mapa fica feio ou lento no celular | SVG simples, sem animação contínua; capturas revisadas pela sessão principal antes de publicar. |
-| Temporada mexe no modelo de partidas do servidor | Tarefa G isolada, com testes de integração focados nela e revisão independente. |
-| Balanceamento sem a matriz a cada tarefa | Matriz no fechamento de cada fase; desvio vira pergunta ao autor, não bloqueio. |
-| Testes focados deixam passar quebra em outro pacote | A CI do branch roda tudo antes de qualquer publicação. |
+| --- | --- |
+| Migração do mapa quebra partidas vivas | Gerador congelado no passo; teste "migrada = nova da mesma semente"; retrato anônimo da produção; backup. |
+| Teste focado deixa outro pacote quebrado | Sentinelas (§2.2), `test:changed` antes do `push`, CI inteira no PR, publicação só de SHA verde. |
+| Faixas da matriz se mexem no meio da versão | Bots só mudam na Fase H; sorteio novo só onde há mecânica nova (§5.2). |
+| Duas partidas ativas quebram suposições do servidor e do app | V5G-T1 lista os pontos (`stats`, `service`, job, expurgo); revisão independente; índices parciais testados. |
+| Semente visível permite prever sorteios | Aceito na partida pessoal (D-19); escondida na Temporada (D-27); ranking "por honra". |
+| Mapa feio ou pesado no celular | SVG simples, sem animação contínua; capturas revisadas antes de publicar. |
+| Publicações frequentes com estado novo | Uma versão por fase (D-4), backup e SHA de retorno em cada uma. |
+| `CLAUDE.md` enxuto perde regra | Conferência item a item na V5A-T1; a história vai para `docs/historico.md`, não some. |
 
-## 8. Fora da v0.5
+## 10. Fora da v0.5
 
-Academia, Feitos completos, som, auditoria de acessibilidade, inglês (v0.6); Necromante,
-classes e unidades novas pelo Legado (v0.6, D-6/D-8); qualquer interação entre feudos além do
-ranking e da leitura de Crônicas (v1.0).
+Academia, Feitos completos, som, auditoria de acessibilidade, inglês (v0.6); Necromante, o Voto
+"Inverno longo", plantas, classes, unidades e estilos de Crônica pelo Legado, os cenários Vale
+das Brumas e Costa Salgada, guarnição de posto, Caçada ao Dragão (v0.6, por D-12, D-15, D-16,
+D-18); qualquer interação entre feudos além do ranking e da leitura de Crônicas (v1.0).
 
-## 9. Registro de execução
+## 11. Registro de execução
 
-Uma linha por tarefa: data, commit, agente, o que foi verificado (e o que não foi).
+Uma linha por tarefa: o que foi verificado **e o que não foi**.
 
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
-|---|---|---|---|---|
-| | | | | |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
