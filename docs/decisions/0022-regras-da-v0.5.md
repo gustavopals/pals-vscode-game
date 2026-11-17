@@ -6,7 +6,7 @@ Escopo: GDD §5.7, §6.1, §6.2, §8.1, §9.2, §9.3, §10.3, §10.6, §11.2, §
 
 ## Contexto
 
-Com a v0.4.0 publicada em 2026-11-17 (`b7640394`, estado 42, protocolo 4), o [roadmap da v0.5](../roadmap-v0.5.md) ("Mundo e Legado") reuniu na §4 as 31 decisões de processo, escopo e regra necessárias para implementar Capela e relíquias, Ano 2 (escala, memória da Horda, Trolls e Votos), Sementes e Legado, Mapa hexagonal, Postos Avançados e Temporadas semanais.
+Com a v0.4.0 publicada em 2026-11-17 (tag `v0.4.0`, `333df054`; estado 42, protocolo 4), o [roadmap da v0.5](../roadmap-v0.5.md) ("Mundo e Legado") reuniu na §4 as 31 decisões de processo, escopo e regra necessárias para implementar Capela e relíquias, Ano 2 (escala, memória da Horda, Trolls e Votos), Sementes e Legado, Mapa hexagonal, Postos Avançados e Temporadas semanais.
 
 Em **2026-11-17**, o autor respondeu ao lote completo da §4:
 

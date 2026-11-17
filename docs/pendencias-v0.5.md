@@ -1,6 +1,6 @@
 # Pendências e dúvidas da v0.5
 
-> **Para ler primeiro.** A v0.4.0 está no ar desde 2026-11-17 (`b7640394`, estado 42, protocolo 4). Na mesma data o autor respondeu às decisões da v0.5 ([ADR 0022](decisions/0022-regras-da-v0.5.md)): a D-1 foi aprovada (regime rápido e "sem resposta vale a recomendada") e as decisões D-2 a D-31 valem com a recomendação da tabela do [roadmap da v0.5](roadmap-v0.5.md), §4. Este arquivo é a caixa de entrada do autor durante a v0.5, no molde de [pendencias-v0.4.md](pendencias-v0.4.md). Cada item diz o que vale enquanto não houver resposta.
+> **Para ler primeiro.** A v0.4.0 está no ar desde 2026-11-17 (tag `v0.4.0`, `333df054`; estado 42, protocolo 4). Na mesma data o autor respondeu às decisões da v0.5 ([ADR 0022](decisions/0022-regras-da-v0.5.md)): a D-1 foi aprovada (regime rápido e "sem resposta vale a recomendada") e as decisões D-2 a D-31 valem com a recomendação da tabela do [roadmap da v0.5](roadmap-v0.5.md), §4. Este arquivo é a caixa de entrada do autor durante a v0.5, no molde de [pendencias-v0.4.md](pendencias-v0.4.md). Cada item diz o que vale enquanto não houver resposta.
 
 ## 1. Perguntas abertas da v0.5
 
