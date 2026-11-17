@@ -27,7 +27,8 @@ O registro completo está em [pendencias-v0.4.md](pendencias-v0.4.md). Com a apr
 | 2 | **Backup fora do servidor** | Ato 23: configurar destino externo para os backups diários do PostgreSQL (hoje no mesmo disco do servidor). |
 | 3 | **Ensaio de restauração e reversão** | Ato 23: ensaiar em banco descartável a restauração e a reversão com duas imagens atravessando uma migração de estado ([deploy/README.md](../deploy/README.md)). |
 | 4 | **Playtest e leitura de conteúdo** | Jogar as versões publicadas com os roteiros manuais e realizar playtest com outras pessoas (inclusive para o ajuste fino das faixas de vitória de Senhor Rápido e Normal aceitas em D2, D3 e D4 de [pendencias-v0.4.md](pendencias-v0.4.md)), além de revisar os textos narrativos em rascunho das versões anteriores e ler por amostra o conteúdo da v0.5 em cada publicação (D-30). |
-| 5 | **Confirmações editoriais do [ADR 0012](decisions/0012-pagina-de-apresentacao.md)** | Confirmar os oito pontos da página de apresentação (`@lotg/landing`), incluindo as escolhas atualizadas em 2026-11-17 na versão "Almanaque de Pedra Alta" (endereço, fontes, título e tom, artes conceituais, capturas, aviso para celular, monitor de saúde e menção no GDD), e o vínculo GitHub em produção se quiser ativá-lo. |
+| 5 | **Novidades da 0.4.0 ainda em rascunho** | `packages/web/src/news/entries.ts` marca a entrada 0.4.0 como `draft`, embora a versão esteja publicada: falta o autor ler o texto e liberar a troca para `published`. |
+| 6 | **Confirmações editoriais do [ADR 0012](decisions/0012-pagina-de-apresentacao.md)** | Confirmar os oito pontos da página de apresentação (`@lotg/landing`), incluindo as escolhas atualizadas em 2026-11-17 na versão "Almanaque de Pedra Alta" (endereço, fontes, título e tom, artes conceituais, capturas, aviso para celular, monitor de saúde e menção no GDD), e o vínculo GitHub em produção se quiser ativá-lo. |
 
 ## 4. As decisões da v0.5
 
