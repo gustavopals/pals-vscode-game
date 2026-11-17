@@ -210,8 +210,9 @@ Responder em um lote antes da Fase B. **Sem resposta, a fase que depende dela n�
 
 > **Respostas do autor (2026-11-17):** a **D-1 está aprovada** (regime rápido e "sem resposta
 > vale a recomendada"), e **as decisões D-2 a D-31 valem com a recomendação** da tabela. Mudar
-> alguma depois é mudança de regra: conteúdo, golden e GDD no mesmo commit. A V5A-T3 registra
-> isto no ADR 0022.
+> alguma depois é mudança de regra: conteúdo, golden e GDD no mesmo commit. Registrado no
+> [ADR 0022](decisions/0022-regras-da-v0.5.md) e em [pendencias-v0.5.md](pendencias-v0.5.md)
+> (V5A-T3).
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
@@ -400,3 +401,4 @@ Uma linha por tarefa: o que foi verificado **e o que não foi**.
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
 | --- | --- | --- | --- | --- |
 | V5A-T2 | 2026-11-17 | este | Codex | Unit completo medido uma vez: 1631,62 s; 249/250 arquivos passaram, falha da Paliçada registrada na §2.4. `nice -n 19 pnpm verify:fast`: **229,77 s (3 min 49,77 s)**, lint, tipos e 246 arquivos passaram; meta < 10 min atendida. `nice -n 19 pnpm test:guards`: **1094,15 s (18 min 14,15 s)**, 12 arquivos e 14.246 testes passaram; mantém `migrations` pesado. Partição por `vitest list --filesOnly --json`: 246 + 4 = 250, sem ausentes, extras ou interseção; 12 sentinelas exatas; `test:changed` listou 0 arquivos neste diff. YAML e diff do CI conferidos em 10 cenários locais, incluindo exclusão e mudança de pasta; demais jobs e gatilhos preservados. `test` e `verify` mantêm os comandos originais. Prettier nos arquivos tocados passou (Markdown ignorado pela configuração). Não rodados: `pnpm verify`, matriz em separado, integração/e2e completos e CI remota/PR/deploy, conforme regime rápido e pedido de não fazer push. `CLAUDE.md` e código de jogo intactos. **Revisão (Claude):** `migrations` saiu das sentinelas (`test:guards` 18 min → **6,6 s**, 11 arquivos, 876 testes); a falha da Paliçada era do teste (a Queda do Cerco baixa a Paliçada; a asserção exigia igualdade) e foi corrigida para "nunca sobe"; a semente `-863285096` passa. |
+| V5A-T3 | 2026-11-17 | este | Gemini Argon | **Verificado:** `docs/decisions/0022-regras-da-v0.5.md` criado (D-1 a D-31) e listado em `docs/decisions/README.md`; `docs/pendencias-v0.5.md` criado (D-31, D-29, F-5, G-23, G-25, ato 23, playtest e ADR 0012); `GAME_DESIGN.md` corrigido onde as decisões mudam regra ou fecham questão em aberto (§5.7, §9.2, §9.3, §11.5, §11.6, §16.2, §17.2 e Apêndice D); `prettier --check` nos cinco arquivos tocados. **Não verificado:** suítes de testes, `typecheck`, `eslint`, build e e2e (mudança restrita a documentação). |
