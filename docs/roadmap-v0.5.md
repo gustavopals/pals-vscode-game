@@ -153,8 +153,9 @@ Responder em um lote antes da Fase B. **Sem resposta, a fase que depende dela n�
 
 > **Respostas do autor (2026-11-17):** a **D-1 está aprovada** (regime rápido e "sem resposta
 > vale a recomendada"), e **as decisões D-2 a D-31 valem com a recomendação** da tabela. Mudar
-> alguma depois é mudança de regra: conteúdo, golden e GDD no mesmo commit. A V5A-T3 registra
-> isto no ADR 0022.
+> alguma depois é mudança de regra: conteúdo, golden e GDD no mesmo commit. Registrado no
+> [ADR 0022](decisions/0022-regras-da-v0.5.md) e em [pendencias-v0.5.md](pendencias-v0.5.md)
+> (V5A-T3).
 
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
@@ -342,4 +343,4 @@ Uma linha por tarefa: o que foi verificado **e o que não foi**.
 
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| V5A-T3 | 2026-11-17 | este | Gemini Argon | **Verificado:** `docs/decisions/0022-regras-da-v0.5.md` criado (D-1 a D-31) e listado em `docs/decisions/README.md`; `docs/pendencias-v0.5.md` criado (D-31, D-29, F-5, G-23, G-25, ato 23, playtest e ADR 0012); `GAME_DESIGN.md` corrigido onde as decisões mudam regra ou fecham questão em aberto (§5.7, §9.2, §9.3, §11.5, §11.6, §16.2, §17.2 e Apêndice D); `prettier --check` nos cinco arquivos tocados. **Não verificado:** suítes de testes, `typecheck`, `eslint`, build e e2e (mudança restrita a documentação). |
