@@ -2,7 +2,12 @@
 
 > **Para ler primeiro.** A v0.3.0 está no ar desde 2026-10-15 (estado 24, protocolo 3). Em 2026-10-16 o autor respondeu, uma a uma, às decisões do lote 1 da v0.4 e à herança da v0.3: todas com a premissa recomendada ([ADR 0019](decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md)). Este arquivo é a caixa de entrada do autor durante a v0.4, no molde de [pendencias-v0.3.md](pendencias-v0.3.md). Cada item diz o que vale enquanto não houver resposta.
 
-## Medição para decisão — 2026-11-13 (sem resposta do autor)
+## Respostas do autor de 2026-11-17
+
+- **D3 — Aceitar os 38% do Regular Senhor Rápido (V4I-T1).** O Regular em Senhor no Rápido vence 19/50 (38%) do primeiro Cerco, abaixo da meta de 65–80%. O autor aceita o desvio na v0.4 como está, sem o fator 2/7 nas ondas do ano 1; ajuste fino no playtest/v0.5. A meta continua explícita, separada da faixa medida.
+- **D4 — Aceitar a escassez da semana do Rápido (V4I-T1).** Com R3, o Regular chega a até 14 h de fome e 11 h de frio e cai a 5 aldeões na semana do Rápido (custo da tropa maior; nenhum herói parte por soldo). O autor aceita o desvio na v0.4 como está; as faixas medidas (balance §23) seguem como guarda de regressão.
+
+## Medição para decisão — 2026-11-13 (respondida em 2026-11-17: D3 e D4)
 
 - **Regular Senhor Rápido após R3:** **19/50 (38%)**, meta 65–80%; D2 segue confirmado no Normal (92%) e Tranquilo (78%), sem aprovar o desvio novo. Ensaios isolados, 50 sementes cada: ondas do ano 1 com **2/7 → 76% Vitória / 26% Gloriosa**; 4/15 → 80% / 74%; 1/4 → 82% / 74%; 1/5 → 86% / 84%. **Recomendação:** avaliar 2/7 apenas no primeiro ano do Rápido em nova rodada, mediante decisão; o fator atual é global e os outros ritmos/dificuldades/anos não foram medidos com essa hipótese. **Nenhum número alterado no candidato.** Manter R3 com 38% é outra opção, ainda sem aceite. Escassez (até 5 h de fome e 7 h de frio) e duas perdas de aldeões persistem nos ensaios; não equivalem a equilíbrio econômico. Método, ouro e custos em [balance-v0.4.md](balance-v0.4.md), §23.
 

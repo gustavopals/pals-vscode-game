@@ -60,7 +60,7 @@ Resumo atualizado durante a execução:
 O avanço de `main` é autorizado **somente após todas as saídas finais verdes** e
 checkout limpo salvo `.claude/prompt-codex-v0.4.md`. **Sem push ou publicação.**
 
-**Autor:** aceitar os **38%** do Regular Senhor Rápido no primeiro Cerco como
+**Respondido em 2026-11-17 (D3 e D4, em [pendencias-v0.4.md](pendencias-v0.4.md)): o autor aceitou os dois desvios como estão.** Pergunta original: aceitar os **38%** do Regular Senhor Rápido no primeiro Cerco como
 novo desvio ou ajustar? Recomendação já medida: avaliar **2/7 só no ano 1 do
 Rápido** (76% vitória / 26% Gloriosa no ensaio), sem aplicação neste candidato.
 D2 continua aceitando Normal **92%** e Tranquilo **78%**. Decidir também a
@@ -90,7 +90,7 @@ dificuldade, saídas originais **1** contra as faixas antigas. Camponês teve
 **zero violações com as novas faixas**. Não equivale a meta de vitória cumprida.
 Detalhes, ouro por fonte/destino e custos em [balance-v0.4.md](balance-v0.4.md), §23.
 
-**Decisão que continua com o autor:** Regular Senhor Rápido **19/50 (38%)**.
+**Decisão do autor (2026-11-17, D3): aceito como desvio.** Regular Senhor Rápido **19/50 (38%)**.
 D2 permanece confirmado: Normal **92%**, Tranquilo **78%**. Ensaios isolados de
 50 sementes: fator de ondas **2/7 → 76% Vitória / 26% Gloriosa**, recomendado para
 nova avaliação apenas no primeiro ano do Rápido; 4/15 → 80% / 74%, 1/4 → 82% / 74%,
