@@ -36,7 +36,7 @@ describe('notícias na bancada', () => {
     expect(controller.route).toBe('fief');
   });
 
-  it('espera a aba voltar à vista e não marca o rascunho de guerra', async () => {
+  it('espera a aba voltar à vista para marcar Guerra e Cerco como lida', async () => {
     const { controller, store } = await opened();
     if (controller.server.status === 'ready') controller.server.value.server = '0.4.0';
     controller.setVisible(false);
@@ -45,7 +45,7 @@ describe('notícias na bancada', () => {
     expect(store.get(newsSeenKey(ACCOUNT_ID))).toBeUndefined();
     controller.setVisible(true);
     await controller.markNewsRead();
-    expect(store.get(newsSeenKey(ACCOUNT_ID))).toBe('0.3.0');
+    expect(store.get(newsSeenKey(ACCOUNT_ID))).toBe('0.4.0');
   });
 
   it('sem conta ou confirmação do servidor, permite ler sem acender nem gravar selo', async () => {

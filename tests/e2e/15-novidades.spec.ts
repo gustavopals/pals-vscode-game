@@ -38,9 +38,9 @@ test('Novidades pela paleta e pelo teclado: leitura por conta, selo e três tema
   await expect(newsItem.locator('.chip')).toHaveCount(0);
   await expect(otherBadge).toHaveCount(0);
   await other.close();
-  await expect(
-    page.getByText('Esta versão ainda não foi publicada.', { exact: false }),
-  ).toBeVisible();
+  const war = page.getByRole('article', { name: 'v0.4.0 · Guerra e Cerco', exact: true });
+  await expect(war.locator('.muted')).toHaveText('Publicada em 17/11/2026');
+  await expect(war.locator('.news-draft-note')).toHaveCount(0);
 
   // Fecha e abre pelo item do menu com Enter; o foco chega ao título da leitura.
   await page.getByRole('button', { name: 'Fechar a aba Novidades' }).focus();
@@ -81,6 +81,6 @@ test('Novidades pela paleta e pelo teclado: leitura por conta, selo e três tema
       .filter((key) => key.startsWith('lords.newsSeen:'))
       .map((key) => JSON.parse(localStorage.getItem(key) ?? 'null') as unknown),
   );
-  expect(marks).toEqual(['0.3.0']);
+  expect(marks).toEqual(['0.4.0']);
   expect(world.problems).toEqual([]);
 });

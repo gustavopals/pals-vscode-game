@@ -19,9 +19,12 @@ describe('crônicas das versões', () => {
     }
   });
 
-  it('mantém a guerra como rascunho e não anuncia o Cerco como publicado', () => {
-    expect(NEWS_ENTRIES[0]?.status).toBe('draft');
-    expect(latestPublishedNews('0.4.0')?.version).toBe('0.3.0');
+  it('anuncia Guerra e Cerco como a versão mais recente para o reino atualizado', () => {
+    expect(latestPublishedNews('0.4.0')).toMatchObject({
+      version: '0.4.0',
+      date: '2026-11-17',
+      status: 'published',
+    });
     expect(latestPublishedNews('0.3.0')?.version).toBe('0.3.0');
     expect(latestPublishedNews('0.2.1')?.version).toBe('0.2.0');
   });
@@ -37,15 +40,11 @@ describe('crônicas das versões', () => {
     expect(compareNewsVersions('0.10.0', '0.3.0')).toBeGreaterThan(0);
     expect(compareNewsVersions('0.3.0+reino', '0.3.0')).toBe(0);
     expect(compareNewsVersions('inválida', '0.3.0')).toBeNull();
-    expect(latestPublishedNews('1.0.0')?.version).toBe('0.3.0');
+    expect(latestPublishedNews('1.0.0')?.version).toBe('0.4.0');
   });
 
-  it('mostra o histórico do reino e o rascunho identificado, sem inventar a versão offline', () => {
-    expect(newsForVersion('0.2.0').map((entry) => entry.version)).toEqual([
-      '0.4.0',
-      '0.2.0',
-      '0.1.0',
-    ]);
+  it('filtra pela versão do reino e mantém o histórico disponível offline', () => {
+    expect(newsForVersion('0.2.0').map((entry) => entry.version)).toEqual(['0.2.0', '0.1.0']);
     expect(newsForVersion(null)).toEqual(NEWS_ENTRIES);
   });
 });

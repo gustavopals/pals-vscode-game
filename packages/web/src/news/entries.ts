@@ -11,16 +11,14 @@ export type NewsEntry = {
 
 /** Uma crônica por versão, da mais nova para a mais antiga. */
 export const NEWS_ENTRIES: readonly NewsEntry[] = [
-  // RASCUNHO A CONFIRMAR NA PUBLICAÇÃO: a v0.4 ainda não foi publicada.
-  // A data abaixo é de redação. Conferir escopo e data real antes de mudar o status.
-  // Fontes: docs/roadmap-v0.4.md (Fases B a H), CLAUDE.md; pendência N-1.
+  // Fonte da data de publicação: CHANGELOG.md.
   {
     version: '0.4.0',
     title: 'Guerra e Cerco',
-    date: '2026-11-11',
-    status: 'draft',
+    date: '2026-11-17',
+    status: 'published',
     introduction:
-      'Os vigias olham para além dos campos. A próxima crônica prepara o feudo para a guerra.',
+      'Os vigias avistam a Horda no horizonte. Prepare o feudo para o Cerco do Inverno.',
     changes: [
       'Busque ferro nas expedições à mina. Erga o Ferreiro, forje armas e repare o equipamento gasto dos heróis.',
       'Erga o Quartel e treine soldados para guardar o feudo. Os limites dos lotes de treino e recrutamento acompanham o ritmo escolhido.',

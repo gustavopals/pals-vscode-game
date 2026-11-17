@@ -7,7 +7,7 @@ import { NewsTab } from './News';
 
 describe('aba Novidades', () => {
   it('desenha as crônicas em ordem, com títulos, datas e ações em palavras', () => {
-    const html = renderToString(<NewsTab serverVersion="0.3.0" />);
+    const html = renderToString(<NewsTab serverVersion="0.4.0" />);
     expect(html).toContain('aria-labelledby="news-title"');
     expect(html).toContain('id="news-title" tabindex="-1"');
     let previous = -1;
@@ -22,13 +22,12 @@ describe('aba Novidades', () => {
     expect(html).not.toMatch(/style=|<script|Visual Studio Code/);
   });
 
-  it('identifica a guerra como preparação e a data como redação', () => {
+  it('mostra a data oficial de Guerra e Cerco sem o aviso de rascunho', () => {
     const html = renderToString(<NewsTab serverVersion="0.4.0" />);
-    expect(html).toContain('Em preparação');
-    expect(html).toContain('Rascunho de');
-    expect(html).toContain('Esta versão ainda não foi publicada.');
-    expect(html).toContain('nem tudo está disponível para jogar.');
-    expect(html).toContain('Publicada em <time datetime="2026-10-15">15/10/2026</time>');
+    expect(html).toContain('v0.4.0 · Guerra e Cerco');
+    expect(html).toContain('Publicada em <time datetime="2026-11-17">17/11/2026</time>');
+    expect(html).not.toContain('Em preparação');
+    expect(html).not.toContain('Esta versão ainda não foi publicada.');
   });
 
   it('mantém o histórico sem confirmação do servidor e explica essa ausência', () => {

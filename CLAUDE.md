@@ -16,7 +16,7 @@ motor determinístico TypeScript, servidor Fastify/PostgreSQL autoritativo, app 
 Raiz, oito pacotes e constantes públicas: 0.4.0; código: `CURRENT_SCHEMA_VERSION = 42`
 (`engine/src/migrations.ts`), `PROTOCOL_VERSION = 4` (`protocol/src/index.ts`).
 Confira `server`, `protocol` e `builtAt` em `/v1/version` para identificar produção.
-Novidades ainda marca 0.4.0 como `draft`; isso é uma pendência editorial.
+Novidades registra 0.4.0 como publicada em 2026-11-17.
 
 Coolify e domínio próprio: ADRs 0009/0012 e [deploy/README.md](deploy/README.md).
 GitHub permanece desligado, testado só com simulado: não ligar/remover sem pedido;
