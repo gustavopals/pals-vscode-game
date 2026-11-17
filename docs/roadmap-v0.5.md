@@ -35,7 +35,7 @@ A v0.4 levou um mês, e a maior parte foi portão, remedição de faixas e regis
 | --- | --- | --- |
 | Tipos | `pnpm typecheck` | Sempre: pega protocolo ≠ motor (igualdade de tipos). |
 | Foco | `pnpm --filter @lotg/<pacote> test -- <nome>` | Os arquivos da lista "Testes" da tarefa. |
-| Sentinelas | `pnpm test:guards` (proposta, V5A-T2) | Antes de cada commit que toca motor, conteúdo ou protocolo. |
+| Sentinelas | `pnpm test:guards` | Antes de cada commit que toca motor, conteúdo ou protocolo. |
 | Tela | `pnpm test:e2e <arquivo>` | Só o cenário novo ou alterado. |
 | Formato | `pnpm exec prettier --check <arquivos>` e `pnpm exec eslint <arquivos>` | Antes do commit. |
 
@@ -46,7 +46,7 @@ A v0.4 levou um mês, e a maior parte foi portão, remedição de faixas e regis
 
 ### 2.2 Sentinelas: o que o teste focado não vê
 
-`pnpm test:guards` (proposta) roda só os arquivos que amarram um pacote ao outro:
+`pnpm test:guards` roda só os arquivos que amarram um pacote ao outro:
 
 | Sentinela | Protege |
 | --- | --- |
@@ -56,8 +56,11 @@ A v0.4 levou um mês, e a maior parte foi portão, remedição de faixas e regis
 | `web`: `bundle`, `tabs` | Nenhum número ou frase do conteúdo no navegador; as abas renderizam o golden. |
 | `landing`: `page` | A página só diz o que o jogo diz (o "horizonte" muda a cada publicação). |
 
-Complemento antes do `push` do branch: `pnpm test:changed` (proposta: `vitest run --project
-unit --changed main`, sem os arquivos pesados do `sim-cli`). Como os pacotes são consumidos como
+`packages/engine/src/migrations.test.ts` continua nas sentinelas, embora seja pesado (§2.4).
+O tempo de `test:guards` fica no Registro (§11).
+
+Complemento antes do `push` do branch: `pnpm test:changed` (`vitest run --project
+unit --changed main`, sem os arquivos pesados da §2.4). Como os pacotes são consumidos como
 fonte, o grafo de importação atravessa os pacotes.
 
 ### 2.3 "Toquei X, rodo Y"
@@ -70,7 +73,7 @@ fonte, o grafo de importação atravessa os pacotes.
 | `packages/protocol` | `typecheck` + sentinelas. |
 | `packages/server` | `TEST_DATABASE_URL=… pnpm test:integration <nome>` (**sem** `--`). |
 | `packages/web` | o teste da aba ou do módulo + `bundle` + um e2e. |
-| Número de balanceamento | acima + `pnpm test:matrix` (proposta) **na CI**, não local. |
+| Número de balanceamento | acima + `pnpm test:matrix` **na CI**, não local. |
 
 ### 2.4 A CI como portão pesado
 
@@ -79,18 +82,71 @@ o job `deploy` já tem `if: push && refs/heads/main`. Logo:
 
 - **Não é preciso mudar gatilho**: o agente dá `push` no branch `v5-<fase>` e abre **PR
   rascunho** (`gh pr create --draft`); a CI inteira roda sem implantar. `gh pr checks --watch`.
-- **Mudanças propostas no `ci.yml` (V5A-T2):**
-  1. Separar o pesado: job `verify` roda `pnpm verify:fast`; job novo `matrix` roda
-     `pnpm test:matrix`, em paralelo. `deploy.needs` passa a incluir `matrix`.
+- **Portão no `ci.yml` (V5A-T2):**
+  1. O job `verify` roda `pnpm verify:fast`; o job `matrix` roda
+     `pnpm test:matrix`, em paralelo. `deploy.needs` inclui `matrix`.
   2. No `matrix`, em PR, rodar só quando o diff toca `packages/{engine,content,sim-cli}`
-     (um passo com `git diff --name-only`; sem action de terceiros). No `main` roda sempre.
-- **Scripts propostos no `package.json`:** `test:fast` (unit sem os arquivos pesados do
-  `sim-cli`), `test:matrix` (só eles), `test:guards`, `test:changed`,
+     (um passo com `git diff --name-only` contra a base do PR; sem action de terceiros).
+     O checkout busca o histórico completo. Sem mudança nesses pacotes, só os passos da
+     matriz são pulados; o job termina verde. No `main` roda sempre.
+- **Scripts no `package.json`:** `test:fast` (unit sem os arquivos pesados da tabela
+  abaixo), `test:matrix` (só eles), `test:guards`, `test:changed`,
   `verify:fast` (`lint && typecheck && test:fast`). **`pnpm test` e `pnpm verify` continuam
   completos**: é o que o `main` exige.
-- Quais arquivos do `sim-cli` são "pesados" **não foi medido nesta revisão**: a V5A-T2 mede
-  (`vitest --reporter=verbose`) e fixa a lista (candidatos: `balance`, `coverage`,
-  `siege-report`, `perf`, `matrix`).
+
+**Medição local de 2026-11-17 (V5A-T2):** uma execução de
+`nice -n 19 pnpm exec vitest run --project unit --maxWorkers=2 --reporter=verbose`,
+com saída em log: **1631,62 s** no relógio, **250 arquivos** (Node 24.15.0, Vitest 5.0.3).
+O `verbose` desta versão omite o total por arquivo. Os tempos abaixo vieram de
+`TestModule.diagnostic()` da mesma execução, capturado ao fim por um observador de relatório.
+Somam ambiente, preparação, coleta e testes. A coleta inclui as simulações no topo dos
+arquivos; somar apenas os tempos das asserções esconderia quase todo o custo de `balance`
+e `coverage`. Os tempos por arquivo se sobrepõem, pois há dois workers.
+
+Os **quatro arquivos acima de 60 s** concentram **87,2%** da soma dos tempos por arquivo
+e formam `test:matrix`.
+Todos os demais ficaram abaixo de 38 s. `perf` e `siege-report` continuam em `test:fast`.
+A tabela inclui todos os 21 arquivos do `sim-cli` e os demais unit acima de 30 s.
+
+| Arquivo | Segundos | Script |
+| --- | ---: | --- |
+| `packages/sim-cli/src/balance.test.ts` | 1377,110 | `test:matrix` |
+| `packages/engine/src/migrations.test.ts` | 1199,806 | `test:matrix` |
+| `packages/sim-cli/src/matrix.test.ts` | 142,912 | `test:matrix` |
+| `packages/sim-cli/src/coverage.test.ts` | 94,687 | `test:matrix` |
+| `packages/engine/src/random.property.test.ts` | 37,480 | `test:fast` |
+| `packages/engine/src/ids.test.ts` | 33,428 | `test:fast` |
+| `packages/sim-cli/src/bots/bots.test.ts` | 17,417 | `test:fast` |
+| `packages/sim-cli/src/simulate.test.ts` | 9,704 | `test:fast` |
+| `packages/sim-cli/src/bots/militar.test.ts` | 9,693 | `test:fast` |
+| `packages/sim-cli/src/timescale.test.ts` | 6,772 | `test:fast` |
+| `packages/sim-cli/src/bots/explorador.test.ts` | 6,753 | `test:fast` |
+| `packages/sim-cli/src/bots/mercado.test.ts` | 6,728 | `test:fast` |
+| `packages/sim-cli/src/perf.test.ts` | 3,525 | `test:fast` |
+| `packages/sim-cli/src/siege-report.test.ts` | 3,109 | `test:fast` |
+| `packages/sim-cli/src/bots/ferreiro.test.ts` | 3,049 | `test:fast` |
+| `packages/sim-cli/src/bots/ferro.test.ts` | 2,505 | `test:fast` |
+| `packages/sim-cli/src/difficulty.test.ts` | 2,160 | `test:fast` |
+| `packages/sim-cli/src/smoke.test.ts` | 1,228 | `test:fast` |
+| `packages/sim-cli/src/bots/cerco.test.ts` | 0,713 | `test:fast` |
+| `packages/sim-cli/src/report.test.ts` | 0,560 | `test:fast` |
+| `packages/sim-cli/src/bots/finta.test.ts` | 0,527 | `test:fast` |
+| `packages/sim-cli/src/bots/mestres.test.ts` | 0,350 | `test:fast` |
+| `packages/sim-cli/src/cli.test.ts` | 0,349 | `test:fast` |
+| `packages/sim-cli/src/bands.test.ts` | 0,294 | `test:fast` |
+
+**Partição conferida com `vitest list --project unit --maxWorkers=2 --filesOnly --json`,**
+usando os mesmos argumentos de cada script (trocando `run` por `list`): `test` = **250**,
+`test:fast` = **246**, `test:matrix` = **4**. União = **250**; ausentes = **0**;
+extras = **0**; interseção = **0**. `test:changed` usa as mesmas exclusões de `test:fast`.
+`test:guards` seleciona exatamente as **12 sentinelas** da §2.2; nenhum equivalente foi
+necessário. `pnpm test` e `pnpm verify` mantêm os comandos originais, sem exclusões.
+
+**Falha observada na medição completa:** 249 arquivos passaram e um falhou:
+`packages/engine/src/palisade.test.ts:514`, propriedade de divisão de intervalo,
+semente `-863285096`. A igualdade entre os avanços passou; a asserção do nível final
+da Paliçada recebeu 1 e esperava 2. O arquivo e o motor não foram alterados.
+Esse teste permanece em `test:fast`. Resultado detalhado e limites da validação na §11.
 
 ### 2.5 Publicar por fase sem `main` vermelho
 
@@ -227,7 +283,7 @@ Fechamento de toda fase que publica: §2.5.
 | Tarefa | Arquivos | Pronto quando |
 | --- | --- | --- |
 | **V5A-T1** `CLAUDE.md` enxuto (P) | `CLAUDE.md`, novo `docs/historico.md` | Abaixo de ~20 KB; estado 42 e protocolo 4; regra 6 reescrita para a v0.5; toda regra de "Regras de arquitetura", "Motor", "Servidor", "Cliente" e "Nunca" conferida item a item; regime da §2 no lugar do ritual antigo. |
-| **V5A-T2** Portão rápido (P) | `package.json`, `.github/workflows/ci.yml`, `packages/sim-cli` (só se precisar de marca nos arquivos) | Scripts da §2.4 existem; lista dos pesados medida e escrita; `verify:fast` < 10 min local (medir); PR rascunho roda a CI sem `deploy`; `pnpm verify` continua completo. |
+| **V5A-T2** Portão rápido (P) | `package.json`, `.github/workflows/ci.yml`, `docs/roadmap-v0.5.md` | Scripts da §2.4 existem; lista dos pesados medida e escrita; `verify:fast` < 10 min local (medir); PR rascunho roda a CI sem `deploy`; `pnpm verify` continua completo. |
 | **V5A-T3** Decisões (P) | novo `docs/decisions/0022-regras-da-v0.5.md`, novo `docs/pendencias-v0.5.md`, `GAME_DESIGN.md` | Respostas da §4 registradas; GDD corrigido onde a resposta muda regra (D-11, D-21). |
 
 ### Fase B — Capela e relíquias (M) · estado 43 · publica
@@ -342,4 +398,4 @@ Uma linha por tarefa: o que foi verificado **e o que não foi**.
 
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| V5A-T2 | 2026-11-17 | este | Codex | Unit completo medido uma vez: 1631,62 s; 249/250 arquivos passaram, falha da Paliçada registrada na §2.4. `nice -n 19 pnpm verify:fast`: **229,77 s (3 min 49,77 s)**, lint, tipos e 246 arquivos passaram; meta < 10 min atendida. `nice -n 19 pnpm test:guards`: **1094,15 s (18 min 14,15 s)**, 12 arquivos e 14.246 testes passaram; mantém `migrations` pesado. Partição por `vitest list --filesOnly --json`: 246 + 4 = 250, sem ausentes, extras ou interseção; 12 sentinelas exatas; `test:changed` listou 0 arquivos neste diff. YAML e diff do CI conferidos em 10 cenários locais, incluindo exclusão e mudança de pasta; demais jobs e gatilhos preservados. `test` e `verify` mantêm os comandos originais. Prettier nos arquivos tocados passou (Markdown ignorado pela configuração). Não rodados: `pnpm verify`, matriz em separado, integração/e2e completos e CI remota/PR/deploy, conforme regime rápido e pedido de não fazer push. `CLAUDE.md` e código de jogo intactos. |

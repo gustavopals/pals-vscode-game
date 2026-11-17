@@ -27,8 +27,43 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # GDD §14.14: dependências de produção auditadas; falha com vulnerabilidade alta ou crítica.
       - run: pnpm audit --prod --audit-level high
-      - run: pnpm verify
+      - run: pnpm verify:fast
       - run: pnpm build
+
+  matrix:
+    name: matrix (testes pesados)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Conferir se o diff exige a matriz
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          run_matrix=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            git diff --name-only --no-renames "$BASE_SHA"...HEAD > "$RUNNER_TEMP/matrix-changes.txt"
+            if ! grep -Eq '^packages/(engine|content|sim-cli)/' "$RUNNER_TEMP/matrix-changes.txt"; then
+              run_matrix=false
+            fi
+          fi
+          echo "run=$run_matrix" >> "$GITHUB_OUTPUT"
+          echo "Matriz necessária: $run_matrix"
+      - uses: pnpm/action-setup@v4
+        if: steps.changes.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.run == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.run == 'true'
+      - run: pnpm test:matrix
+        if: steps.changes.outputs.run == 'true'
 
   integration:
     name: integration (PostgreSQL 16)
@@ -140,7 +175,7 @@ jobs:
   # de apresentação (ADR 0012) vai por último: é independente do jogo e não o derruba.
   deploy:
     name: deploy (Coolify)
-    needs: [verify, integration, e2e, landing, docker]
+    needs: [verify, matrix, integration, e2e, landing, docker]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
