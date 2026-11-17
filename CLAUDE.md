@@ -1,258 +1,231 @@
 # CLAUDE.md
 
-> **Terceira junção da v0.4: estado 42, protocolo 4.**
-> A base local reúne ferro e Ferreiro, Quartel e formações, batalha e prévia,
-> Muralha e Horda, sabotagem e Acampamento, Cerco com milícia e rescaldo,
-> Crônica do Ano, 59 cartas, aba Reino e Novidades. R1 preserva a Defesa quando
-> a Paliçada repele sem batalha; R2 amplia os lotes e a fila de recrutamento pelo ritmo; R3 aplica a mesma escala às vagas do Quartel (×3 no Rápido, ×1 no Normal/Tranquilo), com tetos derivados na visão e guarda v42 coerente. As revisões E/F/G
-> estão integradas. A v0.4 ainda não foi publicada; Novidades continua rascunho.
+> **v0.4.0 publicada em 2026-11-17: estado 42, protocolo 4.**
+> Plano atual: [roadmap da v0.5](docs/roadmap-v0.5.md), “Mundo e Legado”.
 
 ## O que é
 
-**Lords of the Guild** é um jogo medieval de gerenciamento assíncrono no navegador,
-com a aparência de um editor de código: motor determinístico em TypeScript,
-servidor Fastify + PostgreSQL autoritativo e app web como cliente.
+**Lords of the Guild**: jogo medieval assíncrono no navegador, aparência de editor;
+motor determinístico TypeScript, servidor Fastify/PostgreSQL autoritativo, app web.
 
-- [GAME_DESIGN.md](GAME_DESIGN.md) — contrato de arquitetura (§14), critérios de aceitação (§16.2) e escopo por versão (§18).
-- [docs/roadmap-v0.4.md](docs/roadmap-v0.4.md) — plano atual, Fases A a I, pronto no §10 e Registro no §15. Os roadmaps da v0.1, v0.2 e v0.3 são históricos.
-- [docs/architecture.md](docs/architecture.md) — o que existe; [docs/retomada-v0.4.md](docs/retomada-v0.4.md) — continuação e lacunas.
-- [docs/acceptance-v0.4.md](docs/acceptance-v0.4.md) — provas automáticas e evidência humana por preencher; [docs/manual-test-v0.4.md](docs/manual-test-v0.4.md) — roteiro do autor.
-- [docs/balance-v0.4.md](docs/balance-v0.4.md) — medidas datadas; [docs/content-v0.4.md](docs/content-v0.4.md) — fichas; [docs/pendencias-v0.4.md](docs/pendencias-v0.4.md) — respostas e perguntas abertas.
-- [ADRs](docs/decisions/README.md) — 0019 (ferro, exército, R1–R3), 0020 (Horda/Cerco) e 0021 (Reino). Respostas datadas prevalecem sobre premissas antigas; hipótese aplicada não equivale a aprovação do autor.
+- [GDD](GAME_DESIGN.md): arquitetura (§14), aceite (§16.2), escopo (§18).
+- [Roadmap v0.5](docs/roadmap-v0.5.md): regime (§2), decisões (§4), contratos (§5), tarefas (§6), registro (§11).
+- [Arquitetura](docs/architecture.md), [ADRs](docs/decisions/README.md), [histórico/conferência](docs/historico.md). Planos anteriores são históricos; leia as seções da tarefa.
 
-**Publicação e trabalho.** A última publicação registrada é a v0.3.0, em
-2026-10-15 (`c2cb21e`, estado 24, protocolo 3). Este candidato prepara a v0.4.0,
-com estado 42 e protocolo 4. A raiz, os oito pacotes e suas constantes públicas estão em 0.4.0. Antes de
-atribuir uma versão à produção, conferir `server`, `protocol` e `builtAt` em
-`GET /v1/version`.
+**Publicação e trabalho.** A v0.4.0 está publicada (CHANGELOG, `333df054`).
+Raiz, oito pacotes e constantes públicas: 0.4.0; código: `CURRENT_SCHEMA_VERSION = 42`
+(`engine/src/migrations.ts`), `PROTOCOL_VERSION = 4` (`protocol/src/index.ts`).
+Confira `server`, `protocol` e `builtAt` em `/v1/version` para identificar produção.
+Novidades ainda marca 0.4.0 como `draft`; isso é uma pendência editorial.
 
-As trilhas trabalham em worktrees; o coordenador reúne o candidato em
-`v4-juncao3`. O `main` local só recebe o fast-forward depois do portão completo
-verde. O resultado do portão, o SHA candidato e o fast-forward local ficam registrados em `docs/retomada-v0.4.md`. D2 aceita o Regular em Senhor Normal em 92% (meta 65–80%), Tranquilo 78%, com ajuste fino no playtest/v0.5. **O push é do autor**, após backup manual do banco e registro do
-SHA de retorno: push no `main` com CI verde implanta automaticamente. A primeira
-publicação da v0.4 salta do estado 24 ao 42 e do protocolo 3 ao 4; o app aberto
-recebe 426. Procedimento e reversão com backup em [deploy/README.md](deploy/README.md).
-
-O ensaio de restauração/reversão (ato 23), a evidência manual, a tag/release e o
-playtest externo continuam com o autor. Versões anteriores fecharam sem toda a
-evidência humana; isso não preenche o aceite da v0.4. O plano de cada tarefa fica
-escrito e a execução autorizada segue sem esperar aprovação de rotina.
-
-O jogo está no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)),
-com banco, API, app e página de apresentação em domínio próprio ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
-Continuam pendentes do autor: cópia externa de `RECOVERY_CODE_SECRET`, destino
-externo de backups, notificações operacionais e as confirmações editoriais do ADR 0012.
-**O vínculo GitHub continua desligado**: o device flow existe, testado com GitHub
-simulado; não ligá-lo nem removê-lo sem pedido. A produção usa o Código do Reino.
-Os ADRs 0006–0008, 0010–0011 e 0016 registram as dependências, marca, notificações,
-ritmo, licença MIT e respostas da v0.2; os ADRs 0017/0018, as regras herdadas da Guilda.
-
-Os documentos são longos: leia as seções indicadas pela tarefa, pelos índices `§`.
+Coolify e domínio próprio: ADRs 0009/0012 e [deploy/README.md](deploy/README.md).
+GitHub permanece desligado, testado só com simulado: não ligar/remover sem pedido;
+produção usa Código do Reino. [Pendências herdadas](docs/historico.md#pendências-herdadas);
+automação não aprova aceite humano.
 
 ## Comandos
 
-Ambiente: Node 22 (`nvm use` lê o `.nvmrc`), pnpm 9 fixado em `packageManager` (Corepack), Docker com Compose v2. O repositório deve ficar no sistema de arquivos do Linux, nunca em `/mnt/c`.
+Node 22 (`nvm use`), pnpm 9/Corepack, Compose v2; Linux, nunca `/mnt/c`.
+API no host; `node_modules` separado do contêiner. Dev: `lotg/lotg`,
+portas só `127.0.0.1`; [variáveis](deploy/.env.example), segredos independentes/preservados.
 
 ```bash
 pnpm install
-pnpm dev:up            # sobe db (5432) e db_test (5433) e espera ficarem saudáveis
-pnpm dev:down          # derruba os contêineres de dev, mantendo os volumes
-pnpm db:psql           # psql no banco de dev; aceita argumentos: pnpm db:psql -c 'select 1'
-pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
-pnpm dev:api           # API no host com tsx watch (lê deploy/.env e aplica as migrações); http://localhost:3000/v1/health
-pnpm dev:web           # app web com o Vite em http://localhost:5173; /v1 é repassado para a API (LOTG_API_URL troca o destino)
-pnpm dev:landing       # página de apresentação com o Vite em http://localhost:5174 (não precisa da API)
-pnpm db:migrate        # aplica as migrações no banco de dev sem subir a API
-pnpm --filter @lotg/server db:generate --name <nome>      # gera o SQL de uma mudança em src/db/schema.ts
-
-pnpm verify            # lint + typecheck + test — porta de entrada de todo "pronto"
-pnpm lint              # ESLint + Prettier (verificação); pnpm format corrige
-pnpm typecheck         # tsc --noEmit em todos os pacotes
-pnpm test              # unitários e de conteúdo (Vitest, projeto unit)
-pnpm --filter @lotg/engine test                   # um pacote
-pnpm --filter @lotg/engine test -- construction   # um arquivo de teste (filtro por nome)
-pnpm --filter @lotg/engine test -- --coverage     # cobertura do pacote
-UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test   # regrava os goldens de __golden__/; conferir o diff
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration         # tests/ e packages/server/test/ contra o db_test
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration games   # só os arquivos com "games" no nome (SEM "--": com ele o filtro é ignorado e roda tudo)
-pnpm test:e2e                              # Playwright: app compilado + API real + db_test, em Chromium (precisa de pnpm dev:up)
-pnpm test:e2e 04-conta -g "duas abas"      # um arquivo e um teste; --headed ou --ui para ver o navegador
-GAME_TIME_SCALE=3 pnpm test:e2e 03-retorno-e-conexao -g "ritmo"   # os cenários "no ritmo da produção" com o servidor de teste no padrão da produção
-pnpm test:e2e:landing                      # Playwright: a página de apresentação compilada, em tela de computador e de celular; sem API nem banco
-pnpm capture:landing                       # refaz as capturas do jogo que a página de apresentação mostra (usa o db_test)
-pnpm exec playwright install chromium      # uma vez por máquina
-
-pnpm build             # servidor (packages/server/dist/main.js), app web (packages/web/dist) e página de apresentação (packages/landing/dist)
-pnpm docker:build      # imagem de produção da API (lotg-api:latest, alvo runtime)
-pnpm docker:build:web  # imagem do app web (lotg-web:latest, alvo web: Caddy servindo o dist na porta 80)
-pnpm docker:build:landing   # imagem da página de apresentação (lotg-landing:latest, alvo landing)
-scripts/landing-smoke.sh http://localhost:8080   # a página servida pelo Caddy: cabeçalhos, cache e o 404 (também serve para a produção)
-
-pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico > semana.csv   # bot de playtest; resumo no stderr
-pnpm -s sim -- --seed pedra-alta-golden --days 7 --time-scale 3 > semana-3x.csv      # o mesmo bot no ritmo do servidor; dias e sessões continuam em tempo real
-pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy preguicoso --sessions-per-day 1 > ano.csv   # um ano de jogo, com o bot de uma visita por dia
-pnpm -s sim -- --matrix > matriz.csv 2> matriz.md                                    # matriz de balanceamento: 3 perfis × 3 ritmos × 50 sementes, em Senhor; sai com 1 se alguma partida sair da faixa
-pnpm -s sim -- --matrix --difficulty ironKing > rei.csv 2> rei.md                    # a mesma matriz em outra dificuldade (peasant, lord, ironKing); --seeds 5 para uma olhada rápida
-pnpm -s sim -- --seed pedra-alta-001 --days 7 --strategy explorador > explorador.csv  # o bot da Guilda (v0.3): o econômico (que desde a V3E-T1 ergue o Mercado, vende o excedente e compra lenha), mais contratar na Taverna, dar festival, erguer a Guilda dos Aventureiros e enviar expedições
-pnpm -s sim -- --matrix --profile especulador > espec.csv 2> espec.md               # o perfil que compra para revender por caravana (sem faixa, como o ousado): a arbitragem tem de dar prejuízo
-pnpm -s sim -- --matrix --profile explorador > explorador-matriz.csv                 # a matriz com um perfil só (preguicoso, regular, dedicado ou explorador; os quatro estão na rodada padrão)
-pnpm -s sim -- --perf                                                                # custo do motor na volta de 1, 7 e 30 dias reais fora, no ritmo 3
-SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage                         # cobertura do Conselho em 50 sementes: quantas cartas chegam, de quais, em que estação
-pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2                  # carga contra a API, com p50/p95 (deixa contas "Bot N" no servidor)
-pnpm -s sim -- --smoke <url>                                                         # fumaça de concorrência e idempotência: cria uma conta e a exclui no fim (--keep mantém)
+pnpm dev:up                    # db:5432 e db_test:5433; espera saúde
+pnpm secrets:gen               # só gera os segredos vazios de deploy/.env
+pnpm dev:api                   # host:3000; aplica migrações
+pnpm dev:web                   # :5173; /v1 repassado (LOTG_API_URL)
+pnpm dev:landing               # :5174; dispensa API
+pnpm db:migrate
+pnpm --filter @lotg/server db:generate --name <nome>
+pnpm typecheck
+nice -n 19 pnpm --filter @lotg/engine test -- construction --maxWorkers=2
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test nice -n 19 pnpm test:integration games --maxWorkers=2
+pnpm test:e2e 04-conta -g "duas abas"
+pnpm exec prettier --check <arquivos>
+pnpm exec eslint <arquivos-de-codigo>
+pnpm build
+pnpm capture:landing           # manual; usa db_test
+scripts/landing-smoke.sh <url>
+pnpm -s sim -- --seed pedra-alta-golden --days 7 --time-scale 3 > semana.csv
+pnpm -s sim -- --smoke <url>    # cria conta e a exclui; --keep preserva
 ```
 
-Detalhes que não são óbvios:
+V5A-T2 cria os scripts da §2: `test:fast`, `test:guards`,
+`test:changed`, `verify:fast` (lint + tipos + fast), `test:matrix` (CI).
+`test`/`verify` seguem completos; não presumir scripts novos já presentes.
+Mais comandos nos READMEs dos pacotes e de deploy.
 
-- Os projetos do Vitest ficam em `vitest.config.ts` (`test.projects`: `unit` e `integration`), não em `vitest.workspace.ts`: o Vitest 5 removeu o arquivo de workspace. Sem `TEST_DATABASE_URL`, o projeto `integration` não inclui nenhum arquivo e passa vazio.
-- Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/index.ts`, `moduleResolution: Bundler`); só o que é implantado tem build.
-- Goldens são gravados com `toMatchFileSnapshot` e nunca se regravam sozinhos: só com `UPDATE_GOLDEN=1`. Um golden diferente é uma mudança de regra; ela precisa ser intencional.
-- Testes de integração rodam um arquivo por vez contra o PostgreSQL real; cada arquivo chama `resetTestDb()`. Os helpers de `packages/server/test/helpers/app.ts` sobem a API em memória com relógio controlado (`server.clock.advance(ms)`). O access token vale 15 minutos desse relógio: depois de avançá-lo, use `renew`. Para rodar duas suítes em paralelo, cada uma precisa do próprio banco (`create database …` no `db_test`).
-- `@types/node` e `@types/pg` foram adotados na Fase 2 e aprovados depois ([ADR 0006](docs/decisions/0006-types-node.md)); `engine`, `content` e `protocol` continuam com `types: []`.
-- A Crônica não traz as viradas de dia ([ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md)) nem o fecho diário do desperdício ([ADR 0015](docs/decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md)): nem, desde a V3D-T3, o nó de expedição que deu certo (pendência D-32 da v0.3; o que terminou em Revés ou Desastre sai como `expeditionNodeFailed` e é linha da Crônica): `chronicleRows` filtra `CHRONICLE_HIDDEN_EVENT_TYPES` (`dayStarted`, `storageWasted` e `expeditionNodeResolved`, em `@lotg/protocol`) em `GET /chronicle` e `/chronicle.md`, e o app usa a mesma lista no que mostra como Crônica (`game/returnReport.ts`). `GET /events` continua trazendo tudo.
-- **Ritmo e dificuldade** ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md); [ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 2 e 2a): o jogador escolhe na criação (`POST /games` com `difficulty` e `timeScale`; os ritmos oferecidos são 3, 1 e 0,5, vindos de `balance.paces`) e a escolha fica gravada na linha e em `state.settings`, imutável. `GAME_TIME_SCALE` (padrão 3, de 0,5 a 10) é só o ritmo de quem não escolhe. O motor continua em tempo de jogo; `deriveViewState(state, gameTimeMs, { timeScale })` devolve prazos em segundos reais e taxas por hora real, inclusive nos textos de explicação. A visão é sempre em tempo real: o app não converte nada. As constantes de **tempo real** do motor são o prazo de resposta de uma carta do Conselho (`council.expiryRealMs`), a carência, o passo e a janela de retomada da deserção por fome (`morale.famineDesertionAfterRealMs`, `famineDesertionEveryRealMs`, `famineResumeWithinRealMs`) a antecedência do aviso da Torre (`threat.watchtowerLevels[].warningRealMs`) os quatro prazos do soldo em atraso (`heroes.arrears.discontentAfterRealMs`, `leaveAfterRealMs`, `leaveEveryRealMs`, `resumeWithinRealMs`; ADR 0017, decisão 3) e a espera da encruzilhada de uma expedição (`expeditions.crossroadsWaitRealMs`, convertida quando a equipe chega; ADR 0017, decisão 1); todas são convertidas com `settings.timeScale` por `realToGameMs` (`units.ts`), e nada mais no motor conta tempo real (ADR 0016). O soldo em si (`heroes.wagePerHour`) é tempo de jogo. Os testes de integração e em navegador rodam com `GAME_TIME_SCALE=1` (`packages/server/test/helpers/app.ts`), porque foram escritos nos tempos de jogo do GDD; o golden do motor também é no ritmo 1.
-- **Sorteios e lobos nos testes.** Toda partida nova tem os lobos do roteiro marcados, cartas do Conselho por sorteio e, no 13º dia de jogo, a carta da estrangeira, que dá um herói (e, com ele, soldo saindo do ouro). Nos testes de integração, quem conta eventos ou estoques de outra mecânica chama `quietHorde(server, gameId)`, e quem conta heróis, soldo ou ouro sem querer a carta, `councilRecess(server, gameId)`. No motor, `councilWithoutNews` e `councilScenario(…, true)` deixam a roteirizada como já saída. Nos testes em navegador o conselho fica **em recesso** (o que segura também a roteirizada: ela só sai em audiência) e a Horda **calada** por padrão (`/__test/council-recess`, `/__test/horde-quiet`, chamados por `tests/e2e/helpers.ts`); os cenários do Conselho chamam `world.conveneCouncil()` (o servidor de teste aceita `seed` em `POST /games`, por `allowGameSeed`) e os da incursão, `world.wolvesRoam()`. `/__test/council-deal` põe uma carta escolhida na mesa e `/__test/raise` põe um edifício no nível pedido (a Taverna posta assim ganha os candidatos na leitura seguinte) e `/__test/stock` põe o estoque de um recurso em um valor. Para as expedições: `/__test/hero` põe um herói no feudo, com o nome que o teste escolhe (os cenários das expedições não dependem de quem a Taverna sorteou: um nome de candidato dentro de uma frase já quebrou um teste em uma semente em sete), `/__test/item` põe um item no arsenal e `/__test/crossroads` põe o primeiro herói livre na encruzilhada da primeira variante da Floresta Antiga, com a Postura e o prazo pedidos; a expedição enviada pela tela tem variante que depende da semente, e o teste lê do servidor o que a tela tem de mostrar. Nos testes do motor, `tavernSite` e `tavernScenario` (`test-helpers.ts`) dão o canteiro e a Taverna recém-inaugurada pelo caminho do jogo; nos de integração, `tavernSite(server, gameId)` deixa a partida pronta para a obra. Nos testes em navegador a semente da partida é sorteada (fora dos cenários do Conselho): os candidatos da Taverna mudam a cada rodada, e um localizador pelo **texto** do nome de um herói pode achar outra linha (o preço com desconto diz "menos 20% por <nome>, Carismático"); ache a linha pelo nome sozinho (`getByText(nome, { exact: true })`) ou pelo botão.
-- Os testes de unidade de `packages/web` rodam em Node, sem DOM: funções puras e HTML de `preact-render-to-string`. `src/test-helpers.ts` tem uma API `/v1` de mentira (`fakeApi`), `makeController` e `scriptedDialogs`. O `ViewState` de exemplo é o golden do motor, importado por caminho relativo (`../../engine/src/__golden__/view-seed-pedra-alta.json`): importar `@lotg/engine` ali é barrado pelo lint.
-- Tudo o que depende de navegador (foco, teclado, `localStorage` entre abas, CSP, contraste) é provado em `tests/e2e/*.spec.ts`. O Playwright sobe `tests/e2e/server.ts` (a API real na porta 3100, com relógio adiantável, GitHub de mentira e rotas `/__test`, que só existem ali) e o `vite preview` do app compilado (4173). Os testes dividem um servidor e um banco: `workers: 1`. Não rode `pnpm test:e2e` e `pnpm test:integration` ao mesmo tempo: usam o mesmo `db_test`.
-- Nos testes em navegador o tempo anda por saltos: `world.passTime(ms, ...páginas)` adianta o servidor e o relógio de cada página e **espera o ciclo de atualização terminar**. Saltar de novo com uma leitura em voo, ou logo depois de um clique sem esperar o resultado na tela, cria corridas que não existem no tempo de verdade.
-- O servidor de desenvolvimento do Vite afrouxa a CSP (`style-src 'unsafe-inline'`, WebSocket); a política estrita de `packages/web/index.html` só vale no build. Por isso os testes em navegador usam o build.
-- TypeScript está fixado em 6.x porque o `typescript-eslint` ainda não aceita o 7.
-- O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. `runtime` é o último alvo do `Dockerfile` de propósito (é o que sai sem `--target`); os alvos `web` e `landing` saem da base `static`, que é `debian:bookworm-slim` com o binário do Caddy copiado da imagem oficial, que é Alpine. O esbuild empacota o servidor inteiro, com as dependências, em `dist/main.js`: a imagem não tem `node_modules`. Uma dependência nova com binário nativo ou arquivos lidos em tempo de execução precisa ser tratada em `packages/server/esbuild.mjs`.
-- As migrações são geradas pelo drizzle-kit em `deploy/migrations` (`0000_init.sql` e `0001_ranking_listed.sql`) e aplicadas no arranque sob `pg_advisory_lock(727)`.
-- A API roda **no host** em desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)); não compartilhar `node_modules` entre host e contêiner. O perfil `--profile full` do compose de dev existe para testar a imagem; `--profile tools` sobe o pgweb (8081).
-- Os bancos de dev usam sempre `lotg/lotg` e portas só em `127.0.0.1`. Variáveis de ambiente em [deploy/.env.example](deploy/.env.example) e MVP-ROADMAP.md §1.3, incluindo `RECOVERY_CODE_SECRET` independente de `JWT_SECRET`, preservado nos deploys.
+Testes: [servidor §Testes](packages/server/README.md#testes) (banco/reset/relógio,
+renovar após 15 min) e [app §Testar](packages/web/README.md#testar) (Node/golden,
+`world.passTime` até repouso, build para CSP).
+Vitest: `unit`/`integration` em `vitest.config.ts`; sem banco configurado passa vazio.
+Não disputar `db_test` entre integração/e2e/capturas; paralelo só com bancos separados.
+Isole Horda/Conselho (`quietHorde`, `councilRecess`; motor: `councilWithoutNews`,
+`councilScenario(…, true)`). Expedições: `/__test/hero`, `/item`, `/crossroads`, visão
+real; nomes sorteados exigem texto exato ou botão. `tavernSite`/`tavernScenario`: Taverna.
 
 ## Pacotes
 
-Monorepo pnpm (GDD §14.2), oito pacotes:
+Oito pacotes `@lotg/`: `engine` (motor puro), `content` (dados/zod), `protocol`
+(contratos `/v1`), `server` (API/persistência/jobs), `client-sdk` (HTTP), `sim-cli`
+(bots/faixas), `web` (Preact/Vite) e `landing` (estática).
+Fonte via `exports`/Bundler; build só implantável.
 
-| Pacote | Papel |
-|---|---|
-| `@lotg/engine` | Motor puro: `GameState`, migração por versão, `advanceTo`, `applyCommand`, sorteios com semente, `deriveViewState` |
-| `@lotg/content` | Todos os números e textos de jogo, as cartas do Conselho + schemas zod |
-| `@lotg/protocol` | Tipos e schemas zod da API `/v1`: `Command`, `ViewState`, catálogo, erros, `PROTOCOL_VERSION` |
-| `@lotg/server` | Fastify + Drizzle/`pg`: auth, catálogo, partidas, migração do estado, comandos, job de avanço, migrações SQL |
-| `@lotg/client-sdk` | Cliente HTTP tipado (usado pelo app web e pelo `sim-cli`) |
-| `@lotg/sim-cli` | Bots de playtest, em processo ou contra um servidor; matriz de balanceamento e faixas |
-| `@lotg/web` | App web em Preact e Vite: bancada com aparência de editor, sessão de jogo, cache no navegador |
-| `@lotg/landing` | Página de apresentação: HTML e CSS estáticos compilados pelo Vite, em domínio próprio, com o botão que leva ao jogo |
-
-Direção das dependências, imposta por `no-restricted-imports` em `eslint.config.js`: `engine`, `content` e `protocol` não importam `fastify`, `pg`, Drizzle nem módulos do Node (com ou sem `node:`); arquivos `*.test.ts` ficam fora dessa regra. `server` e `web` dependem deles e **nunca um do outro**. O app web não importa o motor, o servidor nem módulos do Node, e, fora dos testes, nem `@lotg/content` nem o `contentHash` de `@lotg/protocol`: `packages/web/src/bundle.test.ts` compila o app e falha se um número, uma frase, uma flag ou um efeito escondido do conteúdo chegar ao navegador. A página de apresentação não importa pacote nenhum do jogo; só os testes dela leem `@lotg/content`, para conferir as frases que a página cita.
+ESLint barra Node/Fastify/pg/Drizzle em engine/content/protocol, exceto testes;
+esses três usam `types: []`. Servidor/app nunca dependem um do outro. App não
+importa motor/servidor/Node nem, fora dos testes, content/`contentHash`.
+`bundle.test.ts` barra números/frases/flags/efeitos escondidos no navegador.
+Landing sem pacotes do jogo; testes podem conferir conteúdo.
 
 ## Regras de arquitetura
 
-**O servidor orquestra, o motor decide, o app exibe.**
+**Servidor orquestra, motor decide, app exibe.**
 
-1. Nenhuma regra de jogo fora de `packages/engine`; nenhum número de jogo fora de `packages/content`; o app só exibe o `ViewState`.
-2. O servidor é autoritativo e é o relógio. O cliente envia comandos e recebe um `ViewState`; nunca envia estado, timestamps ou resultados. A névoa é aplicada no servidor.
-3. Recursos em milésimos inteiros; `advanceTo` por segmentos; o invariante de divisão de intervalo é sagrado (ver "Motor", abaixo).
-4. Toda mudança de estado é um comando validado, idempotente por `commandId` no servidor.
-5. Só as bibliotecas permitidas: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify (+ plugins oficiais `@fastify/*`), `pg`, Drizzle, `jose`, `pino`, `tsx`, Vite, `@preact/preset-vite`, `@vscode/codicons`, `@playwright/test`, ESLint, Prettier (as quatro do app web vêm do ADR 0008, ponto 5, confirmado pelo autor). Hashes e HMAC usam `node:crypto` somente no servidor; não instalar `argon2`. Qualquer outra dependência exige ADR aprovado em `docs/decisions/`.
-6. **Não antecipar mecânicas de versões futuras**, nem só a estrutura. A v0.3 está publicada; a base local da v0.4 (estado 42, protocolo 4) já tem ferro, Mina Abandonada, Ferreiro, forja de armas, desgaste e reparo; Quartel, cinco unidades, treino, dispensa, formações salvas, Defesa ativa e comandantes; batalha e Conselho de Guerra; Muralha por ala, reparo prioritário, Baluarte e Torre Nv3+; incursões, Horda que aprende, presságios, sabotagem da Fortaleza e ataque ao Acampamento; Hora da Vigília, Plano, três ondas, decisões, reparo de emergência, milícia, resultados e rescaldo/Primavera da Reconstrução; Crônica do Ano com pontuação, Feitos e download; **59 cartas**, incluindo lotes 2/3 e Lobo Branco com caçada temporária; objetivos 17 a 21, Retorno e Antes de partir com guerra; **aba Reino** (ouro/estatísticas e saída do ranking, ADR 0021) e **Novidades** (v0.4 rascunho). As telas de milícia, prévia por onda e Crônica anual existem. **R1:** Paliçada que segura resolve sem batalha, baixas, dano à muralha, aprendizado ou relatório; Cerco sempre luta. **R2:** tetos de treino e recrutamento, com a fila, crescem pelo ritmo, em inteiros e nunca abaixo da base (0,5/1: base; 3: triplo); R3 escala também as vagas do Quartel pela mesma regra; custo e tempo por unidade não mudam. A base herdada inclui estações, moral, Conselho, heróis/soldo, Taverna, expedições, equipamento, Mercado, caravanas e Mestres. **Ainda não existem:** prévia ofensiva do Acampamento, vínculo persistido de relatório por onda e detalhamento das perdas da Queda na visão (G-23); dispensar/ensinar com Mestre, compra ou segundo destino de caravana, venda de item; mapa gráfico, postos avançados, Capela, relíquias/plantas, Veio de Ferro, Legado, Votos, Temporadas e mercado entre jogadores. Morte de herói fora de Rei de Ferro continua proibida. Não criar campos futuros vazios nem impedir a evolução prevista no GDD.
-7. Desvios do GDD não são decididos pelo agente: propor em `docs/decisions/NNNN-titulo.md` e aguardar aprovação. Também não são do agente: onde e como o jogo é hospedado (ADR 0009), o registro do OAuth App do GitHub, nome público e ícone, texto da política de privacidade.
-8. Mudar uma regra exige atualizar o golden test correspondente e o GDD. Toda nova mecânica entra com: dados em `content`, validação de comando com motivo de recusa legível, evento na Crônica, tooltip explicativo e teste.
+1. Regra só em `engine`; números e textos de jogo só em `content`; app exibe `ViewState`.
+2. Servidor autoritativo e relógio: cliente manda comandos, nunca estado, timestamps ou resultados. Névoa aplicada no servidor.
+3. Recursos em milésimos inteiros; avanço por segmentos, com divisão de intervalo exata (Motor).
+4. Ação do jogador: comando validado, idempotente por `commandId`.
+5. Bibliotecas permitidas: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify e plugins oficiais `@fastify/*`, `pg`, Drizzle, `jose`, `pino`, `tsx`, Vite, `@preact/preset-vite`, `@vscode/codicons`, `@playwright/test`, ESLint e Prettier (ADR 0008). Hash/HMAC com `node:crypto` só no servidor; não instalar `argon2`. Qualquer outra dependência exige ADR aprovado.
+6. **Não antecipar mecânicas nem estruturas vazias.** Base v0.4: economia/Conselho, Guilda/expedições, Mercado/Mestres, ferro/exército/Horda/Cerco, Crônica anual/Reino/Novidades. **Ainda não existem:** Capela, relíquias, plantas, Trolls, Votos, Legado, mapa gráfico, Veio de Ferro com produção contínua, postos avançados, Temporadas e mercado entre jogadores; outras lacunas da base estão no README do motor, “O que ainda não existe”. v0.5 por fase: B Capela/relíquias; C Ano 2/Trolls/Votos; D sementes/Legado; E mapa; F postos; G Temporadas. Plantas ficam fora (§10). Só implementar a fase da tarefa, sem bloquear evolução do GDD. Sem morte de herói fora de Rei de Ferro na base atual; a mudança por Voto pertence à Fase C.
+7. Desvio do GDD: ADR em `docs/decisions/`, aprovação do autor. D-1 aprovada; D-2…D-31 valem com recomendação (§4), sem nova espera ou escolha inventada. Hospedagem/OAuth App/nome/ícone/privacidade são do autor. Resposta datada prevalece; hipótese não é aprovação.
+8. Mudança de regra atualiza golden e GDD. Mecânica nova traz dados em `content`, recusa legível, evento na Crônica, explicação na visão e teste.
 
-### Servidor (`packages/server`, GDD §14.5–14.9)
+### Servidor
 
-O [README do servidor](packages/server/README.md) descreve a estrutura e os contratos. O que orienta qualquer mudança:
+Seguir [README](packages/server/README.md), “Contratos que valem a pena ter em mente”,
+“Migração do estado”, “Cuidados que já custaram um defeito”, “Migrações” e “Build e
+imagem”: lock por conta, `persistState` uma vez, commit antes do erro como valor,
+estado sempre migrado/validado, nunca cru; versão futura/inválida não sobrescreve.
 
-- Rotas validam a forma com os schemas zod de `@lotg/protocol` e chamam serviços; serviços recebem um `AppContext` (`config`, `pool`, `db`, `clock`, `fetch`, `hooks`). Nunca usar `new Date()` ou `Date.now()` para tempo de jogo, expiração ou exclusão: é sempre `ctx.clock()`.
-- Toda leitura e todo comando de partida passam por `lockGame` (`SELECT … FOR UPDATE` filtrado pela conta). Escritas de estado passam por `persistState`, que incrementa `state_version` uma vez e numera os eventos.
-- Quando uma operação precisa de commit antes de responder com erro (reuso de refresh token, recusa do motor), o desfecho sai da transação como valor e o erro é lançado depois: lançar dentro de `db.transaction` desfaz tudo.
-- O protocolo valida só a forma dos comandos; faixas e regras são recusadas pelo motor, com frase em português (`422 GAME_RULE`). O schema do protocolo não lê `balance` (o app importa os schemas, e a tabela de números iria junto): quem confere o ritmo pedido contra os oferecidos é o servidor (`OfferedGameRequestSchema`, em `src/catalog.ts`).
-- `Command`, `ViewState` e os códigos de recusa do protocolo têm teste de igualdade de tipos com os do motor: mudar um lado quebra o `pnpm typecheck`.
-- **Estado gravado nunca vai cru para o motor.** `loadGame` (chamado por `lockGame` e pelo job) passa `games.state` por `migrateState` com o `time_scale` da linha; a migração é gravada pela primeira escrita daquela transação, com um só incremento de `state_version`. Estado de versão futura ou fora da forma é `500` sem gravar por cima; `persistState` também confere o que grava (`assertStorable`). O tipo `StoredGameState` existe para o compilador barrar `row.state` direto no motor.
-- **`GET /v1/catalog`** traz só as opções de nova partida (dificuldades, ritmos, padrões), sem autenticação e com ETag; os fatores de regra não saem nele.
-- **Protocolo 4.** `PROTOCOL_VERSION` é 4 desde o Cerco (V4G-T2): `pendingDecisions` é uma união fechada por `kind`, com carta, encruzilhada (`crossroads`) e decisão entre ondas (`siegeWave`). O 3 foi o das expedições; o 2, do Conselho. O SDK manda `X-Lords-Protocol` e o servidor responde `426 UPGRADE_REQUIRED` ("Recarregue a página") a outro número. O cache do app leva o protocolo na marca (`CACHE_VERSION`): a visão guardada pelo app anterior é descartada, e o cursor dos eventos fica. O `ViewState` cresce por adição, e adição **não** sobe o protocolo; só o que o app antigo não consegue ler sobe. As rotas continuam em `/v1`.
+Rotas zod → serviços com `AppContext`;
+jogo/expiração/exclusão usam `ctx.clock()`. Protocolo valida forma,
+motor regra/faixa (`422 GAME_RULE`); schema sem `balance`, ritmo no servidor
+(`OfferedGameRequestSchema`). Tipos `Command`/`ViewState`/recusas iguais aos do motor.
+Catálogo público: só opções de criação, com ETag; sem fatores de regra.
 
-### Cliente (`packages/client-sdk` e `packages/web`)
+Protocolo 4: decisões fechadas por `kind` (carta/`crossroads`/`siegeWave`), cabeçalho
+`X-Lords-Protocol`, diferente recebe 426. Adição não sobe protocolo; incompatibilidade
+sobe; rotas `/v1`. Docker: contexto raiz, `deploy/Dockerfile.dockerignore`, `runtime`
+último alvo, estáticos Debian/Caddy. Esbuild leva dependências no bundle; nativa ou
+arquivo de execução exige `server/esbuild.mjs`. SQL via drizzle-kit em
+`deploy/migrations`, lock 727 no arranque, expandir antes de contrair.
 
-O [README do app](packages/web/README.md) descreve a estrutura. O que orienta qualquer mudança:
+### Contratos
 
-- **`client-sdk`**: `createClient({ baseUrl, tokenStore, clientVersion, fetch, refreshLock })`. Renova a sessão sozinho em `401 UNAUTHORIZED`, com uma renovação por vez, relendo antes o `TokenStore` (outra aba pode já ter renovado); `SESSION_REVOKED` ou refresh recusado limpam o `TokenStore` e chamam `onUnauthenticated`. A rotação nunca é repetida em falha de rede. Leituras e comandos repetem em falha de rede (o comando, com o mesmo `commandId`). A recusa do motor sai como `GameRuleClientError`, com o estado avançado em `details`.
-- **`app/controller.ts`** é a única fonte de estado da bancada (conta, partida, abas, avisos) e não conhece o navegador: visibilidade, rede e outras abas entram por `setVisible`, `handleOnline` e `handleTabChange`; `main.tsx` é a cola. A lógica fica em módulos puros (`account/`, `game/`, `notifications/policy.ts`, `ui/treeModel.ts`, `ui/format.ts`, `app/router.ts`, `workbench/treeNav.ts`).
-- **Mercado, caravanas e Mestres** (V3E-T4): a ordem de negociar e a de mandar caravana saem de uma conferência de duas etapas e levam o `quoteDay` da visão conferida; o app nunca reenvia uma ordem recusada por `PRICE_CHANGED`. O total é `quantidade × preço de hoje` (`ui/market.ts`), a única conta de regra do app, dita exata pelo protocolo. Detalhes em `packages/web/README.md`.
-- **`palette/commands.ts`** tem todos os comandos e é o único lugar que abre diálogos. A árvore, a barra de status, os avisos e os componentes chamam `controller.runCommand(id, arg)`; os componentes das abas recebem um objeto `Actions` (`order`, `run`, `playNow`) e nunca falam com a rede.
-- Uma ordem do jogador nasce em `controller.prepare(tipo, payload)`, que fixa o `commandId` e devolve a função de envio: "Tentar de novo" chama a mesma função e reenvia a mesma ordem. Nunca gere outro `commandId` para uma retentativa. A ordem é do feudo em que foi preparada (`session.targetKey`; em outro, o envio recusa com `StaleOrderError`, e a troca de feudo ou de conta tira os avisos com retentativa), e uma tentativa nova da mesma intenção (`intentOf`, em `game/intent.ts`) aposenta a retentativa antiga: `controller.attempt` recebe `{ intent, busy }`, e uma ordem nova com trava própria passa as duas (README do app, "Ordens e 'Tentar de novo'").
-- As ordens da Guilda têm um caminho só, como a carta: painel, árvore e paleta chamam `controller.runCommand('lords.hireHero' | 'lords.dismissHero' | 'lords.holdFestival', …)`, que terminam em `controller.hireHero`, `dismissHero` e `holdFestival` (com `prepare`; a ordem a caminho fica em `controller.guildOrders` e o segundo clique não vira ordem). **As das expedições seguem o mesmo molde** (`lords.sendExpedition`, `lords.chooseExpeditionPath`, `lords.equipItem`, `lords.unequipItem`, por `controller.guildOrder`, com as travas `send:<destino>`, `path:<expedição>` e `equipment:<herói>`): o painel manda o que já foi escolhido, e a paleta pergunta uma lista por vez (README do app, "As expedições"). O que é texto ou conta de apresentação das expedições fica em `ui/expeditions.ts`; o que está marcado na montagem de um envio é estado da tela, e a ordem só nasce no botão. Na paleta cada fluxo roda **um por vez por alvo** (`oneAtATime`, com o candidato ou o herói como chave) e lê a conta e a visão **depois** de qualquer diálogo (`sameGame`, `offerNow`, `heroNow`): um fluxo novo com diálogo antes da ordem segue o mesmo molde. Dispensar sempre confirma, com `guild.dismissText`.
-- A resposta a uma carta do Conselho tem um caminho só: painel, árvore, aviso e paleta chamam `controller.runCommand('lords.answerCard', …)`, que passa por `controller.prepare` como toda ordem.
-- Clicar em um item da árvore só navega; ordens saem dos botões da linha (`rowActions` em `workbench/Tree.tsx`).
-- Depois de uma ausência de 4 h o app abre na aba Hoje, e os eventos da ausência não viram avisos avulsos (`session.catchingUp`). A aba que ficou aberta e **fora de vista** por 4 h ou mais também conta a ausência (`away`, guardado no cache) e, na volta, um aviso leva ao relatório. O Relatório de Retorno tem três blocos ("O feudo prosperou", "O que exigiu um preço", "Você ainda pode decidir"), montados só com a visão e os eventos (`game/returnReport.ts`); "Antes de partir" (`game/beforeLeaving.ts`) também só lê a visão.
-- O ciclo de leitura é de 30 s com a aba à vista, mas a leitura seguinte vem antes quando um prazo da visão vence: uma obra, a espera de uma planejada, uma adaptação, uma carta, uma incursão e os da Guilda, com os das expedições: o fim do nó, o prazo da encruzilhada e o ferido que sara (`nextPollMs` e `guildDeadlines`, em `game/gameSession.ts`; `expeditionDeadlines`, em `ui/expeditions.ts`). Um prazo novo na visão que muda a tela ao vencer entra ali; zero que dura (um estado, não um instante) fica de fora.
-- O cache de cada partida tem a marca `CACHE_VERSION` (o protocolo e `VIEW_FORMAT`); a visão guardada só é exibida com a marca desta versão e na forma do schema. Um campo do `ViewState` que mantém o nome e passa a dizer outra coisa pede subir `VIEW_FORMAT` (`game/gameSession.ts`).
-- O lembrete "Proteja seu reino" conta **tempo real**: 48 h desde a primeira vez da conta neste navegador (`account/linkReminder.ts`: `REMIND_AFTER_MS`, `shouldRemindToLink(record, account, now)`). O registro `{ since, shown }` fica em `lords.linkReminder:<accountId>` e é criado por `controller.maybeRemindToLink` na primeira visão. Não depende do calendário do jogo nem do ritmo.
-- Números de regra não são escritos no cliente (nem em textos): o que o jogador precisa ver vem no `ViewState` (por exemplo `constructions.active.refund`, `population.housed` e `population.vacancies`). O que faltar é acrescentado no motor.
-- As mudanças de conta passam por uma fila no `Controller` (`enqueue`): "Jogar agora" muda a conta duas vezes seguidas e, sem a fila, o tratamento da primeira fecha a sessão que a segunda abriu.
-- Tudo no `localStorage`, com prefixo `lords.`: tokens (`lords.tokens`), conta, preferências e cache por conta e partida (`cacheKey`). Sair, excluir e perder a sessão apagam tokens e cache, em todas as abas (evento `storage`, `services/tabSync.ts`).
-- A renovação da sessão roda dentro de `navigator.locks.request('lords.refresh')` (`services/sessionLock.ts`): as abas dividem um refresh token que só vale uma vez.
-- **Sem `style="…"` e sem script embutido**: a CSP de `index.html` é `default-src 'self'` e é o que protege os tokens. Indentação e cores vão por classe.
-- Só `theme/themes.css` tem cores; `styles.css` e `workbench/workbench.css` usam apenas variáveis `--vscode-*`. Testes falham se aparecer uma cor fixa, se uma variável faltar em um dos três temas ou se um par texto/fundo ficar abaixo de 4,5:1.
-- Foco e teclado dos diálogos e da árvore usam `useLayoutEffect`: com `useEffect` o foco chega um quadro depois, e quem digita rápido (ou um teste) escapa do diálogo.
-- `controller.start()` é chamado **antes** do primeiro `render`: a parte síncrona restaura a conta e o cache, e a página recarregada já nasce no feudo.
+Seguir [servidor §Contratos que valem a pena ter em mente](packages/server/README.md#contratos-que-valem-a-pena-ter-em-mente)
+e §O que tem versão: autenticar/propriedade/lock antes de avançar; replay antes do
+avanço, recibo original e conflito de UUID; recusa confirma avanço antes do 422,
+falha inesperada desfaz. Transação grava estado/eventos/recibo completo
+(`request_hash`, status, corpo); recibos duram com a partida. Job após 1 h sem
+persistência, sem timer por partida.
 
-### Página de apresentação (`packages/landing`)
+- Estado inteiro JSONB, sem patches; `schemaVersion` espelhado na coluna. Replay = estado inicial + semente + comandos; migrado exige também cada fronteira. Estado não é SQL. Motor emite; tabelas guardam eventos/Crônica.
+- Polling 30 s à vista/2 min oculto, `/view` e `/events?after=`. ETag fraco SHA-256 de `{ view, stateVersion }`, muda sem escrita. Versão decimal string, cabeçalho só aviso, sem `If-Match`. Replay busca atuais sem repetir eventos; sem fila local.
+- Sessão/família por máquina, 30 dias absolutos, histórico em `refresh_tokens`; reuso revoga com commit antes do 401. Auth sem cache positivo. Recuperação HMAC-SHA256 com segredo independente (ADRs 0003/0005).
+- Exclusão transacional: bloqueio/revogação/limpeza do código/arquivamento; 202 com `deletedAt`/`purgeAfter`; job a partir de sete dias expurga estado/eventos/dependentes. Backup: 14 dias desde geração. Não prometer remoção física imediata nem desfazer.
+- Crônica: API/Markdown/app usam `CHRONICLE_HIDDEN_EVENT_TYPES` (`dayStarted`, `storageWasted`, `expeditionNodeResolved`); falha de nó aparece. `/events` conserva tudo.
 
-O [README da página](packages/landing/README.md) descreve a estrutura e o [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md), a decisão. O que orienta qualquer mudança:
+### Cliente
 
-- É uma página estática, em **domínio próprio**: HTML e CSS escritos à mão e um script pequeno. Sem Preact, sem pacotes do jogo, sem chamadas a servidor. Não divide origem nem armazenamento com o jogo.
-- **Só diz do jogo o que o jogo diz de si.** `src/page.test.ts` confere as linhas da Crônica citadas contra `@lotg/content` e barra as formas mais comuns de promessa de duração de dia ou ano (ADR 0011), as viradas de dia (ADR 0007), preço, multijogador, GitHub e o nome "Visual Studio Code"; o que a expressão regular não pega continua proibido. Nenhum número de regra no texto; o que ainda não existe só aparece no parágrafo "No horizonte", sem data. Quando uma versão do jogo entrega o que estava lá, a frase sai do horizonte na mesma publicação (em 2026-10-05 saíram as estações com efeito e o Conselho).
-- As pinturas são **arte conceitual gerada por IA** e levam essa legenda; a página abre com uma **captura real do jogo**. As capturas saem de `pnpm capture:landing` (API no ritmo de produção), que **só roda à mão**: nada avisa que uma captura ficou velha. O roteiro falha se a disposição da aba Feudo mudar, e então o texto alternativo e a legenda da captura precisam ser relidos (a página refeita em 2026-11-17, o almanaque das quatro estações, não prende rótulos à captura). A captura do Cerco é só o painel, porque a partida das capturas está na Primavera. As capturas mostram os ícones do app (Codicons, CC BY 4.0), e a página dá o crédito no rodapé.
-- Mesma disciplina do app: CSP estrita (`default-src 'none'`), **sem `style="…"` e sem script embutido**, nada de terceiros, nenhuma medição de audiência. Só `src/styles/tokens.css` tem cores; um teste mede o contraste de cada par de texto e fundo.
-- Os endereços do jogo e da página entram no build por `%GAME_URL%` e `%SITE_URL%` (`src/site.ts`, variáveis `LOTG_GAME_URL` e `LOTG_LANDING_URL`); não escreva endereço no HTML.
-- O título da aba da página **não** pode ser igual ao do jogo: o monitor de saúde distingue os dois sites por ele.
+Seguir [README do app](packages/web/README.md), seções: “Estrutura” e “O que é próprio
+do navegador” (controlador puro, navegador, restauro, foco); “Ordens e ‘Tentar de novo’”
+(mesmo UUID, alvo, intenção, trava); “A Guilda e a Taverna” e “As expedições” (caminho
+único, montagem, travas, releitura após diálogo, dispensa); “O Mercado, as caravanas e
+os Mestres” (duas etapas/`quoteDay`/`PRICE_CHANGED`); “Relatório de Retorno em três
+blocos e ‘Sua escolha voltou’” (ausência ≥4 h, inclusive aba oculta; Hoje, sem avisos
+avulsos; só visão/eventos); “Cache e versões” (schema/marca/`VIEW_FORMAT`/cursor).
 
-### Contratos do servidor e do cliente (GDD §14.5–14.10)
+- Conta por `enqueue`; comandos/diálogos em `palette/commands.ts`, entradas por `runCommand`. Abas com `Actions` (`order`, `run`, `playNow`), sem rede. Árvore navega/`rowActions` age. Conselho por `answerCard`/`prepare`.
+- Prazo que muda tela antecipa polling em `nextPollMs`; zero duradouro é estado. Única conta de regra no app: quantidade × preço de hoje (`ui/market.ts`); demais números/textos vêm da visão, completada no motor.
+- Lembrete: 48 h reais desde primeira visão da conta no navegador; `{ since, shown }` em `lords.linkReminder:<accountId>` por `maybeRemindToLink`; sem ritmo/calendário.
+- `localStorage`: prefixo `lords.`. Sair/excluir/perder sessão limpa tokens/cache em todas as abas. Refresh sob `navigator.locks.request('lords.refresh')`: token vale uma vez.
+- CSP `default-src 'self'`: sem estilo/script embutido; indentação por classe. Cores só em `theme/themes.css`; demais CSS só `--vscode-*`. Três temas completos, contraste ≥4,5:1.
 
-- **Avanço preguiçoso.** Leituras e comandos novos autenticam, verificam propriedade e travam a partida antes de `advanceTo(agora)`. Reenvios retornam o recibo antes de avançar. Um job (`advance-stale-games`) avança partidas sem estado persistido há mais de 1 h; não há temporizador por partida em memória.
-- **Caminho de um comando** (uma transação): lock da partida → busca de recibo por `(game_id, commandId)` → para comando novo, `advanceTo` → `applyCommand` → persistência do estado, eventos e recibo completo (`request_hash`, `response_status`, `response_body`). Recusa preserva o avanço e faz commit antes do 422; falha inesperada faz rollback. Reenvio idêntico retorna status/corpo originais com `X-Lords-Replayed`; payload diferente com o mesmo UUID recebe `COMMAND_ID_CONFLICT`. Recibos permanecem enquanto a partida existir.
-- **Persistência.** `GameState` inteiro em `games.state` (JSONB), sem patches parciais, com `schemaVersion` (hoje 42 neste branch) e a coluna `schema_version` como espelho; `commands` + estado inicial + semente = replay completo de uma partida nascida na versão atual (a migrada precisa também do estado de cada fronteira). Mudar a forma do estado não é migração de SQL. Crônica e eventos ficam em tabelas próprias; o motor só os **emite** como saída.
-- **Cliente.** Polling de 30 s com a aba à vista (2 min em segundo plano) em `GET /view` e `GET /events?after=`. ETag fraco é SHA-256 do corpo `{ view, stateVersion }`; pode mudar sem escrita no banco. `stateVersion` é string decimal; `X-Lords-State-Version` é apenas aviso de concorrência, sem usar `If-Match`. Após recibo repetido, buscar view/eventos atuais sem reaplicar eventos antigos. Cache no `localStorage` separado por conta e partida; comandos nunca ficam em fila local.
-- **Sessões e recuperação.** Uma família por sessão/máquina, validade absoluta de 30 dias, histórico completo em `refresh_tokens`. Reuso de qualquer antecessor revoga a família com commit antes do 401. Autorização consulta conta/sessão no banco sem cache positivo. Código do Reino usa HMAC-SHA256 com `RECOVERY_CODE_SECRET` independente; detalhes em GDD §14.7 e ADRs 0003/0005.
-- **Exclusão.** Bloqueio imediato, revogação de todas as sessões, limpeza do código de recuperação e arquivamento das partidas em transação; resposta 202 com `deletedAt`/`purgeAfter`. Primeiro job a partir de sete dias remove dependentes em cascata; backups seguem retenção de 14 dias desde a geração. Logout, exclusão e sessão revogada limpam tokens e cache local. Não prometer remoção física imediata nem oferecer desfazer exclusão. Os dados da v0.2 vivem em `games.state` e `game_events`, e saem no mesmo expurgo.
+SDK: `createClient({ baseUrl, tokenStore, clientVersion, fetch, refreshLock })`.
+No 401, uma renovação por vez, relendo tokens; revogação/refresh recusado limpa
+tokens e chama `onUnauthenticated`. Não repetir rotação em falha de rede;
+leitura/comando repete com mesmo UUID. `GameRuleClientError.details` traz estado avançado.
 
-### Motor (`packages/engine`, GDD §14.3)
+### Página de apresentação
 
-API pública, e nada além dela e dos tipos: `createInitialState`, `migrateState`, `nextEventAt`, `advanceTo`, `applyCommand`, `deriveViewState`, mais `REJECTION_CODES`, `CURRENT_SCHEMA_VERSION` e `StateMigrationError` (`purity.test.ts` falha se outra coisa vazar). O [README do motor](packages/engine/README.md) descreve o ciclo, os invariantes, cada mecânica, a receita de uma versão de estado nova, a de uma carta nova, a de uma expedição nova e como adicionar um evento.
+Regras completas no [README da landing](packages/landing/README.md), “O que a página
+pode dizer”, “Capturas do jogo” e “Limites conhecidos”: estática, domínio/origem/
+armazenamento próprios, sem Preact/pacotes do jogo/API; só dizer o que o jogo diz,
+sem número de regra, promessa de duração/preço/multijogador/GitHub/marca de editor.
+Teste não pegar não autoriza. Futuro só “No horizonte”, sem data; retire o entregue
+na mesma publicação. Abertura com captura real; pintura com legenda de IA e crédito
+Codicons. Capturas manuais no ritmo de produção; mudou Feudo/status/modo discreto,
+refaça imagens afetadas/`og.png` e releia legendas/textos alternativos.
 
-- Funções puras que nunca mutam a entrada: cada chamada clona o estado (JSON puro) e trabalha num rascunho. Sem `Date.now()`, `Math.random()` ou I/O; o ESLint e `purity.test.ts` recusam.
-- `advanceTo` anda trecho a trecho até o próximo evento de `nextEventAt`: fim de reparo da muralha, obra, forja, treino, chegada de aldeão, virada de dia, fim de adaptação, comida ou lenha acabando, ouro acabando com soldo a pagar, estoque enchendo, planejada automática juntando o custo, carta que expira, efeito escondido, continuação que chega, herói prometido que chega, incursão que chega, onda do Cerco, fim da milícia e da Reconstrução, prazo da caçada, chegada/volta da campanha, aviso da Torre, troca dos candidatos da Taverna, fim de um nó de expedição, prazo de uma encruzilhada, chegada de uma caravana, ferido que sara e herói ferido que sara. O fim de adaptação é o de uma leva de aldeões ou o de um Mestre (`nextAdaptationEndAt`); o Mestre à porta não tem instante próprio: entra quando a vaga abre.
-- **Ordem fixa no mesmo instante** (`processEventsAt` em `advance.ts`, provada em `advance.test.ts`, para a Taverna em `tavern.test.ts`, para as expedições, em `expeditions.test.ts`, para as caravanas, em `market.caravans.test.ts`, e, para os Mestres, em `masters.test.ts`): reparo da muralha → obras concluídas → forja → recrutas → treino → aldeões feridos que saram → **Mestres que esperavam à porta** (`settleMasterArrivals`: a obra que ampliou as casas já terminou, e o recruta, que tinha a casa reservada, já entrou) → heróis feridos que saram (`recoverHeroes`: quem sara em um instante já pode partir na ordem dada nele) → expiração de efeitos de preço e do prazo da caçada → virada do dia (`processCalendar`: fecho do desperdício, fecho anual (`yearEnded`) → ano novo (`yearStarted`, com os lobos que voltam ao Covil limpo, `restoreTiles`, antes de a Ameaça subir), estação, amanhecer, experiência do ofício, moral com os sorteios dela e a deserção por fome, cobrança do soldo em atraso (`turnWages`: Descontente e heróis que partem; como a deserção por fome, cobra também o que fechou há menos que a janela de retomada, `wageLedgerAt` e `famineLedgerAt`), **o Mercado** (`turnMarket`: o preço de cada recurso anda, com o sorteio dele, e o volume do dia volta; só com o Mercado de pé, e antes do Conselho para a carta daquela virada já encontrar o preço de hoje), sorteio do Conselho, Ameaça) → **Mestres à porta, de novo** (a vaga que um aldeão deixou ao partir ou desertar nesta virada é tomada neste instante, e não no próximo) → Conselho fora do sorteio (expirações, efeitos escondidos, continuações) → heróis prometidos que chegam (`settleHeroArrivals`: o que uma carta acabou de dar e o que tinha instante marcado) → fim de adaptação (as levas de aldeões e os Mestres) → incursões (aviso da Torre e resolução) → Cerco → fim de milícia/Reconstrução → Taverna (`settleTavern`: o festival que acabou e a troca dos candidatos, com o sorteio dela) → retorno das equipes sem destino (`recallStranded`, inclusive Fortaleza removida pelo Cerco) → expedições (`settleExpeditions`: os nós que terminam, os prazos de encruzilhada e as equipes que voltam, na ordem do identificador, cada uma com o sorteio do próprio fluxo, e **dentro de um nó a ordem dos sorteios é fixa**: a sorte, quem sofre, a cobiça do Ganancioso, as quantidades do saque, o item e, por último, o Mestre, só no Sucesso e só se ele ainda pode chegar; o saque entra antes da conta do ouro) → **campanha do exército** (`settleCampaign`: chegada, batalha e retorno; quem partiu não defende a incursão do mesmo instante) → **caravanas que chegam** (`settleCaravans`: na ordem do identificador; com escolta, sem sorteio; sem escolta, um sorteio no fluxo da caravana, com a Torre de Vigia deste instante; o ouro entra antes das planejadas e da conta do soldo, e o fluxo é apagado por último) → planejadas automáticas e objetivos (`settlePlanned`) → fome, frio e, por último, o soldo em atraso, que abre ou fecha (`settleScarcity`). Depois, `announceFilled`. Nunca a ordem de importação dos módulos. Um evento novo entra nessa lista em um lugar escolhido, com teste do instante exato, e o README do motor diz por quê.
-- Recursos em **milésimos inteiros**; `accumulators` guarda o resto de `taxa × ms` que ainda não completou um milésimo. Fatores do conteúdo são frações (`{ num, den }`) para nenhuma conta usar ponto flutuante. Nunca `number` fracionário no estado, com uma exceção: `settings.timeScale` (pode ser 0,5), que não entra em conta contínua.
-- Invariante testada por propriedade, exata e sem tolerância: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)`, no estado, nos eventos **e no gerador**.
-- `applyCommand` exige o estado avançado até o instante do comando e lança se não estiver; recusa de regra devolve `{ ok: false, code, message }` sem lançar. Depois de todo comando e de todo instante com eventos rodam `settlePlanned` (planejadas e objetivos, repetidos enquanto um der motivo ao outro) e `settleScarcity`; o estado sai sempre **em repouso**, e um estado que chega fora dele (recém-migrado) é acomodado antes de o tempo andar.
-- O motor **emite** eventos já com a frase da Crônica (`emit` em `chronicle.ts`, modelos em `@lotg/content`) e não os guarda no estado.
-- Valores deriváveis (capacidade habitacional, limite do estoque, filas abertas, aldeões livres, taxas) são funções puras, nunca persistidos.
-- **Versões do estado.** Uma versão por tarefa que muda a forma do `GameState`, um passo por versão em `migrations/` (forma exata da versão de que parte, identificadores escritos no arquivo, nada importado de `@lotg/content`), retratos congelados em `__fixtures__/` com impressão digital. Todo prazo que um passo cria conta de `context.boundaryMs` (a fronteira **daquele** passo), nunca de `state.migratedAtMs`. Um passo não emite eventos. Sem o passo, a partida de quem já joga quebra no primeiro `advanceTo`.
-- **Sorteios** (`random.ts`): xoshiro128\*\* com fluxos nomeados em `state.rng`: os fixos (`morale`, `council`, `horde`, desde o estado 16, `tavern`, e, desde o 21, `market`, que só nasce na primeira virada de dia com o Mercado de pé; um fluxo novo para cada assunto novo) e, desde o estado 13, os **de entidade** (`expedition:expedition-<n>`, `caravan:caravan-<n>`), um por entidade viva, com o tipo igual à família e `n` de 1 ao contador de `state.ids`, apagados com `dropStream` quando a entidade termina (o da expedição, na volta, como último passo dela no instante; o da caravana nasce no sorteio da chegada e é apagado no mesmo instante, e por isso nunca chega a ser gravado). A guarda de forma confere `rng` contra `ids` e exige, desde o estado 17, que todo fluxo `expedition:<id>` seja de uma expedição em curso e, desde o 22, que todo fluxo `caravan:<id>` seja de uma caravana na estrada. Dentro de um nó a ordem dos sorteios é fixa: a sorte, depois (com a V3D-T2) quem sofre o desfecho, depois as quantidades do saque na ordem dos recursos. Só `advanceTo` sorteia, dentro de um instante marcado da linha do tempo; nunca `applyCommand`, `deriveViewState`, `nextEventAt`, a criação ou a migração. Só se sorteia o que pode acontecer. O estado do gerador nunca sai na visão. Trocar o algoritmo é mudar regra (`RNG_VERSION`, vetores, migração).
-- **Identidades** (`ids.ts`): `nextId(draft, tipo)` devolve `<tipo>-<n>` de um contador em `state.ids` que só sobe; nunca relógio, UUID ou sorteio. Só uma ordem aceita e um evento da linha do tempo criam entidades; `deriveViewState`, `nextEventAt`, a criação e a migração nunca, e o objeto `ids` não sai na visão (os identificadores que a visão mostra, como `hero-3` e `offer-7`, deixam inferir quantos já foram criados: é inofensivo, e não é segredo). Uma ordem pode criar uma entidade, mas não sorteia: contratar na Taverna cria o herói de um candidato que a rotação já tinha sorteado. Há os tipos `hero` (criado só por `arrivals.ts`), `offer` (a oferta de um candidato, criada só por `tavernTurn.ts`), `expedition` (criada só por `expeditionOrders.ts`, na ordem de envio, que não sorteia: a variante do grafo sai de um hash da semente e do modelo mais o número de envios, `hash.ts`), `item` (o item achado no fim de um nó, `expeditionTurn.ts`) `caravan` (criada só por `caravanOrders.ts`, na ordem de envio, que também não sorteia) e `master` (criado só por `masterTurn.ts`, na chegada; a ordem `assignMaster` não cria nada, e Mestre nenhum tem fluxo de sorteio).
-- **Névoa no servidor.** O `ViewState` só leva o que o jogador pode saber: flags, efeitos escondidos e continuações do Conselho, a Ameaça e as incursões sem a Torre de Vigia e o gerador nunca saem. Da Taverna só saem os candidatos desta rotação: o modelo, os da próxima e o fluxo `tavern` nunca. De uma expedição só sai o que a equipe já alcançou e, antes do envio, o primeiro trecho, até a primeira encruzilhada: a dificuldade e o conteúdo dos nós além de uma encruzilhada não decidida, para onde cada opção leva, a variante do grafo, a chave de um nó, a sorte e o fluxo nunca (`expeditions.test.ts` prova que duas expedições iguais até a encruzilhada dão a mesma visão). As previsões da visão não sorteiam (a cópia que prevê a moral empurra a rotação da Taverna para nunca e anda sem as expedições em curso) e não contam com incursões marcadas.
-- **Cartas.** Os ids de carta e de opção publicados são fixados em `packages/content/src/council.test.ts`: mudar um pede passo de migração. Toda carta nova muda o sorteio de todas as sementes (goldens, retratos, `COUNCIL_SCENARIO_SEED`): o README do motor, "Uma carta nova", tem a receita. Os ids dos heróis com nome (`NAMED_HERO_IDS`) também ficam gravados no estado (`guild.arriving`) e estão fixados no mesmo teste.
-- **Expedições.** Os ids de modelo, de nó e de opção publicados são fixados em `packages/content/src/expeditions.test.ts` (`STABLE_IDS`): uma expedição em curso guarda `modelId`, `variant` (a posição na lista), `nodeId` e o `optionId` de cada escolha, e mudar um deles pede passo de migração (acrescentar é livre; a expedição cujo nó o conteúdo deixar de ter volta para casa). Uma dificuldade, um peso ou uma recompensa que muda aparece no golden da calibragem (`__golden__/expedition-calibration.md`), e uma frase, no dos relatórios (`expedition-catalog.json`). A frase de um desfecho diz quem se destacou em `{heroi}`, vale para herói e heroína e não afirma o dano (quem sofre é sorteado). O README do motor, "Uma expedição nova", tem a receita.
-- **A carta roteirizada** ("Estrangeira ferida", `scripted: { atGameDay: 13 }`): sai no sorteio da audiência, na frente das sorteadas, uma vez por partida, e **pede lugar na mesa sem reservá-lo**: com as duas cartas pendentes espera a audiência seguinte. `atGameDay` é um piso: a partida que já passou do dia a recebe na primeira audiência com lugar, sem passo de migração que a agende. Só `arrivals.ts` cria herói (`promiseHero`, `settleHeroArrivals` e `admitHero`, a porta também do herói contratado); o teto da lista (`rosterCap`) faz a recompensa esperar, nunca se perder.
-- **Taverna** (`tavern.ts`, as contas; `tavernTurn.ts`, a rotação e o fim do festival; `tavernOrders.ts`, as ordens; `tavernView.ts`): a rotação é **ancorada** na inauguração e tem instante próprio em `nextEventAt` (quase nunca é virada de dia); o sorteio é sem reposição dentro de uma lista e não repete o nome de quem já serve; o número de candidatos é o do nível no instante da troca; a rotação de um instante resolve antes da ordem daquele instante (`OFFER_GONE`). O festival é um efeito temporário de moral (`id: 'festival'`), um por estação, e acaba em uma virada de dia, sem instante próprio. Os ids dos modelos de candidato (`TAVERN_CANDIDATE_IDS`) ficam gravados no estado (`guild.tavernOffers[].templateId`), e a ordem deles e a dos nomes (`heroNames`) fazem parte do sorteio: mexer nelas muda quem toda Taverna oferece.
+CSP `default-src 'none'`: sem estilo/script embutido, terceiros ou medição de audiência.
+Cores só em `src/styles/tokens.css`, contraste testado. URLs por `%GAME_URL%`/`%SITE_URL%`
+(`src/site.ts`, `LOTG_GAME_URL`/`LOTG_LANDING_URL`), nunca fixas no HTML.
+Título da aba deve diferir do jogo para o monitor distingui-los.
+
+### Motor
+
+[README](packages/engine/README.md): “O ciclo”, “Invariantes”, “Sorteios”, “Identidades”,
+“Versões do estado e migração”, “Uma carta nova”, “Uma expedição nova”, “Como adicionar
+um evento”, “A carta roteirizada” e “Taverna”. Essas regras continuam obrigatórias.
+
+- API: README §API pública e `ENGINE_VERSION`; `purity.test.ts` confere. Pureza, clonagem, próximos instantes e repouso seguem “O ciclo”/“Invariantes” do README. Sem relógio, `Math.random` ou I/O.
+- **Ordem fixa**, conferida em `advance.ts` (README ainda omite passos da guerra): reparo da muralha → obras → forja → recrutas → treino → aldeões curados → Mestres à porta → heróis curados → expiração de preço/caçada → calendário → Mestres à porta outra vez → Conselho (expirações/efeitos/continuações) → heróis prometidos → adaptação → incursões → Cerco → fim de milícia/Reconstrução → Taverna → retorno sem destino → expedições → campanha → caravanas → planejadas/objetivos → fome/frio/soldo → `announceFilled`. Calendário: desperdício → fecho anual → ano novo (reinicia Conselho/Horda, restaura lobos antes da Ameaça, Queda abre Reconstrução) → estação → amanhecer → experiência → moral/sorteios/deserção → cobrança do soldo → Mercado → Conselho → Ameaça. Não é ordem de imports. Evento novo tem lugar escolhido, teste e justificativa no README. Cobranças preservam janela de retomada (`famineLedgerAt`, `wageLedgerAt`).
+- Invariantes do README: milésimos/restos em `accumulators`, fatores `{ num, den }`, única fração `settings.timeScale` fora de conta contínua. Divisão exata em estado/eventos/gerador: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)`.
+- Comando exige estado avançado (mau uso lança, regra recusa sem lançar); repouso após comando/evento e antes de avançar migrado. `settlePlanned`/`settleScarcity`, emissão e deriváveis seguem o README.
+- Forma nova: passo/guarda exatos, retratos congelados com impressão digital. Na v0.5, D-4/roadmap §5.1 substitui cadência por tarefa: **uma versão por fase publicada**, B=43, C=44, E=45, F=46. Uma trilha de estado por vez; respeitar reservas. Passo sem `content`, sorteio, id ou evento; prazo de `context.boundaryMs`, nunca `state.migratedAtMs`.
+- **Sorteios do estado** (README §Sorteios): `xoshiro128**`, fluxos fixos por assunto e por entidade viva, família/tipo/contador válidos. Só `advanceTo` em evento marcado sorteia o possível; nunca ordem/criação/migração/visão/`nextEventAt`. `dropStream` por último, sem ressuscitar fluxo; caravana só o cria na chegada sem escolta/com risco, apaga ali. Nó: sorte → vítima → cobiça → quantidades por recurso → item → Mestre (Sucesso/elegível). Saque antes do ouro, entidades por id. Gerador fora da visão; troca de algoritmo/hash/redução exige `RNG_VERSION`, vetores e migração.
+- **Ids** (README §Identidades): `nextId`, contador só cresce; sem relógio/UUID/sorteio. Só ordem aceita/evento cria; criação/migração/visão/`nextEventAt` não. Contadores ocultos, ids visíveis inofensivos. Preserve módulos por entidade e hash da variante.
+- **Névoa:** ocultar flags/efeitos/continuações, gerador, Ameaça/incursões sem Torre, modelos/futuro da Taverna. Expedição só alcançado e, antes do envio, até primeira encruzilhada; ocultar outro lado/destinos/variante/chaves/sorte/fluxo. Provar visão igual se só oculto difere. Previsão não sorteia nem antecipa incursão; cópia da moral desliga Taverna/expedições. Mapa/semente de Temporada preservam névoa conforme fase.
+- Receitas do README: ids publicados estáveis (mudança pede migração), calibragem/catálogo, `{heroi}`, roteirizada e Taverna. R1: Paliçada segura sem batalha; Cerco luta. R2/R3: lotes/fila de recrutamento, treino e vagas do Quartel escalam pelo ritmo, nunca abaixo da base; custo/tempo unitários iguais.
+- Ritmo/dificuldade imutáveis; ofertas em `balance.paces`; `GAME_TIME_SCALE` só padrão (3; 0,5–10). Motor em tempo de jogo, visão em segundos/taxas reais; app não converte. Prazos reais de Conselho, deserção/janela de fome, Torre, quatro do atraso do soldo e encruzilhada usam `realToGameMs`; soldo por hora de jogo. Integração/e2e e golden base: ritmo 1.
 
 ## Convenções
 
-- Documentação, textos de interface e conteúdo de jogo em **português do Brasil** (conteúdo narrativo em tom de crônica medieval, frases curtas). Identificadores de código em inglês (`townHall`, `lumberMill`, `startConstruction`).
-- Testes `*.test.ts` ao lado do código; golden files em `__golden__/`; integração em `tests/server/` ou `packages/server/test/`; navegador em `tests/e2e/*.spec.ts`. Testes primeiro onde houver regra de jogo ou contrato de API.
-- `main` sempre verde (`pnpm verify`). Tarefas de tamanho `L` em branch (`f1-t5-construcoes`) com merge ao final; na v0.4, trilhas em worktrees e integração pelo coordenador, um commit por assunto.
-- Commits: `F1-T3: resumo no imperativo` (na v0.2, `V2C-T2: …`; na v0.3, `V3B-T1: …`; na v0.4, `V4B-T1: …`; correções de revisão, `V2C: corrige …` e `V3B: corrige …`, um commit por defeito). Nunca logar tokens, códigos de recuperação ou segredos.
+Português do Brasil, frases curtas; narrativa medieval, código em inglês.
+Testes ao lado (`*.test.ts`/`*.test.tsx`), goldens `__golden__`, integração
+`tests/server`/`server/test`, e2e `tests/e2e/*.spec.ts`. Regra/contrato: testes primeiro.
 
-## Ritual de conclusão de tarefa (MVP-ROADMAP.md §0.3 e §A.4; roadmaps da v0.2 e da v0.3, §0.4)
+`main` sempre verde, sem commit direto de fase. Worktree/branch próprio `v5-*`;
+um commit por assunto: `V5A-T1: resumo no imperativo` (ajuste tarefa/fase), com
+`Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+Nunca registrar tokens, códigos de recuperação ou segredos em logs.
 
-Uma tarefa do roadmap por sessão; a ordem das fases é obrigatória. Para tarefas `M` e `L`, apresentar o plano e esperar aprovação antes de codar (na v0.3, por pedido do autor, o plano fica escrito e a execução segue sem a espera).
+## Regime rápido da v0.5
 
-1. Rodar os comandos da seção "Verificação" da tarefa e `pnpm verify` (mais `pnpm test:integration` se tocar o servidor, `pnpm test:e2e` se tocar o app web, `pnpm test:e2e:landing` se tocar a página de apresentação; se tocar o motor ou o conteúdo, a matriz já roda no `pnpm test`, e uma faixa que falha é regressão a corrigir nos números, nunca no bot) e mostrar a saída. Confira o `pnpm verify` pelo código de saída: `| tail` esconde a falha de um pacote. Se a mudança tocar a aba Feudo, a barra de status ou o modo discreto do app, rodar também `pnpm capture:landing` e refazer as três imagens e o `og.png` da página (packages/landing/README.md). Sem saída de teste, não há tarefa concluída.
-2. Marcar as caixas da tarefa no roadmap da versão e preencher a linha no Registro de Execução (§9 do MVP-ROADMAP.md, §11 do roadmap da v0.2, §12 do roadmap da v0.3), com o que foi verificado **e o que não foi**. Procurar o que a tarefa tornou falso em `CLAUDE.md`, nos READMEs e em `docs/`.
-3. Desvios do GDD → `docs/decisions/NNNN-titulo.md`, aguardando aprovação.
-4. Um commit por tarefa (ou por subtarefa em tarefas `L`).
+Vale o [roadmap §2](docs/roadmap-v0.5.md#2-regime-rápido), aprovado na D-1.
+
+1. Uma tarefa por sessão, plano escrito, sem espera de rotina; fases/dependências obrigatórias. `pnpm typecheck` sempre.
+2. Foco com `nice -n 19`/`--maxWorkers=2` em todo Vitest; uma suíte pesada por vez. `UPDATE_GOLDEN=1` só no arquivo da tarefa; ler/explicar diff no commit. Golden alheio alterado é defeito. Bots só mudam na H, nunca para esconder regressão.
+3. Prettier nos tocados, ESLint se código; formatar só tocados. Roadmap §11: data/commit/agente, verificado **e não verificado**. Corrigir documentos falsos; não inventar aprovação humana.
+
+| Toquei | Rodo além de tipos/formato |
+| --- | --- |
+| Conteúdo | Foco + `test:guards` + motor da mecânica. |
+| Motor/regra | Foco + `test:guards`. |
+| Forma do estado | Acima + `fixtures`, `migrations`, teste do passo. |
+| Protocolo | `test:guards`. |
+| Servidor | Integração focada, com banco e filtro **sem** `--`. |
+| App | Teste da aba/módulo + `bundle` + e2e alterado. |
+| Landing | `page`/estilos + cenário de tela alterado; capturas quando afetadas. |
+| Balanceamento | Acima + `test:matrix` **na CI**. |
+
+`test:guards` (§2.2); antes de push, `test:changed`. **Localmente não rodar verify, matriz,
+integração/e2e inteiros**, salvo medição exigida. CI é portão pesado. Conferir saída sem `| tail`; conclusão exige resultado.
+
+Publicação (§2.5): `v5-<fase>` rebaseado, PR **rascunho**, CI verde **naquele SHA**,
+revisão principal/capturas. D-3 permite push de branch/PR, respeitando restrições da tarefa.
+Autor autoriza a fase; backup manual se sobe estado, SHA de retorno anotado. Promover
+**mesmo SHA verde**, avanço rápido, sem merge novo; CI do `main` repete antes de
+implantar. Falhou, corrigir no branch. Conferir `/v1/version`/registro. `main` local
+só avança rápido para SHA verde. A sessão principal revisa diffs externos/capturas.
 
 ## Nunca
 
-- Rodar `docker compose down -v` fora do ambiente de dev: `-v` apaga os volumes do banco.
-- Commitar `.env` ou qualquer segredo; regenerar `RECOVERY_CODE_SECRET` de um ambiente que já emitiu códigos.
-- Publicar ou implantar sem o autor pedir. O jogo está em produção no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)) e **todo `push` no `main` com o CI verde é implantado sozinho** pelo job `deploy` de `.github/workflows/ci.yml`: dar `push` no `main` é publicar. Na v0.3, desde 2026-10-06 (ADR 0017, "Respostas de 2026-10-06"), **quem dá o `push` é o autor**: o agente faz commits locais, e ao fechar o candidato avisa o autor, responsável pelo backup manual do banco antes de todo `push` que sobe a versão do estado. A autorização de 2026-10-05 ("`push` em versão estável", lida como todo fim de fase) não vale mais como estava.
-- Voltar a imagem da API para antes de uma migração de estado sem restaurar o backup, nem usar a imagem da `v0.1.0` como destino de reversão: ela não confere a versão do estado e grava por cima com as regras antigas ([deploy/README.md](deploy/README.md), "Reverter depois de uma migração de estado").
-- Usar o nome, o logotipo ou a marca "Visual Studio Code" na interface (ADR 0008, ponto 6).
+- Rodar `docker compose down -v` fora de dev: apaga volumes do banco.
+- Commitar `.env`/segredos ou regenerar `RECOVERY_CODE_SECRET` de ambiente que emitiu códigos.
+- Publicar/implantar sem pedido do autor. **Push no `main` com CI verde publica automaticamente no Coolify** (`deploy` em `.github/workflows/ci.yml`). Só com autorização do autor para a fase; backup manual antes de todo push que sobe o estado e SHA de retorno anotado. Push de branch/PR segue D-3 e restrições da tarefa.
+- Voltar imagem da API para antes de migração de estado sem restaurar backup; usar `v0.1.0` como reversão (ela não confere versão e sobrescreve). Ver deploy §Reverter depois de uma migração de estado.
+- Usar nome, logotipo ou marca do editor na interface (ADR 0008, ponto 6).
 - Mesclar estados de contas.
-- Usar Alpine como base da imagem (as bases são `node:22-bookworm-slim` e `debian:bookworm-slim`).
+- Usar Alpine como base: bases `node:22-bookworm-slim` e `debian:bookworm-slim`.

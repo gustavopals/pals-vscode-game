@@ -342,4 +342,4 @@ Uma linha por tarefa: o que foi verificado **e o que não foi**.
 
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| V5A-T1 | 2026-11-17 | este | Codex | CLAUDE reduzido de 55.591 para 19.974 bytes; 122 itens conferidos e histórico preservado em `docs/historico.md`. Estado 42, protocolo 4, versões 0.4.0 e publicação conferidos no código/CHANGELOG; referências locais e `pnpm typecheck` (Node 22) passaram. Prettier passou, mas `.md` é ignorado pela configuração do projeto. Não rodados verify, matriz, integração/e2e, CI ou capturas (só documentação/regime rápido); sem consulta à produção, aprovação humana, push ou publicação. |
