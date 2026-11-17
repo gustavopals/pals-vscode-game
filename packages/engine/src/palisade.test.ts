@@ -509,9 +509,9 @@ describe('a divisão de intervalo continua exata com a Paliçada', () => {
           expect(direct.state.settlement.buildings.palisade).toBeLessThanOrEqual(
             buildings.palisade.maxLevel,
           );
-          // A Paliçada nunca sobe sem o Salão no nível 3.
+          // A Paliçada nunca sobe sem o Salão no nível 3 (a Queda do Cerco pode baixá-la).
           if (townHall < 3) {
-            expect(direct.state.settlement.buildings.palisade).toBe(palisade);
+            expect(direct.state.settlement.buildings.palisade).toBeLessThanOrEqual(palisade);
           }
           expect(eventsOfType(direct.events, 'buildingFounded').length).toBeLessThanOrEqual(1);
         },
