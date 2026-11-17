@@ -2,7 +2,9 @@
 
 A página de apresentação do jogo: uma página estática, em domínio próprio, que diz o que é Lords of the Guild e leva ao jogo pelo botão **Jogar agora**. Decisão e motivos no [ADR 0012](../../docs/decisions/0012-pagina-de-apresentacao.md).
 
-É HTML e CSS escritos à mão, com um script pequeno (dois arquivos de vinte linhas). Não usa Preact, não importa nenhum pacote do jogo (o lint barra) e não fala com servidor nenhum. O único vínculo com o jogo é um teste que confere as frases citadas contra `@lotg/content`.
+É HTML e CSS escritos à mão, com um script pequeno (dois arquivos, quarenta linhas ao todo). Não usa Preact, não importa nenhum pacote do jogo (o lint barra) e não fala com servidor nenhum. O único vínculo com o jogo é um teste que confere as frases citadas contra `@lotg/content`.
+
+A página foi **refeita do zero em 2026-11-17**, a pedido do autor, com outro tema e outros textos: é o **almanaque** descrito abaixo. A anterior (o "códice" azul e ouro, com letra gótica e a piada do escritório) ficou no histórico do Git.
 
 ## Rodar
 
@@ -29,48 +31,59 @@ pnpm test:e2e:landing               # Chromium, a página compilada, em tela de 
 scripts/landing-smoke.sh <endereço> # a página servida pelo Caddy: cabeçalhos, cache e o 404
 ```
 
-Os testes de unidade leem as páginas e as folhas de estilo como texto: política de conteúdo, destino do botão, texto alternativo das imagens, cor só em `tokens.css`, contraste de cada par de texto e fundo, e as conferências da seção "O que a página pode dizer". Os testes em navegador (`tests/landing/landing.spec.ts`) não precisam da API nem do banco: provam a política de conteúdo valendo, as letras carregadas, o interruptor das duas leituras pelo clique e pelo teclado, os rótulos dentro da captura, o contraste do que foi desenhado, nenhuma rolagem lateral de 320 a 1920 px e a página sem JavaScript.
+Os testes de unidade leem as páginas e as folhas de estilo como texto: política de conteúdo, destino do botão, texto alternativo das imagens, cor só em `tokens.css`, contraste de cada par de texto e fundo, e as conferências da seção "O que a página pode dizer". Os testes em navegador (`tests/landing/landing.spec.ts`) não precisam da API nem do banco: provam a política de conteúdo valendo, as letras carregadas, o índice das estações, a faixa do alto que veste a estação sob ela (e o contraste dela em cada uma), as janelas da pintura, as capturas no tamanho certo, o teclado, o contraste do que foi desenhado, nenhuma rolagem lateral de 320 a 1920 px e a página sem JavaScript.
 
 ## Estrutura
 
 | Arquivo | O que tem |
 |---|---|
-| `index.html` | A página inteira, na ordem em que se lê: herói, o ritmo (abra, feche, volte) com a pintura das estações, o códice (oito blocos, um por coisa que se governa), álibi, vaga, cólofon e a barra de status |
+| `index.html` | A página inteira, na ordem em que se lê: a faixa do alto, a abertura com a captura do jogo, o índice das quatro estações, o modo de usar, as quatro estações (Primavera, Verão, Outono, Inverno), o fecho e o cólofon |
 | `404.html` | A página de caminho errado, servida pelo Caddy com o código 404 |
 | `src/styles/tokens.css` | Cores e letras. É o **único** arquivo com valores de cor |
-| `src/styles/page.css` | Uma seção por bloco de comentário, na ordem da página; as posições dos rótulos presos à captura ficam aqui |
-| `src/main.ts`, `src/absence.ts` | O único script: quem troca de aba e volta lê na barra de status quanto tempo ficou fora |
+| `src/styles/page.css` | Uma seção por bloco de comentário, na ordem da página |
+| `src/main.ts`, `src/season.ts` | O único script: a faixa do alto veste a cor da estação que está sob ela e marca o nome dela no índice |
 | `src/site.ts` | Os endereços do jogo e da página, com os padrões de produção |
-| `src/fonts/` | Grenze Gotisch e Alegreya (subconjunto latino), com o texto da licença de cada uma |
-| `src/assets/` | A pintura das estações em três larguras (AVIF e WebP) e as capturas do jogo (WebP sem perda): a aba Feudo larga e estreita, a barra no modo discreto e a folha da encruzilhada da aba Guilda |
+| `src/fonts/` | Fraunces (em pé e em itálico) e Instrument Sans (subconjunto latino), com o texto da licença de cada uma |
+| `src/assets/` | A pintura das estações em duas larguras (AVIF e WebP) e as capturas do jogo (WebP sem perda): a aba Feudo larga e estreita, a barra no modo discreto, a folha da encruzilhada da aba Guilda e o painel do Cerco da aba Exército, largo e estreito |
 | `public/` | Ícone, `robots.txt`, `licencas.txt` e `og.png`, a imagem da prévia do link |
 
-## As duas vozes
+## O almanaque
 
-A página fala em duas vozes, e a letra diz qual é. A do **escritório** (largura fixa, do sistema) descreve o que se vê de longe: "Parece trabalho.", os rótulos cinza, a faixa do álibi. A do **feudo** (Grenze Gotisch, em ouro) diz o que aquilo é: "É um feudo.", as flâmulas. O texto corrido é do cronista (Alegreya). A barra de status presa embaixo usa a cor e a letra da barra do jogo.
+A página é o **Almanaque de Pedra Alta**: o ano do jogo contado em quatro estações, e o chão escurece com ele. Papel claro na abertura, verde pálido na Primavera, trigo no Verão, vinho no Outono e noite no Inverno; depois do Inverno, o papel volta ("Depois do inverno, outra primavera."). O título é "Um ano inteiro para preparar um inverno.", e cada estação conta o que o jogador faz nela:
 
-O herói mostra uma captura real do jogo com cinco rótulos e um interruptor que troca só os rótulos: "quem passa vê" uma tabela qualquer, "quem governa vê" as despensas. É só CSS (dois botões de opção antes da figura), então funciona sem script e pelo teclado. Abaixo de 68rem a captura fica pequena para a gótica dos rótulos: as duas leituras passam a uma lista, lado a lado, sem interruptor.
+- **Primavera**, "Plante antes de sonhar.": os ofícios e as obras, a fome e o frio, e o Conselho, com a carta "Estrangeira ferida" palavra por palavra e o tamanho do baralho.
+- **Verão**, "A estrada rende, e cobra.": os heróis (as fichas de Edda e Rolf), as expedições com a encruzilhada (captura real), as três Posturas, os quatro desfechos e os nove destinos, o Mercado com as caravanas e os quatro Mestres.
+- **Outono**, "Ferro, pátio e presságio.": o ferro e o Ferreiro, as cinco tropas do Quartel com quem vence quem, uma formação desenhada pela página (três alas, frente e retaguarda, um comandante por ala), a Defesa ativa, os presságios, a sabotagem da Fortaleza e o Acampamento.
+- **Inverno**, "Três ondas, uma muralha.": o Cerco do Inverno com o Plano de Batalha (captura real do painel do Cerco), as três ondas pelo nome, a milícia, os três fins possíveis e a Crônica do Ano com os Feitos.
 
-## O códice
+Três regras de desenho sustentam a página:
 
-Depois do ritmo ("Abra. Feche. Volte.") vem o códice: oito blocos, um por coisa que se governa (o feudo, o Conselho, os lobos, os heróis, as expedições, o Mercado, os Mestres e a Crônica). Cada bloco é uma aba aberta no editor: a orelha cinza com o nome do arquivo (`guilda.csv`, `expedicao.log`) é o que quem passa vê, o título em ouro é o que aquilo é, e cada um traz uma frase do jogo palavra por palavra: linhas da Crônica, a carta "Estrangeira ferida" com as duas opções e as pistas, as fichas de Edda e Rolf com a frase do traço, as três Posturas, os seis destinos, os quatro desfechos, os quatro Mestres com o ofício de origem e, no bloco das expedições, uma captura real da folha da encruzilhada na aba Guilda. Os blocos ficam em uma coluna no celular e em uma grade de doze colunas a partir de 60rem; a única coisa que se move é o bloco que se ergue um pouco sob o ponteiro, por transição, e `base.css` a desliga para quem pediu menos movimento. Não há animação declarada (o teste de `styles.test.ts` continua a provar isso).
+- **Cada trecho troca sete papéis** (`--ground`, `--text`, `--soft`, `--accent`, `--strip`, `--rule`, `--shadow`, em `tokens.css`), e `page.css` só fala neles. Uma estação nova, ou uma cor trocada, é uma mudança em `tokens.css` e no bloco das estações de `page.css`; o teste de contraste em `styles.test.ts` lista cada par usado e precisa acompanhar.
+- **O que está na letra de largura fixa é do jogo, palavra por palavra**: as linhas da Crônica, o texto da carta, a frase de cada traço, Postura, tropa e presságio, os destinos e os fins do Cerco. O texto da página é Instrument Sans; os títulos, Fraunces (o itálico de Fraunces marca "um inverno." e os algarismos romanos). Quem acrescentar uma citação usa a tira `.said` e confere a frase em `page.test.ts`.
+- **A pintura aparece por uma janela em arco**, uma por estação: é a mesma imagem das quatro estações, com `object-position` diferente em cada arco (`.arch-spring` … `.arch-winter`), e cada janela leva a legenda "Arte conceitual, gerada por IA.".
+
+A faixa do alto fica presa e traz a marca, as quatro estações (a partir de 48rem) e o botão. O script põe `data-season` em `<html>` conforme a estação que está logo abaixo dela, e a faixa veste o chão dessa estação; sem script ela fica sempre em papel. A única coisa que se move é o botão que afunda sob o ponteiro e a cor da faixa, por transição, e `base.css` desliga as duas para quem pediu menos movimento. Não há animação declarada (o teste de `styles.test.ts` continua a provar isso).
 
 ## O que a página pode dizer
 
 A página só diz do jogo o que o jogo diz de si. `src/page.test.ts` pega as formas mais comuns de erro, e falha se:
 
-- uma linha da Crônica citada, em qualquer bloco (`<blockquote class="chronicle-lines">`), não for uma frase de `chronicleTemplates` ou das frases dos lobos (`raidTemplates.wolves`: o uivo, e a chegada seguida do desfecho), ou for uma virada de dia ([ADR 0007](../../docs/decisions/0007-cronica-sem-viradas-de-dia.md));
-- a carta do Conselho mostrada não for a "Estrangeira ferida" palavra por palavra (título, texto, rótulo e pista de cada opção), as fichas dos heróis não disserem a classe, o traço e a frase do traço de `namedHeroes` e `heroTraits`, as Posturas, os destinos e os desfechos não forem os de `expeditionPostures`, `expeditionModels` e `expeditionOutcomes`, os Mestres não forem os quatro de `masters` com o ofício de origem, ou o destino das caravanas e o item citado não existirem no conteúdo;
+- uma linha da Crônica citada, em qualquer estação (`<blockquote class="chronicle-lines">`), não for uma frase de `chronicleTemplates`, ou for uma virada de dia ([ADR 0007](../../docs/decisions/0007-cronica-sem-viradas-de-dia.md)); o que preenche as linhas (o nome da onda, a tropa, o chefe da Horda, os edifícios, o destino das caravanas) também é conferido;
+- a carta do Conselho mostrada não for a "Estrangeira ferida" palavra por palavra (título, texto, rótulo e pista de cada opção), ou o número de cartas dito não for o de `councilCards`;
+- as fichas dos heróis não disserem a classe, o traço e a frase do traço de `namedHeroes` e `heroTraits`; as Posturas, os destinos e os desfechos não forem os de `expeditionPostures`, `expeditionModels` e `expeditionOutcomes`; os Mestres não forem os quatro de `masters` com o ofício de origem;
+- as tropas não forem as cinco de `units`, com a frase de quem vence quem; a formação desenhada puser uma tropa na linha em que ela não combate ou o mesmo herói em duas alas; um presságio não for um dos vagos de `omenTexts`; as ondas, os três fins do Cerco e os Feitos não forem os de `siegeTexts`, `yearChronicleTexts` e `feats`;
 - um edifício citado não existir no conteúdo com o mesmo nome;
-- o texto disser "cada semana é um ano" ou der horas para um dia, estação ou ano de jogo (o ritmo é do servidor, [ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)), falar em "grátis", em multijogador ou no GitHub;
+- o texto disser "cada semana é um ano" ou der horas para um dia, estação ou ano de jogo (o ritmo é do servidor, [ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)), falar em "grátis", em multijogador, em ranking ou no GitHub;
+- a primeira imagem da página não for a captura real do jogo, uma captura não se disser captura, uma pintura não se disser arte conceitual;
 - aparecer o nome "Visual Studio Code", um estilo ou script embutido, ou um endereço escrito à mão.
 
 O que os testes não alcançam e quem edita precisa manter:
 
-- **As outras formas de dizer a mesma coisa.** Uma expressão regular não pega "um ano de jogo dura 56 horas", "não custa nada" ou o nome de outro editor. Promessa de duração, preço, multijogador e marca de editor continuam proibidos, com ou sem teste.
-- **Nenhum número de regra no texto** (custos, taxas, prazos). As capturas mostram números porque são a tela do jogo; a página não os repete.
-- **A pintura é arte conceitual**, gerada por IA, e a página diz isso na legenda e no rodapé. O jogo tem a cara das capturas, e é com uma captura que a página abre. As capturas mostram os ícones do app (Codicons, CC BY 4.0): o crédito fica no rodapé e em `public/licencas.txt`.
-- **O que ainda não existe** (mapa gráfico e legado) só aparece no parágrafo "No horizonte", sem data. A página candidata da v0.4 retira guerra e Cerco do horizonte e apresenta ferro/Ferreiro, soldados/formações, Defesa ativa, presságios, sabotagem, Plano, milícia, rescaldo e Crônica do Ano. A Paliçada pode repelir sem batalha (R1); o Plano resolve as ondas mesmo com o jogador fora. O texto acompanha a publicação do candidato, sem declarar a v0.4 já implantada.
+- **As outras formas de dizer a mesma coisa.** Uma expressão regular não pega "um ano de jogo dura 56 horas", "não custa nada" ou o nome de outro editor. Promessa de duração, preço, multijogador e marca de editor continuam proibidos, com ou sem teste. O título fala em "um ano inteiro": é o ano do jogo, e a página não diz quanto ele dura.
+- **Nenhum número de regra no texto** (custos, taxas, prazos). As capturas mostram números porque são a tela do jogo; a página não os repete. As contagens que o texto traz ("cinco tropas", "três ondas", o tamanho do baralho) são de coisas que a página lista pelo nome ou que um teste confere.
+- **O texto corrido é da página, e não é conferido palavra por palavra.** Ele parafraseia o que o jogo faz (a Paliçada que pode repelir sem batalha, o Plano que vale com o jogador fora, a Horda que guarda a formação, a milícia cujas baixas são permanentes, a Queda que não encerra a partida). Quando uma regra dessas mudar, o parágrafo muda junto.
+- **A pintura é arte conceitual**, gerada por IA, e a página diz isso em cada janela e no cólofon. O jogo tem a cara das capturas, e é com uma captura que a página abre. As capturas mostram os ícones do app (Codicons, CC BY 4.0): o crédito fica no cólofon e em `public/licencas.txt`.
+- **O que ainda não existe** (mapa desenhado, relíquias e legado) só aparece no parágrafo "No horizonte", sem data. A guerra e o Cerco saíram de lá com a v0.4.
 - **Nada de terceiros**: nenhuma letra, script, imagem ou medição de audiência de outra origem. A política de conteúdo barra, e o GDD §18.1 proíbe telemetria.
 
 ## Capturas do jogo
@@ -82,22 +95,35 @@ pnpm dev:up              # o roteiro usa o db_test; não rode junto com test:e2e
 pnpm capture:landing     # tests/landing/capture/: PNG em packages/landing/test-results/capture/
 ```
 
-São quatro imagens, todas em 2×: a aba Feudo em uma janela de 1040 × 765 (`jogo-feudo`, a do herói; eram 720 de altura até a V3C-T4, que pôs a linha "Guilda" na árvore, e 742 até a V3E-T4, que pôs a linha "Mercado"), a mesma aba em 480 × 780 (`jogo-feudo-estreito`, a dos celulares), a barra de status no modo discreto (`jogo-discreto-barra`) e a folha da encruzilhada na aba Guilda (`jogo-encruzilhada`: só o elemento, em uma janela de 1040 × 1100 para a folha inteira caber abaixo do cabeçalho fixo do painel). Para esta última, a API das capturas (`tests/landing/capture/server.ts`) tem duas rotas de controle copiadas do servidor dos testes em navegador: `/__test/hero` põe Edda e Rolf no feudo e `/__test/crossroads` põe a Guilda de pé e os dois na encruzilhada da primeira variante da Floresta Antiga, com a Postura Equilibrada e 12 h de prazo. O roteiro imprime o tamanho da folha em pixels de CSS; o `width` e o `height` da imagem em `index.html` são o dobro. A janela larga tem a altura em que a árvore lateral aparece inteira e ainda sobra, abaixo dela, a faixa em que fica o rótulo da barra de status; a lista dos trabalhadores e a das construções continuam para baixo da dobra. Os tamanhos estão no começo do roteiro e, em dobro, no `width` e no `height` das imagens em `index.html`: mudam juntos.
+São seis imagens, todas em 2×:
 
-O roteiro confere se os cinco pedaços rotulados da tela (`REGIONS`: árvore, tabela de recursos, trabalhadores, obra em andamento e barra de status) continuam onde `page.css` espera, cada um medido pela parte que aparece acima da barra de status; se a tela do jogo mudar de disposição, ele falha e as posições dos rótulos precisam ser revistas. Na disposição de hoje a árvore enche a coluna: o rótulo dela fica no cabeçalho da barra lateral, e o fio do rótulo dos trabalhadores desce pelas linhas de explicação até os botões. Depois de rodar:
+| Arquivo | O que é | Janela |
+|---|---|---|
+| `jogo-feudo` | A aba Feudo, a da abertura | 1040 × 765 |
+| `jogo-feudo-estreito` | A mesma aba, para os celulares | 480 × 780 |
+| `jogo-discreto-barra` | A barra de status no modo discreto | 1280 de largura |
+| `jogo-encruzilhada` | A folha da encruzilhada na aba Guilda (só o elemento) | 1040 × 1100 |
+| `jogo-cerco` | O alto do painel do Cerco na aba Exército, do título até as duas primeiras ondas | 1040 × 1500 |
+| `jogo-cerco-estreito` | O mesmo painel, até a primeira onda, para os celulares | 480 × 2600 |
 
-1. Converter os quatro PNG para WebP sem perda, com o mesmo nome, em `src/assets/` (por exemplo `magick jogo-feudo.png -define webp:lossless=true jogo-feudo.webp`). O repositório não tem ferramenta de imagem: a conversão é feita à mão. Faça isso antes do passo 3: `pnpm test:e2e:landing` esvazia `packages/landing/test-results/`, com os PNG dentro.
-2. Rodar `pnpm capture:landing -g prévia` de novo, para a imagem da prévia do link (`public/og.png`) usar a captura nova.
-3. Olhar o resultado: `pnpm test:e2e:landing` grava a página inteira em `packages/landing/test-results/`. A captura da página inteira sai com os rótulos de "quem passa vê"; os de "quem governa vê" só se conferem abrindo a página (`pnpm dev:landing`) em uma janela de 68rem ou mais.
+A API das capturas (`tests/landing/capture/server.ts`) tem três rotas de controle copiadas do servidor dos testes em navegador: `/__test/hero` põe Edda e Rolf no feudo; `/__test/crossroads` põe a Guilda de pé e os dois na encruzilhada da primeira variante da Floresta Antiga, com a Postura Equilibrada e 12 h de prazo; `/__test/siege` põe o feudo às vésperas do Cerco (Quartel, Paliçada e Torre de pé, a muralha inteira, soldados, duas formações salvas, uma delas a Defesa ativa, e as três ondas marcadas). **A partida das capturas está na Primavera do ano 1**: o Cerco foi posto de fora, e por isso a captura dele é só o painel (que diz "Ano 1 · Inverno"), sem o cabeçalho do feudo. O roteiro imprime o tamanho de cada recorte em pixels de CSS; o `width` e o `height` das imagens em `index.html` são o dobro, e mudam juntos.
 
-A pintura das estações vem de `docs/assets/readme/seasons.png`, redimensionada para 2143, 1400 e 900 px de largura e gravada em AVIF e WebP. A pasta `docs/` não entra no contexto do Docker: o que a página usa precisa estar neste pacote.
+O roteiro confere se os cinco pedaços da aba Feudo que o texto alternativo descreve (`REGIONS`: árvore, tabela de recursos, trabalhadores, obra em andamento e barra de status) continuam onde estavam; se a tela do jogo mudar de disposição, ele falha, e o texto alternativo e a legenda precisam ser relidos. A página nova não prende rótulos à captura: não há posição em porcentagem para rever. O recorte do Cerco falha se as duas primeiras ondas deixarem de estar na mesma fileira.
+
+O roteiro clica depressa nos botões de trabalhador e, com a máquina carregada, já perdeu um clique (falha em "Trabalhadores (5/5)"): rodar de novo resolve. Depois de rodar:
+
+1. Converter os seis PNG para WebP sem perda, com o mesmo nome, em `src/assets/` (por exemplo `magick jogo-feudo.png -define webp:lossless=true jogo-feudo.webp`). O repositório não tem ferramenta de imagem: a conversão é feita à mão. Faça isso antes do passo 3: `pnpm test:e2e:landing` esvazia `packages/landing/test-results/`, com os PNG dentro.
+2. Rodar `pnpm capture:landing -g prévia` de novo, para a imagem da prévia do link (`public/og.png`) usar a captura nova. A prévia é composta com a própria página: o título, a marca, a captura da aba Feudo e a tira das quatro estações.
+3. Olhar o resultado: `pnpm test:e2e:landing` grava a página inteira, em computador e em celular, em `packages/landing/test-results/`.
+
+A pintura das estações vem de `docs/assets/readme/seasons.png`, redimensionada para 2143 e 1400 px de largura e gravada em AVIF e WebP. A pasta `docs/` não entra no contexto do Docker: o que a página usa precisa estar neste pacote.
 
 ## Limites conhecidos
 
-- Testada só em Chromium. Firefox e Safari não foram abertos. A página usa unidades de contêiner (`cqw`) nos rótulos presos à captura e `text-wrap: balance`; em navegador sem elas, os rótulos ficam com o tamanho da lista, maior, e sem o fio, e os títulos quebram onde couberem.
-- A fonte de largura fixa é a do sistema de quem visita: a largura dos rótulos cinza varia um pouco de um sistema para outro. O teste confere que eles cabem na captura com as fontes do Chromium no Linux.
-- Os `id` do HTML estão em inglês, como o resto do código; `#conteudo` é a exceção, porque aparece no endereço de quem usa "Pular para o conteúdo".
+- Testada só em Chromium. Firefox e Safari não foram abertos. A página usa `text-wrap: balance`, `aspect-ratio` e `object-position`; em navegador sem o primeiro, os títulos quebram onde couberem.
+- A letra de largura fixa é a do sistema de quem visita: a largura das tiras de citação varia um pouco de um sistema para outro.
+- A captura da página inteira no celular passa de 16 mil pixels de altura em 2,6×: o ImageMagick não a abre com os limites padrão. Abra-a em um visualizador de imagens, ou corte-a antes.
+- Os `id` das estações (`#primavera`, `#verao`, `#outono`, `#inverno`) e `#conteudo` estão em português, porque aparecem no endereço; os outros estão em inglês, como o resto do código.
 - O servidor de pré-visualização do Vite responde 404 sem corpo para endereços desconhecidos; a página de caminho errado com o código 404 é do Caddy, e quem a prova é `scripts/landing-smoke.sh`.
-- Título, texto e endereço da página são propostas a confirmar pelo autor (ADR 0012). O códice de 2026-10-16 (os oito blocos e o texto do ritmo) também: o autor não o viu antes de a página ser feita.
-- **Capturas no fechamento de 2026-11-16:** roteiro completo **2/2**, prévia refeita após a conversão **1/1**, quatro PNG convertidos para WebP sem perda (comparação de pixels em zero nas quatro imagens), `og.png` de 1200 × 630 e inspeção das quatro capturas, da prévia e das páginas completas em computador/celular. Três WebP permaneceram idênticos; a captura larga e a imagem social mudaram. Navegador da landing: **39 aprovados / 7 ignorados pelo roteiro**, saída 0; os sete são cenários próprios de uma das disposições, cobertos no projeto correspondente. Registro do portão e de suas reexecuções em [retomada-v0.4.md](../../docs/retomada-v0.4.md). Continua sem evidência humana do autor ou teste em aparelho físico.
-- Registro histórico: as quatro capturas da V4B-T4 (2026-10-20): a árvore ganhou a linha "Ferreiro" (e o ferro, na tabela de recursos, já estava desde a V4B-T1), de modo que `REGIONS` mudou (a árvore enche a coluna até a barra de status, a tabela ficou mais alta e os trabalhadores começam mais abaixo) e as quatro foram convertidas de novo; `og.png` foi refeito. O roteiro de captura estava quebrado desde o ferro: a expedição posta por `/__test/crossroads` não trazia `iron` no saque, e o servidor recusava o estado.
+- **O título da aba mudou** ("Lords of the Guild: um ano inteiro para preparar um inverno"), e o monitor de saúde (`.github/workflows/health.yml`) e `scripts/landing-smoke.sh` procuram por ele. Entre o `push` e o fim do deploy da página, o monitor agendado pode acusar a página antiga uma vez.
+- Título, textos, tema e endereço da página são propostas a confirmar pelo autor (ADR 0012). **O autor não viu o almanaque de 2026-11-17 antes de a página ser feita**, e ninguém além dos testes e de quem a escreveu a abriu; não houve teste em aparelho físico nem com leitor de tela.

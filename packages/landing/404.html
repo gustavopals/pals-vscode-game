@@ -8,36 +8,26 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'"
     />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light" />
     <meta name="robots" content="noindex" />
-    <title>Lords of the Guild: este caminho não leva a Pedra Alta</title>
+    <title>Lords of the Guild: esta página não consta do almanaque</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/src/styles/main.css" />
   </head>
   <body>
-    <header class="masthead">
+    <header class="topbar">
       <p class="brand">
-        <img src="/favicon.svg" alt="" width="36" height="36" />
+        <img src="/favicon.svg" alt="" width="28" height="28" />
         Lords of the Guild
       </p>
+      <a class="topbar-cta" href="%GAME_URL%">Jogar agora</a>
     </header>
 
     <main class="lost">
-      <h1>
-        <span class="voice-office">Erro 404.</span>
-        <span class="voice-fief">Este caminho não leva a Pedra Alta.</span>
-      </h1>
+      <p class="kicker">Erro 404</p>
+      <h1>Esta página não consta <em>do almanaque.</em></h1>
       <p class="lede">O endereço que você abriu não existe neste site.</p>
       <a class="cta" href="/">Voltar ao começo</a>
     </main>
-
-    <aside class="statusbar" aria-label="Atalho para o jogo">
-      <p class="statusbar-name">
-        <img src="/favicon.svg" alt="" width="16" height="16" />
-        Lords of the Guild
-      </p>
-      <p class="statusbar-note"></p>
-      <a class="statusbar-cta" href="%GAME_URL%">Jogar agora</a>
-    </aside>
   </body>
 </html>

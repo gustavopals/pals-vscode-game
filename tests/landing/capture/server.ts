@@ -142,6 +142,95 @@ control.post('/__test/crossroads', async (request) => {
   return { ok: true };
 });
 
+/**
+ * Põe o feudo às vésperas do Cerco do Inverno, para a captura do painel do Cerco na aba
+ * Exército: Quartel, Paliçada e Torre de Vigia de pé, a muralha inteira, soldados, duas
+ * formações salvas (uma delas a Defesa ativa) e as três ondas marcadas para daqui a pouco.
+ * É a preparação de `/__test/siege` de tests/e2e/server.ts; o painel, o Plano e o que a tela
+ * diz são os do jogo.
+ */
+control.post('/__test/siege', async (request) => {
+  const { inMinutes = 90 } = (request.body ?? {}) as { inMinutes?: number };
+  type Post = { unit: string; count: number };
+  type Wing = { front: Post; back: Post };
+  type SiegeReady = {
+    lastProcessedAt: number;
+    ids: Record<string, number>;
+    settings: { timeScale: number };
+    settlement: { buildings: Record<string, number>; wall: { hp: Record<string, number> } };
+    army: {
+      units: Record<string, number>;
+      formations: unknown[];
+      activeFormationId: string | null;
+    };
+    siege: unknown;
+  };
+  const games = await pool.query<{ id: string; state: SiegeReady }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    state.settlement.buildings.barracks = 5;
+    state.settlement.buildings.palisade = 3;
+    state.settlement.buildings.watchtower = 3;
+    // A vida cheia da muralha no nível 3, como `/__test/raise` a deixaria.
+    state.settlement.wall.hp = { left: 200, center: 200, right: 200 };
+    state.army.units.spearman = 16;
+    state.army.units.swordsman = 8;
+    state.army.units.archer = 24;
+    state.ids.formation = (state.ids.formation ?? 0) + 2;
+    const wing = (front: string): Wing => ({
+      front: { unit: front, count: 8 },
+      back: { unit: 'archer', count: 8 },
+    });
+    const formations = [
+      { number: state.ids.formation - 1, name: 'Muralha Firme', center: 'swordsman' },
+      { number: state.ids.formation, name: 'Guarda do Inverno', center: 'spearman' },
+    ].map((entry) => ({
+      id: `formation-${entry.number}`,
+      name: entry.name,
+      posts: { left: wing('spearman'), center: wing(entry.center), right: wing('spearman') },
+      commanders: { left: null, center: null, right: null },
+    }));
+    state.army.formations = formations;
+    state.army.activeFormationId = formations[0]?.id ?? null;
+    const atMs = state.lastProcessedAt + inMinutes * 60_000 * state.settings.timeScale;
+    const waves = [
+      ['raider', 'raider', 'banditArcher'],
+      ['wolf', 'ogre', 'wolf'],
+      ['blackKnight', 'warlord', 'skeleton'],
+    ];
+    state.siege = {
+      year: 1,
+      atMs,
+      current: 0,
+      nextWaveAtMs: atMs,
+      plan: { 1: null, 2: null, 3: null },
+      result: null,
+      breached: false,
+      deaths: 0,
+      endedAtMs: null,
+      aftermathUntilMs: null,
+      waves: waves.map(([left, center, right], index) => ({
+        number: index + 1,
+        composition: [
+          { wing: 'left', line: left === 'banditArcher' ? 'back' : 'front', unit: left, count: 6 },
+          { wing: 'center', line: 'front', unit: center, count: center === 'warlord' ? 1 : 8 },
+          {
+            wing: 'right',
+            line: right === 'banditArcher' ? 'back' : 'front',
+            unit: right,
+            count: 6,
+          },
+        ],
+      })),
+    };
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
 await app.listen({ port: PORT, host: '127.0.0.1' });
 console.log(`API das capturas em http://127.0.0.1:${PORT}`);
 

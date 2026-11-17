@@ -19,23 +19,27 @@ const MINUTE = 60_000;
  * A janela larga do herói e a estreita dos celulares, em pixels de CSS; as capturas saem em 2×.
  * A larga é alta o bastante para a árvore lateral aparecer inteira, com os objetivos abertos como
  * um jogador novo os vê (desde a V3C-T4, com a linha "Guilda"), e ainda sobrar abaixo dela a
- * faixa em que a página põe o rótulo da barra de status; a estreita mostra os quatro ofícios e corta antes do título seguinte. Se uma delas
+ * barra de status; a estreita mostra os quatro ofícios e corta antes do título seguinte. Se uma delas
  * mudar, mudam juntos `width` e `height` da imagem em packages/landing/index.html.
  */
 const WIDE = { width: 1040, height: 765 };
 const NARROW = { width: 480, height: 780 };
 /** A janela da captura da Guilda: a largura do herói, alta o bastante para a folha da encruzilhada. */
 const TALL = { width: WIDE.width, height: 1100 };
+/** A janela da captura do Exército: alta o bastante para o painel do Cerco inteiro. */
+const SIEGE = { width: WIDE.width, height: 1500 };
 
 /**
- * Onde ficam, em % da captura larga, os cinco pedaços da tela que a página rotula. As posições
- * dos rótulos em packages/landing/src/styles/page.css foram escolhidas para esta disposição: se
- * a tela do jogo mudar, esta conferência falha e as posições precisam ser revistas.
+ * Onde ficam, em % da captura larga, os cinco pedaços da tela que o texto alternativo e a
+ * legenda da captura descrevem (a árvore, a tabela de recursos, os trabalhadores, a obra em
+ * andamento e a barra de status). A página nova não prende rótulos à captura, mas continua a
+ * dizer o que ela mostra: se a tela do jogo mudar de disposição, esta conferência falha e o
+ * texto alternativo em packages/landing/index.html precisa ser relido.
  *
  * Cada pedaço é medido pela parte que aparece na captura, acima da barra de status. A lista dos
  * trabalhadores continua para baixo da dobra: a altura de `steppers` vai do primeiro ofício até
  * a barra. A árvore hoje cabe inteira; se crescer até a barra, a altura dela muda e a conferência
- * falha, porque o rótulo da barra de status ocupa a faixa livre abaixo da árvore.
+ * falha.
  */
 const REGIONS = {
   tree: { x: 4.6, y: 4.5, w: 28.8, h: 91.5 },
@@ -57,7 +61,7 @@ const recruit = (page: Page) => fief(page).getByRole('button', { name: 'Recrutar
 
 test.describe.configure({ mode: 'serial' });
 
-test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto', async ({
+test('jogo: a aba Feudo, a encruzilhada, o Cerco e a barra de status no modo discreto', async ({
   browser,
   request,
 }) => {
@@ -167,7 +171,7 @@ test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto'
     for (const side of ['x', 'y', 'w', 'h'] as const) {
       expect(
         Math.abs(found[side] - expected[side]),
-        `a disposição da tela mudou (${name}.${side}: ${found[side]}%, era ${expected[side]}%): reveja os rótulos em packages/landing/src/styles/page.css`,
+        `a disposição da tela mudou (${name}.${side}: ${found[side]}%, era ${expected[side]}%): releia o texto alternativo da captura em packages/landing/index.html`,
       ).toBeLessThanOrEqual(TOLERANCE);
     }
   }
@@ -207,6 +211,44 @@ test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto'
   );
   await guildContext.close();
 
+  // O Exército: o feudo às vésperas do Cerco do Inverno, com o Plano de Batalha por onda. A
+  // captura é o alto do painel do Cerco, do título até a última onda da primeira fileira (as
+  // duas primeiras na janela larga, a primeira na estreita); a terceira onda e a muralha
+  // continuam abaixo do corte.
+  await control('siege', { inMinutes: 90 });
+  for (const [name, viewport, lastWave] of [
+    ['jogo-cerco', SIEGE, 2],
+    ['jogo-cerco-estreito', { width: NARROW.width, height: 2600 }, 1],
+  ] as const) {
+    const armyContext = await newContext(browser, viewport, await context.storageState());
+    const armyPage = await open(armyContext, '/#/exercito');
+    const siege = armyPage.getByTestId('siege-panel');
+    await expect(siege).toBeVisible();
+    await expect(siege.locator('.siege-wave')).toHaveCount(3);
+    await siege.evaluate((card) => card.scrollIntoView({ block: 'center' }));
+    await armyPage.mouse.move(8, 8);
+    const panel = await siege.boundingBox();
+    const waves = siege.locator('.siege-wave');
+    const first = await waves.first().boundingBox();
+    const wave = await waves.nth(lastWave - 1).boundingBox();
+    if (panel === null || first === null || wave === null) {
+      throw new Error('A captura não tem o painel do Cerco.');
+    }
+    // Corta logo abaixo da fileira, antes de a onda seguinte aparecer.
+    if (first.y !== (lastWave === 2 ? wave.y : first.y)) {
+      throw new Error('As ondas do Cerco mudaram de disposição: reveja o corte da captura.');
+    }
+    const height = Math.round(wave.y + wave.height - panel.y) + 6;
+    await armyPage.screenshot({
+      path: resolve(OUT, `${name}.png`),
+      clip: { x: panel.x, y: panel.y, width: panel.width, height },
+      caret: 'hide',
+      animations: 'disabled',
+    });
+    console.log(`${name}: ${Math.round(panel.width)} × ${height} px de CSS (a imagem sai em 2×)`);
+    await armyContext.close();
+  }
+
   // Modo discreto: a barra de status vira um contador.
   await page.setViewportSize({ width: 1280, height: WIDE.height });
   await page.keyboard.press('F1');
@@ -219,7 +261,7 @@ test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto'
   await context.close();
 });
 
-test('prévia do link: o título em duas vozes sobre a captura do jogo, em 1200 × 630', async ({
+test('prévia do link: o título do almanaque ao lado da captura do jogo, em 1200 × 630', async ({
   browser,
 }) => {
   // A política de conteúdo da página barra estilos injetados; só aqui ela é contornada, para
@@ -235,16 +277,23 @@ test('prévia do link: o título em duas vozes sobre a captura do jogo, em 1200 
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({
     content: `
-      .skip-link, .statusbar, .pitch, .readings-title, .readings > label, .readings > input,
-      .labels, .reading-heads, .reading-figure figcaption, .masthead-note, .rhythm, .codex,
-      .alibi, .vacancy, .colophon { display: none !important; }
-      body { overflow: hidden; }
-      .masthead { padding: 44px 64px 0 !important; }
-      .hero { padding: 26px 64px 0 !important; }
-      .hero h1 .voice-office { font-size: 40px !important; }
-      .hero h1 .voice-fief { font-size: 208px !important; line-height: 0.86 !important; }
-      .readings { margin-top: 44px !important; }
-      .reading-figure { margin: 0 !important; }
+      .skip-link, .year-nav, .topbar-cta, .lede, .action, .phone-note, .screen figcaption,
+      .manual, .season, .dawn, .colophon, .calendar a * { display: none !important; }
+      html, body { height: 630px; overflow: hidden; }
+      .topbar { position: absolute; left: 0; right: 0; height: 84px; padding: 0 56px;
+        border: 0; }
+      .brand { font-size: 28px; gap: 14px; }
+      .brand img { width: 40px; height: 40px; }
+      .opening { display: block; position: relative; max-width: none; height: 630px;
+        margin: 0; padding: 118px 56px 0; }
+      .opening-text { display: block; }
+      .opening .kicker { font-size: 17px; }
+      .opening h1 { max-width: 6.2em; margin-top: 18px; font-size: 84px; line-height: 0.95; }
+      .screen { position: absolute; left: 600px; top: 112px; width: 860px; margin: 0; }
+      .screen img { box-shadow: -14px 14px 0 var(--vermilion); }
+      .calendar { position: absolute; left: 0; right: 0; top: 608px; border: 0; }
+      .calendar ol { grid-template-columns: repeat(4, 1fr); }
+      .calendar a { height: 22px; padding: 0; }
     `,
   });
   await expect(page.getByRole('img', { name: /Captura real do jogo/ })).toBeVisible();

@@ -2,45 +2,73 @@
  * Cores e letras da página. Este é o único arquivo com valores de cor: as outras folhas usam
  * as variáveis daqui, e src/styles.test.ts confere isso e o contraste de cada par de texto e
  * fundo.
+ *
+ * A página é um almanaque: o ano de Pedra Alta em quatro estações, e o chão escurece com ele.
+ * Papel claro na abertura, verde pálido na primavera, trigo no verão, vinho no outono e noite
+ * no inverno. Depois do inverno, o papel volta.
  */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* O campo da página: o azul dos estandartes de Pedra Alta. */
-  --blue: #1f3a93;
-  /* Sombra chapada sobre o azul, como tinta de xilogravura. */
-  --blue-deep: #14276b;
-  /* O ouro do brasão, o mesmo do destaque do jogo. Sobre o azul, só em letra grande. */
-  --gold: #d9b25f;
-  /* Texto corrido sobre o azul e sobre a noite. */
-  --ivory: #f4ebd3;
-  /* Legendas e texto de apoio sobre o azul e sobre a noite. */
-  --margin: #a9bfef;
-  /* A faixa da Crônica, o rodapé e o texto sobre o ouro e sobre o cinza. */
-  --night: #1f2a38;
-  /* O mundo de quem passa: cinza de escritório. */
-  --office: #e7e9ee;
-  /* Texto de apoio sobre o cinza. */
-  --office-ink: #46505e;
-  /* A barra de status, na cor da barra do jogo. */
-  --status: #2a4a75;
-  --white: #ffffff;
-  /* O chão dos blocos do códice, mais fundo que a noite, para cada bloco se destacar dela. */
-  --ash: #111823;
-  /* O pergaminho da carta do Conselho e da folha da encruzilhada. Texto em noite sobre ele. */
-  --parchment: #efe3c4;
-  /* A brasa: os lobos, o Revés e o Desastre. Só como texto sobre a noite e o chão. */
-  --ember: #f0a46a;
+  /* O papel do almanaque e a tinta dele. */
+  --paper: #f3eee2;
+  /* O papel mais fundo: tiras de citação e fichas sobre o papel. */
+  --linen: #e7dfcc;
+  --ink: #1c1a17;
+  /* Legendas e texto de apoio sobre o papel e sobre os chãos claros. */
+  --ink-soft: #57524a;
+  /* O vermelhão das capitulares: destaque sobre o papel, e a sombra do botão. */
+  --vermilion: #a52a17;
 
-  /* A voz do feudo (títulos), a do cronista (texto) e as do escritório (editor e barra). */
-  --font-fief: 'Grenze Gotisch', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-text: Alegreya, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-office: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
-  --font-system:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', sans-serif;
+  /* Primavera: pasto novo, a relva um tom abaixo para as tiras, e o musgo como destaque. */
+  --spring: #dde7cb;
+  --sward: #cddbb6;
+  --moss: #2c5a31;
+  /* Verão: trigo maduro, a palha um tom abaixo para as tiras, e o ocre queimado. */
+  --summer: #f0d993;
+  --straw: #e6c977;
+  --ochre: #743b05;
+  /* Outono: vinho escuro; a casca, um tom acima, é o fundo das tiras. Texto em creme. */
+  --autumn: #4a1c12;
+  --bark: #5e2619;
+  --cream: #f5e7d3;
+  --dust: #dcbfa6;
+  --amber: #f0a955;
+  /* Inverno: a noite; o breu, um tom acima, é o fundo das tiras. Texto em neve. */
+  --winter: #0f141c;
+  --pitch: #1a212c;
+  --snow: #e8eef5;
+  --frost: #a3b3c7;
+  --ice: #8fc1ee;
+  /* A brasa: o fogo das torres, a Queda e o Desastre sobre a noite. */
+  --ember: #f28c4e;
 
-  --measure: 34rem;
-  --page: 70rem;
+  /*
+   * Os papéis de cada trecho. Cada estação troca estes sete; o resto da folha só fala neles.
+   * O padrão é o do papel da abertura.
+   */
+  --ground: var(--paper);
+  --text: var(--ink);
+  --soft: var(--ink-soft);
+  --accent: var(--vermilion);
+  --strip: var(--linen);
+  --rule: var(--ink);
+  --shadow: var(--ink);
+
+  /* A faixa do alto acompanha a estação em que a leitura está (src/main.ts). */
+  --bar-ground: var(--paper);
+  --bar-text: var(--ink);
+  --bar-accent: var(--vermilion);
+
+  /* Fraunces nos títulos, Instrument Sans no texto, e a letra de largura fixa do sistema. */
+  --font-display: Fraunces, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-text:
+    'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* A voz do jogo: tudo o que está nesta letra é citação, palavra por palavra. */
+  --font-game: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
+
+  --measure: 36rem;
+  --page: 74rem;
   --gutter: clamp(1rem, 4vw, 2.5rem);
-  --statusbar: 2.25rem;
+  --topbar: 3.5rem;
 }

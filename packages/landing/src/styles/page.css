@@ -1,1184 +1,1163 @@
 /*
- * A página tem duas vozes. A do escritório (letra de largura fixa, cinza) diz o que se vê de
- * longe; a do feudo (gótica, ouro) diz o que aquilo é. O resto do texto é do cronista.
- *
- * Nada aqui se mexe sozinho: só o botão afunda e os blocos do códice se erguem sob o ponteiro,
- * por transição, e base.css desliga as duas para quem pediu menos movimento.
+ * A página, na ordem em que se lê: a faixa do alto, a abertura, o índice das estações, o modo
+ * de usar, as quatro estações, o fecho e o cólofon. Nenhuma cor aqui: só as variáveis de
+ * tokens.css. Cada trecho troca os sete papéis (--ground, --text, --soft, --accent, --strip,
+ * --rule, --shadow) e o resto da folha só fala neles.
  */
 
-/* ---------- Peças que se repetem ---------- */
+/* ---------- Peças comuns ---------- */
 
-.masthead,
-.hero,
-.rhythm,
-.codex,
-.alibi,
-.vacancy,
-.colophon {
-  /* Conteúdo centrado em uma coluna de até --page, com o fundo da seção de ponta a ponta. */
-  padding-inline: max(var(--gutter), calc((100% - var(--page)) / 2));
+.kicker {
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-h2 {
-  font-family: var(--font-fief);
-  font-size: clamp(2.5rem, 6vw, 4.25rem);
-  font-weight: 800;
-  line-height: 0.98;
-  color: var(--gold);
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 560;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
-/* Títulos de duas frases quebram entre as frases, nunca no meio de uma. */
-.line {
-  display: inline-block;
-}
-
-.voice-office {
-  display: block;
-  font-family: var(--font-office);
+h1 em,
+h2 em {
+  color: var(--accent);
+  font-style: italic;
   font-weight: 400;
-  color: var(--ivory);
 }
 
-.voice-fief {
-  display: block;
-  font-family: var(--font-fief);
-  color: var(--gold);
+.action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
 }
 
-.prose {
-  display: grid;
-  gap: 0.9em;
-  max-width: var(--measure);
-  font-size: 1.3125rem;
-  line-height: 1.45;
-  text-wrap: pretty;
-}
-
-figcaption,
-.assurance {
-  color: var(--margin);
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
-/* O botão que leva ao jogo: um selo de ouro que afunda sob o dedo. */
 .cta {
   display: inline-block;
-  padding: 0.55em 1.1em 0.6em;
-  border: 2px solid var(--night);
-  background: var(--gold);
-  box-shadow: 0.375rem 0.375rem 0 var(--blue-deep);
-  color: var(--night);
-  font-family: var(--font-fief);
-  font-size: 1.875rem;
-  font-weight: 800;
-  line-height: 1;
+  padding: 0.8rem 1.7rem;
+  background: var(--text);
+  color: var(--ground);
+  box-shadow: 0.4rem 0.4rem 0 var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
   transition:
-    transform 80ms ease-out,
-    box-shadow 80ms ease-out;
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out;
 }
 
 .cta:hover {
-  box-shadow: 0.1875rem 0.1875rem 0 var(--blue-deep);
-  transform: translate(0.1875rem, 0.1875rem);
+  box-shadow: 0.15rem 0.15rem 0 var(--accent);
+  transform: translate(0.25rem, 0.25rem);
 }
 
-.cta:active {
-  box-shadow: 0 0 0 var(--blue-deep);
-  transform: translate(0.375rem, 0.375rem);
+.assurance {
+  max-width: 17rem;
+  color: var(--soft);
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
 
-/*
- * Uma linha da Crônica, pendurada como em um anal: a data fica na margem, em ouro, e o resto
- * recua. Vale para o fólio e para as citações curtas dos blocos do códice.
- */
-.chronicle-lines {
+/* Tudo o que o jogo diz, palavra por palavra, sai na letra de largura fixa, em uma tira. */
+.said {
+  max-width: 40rem;
+  margin-top: 1.25rem;
+  padding: 0.9rem 1.1rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--strip);
+}
+
+.said figcaption,
+.list-title {
+  color: var(--soft);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.said figcaption {
+  margin-bottom: 0.5rem;
+}
+
+.chronicle-lines,
+.omen-lines {
   display: grid;
-  gap: 0.6em;
-  text-wrap: pretty;
+  gap: 0.55rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
-.chronicle-lines p {
-  padding-left: 1.6em;
-  text-indent: -1.6em;
+.date {
+  color: var(--accent);
 }
 
-.chronicle-lines .date {
-  color: var(--gold);
+.note,
+.shot figcaption,
+.card figcaption,
+.formation figcaption,
+.screen figcaption,
+.quiet-bar figcaption,
+.arch figcaption {
+  color: var(--soft);
+  font-size: 0.8125rem;
+  line-height: 1.45;
 }
 
-/* ---------- Topo ---------- */
+.list-title {
+  margin-top: 1.5rem;
+}
 
-.masthead {
+/* ---------- A faixa do alto: a marca, as estações e o botão ---------- */
+
+.topbar {
+  --text: var(--bar-text);
+
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-top: 1.25rem;
+  align-items: center;
+  gap: 1rem;
+  height: var(--topbar);
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--bar-text);
+  background: var(--bar-ground);
+  color: var(--bar-text);
+  transition:
+    background-color 0.25s ease-out,
+    color 0.25s ease-out;
 }
 
 .brand {
   display: flex;
+  align-items: center;
   gap: 0.6rem;
-  align-items: center;
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: 1.625rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.masthead-note {
-  color: var(--margin);
-  font-family: var(--font-office);
-  font-size: 0.875rem;
-}
-
-/* ---------- Herói: o título em duas vozes e a tela lida de dois jeitos ---------- */
-
-.hero {
-  padding-top: clamp(2rem, 5vw, 3.5rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
-}
-
-.hero h1 .voice-office {
-  font-size: clamp(1.25rem, 2.4vw, 1.875rem);
-  line-height: 1.2;
-}
-
-.hero h1 .voice-fief {
-  margin-top: 0.1em;
-  /* A gótica tem folga à esquerda: o recuo alinha o É com a linha de cima. */
-  margin-left: -0.03em;
-  font-size: clamp(4.25rem, 16.5vw, 12rem);
-  font-weight: 900;
-  line-height: 0.88;
-  letter-spacing: -0.012em;
-}
-
-.pitch {
-  display: grid;
-  gap: 1.5rem 3rem;
-  margin-top: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.lede {
-  max-width: var(--measure);
-  font-size: 1.3125rem;
-  line-height: 1.45;
-}
-
-.action {
-  display: grid;
-  gap: 0.85rem;
-  justify-items: start;
-}
-
-.assurance {
-  max-width: 24rem;
-}
-
-.phone-note {
-  display: none;
-}
-
-.readings {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 0;
-  align-items: center;
-  margin-top: clamp(2.5rem, 6vw, 4rem);
-}
-
-.reading-figure {
-  flex: 1 0 100%;
-  margin-top: 0.5rem;
-}
-
-.stage {
-  position: relative;
-  /* Os rótulos presos à captura medem-se pela largura dela (unidades cqw), e encolhem junto. */
-  container-type: inline-size;
-}
-
-.window {
-  display: block;
-  border: 1px solid var(--ivory);
-  background: var(--night);
-  box-shadow: 0.625rem 0.625rem 0 var(--blue-deep);
-}
-
-.window img {
-  width: 100%;
-}
-
-.reading-figure figcaption {
-  margin-top: 1.5rem;
-}
-
-/*
- * Telas estreitas: as duas leituras ficam lado a lado, abaixo da captura, sem interruptor.
- * A árvore e a obra não aparecem na captura estreita; as linhas delas saem junto.
- */
-.readings-title,
-.readings > input,
-.readings > label {
-  display: none;
-}
-
-.reading-heads,
-.label {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1rem;
-  align-items: baseline;
-}
-
-.reading-heads {
-  margin-top: 2rem;
-  color: var(--margin);
-  font-size: 0.875rem;
-}
-
-.reading-heads span:first-child,
-.label dt {
-  font-family: var(--font-office);
-}
-
-.reading-heads span:last-child,
-.label dd {
-  font-family: var(--font-fief);
-  font-weight: 700;
-}
-
-.reading-heads span:last-child {
+  font-family: var(--font-display);
   font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
-.labels {
-  margin-top: 0.4rem;
-}
-
-.label {
-  padding: 0.65rem 0;
-  border-top: 1px solid var(--margin);
-}
-
-.label dt {
-  font-size: 0.9375rem;
-  line-height: 1.35;
-}
-
-.label dd {
-  color: var(--gold);
-  font-size: 1.4375rem;
-  line-height: 1.1;
-}
-
-@media (max-width: 47.99rem) {
-  .phone-note {
-    display: block;
-  }
-
-  .label-tree,
-  .label-work {
-    display: none;
-  }
-}
-
-/*
- * Telas largas: os rótulos ficam presos à captura e o interruptor troca a leitura. É só CSS:
- * dois botões de opção antes da figura. As posições são porcentagens da captura
- * (src/assets/jogo-feudo.webp, 1040 × 765); se ela for refeita com outra disposição, reveja.
- * Abaixo de 68rem a captura fica pequena demais para a gótica dos rótulos ser lida.
- */
-@media (min-width: 60rem) {
-  .pitch {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    align-items: start;
-  }
-}
-
-@media (min-width: 68rem) {
-  .readings-title {
-    display: block;
-    margin-right: 1rem;
-    font-family: var(--font-office);
-    font-size: 1rem;
-  }
-
-  .readings > input {
-    /* Fora da vista, mas no caminho do teclado: Tab chega, as setas trocam. */
-    position: absolute;
-    display: block;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-
-  .readings > label {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    padding: 0 1.1rem;
-    border: 2px solid var(--ivory);
-    cursor: pointer;
-  }
-
-  .readings > label[for='reading-passerby'] {
-    font-family: var(--font-office);
-    font-size: 1rem;
-  }
-
-  .readings > label[for='reading-ruler'] {
-    /* As duas opções formam uma peça só. */
-    margin-left: -2px;
-    border-color: var(--gold);
-    color: var(--gold);
-    font-family: var(--font-fief);
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  #reading-passerby:checked + label {
-    background: var(--office);
-    color: var(--night);
-  }
-
-  #reading-ruler:checked + label {
-    position: relative;
-    background: var(--gold);
-    color: var(--night);
-  }
-
-  .readings > input:focus-visible + label {
-    position: relative;
-    outline: 3px solid var(--ivory);
-    outline-offset: 3px;
-  }
-
-  #reading-ruler:checked ~ .reading-figure .window {
-    border-color: var(--gold);
-    box-shadow:
-      0 0 0 2px var(--gold),
-      0.625rem 0.625rem 0 var(--blue-deep);
-  }
-
-  .reading-heads {
-    display: none;
-  }
-
-  .labels {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-  }
-
-  .label {
-    position: absolute;
-    display: block;
-    padding: 0;
-    border: 0;
-  }
-
-  /* O fio que liga o rótulo ao pedaço da tela de que ele fala. */
-  .label::before {
-    position: absolute;
-    left: 1.4cqw;
-    width: 2px;
-    background: var(--office);
-    content: '';
-  }
-
-  .label dt,
-  .label dd {
-    position: relative;
-    white-space: nowrap;
-  }
-
-  .label dt {
-    padding: 0.3em 0.7em;
-    border: 1px solid var(--night);
-    background: var(--office);
-    color: var(--night);
-    font-size: clamp(0.75rem, 1.25cqw, 0.875rem);
-    line-height: 1.3;
-  }
-
-  .label dd {
-    display: none;
-    /* Uma flâmula: a ponta direita é cortada em rabo de andorinha. */
-    padding: 0.3em 1.15em 0.36em 0.55em;
-    background: var(--gold);
-    clip-path: polygon(0 0, 100% 0, calc(100% - 0.55em) 50%, 100% 100%, 0 100%);
-    color: var(--night);
-    font-size: clamp(1.0625rem, 1.8cqw, 1.3125rem);
-    line-height: 1;
-  }
-
-  #reading-ruler:checked ~ .reading-figure .label dt {
-    display: none;
-  }
-
-  #reading-ruler:checked ~ .reading-figure .label dd {
-    display: block;
-  }
-
-  #reading-ruler:checked ~ .reading-figure .label::before {
-    background: var(--gold);
-  }
-
-  /*
-   * Árvore lateral: 4,6% a 33,4% na horizontal, 4,5% a 96% na vertical. Ela enche a coluna:
-   * o rótulo fica no cabeçalho da barra lateral, à direita do título, encostado no topo dela.
-   */
-  .label-tree {
-    top: 0.2%;
-    left: 11.5%;
-  }
-
-  .label-tree::before {
-    top: 100%;
-    height: 0.4cqw;
-  }
-
-  /* Tabela de recursos: 35% a 65,2%, 24,3% a 41,2%. */
-  .label-table {
-    top: 19.5%;
-    left: 46%;
-  }
-
-  .label-table::before {
-    top: 100%;
-    height: 0.9cqw;
-  }
-
-  /*
-   * Contadores dos trabalhadores: 35% a 65,2%, de 60,7% até a barra de status (desceu 3,5 com a
-   * linha do ferro na tabela, V4B-T4); os botões ficam
-   * de 49,8% a 57,1% na horizontal. O rótulo fica ao lado do título da seção, e o fio desce até
-   * os botões do primeiro ofício por 51,6%, onde passa entre as palavras das linhas de
-   * explicação sem riscar nenhuma.
-   */
-  .label-steppers {
-    top: 45.9%;
-    left: 50.6%;
-  }
-
-  .label-steppers::before {
-    top: 100%;
-    left: 0.88cqw;
-    height: 8.3cqw;
-  }
-
-  /* Obra em andamento: 68,3% a 98,5%, 24,3% a 35,2%. */
-  .label-work {
-    top: 19.5%;
-    right: 1.4%;
-  }
-
-  .label-work::before {
-    top: 100%;
-    height: 1.2cqw;
-  }
-
-  /*
-   * Barra de status: a faixa de baixo, de 96,7% a 100%. O rótulo ocupa a faixa livre entre o
-   * fim da árvore (90%) e a barra, e o fio cai sobre o que ela anuncia, à esquerda.
-   */
-  .label-status {
-    top: 90.7%;
-    left: 6.5%;
-  }
-
-  .label-status::before {
-    top: 100%;
-    height: 1.6cqw;
-  }
-}
-
-/* ---------- O ritmo: abra, feche, volte; e a pintura vista por cima das ameias ---------- */
-
-.rhythm {
-  padding-top: clamp(3rem, 7vw, 5rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
-}
-
-.steps {
-  display: grid;
-  gap: 2rem 3rem;
-  margin-top: clamp(2rem, 5vw, 3.5rem);
-  counter-reset: step;
-}
-
-.steps li {
-  display: grid;
-  gap: 0.6rem;
-  align-content: start;
-  max-width: var(--measure);
-  padding-top: 1rem;
-  border-top: 2px solid var(--gold);
-}
-
-.steps li::before {
-  color: var(--margin);
-  font-family: var(--font-office);
-  font-size: 0.875rem;
-  content: 'passo ' counter(step) ' de 3';
-  counter-increment: step;
-}
-
-.step-key {
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 800;
-  line-height: 0.9;
-}
-
-.steps p:not(.step-key) {
-  font-size: 1.1875rem;
-  line-height: 1.45;
-  text-wrap: pretty;
-}
-
-.panorama {
-  position: relative;
-  /* A pintura vai de ponta a ponta da tela, fora da coluna de leitura. */
-  margin-top: clamp(3rem, 7vw, 5rem);
-  margin-inline: calc(-1 * max(var(--gutter), calc((100% - var(--page)) / 2)));
-}
-
-.battlements {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  height: 1.75rem;
-  background: repeating-linear-gradient(90deg, var(--blue) 0 1.75rem, transparent 1.75rem 3.5rem);
-}
-
-.panorama-strip img {
-  width: 100%;
-}
-
-.season-names {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding-top: 0.9rem;
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-}
-
-.season-names li {
-  scroll-snap-align: start;
-}
-
-.panorama figcaption {
-  max-width: var(--measure);
-  margin-top: 1.5rem;
-  margin-inline: max(var(--gutter), calc((100% - var(--page)) / 2));
-}
-
-.swipe-hint {
+.year-nav {
   display: none;
+  margin-left: auto;
 }
 
-@media (max-width: 47.99rem) {
-  /* No celular a pintura passa de lado, da Primavera ao Inverno, com o dedo. */
-  .panorama-scroll {
-    overflow: auto hidden;
-    scroll-snap-type: x proximity;
-  }
+.year-nav ol {
+  display: flex;
+  gap: 1.75rem;
+}
 
-  .panorama-scroll:focus-visible {
-    /* A faixa vai de ponta a ponta da tela: o anel de foco fica do lado de dentro. */
-    outline-offset: -3px;
-  }
+.year-nav a {
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
 
-  .panorama-strip {
-    width: calc(clamp(15rem, 55vh, 24rem) * 2.92);
-  }
+.year-nav a:hover,
+.year-nav a[aria-current] {
+  border-bottom-color: var(--bar-accent);
+}
 
-  .swipe-hint {
-    display: inline;
-    color: var(--ivory);
-  }
+.topbar-cta {
+  margin-left: auto;
+  padding: 0.4rem 0.9rem;
+  background: var(--bar-text);
+  color: var(--bar-ground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* A faixa veste a estação em que a leitura está; quem põe `data-season` é src/main.ts. */
+:root[data-season='spring'] {
+  --bar-ground: var(--spring);
+  --bar-accent: var(--moss);
+}
+
+:root[data-season='summer'] {
+  --bar-ground: var(--summer);
+  --bar-accent: var(--ochre);
+}
+
+:root[data-season='autumn'] {
+  --bar-ground: var(--autumn);
+  --bar-text: var(--cream);
+  --bar-accent: var(--amber);
+}
+
+:root[data-season='winter'] {
+  --bar-ground: var(--winter);
+  --bar-text: var(--snow);
+  --bar-accent: var(--ice);
 }
 
 @media (min-width: 48rem) {
-  .steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .year-nav {
+    display: block;
+  }
+
+  .topbar-cta {
+    margin-left: 0.75rem;
   }
 }
 
-/* ---------- O códice: um bloco por coisa que se governa ---------- */
+/* ---------- Abertura: o título, o convite e a tela do jogo ---------- */
 
-.codex {
-  padding-top: clamp(3.5rem, 8vw, 6rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
-  background: var(--night);
-}
-
-.codex-kicker {
-  margin-bottom: 1rem;
-  color: var(--margin);
-  font-size: 0.9375rem;
-}
-
-.codex-lede {
-  max-width: var(--measure);
-  margin-top: 1.25rem;
-  color: var(--margin);
-  font-size: 1.1875rem;
-  line-height: 1.45;
-}
-
-.tiles {
+.opening {
   display: grid;
-  gap: 2.5rem 2rem;
-  margin-top: clamp(2.5rem, 6vw, 4rem);
+  gap: 2.5rem;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: clamp(1.75rem, 5vw, 3.5rem) var(--gutter) clamp(3rem, 7vw, 5rem);
 }
 
-/*
- * Cada bloco é uma aba aberta no editor: a orelha cinza com o nome do arquivo é o que quem passa
- * vê; o título em ouro, o que aquilo é. A sombra chapada é a mesma da captura do herói.
- */
-.tile {
-  position: relative;
-  display: grid;
-  gap: 1.1rem;
-  align-content: start;
-  padding: 2.6rem clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
-  border: 1px solid var(--ivory);
-  background: var(--ash);
-  box-shadow: 0.625rem 0.625rem 0 var(--blue);
-  transition:
-    transform 120ms ease-out,
-    box-shadow 120ms ease-out;
+.opening-text {
+  min-width: 0;
 }
 
-.tile:hover {
-  box-shadow: 0.875rem 0.875rem 0 var(--blue);
-  transform: translate(-0.25rem, -0.25rem);
+.opening h1 {
+  max-width: 14ch;
+  margin-top: 0.75rem;
+  font-size: clamp(2.6rem, 8.4vw, 6.75rem);
+  line-height: 0.96;
 }
 
-.tab {
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  padding: 0.35em 0.9em 0.4em;
-  border: 1px solid var(--night);
-  background: var(--office);
-  color: var(--night);
-  font-family: var(--font-office);
-  font-size: 0.8125rem;
-  line-height: 1.2;
-}
-
-.tile h3 {
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: clamp(2rem, 3.4vw, 2.625rem);
-  font-weight: 800;
-  line-height: 0.95;
-  text-wrap: balance;
-}
-
-.tile-wolves h3 {
-  color: var(--ember);
-}
-
-.tile-text {
-  max-width: var(--measure);
+.lede {
+  max-width: 34rem;
+  margin-top: 1.5rem;
   font-size: 1.125rem;
-  line-height: 1.45;
-  text-wrap: pretty;
 }
 
-.tile-note,
-.list-title {
-  color: var(--margin);
-  font-size: 1rem;
-  line-height: 1.4;
+.opening .action {
+  margin-top: 1.75rem;
 }
 
-/* A citação curta da Crônica dentro de um bloco. */
-.said {
-  padding-left: 1rem;
-  border-left: 3px solid var(--gold);
-}
-
-.said .chronicle-lines {
-  font-size: 1.0625rem;
-  line-height: 1.4;
-}
-
-.said figcaption {
-  margin-top: 0.6rem;
-  font-family: var(--font-office);
+.phone-note {
+  margin-top: 1.25rem;
+  color: var(--soft);
   font-size: 0.8125rem;
 }
 
-/*
- * A carta do Conselho: pergaminho com o texto em noite, as opções como o jogo as lista. Não é
- * uma captura; as frases são do conteúdo.
- */
-.card {
-  display: grid;
-  gap: 0.9rem;
-  padding: clamp(1.1rem, 2.5vw, 1.5rem);
-  border: 1px solid var(--night);
-  background: var(--parchment);
-  color: var(--night);
+.screen {
+  min-width: 0;
 }
 
-.card-title {
-  font-family: var(--font-fief);
-  font-size: 1.875rem;
-  font-weight: 700;
+.screen img {
+  width: 100%;
+  border: 1px solid var(--rule);
+  box-shadow: 0.6rem 0.6rem 0 var(--accent);
+}
+
+.screen figcaption {
+  max-width: 34rem;
+  margin-top: 1.4rem;
+}
+
+@media (min-width: 48rem) {
+  .phone-note {
+    display: none;
+  }
+}
+
+@media (min-width: 64rem) {
+  .opening {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto auto auto auto 1fr;
+    gap: 0 3.5rem;
+  }
+
+  /* O título atravessa a página; o convite fica embaixo dele, ao lado da tela. */
+  .opening-text {
+    display: contents;
+  }
+
+  .opening .kicker,
+  .opening h1 {
+    grid-column: 1 / -1;
+  }
+
+  .opening h1 {
+    max-width: 17ch;
+  }
+
+  .lede,
+  .opening .action {
+    grid-column: 1;
+  }
+
+  .lede {
+    margin-top: 2.75rem;
+  }
+
+  .screen {
+    grid-column: 2;
+    grid-row: 3 / span 3;
+    margin-top: 2.75rem;
+  }
+
+  .screen img {
+    box-shadow: 0.9rem 0.9rem 0 var(--accent);
+  }
+}
+
+/* ---------- O índice: as quatro estações, do claro ao escuro ---------- */
+
+.calendar {
+  border-block: 1px solid var(--rule);
+}
+
+.calendar ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.calendar li {
+  background: var(--ground);
+  color: var(--text);
+}
+
+.calendar a {
+  display: grid;
+  gap: 0.1rem;
+  height: 100%;
+  padding: 1.1rem var(--gutter) 1.3rem;
+  text-decoration: none;
+}
+
+.calendar a:focus-visible {
+  outline-offset: -6px;
+}
+
+.calendar-number {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-style: italic;
+  font-weight: 300;
   line-height: 1;
 }
 
-.card-text {
+.calendar-name {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.calendar-line {
+  font-family: var(--font-display);
   font-size: 1.125rem;
+  line-height: 1.25;
+}
+
+.calendar a:hover .calendar-line {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.calendar-spring,
+.season-spring {
+  --ground: var(--spring);
+  --accent: var(--moss);
+  --strip: var(--sward);
+  --shadow: var(--moss);
+}
+
+.calendar-summer,
+.season-summer {
+  --ground: var(--summer);
+  --accent: var(--ochre);
+  --strip: var(--straw);
+  --shadow: var(--ochre);
+}
+
+.calendar-autumn,
+.season-autumn {
+  --ground: var(--autumn);
+  --text: var(--cream);
+  --soft: var(--dust);
+  --accent: var(--amber);
+  --strip: var(--bark);
+  --rule: var(--dust);
+  --shadow: var(--amber);
+}
+
+.calendar-winter,
+.season-winter {
+  --ground: var(--winter);
+  --text: var(--snow);
+  --soft: var(--frost);
+  --accent: var(--ice);
+  --strip: var(--pitch);
+  --rule: var(--frost);
+  --shadow: var(--ice);
+}
+
+@media (min-width: 48rem) {
+  .calendar ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .calendar a {
+    padding: 1.5rem 1.75rem 1.75rem;
+  }
+
+  .calendar-number {
+    font-size: 3.25rem;
+  }
+}
+
+/* ---------- Modo de usar: três tempos, e a discrição ---------- */
+
+.manual {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 6rem) var(--gutter);
+}
+
+.manual h2,
+.dawn h2 {
+  max-width: 18ch;
+  margin-top: 0.75rem;
+  font-size: clamp(2.1rem, 5.6vw, 4.25rem);
+  line-height: 1;
+}
+
+.beats {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.75rem;
+  counter-reset: beat;
+}
+
+.beats li {
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  counter-increment: beat;
+}
+
+.beats h3::before {
+  display: block;
+  color: var(--accent);
+  font-size: 2.75rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.1;
+  content: counter(beat);
+}
+
+.beats h3 {
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+
+.beats p {
+  max-width: 24rem;
+  margin-top: 0.6rem;
+}
+
+.quiet {
+  display: grid;
+  gap: 0.75rem 3rem;
+  margin-top: 3.5rem;
+  padding: 1.75rem clamp(1.1rem, 3vw, 2rem) 2rem;
+  border: 1px solid var(--rule);
+  background: var(--strip);
+}
+
+.quiet h3 {
+  font-size: 1.75rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.quiet p {
+  max-width: var(--measure);
+}
+
+.quiet-bar {
+  margin-top: 0.75rem;
+}
+
+/* A barra do jogo é uma faixa muito comprida: mostra-se o começo dela, na altura que tem. */
+.quiet-bar img {
+  width: 100%;
+  height: 1.5625rem;
+  border: 1px solid var(--rule);
+  object-fit: cover;
+  object-position: left center;
+}
+
+.quiet-bar figcaption {
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 48rem) {
+  .beats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+
+  .quiet {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .quiet-bar {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- As estações: a coluna do arco e a coluna do texto ---------- */
+
+.season {
+  background: var(--ground);
+  color: var(--text);
+  padding: clamp(3rem, 8vw, 6.5rem) var(--gutter);
+}
+
+.season-side,
+.season-body {
+  max-width: var(--page);
+  margin: 0 auto;
+}
+
+.season-side {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.season-number {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(5.5rem, 22vw, 9rem);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 0.8;
+}
+
+.arch {
+  width: min(42vw, 11rem);
+}
+
+/* A mesma pintura das quatro estações, vista por uma janela em arco: cada estação, a sua fatia. */
+.arch picture {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--rule);
+  border-radius: 999px 999px 0 0;
+  box-shadow: 0.45rem 0.45rem 0 var(--shadow);
+}
+
+.arch img {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arch-spring {
+  object-position: 0% 50%;
+}
+
+.arch-summer {
+  object-position: 31% 50%;
+}
+
+.arch-autumn {
+  object-position: 67% 50%;
+}
+
+.arch-winter {
+  object-position: 100% 50%;
+}
+
+.arch figcaption {
+  margin-top: 0.9rem;
+  font-size: 0.75rem;
+}
+
+.season-body {
+  min-width: 0;
+}
+
+.season h2 {
+  max-width: 16ch;
+  margin-top: 0.6rem;
+  font-size: clamp(2.3rem, 6.4vw, 4.75rem);
+  line-height: 0.98;
+}
+
+.season-lede {
+  max-width: 32rem;
+  margin-top: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.3125rem;
   line-height: 1.4;
-  text-wrap: pretty;
+}
+
+.entry {
+  margin-top: 3.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.entry h3 {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+
+.entry p {
+  max-width: var(--measure);
+}
+
+.entry > p,
+.split-text > p {
+  margin-top: 0.85rem;
+}
+
+.entry > h3 + p,
+.split-text > p:first-child {
+  margin-top: 0.6rem;
+}
+
+@media (min-width: 64rem) {
+  .season {
+    display: grid;
+    grid-template-columns:
+      minmax(var(--gutter), 1fr) 15rem minmax(0, calc(var(--page) - 19rem))
+      minmax(var(--gutter), 1fr);
+    column-gap: 4rem;
+    padding-inline: 0;
+  }
+
+  .season-side {
+    position: sticky;
+    top: calc(var(--topbar) + 2rem);
+    display: block;
+    grid-column: 2;
+    align-self: start;
+    width: 100%;
+    margin: 0;
+  }
+
+  .arch {
+    width: 100%;
+    margin-top: 1.75rem;
+  }
+
+  .season-number {
+    font-size: 9.5rem;
+  }
+
+  .season-body {
+    grid-column: 3;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* ---------- Primavera: a carta do Conselho ---------- */
+
+/* A carta é sempre papel, em qualquer estação: uma folha pousada sobre o chão dela. */
+.card {
+  --text: var(--ink);
+  --soft: var(--ink-soft);
+
+  max-width: 36rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem clamp(1.1rem, 3vw, 1.75rem) 1.4rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0.55rem 0.55rem 0 var(--shadow);
+  color: var(--ink);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.625rem;
+  font-style: italic;
+  line-height: 1.15;
+}
+
+.card-text {
+  margin-top: 0.75rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+  line-height: 1.6;
 }
 
 .card-options {
   display: grid;
   gap: 0.6rem;
-  margin-top: 0.25rem;
+  margin-top: 1.1rem;
 }
 
 .card-options li {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--night);
+  padding: 0.6rem 0.8rem 0.7rem;
+  border: 1px solid var(--ink);
 }
 
 .option-label {
-  font-family: var(--font-fief);
-  font-size: 1.375rem;
+  display: block;
   font-weight: 700;
-  line-height: 1;
 }
 
 .option-hint {
-  color: var(--office-ink);
-  font-size: 0.9375rem;
-  line-height: 1.35;
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--ink-soft);
+  font-family: var(--font-game);
+  font-size: 0.78125rem;
+  line-height: 1.5;
 }
 
 .card figcaption {
-  color: var(--office-ink);
-  font-family: var(--font-office);
-  font-size: 0.8125rem;
+  margin-top: 1.1rem;
 }
 
-/* A folha da encruzilhada é uma captura real da aba Guilda (jogo-encruzilhada.webp, 314 × 662). */
-.crossroads {
-  display: grid;
-  gap: 0.75rem;
-  justify-items: start;
-  max-width: 22rem;
+@media (min-width: 40rem) {
+  .card-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.crossroads figcaption {
-  font-family: var(--font-office);
-  font-size: 0.8125rem;
-}
+/* ---------- Verão: fichas, encruzilhada, destinos e Mestres ---------- */
 
-/* As fichas de Edda e Rolf. */
 .sheets {
   display: grid;
   gap: 1rem;
+  max-width: 40rem;
+  margin-top: 1.5rem;
 }
 
 .sheet {
-  display: grid;
-  gap: 0.3rem;
-  padding: 0.9rem 1rem 1rem;
-  border: 1px solid var(--margin);
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--rule);
+  background: var(--strip);
 }
 
 .sheet-name {
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: 1.875rem;
-  font-weight: 700;
-  line-height: 1;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 .sheet-class {
-  color: var(--margin);
-  font-family: var(--font-office);
-  font-size: 0.875rem;
+  margin-top: 0.2rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .trait-text {
-  margin-top: 0.3rem;
-  font-size: 1.0625rem;
-  line-height: 1.4;
+  margin-top: 0.6rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
-/* A encruzilhada ao lado das Posturas, dos destinos e dos desfechos. */
-.expedition-body {
-  display: grid;
-  gap: 1.5rem 2rem;
+.note {
+  margin-top: 0.9rem;
 }
 
-.expedition-aside {
+.split {
   display: grid;
-  gap: 0.75rem;
-  align-content: start;
+  gap: 2rem;
+  margin-top: 0.6rem;
+}
+
+.split-text {
+  min-width: 0;
+}
+
+.shot {
+  min-width: 0;
+}
+
+.split .shot {
+  justify-self: start;
+}
+
+.shot img {
+  border: 1px solid var(--rule);
+  box-shadow: 0.6rem 0.6rem 0 var(--shadow);
+}
+
+.shot figcaption {
+  max-width: 20rem;
+  margin-top: 1.2rem;
+}
+
+.shot-crossroads img {
+  width: 19.625rem;
+}
+
+/* A captura do Cerco fica no tamanho em que o jogo a desenha, ou na largura que houver. */
+.shot-siege {
+  margin-top: 1.5rem;
+}
+
+.shot-siege img {
+  width: 41.25rem;
 }
 
 .postures {
   display: grid;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.postures div {
-  padding-left: 1rem;
-  border-left: 3px solid var(--margin);
+  gap: 0.85rem;
+  max-width: var(--measure);
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--strip);
 }
 
 .postures dt {
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .postures dd {
-  margin-top: 0.25rem;
-  font-size: 1rem;
-  line-height: 1.4;
-  text-wrap: pretty;
+  margin-top: 0.15rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
-.destinations,
-.outcomes {
+.outcomes,
+.feats {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.destinations li,
-.outcomes li {
-  padding: 0.3em 0.7em;
-  border: 1px solid var(--margin);
-  font-family: var(--font-office);
-  font-size: 0.875rem;
-  line-height: 1.3;
+  margin-top: 0.85rem;
 }
 
 .outcomes li {
-  border-color: var(--gold);
-  color: var(--gold);
+  padding: 0.15rem 0.65rem 0.2rem;
+  border: 1px solid var(--text);
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
 }
 
-.outcome-setback,
+/* Do melhor ao pior, sem cor a mais: cheio, contornado, tracejado e, no Desastre, invertido. */
+.outcome-full {
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.outcome-setback {
+  border-style: dashed;
+}
+
 .outcome-disaster {
-  border-color: var(--ember);
-  color: var(--ember);
+  background: var(--text);
+  color: var(--ground);
 }
 
-/* Os quatro Mestres, pelo nome e pelo ofício de origem. */
+.destinations {
+  max-width: 44rem;
+  margin-top: 0.5rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+}
+
+.destinations li {
+  padding: 0.4rem 0;
+  border-bottom: 1px dotted var(--rule);
+  break-inside: avoid;
+}
+
 .masters {
   display: grid;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  line-height: 1.4;
+  gap: 0.35rem;
+  max-width: var(--measure);
+  margin-top: 1.1rem;
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
 }
 
 .master-name {
-  color: var(--gold);
-  font-family: var(--font-fief);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
 }
 
-/* O fólio da Crônica: composto como uma aba aberta, com a moldura da captura do herói. */
-.chronicle {
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid var(--ivory);
-  box-shadow: 0.625rem 0.625rem 0 var(--blue);
-}
-
-.chronicle-title {
-  margin-bottom: 1.25rem;
-  font-family: var(--font-fief);
-  font-size: 1.875rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.chronicle .chronicle-lines {
-  font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
-  line-height: 1.35;
-}
-
-.chronicle figcaption {
-  margin-top: 1.5rem;
-}
-
-@media (min-width: 48rem) {
+@media (min-width: 40rem) {
   .sheets {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 60rem) {
-  .tiles {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
-  .tile-fief,
-  .tile-wolves {
-    grid-column: span 5;
-  }
-
-  .tile-council,
-  .tile-guild {
-    grid-column: span 7;
-  }
-
-  .tile-expedition,
-  .tile-chronicle {
-    grid-column: span 12;
-  }
-
-  .tile-market,
-  .tile-masters {
-    grid-column: span 6;
-  }
-
-  .expedition-body {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+@media (min-width: 52rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2.75rem;
     align-items: start;
   }
 
-  .tile-chronicle {
-    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-    grid-template-rows: auto 1fr;
-    column-gap: 2.5rem;
-  }
-
-  .tile-chronicle h3 {
-    grid-column: 1;
-  }
-
-  .tile-chronicle .tile-text {
-    grid-column: 1;
-    align-self: start;
-  }
-
-  .tile-chronicle .chronicle {
-    grid-row: 1 / span 2;
-    grid-column: 2;
+  .split .shot {
+    justify-self: end;
   }
 }
 
-/* ---------- O álibi: a única faixa clara, toda na voz do escritório ---------- */
+/* ---------- Outono: tropas, formação e presságios ---------- */
 
-.alibi {
-  padding-top: clamp(3.5rem, 8vw, 6rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
-  background: var(--office);
-  color: var(--night);
-  font-family: var(--font-office);
+.units {
+  display: grid;
+  max-width: var(--measure);
+  margin-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.units li {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.45rem 0 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.unit-name {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.unit-rule {
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+}
+
+.formation {
+  max-width: 44rem;
+  margin-top: 1.5rem;
+}
+
+.wings {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.wings li {
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid var(--rule);
+  background: var(--strip);
+}
+
+.wing-name {
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.post,
+.commander {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-top: 1px dotted var(--rule);
+  font-family: var(--font-game);
+  font-size: 0.8125rem;
+}
+
+.post-line {
+  color: var(--soft);
+  font-family: var(--font-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.formation figcaption {
+  margin-top: 0.8rem;
+}
+
+@media (min-width: 40rem) {
+  .wings {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Inverno: as ondas, os três fins e os Feitos ---------- */
+
+.waves {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  counter-reset: wave;
+}
+
+.waves li {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 560;
+  line-height: 1.1;
+  counter-increment: wave;
+}
+
+.waves li::before {
+  display: grid;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-game);
   font-size: 1rem;
+  font-weight: 400;
+  place-items: center;
+  content: counter(wave);
+}
+
+.endings {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 40rem;
+  margin-top: 1.1rem;
+  font-family: var(--font-game);
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
-.alibi h2 {
-  color: var(--night);
+.endings li {
+  padding: 0.7rem 1rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  background: var(--strip);
 }
 
-.alibi :focus-visible {
-  outline-color: var(--status);
+.endings .ending-victory {
+  border-left-color: var(--soft);
 }
 
-.alibi-list {
+.endings .ending-fall {
+  border-left-color: var(--ember);
+  color: var(--ember);
+}
+
+.feats li {
+  padding: 0.2rem 0.85rem 0.3rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-style: italic;
+}
+
+/* ---------- O fecho: o papel volta ---------- */
+
+.dawn {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: clamp(3.5rem, 9vw, 7rem) var(--gutter) clamp(3rem, 7vw, 5rem);
+}
+
+.dawn-body {
   display: grid;
-  gap: 0.5rem;
-  margin-top: clamp(1.75rem, 4vw, 2.75rem);
-}
-
-.alibi-coda {
+  gap: 2rem;
   margin-top: 2rem;
 }
 
-.discreet {
-  margin-top: clamp(2.5rem, 6vw, 4rem);
-}
-
-.discreet img {
-  /* Na altura de verdade da barra: em tela estreita aparece só o começo, com o contador. */
-  width: 100%;
-  max-width: none;
-  height: 1.5625rem;
-  object-fit: cover;
-  object-position: left center;
-}
-
-.discreet figcaption {
-  margin-top: 0.75rem;
-  color: var(--office-ink);
-  font-size: 0.875rem;
-}
-
-/* ---------- A vaga: o fecho, de novo em duas vozes ---------- */
-
-.vacancy {
-  padding-top: clamp(3.5rem, 8vw, 6rem);
-  padding-bottom: clamp(3.5rem, 8vw, 6rem);
-}
-
-.vacancy h2 .voice-office {
-  font-size: clamp(1.125rem, 2vw, 1.5rem);
-  line-height: 1.2;
-}
-
-.vacancy h2 .voice-fief {
-  margin-top: 0.12em;
-  font-size: clamp(2.75rem, 8vw, 5.5rem);
-  font-weight: 800;
-  line-height: 0.95;
+.dawn-text {
+  display: grid;
+  gap: 0.85rem;
+  max-width: var(--measure);
 }
 
 .horizon {
-  max-width: var(--measure);
-  margin-top: clamp(3rem, 7vw, 5rem);
-  color: var(--margin);
-  font-size: 1.0625rem;
+  max-width: 44rem;
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  color: var(--soft);
+  font-size: 0.9375rem;
 }
 
-/* ---------- Caminho errado (404.html) ---------- */
-
-.lost {
-  display: grid;
-  gap: 1.75rem;
-  justify-items: start;
-  padding: clamp(2.5rem, 8vw, 6rem) max(var(--gutter), calc((100% - var(--page)) / 2))
-    calc(4rem + var(--statusbar) + env(safe-area-inset-bottom, 0px));
-}
-
-.lost h1 .voice-office {
-  font-size: clamp(1.125rem, 2vw, 1.5rem);
-}
-
-.lost h1 .voice-fief {
-  margin-top: 0.12em;
-  font-size: clamp(2.75rem, 9vw, 6rem);
-  font-weight: 800;
-  line-height: 0.95;
-  text-wrap: balance;
+@media (min-width: 52rem) {
+  .dawn-body {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4rem;
+    align-items: end;
+  }
 }
 
 /* ---------- Cólofon ---------- */
 
 .colophon {
+  --text: var(--paper);
+
   display: grid;
   gap: 0.6rem;
-  padding-top: 2.5rem;
-  /* O fim da página fica acima da barra de status, que está presa embaixo. */
-  padding-bottom: calc(3rem + var(--statusbar) + env(safe-area-inset-bottom, 0px));
-  background: var(--night);
-  color: var(--margin);
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  padding: 2.25rem var(--gutter) 2.75rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .colophon p {
-  max-width: 44rem;
+  width: 100%;
+  max-width: calc(var(--page) - 2 * var(--gutter));
+  margin: 0 auto;
 }
 
-.colophon a {
-  color: var(--ivory);
+/* ---------- A página de caminho errado ---------- */
+
+.lost {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: start;
+  max-width: var(--page);
+  min-height: calc(100vh - var(--topbar));
+  margin: 0 auto;
+  padding: clamp(3rem, 12vh, 8rem) var(--gutter) 4rem;
+  align-content: start;
 }
 
-/* ---------- A barra de status da página, com a cor e a letra da barra do jogo ---------- */
-
-.statusbar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 10;
-  display: flex;
-  gap: 0.9rem;
-  align-items: stretch;
-  min-height: calc(var(--statusbar) + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  /* O azul da barra quase some sobre o azul da página: o filete de ouro a separa. */
-  border-top: 1px solid var(--gold);
-  background: var(--status);
-  color: var(--white);
-  font-family: var(--font-system);
-  font-size: 0.8125rem;
-  line-height: 1.2;
+.lost h1 {
+  max-width: 14ch;
+  font-size: clamp(2.6rem, 8.4vw, 6rem);
+  line-height: 0.96;
 }
 
-.statusbar-name {
-  display: flex;
-  flex: none;
-  gap: 0.4rem;
-  align-items: center;
-  padding-left: 0.75rem;
-}
-
-.statusbar-note {
-  flex: 1;
-  align-self: center;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.statusbar-cta {
-  display: flex;
-  flex: none;
-  align-items: center;
-  padding: 0 1.1rem;
-  background: var(--gold);
-  color: var(--night);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.statusbar-cta:hover {
-  background: var(--ivory);
-}
-
-.statusbar-cta:focus-visible {
-  outline-color: var(--night);
-  outline-offset: -4px;
-}
-
-@media (pointer: coarse) {
-  /* Com o dedo, o alvo precisa de mais altura do que uma barra de editor tem. */
-  :root {
-    --statusbar: 3rem;
-  }
-
-  .statusbar {
-    font-size: 0.9375rem;
-  }
+.lost .lede {
+  margin-top: 0;
 }

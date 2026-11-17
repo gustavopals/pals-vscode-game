@@ -40,6 +40,19 @@ São escolhas que o pedido deixou em aberto. A página adota a opção da coluna
 | 7 | Monitor de saúde | O `health.yml` passa a consultar também a página | Monitorar só o jogo |
 | 8 | GDD | §14.2 e §14.13 ganham uma linha cada, como correção de fato | Deixar o GDD só com o jogo |
 
+### Atualização de 2026-11-17: a página refeita (o almanaque)
+
+A pedido do autor ("landing page totalmente nova do zero, outro tema, outros textos"), a página foi refeita com a v0.4. A decisão acima não muda (pacote, domínio, política de conteúdo, "só diz do jogo o que o jogo diz de si"); mudam as escolhas dos pontos 2, 3, 4 e 6, que continuam **a confirmar pelo autor**, que não viu a página nova antes de ela ser feita:
+
+| # | Questão | Adotado em 2026-11-17 |
+|---|---|---|
+| 2 | Letras | Fraunces (títulos, em pé e em itálico) e Instrument Sans (texto), as duas sob a SIL Open Font License, com os arquivos dentro do repositório. O que é citação do jogo sai na letra de largura fixa do sistema |
+| 3 | Título e tom | "Um ano inteiro para preparar um inverno.", sem a piada do trabalho: a página é o "Almanaque de Pedra Alta", o ano do jogo em quatro estações, com o chão que escurece do papel à noite e o fecho "Depois do inverno, outra primavera." A discrição do jogo (sem som, modo discreto) virou um quadro do "Modo de usar" |
+| 4 | Artes do README na página | A mesma pintura das estações, vista por quatro janelas em arco, uma por estação, cada uma com a legenda "Arte conceitual, gerada por IA." |
+| 6 | Aviso para celular | Em tela estreita: "Pensado para a tela do computador. No celular o jogo abre, mas ainda não foi testado." |
+
+O título da aba passou a "Lords of the Guild: um ano inteiro para preparar um inverno" (o monitor de saúde e a verificação de fumaça procuram por ele). A página ganhou duas capturas do painel do Cerco, e os rótulos presos à captura da abertura deixaram de existir. Peso dos arquivos da página compilada: as três fontes somam cerca de 180 kB, a captura da abertura 188 kB (72 kB a estreita), as do Cerco 47 kB cada, e a pintura 135 kB ou 252 kB conforme a tela; a medição em navegador de 2026-10 (abaixo) é da página anterior e não foi refeita.
+
 ## Consequências e verificação
 
 - **Quatro recursos no Coolify.** O jogo continua sendo três; a página é o quarto e pode cair ou ser removida sem afetar o jogo. `deploy/README.md` descreve como criá-la.

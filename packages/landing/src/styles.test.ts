@@ -75,48 +75,77 @@ describe('cores', () => {
     for (const [name, value] of colors) expect(value, name).toMatch(/^#[0-9a-f]{6}$/);
   });
 
-  // Texto sobre fundo, como a página usa. 4,5 para texto corrido; 3 para letra grande.
+  // Texto sobre fundo, como a página usa: o texto, o apoio e o destaque de cada chão e da tira
+  // de citação dele. 4,5:1 em todos, inclusive no destaque, que também escreve letra pequena.
   const TEXT: ReadonlyArray<readonly [text: string, background: string]> = [
-    ['ivory', 'blue'],
-    ['margin', 'blue'],
-    ['ivory', 'night'],
-    ['margin', 'night'],
-    ['gold', 'night'],
-    ['night', 'gold'],
-    ['night', 'office'],
-    ['office-ink', 'office'],
-    ['night', 'ivory'],
-    ['white', 'status'],
-    // O ouro sobre o azul fica só em títulos, na marca e nos nomes das estações.
-    ['gold', 'blue'],
-    // Os blocos do códice, sobre o chão; a brasa dos lobos e dos desfechos ruins.
-    ['ivory', 'ash'],
-    ['margin', 'ash'],
-    ['gold', 'ash'],
-    ['ember', 'ash'],
-    ['ember', 'night'],
-    // A carta do Conselho e a folha da encruzilhada, em pergaminho.
-    ['night', 'parchment'],
-    ['office-ink', 'parchment'],
+    // O papel da abertura, do modo de usar e do fecho; a carta do Conselho também é papel.
+    ['ink', 'paper'],
+    ['ink-soft', 'paper'],
+    ['vermilion', 'paper'],
+    ['ink', 'linen'],
+    ['ink-soft', 'linen'],
+    ['vermilion', 'linen'],
+    // O botão e o cólofon: papel sobre tinta.
+    ['paper', 'ink'],
+    // Primavera.
+    ['ink', 'spring'],
+    ['ink-soft', 'spring'],
+    ['moss', 'spring'],
+    ['ink', 'sward'],
+    ['ink-soft', 'sward'],
+    ['moss', 'sward'],
+    // Verão.
+    ['ink', 'summer'],
+    ['ink-soft', 'summer'],
+    ['ochre', 'summer'],
+    ['ink', 'straw'],
+    ['ink-soft', 'straw'],
+    ['ochre', 'straw'],
+    ['summer', 'ink'],
+    // Outono.
+    ['cream', 'autumn'],
+    ['dust', 'autumn'],
+    ['amber', 'autumn'],
+    ['cream', 'bark'],
+    ['dust', 'bark'],
+    ['amber', 'bark'],
+    ['autumn', 'cream'],
+    // Inverno, com a brasa da Queda.
+    ['snow', 'winter'],
+    ['frost', 'winter'],
+    ['ice', 'winter'],
+    ['snow', 'pitch'],
+    ['frost', 'pitch'],
+    ['ice', 'pitch'],
+    ['ember', 'pitch'],
+    ['winter', 'snow'],
   ];
 
   it.each(TEXT)('%s sobre %s tem contraste de leitura (4,5:1)', (text, background) => {
     expect(contrast(color(text), color(background))).toBeGreaterThanOrEqual(4.5);
   });
 
-  // O que não é texto: a moldura da captura, o fio dos rótulos, o anel de foco, o filete da barra.
+  // O que não é texto: os fios, as molduras, a sombra chapada, o anel de foco e o filete das tiras.
   const MARKS: ReadonlyArray<readonly [mark: string, background: string]> = [
-    ['ivory', 'blue'],
-    ['gold', 'blue'],
-    ['ivory', 'night'],
-    ['status', 'office'],
-    ['night', 'gold'],
-    ['gold', 'status'],
-    // A moldura e a orelha dos blocos do códice, a sombra deles e a borda das fichas.
-    ['ivory', 'ash'],
-    ['margin', 'ash'],
-    ['night', 'parchment'],
-    ['night', 'office'],
+    ['ink', 'paper'],
+    ['vermilion', 'paper'],
+    ['ink', 'linen'],
+    ['ink', 'spring'],
+    ['moss', 'spring'],
+    ['moss', 'sward'],
+    ['ink', 'summer'],
+    ['ochre', 'summer'],
+    ['ochre', 'straw'],
+    ['dust', 'autumn'],
+    ['amber', 'autumn'],
+    ['amber', 'bark'],
+    ['cream', 'autumn'],
+    ['frost', 'winter'],
+    ['ice', 'winter'],
+    ['ice', 'pitch'],
+    ['ember', 'pitch'],
+    ['snow', 'winter'],
+    ['paper', 'ink'],
   ];
 
   it.each(MARKS)('%s sobre %s se distingue como contorno (3:1)', (mark, background) => {
@@ -127,15 +156,27 @@ describe('cores', () => {
 describe('letras', () => {
   it('as duas famílias são arquivos desta página, com troca visível enquanto carregam', () => {
     const faces = withoutComments(fonts).match(/@font-face\s*\{[^}]*\}/g) ?? [];
-    expect(faces).toHaveLength(2);
+    // Fraunces em pé e em itálico, e Instrument Sans em pé.
+    expect(faces).toHaveLength(3);
+    expect(faces.map((face) => /font-family: '?([\w ]+)'?;/.exec(face)?.[1])).toEqual([
+      'Fraunces',
+      'Fraunces',
+      'Instrument Sans',
+    ]);
     for (const face of faces) {
       expect(face).toMatch(/src: url\('\.\.\/fonts\/[\w-]+\.woff2'\) format\('woff2'\);/);
       expect(face).toContain('font-display: swap;');
     }
   });
 
-  it('nada de negrito ou itálico sintético: cada família tem um arquivo só', () => {
+  it('nada de negrito ou itálico sintético: só o que os arquivos trazem', () => {
     expect(base).toContain('font-synthesis: none;');
+    // Itálico só em Fraunces, que tem o arquivo: nenhuma regra o pede na letra do texto.
+    const italic = withoutComments(page).match(/[^{}]*\{[^}]*font-style: italic[^}]*\}/g) ?? [];
+    expect(italic.length).toBeGreaterThan(0);
+    for (const rule of italic) {
+      expect(rule, rule).not.toMatch(/font-family: var\(--font-(text|game)\)/);
+    }
   });
 });
 
@@ -147,7 +188,7 @@ describe('acesso', () => {
   });
 
   it('o foco do teclado é sempre visível', () => {
-    expect(base).toMatch(/:focus-visible\s*\{[^}]*outline: 3px solid var\(--ivory\)/);
+    expect(base).toMatch(/:focus-visible\s*\{[^}]*outline: 3px solid var\(--text\)/);
     expect(withoutComments(base + page)).not.toMatch(/outline:\s*(none|0)\b/);
   });
 

@@ -4,11 +4,11 @@ Lords of the Guild: licenças do que esta página usa
 Fontes
 ------
 
-As duas famílias são servidas pela própria página, nos arquivos do subconjunto latino
-distribuídos pelo Google Fonts, sem modificação.
+As duas famílias (Fraunces, em pé e em itálico, e Instrument Sans) são servidas pela própria
+página, nos arquivos do subconjunto latino distribuídos pelo Google Fonts, sem modificação.
 
-  Grenze Gotisch, de Omnibus-Type       https://github.com/Omnibus-Type/Grenze-Gotisch
-  Alegreya, de Huerta Tipográfica       https://github.com/huertatipografica/Alegreya
+  Fraunces, de Undercase Type           https://github.com/undercasetype/Fraunces
+  Instrument Sans, de Instrument        https://github.com/Instrument/instrument-sans
 
 Ambas estão sob a SIL Open Font License, versão 1.1, reproduzida abaixo uma vez para cada
 família, com o aviso de direitos autorais de cada uma.
@@ -21,9 +21,9 @@ são do próprio jogo e mostram os ícones Codicons, sob a licença Creative Com
 4.0 (CC BY 4.0): https://github.com/microsoft/vscode-codicons
 
 
-==================================== Grenze Gotisch ====================================
+======================================= Fraunces =======================================
 
-Copyright 2020 The Grenze Gotisch Project Authors (https://github.com/Omnibus-Type/Grenze-Gotisch)
+Copyright 2018 The Fraunces Project Authors (https://github.com/undercasetype/Fraunces)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -118,13 +118,13 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 
 
-======================================= Alegreya =======================================
+=================================== Instrument Sans ===================================
 
-Copyright 2011 The Alegreya Project Authors (https://github.com/huertatipografica/Alegreya)
+Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+https://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

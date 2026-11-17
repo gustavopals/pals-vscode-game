@@ -4,11 +4,17 @@ import { DEFAULT_SITE } from '../../packages/landing/src/site';
 
 /**
  * A página de apresentação compilada, em um navegador de verdade. O que só um navegador prova:
- * a política de conteúdo valendo, as letras carregadas, o interruptor que é só CSS, o teclado,
- * o contraste do que foi desenhado e a página em larguras de celular.
+ * a política de conteúdo valendo, as letras carregadas, a faixa do alto que acompanha a estação,
+ * o teclado, o contraste do que foi desenhado e a página em larguras de celular.
  */
 
 const GAME = DEFAULT_SITE.gameUrl;
+const SEASONS = [
+  { id: 'primavera', season: 'spring', name: 'Primavera' },
+  { id: 'verao', season: 'summer', name: 'Verão' },
+  { id: 'outono', season: 'autumn', name: 'Outono' },
+  { id: 'inverno', season: 'winter', name: 'Inverno' },
+] as const;
 
 /** Erros de script, recursos barrados pela política e pedidos a outras origens. */
 function watch(page: Page) {
@@ -35,11 +41,21 @@ async function scrollThrough(page: Page) {
 }
 
 const isPhone = (page: Page) => (page.viewportSize()?.width ?? 0) < 768;
-/** A partir de 68rem os rótulos ficam presos à captura e há o interruptor. */
-const PINNED_FROM = 1088;
+
+/** Põe o alto de uma estação logo abaixo da faixa presa e espera a faixa vestir a cor dela. */
+async function goToSeason(page: Page, entry: (typeof SEASONS)[number]) {
+  await page.evaluate((id) => {
+    const section = document.getElementById(id);
+    const bar = document.querySelector('.topbar');
+    if (!section || !bar) throw new Error(`A página não tem #${id}.`);
+    const top = section.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, top - bar.getBoundingClientRect().height + 40);
+  }, entry.id);
+  await expect(page.locator('html')).toHaveAttribute('data-season', entry.season);
+}
 
 test.describe('primeira visita', () => {
-  test('abre limpa: tudo desta origem, nada barrado, as duas letras carregadas', async ({
+  test('abre limpa: tudo desta origem, nada barrado, as letras carregadas', async ({
     page,
     baseURL,
   }) => {
@@ -51,13 +67,13 @@ test.describe('primeira visita', () => {
     expect([...origins]).toEqual([new URL(baseURL ?? '').origin]);
     expect(problems).toEqual([]);
 
+    // Fraunces em pé e em itálico, e Instrument Sans.
     const loaded = await page.evaluate(() =>
-      [...document.fonts].filter((font) => font.status === 'loaded').map((font) => font.family),
+      [...document.fonts]
+        .filter((font) => font.status === 'loaded')
+        .map((font) => `${font.family.replace(/['"]/g, '')} ${font.style}`),
     );
-    expect(loaded.map((family) => family.replace(/['"]/g, '')).sort()).toEqual([
-      'Alegreya',
-      'Grenze Gotisch',
-    ]);
+    expect(loaded.sort()).toEqual(['Fraunces italic', 'Fraunces normal', 'Instrument Sans normal']);
 
     const broken = await page.evaluate(() =>
       [...document.images].filter((image) => image.naturalWidth === 0).map((image) => image.src),
@@ -89,16 +105,24 @@ test.describe('primeira visita', () => {
     expect(ran.style).not.toBe('7px');
   });
 
-  test('o título fala em duas vozes: a do escritório e a do feudo', async ({ page }) => {
+  test('o título diz o que o jogo é, na letra dos títulos, com o inverno em itálico', async ({
+    page,
+  }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
-    await expect(page).toHaveTitle('Lords of the Guild: parece trabalho, é um feudo');
+    await expect(page).toHaveTitle('Lords of the Guild: um ano inteiro para preparar um inverno');
     const title = page.getByRole('heading', { level: 1 });
-    await expect(title).toHaveText(/Parece trabalho\.\s*É um feudo\./);
-    const family = (selector: string) =>
-      title.locator(selector).evaluate((element) => getComputedStyle(element).fontFamily);
-    expect(await family('.voice-fief')).toContain('Grenze Gotisch');
-    expect(await family('.voice-office')).toMatch(/monospace/);
+    await expect(title).toHaveText('Um ano inteiro para preparar um inverno.');
+    expect(await title.evaluate((element) => getComputedStyle(element).fontFamily)).toContain(
+      'Fraunces',
+    );
+    const winter = title.locator('em');
+    await expect(winter).toHaveText('um inverno.');
+    expect(await winter.evaluate((element) => getComputedStyle(element).fontStyle)).toBe('italic');
+    // O texto corrido é da outra família.
+    expect(
+      await page.locator('.lede').evaluate((element) => getComputedStyle(element).fontFamily),
+    ).toContain('Instrument Sans');
   });
 
   test('"Jogar agora" está na primeira tela e leva ao jogo', async ({ page }) => {
@@ -107,137 +131,172 @@ test.describe('primeira visita', () => {
     await expect(play).toHaveCount(3);
     for (const link of await play.all()) await expect(link).toHaveAttribute('href', GAME);
 
+    // O da faixa do alto e o da abertura cabem na primeira tela.
     const viewport = page.viewportSize();
-    const first = await play.first().boundingBox();
-    expect(first).not.toBeNull();
-    expect((first?.y ?? 0) + (first?.height ?? 0)).toBeLessThanOrEqual(viewport?.height ?? 0);
+    for (const link of [play.nth(0), play.nth(1)]) {
+      const box = await link.boundingBox();
+      expect(box).not.toBeNull();
+      expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(viewport?.height ?? 0);
+    }
 
-    // A barra de status acompanha a rolagem, com o mesmo botão.
-    const bar = page.getByRole('complementary', { name: 'Atalho para o jogo' });
+    // A faixa do alto acompanha a rolagem, com o mesmo botão.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const bar = page.getByRole('banner');
     await expect(bar.getByRole('link', { name: 'Jogar agora' })).toBeInViewport();
-    const box = await bar.boundingBox();
-    expect((box?.y ?? 0) + (box?.height ?? 0)).toBe(viewport?.height);
+    expect((await bar.boundingBox())?.y).toBe(0);
+  });
+
+  test('a página abre com uma captura real do jogo: larga no computador, estreita no celular', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const capture = page.getByRole('img', { name: /Captura real do jogo, na aba Feudo/ });
+    await expect(capture).toBeInViewport();
+    expect(await capture.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(
+      isPhone(page) ? 'jogo-feudo-estreito' : 'jogo-feudo-',
+    );
+    if (!isPhone(page)) {
+      expect(await capture.evaluate((image: HTMLImageElement) => image.currentSrc)).not.toContain(
+        'estreito',
+      );
+    }
   });
 });
 
-test.describe('a mesma tela, duas leituras', () => {
-  const passerby = [
-    'uma árvore de arquivos',
-    'uma tabela qualquer',
-    'uns contadores',
-    'uma barra de progresso',
-    'uma barra de status',
-  ];
-  const ruler = [
-    'o feudo, de cima a baixo',
-    'as despensas',
-    'quem trabalha onde',
-    'os pedreiros na obra',
-    'o que pede atenção agora',
-  ];
-  // O texto visível de cada rótulo, sem o prefixo que só os leitores de tela recebem.
-  const shown = (page: Page, tag: 'dt' | 'dd') =>
-    page.locator(`.labels ${tag}`).evaluateAll((items) =>
-      items
-        .filter((item) => item.getClientRects().length > 0)
-        .map((item) => {
-          const copy = item.cloneNode(true) as HTMLElement;
-          copy.querySelector('.sr-only')?.remove();
-          return (copy.textContent ?? '').trim();
-        }),
-    );
-
-  test('no computador o interruptor troca os rótulos: com clique e com as setas', async ({
+test.describe('o ano em quatro estações', () => {
+  test('o índice leva a cada estação, e o título dela não some atrás da faixa', async ({
     page,
   }) => {
-    test.skip(isPhone(page), 'no celular não há interruptor');
     await page.goto('/');
-    const group = page.getByRole('radiogroup', { name: 'A mesma tela:' });
-    const passing = group.getByRole('radio', { name: 'Quem passa vê' });
-    const governing = group.getByRole('radio', { name: 'Quem governa vê' });
+    const calendar = page.getByRole('navigation', { name: 'O ano em quatro estações' });
+    await expect(calendar.getByRole('link')).toHaveCount(4);
+    const columns = await calendar
+      .locator('ol')
+      .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+    expect(columns).toBe(isPhone(page) ? 2 : 4);
 
-    await expect(passing).toBeChecked();
-    expect(await shown(page, 'dt')).toEqual(passerby);
-    expect(await shown(page, 'dd')).toEqual([]);
-
-    await page.locator('label[for="reading-ruler"]').click();
-    await expect(governing).toBeChecked();
-    expect(await shown(page, 'dt')).toEqual([]);
-    expect(await shown(page, 'dd')).toEqual(ruler);
-
-    // Pelo teclado: o grupo é uma parada do Tab, e as setas trocam a leitura.
-    await governing.focus();
-    await page.keyboard.press('ArrowLeft');
-    await expect(passing).toBeChecked();
-    await expect(passing).toBeFocused();
-    expect(await shown(page, 'dt')).toEqual(passerby);
-    await page.keyboard.press('ArrowRight');
-    await expect(governing).toBeChecked();
-    expect(await shown(page, 'dd')).toEqual(ruler);
+    for (const entry of SEASONS) {
+      await calendar.getByRole('link', { name: new RegExp(entry.name) }).click();
+      await expect(page).toHaveURL(new RegExp(`#${entry.id}$`));
+      const section = page.locator(`#${entry.id}`);
+      await expect(section.getByRole('heading', { level: 2 })).toBeInViewport();
+      const [top, bar] = await Promise.all([
+        section.evaluate((element) => element.getBoundingClientRect().top),
+        page.locator('.topbar').evaluate((element) => element.getBoundingClientRect().bottom),
+      ]);
+      expect(top).toBeGreaterThanOrEqual(bar);
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
   });
 
-  for (const width of [PINNED_FROM, 1120, 1280, 1920]) {
-    test(`a ${width} px os rótulos ficam dentro da captura e não se cobrem`, async ({ page }) => {
-      test.skip(isPhone(page), 'no celular os rótulos não ficam sobre a captura');
-      await page.setViewportSize({ width, height: 800 });
-      await page.goto('/');
-      await page.evaluate(() => document.fonts.ready);
-      for (const reading of ['reading-passerby', 'reading-ruler']) {
-        await page.locator(`label[for="${reading}"]`).click();
-        const boxes = await page.evaluate(() => {
-          const stage = document.querySelector('.stage')?.getBoundingClientRect();
-          const labels = [...document.querySelectorAll('.labels dt, .labels dd')]
-            .map((item) => item.getBoundingClientRect())
-            .filter((box) => box.width > 0);
-          return {
-            stage: stage && {
-              left: stage.left,
-              right: stage.right,
-              top: stage.top,
-              bottom: stage.bottom,
-            },
-            labels: labels.map((box) => ({
-              left: box.left,
-              right: box.right,
-              top: box.top,
-              bottom: box.bottom,
-            })),
-          };
-        });
-        expect(boxes.labels).toHaveLength(5);
-        for (const box of boxes.labels) {
-          expect(box.left).toBeGreaterThanOrEqual(boxes.stage?.left ?? 0);
-          expect(box.right).toBeLessThanOrEqual(boxes.stage?.right ?? 0);
-          expect(box.top).toBeGreaterThanOrEqual(boxes.stage?.top ?? 0);
-          expect(box.bottom).toBeLessThanOrEqual(boxes.stage?.bottom ?? 0);
-        }
-        for (const [index, a] of boxes.labels.entries()) {
-          for (const b of boxes.labels.slice(index + 1)) {
-            const apart =
-              a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
-            expect(apart, `${reading}: dois rótulos se cobrem`).toBe(true);
-          }
-        }
+  test('a faixa do alto veste a estação que está sob ela, e volta ao papel fora delas', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const root = page.locator('html');
+    const bar = page.locator('.topbar');
+    const ground = () => bar.evaluate((element) => getComputedStyle(element).backgroundColor);
+    await expect(root).not.toHaveAttribute('data-season');
+    const paper = await ground();
+
+    const seen = new Set([paper]);
+    for (const entry of SEASONS) {
+      await goToSeason(page, entry);
+      // A cor da faixa é a do chão da estação; a transição acaba antes da medida.
+      const expected = await page
+        .locator(`#${entry.id}`)
+        .evaluate((element) => getComputedStyle(element).backgroundColor);
+      await expect.poll(ground).toBe(expected);
+      seen.add(expected);
+      if (!isPhone(page)) {
+        const current = page.locator('.year-nav a[aria-current]');
+        await expect(current).toHaveCount(1);
+        await expect(current).toHaveText(entry.name);
       }
-    });
-  }
+      expect(await lowContrast(page), `contraste com a faixa no ${entry.name}`).toEqual([]);
+    }
+    // Cinco chãos diferentes: o papel e as quatro estações.
+    expect(seen.size).toBe(5);
 
-  test('no celular as duas leituras ficam lado a lado, sem interruptor', async ({ page }) => {
-    test.skip(!isPhone(page), 'no computador há o interruptor');
-    await page.goto('/');
-    await expect(page.getByRole('radio')).toHaveCount(0);
-    // A captura estreita não mostra a árvore nem a obra: as linhas delas saem.
-    expect(await shown(page, 'dt')).toEqual([passerby[1], passerby[2], passerby[4]]);
-    expect(await shown(page, 'dd')).toEqual([ruler[1], ruler[2], ruler[4]]);
-    await expect(page.locator('.reading-heads')).toHaveText(/Quem passa vê\s*Quem governa vê/);
-    const capture = page.getByRole('img', { name: /Captura real do jogo, na aba Feudo/ });
-    expect(await capture.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(
-      'jogo-feudo-estreito',
-    );
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(root).not.toHaveAttribute('data-season');
+    await expect.poll(ground).toBe(paper);
   });
 
-  test('sem JavaScript a página é a mesma, e o interruptor continua trocando', async ({
+  test('no celular a faixa do alto não traz o índice; no computador, traz as quatro', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const links = page.getByRole('navigation', { name: 'As estações do ano' }).getByRole('link');
+    if (isPhone(page)) {
+      await expect(links).toHaveCount(0);
+    } else {
+      await expect(links).toHaveText(SEASONS.map((entry) => entry.name));
+    }
+  });
+
+  test('cada estação tem a sua janela da pintura, com a legenda de arte conceitual', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await scrollThrough(page);
+    const arches = page.locator('.arch');
+    await expect(arches).toHaveCount(4);
+    await expect(arches.locator('figcaption')).toHaveText(
+      SEASONS.map(() => 'Arte conceitual, gerada por IA.'),
+    );
+    // A mesma pintura, quatro fatias diferentes, da esquerda para a direita.
+    const slices = await arches
+      .locator('img')
+      .evaluateAll((images) =>
+        images.map((image) => parseFloat(getComputedStyle(image).objectPosition)),
+      );
+    expect(slices).toHaveLength(4);
+    expect([...slices].sort((a, b) => a - b)).toEqual(slices);
+    expect(new Set(slices).size).toBe(4);
+    const loaded = await arches.locator('img').evaluateAll((images) =>
+      images.map((image) => ({
+        source: (image as HTMLImageElement).currentSrc,
+        width: (image as HTMLImageElement).naturalWidth,
+      })),
+    );
+    for (const image of loaded) {
+      expect(image.source).toContain('pedra-alta-estacoes-');
+      expect(image.width).toBeGreaterThan(0);
+    }
+  });
+
+  test('as capturas da encruzilhada e do Cerco carregam, e nenhuma passa do tamanho do jogo', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await scrollThrough(page);
+    const crossroads = page.getByRole('img', { name: /Captura real do jogo, na aba Guilda/ });
+    const siege = page.getByRole('img', { name: /Captura real do jogo, na aba Exército/ });
+    const size = (image: typeof crossroads) =>
+      image.evaluate((element: HTMLImageElement) => ({
+        natural: element.naturalWidth,
+        shown: element.getBoundingClientRect().width,
+        source: element.currentSrc,
+      }));
+    const fork = await size(crossroads);
+    expect(fork.natural).toBe(628);
+    expect(fork.shown).toBeLessThanOrEqual(314);
+    const plan = await size(siege);
+    expect(plan.source).toContain(isPhone(page) ? 'jogo-cerco-estreito' : 'jogo-cerco-');
+    expect(plan.natural).toBe(isPhone(page) ? 824 : 1320);
+    // As capturas saem em 2×: desenhadas maiores que a metade, ficariam borradas.
+    expect(plan.shown).toBeLessThanOrEqual(plan.natural / 2);
+    // A carta do Conselho, as fichas, as tropas, as alas e as ondas estão lá.
+    await expect(page.locator('.card-title')).toHaveText('Estrangeira ferida');
+    await expect(page.locator('.sheet')).toHaveCount(2);
+    await expect(page.locator('.units li')).toHaveCount(5);
+    await expect(page.locator('.wings > li')).toHaveCount(3);
+    await expect(page.locator('.waves li')).toHaveCount(3);
+    await expect(page.locator('.masters li')).toHaveCount(4);
+  });
+
+  test('sem JavaScript a página é a mesma, com a faixa do alto sempre em papel', async ({
     browser,
     baseURL,
   }, testInfo) => {
@@ -248,57 +307,24 @@ test.describe('a mesma tela, duas leituras', () => {
     });
     const page = await context.newPage();
     await page.goto('/');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/É um feudo\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Um ano inteiro para preparar um inverno.',
+    );
     await expect(page.getByRole('link', { name: 'Jogar agora' }).first()).toHaveAttribute(
       'href',
       GAME,
     );
-    if (!isPhone(page)) {
-      await page.locator('label[for="reading-ruler"]').click();
-      await expect(page.locator('.label-table dd')).toBeVisible();
-      await expect(page.locator('.label-table dt')).toBeHidden();
-    }
+    await page.goto('/#inverno');
+    await expect(page.locator('#inverno').getByRole('heading', { level: 2 })).toBeInViewport();
+    await expect(page.locator('html')).not.toHaveAttribute('data-season');
     await context.close();
-  });
-});
-
-test.describe('o códice', () => {
-  test('tem um bloco por coisa que se governa, com a orelha de arquivo, e a captura da encruzilhada carrega', async ({
-    page,
-  }) => {
-    await page.goto('/');
-    await scrollThrough(page);
-    const tiles = page.locator('.codex .tile');
-    await expect(tiles).toHaveCount(8);
-    await expect(page.locator('.codex .tab')).toHaveText([
-      'feudo.csv',
-      'conselho.md',
-      'vigia.log',
-      'guilda.csv',
-      'expedicao.log',
-      'mercado.csv',
-      'mestres.txt',
-      'cronica.md',
-    ]);
-    // A carta do Conselho e a folha da encruzilhada, como o jogo as mostra.
-    await expect(page.locator('.card-title')).toHaveText('Estrangeira ferida');
-    const sheet = page.getByRole('img', { name: /Captura real do jogo, na aba Guilda/ });
-    await sheet.scrollIntoViewIfNeeded();
-    expect(await sheet.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(628);
-    // Os quatro Mestres, pelo nome.
-    await expect(page.locator('.masters li')).toHaveCount(4);
-    // No celular os blocos ficam em uma coluna; no computador, em várias.
-    const columns = await page
-      .locator('.tiles')
-      .evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
-    expect(columns).toBe(isPhone(page) ? 1 : 12);
   });
 });
 
 test.describe('em qualquer tela', () => {
   test('nenhuma largura, de 320 a 1920 px, faz a página rolar de lado', async ({ page }) => {
     test.skip(isPhone(page), 'as larguras são trocadas no projeto de computador');
-    for (const width of [320, 360, 412, 480, 600, 768, 959, 960, 1024, 1280, 1440, 1920]) {
+    for (const width of [320, 360, 412, 480, 600, 767, 768, 832, 1023, 1024, 1280, 1440, 1920]) {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/');
       await page.evaluate(() => document.fonts.ready);
@@ -306,52 +332,44 @@ test.describe('em qualquer tela', () => {
         () => document.documentElement.scrollWidth - window.innerWidth,
       );
       expect(overflow, `sobra horizontal a ${width} px`).toBe(0);
-      // O título cabe inteiro, sem cortar a gótica.
-      const cut = await page.evaluate(() => {
-        const title = document.querySelector('h1 .voice-fief');
-        return title ? title.scrollWidth - title.clientWidth : 0;
+      // Nada desenhado passa da borda: nem título, nem tira de citação, nem captura.
+      const wide = await page.evaluate(() =>
+        [...document.querySelectorAll('main *, .topbar *')]
+          .filter((element) => {
+            const box = element.getBoundingClientRect();
+            return box.width > 0 && (box.right > window.innerWidth + 0.5 || box.left < -0.5);
+          })
+          // A pintura é maior que a janela em arco de propósito: o arco a corta.
+          .filter((element) => !element.closest('.arch picture'))
+          .map((element) => `${element.tagName}.${element.className}`),
+      );
+      expect(wide, `passa da borda a ${width} px`).toEqual([]);
+      // A faixa do alto cabe em uma linha, com a marca e o botão inteiros.
+      const bar = await page.evaluate(() => {
+        const brand = document.querySelector('.brand')?.getBoundingClientRect();
+        const play = document.querySelector('.topbar-cta')?.getBoundingClientRect();
+        return { gap: (play?.left ?? 0) - (brand?.right ?? 0), height: play?.height ?? 0 };
       });
-      expect(cut, `título cortado a ${width} px`).toBe(0);
+      expect(bar.gap, `marca e botão se cobrem a ${width} px`).toBeGreaterThan(0);
+      expect(bar.height, `botão quebrado em duas linhas a ${width} px`).toBeLessThan(44);
     }
-  });
-
-  test('a pintura cabe inteira no computador e passa de lado no celular', async ({ page }) => {
-    await page.goto('/');
-    const scroller = page.locator('.panorama-scroll');
-    await scroller.scrollIntoViewIfNeeded();
-    const extra = await scroller.evaluate((element) => element.scrollWidth - element.clientWidth);
-    if (isPhone(page)) {
-      expect(extra).toBeGreaterThan(400);
-      await expect(page.locator('.swipe-hint')).toBeVisible();
-    } else {
-      expect(extra).toBe(0);
-      await expect(page.locator('.swipe-hint')).toBeHidden();
-    }
-    await expect(page.locator('.season-names li')).toHaveText([
-      'Primavera',
-      'Verão',
-      'Outono',
-      'Inverno',
-    ]);
   });
 
   test('tudo o que se lê tem contraste de leitura', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
-    const readings = isPhone(page) ? [null] : ['reading-passerby', 'reading-ruler'];
-    for (const reading of readings) {
-      if (reading) await page.locator(`label[for="${reading}"]`).click();
-      expect(await lowContrast(page), `contraste (${reading ?? 'celular'})`).toEqual([]);
-    }
+    expect(await lowContrast(page)).toEqual([]);
   });
 
-  test('pelo teclado: foco sempre visível e nunca escondido atrás da barra de status', async ({
+  test('pelo teclado: foco sempre visível e nunca escondido atrás da faixa do alto', async ({
     page,
   }) => {
     await page.goto('/');
     const stops: string[] = [];
-    for (let index = 0; index < 20; index += 1) {
+    for (let index = 0; index < 30; index += 1) {
       await page.keyboard.press('Tab');
+      // A rolagem até o elemento com foco termina antes da medida.
+      await page.waitForTimeout(50);
       const stop = await page.evaluate(() => {
         const element = document.activeElement;
         // O Tab deu a volta: saiu da página ou chegou a um elemento já visitado.
@@ -359,50 +377,42 @@ test.describe('em qualquer tela', () => {
           return null;
         }
         element.setAttribute('data-visited', '');
-        // O anel de um botão de opção é desenhado no rótulo dele.
-        const ring =
-          element instanceof HTMLInputElement
-            ? (document.querySelector(`label[for="${element.id}"]`) ?? element)
-            : element;
-        const style = getComputedStyle(ring);
-        const box = ring.getBoundingClientRect();
-        const bar = document.querySelector('.statusbar')?.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        const bar = document.querySelector('.topbar')?.getBoundingClientRect();
         return {
-          name:
-            element.getAttribute('aria-label') ??
-            ((element.textContent ?? '').trim() || element.id),
+          name: (element.textContent ?? '').replace(/\s+/g, ' ').trim(),
           visible: element.matches(':focus-visible'),
           outline: `${style.outlineStyle} ${style.outlineWidth}`,
-          underBar: !element.closest('.statusbar') && bar !== undefined && box.bottom > bar.top,
+          underBar:
+            !element.closest('.topbar') &&
+            !element.classList.contains('skip-link') &&
+            bar !== undefined &&
+            box.top < bar.bottom,
         };
       });
       if (stop === null) break;
       stops.push(stop.name);
       expect(stop.visible, `${stop.name}: foco visível`).toBe(true);
       expect(stop.outline, `${stop.name}: anel de foco`).toMatch(/^solid [3-9]px$/);
-      expect(stop.underBar, `${stop.name}: escondido atrás da barra de status`).toBe(false);
+      expect(stop.underBar, `${stop.name}: escondido atrás da faixa do alto`).toBe(false);
     }
-    // No computador: pular, botão do herói, interruptor, botão do fecho, licenças, barra.
-    // No celular sai o interruptor e entra a faixa da pintura, que rola de lado.
-    expect(stops).toEqual(
-      isPhone(page)
-        ? [
-            'Pular para o conteúdo',
-            'Jogar agora',
-            'Pedra Alta nas quatro estações',
-            'Jogar agora',
-            'licenças',
-            'Jogar agora',
-          ]
-        : [
-            'Pular para o conteúdo',
-            'Jogar agora',
-            'reading-passerby',
-            'Jogar agora',
-            'licenças',
-            'Jogar agora',
-          ],
-    );
+    const calendar = [
+      'I Primavera Plantar, erguer, decidir.',
+      'II Verão Heróis, estrada e balcão.',
+      'III Outono Ferro, pátio e presságio.',
+      'IV Inverno Três ondas contra a muralha.',
+    ];
+    // No computador a faixa do alto traz as quatro estações; no celular, só o botão.
+    expect(stops).toEqual([
+      'Pular para o conteúdo',
+      ...(isPhone(page) ? [] : SEASONS.map((entry) => entry.name)),
+      'Jogar agora',
+      'Jogar agora',
+      ...calendar,
+      'Jogar agora',
+      'licenças',
+    ]);
   });
 
   test('"Pular para o conteúdo" aparece com o foco e leva ao conteúdo', async ({ page }) => {
@@ -417,42 +427,18 @@ test.describe('em qualquer tela', () => {
   });
 });
 
-test.describe('quem troca de aba e volta', () => {
-  const setVisibility = (page: Page, state: 'hidden' | 'visible') =>
-    page.evaluate((value) => {
-      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => value });
-      document.dispatchEvent(new Event('visibilitychange'));
-    }, state);
-
-  test('lê na barra de status quanto tempo ficou fora', async ({ page }) => {
-    await page.clock.install();
-    await page.goto('/');
-    const note = page.getByRole('status');
-    await expect(note).toBeEmpty();
-
-    // Uma espiada em outra aba não vira recado.
-    await setVisibility(page, 'hidden');
-    await page.clock.fastForward(4_000);
-    await setVisibility(page, 'visible');
-    await expect(note).toBeEmpty();
-
-    await setVisibility(page, 'hidden');
-    await page.clock.fastForward('03:20');
-    await setVisibility(page, 'visible');
-    await expect(note).toHaveText('Você saiu por 3 min. Pedra Alta teria seguido sem você.');
-  });
-});
-
 test.describe('com menos movimento', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('o botão não tem transição', async ({ page }) => {
+  test('nem o botão nem a faixa do alto têm transição', async ({ page }) => {
     await page.goto('/');
-    const duration = await page
-      .locator('.cta')
-      .first()
-      .evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(duration).toMatch(/^0s(, 0s)*$/);
+    for (const selector of ['.cta', '.topbar']) {
+      const duration = await page
+        .locator(selector)
+        .first()
+        .evaluate((element) => getComputedStyle(element).transitionDuration);
+      expect(duration, selector).toMatch(/^0s(, 0s)*$/);
+    }
   });
 });
 
@@ -460,13 +446,16 @@ test.describe('o resto do site', () => {
   test('a página de caminho errado oferece a volta e o jogo', async ({ page }) => {
     const { problems } = watch(page);
     await page.goto('/404.html');
-    await expect(page).toHaveTitle(/este caminho não leva a Pedra Alta/);
+    await expect(page).toHaveTitle(/esta página não consta do almanaque/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      /Erro 404\.\s*Este caminho não leva a Pedra Alta\./,
+      'Esta página não consta do almanaque.',
     );
     await expect(page.getByRole('link', { name: 'Jogar agora' })).toHaveAttribute('href', GAME);
+    expect(await lowContrast(page)).toEqual([]);
     await page.getByRole('link', { name: 'Voltar ao começo' }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/É um feudo\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Um ano inteiro para preparar um inverno.',
+    );
     expect(problems).toEqual([]);
   });
 
@@ -477,7 +466,7 @@ test.describe('o resto do site', () => {
     await page.goto('/');
     const meta = (property: string) =>
       page.locator(`meta[property="${property}"]`).getAttribute('content');
-    expect(await meta('og:title')).toBe('Parece trabalho. É um feudo.');
+    expect(await meta('og:title')).toBe('Um ano inteiro para preparar um inverno.');
     expect(await meta('og:url')).toBe(`${DEFAULT_SITE.siteUrl}/`);
     expect(await meta('og:image')).toBe(`${DEFAULT_SITE.siteUrl}/og.png`);
 
@@ -495,16 +484,20 @@ test.describe('o resto do site', () => {
     const licenses = await request.get('/licencas.txt');
     const text = await licenses.text();
     expect(text).toContain('SIL OPEN FONT LICENSE Version 1.1');
-    expect(text).toContain('The Grenze Gotisch Project Authors');
-    expect(text).toContain('The Alegreya Project Authors');
+    expect(text).toContain('The Fraunces Project Authors');
+    expect(text).toContain('The Instrument Sans Project Authors');
   });
 
   test('capturas da página inteira, para olhos humanos', async ({ page }, testInfo) => {
     await page.goto('/');
     await scrollThrough(page);
     await page.evaluate(() => document.fonts.ready);
-    // A barra presa embaixo apareceria no meio da captura da página inteira.
-    await page.locator('.statusbar').evaluate((bar) => bar.setAttribute('hidden', ''));
+    // A faixa presa no alto e as colunas presas das estações apareceriam no meio da captura
+    // da página inteira: sem a marca de estação a faixa fica em papel, no alto.
+    await page.evaluate(() => {
+      document.documentElement.removeAttribute('data-season');
+      document.querySelector('.topbar')?.setAttribute('hidden', '');
+    });
     const image = await page.screenshot({
       fullPage: true,
       animations: 'disabled',

@@ -59,7 +59,7 @@ done
 
 fetch home /
 expect_status home 200 'a página'
-expect_body home '<title>Lords of the Guild: parece trabalho, é um feudo</title>' 'é a página de apresentação, não o jogo'
+expect_body home '<title>Lords of the Guild: um ano inteiro para preparar um inverno</title>' 'é a página de apresentação, não o jogo'
 expect_body home '>Jogar agora</a>' 'tem o botão Jogar agora'
 expect_header home content-type 'text/html' 'a página é HTML'
 expect_header home content-security-policy "default-src 'none'" 'política de conteúdo estrita'

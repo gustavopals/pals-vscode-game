@@ -6,13 +6,18 @@ import {
   expeditionModels,
   expeditionOutcomes,
   expeditionPostures,
+  feats,
   heroClasses,
   heroTraits,
-  items,
+  hordeUnits,
   masters,
   masterTexts,
   namedHeroes,
-  raidTemplates,
+  omenTexts,
+  siegeTexts,
+  units,
+  unitTexts,
+  yearChronicleTexts,
 } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
@@ -133,16 +138,27 @@ describe('index.html', () => {
     expect(smoke).toContain(`'${title}'`);
   });
 
-  it('diz em duas vozes o que o jogo é', () => {
+  it('abre dizendo o que o jogo é: um ano inteiro para preparar um inverno', () => {
     const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(html)?.[1] ?? '';
-    expect(text(h1).trim()).toBe('Parece trabalho. É um feudo.');
-    expect(h1).toMatch(/class="voice-office">Parece trabalho\.</);
-    expect(h1).toMatch(/class="voice-fief">É um feudo\.</);
+    expect(text(h1).trim()).toBe('Um ano inteiro para preparar um inverno.');
   });
 
-  it('tem o botão no herói, no fecho e na barra de status', () => {
+  it('abre com uma captura real do jogo, antes de qualquer pintura', () => {
+    const first = tags(html, 'img').find((image) => attribute(image, 'alt') !== '') ?? '';
+    expect(attribute(first, 'src')).toBe('/src/assets/jogo-feudo.webp');
+    expect(attribute(first, 'alt')).toMatch(/^Captura real do jogo, na aba Feudo/);
+    // Toda captura diz que é captura, e toda pintura diz que é arte conceitual.
+    for (const image of tags(html, 'img')) {
+      const source = attribute(image, 'src') ?? '';
+      const alt = attribute(image, 'alt') ?? '';
+      if (/\/jogo-(feudo|encruzilhada|cerco)/.test(source)) expect(alt).toMatch(/^Captura real/);
+      if (/pedra-alta-estacoes/.test(source)) expect(alt).toMatch(/^Arte conceitual:/);
+    }
+  });
+
+  it('tem o botão na faixa do alto, na abertura e no fecho', () => {
     expect(html.match(/href="%GAME_URL%"/g)).toHaveLength(3);
-    expect(html).toMatch(/class="statusbar-cta" href="%GAME_URL%"/);
+    expect(html).toMatch(/class="topbar-cta" href="%GAME_URL%"/);
   });
 
   it('a prévia do link tem título, descrição e imagem com endereço completo', () => {
@@ -151,44 +167,32 @@ describe('index.html', () => {
         tags(html, 'meta').find((tag) => attribute(tag, 'property') === property) ?? '',
         'content',
       );
-    expect(meta('og:title')).toBe('Parece trabalho. É um feudo.');
-    expect(meta('og:description')).toMatch(/pausas do café/);
+    expect(meta('og:title')).toBe('Um ano inteiro para preparar um inverno.');
+    expect(meta('og:description')).toMatch(/Cerco do Inverno/);
     expect(meta('og:url')).toBe('%SITE_URL%/');
     expect(meta('og:image')).toBe('%SITE_URL%/og.png');
     expect(html).toMatch(/<link rel="canonical" href="%SITE_URL%\/" \/>/);
   });
 
-  it('o interruptor das duas leituras são dois botões de opção com rótulo, um deles marcado', () => {
-    const radios = tags(html, 'input').filter((tag) => attribute(tag, 'type') === 'radio');
-    expect(radios).toHaveLength(2);
-    expect(new Set(radios.map((radio) => attribute(radio, 'name')))).toEqual(new Set(['reading']));
-    expect(radios.filter((radio) => /\schecked\b/.test(radio))).toHaveLength(1);
-    for (const radio of radios) {
-      expect(html).toContain(`<label for="${attribute(radio, 'id')}">`);
-    }
-    // Cada pedaço da tela tem as duas leituras, na mesma ordem.
-    const labels = /<dl class="labels">([\s\S]*?)<\/dl>/.exec(html)?.[1] ?? '';
-    expect(labels.match(/<dt>/g)).toHaveLength(5);
-    expect(labels.match(/<dd>/g)).toHaveLength(5);
-  });
-
-  it('o códice tem um bloco por coisa que se governa, cada um com a orelha de arquivo e o título', () => {
-    const tiles = html.match(/<article class="tile [\s\S]*?<\/article>/g) ?? [];
-    expect(tiles).toHaveLength(8);
-    const tabs = tiles.map((tile) =>
-      text(/<p class="tab"[^>]*>([^<]*)<\/p>/.exec(tile)?.[1] ?? '').trim(),
-    );
-    expect(tabs).toEqual([
-      'feudo.csv',
-      'conselho.md',
-      'vigia.log',
-      'guilda.csv',
-      'expedicao.log',
-      'mercado.csv',
-      'mestres.txt',
-      'cronica.md',
+  it('o ano tem quatro estações, na ordem, cada uma com a âncora que o índice aponta', () => {
+    const sections = tags(html, 'section').filter((tag) => attribute(tag, 'data-season') !== null);
+    expect(sections.map((tag) => [attribute(tag, 'id'), attribute(tag, 'data-season')])).toEqual([
+      ['primavera', 'spring'],
+      ['verao', 'summer'],
+      ['outono', 'autumn'],
+      ['inverno', 'winter'],
     ]);
-    for (const tile of tiles) expect(tile).toMatch(/<h3 id="tile-[a-z]+-title">/);
+    // A faixa do alto e o índice levam às quatro, e o script acha a estação de cada ligação.
+    const anchors = ['#primavera', '#verao', '#outono', '#inverno'];
+    const hrefs = tags(html, 'a').map((tag) => attribute(tag, 'href'));
+    for (const anchor of anchors) {
+      expect(hrefs.filter((href) => href === anchor)).toHaveLength(2);
+    }
+    expect(
+      tags(html, 'a')
+        .map((tag) => attribute(tag, 'data-season-link'))
+        .filter((season) => season !== null),
+    ).toEqual(sections.map((tag) => attribute(tag, 'data-season')));
   });
 
   it('a hierarquia dos títulos não pula nível', () => {
@@ -205,24 +209,15 @@ describe('index.html', () => {
     const paragraphs = (fragment: string): string[] =>
       (fragment.match(/<p\b[^>]*>[\s\S]*?<\/p>/g) ?? []).map((line) => text(line).trim());
 
-    it('toda linha da Crônica citada, em qualquer bloco, é uma frase do conteúdo do jogo', () => {
+    it('toda linha da Crônica citada, em qualquer estação, é uma frase do conteúdo do jogo', () => {
       const quotes =
         html.match(/<blockquote class="chronicle-lines">[\s\S]*?<\/blockquote>/g) ?? [];
-      expect(quotes.length).toBeGreaterThanOrEqual(5);
+      expect(quotes.length).toBeGreaterThanOrEqual(7);
       const lines = quotes.flatMap(paragraphs);
-      expect(lines.length).toBeGreaterThanOrEqual(15);
+      expect(lines.length).toBeGreaterThanOrEqual(16);
 
-      // Cada modelo vira uma expressão em que os marcadores aceitam qualquer valor. Os lobos
-      // têm as frases deles (`raidTemplates`): o uivo, e a chegada seguida do desfecho.
-      const wolves = raidTemplates.wolves;
-      const templates = [
-        ...Object.values(chronicleTemplates),
-        ...Object.values(wolves.howl),
-        ...Object.values(wolves.arrival).flatMap((arrival) =>
-          Object.values(wolves.outcome).map((outcome) => `${arrival} ${outcome}`),
-        ),
-      ];
-      const patterns = templates.map(
+      // Cada modelo vira uma expressão em que os marcadores aceitam qualquer valor.
+      const patterns = Object.values(chronicleTemplates).map(
         (template) =>
           new RegExp(
             `^${template
@@ -237,6 +232,21 @@ describe('index.html', () => {
           `"${line}" não é uma frase da Crônica`,
         ).toBe(true);
       }
+    });
+
+    it('o que preenche as linhas da Crônica citadas também é do jogo', () => {
+      // A onda confiada a uma formação e a onda sabotada, com os nomes que o motor usa.
+      expect(Object.values(siegeTexts.waves)).toContain('As Feras');
+      expect(prose).toContain('confiou As Feras a');
+      expect(prose).toMatch(/a segunda onda da Horda foi enfraquecida/);
+      // A tropa chamada ao pátio e o chefe que tomba.
+      expect(prose).toContain(`8 ${units.swordsman.pluralLabel}`);
+      expect(prose).toContain(`o ${hordeUnits.warlord.label} tombou`);
+      // O edifício do Mestre, o depósito que enche e o destino das caravanas.
+      for (const building of [buildings.quarry, buildings.granary, buildings.housing]) {
+        expect(prose).toContain(building.label);
+      }
+      expect(prose).toContain(caravanTexts.destination);
     });
 
     it('a carta do Conselho mostrada é a "Estrangeira ferida", palavra por palavra', () => {
@@ -254,8 +264,14 @@ describe('index.html', () => {
       );
     });
 
+    it('o tamanho do baralho do Conselho é o do jogo', () => {
+      const count = /<span data-council-count>(\d+)<\/span>/.exec(html)?.[1];
+      expect(Number(count)).toBe(councilCards.length);
+    });
+
     it('a encruzilhada mostrada é uma captura real da aba Guilda, e diz o que mostra', () => {
-      const sheet = /<figure class="crossroads">([\s\S]*?)<\/figure>/.exec(html)?.[1] ?? '';
+      const sheet =
+        /<figure class="shot shot-crossroads">([\s\S]*?)<\/figure>/.exec(html)?.[1] ?? '';
       const image = tags(sheet, 'img')[0] ?? '';
       expect(attribute(image, 'src')).toBe('/src/assets/jogo-encruzilhada.webp');
       expect(attribute(image, 'alt')).toMatch(/^Captura real do jogo, na aba Guilda:/);
@@ -293,8 +309,7 @@ describe('index.html', () => {
         trait: paragraphs(sheet).at(-1),
       }));
       // A página mostra os dois heróis da carta da estrangeira; os heróis com nome que vieram
-      // depois (o capitão veterano do lote 2, v0.4) não precisam estar nela, mas quem estiver
-      // tem de dizer o que o jogo diz.
+      // depois não precisam estar nela, mas quem estiver tem de dizer o que o jogo diz.
       expect(shown.map((sheet) => sheet.name)).toEqual(['Edda', 'Rolf']);
       const expected = Object.values(namedHeroes)
         .filter((hero) => shown.some((sheet) => sheet.name === hero.name))
@@ -322,11 +337,68 @@ describe('index.html', () => {
       );
     });
 
-    it('o destino das caravanas e o item citado são os do jogo', () => {
-      expect(prose).toContain(caravanTexts.destination);
-      const names = Object.values(items).map((item) => item.label);
-      expect(names).toContain('Lança de caça');
-      expect(prose).toContain('Lança de caça');
+    it('as tropas são as cinco do Quartel, e quem vence quem é o que o jogo diz', () => {
+      expect(itemsOf(html, 'units')).toEqual(
+        Object.values(units).map((unit) => {
+          const rule =
+            unit.counters === null
+              ? unitTexts.neutral
+              : unitTexts.counters.replace('{unidade}', `o ${units[unit.counters].label}`);
+          return `${unit.label} ${rule}`;
+        }),
+      );
+    });
+
+    it('a formação desenhada é uma formação que o jogo aceita', () => {
+      const wings = html.match(/<li>\s*<p class="wing-name">[\s\S]*?<\/li>/g) ?? [];
+      expect(wings).toHaveLength(3);
+      const value = (wing: string, line: string) =>
+        text(
+          new RegExp(`<span class="post-line">${line}</span>([^<]*)</p>`).exec(wing)?.[1] ?? '',
+        ).trim();
+      const byPlural = new Map(Object.values(units).map((unit) => [unit.pluralLabel, unit]));
+      const commanders: string[] = [];
+      for (const wing of wings) {
+        // Cada posto leva uma tropa do Quartel, na linha em que ela combate.
+        expect(byPlural.get(value(wing, 'Frente'))?.line).toBe('front');
+        expect(byPlural.get(value(wing, 'Retaguarda'))?.line).toBe('back');
+        commanders.push(value(wing, 'Comanda'));
+      }
+      // Um herói não comanda duas alas, e quem comanda é herói do jogo.
+      const named = commanders.filter((name) => name !== 'ninguém');
+      expect(new Set(named).size).toBe(named.length);
+      const heroes = Object.values(namedHeroes).map((hero) => hero.name);
+      for (const name of named) expect(heroes).toContain(name);
+    });
+
+    it('os presságios citados são presságios vagos do jogo, palavra por palavra', () => {
+      const omens = paragraphs(
+        /<blockquote class="omen-lines">([\s\S]*?)<\/blockquote>/.exec(html)?.[1] ?? '',
+      );
+      expect(omens).toHaveLength(3);
+      const vague: readonly string[] = Object.values(omenTexts.vague);
+      for (const omen of omens) expect(vague).toContain(omen);
+    });
+
+    it('as três ondas, os três fins do Cerco e os Feitos são os do jogo', () => {
+      const waves = (
+        /<ol class="waves">([\s\S]*?)<\/ol>/.exec(html)?.[1]?.match(/<li>[\s\S]*?<\/li>/g) ?? []
+      ).map((item) => text(item).trim());
+      expect(waves).toEqual(Object.values(siegeTexts.waves));
+      expect(itemsOf(html, 'endings')).toEqual([
+        yearChronicleTexts.siegeResults.glorious,
+        yearChronicleTexts.siegeResults.victory,
+        yearChronicleTexts.siegeResults.fall,
+      ]);
+      expect(itemsOf(html, 'feats')).toEqual(feats.map((feat) => feat.label));
+    });
+
+    it('a captura do Cerco é uma captura real da aba Exército, e diz o que mostra', () => {
+      const shot = /<figure class="shot shot-siege">([\s\S]*?)<\/figure>/.exec(html)?.[1] ?? '';
+      const image = tags(shot, 'img')[0] ?? '';
+      expect(attribute(image, 'src')).toBe('/src/assets/jogo-cerco.webp');
+      expect(attribute(image, 'alt')).toMatch(/^Captura real do jogo, na aba Exército:/);
+      expect(shot).toContain('/src/assets/jogo-cerco-estreito.webp');
     });
 
     it('a Crônica citada não traz viradas de dia (ADR 0007)', () => {
@@ -335,7 +407,22 @@ describe('index.html', () => {
 
     it('os edifícios citados existem no jogo, com o mesmo nome', () => {
       const labels = Object.values(buildings).map((building) => building.label);
-      for (const name of ['Fazenda', 'Serraria', 'Pedreira', 'Mina de Ouro', 'Habitações']) {
+      for (const name of [
+        'Fazenda',
+        'Serraria',
+        'Pedreira',
+        'Mina de Ouro',
+        'Habitações',
+        'Celeiro',
+        'Armazém',
+        'Taverna',
+        'Guilda dos Aventureiros',
+        'Mercado',
+        'Torre de Vigia',
+        'Ferreiro',
+        'Quartel',
+        'Paliçada',
+      ]) {
         expect(labels).toContain(name);
         expect(prose).toContain(name);
       }
@@ -345,6 +432,7 @@ describe('index.html', () => {
       expect(prose).not.toMatch(/cada semana/i);
       expect(prose).not.toMatch(/semana[^.]*\bano\b/i);
       expect(prose).not.toMatch(/\b\d+\s*(horas?|h)\b[^.]*\b(dia|ano|estação) de jogo/i);
+      expect(prose).not.toMatch(/\b(dura|leva|demora)\b[^.]*\b(horas?|dias? reais|semanas?)\b/i);
     });
 
     it('não fala em preço, em jogar com outras pessoas nem em entrar com o GitHub', () => {
@@ -354,14 +442,17 @@ describe('index.html', () => {
     });
 
     it('as pinturas são apresentadas como arte conceitual, e o que ainda não existe, como horizonte', () => {
-      expect(prose).toMatch(/arte conceitual de Pedra Alta, gerada por IA/);
-      expect(prose).toMatch(/A pintura desta página é arte conceitual gerada por IA/);
+      // Cada janela em arco leva a legenda dela, e o cólofon repete para a página inteira.
+      const arches = html.match(/<figure class="arch">[\s\S]*?<\/figure>/g) ?? [];
+      expect(arches).toHaveLength(4);
+      for (const arch of arches) expect(text(arch)).toContain('Arte conceitual, gerada por IA.');
+      expect(prose).toMatch(/As pinturas desta página são arte conceitual gerada por IA/);
       // As capturas reproduzem os ícones do app, que pedem crédito (CC BY 4.0).
       expect(prose).toMatch(/Codicons \(licença CC BY 4\.0\)/);
       expect(prose).toMatch(/Isso ainda não se joga\./);
-      // A guerra e o Cerco saem do horizonte com a v0.4; mapa e legado continuam futuros.
-      expect(prose).toMatch(/No horizonte, sem data: mapa e legado\./);
-      expect(prose).not.toMatch(/No horizonte[^.]*(Guilda|expedi|guerra|Cerco)/);
+      // A guerra e o Cerco saíram do horizonte com a v0.4; mapa, relíquias e legado continuam lá.
+      expect(prose).toMatch(/No horizonte, sem data: mapa desenhado, relíquias e legado\./);
+      expect(prose).not.toMatch(/No horizonte[^.]*(Guilda|expedi|guerra|Cerco|Horda|muralha)/i);
       expect(prose).toMatch(/não é afiliado a nenhum editor de código/);
     });
   });

@@ -41,4 +41,4 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           curl --silent --show-error --fail --max-time 10 --retry 2 --retry-delay 10 --retry-all-errors "$LANDING_URL/" \
-            | grep --quiet '<title>Lords of the Guild: parece trabalho, é um feudo</title>'
+            | grep --quiet '<title>Lords of the Guild: um ano inteiro para preparar um inverno</title>'

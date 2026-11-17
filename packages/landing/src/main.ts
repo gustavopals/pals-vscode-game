@@ -1,20 +1,40 @@
-import { absenceNote } from './absence';
+import { seasonAt } from './season';
 
 /**
- * O único script da página. Quem troca de aba e volta lê na barra de status quanto tempo passou
- * fora: é o jogo em uma frase (o mundo continua andando com a aba fechada). Sem script a página
- * é a mesma, só sem esse recado.
+ * O único script da página. A faixa do alto acompanha a leitura: veste a cor da estação que
+ * está sob ela e marca o nome dessa estação no índice. Sem script a página é a mesma, com a
+ * faixa sempre em papel.
  */
-const note = document.querySelector<HTMLElement>('[data-absence-note]');
-let leftAt: number | null = null;
+const root = document.documentElement;
+const bar = document.querySelector<HTMLElement>('.topbar');
+const sections = [...document.querySelectorAll<HTMLElement>('section[data-season]')];
+const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-season-link]')];
+let queued = false;
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    leftAt = Date.now();
-    return;
+function update(): void {
+  queued = false;
+  const line = (bar?.getBoundingClientRect().bottom ?? 0) + 1;
+  const season = seasonAt(
+    sections.map((section) => {
+      const box = section.getBoundingClientRect();
+      return { season: section.dataset.season ?? '', top: box.top, bottom: box.bottom };
+    }),
+    line,
+  );
+  if (season === null) delete root.dataset.season;
+  else root.dataset.season = season;
+  for (const link of links) {
+    if (link.dataset.seasonLink === season) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
   }
-  if (leftAt === null || !note) return;
-  const text = absenceNote(Date.now() - leftAt);
-  leftAt = null;
-  if (text) note.textContent = text;
-});
+}
+
+function schedule(): void {
+  if (queued) return;
+  queued = true;
+  requestAnimationFrame(update);
+}
+
+addEventListener('scroll', schedule, { passive: true });
+addEventListener('resize', schedule);
+update();
