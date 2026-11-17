@@ -94,7 +94,7 @@ expect_body licenses 'SIL OPEN FONT LICENSE' 'o texto da licença das letras est
 
 fetch lost /um/caminho/que/nao/existe
 expect_status lost 404 'um endereço desconhecido'
-expect_body lost 'Este caminho não leva a Pedra Alta' 'o 404 traz a página de caminho errado'
+expect_body lost 'O endereço que você abriu não existe neste site' 'o 404 traz a página de caminho errado'
 expect_header lost cache-control 'no-cache' 'o 404 não fica no cache'
 expect_header lost content-security-policy "default-src 'none'" 'o 404 tem a mesma política de conteúdo'
 
