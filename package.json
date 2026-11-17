@@ -25,7 +25,7 @@
     "test": "vitest run --project unit",
     "test:fast": "vitest run --project unit --maxWorkers=2 --exclude 'packages/sim-cli/src/{balance,coverage,matrix}.test.ts' --exclude packages/engine/src/migrations.test.ts",
     "test:matrix": "vitest run --project unit --maxWorkers=2 packages/sim-cli/src/balance.test.ts packages/engine/src/migrations.test.ts packages/sim-cli/src/matrix.test.ts packages/sim-cli/src/coverage.test.ts",
-    "test:guards": "vitest run --project unit --maxWorkers=2 packages/engine/src/purity.test.ts packages/engine/src/fixtures.test.ts packages/engine/src/migrations.test.ts packages/engine/src/state.test.ts packages/engine/src/view.test.ts packages/content/src/content.test.ts packages/content/src/council.test.ts packages/content/src/expeditions.test.ts packages/protocol/src/protocol.test.ts packages/web/src/bundle.test.ts packages/web/src/tabs/tabs.test.tsx packages/landing/src/page.test.ts",
+    "test:guards": "vitest run --project unit --maxWorkers=2 packages/engine/src/purity.test.ts packages/engine/src/fixtures.test.ts packages/engine/src/state.test.ts packages/engine/src/view.test.ts packages/content/src/content.test.ts packages/content/src/council.test.ts packages/content/src/expeditions.test.ts packages/protocol/src/protocol.test.ts packages/web/src/bundle.test.ts packages/web/src/tabs/tabs.test.tsx packages/landing/src/page.test.ts",
     "test:changed": "vitest run --project unit --changed main --maxWorkers=2 --exclude 'packages/sim-cli/src/{balance,coverage,matrix}.test.ts' --exclude packages/engine/src/migrations.test.ts",
     "test:integration": "vitest run --project integration --passWithNoTests",
     "test:e2e": "playwright test",

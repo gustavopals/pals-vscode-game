@@ -56,7 +56,8 @@ A v0.4 levou um mês, e a maior parte foi portão, remedição de faixas e regis
 | `web`: `bundle`, `tabs` | Nenhum número ou frase do conteúdo no navegador; as abas renderizam o golden. |
 | `landing`: `page` | A página só diz o que o jogo diz (o "horizonte" muda a cada publicação). |
 
-`packages/engine/src/migrations.test.ts` continua nas sentinelas, embora seja pesado (§2.4).
+`packages/engine/src/migrations.test.ts` **não** entra nas sentinelas: leva ~20 min (§2.4).
+Roda na CI (`test:matrix`) e localmente só quando a tarefa muda a forma do estado (§2.3).
 O tempo de `test:guards` fica no Registro (§11).
 
 Complemento antes do `push` do branch: `pnpm test:changed` (`vitest run --project
@@ -69,7 +70,7 @@ fonte, o grafo de importação atravessa os pacotes.
 | --- | --- |
 | `packages/content` | foco + sentinelas + o teste do motor da mecânica. |
 | `packages/engine` (regra) | foco + sentinelas. |
-| `packages/engine` (forma do estado) | acima + `fixtures`, `migrations` e o teste do passo novo. |
+| `packages/engine` (forma do estado) | acima + `fixtures`, `migrations` (~20 min) e o teste do passo novo. |
 | `packages/protocol` | `typecheck` + sentinelas. |
 | `packages/server` | `TEST_DATABASE_URL=… pnpm test:integration <nome>` (**sem** `--`). |
 | `packages/web` | o teste da aba ou do módulo + `bundle` + um e2e. |
@@ -398,4 +399,4 @@ Uma linha por tarefa: o que foi verificado **e o que não foi**.
 
 | Tarefa | Data | Commit | Agente | Verificado / não verificado |
 | --- | --- | --- | --- | --- |
-| V5A-T2 | 2026-11-17 | este | Codex | Unit completo medido uma vez: 1631,62 s; 249/250 arquivos passaram, falha da Paliçada registrada na §2.4. `nice -n 19 pnpm verify:fast`: **229,77 s (3 min 49,77 s)**, lint, tipos e 246 arquivos passaram; meta < 10 min atendida. `nice -n 19 pnpm test:guards`: **1094,15 s (18 min 14,15 s)**, 12 arquivos e 14.246 testes passaram; mantém `migrations` pesado. Partição por `vitest list --filesOnly --json`: 246 + 4 = 250, sem ausentes, extras ou interseção; 12 sentinelas exatas; `test:changed` listou 0 arquivos neste diff. YAML e diff do CI conferidos em 10 cenários locais, incluindo exclusão e mudança de pasta; demais jobs e gatilhos preservados. `test` e `verify` mantêm os comandos originais. Prettier nos arquivos tocados passou (Markdown ignorado pela configuração). Não rodados: `pnpm verify`, matriz em separado, integração/e2e completos e CI remota/PR/deploy, conforme regime rápido e pedido de não fazer push. `CLAUDE.md` e código de jogo intactos. |
+| V5A-T2 | 2026-11-17 | este | Codex | Unit completo medido uma vez: 1631,62 s; 249/250 arquivos passaram, falha da Paliçada registrada na §2.4. `nice -n 19 pnpm verify:fast`: **229,77 s (3 min 49,77 s)**, lint, tipos e 246 arquivos passaram; meta < 10 min atendida. `nice -n 19 pnpm test:guards`: **1094,15 s (18 min 14,15 s)**, 12 arquivos e 14.246 testes passaram; mantém `migrations` pesado. Partição por `vitest list --filesOnly --json`: 246 + 4 = 250, sem ausentes, extras ou interseção; 12 sentinelas exatas; `test:changed` listou 0 arquivos neste diff. YAML e diff do CI conferidos em 10 cenários locais, incluindo exclusão e mudança de pasta; demais jobs e gatilhos preservados. `test` e `verify` mantêm os comandos originais. Prettier nos arquivos tocados passou (Markdown ignorado pela configuração). Não rodados: `pnpm verify`, matriz em separado, integração/e2e completos e CI remota/PR/deploy, conforme regime rápido e pedido de não fazer push. `CLAUDE.md` e código de jogo intactos. **Revisão (Claude):** `migrations` saiu das sentinelas (`test:guards` 18 min → **6,6 s**, 11 arquivos, 876 testes); a falha da Paliçada era do teste (a Queda do Cerco baixa a Paliçada; a asserção exigia igualdade) e foi corrigida para "nunca sobe"; a semente `-863285096` passa. |
