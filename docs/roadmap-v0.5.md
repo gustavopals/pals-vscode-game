@@ -151,6 +151,11 @@ principal coordena, revisa todo diff externo e as capturas, e recusa código rui
 Responder em um lote antes da Fase B. **Sem resposta, a fase que depende dela não começa**
 (regra 7 do `CLAUDE.md`), salvo se o autor aprovar "vale a recomendada" na D-1.
 
+> **Respostas do autor (2026-11-17):** a **D-1 está aprovada** (regime rápido e "sem resposta
+> vale a recomendada"), e **as decisões D-2 a D-31 valem com a recomendação** da tabela. Mudar
+> alguma depois é mudança de regra: conteúdo, golden e GDD no mesmo commit. A V5A-T3 registra
+> isto no ADR 0022.
+
 | # | Pergunta | Recomendação |
 | --- | --- | --- |
 | D-1 | Regime rápido (§2) e "sem resposta vale a recomendada". | Aprovar os dois. |
