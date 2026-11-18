@@ -11,6 +11,7 @@ import type {
   PostureId,
   Ratio,
   ResourceId,
+  RelicId,
 } from './ids';
 import { oldForest } from './missions/oldForest';
 import { patrol } from './missions/patrol';
@@ -21,6 +22,8 @@ import { abandonedMine } from './missions/abandonedMine';
 import { sabotage } from './missions/sabotage';
 import { whiteWolfHunt } from './missions/whiteWolfHunt';
 import { wolfDen } from './missions/wolfDen';
+import { ancestralVault } from './missions/ancestralVault';
+import { hermitsRefuge } from './missions/hermitsRefuge';
 
 /**
  * As expedições como dados (GDD §9.2 e §9.3; ADR 0018, decisões 11 a 13). Um **modelo** é um
@@ -33,10 +36,11 @@ import { wolfDen } from './missions/wolfDen';
 /**
  * O que um nó rende (GDD §9.2; ADR 0018, decisões 12, 14 e 15). Os **recursos** vêm em uma faixa,
  * em unidades inteiras, e o desfecho decide a parte (`balance.expeditions.lootShare`). O resto só
- * vem **a partir do Sucesso** (e de um nó sem prova): um **item**, com a chance e a lista de onde
+ * vem **a partir do Sucesso** (e, exceto relíquia, de um nó sem prova): um **item**, com a chance e a lista de onde
  * sai um, por igual; a **revelação** de um destino (com um Rastreador na equipe, também no
  * Revés); a **limpeza** de um tile de ameaça; a **libertação** de quem está em cativeiro há
- * mais tempo; e um **Mestre** com nome (ADR 0018, decisão 18), com a chance de a equipe o
+ * mais tempo; uma **relíquia** certa da lista fixa, sem sorteio nem cobiça; e um **Mestre** com
+ * nome (ADR 0018, decisão 18), com a chance de a equipe o
  * encontrar. O Mestre não é saque: toma a estrada do feudo na hora, e a cobiça de um Ganancioso
  * não o perde. Quem já está no feudo, ou à porta, não é sorteado de novo.
  */
@@ -46,6 +50,12 @@ export type ExpeditionMasterDrop = { readonly id: MasterId; readonly chance: Rat
 export type ExpeditionReward = {
   readonly resources?: Partial<Record<ResourceId, { readonly min: number; readonly max: number }>>;
   readonly item?: ExpeditionItemDrop;
+  /** Primeira relíquia ainda ausente, nesta ordem; certa no Sucesso, sem sorteio nem cobiça. */
+  readonly relic?: {
+    readonly from: readonly RelicId[];
+    /** Ouro fixo de consolo quando a lista inteira já pertence ao feudo. */
+    readonly consolationGold: number;
+  };
   readonly reveals?: ExpeditionModelId;
   /** A chave do tile no estado (`startingTiles[].id`). */
   readonly clearsTile?: string;
@@ -154,6 +164,8 @@ export type ExpeditionVariant = {
 export type ExpeditionRequires = {
   /** O nível da Guilda dos Aventureiros a partir do qual o destino aparece. */
   readonly guildLevel: number;
+  /** Capela concluída, sem requisito de ano (ADR 0022, D-7). */
+  readonly chapel?: true;
   readonly teamMin: number;
   readonly teamMax: number;
   /** O nível que todo herói da equipe precisa ter. */
@@ -214,6 +226,8 @@ export const expeditionModels: readonly ExpeditionModelDef[] = [
   abandonedMine,
   swamp,
   sabotage,
+  ancestralVault,
+  hermitsRefuge,
 ];
 
 /**
@@ -284,6 +298,8 @@ export const expeditionTexts = {
   needsClass: 'Ao menos {classe} na equipe.',
   /** Por que um destino está fechado. */
   lockedGuild: 'Pede a Guilda dos Aventureiros no nível {nivel}.',
+  needsChapel: 'Pede a Capela erguida.',
+  lockedChapel: 'erga a Capela para partir nessa expedição lendária',
   /** O tile de ameaça do destino está limpo: `{lugar}` é o tile, com artigo. Sem ponto: entra em uma recusa. */
   lockedCleared: '{lugar} está limpo até a virada do ano',
   /** O mesmo, como frase inteira, para o painel da Ameaça: `{lugar}` com maiúscula. */
@@ -343,6 +359,9 @@ export const expeditionTexts = {
   reportDied: '{heroi} não voltou.',
   reportLeveled: '{heroi} chegou ao nível {nivel}.',
   reportFound: 'Achado: {item}.',
+  reportRelic: 'Relíquia encontrada: {reliquia}.',
+  reportConsolation:
+    'O feudo já possui todas as relíquias deste destino: consolo de {ouro} de ouro.',
   reportRevealed: 'Caminho novo: {destino}.',
   reportCleared: 'Limpo: {lugar}.',
   reportRescued: '{heroi} ganhou a liberdade.',

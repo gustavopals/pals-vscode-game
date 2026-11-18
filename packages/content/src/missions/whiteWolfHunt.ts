@@ -82,6 +82,7 @@ export const whiteWolfHunt: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
+          rewards: { relic: { from: ['wolfBone'], consolationGold: 100 } },
           next: 'home',
         },
         home: {
@@ -157,6 +158,7 @@ export const whiteWolfHunt: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
+          rewards: { relic: { from: ['wolfBone'], consolationGold: 100 } },
           next: 'home',
         },
         home: {
@@ -232,6 +234,7 @@ export const whiteWolfHunt: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o Lobo Branco saltou sobre a linha de {heroi} e desapareceu no bosque. A equipe de {feudo} recuou antes que a fera voltasse.',
             },
           },
+          rewards: { relic: { from: ['wolfBone'], consolationGold: 100 } },
           next: 'home',
         },
         home: {

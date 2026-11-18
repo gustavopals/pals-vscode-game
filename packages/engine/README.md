@@ -208,8 +208,8 @@ Os retratos v43 são ajustados dentro da fase não publicada; v42 e anteriores
 permanecem congelados. Não existe versão 44 nesta entrega.
 
 `grantRelic(draft, defId, atMs, events)`, em `relics.ts`, concede uma única cópia e
-emite `relicFound`, sem sorteio nem contador. É uma função interna para a futura
-recompensa de expedição; não há ordem que conceda relíquia nem fonte no jogo ainda.
+emite `relicFound`, sem sorteio nem contador. É uma função interna para
+recompensas de expedição; não há ordem que conceda relíquia. As fontes são os dois modelos lendários e a caçada do Lobo Branco (V5B-T3).
 `placeRelic { relicId }` exige Capela e lugar livre (um por nível); repetições e
 relíquia ausente recebem recusa em português. A colocação emite `relicPlaced` e
 fixa `effectiveFromMs` na virada estritamente seguinte, inclusive se a ordem for
@@ -245,7 +245,7 @@ A visão `relics { slots, items[] }` oferece nome, efeito, colocação, efeito a
 `effectiveInSeconds` (segundos reais; `null` fora da Capela, zero já ativo),
 `effectiveText`, permissões e código/motivo da recusa. Gerador e conteúdo oculto
 não saem. Comandos e visão são adições no protocolo 4, com tipos iguais aos do
-motor. A tela e as fontes de relíquias pertencem às tarefas seguintes. As políticas genéricas dos bots ignoram a Capela até a Fase H, para preservar os cenários e faixas da v0.4; não receberam uma política de Capela ou relíquias.
+motor. A tela pertence à T4; as fontes de expedição foram ligadas na T3. As políticas genéricas dos bots ignoram a Capela até a Fase H, para preservar os cenários e faixas da v0.4; não receberam uma política de Capela ou relíquias.
 
 ## Moral
 
@@ -421,7 +421,7 @@ Os números são os de `balance.tavern` e de `buildings.tavern`, os modelos de c
 
 ## Expedições
 
-Os números são os de `balance.expeditions` e de `buildings.guild`, os grafos, os de `expeditionModels` (um arquivo por modelo em `missions/`), o fator de duração do verão, o de `calendar.seasons[].effects.expeditionDuration`, e o efeito do Corajoso e do Prudente, `heroTraits[].effects.expeditionPower`, em `@lotg/content` (GDD §4.1, §6.1 e §9.2; [ADR 0017](../../docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisões 1, 7 e 9; [ADR 0018](../../docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisões 11 a 13). As contas ficam em `expeditions.ts`, que não sorteia nem dá identificador; o fim de um nó, o prazo da encruzilhada e a volta, em `expeditionTurn.ts`, **o único ponto que sorteia**; as duas ordens, em `expeditionOrders.ts`, o único que dá identificador a uma expedição; o que a visão diz, em `expeditionsView.ts`. **O catálogo é o da v0.3** (V3D-T3): seis modelos, três variantes cada, dezoito grafos, com a ficha de cada um em [docs/content-v0.3.md](../../docs/content-v0.3.md), seção 6; como acrescentar um está em "Uma expedição nova", abaixo. O relatório (quem se destacou e o que o desfecho ruim ensina) está em "O relatório nó a nó". O que o desfecho faz ao herói e ao mundo está na seção seguinte, "Desfechos".
+Os números são os de `balance.expeditions` e de `buildings.guild`, os grafos, os de `expeditionModels` (um arquivo por modelo em `missions/`), o fator de duração do verão, o de `calendar.seasons[].effects.expeditionDuration`, e o efeito do Corajoso e do Prudente, `heroTraits[].effects.expeditionPower`, em `@lotg/content` (GDD §4.1, §6.1 e §9.2; [ADR 0017](../../docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), decisões 1, 7 e 9; [ADR 0018](../../docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisões 11 a 13). As contas ficam em `expeditions.ts`, que não sorteia nem dá identificador; o fim de um nó, o prazo da encruzilhada e a volta, em `expeditionTurn.ts`, **o único ponto que sorteia**; as duas ordens, em `expeditionOrders.ts`, o único que dá identificador a uma expedição; o que a visão diz, em `expeditionsView.ts`. **O catálogo atual tem onze modelos e 33 grafos**, três variantes por modelo. Os seis da v0.3 (V3D-T3) têm suas fichas em [docs/content-v0.3.md](../../docs/content-v0.3.md), seção 6; como acrescentar um está em "Uma expedição nova", abaixo. O relatório (quem se destacou e o que o desfecho ruim ensina) está em "O relatório nó a nó". O que o desfecho faz ao herói e ao mundo está na seção seguinte, "Desfechos".
 
 - **A Guilda dos Aventureiros** é um edifício como os outros (`settlement.buildings.guild`): nasce no nível 0, pede o Salão no nível 3, custa 300 de madeira, 100 de pedra e 200 de ouro, leva 20 minutos e **vai até o nível 4 nesta versão** (o 5 do GDD não mudaria nada que o jogador vê; a recusa do teto diz que é o desta versão). O custo cresce × 1,6 por obra: 300/100/200, 480/160/320, 768/256/512 e 1.229/410/819. **Todo nível cabe no depósito nas três dificuldades** (o teste de conteúdo e `storage.test.ts`, "tetos"). Ela sustenta 1, 2, 2 e 3 expedições ao mesmo tempo (`slotsByGuildLevel`; `expeditionSlots`), e na lista de obras `effect` diz isso ("Sustenta 2 expedições por vez."). O nível 3 não abre lugar: abre destino (o Pântano Nebuloso).
 - **Estado.** `guild.expeditions` são as expedições em curso, na ordem em que partiram: `{ id, modelId, variant, heroIds, posture, sentAtMs, durationFactor, status, nodeId, nodeEndsAtMs, crossroads, loot, log }`. `id` é `expedition-<n>`, de `nextId(draft, 'expedition')`, e é também o nome do fluxo de sorteio dela; `variant` e `durationFactor` são fixados no envio; `status` é `traveling`, `atCrossroads` ou `returning`; `nodeEndsAtMs` é o fim do nó de agora (`null` na encruzilhada) e `crossroads.decidesAtMs`, o prazo dela (`null` fora dela); `loot.resources` é o saque juntado, em unidades inteiras; `log` tem um registro por nó resolvido e por encruzilhada decidida (`{ nodeId, atMs, outcome, optionId, decidedBy, gained }`). `guild.reports` guarda os relatórios das últimas `reportsKept` (3) que voltaram, com os **nomes** de quem foi (o herói pode já não servir ao feudo). O herói em expedição tem `status: 'expedition'`. Poder, lugares, duração e o que a Postura fará são derivados, nunca gravados. **O estado não guarda a sorte nem o poder de nó nenhum**: só o que aconteceu.
@@ -458,9 +458,38 @@ O GDD §9.4 pede que o relatório seja uma história que o jogador consegue reco
 - **Quem pode ir, e se alguma equipe serve** (`available[].eligibleHeroIds`, `canSend`, `suggestedTeam` e `sendBlockedReason`; revisão da Fase D, A1): a tela não decide tamanho, nível nem classe. `teamOutlook` (em `expeditions.ts`) diz quem pode ir (está pronto e tem o nível do modelo) e monta **a menor equipe que serve**: um herói de cada classe exigida e, até o tamanho mínimo, os mais fortes contra o primeiro trecho, na ordem da lista do feudo. O que falta a uma equipe sai de `teamShortfall`, **a mesma função que a recusa de `sendExpedition` usa** ("falta um Mago" na recusa é "Nenhuma equipe do feudo serve agora: falta um Mago." na visão). `canSend` é falso também com o destino fechado, e então `sendBlockedReason` é a frase de `lockedReason`. Um teste percorre vários feudos e todos os destinos: com `canSend`, a ordem com `suggestedTeam` é aceita; sem ele, nenhum subconjunto de heróis é.
 - **Registros antigos.** Um registro gravado pela versão 18 entra com `standout` e `lesson` em `null` (nada é reconstituído), e a frase dele diz "a equipe" onde diria o nome.
 
+### Expedições lendárias (v0.5, V5B-T3)
+
+`ancestralVault` (Câmara dos Ancestrais) e `hermitsRefuge` (Refúgio do Eremita)
+são modelos novos, três variantes cada, sem mexer nos nove modelos nem no ciclo
+anterior. Abertos já no Ano 1, pedem Capela erguida e Guilda Nv4; a visão explica
+os dois requisitos e a ordem recusa com `EXPEDITION_LOCKED` e o que falta.
+As fichas e as listas fixas estão em [docs/content-v0.5.md](../../docs/content-v0.5.md).
+
+O último nó com prova de cada caminho tem `rewards.relic`: no Sucesso e no Sucesso
+pleno, a primeira de `from` ainda ausente em `settlement.relics` é concedida por
+`grantRelic`, guardada fora da Capela, sem sorteio, sem id novo e sem perda por
+cobiça. Com a lista completa, `consolationGold` acrescenta **100 de ouro** ao saque,
+sem multiplicador de desfecho nem de Ganancioso; só entra no depósito na volta,
+sujeito à capacidade. O saque comum e a ordem dos sorteios permanecem iguais.
+Duas equipes no mesmo instante recebem pela ordem já existente das expedições.
+
+`whiteWolfHunt` é uma expedição aberta pelo Conselho: o nó `whiteWolf` antes não
+tinha prêmio direto e agora entrega o Osso de Lobo; a pele continua paga pela
+carta `forestReturns`. Sem Capela exigida nessa caçada, sem sorteio adicional.
+`relicFound` é emitido depois da frase do nó e dos itens, antes da revelação e da
+experiência. A concessão registra o id em `log.found`, que já aceita uma chave de
+conteúdo; os catálogos de item e relíquia são disjuntos e o schema impede ambos
+no mesmo nó. A forma v43 continua igual. Relatório e resumo mostram o achado;
+o consolo aparece nas notas com o ouro registrado. A névoa segue até a encruzilhada.
+
+Os goldens de calibragem só recebem linhas dos dois modelos. O catálogo conserva
+a projeção histórica do Lobo e acrescenta o relato integral com o Osso, além dos
+dois relatos lendários. Os demais retratos permanecem iguais.
+
 ### Uma expedição nova
 
-1. **Escreva a ficha primeiro**, em [docs/content-v0.3.md](../../docs/content-v0.3.md), seção 6, no formato da §13.4 do roadmap: requisitos, descoberta, risco, o desenho do grafo, cada prova com a dificuldade, os pesos, a classe que favorece e o que o Desastre faz, a encruzilhada com as pistas e a opção de cada Postura, as recompensas e as frases.
+1. **Escreva a ficha primeiro** no documento da versão ([v0.3](../../docs/content-v0.3.md), seção 6; [v0.5](../../docs/content-v0.5.md)), no formato da §13.4 do roadmap: requisitos, descoberta, risco, o desenho do grafo, cada prova com a dificuldade, os pesos, a classe que favorece e o que o Desastre faz, a encruzilhada com as pistas e a opção de cada Postura, as recompensas e as frases.
 2. O modelo é um arquivo em `packages/content/src/missions/`, uma constante exportada, com três variantes (`variantsPerModel`). Um modelo novo entra em `EXPEDITION_MODEL_IDS` (`ids.ts`) e em `expeditionModels` (`expeditions.ts`), **na ordem em que a Guilda os mostra: do que rende menos ao que rende mais** (o bot do simulador lê a lista por essa ordem).
 3. Cada grafo: acíclico, todo caminho termina em um nó `return`, de 2 a 5 nós por caminho (com o retorno, sem a encruzilhada), cada nó de 5 a 60 minutos de jogo, e a duração anunciada do modelo é a do caminho mais longo. Um nó tem `text` (sem prova) ou `trial` (com prova), nunca os dois.
 4. Cada prova: `difficulty`, `xp`, `onDisaster` (`injury` ou `capture`), `weights` quando o nó pesa outro atributo, `helps` (a classe de maior poder contra os pesos do nó, uma só: o teste recusa empate), `lesson` (uma frase sem número, com o nome da classe) e as quatro frases de `outcomes`, cada uma com `{heroi}`. **Escreva a frase para qualquer herói ou heroína** (sem "sozinho", "ferido", "o primeiro" logo depois do nome) **e sem afirmar o dano**: quem sofre é sorteado, e em Camponês a captura vira ferimento.
@@ -487,7 +516,7 @@ Os números são os de `balance.injuries`, `balance.equipment`, `balance.expedit
 - **O Covil limpo.** O nó com `clearsTile`, do Sucesso em diante, desliga o tile (`map.tiles.wolfDen.threatActive = false`) e tira 30 da Ameaça, sem passar de zero (`clearTile`, `threatTileCleared`). **O evento não leva o número da Ameaça**, e a visão sem Torre só diz que o Covil está limpo (`threat.clearedText`). **Com o Covil limpo, só o outono traz lobos**: a virada do dia só sorteia incursão quando há quem ataque (`raidingEnemy`: o inimigo de um tile ativo ou, sem nenhum, o que a estação do dia que acabou faz descer, `threat.seasonEnemy`, que hoje é `{ autumn: 'wolves' }`; regra confirmada pelo autor em 2026-10-06, ADR 0018, "Respostas de 2026-10-06"). Na primavera, no verão e no inverno, com o Covil limpo, a Ameaça não sobe e nenhuma incursão é sorteada, e a visão diz chance zero; no outono ela sobe os 3 por dia de sempre e as incursões voltam, cada uma derrubando-a em 35. Sem isso a Ameaça subiria o outono inteiro sem nada que a fizesse cair, e o ano novo começaria com ela no teto (era o que `prowlingEnemy` sozinho fazia, e o teste "a Ameaça não satura" da matriz acusou). **A incursão que já estava marcada continua marcada.** Uma segunda equipe que vença a toca com o Covil já limpo não tira mais 30. **Na virada do ano os lobos voltam** (`restoreTiles`, em `processCalendar`, antes de a Ameaça subir naquela virada; `threatTileRestored`, só para o tile que estava limpo).
 - **A visão** (`guildView.ts`, `expeditionsView.ts`, `threatView.ts`): em cada herói, `statusText` ("Em recuperação: volta a poder partir em 1 h 40 min", "Em cativeiro desde …"), `canDepart`, `injury`, `captive`, `nextRescued` (é quem o próximo Resgate solta), `canDismiss`, `dismissText` e `equipment` (os três espaços, com o que cada item soma); `guild.inventory`, `inventoryText`, `equipmentSlots` (os espaços, com `id` e `label`), `captiveText` e `rescueTargetName`; em cada passo do relatório, `notes` (quem se feriu, o que foi achado, o destino revelado, o tile limpo, quem subiu de nível); em cada destino, `teamMinLevel` e `firstStretchDifficulty`, os mesmos números que as frases já diziam. A chave de um item no conteúdo, o cativeiro e os prazos crus não saem.
 - **Na migração (17 → 18)** os heróis entram sem ferimento, sem cativeiro e sem equipamento, o arsenal e os destinos revelados entram vazios, e as expedições em curso continuam de onde estavam, com os campos novos neutros. O passo não cria prazo, evento, identificador nem sorteio.
-- **Limites atuais:** a previsão da moral exclui expedições em curso; o ferimento não muda o poder. Relíquias, plantas e venda voluntária de itens não existem. Desgaste e reparo já existem na v0.4; o herói resgatado recebe `freedAtMs` para não voltar devendo o atraso do cativeiro (revisão da Fase D da v0.3).
+- **Limites atuais:** a previsão da moral exclui expedições em curso; o ferimento não muda o poder. Plantas e venda voluntária de itens não existem; relíquias já vêm das expedições da Fase B. Desgaste e reparo já existem na v0.4; o herói resgatado recebe `freedAtMs` para não voltar devendo o atraso do cativeiro (revisão da Fase D da v0.3).
 
 
 ## Mercado

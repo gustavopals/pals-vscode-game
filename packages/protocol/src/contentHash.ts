@@ -1,5 +1,7 @@
 import {
   balance,
+  expeditionModels,
+  expeditionTexts,
   relics,
   relicTexts,
   buildings,
@@ -73,6 +75,8 @@ import { canonicalJson } from './canonical';
 function hashedContent(): Record<string, unknown> {
   return {
     balance,
+    expeditionModels,
+    expeditionTexts,
     relics,
     relicTexts,
     buildings,

@@ -13,6 +13,8 @@ import {
   heroClasses,
   items as itemDefs,
   POSTURE_IDS,
+  RELIC_IDS,
+  type RelicId,
 } from '@lotg/content';
 
 import { narrate } from './chronicle';
@@ -167,6 +169,10 @@ function fitThresholds(difficulty: number): { comfort: number; risk: number } {
 function requirementsText(model: ExpeditionModelDef): string {
   const { requires } = model;
   const sentences = [fillText(expeditionTexts.team, { equipe: teamSizeText(requires) })];
+  if (requires.chapel) {
+    sentences.push(fillText(expeditionTexts.lockedGuild, { nivel: requires.guildLevel }));
+    sentences.push(expeditionTexts.needsChapel);
+  }
   if (requires.minHeroLevel > 1) {
     sentences.push(fillText(expeditionTexts.minLevel, { nivel: requires.minHeroLevel }));
   }
@@ -328,7 +334,23 @@ function logNotes(
     notes.push(fillText(template, { heroi: entry.harm.heroName }));
   }
   for (const defId of entry.found) {
-    notes.push(fillText(expeditionTexts.reportFound, { item: itemLabel(defId) }));
+    notes.push(
+      (RELIC_IDS as readonly string[]).includes(defId)
+        ? fillText(expeditionTexts.reportRelic, { reliquia: relics[defId as RelicId].label })
+        : fillText(expeditionTexts.reportFound, { item: itemLabel(defId) }),
+    );
+  }
+  if (
+    node &&
+    'rewards' in node &&
+    node.rewards?.relic &&
+    (entry.outcome === 'success' || entry.outcome === 'full') &&
+    entry.found.length === 0 &&
+    entry.gained.gold >= node.rewards.relic.consolationGold
+  ) {
+    notes.push(
+      fillText(expeditionTexts.reportConsolation, { ouro: node.rewards.relic.consolationGold }),
+    );
   }
   if (entry.revealed !== null) {
     notes.push(
@@ -493,6 +515,13 @@ function deedsText(state: GameState, report: ExpeditionReport): string | null {
   const deeds: string[] = [];
   for (const entry of report.log) {
     const node = variant === null ? null : nodeIn(variant, entry.nodeId);
+    for (const defId of entry.found) {
+      if ((RELIC_IDS as readonly string[]).includes(defId)) {
+        deeds.push(
+          fillText(expeditionTexts.reportRelic, { reliquia: relics[defId as RelicId].label }),
+        );
+      }
+    }
     if (entry.revealed !== null) {
       deeds.push(
         fillText(expeditionTexts.reportRevealed, { destino: expeditionLabel(entry.revealed) }),

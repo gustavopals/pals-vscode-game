@@ -52,7 +52,7 @@ Os testes de unidade leem as páginas e as folhas de estilo como texto: polític
 A página é o **Almanaque de Pedra Alta**: o ano do jogo contado em quatro estações, e o chão escurece com ele. Papel claro na abertura, verde pálido na Primavera, trigo no Verão, vinho no Outono e noite no Inverno; depois do Inverno, o papel volta ("Depois do inverno, outra primavera."). O título é "Um ano inteiro para preparar um inverno.", e cada estação conta o que o jogador faz nela:
 
 - **Primavera**, "Plante antes de sonhar.": os ofícios e as obras, a fome e o frio, e o Conselho, com a carta "Estrangeira ferida" palavra por palavra e o tamanho do baralho.
-- **Verão**, "A estrada rende, e cobra.": os heróis (as fichas de Edda e Rolf), as expedições com a encruzilhada (captura real), as três Posturas, os quatro desfechos e os nove destinos, o Mercado com as caravanas e os quatro Mestres.
+- **Verão**, "A estrada rende, e cobra.": os heróis (as fichas de Edda e Rolf), as expedições com a encruzilhada (captura real), as três Posturas, os quatro desfechos e os onze destinos, o Mercado com as caravanas e os quatro Mestres.
 - **Outono**, "Ferro, pátio e presságio.": o ferro e o Ferreiro, as cinco tropas do Quartel com quem vence quem, uma formação desenhada pela página (três alas, frente e retaguarda, um comandante por ala), a Defesa ativa, os presságios, a sabotagem da Fortaleza e o Acampamento.
 - **Inverno**, "Três ondas, uma muralha.": o Cerco do Inverno com o Plano de Batalha (captura real do painel do Cerco), as três ondas pelo nome, a milícia, os três fins possíveis e a Crônica do Ano com os Feitos.
 

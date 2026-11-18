@@ -656,12 +656,18 @@ describe('golden do ViewState', () => {
       smithyIdle: view(smithyStall(0)),
       smithyForging: view(smithyForgingScenario()),
     };
-    // A Capela é uma adição ao contrato: preserve os bytes do golden da v0.4.
+    // As adições da Fase B têm testes próprios; preserve os bytes do contrato da v0.4.
     const previousContract = Object.fromEntries(
       Object.entries(golden).map(([name, state]) => [
         name,
         {
           ...Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'relics')),
+          guild: {
+            ...state.guild,
+            available: state.guild.available.filter(
+              (entry) => !['ancestralVault', 'hermitsRefuge'].includes(entry.modelId),
+            ),
+          },
           constructions: {
             ...state.constructions,
             available: state.constructions.available.filter((entry) => entry.building !== 'chapel'),

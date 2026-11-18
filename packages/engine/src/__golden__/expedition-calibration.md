@@ -33,6 +33,12 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Sabotagem da Fortaleza | Alto | Fraca: Clérigo + Clérigo + Clérigo Nv1 | 41% | 0% / 98% / 2% | 41% / 59% / 0% | 2% / 0% |
 | Sabotagem da Fortaleza | Alto | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 52% | 14% / 86% / 0% | 21% / 77% / 2% | 0% / 2% |
 | Sabotagem da Fortaleza | Alto | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 97% | 79% / 21% / 0% | 66% / 34% / 0% | 0% / 0% |
+| Câmara dos Ancestrais | Médio | Fraca: Clérigo + Clérigo Nv2 | 35% | 35% / 65% / 0% | 0% / 100% / 0% | 0% / 0% |
+| Câmara dos Ancestrais | Médio | Mínima: Guerreiro + Arqueiro Nv2 | 98% | 27% / 73% / 0% | 0% / 86% / 14% | 0% / 14% |
+| Câmara dos Ancestrais | Médio | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| Refúgio do Eremita | Médio | Fraca: Clérigo + Clérigo Nv2 | 35% | 35% / 65% / 0% | 0% / 100% / 0% | 0% / 0% |
+| Refúgio do Eremita | Médio | Mínima: Guerreiro + Arqueiro Nv2 | 98% | 27% / 73% / 0% | 0% / 86% / 14% | 0% / 14% |
+| Refúgio do Eremita | Médio | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
 
 ## Cada prova, para as três equipes
 
@@ -123,6 +129,24 @@ Em 31 sortes:
 | Sabotagem da Fortaleza | C | O depósito de óleo e breu | 122 | defesa ×1,5 | Guerreiro | captura | 0/10/21/0 | 0/21/10/0 | 9/22/0/0 |
 | Sabotagem da Fortaleza | C | O paiol fortificado | 152 | perícia ×1,5 | Arqueiro | captura | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
 | Sabotagem da Fortaleza | C | O santuário dos totens | 110 | vontade ×0,5, defesa ×0,25 | Mago | captura | 0/0/31/0 | 0/11/20/0 | 0/26/5/0 |
+| Câmara dos Ancestrais | A | A ponte caída | 89 | perícia ×1 | Arqueiro | fere | 0/12/19/0 | 6/25/0/0 | 31/0/0/0 |
+| Câmara dos Ancestrais | A | O salão dos escudos | 139 | vontade ×1,5 | Mago | captura | 0/1/30/0 | 0/0/27/4 | 25/6/0/0 |
+| Câmara dos Ancestrais | A | A sentinela do nicho | 89 | o padrão | Guerreiro | fere | 0/0/25/6 | 0/10/21/0 | 31/0/0/0 |
+| Câmara dos Ancestrais | B | A escadaria dos reis | 90 | perícia ×1 | Arqueiro | fere | 0/11/20/0 | 5/25/1/0 | 31/0/0/0 |
+| Câmara dos Ancestrais | B | O trono sem nome | 140 | vontade ×1,5 | Mago | captura | 0/0/31/0 | 0/0/27/4 | 24/7/0/0 |
+| Câmara dos Ancestrais | B | A guarda do pórtico | 90 | o padrão | Guerreiro | fere | 0/0/24/7 | 0/9/22/0 | 31/0/0/0 |
+| Câmara dos Ancestrais | C | O pátio das colunas | 91 | perícia ×1 | Arqueiro | fere | 0/10/21/0 | 4/26/1/0 | 31/0/0/0 |
+| Câmara dos Ancestrais | C | O túmulo dos juramentos | 141 | vontade ×1,5 | Mago | captura | 0/0/31/0 | 0/0/26/5 | 24/7/0/0 |
+| Câmara dos Ancestrais | C | A estátua do limiar | 91 | o padrão | Guerreiro | fere | 0/0/23/8 | 0/7/24/0 | 31/0/0/0 |
+| Refúgio do Eremita | A | A trilha das raízes | 89 | perícia ×1 | Arqueiro | fere | 0/12/19/0 | 6/25/0/0 | 31/0/0/0 |
+| Refúgio do Eremita | A | O círculo das raízes | 139 | vontade ×1,5 | Mago | captura | 0/1/30/0 | 0/0/27/4 | 25/6/0/0 |
+| Refúgio do Eremita | A | O guardião do pomar | 89 | o padrão | Guerreiro | fere | 0/0/25/6 | 0/10/21/0 | 31/0/0/0 |
+| Refúgio do Eremita | B | A encosta das brumas | 90 | perícia ×1 | Arqueiro | fere | 0/11/20/0 | 5/25/1/0 | 31/0/0/0 |
+| Refúgio do Eremita | B | O espelho de névoa | 140 | vontade ×1,5 | Mago | captura | 0/0/31/0 | 0/0/27/4 | 24/7/0/0 |
+| Refúgio do Eremita | B | O vigia da nascente | 90 | o padrão | Guerreiro | fere | 0/0/24/7 | 0/9/22/0 | 31/0/0/0 |
+| Refúgio do Eremita | C | A passagem dos sinos | 91 | perícia ×1 | Arqueiro | fere | 0/10/21/0 | 4/26/1/0 | 31/0/0/0 |
+| Refúgio do Eremita | C | O sino sem badalo | 141 | vontade ×1,5 | Mago | captura | 0/0/31/0 | 0/0/26/5 | 24/7/0/0 |
+| Refúgio do Eremita | C | O guardião da cabana | 91 | o padrão | Guerreiro | fere | 0/0/23/8 | 0/7/24/0 | 31/0/0/0 |
 
 ## Cada opção de encruzilhada
 
@@ -191,6 +215,24 @@ Em 31 sortes:
 | Sabotagem da Fortaleza | C | Esvaziar os tonéis de óleo | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Arqueiro + Mago + Clérigo Nv3, com brave (passa em 62%) | 28 de 48 |
 | Sabotagem da Fortaleza | C | Arrombar a câmara interior | Ousada | traço brave | Arqueiro + Mago + Clérigo Nv3, com brave (passa em 69%) | Guerreiro + Guerreiro + Mago Nv1, com brave (passa em 20%) | 20 de 48 |
 | Sabotagem da Fortaleza | C | Partir em segredo pelas sombras | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv5, com brave (passa em 100%) | 0 de 48 |
+| Câmara dos Ancestrais | A | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 16%) | 43 de 60 |
+| Câmara dos Ancestrais | A | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 77%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 15 de 60 |
+| Câmara dos Ancestrais | A | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 2 de 60 |
+| Câmara dos Ancestrais | B | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 13%) | 44 de 60 |
+| Câmara dos Ancestrais | B | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 74%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 13 de 60 |
+| Câmara dos Ancestrais | B | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 3 de 60 |
+| Câmara dos Ancestrais | C | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 10%) | 43 de 60 |
+| Câmara dos Ancestrais | C | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 71%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 14 de 60 |
+| Câmara dos Ancestrais | C | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 3 de 60 |
+| Refúgio do Eremita | A | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 16%) | 43 de 60 |
+| Refúgio do Eremita | A | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 77%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 15 de 60 |
+| Refúgio do Eremita | A | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 2 de 60 |
+| Refúgio do Eremita | B | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 13%) | 44 de 60 |
+| Refúgio do Eremita | B | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 74%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 13 de 60 |
+| Refúgio do Eremita | B | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 3 de 60 |
+| Refúgio do Eremita | C | Romper o selo da porta | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Guerreiro + Guerreiro Nv3 (passa em 10%) | 43 de 60 |
+| Refúgio do Eremita | C | Enfrentar a guarda lateral | Equilibrada | Guerreiro | Guerreiro + Guerreiro Nv3 (passa em 71%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 14 de 60 |
+| Refúgio do Eremita | C | Voltar com o que já têm | Cautelosa | — | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 3 de 60 |
 
 ## Por hora de jogo de cada herói
 
@@ -214,3 +256,7 @@ Em 31 sortes:
 | Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |
 | Sabotagem da Fortaleza | 360 min | Mínima: Guerreiro + Arqueiro + Mago Nv1 | 3,6 | 30,8 |
 | Sabotagem da Fortaleza | 360 min | Com folga: Guerreiro + Arqueiro + Mago Nv3 | 4,7 | 38,2 |
+| Câmara dos Ancestrais | 180 min | Mínima: Guerreiro + Arqueiro Nv2 | 13,9 | 56,5 |
+| Câmara dos Ancestrais | 180 min | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 16,0 | 87,5 |
+| Refúgio do Eremita | 180 min | Mínima: Guerreiro + Arqueiro Nv2 | 13,9 | 56,5 |
+| Refúgio do Eremita | 180 min | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 16,0 | 87,5 |

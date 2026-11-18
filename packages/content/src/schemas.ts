@@ -45,6 +45,7 @@ import {
   RAID_SIZE_IDS,
   WATCHTOWER_COMPOSITION_IDS,
   RESOURCE_IDS,
+  RELIC_IDS,
   SEASON_IDS,
   TAVERN_CANDIDATE_IDS,
   TILE_TYPE_IDS,
@@ -2004,6 +2005,15 @@ const expeditionReward = z
           .refine((list) => new Set(list).size === list.length, 'item repetido na lista'),
       })
       .optional(),
+    relic: z
+      .strictObject({
+        from: z
+          .array(z.enum(RELIC_IDS))
+          .min(1)
+          .refine((ids) => new Set(ids).size === ids.length, 'relíquia repetida na lista'),
+        consolationGold: positiveInt,
+      })
+      .optional(),
     reveals: z.enum(EXPEDITION_MODEL_IDS).optional(),
     clearsTile: identifier.optional(),
     rescues: z.literal(true).optional(),
@@ -2016,7 +2026,11 @@ const expeditionReward = z
     weakensWave: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
     revealsWave: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   })
-  .refine((reward) => Object.keys(reward).length > 0, 'recompensa sem nada');
+  .refine((reward) => Object.keys(reward).length > 0, 'recompensa sem nada')
+  .refine(
+    (reward) => reward.item === undefined || reward.relic === undefined,
+    'um nó só pode registrar um achado: item ou relíquia',
+  );
 
 const expeditionTrial = z.strictObject({
   difficulty: positiveInt,
@@ -2203,6 +2217,7 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
       requires: z
         .strictObject({
           guildLevel: positiveInt.max(rules.slotsByGuildLevel.length),
+          chapel: z.literal(true).optional(),
           teamMin: positiveInt,
           teamMax: positiveInt.max(rules.teamMax),
           minHeroLevel: positiveInt,
@@ -2233,6 +2248,15 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
       let longestMs = 0;
       for (const [index, variant] of entry.variants.entries()) {
         const found = inspectExpeditionGraph(variant, rules.graph);
+        for (const node of Object.values(variant.nodes)) {
+          if (
+            'rewards' in node &&
+            node.rewards?.relic &&
+            (node.trial === undefined || variant.nodes[node.next]?.kind !== 'return')
+          ) {
+            context.addIssue({ code: 'custom', message: 'relíquia fora do último nó com prova' });
+          }
+        }
         longestMs = Math.max(longestMs, found.longestMs);
         for (const problem of found.problems) {
           context.addIssue({ code: 'custom', message: `variante ${index}: ${problem}` });

@@ -394,7 +394,7 @@ export type ExpeditionLogEntry = {
   harm: { heroName: string; kind: HeroHarmId } | null;
   /** Quem subiu de nível com a experiência do nó, e para qual. */
   leveled: Array<{ heroName: string; level: number }>;
-  /** Os itens achados no nó, pelo item do conteúdo. */
+  /** O item ou a relíquia achada no nó, pelo id do conteúdo (catálogos disjuntos). */
   found: string[];
   /** O destino que o nó revelou (o modelo do conteúdo); `null` no resto. */
   revealed: string | null;

@@ -1410,6 +1410,8 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       'patrol',
       'oldForest',
       'wolfDen',
+      'ancestralVault',
+      'hermitsRefuge',
     ]);
     expect(view.available.slice(0, 2)).toEqual([
       {
@@ -1478,7 +1480,13 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
 
   it('a duração anunciada é em tempo real e é a que vale: no ritmo 3, um terço; no verão, 17/20', () => {
     const fast = deriveViewState(hall({ timeScale: 3 }), 0, { timeScale: 3 }).guild.available;
-    expect(fast.map((offer) => offer.durationSeconds)).toEqual([5 * 60, 20 * 60, 40 * 60]);
+    expect(fast.map((offer) => offer.durationSeconds)).toEqual([
+      5 * 60,
+      20 * 60,
+      40 * 60,
+      60 * 60,
+      60 * 60,
+    ]);
     const summer = hall({}, () => {}, SUMMER);
     const offers = deriveViewState(summer, SUMMER).guild.available;
     expect(offers[0]?.durationSeconds).toBe(12 * 60 + 45);
@@ -1708,6 +1716,7 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
         const start = guildHall(
           model.id === 'sabotage' ? AUTUMN : 0,
           (draft) => {
+            if (model.requires.chapel) draft.settlement.buildings.chapel = 1;
             for (let count = 0; count < model.requires.teamMin; count += 1) {
               // As classes que o modelo exige primeiro (o Pântano pede um Mago).
               addHero(draft, { level: 3, classId: model.requires.classes[count] ?? 'warrior' });
