@@ -6,17 +6,19 @@ import { OfflineBanner } from '../components/Banners';
 import { ExpeditionsPanel, ReportsPanel } from '../components/ExpeditionsPanel';
 import { Header } from '../components/Header';
 import { HeroesPanel } from '../components/HeroesPanel';
+import { RelicsPanel } from '../components/RelicsPanel';
 import { Icon } from '../components/shared';
 import { TavernPanel } from '../components/TavernPanel';
 
 /**
  * A aba Guilda (GDD §13.1): de um lado, as expedições (as equipes fora do feudo, com a
  * encruzilhada que espera resposta no alto, e os destinos, cada um com o envio recolhido) e os
- * relatórios das que voltaram; do outro, a equipe com o soldo e o equipamento, o arsenal e a
- * Taverna. O que é longo fica recolhido em uma linha (a montagem do envio, o percurso, cada
- * relatório, o equipamento de cada herói): a aba se lê de uma vez e abre onde o jogador quer.
- * Recebe o `ViewState` pronto e só o exibe. Sem ligação fica em modo leitura: tudo é o do
- * último estado conhecido, e nenhuma ordem é enviada nem guardada.
+ * relatórios das que voltaram; do outro, a equipe com o soldo e o equipamento, o arsenal, a
+ * Capela com as relíquias (espólios permanentes das expedições, ao lado do Arsenal para não
+ * sobrecarregar a aba do Feudo) e a Taverna. O que é longo fica recolhido em uma linha (a montagem
+ * do envio, o percurso, cada relatório, o equipamento de cada herói): a aba se lê de uma vez e
+ * abre onde o jogador quer. Recebe o `ViewState` pronto e só o exibe. Sem ligação fica em modo
+ * leitura: tudo é o do último estado conhecido, e nenhuma ordem é enviada nem guardada.
  */
 export function GuildTab(props: {
   view: ViewState;
@@ -53,6 +55,13 @@ export function GuildTab(props: {
         actions={actions}
       />
       <ArsenalPanel view={view} disabled={disabled} actions={actions} />
+      <RelicsPanel
+        view={view}
+        elapsed={elapsed}
+        disabled={disabled}
+        busy={props.busy}
+        actions={actions}
+      />
       <TavernPanel
         view={view}
         elapsed={elapsed}

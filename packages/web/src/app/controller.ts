@@ -1874,6 +1874,18 @@ export class Controller {
     return this.guildOrder(`equipment:${heroId}`, 'unequipItem', { heroId, slot });
   }
 
+  /** Coloca uma relíquia do feudo na Capela; passa a valer na próxima virada de dia. */
+  placeRelic(relicId: string): Promise<boolean> {
+    const id = relicId as Extract<Command, { type: 'placeRelic' }>['payload']['relicId'];
+    return this.guildOrder(`relic:${relicId}`, 'placeRelic', { relicId: id }, 'à Capela');
+  }
+
+  /** Retira uma relíquia colocada na Capela. */
+  removeRelic(relicId: string): Promise<boolean> {
+    const id = relicId as Extract<Command, { type: 'removeRelic' }>['payload']['relicId'];
+    return this.guildOrder(`relic:${relicId}`, 'removeRelic', { relicId: id }, 'à Capela');
+  }
+
   /**
    * Compra ou vende no Mercado (GDD §5.9). `quoteDay` é o dia da cotação que o jogador conferiu:
    * se o dia virou, o servidor recusa com `PRICE_CHANGED` e a visão que vem na recusa traz o

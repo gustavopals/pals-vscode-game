@@ -1165,6 +1165,7 @@ progress::-webkit-progress-value {
   grid-row: 1 / span 2;
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
 /* Sem herói: a mesma folha vazia do Conselho, com a frase que diz como o primeiro chega. */

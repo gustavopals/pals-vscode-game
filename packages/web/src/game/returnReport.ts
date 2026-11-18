@@ -14,6 +14,7 @@ import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
 import { peopleMoved } from '../ui/morale';
+import { relicsOf } from '../ui/relics';
 import { SIEGE_SECTION, waveDeadline } from '../ui/siege';
 import {
   isObjectiveCompleted,
@@ -369,6 +370,8 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     case 'destinationRevealed':
     case 'threatTileCleared':
       return { block: 'prospered', topic: 'expedition' };
+    case 'relicFound':
+      return { block: 'prospered', topic: 'relic' };
     // (`itemSold` é o item que não coube no arsenal e foi vendido: a frase diz que ele virou
     // ouro; sem ela, "achou um item" ficaria sozinho, e o item não está em lugar nenhum. O ouro
     // entra na tabela como recebido, pelo total do evento.)
@@ -557,6 +560,7 @@ export function buildBlocks(
   events: GameEvent[],
   counts: Counts,
   wasted: Map<string, number>,
+  before: ViewState | null = null,
 ): ReportBlocks {
   const prospered: Placed[] = [];
   const cost: Placed[] = [];
@@ -740,6 +744,45 @@ export function buildBlocks(
     price(0, 'O soldo dos heróis continuou em atraso durante toda a sua ausência.', 'wage');
   }
 
+  // Relíquia colocada na Capela que passou a valer na virada do dia durante a ausência.
+  const placedInAbsence = new Map<string, number>();
+  for (const event of events) {
+    if (event.type === 'relicPlaced' && typeof event.data.relicId === 'string') {
+      placedInAbsence.set(event.data.relicId, event.seq);
+    }
+  }
+  for (const item of relicsOf(after).items) {
+    if (!item.active) {
+      continue;
+    }
+    const wasActiveBefore =
+      before !== null &&
+      before !== after &&
+      relicsOf(before).items.find((prev) => prev.relicId === item.relicId)?.active === true;
+    const activated =
+      placedInAbsence.has(item.relicId) ||
+      (before !== null && before !== after && !wasActiveBefore) ||
+      ((before === null || before === after) &&
+        events.some((event) => event.type === 'dayStarted' || event.type === 'relicPlaced'));
+    if (!activated) {
+      continue;
+    }
+    const placedAt = placedInAbsence.get(item.relicId) ?? -1;
+    const turnSeq = firstSeq(
+      events,
+      (event) => event.type === 'dayStarted' && event.seq > placedAt,
+    );
+    const at =
+      turnSeq !== Number.MAX_SAFE_INTEGER ? turnSeq : (placedInAbsence.get(item.relicId) ?? 0);
+    prospered.push({
+      at,
+      item: {
+        text: `${item.label} passou a valer na Capela: ${item.effectText}`,
+        topic: 'relic',
+      },
+    });
+  }
+
   return { prospered: byTime(prospered), cost: byTime(cost), pending: pendingItems(after) };
 }
 
@@ -896,6 +939,6 @@ export function buildReturnReport(
     // A lista é do que vale a pena ler: a virada de dia entra só como número, e o fecho diário
     // do desperdício, como total na linha de cada recurso (nunca uma linha por dia perdido).
     highlights: events.filter(isChronicleEvent).map((event) => event.text),
-    blocks: buildBlocks(after, events, counts, wasted),
+    blocks: buildBlocks(after, events, counts, wasted, before),
   };
 }

@@ -90,6 +90,17 @@ import {
   objectiveTreeLine,
 } from './objectives';
 import { ARMY_ICON, ARMY_NODE, ARMY_SECTION, armyTreeLine } from './army';
+import {
+  CHAPEL_NODE,
+  chapelLines,
+  chapelTreeLine,
+  RELIC_ICON,
+  RELIC_NODE,
+  relicEffectiveLine,
+  RELICS_SECTION,
+  relicsOf,
+  relicTreeLine,
+} from './relics';
 import { planFormation, SIEGE_SECTION, siegeSummary, waveDecision } from './siege';
 import { SMITHY_ICON, SMITHY_NODE, SMITHY_SECTION, smithyTreeLine } from './smithy';
 import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
@@ -558,6 +569,47 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
         command: { id: 'lords.openPanel', args: [TAVERN_SECTION] },
         actionHints: { 'lords.hireHero': offerTerms(offer) },
       })),
+    });
+  }
+  const relics = relicsOf(view);
+  if (relics.slots > 0 || relics.items.length > 0) {
+    children.push({
+      id: CHAPEL_NODE,
+      label: 'Capela',
+      description: chapelTreeLine(relics),
+      tooltip: chapelLines(view, elapsedSeconds).join('\n'),
+      icon: RELIC_ICON,
+      expanded: true,
+      command: { id: 'lords.openPanel', args: [RELICS_SECTION] },
+      children: relics.items.map((item): TreeNode => {
+        const effective = relicEffectiveLine(item, elapsedSeconds);
+        return {
+          id: `${RELIC_NODE}${item.relicId}`,
+          label: item.label,
+          description: relicTreeLine(item, elapsedSeconds),
+          tooltip: [item.effectText, effective, item.placed ? null : item.blockedReason]
+            .filter((line) => line !== null)
+            .join('\n'),
+          icon: item.active
+            ? 'star-full'
+            : item.placed
+              ? 'watch'
+              : item.canPlace
+                ? RELIC_ICON
+                : 'lock',
+          command: { id: 'lords.openPanel', args: [RELICS_SECTION] },
+          contextValue: item.canRemove
+            ? 'lords.relicPlaced'
+            : item.canPlace
+              ? 'lords.relicAvailable'
+              : 'lords.relicBlocked',
+          ...(item.canRemove
+            ? { actionHints: { 'lords.removeRelic': effective ?? item.effectText } }
+            : item.canPlace
+              ? { actionHints: { 'lords.placeRelic': item.effectText } }
+              : {}),
+        };
+      }),
     });
   }
   return {

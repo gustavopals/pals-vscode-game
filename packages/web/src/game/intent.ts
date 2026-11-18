@@ -65,16 +65,20 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
     return `disbandSoldiers:${String(fields.unit)}`;
   }
   // Equipar e desequipar mexem no equipamento de um herói: a ordem nova sobre ele aposenta a
-  // retentativa da anterior, seja qual for o item ou o espaço.
+  // retentativa da anterior, seja qual for o item ou o espaço. Colocar e retirar uma relíquia da
+  // Capela disputam a mesma relíquia (`relic:<relicId>`).
   const family = CONSTRUCTION_ORDERS.has(type)
     ? 'construction'
     : type === 'equipItem' || type === 'unequipItem'
       ? 'equipment'
-      : FORGE_ORDERS.has(type)
-        ? 'forge'
-        : type;
+      : type === 'placeRelic' || type === 'removeRelic'
+        ? 'relic'
+        : FORGE_ORDERS.has(type)
+          ? 'forge'
+          : type;
   const target =
     fields.masterId ??
+    fields.relicId ??
     fields.building ??
     fields.instanceId ??
     fields.offerId ??

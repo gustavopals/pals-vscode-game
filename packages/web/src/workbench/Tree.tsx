@@ -104,6 +104,22 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.offer':
       // O preço e o soldo do candidato estão na linha e na dica do botão.
       return [{ label: `Contratar ${node.label}`, text: 'Contratar', command: 'lords.hireHero' }];
+    case 'lords.relicAvailable':
+      return [
+        {
+          label: `Colocar ${node.label} na Capela`,
+          text: 'Colocar',
+          command: 'lords.placeRelic',
+        },
+      ];
+    case 'lords.relicPlaced':
+      return [
+        {
+          label: `Retirar ${node.label} da Capela`,
+          text: 'Retirar',
+          command: 'lords.removeRelic',
+        },
+      ];
     case 'lords.crossroads':
       // A encruzilhada se lê na aba Guilda (o clique na linha); o botão abre a lista dos caminhos.
       return [

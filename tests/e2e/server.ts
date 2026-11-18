@@ -1,5 +1,12 @@
-import { balance, type ItemId, itemRarities, items } from '../../packages/content/src/index';
+import {
+  balance,
+  type ItemId,
+  itemRarities,
+  items,
+  type RelicId,
+} from '../../packages/content/src/index';
 import { advanceTo, type GameState, migrateState } from '../../packages/engine/src/index';
+import { grantRelic } from '../../packages/engine/src/relics';
 import { quietSiege } from '../../packages/engine/src/test-helpers';
 import type { FastifyInstance } from 'fastify';
 
@@ -341,6 +348,23 @@ control.post('/__test/raise', async (request) => {
                                   'left', $1::int, 'center', $1::int, 'right', $1::int)))`,
       [hp],
     );
+  }
+  return { ok: true };
+});
+
+/**
+ * Concede uma relíquia do catálogo a todos os feudos pela função de conceder do motor
+ * (`grantRelic`, V5B-T4): entra em `relics.owned` se ainda não pertencer ao feudo, sem duplicata.
+ */
+control.post('/__test/relic', async (request) => {
+  const { relicId } = request.body as { relicId: RelicId };
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    grantRelic(game.state, relicId, game.state.lastProcessedAt, []);
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(game.state),
+    ]);
   }
   return { ok: true };
 });

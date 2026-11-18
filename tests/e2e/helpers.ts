@@ -69,8 +69,23 @@ export type World = {
       | 'guild'
       | 'market'
       | 'smithy'
-      | 'barracks',
+      | 'barracks'
+      | 'chapel',
     level: number,
+  ): Promise<void>;
+  /**
+   * Concede uma relíquia do catálogo ao feudo pela função `grantRelic` do motor (`/__test/relic`).
+   */
+  relic(
+    relicId:
+      | 'ancestralHorn'
+      | 'oakHeart'
+      | 'watchersEye'
+      | 'ancientKingsSeal'
+      | 'wolfBone'
+      | 'hermitsLamp'
+      | 'saltStone'
+      | 'wintersCloak',
   ): Promise<void>;
   /**
    * Põe a equipe do feudo parada em uma encruzilhada, agora, sem depender da semente
@@ -204,6 +219,9 @@ export const test = base.extend<{ world: World }>({
         },
         raise: async (building, level) => {
           await control('raise', { building, level });
+        },
+        relic: async (relicId) => {
+          await control('relic', { relicId });
         },
         soldiers: async (units) => {
           await control('soldiers', { units });
