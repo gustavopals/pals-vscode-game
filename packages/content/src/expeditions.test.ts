@@ -23,6 +23,7 @@ import {
   items,
   heroTraits,
   POSTURE_IDS,
+  RELIC_IDS,
   SEASON_IDS,
 } from './index';
 import {
@@ -88,6 +89,16 @@ const STABLE_IDS: Record<
   string,
   Array<{ start: string; nodes: string[]; options: Record<string, string[]> }>
 > = {
+  ancestralVault: [0, 1, 2].map(() => ({
+    start: 'approach',
+    nodes: ['approach', 'threshold', 'sealedGuardian', 'sideKeeper', 'home'],
+    options: { threshold: ['breakSeal', 'faceKeeper', 'returnHome'] },
+  })),
+  hermitsRefuge: [0, 1, 2].map(() => ({
+    start: 'approach',
+    nodes: ['approach', 'threshold', 'sealedGuardian', 'sideKeeper', 'home'],
+    options: { threshold: ['breakSeal', 'faceKeeper', 'returnHome'] },
+  })),
   whiteWolfHunt: [
     { start: 'tracks', nodes: ['tracks', 'whiteWolf', 'home'], options: {} },
     { start: 'tracks', nodes: ['tracks', 'whiteWolf', 'home'], options: {} },
@@ -428,6 +439,8 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       'abandonedMine',
       'swamp',
       'sabotage',
+      'ancestralVault',
+      'hermitsRefuge',
     ]);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
@@ -735,17 +748,17 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     },
   );
 
-  it('nenhuma recompensa nem frase é de versão futura: nada de ferro, arma, relíquia, planta, unidade, presságio ou exército', () => {
+  it('nenhuma recompensa nem frase é de versão futura: nada de ferro fora da Mina, arma, planta, unidade, presságio ou exército', () => {
     // O ferro entrou na v0.4 (V4B-T1), e só a Mina Abandonada o rende e fala dele: a expressão
     // afrouxa o ferro só para ela.
     const mine = expeditionModels.filter((entry) => entry.id === 'abandonedMine');
     const others = expeditionModels.filter((entry) => entry.id !== 'abandonedMine');
     // "Armadilha" é do Apêndice C do GDD e não é arma: a palavra inteira é que fica de fora.
     expect(JSON.stringify(others)).not.toMatch(
-      /\bferros?\b|\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
+      /\bferros?\b|\barmas?\b|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
     );
     expect(JSON.stringify(mine)).not.toMatch(
-      /\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
+      /\barmas?\b|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
     );
     for (const [, , variant] of everyVariant()) {
       for (const node of Object.values(variant.nodes)) {
@@ -758,6 +771,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
         const known = [
           'resources',
           'item',
+          'relic',
           'reveals',
           'clearsTile',
           'rescues',
@@ -854,6 +868,8 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
       // V4F-T1 (ADR 0020, decisão 17; GDD §9.5).
       ['Sabotagem da Fortaleza', 360, 6, '3-3', 1, '', 'Alto', 1, 'tile'],
+      ['Câmara dos Ancestrais', 180, 3, '2-3', 2, '', 'Médio', 4, 'open'],
+      ['Refúgio do Eremita', 180, 3, '2-3', 2, '', 'Médio', 4, 'open'],
     ]);
   });
 
@@ -1161,8 +1177,8 @@ describe('as frases das expedições', () => {
         expect(bold, name).toBeGreaterThan(worth.get(node.posture.cautious) ?? Infinity);
       }
     }
-    // Com as três da Mina Abandonada (V4B-T1), as três do Pântano e as três da Sabotagem (V4F-T1).
-    expect(crossroads).toBe(21);
+    // As 21 anteriores mais as seis dos dois modelos lendários (V5B-T3).
+    expect(crossroads).toBe(27);
     for (const id of ['balanced', 'bold'] as const) {
       expect(expeditionPostures[id].text).toMatch(/pede o que ela não tem, vale o seguro\.$/);
     }
@@ -1234,7 +1250,7 @@ describe('as frases das expedições', () => {
 });
 
 describe('a expedição especial do Lobo Branco (§6.5)', () => {
-  it('só abre pelo Conselho, com três nós e provas de trilha e combate, sem relíquia', () => {
+  it('só abre pelo Conselho, com três nós, provas de trilha e combate e o Osso de Lobo no Sucesso', () => {
     const model = expeditionModels.find((entry) => entry.id === 'whiteWolfHunt')!;
     expect(model).toMatchObject({
       access: { kind: 'council' },
@@ -1256,7 +1272,9 @@ describe('a expedição especial do Lobo Branco (§6.5)', () => {
         variant.nodes.whiteWolf.kind !== 'return' &&
         variant.nodes.whiteWolf.kind !== 'crossroads'
       ) {
-        expect(variant.nodes.whiteWolf.rewards).toBeUndefined();
+        expect(variant.nodes.whiteWolf.rewards).toEqual({
+          relic: { from: ['wolfBone'], consolationGold: 100 },
+        });
       }
       for (const node of Object.values(variant.nodes)) {
         if (node.kind === 'return' || node.kind === 'crossroads') continue;
@@ -1269,5 +1287,82 @@ describe('a expedição especial do Lobo Branco (§6.5)', () => {
         ).toBe(true);
       }
     }
+  });
+});
+
+describe('as relíquias certas de V5B-T3', () => {
+  const lists = {
+    ancestralVault: ['ancestralHorn', 'watchersEye', 'ancientKingsSeal', 'saltStone'],
+    hermitsRefuge: ['oakHeart', 'hermitsLamp', 'wintersCloak'],
+    whiteWolfHunt: ['wolfBone'],
+  };
+  it('cada lista é fixa, disjunta e cobre as oito relíquias, sem colidir com itens', () => {
+    const all = Object.values(lists).flat();
+    expect([...all].sort()).toEqual([...RELIC_IDS].sort());
+    expect(all.some((id) => Object.hasOwn(items, id))).toBe(false);
+    for (const [id, from] of Object.entries(lists)) {
+      const model = expeditionModels.find((entry) => entry.id === id)!;
+      if (id !== 'whiteWolfHunt') {
+        expect(model.requires).toMatchObject({ guildLevel: 4, chapel: true });
+        expect(model.access).toEqual({ kind: 'open' });
+      }
+      for (const variant of model.variants) {
+        const drops = Object.values(variant.nodes).filter(
+          (node) => 'rewards' in node && node.rewards?.relic,
+        );
+        expect(drops).toHaveLength(id === 'whiteWolfHunt' ? 1 : 2);
+        for (const node of drops) {
+          if (node.kind === 'return' || node.kind === 'crossroads')
+            throw new Error('Nó sem prova.');
+          expect(node.trial).toBeDefined();
+          expect(node.rewards?.relic).toEqual({ from, consolationGold: 100 });
+          expect(variant.nodes[node.next]?.kind).toBe('return');
+          expect(node.rewards?.item).toBeUndefined();
+        }
+      }
+    }
+  });
+
+  it('o schema recusa relíquia desconhecida, repetida, lista vazia, consolo variável e item junto', () => {
+    const relicNode = (models: Loose[]) => {
+      const model = models.find((entry) => entry.id === 'ancestralVault')!;
+      return nodesOf(firstVariant(model)).sideKeeper!;
+    };
+    expect(
+      broken((models) => {
+        delete relicNode(models).trial;
+        relicNode(models).text = 'No {dia}º dia {daEstacao}, a equipe de {feudo} passou.';
+      }),
+    ).toBe(true);
+    expect(
+      broken((models) => {
+        relicNode(models).next = 'approach';
+      }),
+    ).toBe(true);
+    for (const from of [[], ['unknown'], ['oakHeart', 'oakHeart']]) {
+      expect(
+        broken(
+          (models) => ((relicNode(models).rewards as Loose).relic = { from, consolationGold: 100 }),
+        ),
+      ).toBe(true);
+    }
+    expect(
+      broken(
+        (models) =>
+          (((relicNode(models).rewards as Loose).relic as Loose).consolationGold = {
+            min: 80,
+            max: 120,
+          }),
+      ),
+    ).toBe(true);
+    expect(
+      broken(
+        (models) =>
+          ((relicNode(models).rewards as Loose).item = {
+            chance: { num: 1, den: 1 },
+            from: ['ironSword'],
+          }),
+      ),
+    ).toBe(true);
   });
 });

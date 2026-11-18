@@ -260,6 +260,8 @@ const WORTH = {
   // O Mestre (V3E-T3): vale muito, pesado pela chance de a equipe o encontrar. Só chega uma vez
   // por partida; a régua conta a jornada em que ele ainda está lá.
   master: 300,
+  // A régua avalia a primeira descoberta, antes de completar a lista do destino.
+  relic: 300,
   light: 40,
   severe: 150,
   capture: 400,
@@ -292,6 +294,7 @@ function expectedWorth(
     worth += succeeded * (rewards?.reveals === undefined ? 0 : WORTH.reveals);
     worth += succeeded * (rewards?.weakensWave === undefined ? 0 : WORTH.weakensWave);
     worth += succeeded * (rewards?.revealsWave === undefined ? 0 : WORTH.revealsWave);
+    worth += succeeded * (rewards?.relic === undefined ? 0 : WORTH.relic);
     if (rewards?.master !== undefined) {
       const { chance } = rewards.master;
       worth += (succeeded * chance.num * WORTH.master) / chance.den;

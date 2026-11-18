@@ -34352,6 +34352,70 @@
           "firstStretchText": "A subida pela encosta de pedra solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false,
           "sabotage": null
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 3060,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 91,
+          "fit": {
+            "comfortPower": 108,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 108 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 50
+            }
+          ],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "O pátio das colunas (dificuldade 91). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 3060,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 90,
+          "fit": {
+            "comfortPower": 106,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 106 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 50
+            }
+          ],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A encosta das brumas (dificuldade 90). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
         }
       ],
       "expeditions": [
@@ -36150,6 +36214,60 @@
           "suggestedTeam": [],
           "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 10800,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 90,
+          "fit": {
+            "comfortPower": 106,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 106 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A escadaria dos reis (dificuldade 90). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 10800,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 90,
+          "fit": {
+            "comfortPower": 106,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 106 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A encosta das brumas (dificuldade 90). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false,
           "sabotage": null
         }
@@ -38015,6 +38133,70 @@
           "suggestedTeam": [],
           "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 18360,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 91,
+          "fit": {
+            "comfortPower": 108,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 108 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-3",
+              "power": 48
+            }
+          ],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "O pátio das colunas (dificuldade 91). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 18360,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 89,
+          "fit": {
+            "comfortPower": 105,
+            "riskPower": 74,
+            "text": "Contra o primeiro trecho, com 105 de poder a equipe passa com folga; abaixo de 74, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-3",
+              "power": 48
+            }
+          ],
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A trilha das raízes (dificuldade 89). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false,
           "sabotage": null
         }
@@ -39905,6 +40087,70 @@
           "suggestedTeam": [],
           "sendBlockedReason": "Nenhuma equipe do feudo serve agora: a jornada pede 2 heróis, e só 1 pode partir agora.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 3060,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 89,
+          "fit": {
+            "comfortPower": 105,
+            "riskPower": 74,
+            "text": "Contra o primeiro trecho, com 105 de poder a equipe passa com folga; abaixo de 74, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 54
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "A ponte caída (dificuldade 89). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 3060,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 89,
+          "fit": {
+            "comfortPower": 105,
+            "riskPower": 74,
+            "text": "Contra o primeiro trecho, com 105 de poder a equipe passa com folga; abaixo de 74, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 54
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "A trilha das raízes (dificuldade 89). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false,
           "sabotage": null
         }
@@ -41919,6 +42165,78 @@
             "wavesWeakened": [],
             "alerted": false
           }
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 10800,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 91,
+          "fit": {
+            "comfortPower": 108,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 108 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 33.6
+            },
+            {
+              "heroId": "hero-3",
+              "power": 48
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "O pátio das colunas (dificuldade 91). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 10800,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 91,
+          "fit": {
+            "comfortPower": 108,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 108 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 33.6
+            },
+            {
+              "heroId": "hero-3",
+              "power": 48
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "A passagem dos sinos (dificuldade 91). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
         }
       ],
       "expeditions": [],
@@ -43901,6 +44219,84 @@
           "suggestedTeam": [],
           "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: o Covil de Lobos está limpo até a virada do ano.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "ancestralVault",
+          "label": "Câmara dos Ancestrais",
+          "riskText": "Médio",
+          "durationSeconds": 21600,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 90,
+          "fit": {
+            "comfortPower": 106,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 106 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-1",
+              "power": 82.56
+            },
+            {
+              "heroId": "hero-2",
+              "power": 86
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [
+            "hero-1",
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "A escadaria dos reis (dificuldade 90). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false,
+          "sabotage": null
+        },
+        {
+          "modelId": "hermitsRefuge",
+          "label": "Refúgio do Eremita",
+          "riskText": "Médio",
+          "durationSeconds": 21600,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 12 h.",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Pede a Guilda dos Aventureiros no nível 4. Pede a Capela erguida. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 91,
+          "fit": {
+            "comfortPower": 108,
+            "riskPower": 75,
+            "text": "Contra o primeiro trecho, com 108 de poder a equipe passa com folga; abaixo de 75, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-1",
+              "power": 82.56
+            },
+            {
+              "heroId": "hero-2",
+              "power": 86
+            }
+          ],
+          "locked": true,
+          "lockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "eligibleHeroIds": [
+            "hero-1",
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: pede a Guilda dos Aventureiros no nível 4.",
+          "firstStretchText": "A passagem dos sinos (dificuldade 91). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false,
           "sabotage": null
         }

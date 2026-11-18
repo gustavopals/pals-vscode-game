@@ -9,6 +9,7 @@ import {
   type ExpeditionTrial,
   type ExpeditionVariant,
   HERO_CLASS_IDS,
+  expeditionTexts,
   type HeroClassId,
   type HeroTraitId,
 } from '@lotg/content';
@@ -51,10 +52,10 @@ const LUCKS = Array.from(
 const STREAM = entityStream('expedition', 'expedition-1');
 /** O que é de outra versão e não pode aparecer em frase nenhuma de expedição. */
 const FUTURE =
-  /\bferros?\b|\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
+  /\bferros?\b|\barmas?\b|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
 /** Na Mina Abandonada (V4B-T1) o ferro é desta versão: a expressão afrouxa só ele. */
 const FUTURE_IN_MINE =
-  /\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
+  /\barmas?\b|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i;
 
 type Path = { name: string; choices: Record<string, string> };
 type Graph = {
@@ -175,6 +176,7 @@ function baseOf(seed: string, atMs = 0): GameState {
 function ready(graph: Graph, choices: Record<string, string>, seed = 'catalogo'): GameState {
   // A sabotagem usa as condições reais de envio; descoberta não ignora estação ou limite.
   const draft = cloneState(baseOf(seed, graph.model.id === 'sabotage' ? AUTUMN : 0));
+  if (graph.model.requires.chapel) draft.settlement.buildings.chapel = 1;
   for (const [index, spec] of teamFor(graph, choices).entries()) {
     addHero(draft, {
       name: NAMES[index] ?? `Herói ${index}`,
@@ -381,8 +383,8 @@ const everyBranch = graphs.flatMap((graph) =>
 );
 
 describe('o catálogo percorrido em todos os ramos (roadmap da v0.3, V3D-T3.7)', () => {
-  it('são 27 grafos (os 18 da v0.3, os 3 da Mina, os 3 da Sabotagem e os 3 do Lobo Branco), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
-    expect(graphs).toHaveLength(27);
+  it('são 33 grafos (os 27 anteriores e os seis lendários), e todo ramo de todo grafo é percorrido com os quatro desfechos', () => {
+    expect(graphs).toHaveLength(33);
     expect(everyBranch.length).toBe(
       4 * graphs.reduce((sum, graph) => sum + pathsOf(graph.variant).length, 0),
     );
@@ -626,7 +628,10 @@ describe('o relatório de cada modelo, com semente fixa (critério 3 do GDD §16
   it('a mesma semente e as mesmas ordens dão o mesmo relatório e a mesma Crônica (golden)', async () => {
     const run = () =>
       Object.fromEntries(
-        expeditionModels.map((model) => {
+        [
+          ...expeditionModels.map((model) => ({ model, legacy: model.id === 'whiteWolfHunt' })),
+          { model: expeditionModels.find((model) => model.id === 'whiteWolfHunt')!, legacy: false },
+        ].map(({ model, legacy }) => {
           // A variante que a semente dá, sem escolher: é a que o jogador encontraria.
           const index = nextVariant(
             guildHall(0, () => {}, { level: 4, seed: 'relatorio-v03' }),
@@ -639,12 +644,28 @@ describe('o relatório de cada modelo, com semente fixa (critério 3 do GDD §16
             crossroadsOf(variant).map(([key, node]) => [key, node.posture.balanced]),
           );
           const { events, report } = walk(graph, choices, null, 'relatorio-v03');
+          // Só os campos aditivos do Osso saem da projeção histórica. O retrato novo logo
+          // abaixo cobre a Crônica e o relatório integrais, sem regravar linhas antigas.
+          const relicNote = expeditionTexts.reportRelic.split('{reliquia}')[0]!;
+          const projected = legacy
+            ? {
+                ...report,
+                log: report.log.map((step) => ({
+                  ...step,
+                  notes: step.notes.filter((note) => !note.startsWith(relicNote)),
+                })),
+                deedsText:
+                  report.deedsText?.replace(`${relicNote}Osso de Lobo.`, '').trim() || null,
+              }
+            : report;
           return [
-            model.id,
+            model.id === 'whiteWolfHunt' && !legacy ? 'whiteWolfHuntRelic' : model.id,
             {
               variant: 'ABC'[index],
-              events: events.map((event) => `${event.type}: ${event.text}`),
-              report,
+              events: events
+                .filter((event) => !legacy || event.type !== 'relicFound')
+                .map((event) => `${event.type}: ${event.text}`),
+              report: projected,
             },
           ];
         }),
@@ -658,7 +679,7 @@ describe('o relatório de cada modelo, com semente fixa (critério 3 do GDD §16
 });
 
 describe('relatos da caçada especial do Lobo Branco', () => {
-  it('cada variante relata a trilha, o encontro e a volta, com ouro e comida e sem item', () => {
+  it('cada variante relata a trilha, o encontro e a volta, com comida, Osso de Lobo e sem item de arsenal', () => {
     for (const graph of graphs.filter((entry) => entry.model.id === 'whiteWolfHunt')) {
       const result = walk(graph, {}, 'full');
       expect(result.state.guild.expeditions).toEqual([]);
@@ -668,7 +689,12 @@ describe('relatos da caçada especial do Lobo Branco', () => {
       ]);
       expect(result.report.log).toHaveLength(3);
       expect(result.report.log.at(-1)?.text).toContain('voltou a');
-      expect(result.state.guild.reports[0]?.log.flatMap((entry) => entry.found)).toEqual([]);
+      expect(result.state.guild.reports[0]?.log.flatMap((entry) => entry.found)).toEqual([
+        'wolfBone',
+      ]);
+      expect(result.state.settlement.relics.map((entry) => entry.defId)).toEqual(['wolfBone']);
+      expect(result.events.filter((event) => event.type === 'relicFound')).toHaveLength(1);
+      expect(result.report.log[1]?.notes).toContain('Relíquia encontrada: Osso de Lobo.');
       expect(result.events.some((event) => event.type === 'expeditionReturned')).toBe(true);
     }
   });

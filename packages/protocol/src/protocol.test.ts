@@ -1,5 +1,7 @@
 import {
   balance,
+  expeditionModels,
+  expeditionTexts,
   relics,
   relicTexts,
   featRules,
@@ -2710,6 +2712,8 @@ describe('contentHash', () => {
     expect(hashed).toEqual([
       canonicalJson({
         balance,
+        expeditionModels,
+        expeditionTexts,
         relics,
         relicTexts,
         featRules,
@@ -2772,6 +2776,8 @@ describe('contentHash', () => {
       'councilCards',
       'craftGuilds',
       'enemies',
+      'expeditionModels',
+      'expeditionTexts',
       'featRules',
       'feats',
       'foundingTemplates',
@@ -2808,6 +2814,9 @@ describe('contentHash', () => {
       'warRaids',
       'yearChronicleTexts',
     ]);
+    // V5B-T3: mudar o prêmio fixo ou um modelo lendário também muda o hash.
+    expect(parsed.expeditionModels).toEqual(expeditionModels);
+    expect(parsed.expeditionTexts).toEqual(expeditionTexts);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
     expect(hashed).toContain(coldReliefs.thaw);

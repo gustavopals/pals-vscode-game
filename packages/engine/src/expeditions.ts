@@ -389,6 +389,9 @@ export function destinationBlock(state: GameState, modelId: unknown): Rejection 
       remedy: `pede ${buildingWithArticle('guild')} no nível ${model.requires.guildLevel}`,
     });
   }
+  if (model.requires.chapel && state.settlement.buildings.chapel === 0) {
+    return reject('EXPEDITION_LOCKED', { remedy: expeditionTexts.lockedChapel });
+  }
   const lock = accessLock(state, model);
   return lock === null ? null : reject('EXPEDITION_LOCKED', { remedy: lock });
 }

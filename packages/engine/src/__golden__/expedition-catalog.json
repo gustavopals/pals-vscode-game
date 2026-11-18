@@ -663,5 +663,197 @@
    "itemsText": null,
    "lost": false
   }
+ },
+ "ancestralVault": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Câmara dos Ancestrais. A equipe: Edda, Rolf e Isolda.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf examinou a ponte caída apoio por apoio e guiou a expedição de Pedra Alta até o abrigo com os sacos cheios.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Câmara dos Ancestrais\" parou em uma encruzilhada: A porta e a passagem lateral. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Câmara dos Ancestrais\": enfrentar a guarda lateral.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Edda suportou cada golpe que a sentinela do nicho desferiu até a expedição de Pedra Alta alcançar o tesouro.",
+   "relicFound: No 2º dia da Primavera, Pedra Alta recebeu uma relíquia: Chifre dos Ancestrais. O tesouro foi guardado para a Capela.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Câmara dos Ancestrais\" voltou a Pedra Alta com 36 de pedra e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Câmara dos Ancestrais",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf",
+    "Isolda"
+   ],
+   "log": [
+    {
+     "title": "A ponte caída",
+     "text": "No 1º dia da Primavera, Rolf examinou a ponte caída apoio por apoio e guiou a expedição de Pedra Alta até o abrigo com os sacos cheios. Trouxe 36 de pedra.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "A porta e a passagem lateral",
+     "text": "Por ordem do senhor: Enfrentar a guarda lateral.",
+     "outcome": "chosen",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "A sentinela do nicho",
+     "text": "No 2º dia da Primavera, Edda suportou cada golpe que a sentinela do nicho desferiu até a expedição de Pedra Alta alcançar o tesouro. Trouxe 88 de ouro.",
+     "outcome": "success",
+     "outcomeLabel": "Sucesso",
+     "notes": [
+      "Relíquia encontrada: Chifre dos Ancestrais."
+     ],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A estrada de volta ao feudo",
+     "text": "No 2º dia da Primavera, a expedição de Pedra Alta deixou o abrigo para trás e tomou a estrada de casa.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": "Relíquia encontrada: Chifre dos Ancestrais.",
+   "lootText": "Trouxe 36 de pedra e 88 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "hermitsRefuge": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Refúgio do Eremita. A equipe: Edda, Rolf e Isolda.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf examinou a trilha das raízes apoio por apoio e guiou a expedição de Pedra Alta até o abrigo com os sacos cheios.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Refúgio do Eremita\" parou em uma encruzilhada: A porta e a passagem lateral. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Refúgio do Eremita\": enfrentar a guarda lateral.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Edda suportou cada golpe que o guardião do pomar desferiu até a expedição de Pedra Alta alcançar o tesouro.",
+   "relicFound: No 2º dia da Primavera, Pedra Alta recebeu uma relíquia: Coração de Carvalho. O tesouro foi guardado para a Capela.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Refúgio do Eremita\" voltou a Pedra Alta com 36 de madeira e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Refúgio do Eremita",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf",
+    "Isolda"
+   ],
+   "log": [
+    {
+     "title": "A trilha das raízes",
+     "text": "No 1º dia da Primavera, Rolf examinou a trilha das raízes apoio por apoio e guiou a expedição de Pedra Alta até o abrigo com os sacos cheios. Trouxe 36 de madeira.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "A porta e a passagem lateral",
+     "text": "Por ordem do senhor: Enfrentar a guarda lateral.",
+     "outcome": "chosen",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "O guardião do pomar",
+     "text": "No 2º dia da Primavera, Edda suportou cada golpe que o guardião do pomar desferiu até a expedição de Pedra Alta alcançar o tesouro. Trouxe 88 de ouro.",
+     "outcome": "success",
+     "outcomeLabel": "Sucesso",
+     "notes": [
+      "Relíquia encontrada: Coração de Carvalho."
+     ],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A estrada de volta ao feudo",
+     "text": "No 2º dia da Primavera, a expedição de Pedra Alta deixou o abrigo para trás e tomou a estrada de casa.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": "Relíquia encontrada: Coração de Carvalho.",
+   "lootText": "Trouxe 36 de madeira e 88 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "whiteWolfHuntRelic": {
+  "variant": "C",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: A caçada do Lobo Branco. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf seguiu a trilha sob a geada e encontrou a passagem para o bosque fechado. A equipe de Pedra Alta avançou sem perder tempo.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.",
+   "relicFound: No 1º dia da Primavera, Pedra Alta recebeu uma relíquia: Osso de Lobo. O tesouro foi guardado para a Capela.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 15 de comida. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "A caçada do Lobo Branco",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A trilha sob a geada",
+     "text": "No 1º dia da Primavera, Rolf seguiu a trilha sob a geada e encontrou a passagem para o bosque fechado. A equipe de Pedra Alta avançou sem perder tempo. Trouxe 15 de comida.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "O lobo à margem do riacho",
+     "text": "No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.",
+     "outcome": "full",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [
+      "Relíquia encontrada: Osso de Lobo."
+     ],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta pela orla do bosque",
+     "text": "No 2º dia da Primavera, a equipe da caçada voltou a Pedra Alta pela orla do bosque. O que aconteceu entre as árvores ficou no relato de quem foi.",
+     "outcome": "passed",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": "Relíquia encontrada: Osso de Lobo.",
+   "lootText": "Trouxe 15 de comida.",
+   "itemsText": null,
+   "lost": false
+  }
  }
 }

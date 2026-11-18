@@ -46,6 +46,7 @@ import {
 } from './outcomes';
 import { chance, dropStream, entityStream, nextInt, pickWeighted, type RngStream } from './random';
 import { describeLoss, storeResource } from './storage';
+import { grantRelic } from './relics';
 import type {
   Expedition,
   ExpeditionLogEntry,
@@ -265,6 +266,16 @@ function resolveStage(
   ) {
     entry.master = masterDrop.id;
   }
+  // Relíquias e consolo não participam do saque sorteado nem da cobiça.
+  // A escolha acontece na resolução, portanto equipes simultâneas não duplicam relíquias.
+  const relicDrop = trial !== undefined && succeeded(entry.outcome) ? rewards?.relic : undefined;
+  const relicId = relicDrop?.from.find(
+    (id) => !draft.settlement.relics.some((owned) => owned.defId === id),
+  );
+  if (relicDrop !== undefined && relicId === undefined) {
+    entry.gained.gold += relicDrop.consolationGold;
+    expedition.loot.resources.gold += relicDrop.consolationGold;
+  }
   if (victim !== null && harm !== null) {
     entry.harm = { heroName: victim.name, kind: harm.kind };
   }
@@ -309,6 +320,10 @@ function resolveStage(
       },
       { expedicao: label, item: itemDefOf(item)?.label ?? '' },
     );
+  }
+  if (relicId !== undefined && grantRelic(draft, relicId, atMs, events)) {
+    // found já comporta um id de conteúdo, sem campo novo no estado 43.
+    entry.found.push(relicId);
   }
   const reveals = rewards?.reveals;
   if (
