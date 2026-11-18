@@ -295,12 +295,20 @@ function beforeOutcomes<T>(input: T): T {
   return copy as T;
 }
 
+/** A Fase B (estado 43) acrescenta a Capela por construir e nenhuma relíquia. */
+function withChapel<T extends { buildings: Record<string, number> }>(settlement: T): T {
+  return { ...settlement, buildings: { ...settlement.buildings, chapel: 0 }, relics: [] };
+}
+
 /**
  * O feudo de um estado anterior à versão 16, com a Taverna por construir a mais e, desde a
- * versão 17, a Guilda dos Aventureiros também.
+ * versão 17, a Guilda dos Aventureiros também. Inclui as adições da Fase B.
  */
 function withTavernSite<T extends { buildings: Record<string, number> }>(settlement: T): T {
-  return { ...settlement, buildings: { ...settlement.buildings, tavern: 0, guild: 0 } };
+  return withChapel({
+    ...settlement,
+    buildings: { ...settlement.buildings, tavern: 0, guild: 0 },
+  });
 }
 
 type StoredState = {
@@ -372,7 +380,9 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       smithy: 0,
       // O Quartel (V4C-T1, versão 28): por construir.
       barracks: 0,
+      chapel: 0,
     },
+    relics: [],
     weapons: 0,
     forge: null,
     wasted: { food: 0, wood: 0, stone: 0, gold: 0, iron: 0 },
@@ -1588,10 +1598,10 @@ describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
-        settlement: {
+        settlement: withChapel({
           ...before.settlement,
           buildings: { ...before.settlement.buildings, guild: 0 },
-        },
+        }),
         guild: { ...before.guild, expeditions: [], reports: [] },
       });
       expect(Object.keys(row.state.rng).filter((key) => key.includes(':'))).toEqual([]);
@@ -1719,10 +1729,10 @@ describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', ()
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
-        settlement: {
+        settlement: withChapel({
           ...before.settlement,
           buildings: { ...before.settlement.buildings, market: 0 },
-        },
+        }),
         market: NO_MARKET,
       });
       expect(row.state.rng.market).toBeUndefined();
@@ -2425,6 +2435,7 @@ describe('uma partida gravada na versão 21 (V3E-T2; ADR 0018, decisão 17)', ()
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         market: { ...before.market, caravans: [] },
+        settlement: withChapel(before.settlement),
       });
       expect(row.state.ids.caravan).toBeUndefined();
       expect(reply.body.view.market.caravans).toEqual([]);
@@ -2531,6 +2542,7 @@ describe('uma partida gravada na versão 22 (V3E-T3; ADR 0018, decisão 18)', ()
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
+        settlement: withChapel(before.settlement),
       });
       expect(row.state.ids.master).toBeUndefined();
       expect(reply.body.view.masters).toEqual([]);

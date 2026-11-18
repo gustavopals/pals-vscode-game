@@ -491,8 +491,8 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
     const row = await storedState(fast, game.id);
     expect(row.schema_version).toBe(CURRENT_SCHEMA_VERSION);
     expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-    // A Paliçada da versão 10, a Taverna da 16, a Guilda dos Aventureiros da 17 e o Mercado da 21
-    // entram por construir.
+    // A Paliçada da versão 10, a Taverna da 16, a Guilda dos Aventureiros da 17, o Mercado da 21
+    // e a Capela da 43 entram por construir.
     expect(row.state.settlement.buildings).toEqual({
       ...before.settlement.buildings,
       palisade: 0,
@@ -501,6 +501,7 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
       market: 0,
       smithy: 0,
       barracks: 0,
+      chapel: 0,
     });
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
     // Nada do Conselho mudou na fronteira: a promessa só existe para quem a fizer.

@@ -240,6 +240,8 @@ describe('equipar um herói e reenviar a ordem', () => {
       'oldForest',
       'wolfDen',
       'ruins',
+      'ancestralVault',
+      'hermitsRefuge',
     ]);
   });
 });
