@@ -24,14 +24,8 @@ import type {
 import { memoryStore } from './services/store';
 
 /** O `ViewState` de exemplo dos testes: o golden do motor (importar `@lotg/engine` é barrado). */
-export const goldenView = {
-  ...golden.afterFirstAllocation,
-  relics: { slots: 0, items: [] },
-} as unknown as ViewState;
-export const initialView = {
-  ...golden.initial,
-  relics: { slots: 0, items: [] },
-} as unknown as ViewState;
+export const goldenView = golden.afterFirstAllocation as unknown as ViewState;
+export const initialView = golden.initial as unknown as ViewState;
 /** Uma decisão pública entre ondas, sem a tela completa do Cerco (V4G-T2.7). */
 export const siegeWaveView: ViewState = {
   ...initialView,

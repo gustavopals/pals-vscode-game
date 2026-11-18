@@ -553,7 +553,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -624,8 +624,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -828,7 +830,7 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -901,8 +903,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -1229,7 +1233,7 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1304,8 +1308,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -1719,7 +1725,7 @@
    "day": 4,
    "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1806,8 +1812,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -2443,7 +2451,7 @@
    "day": 5,
    "eventsSoFar": 236,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2530,8 +2538,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -3256,7 +3266,7 @@
    "day": 6,
    "eventsSoFar": 289,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3343,8 +3353,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null
@@ -4051,7 +4063,7 @@
    "day": 7,
    "eventsSoFar": 353,
    "state": {
-    "schemaVersion": 42,
+    "schemaVersion": 43,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -4138,8 +4150,10 @@
       "guild": 0,
       "market": 0,
       "smithy": 0,
-      "barracks": 0
+      "barracks": 0,
+      "chapel": 0
      },
+     "relics": [],
      "constructionQueues": [
       null,
       null

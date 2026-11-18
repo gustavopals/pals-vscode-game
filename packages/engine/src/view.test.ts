@@ -656,20 +656,7 @@ describe('golden do ViewState', () => {
       smithyIdle: view(smithyStall(0)),
       smithyForging: view(smithyForgingScenario()),
     };
-    // A Capela é uma adição ao contrato: preserve os bytes do golden da v0.4.
-    const previousContract = Object.fromEntries(
-      Object.entries(golden).map(([name, state]) => [
-        name,
-        {
-          ...Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'relics')),
-          constructions: {
-            ...state.constructions,
-            available: state.constructions.available.filter((entry) => entry.building !== 'chapel'),
-          },
-        },
-      ]),
-    );
-    await expect(`${JSON.stringify(previousContract, null, 2)}\n`).toMatchFileSnapshot(
+    await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',
     );
   });

@@ -705,6 +705,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 235
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -1057,6 +1090,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -1962,6 +1999,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 235
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -2330,6 +2400,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -3230,6 +3304,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 179
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 292
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 10
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -3640,6 +3747,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -4551,6 +4662,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 140
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -5180,6 +5324,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -6068,6 +6216,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 200
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2700,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -6719,6 +6900,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -7841,6 +8026,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 129
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 175
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -8470,6 +8688,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -9391,6 +9613,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 49
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -10020,6 +10275,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -10903,6 +11162,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 200
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 300
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 200
+            }
+          ],
+          "durationSeconds": 2700,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -11566,6 +11858,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -12466,6 +12762,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -13103,6 +13432,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -14003,6 +14336,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 215
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -14738,6 +15104,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -15638,6 +16008,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 215
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -16356,6 +16759,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -17267,6 +17674,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 7
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -17931,6 +18371,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -18887,6 +19331,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 7
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -19561,6 +20038,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -20517,6 +20998,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -21192,6 +21706,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -22207,6 +22725,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 7
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -22881,6 +23432,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -23826,6 +24381,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 7
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 9
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -24509,6 +25097,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -25409,6 +26001,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 235
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 69
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -25980,6 +26605,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -26899,6 +27528,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 92
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 235
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 200
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -27435,6 +28097,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -28386,6 +29052,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 200
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -28770,6 +29469,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -29670,6 +30373,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -30387,6 +31123,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -31294,6 +32034,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -32069,6 +32842,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -32982,6 +33759,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -33819,6 +34629,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -34732,6 +35546,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -35661,6 +36508,10 @@
         "blockedReason": null
       }
     },
+    "relics": {
+      "slots": 0,
+      "items": []
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -36573,6 +37424,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -37504,6 +38388,10 @@
         "blockedReason": null
       }
     },
+    "relics": {
+      "slots": 0,
+      "items": []
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -38422,6 +39310,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -39334,6 +40255,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -40258,6 +41183,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 200
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -41350,6 +42308,10 @@
         "blockedReason": null
       }
     },
+    "relics": {
+      "slots": 0,
+      "items": []
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -42308,6 +43270,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -43226,6 +44221,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -44160,6 +45159,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -44870,6 +45902,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -45781,6 +46817,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -46491,6 +47560,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -47431,6 +48504,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -48218,6 +49324,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -49129,6 +50239,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -49998,6 +51141,10 @@
         "blockedReason": null
       }
     },
+    "relics": {
+      "slots": 0,
+      "items": []
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -50866,6 +52013,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -51495,6 +52675,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -52465,6 +53649,39 @@
           "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
           "planned": false,
           "effect": "Treina soldados, um lote de até 30 por vez: até 30 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -53094,6 +54311,10 @@
         "batchSeconds": 0,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -54052,6 +55273,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -54681,6 +55935,10 @@
         "batchSeconds": 3600,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -55582,6 +56840,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Treina soldados, um lote de até 10 por vez: até 10 soldados, que comem 1,5 de comida por hora."
+        },
+        {
+          "building": "chapel",
+          "label": "Capela",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 5.",
+          "planned": false,
+          "effect": "Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor."
         }
       ]
     },
@@ -56220,6 +57511,10 @@
         "batchSeconds": 3600,
         "blockedReason": null
       }
+    },
+    "relics": {
+      "slots": 0,
+      "items": []
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
