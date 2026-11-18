@@ -555,6 +555,9 @@ describe('toda ação da interface tem um comando', () => {
       'lords.threatBuild',
       'lords.threatUpgrade',
       'lords.linkReminder',
+      'lords.relicAvailable',
+      'lords.relicPlaced',
+      'lords.relicBlocked',
     ]);
     const scanned = Object.entries(sources).filter(
       ([path]) =>

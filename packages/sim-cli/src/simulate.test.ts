@@ -5,6 +5,8 @@ import {
   masters,
   masterTemplates,
   balance,
+  expeditionModels,
+  expeditionTexts,
   relics,
   relicTexts,
   buildings,
@@ -645,6 +647,8 @@ describe('resumo de uma partida', () => {
         .update(
           canonicalJson({
             balance,
+            expeditionModels,
+            expeditionTexts,
             relics,
             relicTexts,
             buildings,

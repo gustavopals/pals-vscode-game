@@ -506,11 +506,14 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
   it('sem cativo o destino nem aparece, e a ordem é recusada', () => {
     const state = hall(10);
     const view = deriveViewState(state, 0).guild;
+    // As lendárias aparecem trancadas, com o que falta (V5B-T3): servem de meta.
     expect(view.available.map((offer) => offer.modelId)).toEqual([
       'patrol',
       'oldForest',
       'wolfDen',
       'ruins',
+      'ancestralVault',
+      'hermitsRefuge',
     ]);
     expect(view.captiveText).toBeNull();
     expect(
@@ -1022,6 +1025,8 @@ describe('o saque e os traços (ADR 0017, "Os oito traços"; pendência D-7)', (
       'patrol',
       'oldForest',
       'wolfDen',
+      'ancestralVault',
+      'hermitsRefuge',
     ]);
     // Sem os Objetivos do Senhor: o do 16º (concluído nos estados de teste) cita as Ruínas pelo nome.
     expect(JSON.stringify({ ...deriveViewState(unknown([]), 0), objectives: [] })).not.toContain(

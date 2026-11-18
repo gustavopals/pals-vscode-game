@@ -365,8 +365,16 @@ describe('os modelos e os desfechos (ADR 0018, decisões 12 e 14)', () => {
     const capturing = expeditionModels
       .filter((model) => stagesOf(model).some((node) => node.trial?.onDisaster === 'capture'))
       .map((model) => model.id);
-    // E a Mina Abandonada, no veio fundo (V4B-T1), e a Sabotagem (V4F-T1).
-    expect(capturing).toEqual(['rescue', 'ruins', 'abandonedMine', 'swamp', 'sabotage']);
+    // E a Mina Abandonada, no veio fundo (V4B-T1), a Sabotagem (V4F-T1) e as duas lendárias (V5B-T3).
+    expect(capturing).toEqual([
+      'rescue',
+      'ruins',
+      'abandonedMine',
+      'swamp',
+      'sabotage',
+      'ancestralVault',
+      'hermitsRefuge',
+    ]);
   });
 
   it('o schema recusa prova sem experiência, recompensa vazia, chance acima de 1, item repetido e acesso desconhecido', () => {
