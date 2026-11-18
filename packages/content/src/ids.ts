@@ -252,7 +252,7 @@ export const EXPEDITION_DISASTER_IDS = ['injury', 'capture'] as const;
 export type ExpeditionDisasterId = (typeof EXPEDITION_DISASTER_IDS)[number];
 
 /**
- * Os modelos de expedição (GDD §9.3; ADR 0018, decisão 12): os seis da v0.3 (V3D-T3). O id fica
+ * Os modelos de expedição (GDD §9.3; ADRs 0018/0022), da v0.3 aos lendários da v0.5. O id fica
  * gravado no estado (`guild.expeditions[].modelId`, `guild.reports[].modelId`,
  * `map.discovered`), e com ele a variante, a chave do nó e a da opção: **são estáveis**, fixados
  * em `expeditions.test.ts`, e mudar um deles pede passo de migração. A ficha de cada um está em

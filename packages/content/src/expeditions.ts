@@ -211,8 +211,9 @@ export type ExpeditionModelDef = {
 
 /**
  * Os modelos, na ordem em que a Guilda os mostra: do mais perto ao mais longe, e do que rende
- * menos ao que rende mais. É o catálogo da v0.3 (V3D-T3; ADR 0018, decisão 12): seis destinos,
- * três variantes cada, dezoito grafos, cada um com a ficha em `docs/content-v0.3.md`.
+ * menos ao que rende mais. Onze destinos, três variantes cada: os seis da v0.3
+ * (`docs/content-v0.3.md`), Mina/Sabotagem/Lobo da v0.4 e dois lendários da v0.5
+ * (`docs/content-v0.5.md`; ADR 0022, D-6/D-7).
  * **Os ids de modelo, de nó e de opção são estáveis** (`expeditions.test.ts` os fixa): uma
  * expedição em curso guarda os três. Rascunho que o autor não leu.
  */
