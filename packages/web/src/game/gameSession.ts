@@ -14,6 +14,7 @@ import { expeditionDeadlines } from '../ui/expeditions';
 import { trainingDeadline } from '../ui/army';
 import { forgeDeadline } from '../ui/smithy';
 import { marketDeadlines } from '../ui/market';
+import { relicDeadlines } from '../ui/relics';
 import { siegeDeadlines } from '../ui/siege';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
@@ -250,6 +251,8 @@ export function guildDeadlines(view: ViewState): number[] {
     view.army.campaign?.phase === 'marching'
       ? view.army.campaign.battleInSeconds
       : view.army.campaign?.returnsInSeconds,
+    // As relíquias colocadas que aguardam a próxima virada do dia para entrar em vigor.
+    ...relicDeadlines(view),
   ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
 }
 

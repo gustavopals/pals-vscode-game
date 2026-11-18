@@ -153,6 +153,16 @@ import {
   type UnitId,
   unitOf,
 } from '../ui/army';
+import {
+  chapelMissingLine,
+  placedRelicsCount,
+  RELIC_NODE,
+  relicEffectiveLine,
+  RELICS_ANCHOR,
+  RELICS_SECTION,
+  relicsOf,
+  relicStateBadge,
+} from '../ui/relics';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -203,6 +213,7 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [EXPEDITIONS_SECTION]: { route: 'guild', anchor: EXPEDITIONS_ANCHOR },
   [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
   [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
+  [RELICS_SECTION]: { route: 'guild', anchor: RELICS_ANCHOR },
   [SMITHY_SECTION]: { route: 'fief', anchor: SMITHY_ANCHOR },
   [ARMY_SECTION]: { route: 'army', anchor: ARMY_ANCHOR },
   [MARKET_SECTION]: { route: 'market', anchor: MARKET_ANCHOR },
@@ -297,6 +308,26 @@ export function guildRequest(
   }
   const { id } = record;
   return typeof id === 'string' && id.startsWith(prefix) ? id.slice(prefix.length) : undefined;
+}
+
+/**
+ * A relíquia que quem chamou `lords.placeRelic` ou `lords.removeRelic` já escolheu: o painel manda
+ * `{ relicId }`; a árvore, a linha (`relic:<id>`); a paleta, nada.
+ */
+export function relicRequest(arg: unknown): string | undefined {
+  if (typeof arg === 'string') {
+    return arg === '' ? undefined : arg;
+  }
+  if (typeof arg !== 'object' || arg === null) {
+    return undefined;
+  }
+  const { id, relicId } = arg as Record<string, unknown>;
+  if (typeof relicId === 'string') {
+    return relicId === '' ? undefined : relicId;
+  }
+  return typeof id === 'string' && id.startsWith(RELIC_NODE)
+    ? id.slice(RELIC_NODE.length)
+    : undefined;
 }
 
 /**
@@ -3629,6 +3660,160 @@ export function createCommands(
     (arg) => equipRequest(arg, []).heroId,
   );
 
+  const seeRelics = {
+    label: 'Ver a Capela',
+    run: () => controller.runCommand('lords.openPanel', RELICS_SECTION),
+  };
+
+  const relicNow = (relicId: string) =>
+    relicsOf(controller.view ?? { relics: { slots: 0, items: [] } }).items.find(
+      (item) => item.relicId === relicId,
+    );
+
+  /**
+   * Coloca uma relíquia na Capela (`lords.placeRelic`): direto quando o painel ou a árvore já
+   * deram a relíquia; por lista na paleta, relendo a visão depois da escolha.
+   */
+  const placeRelic = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const relics = relicsOf(view);
+      const requested = relicRequest(arg);
+      if (requested !== undefined) {
+        if (relicNow(requested) === undefined) {
+          controller.toast({
+            kind: 'warning',
+            text: 'A relíquia não está mais na lista do feudo: nada foi colocado.',
+            actions: [seeRelics],
+          });
+          return;
+        }
+        await controller.placeRelic(requested);
+        return;
+      }
+      const candidates = relics.items.filter((item) => !item.placed);
+      if (candidates.length === 0) {
+        const missing = chapelMissingLine(view, elapsed());
+        controller.toast({
+          kind: 'info',
+          text:
+            relics.items.length === 0
+              ? (missing ?? 'O feudo ainda não guardou nenhuma relíquia.')
+              : 'Todas as relíquias do feudo já estão colocadas na Capela.',
+          actions: [seeRelics],
+        });
+        return;
+      }
+      const used = placedRelicsCount(relics);
+      const missing = chapelMissingLine(view, elapsed());
+      const gameId = controller.session.gameId;
+      const picked = await dialogs.pick<(typeof candidates)[number]>({
+        title: 'Colocar relíquia na Capela',
+        placeholder: 'Qual relíquia vai para a Capela?',
+        detail: [
+          `Espaços na Capela: ${formatNumber(used)}/${formatNumber(relics.slots)}.`,
+          ...(missing === null ? [] : [missing]),
+        ],
+        items: candidates.map((item) => ({
+          icon: item.canPlace ? 'check' : 'lock',
+          label: item.label,
+          description: item.effectText,
+          detail: item.blockedReason ?? 'Passa a valer na próxima virada de dia.',
+          value: item,
+        })),
+      });
+      if (picked === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a escolha da relíquia');
+        return;
+      }
+      const latest = relicNow(picked.relicId);
+      if (latest === undefined || latest.placed) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A Capela mudou enquanto a lista estava aberta: confira as relíquias antes de tentar de novo.',
+          actions: [seeRelics],
+        });
+        return;
+      }
+      await controller.placeRelic(picked.relicId);
+    },
+    (arg) => relicRequest(arg),
+  );
+
+  /**
+   * Retira uma relíquia colocada na Capela (`lords.removeRelic`): direto pelo painel ou pela
+   * árvore; por lista na paleta, relendo a visão depois da escolha.
+   */
+  const removeRelic = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const relics = relicsOf(view);
+      const requested = relicRequest(arg);
+      if (requested !== undefined) {
+        if (relicNow(requested) === undefined) {
+          controller.toast({
+            kind: 'warning',
+            text: 'A relíquia não está mais na lista do feudo: nada foi retirado.',
+            actions: [seeRelics],
+          });
+          return;
+        }
+        await controller.removeRelic(requested);
+        return;
+      }
+      const placed = relics.items.filter((item) => item.placed);
+      if (placed.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: 'Não há relíquia colocada na Capela agora.',
+          actions: [seeRelics],
+        });
+        return;
+      }
+      const used = placedRelicsCount(relics);
+      const gameId = controller.session.gameId;
+      const picked = await dialogs.pick<(typeof placed)[number]>({
+        title: 'Retirar relíquia da Capela',
+        placeholder: 'Qual relíquia volta a ficar guardada?',
+        detail: [`Espaços na Capela: ${formatNumber(used)}/${formatNumber(relics.slots)}.`],
+        items: placed.map((item) => ({
+          icon: item.active ? 'star-full' : 'watch',
+          label: item.label,
+          description: item.effectText,
+          detail: relicEffectiveLine(item, elapsed()) ?? relicStateBadge(item),
+          value: item,
+        })),
+      });
+      if (picked === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a retirada da relíquia');
+        return;
+      }
+      const latest = relicNow(picked.relicId);
+      if (latest === undefined || !latest.placed) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A relíquia já não estava na Capela quando você confirmou: nada foi retirado.',
+          actions: [seeRelics],
+        });
+        return;
+      }
+      await controller.removeRelic(picked.relicId);
+    },
+    (arg) => relicRequest(arg),
+  );
+
   /** "Ver o relatório": a aba Guilda, com a folha dessa expedição aberta e à vista. */
   const openReport = (arg?: unknown) => {
     const expeditionId = typeof arg === 'string' ? arg : expeditionRequest(arg).expeditionId;
@@ -4329,6 +4514,20 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: unequipItem,
+    },
+    {
+      id: 'lords.placeRelic',
+      title: 'Colocar relíquia na Capela…',
+      palette: true,
+      when: hasGame,
+      run: placeRelic,
+    },
+    {
+      id: 'lords.removeRelic',
+      title: 'Retirar relíquia da Capela…',
+      palette: true,
+      when: hasGame,
+      run: removeRelic,
     },
     {
       id: 'lords.renameSettlement',
