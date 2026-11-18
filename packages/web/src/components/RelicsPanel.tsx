@@ -91,22 +91,25 @@ export function RelicsPanel(props: {
                   </p>
                 ) : null}
                 <div class="hero-actions">
-                  <button
-                    type="button"
-                    disabled={props.disabled || busy || !item.canPlace}
-                    aria-describedby={showBlocked ? whyId : undefined}
-                    onClick={() => actions.run('lords.placeRelic', { relicId: item.relicId })}
-                  >
-                    Colocar<span class="sr-only"> {item.label}</span>
-                  </button>
-                  <button
-                    type="button"
-                    class="secondary"
-                    disabled={props.disabled || busy || !item.canRemove}
-                    onClick={() => actions.run('lords.removeRelic', { relicId: item.relicId })}
-                  >
-                    Retirar<span class="sr-only"> {item.label}</span>
-                  </button>
+                  {item.placed ? (
+                    <button
+                      type="button"
+                      class="secondary"
+                      disabled={props.disabled || busy || !item.canRemove}
+                      onClick={() => actions.run('lords.removeRelic', { relicId: item.relicId })}
+                    >
+                      Retirar<span class="sr-only"> {item.label}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={props.disabled || busy || !item.canPlace}
+                      aria-describedby={showBlocked ? whyId : undefined}
+                      onClick={() => actions.run('lords.placeRelic', { relicId: item.relicId })}
+                    >
+                      Colocar<span class="sr-only"> {item.label}</span>
+                    </button>
+                  )}
                 </div>
               </li>
             );
