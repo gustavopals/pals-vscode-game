@@ -61,7 +61,8 @@ test.describe('teclado', () => {
     await expect(page.getByRole('heading', { name: 'Pedra Alta', level: 1 })).toBeVisible();
 
     const zones: string[] = [];
-    for (let step = 0; step < 60; step += 1) {
+    // A Capela acrescentou controles no Feudo: deixe o percurso chegar à barra de status.
+    for (let step = 0; step < 80; step += 1) {
       await page.keyboard.press('Tab');
       const focus = await focusInfo(page);
       if (focus.zone === 'body') {
