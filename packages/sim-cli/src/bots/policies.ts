@@ -641,6 +641,13 @@ const expeditionNumber = (id: string): number => Number(id.slice(id.lastIndexOf(
 type Offer = ViewState['guild']['available'][number];
 type HeroCard = ViewState['guild']['heroes'][number];
 
+/** Fase B: as lendárias só entram nas políticas na Fase H; preserve os destinos da v0.4. */
+function botDestinations(view: ViewState): Offer[] {
+  return view.guild.available.filter(
+    (offer) => offer.modelId !== 'ancestralVault' && offer.modelId !== 'hermitsRefuge',
+  );
+}
+
 /**
  * O que um herói vale **contra o primeiro trecho do destino**: o número que a tela mostra ao lado
  * dele no envio (`heroFit`, com os pesos da prova); sem ele, o poder da ficha.
@@ -720,7 +727,7 @@ export const enviarExpedicoes: Policy = {
   run: async (view, act) => {
     let current = view;
     for (let round = 0; round < current.guild.slots; round += 1) {
-      const open = current.guild.available.filter((entry) => !entry.locked);
+      const open = botDestinations(current).filter((entry) => !entry.locked);
       const staffed = open.flatMap((offer) => {
         const team = teamFor(current, offer);
         return team === null ? [] : [{ offer, team }];
@@ -814,10 +821,11 @@ export const enviarExpedicoesOusado: Policy = {
   run: async (view, act) => {
     let current = view;
     for (let round = 0; round < current.guild.slots; round += 1) {
-      const open = current.guild.available.filter((offer) => offer.canSend);
+      const available = botDestinations(current);
+      const open = available.filter((offer) => offer.canSend);
       const rescue = open.find((offer) => offer.rescue);
       const patrol = open.find((offer) => !offer.rescue);
-      const known = current.guild.available.filter((offer) => !offer.rescue).length;
+      const known = available.filter((offer) => !offer.rescue).length;
       const byId = (ids: readonly string[]) =>
         current.guild.heroes.filter((hero) => ids.includes(hero.id));
       let choice: { offer: Offer; team: HeroCard[] } | undefined;
