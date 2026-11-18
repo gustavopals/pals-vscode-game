@@ -1,3 +1,4 @@
+import { DAY } from './test-helpers';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -259,6 +260,37 @@ describe('catálogo de recusas', () => {
   militiaActive.settlement.militia = { count: 1, untilMs: militiaActive.siege!.atMs };
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
+    CHAPEL_REQUIRED: [newGame(), command('placeRelic', { relicId: 'oakHeart' })],
+    RELIC_NOT_FOUND: [
+      gameWith((state) => {
+        state.settlement.buildings.chapel = 1;
+      }),
+      command('placeRelic', { relicId: 'oakHeart' }),
+    ],
+    NO_RELIC_SLOT: [
+      gameWith((state) => {
+        state.settlement.buildings.chapel = 1;
+        state.settlement.relics = [
+          { defId: 'oakHeart', placed: true, effectiveFromMs: DAY },
+          { defId: 'saltStone', placed: false, effectiveFromMs: null },
+        ];
+      }),
+      command('placeRelic', { relicId: 'saltStone' }),
+    ],
+    RELIC_ALREADY_PLACED: [
+      gameWith((state) => {
+        state.settlement.buildings.chapel = 1;
+        state.settlement.relics = [{ defId: 'oakHeart', placed: true, effectiveFromMs: DAY }];
+      }),
+      command('placeRelic', { relicId: 'oakHeart' }),
+    ],
+    RELIC_NOT_PLACED: [
+      gameWith((state) => {
+        state.settlement.relics = [{ defId: 'oakHeart', placed: false, effectiveFromMs: null }];
+      }),
+      command('removeRelic', { relicId: 'oakHeart' }),
+    ],
+
     SIEGE_NOT_SCHEDULED: [rich, command('setBattlePlan', { wave: 1, formationId: null })],
     SIEGE_STARTED: [siegeStarted, command('setBattlePlan', { wave: 1, formationId: null })],
     INVALID_WAVE: [siege, command('setBattlePlan', { wave: 0 as 1, formationId: null })],

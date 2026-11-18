@@ -1757,7 +1757,16 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
         expect(text).not.toContain('expedition:expedition-');
         for (const key of Object.keys(variant.nodes)) {
           // A chave de um nó não é texto de interface (a de uma opção é o que a ordem recebe).
-          expect(text).not.toContain(`"${key}"`);
+          if (key === 'chapel') {
+            // Fase B: o id público da Capela coincide com esta chave de nó.
+            // Só a obra pública pode aparecer: uma segunda ocorrência denunciaria vazamento.
+            expect(
+              view.constructions.available.filter((entry) => entry.building === 'chapel'),
+            ).toHaveLength(1);
+            expect(text.match(/"chapel"/g)).toHaveLength(1);
+          } else {
+            expect(text).not.toContain(`"${key}"`);
+          }
         }
       }
     }

@@ -1,5 +1,6 @@
 import {
   BUILDING_IDS,
+  RELIC_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
   EVENT_TYPES,
@@ -21,6 +22,11 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'CHAPEL_REQUIRED',
+  'RELIC_NOT_FOUND',
+  'NO_RELIC_SLOT',
+  'RELIC_ALREADY_PLACED',
+  'RELIC_NOT_PLACED',
   'ARMY_AWAY',
   'CAMP_NOT_FOUND',
   'NO_SOLDIERS',
@@ -1405,6 +1411,25 @@ const ThreatSchema = z.discriminatedUnion('known', [
 ]);
 
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
+export const RelicsSchema = z.strictObject({
+  slots: z.number().int().nonnegative(),
+  items: z.array(
+    z.strictObject({
+      relicId: z.enum(RELIC_IDS),
+      label: z.string(),
+      effectText: z.string(),
+      placed: z.boolean(),
+      active: z.boolean(),
+      effectiveInSeconds: z.number().int().nonnegative().nullable(),
+      effectiveText: z.string().nullable(),
+      canPlace: z.boolean(),
+      canRemove: z.boolean(),
+      blockedCode: RejectionCodeSchema.nullable(),
+      blockedReason: z.string().nullable(),
+    }),
+  ),
+});
+
 export const ViewStateSchema = z.strictObject({
   settlement: z.strictObject({
     name: z.string(),
@@ -1649,6 +1674,8 @@ export const ViewStateSchema = z.strictObject({
   threat: ThreatSchema,
   /** Os heróis a serviço do feudo e o soldo deles. */
   guild: GuildSchema,
+  // Adição no protocolo 4: visões antigas de cache recebem o bloco vazio.
+  relics: RelicsSchema.default({ slots: 0, items: [] }),
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernSchema,
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */

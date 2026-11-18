@@ -198,6 +198,55 @@ melhorar a Capela preserva `untilMs` de ferimentos em curso. Conclusões de obra
 continuam antes das curas e dos demais eventos no mesmo instante: um ferimento
 marcado depois da conclusão já recebe o fator. Não há sorteio nem evento novo.
 
+## Relíquias (v0.5, V5B-T2)
+
+A Fase B inteira é v43 (D-4): o mesmo passo 42 → 43 acrescenta também
+`settlement.relics: { defId, placed, effectiveFromMs }[]`, inicialmente vazia.
+A guarda congela os oito ids, proíbe duplicatas e exceder os espaços da Capela,
+e exige prazo em virada de dia para quem está colocado (`null` fora da Capela).
+Os retratos v43 são ajustados dentro da fase não publicada; v42 e anteriores
+permanecem congelados. Não existe versão 44 nesta entrega.
+
+`grantRelic(draft, defId, atMs, events)`, em `relics.ts`, concede uma única cópia e
+emite `relicFound`, sem sorteio nem contador. É uma função interna para a futura
+recompensa de expedição; não há ordem que conceda relíquia nem fonte no jogo ainda.
+`placeRelic { relicId }` exige Capela e lugar livre (um por nível); repetições e
+relíquia ausente recebem recusa em português. A colocação emite `relicPlaced` e
+fixa `effectiveFromMs` na virada estritamente seguinte, inclusive se a ordem for
+no próprio amanhecer. `removeRelic` emite `relicRemoved` e cessa o efeito ali.
+
+A ativação não precisa de instante nem sorteio novos: ocorre na virada existente,
+logo depois de `dayStarted` e antes da experiência/moral, Conselho, presságios,
+batalhas e nós de expedição. O trecho contínuo que termina nela ainda usa os
+fatores anteriores; o próximo trecho já usa os novos. Retirar Pedra de Sal
+preserva comida acima do novo limite, como o estoque herdado; não entra mais até
+caber. Se a Queda reduzir a Capela, os primeiros tesouros da lista conservam lugar
+e o excedente é retirado, com os mesmos eventos.
+
+Os oito efeitos vêm de `content/relics.ts` e aparecem na conta correspondente:
+Coração na produção; Pedra no limite; Manto na lenha; Lâmpada no prazo oferecido;
+Chifre, Osso e Olho na explicação do exército; Selo na opção da carta. Chifre soma
+uma vez à moral inicial do lado do jogador; Osso multiplica o ataque dos lobos
+por 7/10 antes da defesa e do piso do dano, em batalha e prévia. Ambos chegam à
+prévia pelos mesmos modificadores; mudar relíquias invalida uma prévia gravada.
+Olho dá **pelo menos** a clareza da Torre Nv3 (parcial na tabela atual), preserva
+uma Torre melhor e não muda a chance nem o consumo do fluxo `horde`. Selo divide
+por dois o ouro que seria cobrado por `kingsTax` ou `kingsCollector`, arredondando
+para baixo em milésimos, tanto na resposta quanto na expiração; outras cartas
+não mudam.
+
+Lâmpada multiplica por 9/10 a duração dos nós de viagem/retorno, junto do fator
+da estação fixado no envio. Ativar ou retirar altera só o tempo **restante** do
+nó em curso, arredondado para cima em ms; o tempo já viajado e o prazo real da
+encruzilhada ficam preservados. O nó que já terminou naquele instante se resolve
+normalmente. A divisão de intervalo é conferida nos três ritmos e com viagem.
+
+A visão `relics { slots, items[] }` oferece nome, efeito, colocação, efeito ativo,
+`effectiveInSeconds` (segundos reais; `null` fora da Capela, zero já ativo),
+`effectiveText`, permissões e código/motivo da recusa. Gerador e conteúdo oculto
+não saem. Comandos e visão são adições no protocolo 4, com tipos iguais aos do
+motor. A tela e as fontes de relíquias pertencem às tarefas seguintes. As políticas genéricas dos bots ignoram a Capela até a Fase H, para preservar os cenários e faixas da v0.4; não receberam uma política de Capela ou relíquias.
+
 ## Moral
 
 Os números são os de `balance.morale` e `balance.difficulties[].famineDesertion` (GDD §5.6 e §5.7; [ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 1, 19 e 19a). As contas ficam em `morale.ts`, que só lê o estado; a virada do dia, com os sorteios, em `moraleTurn.ts`; o que a visão diz, em `moraleView.ts`.
@@ -744,7 +793,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 40 | V4G-T2 | Cerco, milícia e reconstrução: passo efetivo 39 → 40 (o roadmap previa 35 → 36), com `siege`, `settlement.militia` e `settlement.reconstructionUntilMs` inicialmente nulos; a linha do tempo agenda na primeira virada de outono/inverno, sem sorteio ou prazo na migração. |
 | 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
-| 43 | V5B-T1 (Fase B) | Capela por construir (`chapel: 0`), sem recalcular ferimentos nem mudar sorteios. |
+| 43 | V5B-T1/T2 (Fase B) | Capela por construir (`chapel: 0`) e `settlement.relics: []`, sem recalcular ferimentos nem mudar sorteios. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -815,7 +864,7 @@ em [docs/reviews](../../docs/reviews/); provas e limites por critério em
 Continuam ausentes prévia ofensiva do Acampamento, vínculo persistido de relatório
 por onda e discriminação das perdas da Queda na visão (G-23); dispensar/ensinar
 com Mestre, compra ou segundo destino de caravana, venda de item, mapa gráfico,
-postos avançados, relíquias/plantas, Veio de Ferro, Legado, Votos e Temporadas.
+postos avançados, plantas, Veio de Ferro, Legado, Votos e Temporadas.
 As previsões de estoques/moral não antecipam incursões, Cerco ou sorteios ocultos.
 
 ### Hora da Vigília (V4G-T1)

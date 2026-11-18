@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { revealWaveThree } from './hordePlan';
-import { stateV42 } from './migrations/v42';
+import { currentShape } from './migrations';
 import { readySiege } from './siege.test-helpers';
 import {
   accept,
@@ -352,7 +352,7 @@ describe('prévia de onda do Cerco (V4G-T2.10 · G-16)', () => {
       expectedLosses: [],
       knownEnemy: [],
     });
-    expect(stateV42(after, 'state')).toBeNull();
+    expect(currentShape(after, 'state')).toBeNull();
   });
 
   it('usa só o que os presságios não vagos da revisão atual e a Torre revelam da onda', () => {

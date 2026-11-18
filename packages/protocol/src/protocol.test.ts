@@ -1,5 +1,7 @@
 import {
   balance,
+  relics,
+  relicTexts,
   featRules,
   feats,
   yearChronicleTexts,
@@ -2708,6 +2710,8 @@ describe('contentHash', () => {
     expect(hashed).toEqual([
       canonicalJson({
         balance,
+        relics,
+        relicTexts,
         featRules,
         feats,
         yearChronicleTexts,
@@ -2791,6 +2795,8 @@ describe('contentHash', () => {
       'prowlingTileOrder',
       'raidSizes',
       'raidTemplates',
+      'relicTexts',
+      'relics',
       'siegeTexts',
       'startingTiles',
       'tavernCandidates',

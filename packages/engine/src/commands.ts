@@ -1,3 +1,4 @@
+import { placeRelic, removeRelic } from './relicOrders';
 import { balance } from '@lotg/content';
 
 import { setBattlePlan, swapWaveFormation, emergencyRepair, callMilitia } from './siegeOrders';
@@ -65,6 +66,10 @@ function dispatch(
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
+    case 'placeRelic':
+      return placeRelic(draft, payload.relicId, nowMs, events);
+    case 'removeRelic':
+      return removeRelic(draft, payload.relicId, nowMs, events);
     case 'setBattlePlan':
       return setBattlePlan(draft, payload.wave, payload.formationId, nowMs, events);
     case 'swapWaveFormation':

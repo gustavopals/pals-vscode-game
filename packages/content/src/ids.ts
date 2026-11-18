@@ -23,6 +23,19 @@ export const BUILDING_IDS = [
   'barracks',
   'chapel',
 ] as const;
+/** Relíquias únicas do Apêndice D; os ids ficam no estado. */
+export const RELIC_IDS = [
+  'ancestralHorn',
+  'oakHeart',
+  'watchersEye',
+  'ancientKingsSeal',
+  'wolfBone',
+  'hermitsLamp',
+  'saltStone',
+  'wintersCloak',
+] as const;
+export type RelicId = (typeof RELIC_IDS)[number];
+
 export type BuildingId = (typeof BUILDING_IDS)[number];
 
 /**

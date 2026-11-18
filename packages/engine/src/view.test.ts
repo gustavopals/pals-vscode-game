@@ -661,7 +661,7 @@ describe('golden do ViewState', () => {
       Object.entries(golden).map(([name, state]) => [
         name,
         {
-          ...state,
+          ...Object.fromEntries(Object.entries(state).filter(([key]) => key !== 'relics')),
           constructions: {
             ...state.constructions,
             available: state.constructions.available.filter((entry) => entry.building !== 'chapel'),

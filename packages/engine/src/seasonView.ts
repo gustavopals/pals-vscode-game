@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import { balance, type Ratio, RESOURCE_IDS, type SeasonDef } from '@lotg/content';
 
 import {
@@ -252,7 +254,15 @@ function producedBetween(
   const turn = nextDayBoundary(state.lastProcessedAt);
   const afterTurn: GameState = {
     ...state,
-    settlement: { ...state.settlement, morale: nextMorale },
+    settlement: {
+      ...state.settlement,
+      morale: nextMorale,
+      relics: state.settlement.relics.map((item) =>
+        item.placed && item.effectiveFromMs !== null && item.effectiveFromMs <= turn
+          ? { ...item, effectiveFromMs: state.lastProcessedAt }
+          : item,
+      ),
+    },
   };
   const ends = state.settlement.adaptation
     .filter((cohort) => cohort.building === building)
@@ -307,7 +317,7 @@ function producedUntil(stretches: readonly ProductionStretch[], atMs: number): n
  */
 function neededBeforeEnd(
   stretches: readonly ProductionStretch[],
-  burned: number,
+  burned: (atMs: number) => number,
   taken: readonly WoodTaken[],
 ): number {
   const fromMs = stretches[0]?.fromMs ?? 0;
@@ -319,7 +329,7 @@ function neededBeforeEnd(
   ];
   let worst = 0;
   for (const atMs of moments) {
-    const behind = Math.ceil((burned * (atMs - fromMs) - producedUntil(stretches, atMs)) / HOUR_MS);
+    const behind = Math.ceil((burned(atMs) - producedUntil(stretches, atMs)) / HOUR_MS);
     const gone = taken.reduce((sum, start) => (start.atMs <= atMs ? sum + start.milli : sum), 0);
     worst = Math.max(worst, behind + gone);
   }
@@ -383,8 +393,20 @@ function countFirewood(
 ): FirewoodCount {
   const { timeScale, nextMorale } = context;
   const producer = producerOf('wood');
-  const burned = firewoodRate(state, season);
-  const winterTotal = Math.ceil((burned * (toMs - fromMs)) / HOUR_MS / MILLI);
+  const atStartTime =
+    fromMs > state.lastProcessedAt ? { ...state, lastProcessedAt: fromMs } : state;
+  const burned = firewoodRate(atStartTime, season);
+  const cloakAt =
+    state.settlement.relics.find((item) => item.defId === 'wintersCloak' && item.placed)
+      ?.effectiveFromMs ?? Infinity;
+  const cut = Math.max(fromMs, Math.min(toMs, cloakAt));
+  const laterBurned =
+    cloakAt > state.lastProcessedAt && cloakAt < toMs
+      ? firewoodRate({ ...state, lastProcessedAt: cloakAt }, season)
+      : burned;
+  const burnedUntil = (atMs: number) =>
+    burned * (Math.min(atMs, cut) - fromMs) + laterBurned * Math.max(0, atMs - cut);
+  const winterTotal = Math.ceil(burnedUntil(toMs) / HOUR_MS / MILLI);
   const stretches = producedBetween(state, producer, season, fromMs, toMs, nextMorale);
   const winterProduction = Math.floor(producedUntil(stretches, toMs) / HOUR_MS / MILLI);
   const stockMilli = state.settlement.resources.wood;
@@ -397,7 +419,7 @@ function countFirewood(
   const atEnd = Math.max(0, winterTotal - winterProduction - (stock + gathered - reserved.units));
   const before = Math.max(
     0,
-    Math.ceil((neededBeforeEnd(stretches, burned, reserved.starts) - foundMilli) / MILLI),
+    Math.ceil((neededBeforeEnd(stretches, burnedUntil, reserved.starts) - foundMilli) / MILLI),
   );
   return {
     numbers: {
@@ -511,7 +533,7 @@ export function firewoodForecast(
     startsMs,
     firewood: {
       ...count.numbers,
-      text: `${sentenceCase(seasonWithArticle(season))} vai queimar ${count.numbers.winterTotal} de ${wood} com ${people}. ${firewoodSums(count)}`,
+      text: `${sentenceCase(seasonWithArticle(season))} vai queimar ${count.numbers.winterTotal} de ${wood} com ${people}. ${firewoodSums(count)}${relicIsActive(state, 'wintersCloak', startsMs) ? ` ${relics.wintersCloak.label}: lenha × ${decimal(relics.wintersCloak.firewood.num / relics.wintersCloak.firewood.den)}.` : ''}`,
     },
   };
 }
@@ -621,7 +643,7 @@ export function winterView(
   const wood = balance.resources.wood.label.toLowerCase();
   const firewood: FirewoodView = {
     ...numbers,
-    text: `Até ${seasonWithArticle(next)} a lareira ainda queima ${numbers.winterTotal} de ${wood}. ${firewoodSums(count)}`,
+    text: `Até ${seasonWithArticle(next)} a lareira ainda queima ${numbers.winterTotal} de ${wood}. ${firewoodSums(count)}${relicIsActive(state, 'wintersCloak') ? ` ${relics.wintersCloak.label}: lenha × ${decimal(relics.wintersCloak.firewood.num / relics.wintersCloak.firewood.den)}.` : ''}`,
   };
 
   const { cold } = state.settlement;

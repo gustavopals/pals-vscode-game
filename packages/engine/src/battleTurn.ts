@@ -1,3 +1,4 @@
+import { battleRelicModifiers } from './relics';
 import { balance } from '@lotg/content';
 
 import { resolveBattle, type BattleInput, type BattleResolution } from './battle';
@@ -24,7 +25,10 @@ export function fightBattle(
   const id = nextId(draft, 'battle');
   const stream = entityStream('battle', id);
   const { min, max } = balance.battle.luck;
-  const resolution = resolveBattle(input, () => min + nextInt(draft, stream, max - min + 1));
+  const resolution = resolveBattle(
+    { ...input, ...battleRelicModifiers(draft) },
+    () => min + nextInt(draft, stream, max - min + 1),
+  );
   dropStream(draft, stream);
   return { id, resolution };
 }

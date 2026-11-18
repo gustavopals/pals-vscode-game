@@ -606,6 +606,7 @@ export type GameState = {
      * Vigia nascem assim).
      */
     buildings: Record<BuildingId, number>;
+    relics: Relic[];
     /**
      * Uma posição por fila de obra, sempre `balance.construction.queues` delas; `null` é fila
      * livre. A segunda só recebe obra depois que o Salão chega ao nível que a abre (GDD §6.3):
@@ -1066,7 +1067,29 @@ export type SiegeView = {
 /** Alias mantido para os consumidores do motor anteriores à T2.7. */
 export type EngineViewState = ViewState;
 
+export type Relic = {
+  defId: import('@lotg/content').RelicId;
+  placed: boolean;
+  effectiveFromMs: number | null;
+};
+export type RelicView = {
+  relicId: import('@lotg/content').RelicId;
+  label: string;
+  effectText: string;
+  placed: boolean;
+  active: boolean;
+  effectiveInSeconds: number | null;
+  effectiveText: string | null;
+  canPlace: boolean;
+  canRemove: boolean;
+  blockedCode: RejectionCode | null;
+  blockedReason: string | null;
+};
+export type RelicsView = { slots: number; items: RelicView[] };
+
 export type Command =
+  | { commandId: string; type: 'placeRelic'; payload: { relicId: string } }
+  | { commandId: string; type: 'removeRelic'; payload: { relicId: string } }
   | SiegeCommand
   | { commandId: string; type: 'setVigilHour'; payload: { hourLocal: number; timezone: string } }
   | {
@@ -1232,6 +1255,11 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'CHAPEL_REQUIRED',
+  'RELIC_NOT_FOUND',
+  'NO_RELIC_SLOT',
+  'RELIC_ALREADY_PLACED',
+  'RELIC_NOT_PLACED',
   'ARMY_AWAY',
   'CAMP_NOT_FOUND',
   'NO_SOLDIERS',
@@ -3065,6 +3093,7 @@ export type ViewState = {
   threat: ThreatView;
   /** Os heróis a serviço do feudo e o soldo deles. */
   guild: GuildView;
+  relics: RelicsView;
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernView;
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */

@@ -1,3 +1,6 @@
+import { relics } from '@lotg/content';
+import { relicIsActive } from './relics';
+import { relicsView } from './relicsView';
 import { siegeView } from './siegeView';
 import {
   balance,
@@ -151,7 +154,9 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   const firewood = firewoodRate(state);
   if (resource === 'wood' && firewood > 0) {
     const burned = decimal((firewood * timeScale) / MILLI);
-    parts.push(`−${burned}/h (lenha de ${plural(villagers, 'habitante', 'habitantes')})`);
+    parts.push(
+      `−${burned}/h (lenha de ${plural(villagers, 'habitante', 'habitantes')}${relicIsActive(state, 'wintersCloak') ? ` × ${decimal(relics.wintersCloak.firewood.num / relics.wintersCloak.firewood.den)} (${relics.wintersCloak.label})` : ''})`,
+    );
   }
   const wages = wageRate(state);
   if (resource === 'gold' && wages > 0) {
@@ -511,6 +516,7 @@ export function deriveViewState(
     tavern: tavernView(state, timeScale),
     market: marketView(state, timeScale),
     smithy: smithyView(state, timeScale),
+    relics: relicsView(state, timeScale),
     army: armyView(state, timeScale),
     siege: siege.siege,
     masters: mastersView(state, timeScale),

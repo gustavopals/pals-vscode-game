@@ -168,6 +168,8 @@ function blockingDepots(view: ViewState): BuildingId[] {
  */
 function sideBuildings(view: ViewState): Set<BuildingId | null> {
   return new Set([
+    // Fase B: a Capela só entra nas políticas na Fase H; preserve a corrida da v0.4.
+    'chapel',
     ...depotsOf(view),
     view.threat.watchtower.building,
     view.threat.defense.building,
@@ -190,7 +192,8 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
 function inTheRace(view: ViewState): Upgrade[] {
   return view.constructions.available.filter(
     (upgrade) =>
-      (upgrade.building !== view.guild.building &&
+      (upgrade.building !== 'chapel' &&
+        upgrade.building !== view.guild.building &&
         upgrade.building !== view.market.building &&
         upgrade.building !== view.smithy.building &&
         upgrade.building !== view.army.building) ||

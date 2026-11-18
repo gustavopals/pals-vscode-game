@@ -123,7 +123,8 @@
   },
   "wallRepair": null,
   "militia": null,
-  "reconstructionUntilMs": null
+  "reconstructionUntilMs": null,
+  "relics": []
  },
  "objectives": {
   "active": [

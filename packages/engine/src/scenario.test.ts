@@ -13,9 +13,25 @@ describe('cenário golden de 7 dias', () => {
     expect(days.every(({ state }) => Object.keys(state.map.expeditionUnlocks).length === 0)).toBe(
       true,
     );
-    await expect(`${JSON.stringify({ orders, days, events }, null, 1)}\n`).toMatchFileSnapshot(
-      './__golden__/scenario-7-days.json',
-    );
+    // Compare o mesmo contrato da v42: só a versão e as adições da fase saem da projeção.
+    const previousDays = days.map((day) => ({
+      ...day,
+      state: {
+        ...day.state,
+        schemaVersion: 42,
+        settlement: {
+          ...Object.fromEntries(
+            Object.entries(day.state.settlement).filter(([key]) => key !== 'relics'),
+          ),
+          buildings: Object.fromEntries(
+            Object.entries(day.state.settlement.buildings).filter(([key]) => key !== 'chapel'),
+          ),
+        },
+      },
+    }));
+    await expect(
+      `${JSON.stringify({ orders, days: previousDays, events }, null, 1)}\n`,
+    ).toMatchFileSnapshot('./__golden__/scenario-7-days.json');
   });
 
   it('rodar duas vezes dá exatamente o mesmo resultado', () => {

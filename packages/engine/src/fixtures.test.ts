@@ -89,6 +89,17 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  relics: () => {
+    const state = gameAt(SUMMER);
+    state.settlement.buildings.townHall = 5;
+    state.settlement.buildings.chapel = 3;
+    state.settlement.relics = [
+      { defId: 'oakHeart', placed: true, effectiveFromMs: SUMMER },
+      { defId: 'hermitsLamp', placed: true, effectiveFromMs: SUMMER + DAY },
+      { defId: 'saltStone', placed: false, effectiveFromMs: null },
+    ];
+    return state;
+  },
   chapel: () => {
     const state = newGame();
     state.settlement.buildings.townHall = 5;

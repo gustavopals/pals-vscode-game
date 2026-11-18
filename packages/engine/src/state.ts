@@ -58,6 +58,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
       population: { villagers: balance.initial.villagers },
       workers: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       buildings: levels,
+      relics: [],
       constructionQueues: Array.from({ length: balance.construction.queues }, () => null),
       wall: { hp: wallFullHp(levels.palisade) },
       wallRepair: null,

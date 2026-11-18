@@ -14,6 +14,8 @@ export { deriveViewState, type ViewOptions } from './view';
 export { REJECTION_CODES } from './types';
 export type {
   ActiveConstructionView,
+  RelicView,
+  RelicsView,
   BuildingId,
   Command,
   CommandResult,

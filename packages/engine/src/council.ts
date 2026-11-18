@@ -1,3 +1,4 @@
+import { crownGoldFactor } from './relics';
 import { healingDurationMs } from './chapel';
 import { unlockExpedition } from './expeditionUnlocks';
 import { canDepartNow } from './formations';
@@ -552,7 +553,13 @@ export function applyEffects(
         break;
       case 'resourcesPercent': {
         const stock = settlement.resources[effect.resource];
-        const amount = Math.floor((stock * Math.abs(effect.ratio.num)) / effect.ratio.den);
+        const requested = Math.floor((stock * Math.abs(effect.ratio.num)) / effect.ratio.den);
+        const factor =
+          effect.resource === 'gold' && effect.ratio.num < 0
+            ? crownGoldFactor(draft, source.card.id, atMs)
+            : null;
+        const amount =
+          factor === null ? requested : Math.floor((requested * factor.num) / factor.den);
         if (effect.ratio.num < 0) {
           settlement.resources[effect.resource] -= amount;
           outcome.spent[effect.resource] += amount;

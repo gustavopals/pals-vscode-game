@@ -1,3 +1,4 @@
+import { activateRelics } from './relics';
 import { expireExpeditionUnlocks } from './expeditionUnlocks';
 import { balance } from '@lotg/content';
 
@@ -91,6 +92,7 @@ function processCalendar(
     );
   }
   emit(events, draft, atMs, 'dayStarted', { dayOfYear: date.dayOfYear });
+  activateRelics(draft, atMs);
   // O dia virou: cada ofício conta a experiência com quem está no edifício agora.
   tallyCraftExperience(draft, atMs, events);
   // Depois a moral: o recálculo, os sorteios de chegada e de partida e a deserção por fome.

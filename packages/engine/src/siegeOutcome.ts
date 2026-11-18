@@ -1,3 +1,4 @@
+import { settleRelicSlots } from './relicOrders';
 import { balance, BUILDING_IDS, RESOURCE_IDS, siegeTexts } from '@lotg/content';
 
 import { emit } from './chronicle';
@@ -63,7 +64,10 @@ export function finishSiege(draft: GameState, atMs: number, events: GameEvent[])
     waves: siege.current,
     deaths: siege.deaths,
   };
-  if (result === 'fall') Object.assign(data, applySiegeFall(draft, atMs));
+  if (result === 'fall') {
+    Object.assign(data, applySiegeFall(draft, atMs));
+    settleRelicSlots(draft, atMs, events);
+  }
   data.deaths = siege.deaths;
   delete draft.map.tiles.hordeFortress;
   if (result === 'glorious') {

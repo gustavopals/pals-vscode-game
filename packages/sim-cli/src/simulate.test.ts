@@ -5,6 +5,8 @@ import {
   masters,
   masterTemplates,
   balance,
+  relics,
+  relicTexts,
   buildings,
   chronicleTemplates,
   coldReliefs,
@@ -80,7 +82,7 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,iron,weapons,soldiers,soldiers_by_unit,training_batches,army_food,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,iron_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,barracks,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,guild,market,smithy,barracks,chapel,' +
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
@@ -643,6 +645,8 @@ describe('resumo de uma partida', () => {
         .update(
           canonicalJson({
             balance,
+            relics,
+            relicTexts,
             buildings,
             objectives,
             chronicleTemplates,

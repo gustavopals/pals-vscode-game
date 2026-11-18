@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { currentShape, migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { settings } from './test-helpers';
 
@@ -16,7 +16,7 @@ describe('passo 40 → 41 do lote 3', () => {
     const before = old();
     const frozen = JSON.stringify(before);
     const state = migrateState(before, { timeScale: 1 });
-    expect(state.schemaVersion).toBe(42);
+    expect(state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(state.council.bonuses).toEqual({
       smithySpeed: null,
       smithyBatch: null,

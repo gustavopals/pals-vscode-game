@@ -82,6 +82,8 @@ describe('V4G-T5.1 · limites do Cerco', () => {
     template.clock.gameTimeMs = at;
     const historical = JSON.parse(JSON.stringify(template));
     historical.schemaVersion = 39;
+    delete historical.settlement.relics;
+    delete historical.settlement.buildings.chapel;
     delete historical.siege;
     delete historical.settlement.militia;
     delete historical.settlement.reconstructionUntilMs;

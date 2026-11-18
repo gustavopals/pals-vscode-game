@@ -1,3 +1,4 @@
+import { battleRelicModifiers } from './relics';
 import {
   balance,
   hordeBaseMix,
@@ -100,6 +101,9 @@ export function formationSignature(
       ),
       WING_IDS.map((wing) => formation.commanders[wing]),
       used.map((unit) => [unit, availableUnits(state)[unit]]),
+      ...(Object.keys(battleRelicModifiers(state)).length === 0
+        ? []
+        : [battleRelicModifiers(state)]),
       watchtowerLevel(state),
       WING_IDS.map((wing) => state.settlement.wall.hp[wing]),
       siegeWave === undefined
@@ -249,6 +253,7 @@ export function previewInputFor(
         : { heroId: hero.id, heroClass: hero.classId };
   }
   return {
+    ...battleRelicModifiers(state),
     seed: state.seed,
     formationId: formation.id,
     season: seasonAt(state.lastProcessedAt).id,

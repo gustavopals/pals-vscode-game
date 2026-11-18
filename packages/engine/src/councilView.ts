@@ -1,3 +1,5 @@
+import { crownGoldFactor } from './relics';
+import { relics } from '@lotg/content';
 import { healingDurationMs } from './chapel';
 import {
   balance,
@@ -110,6 +112,7 @@ function effectsText(
   option: CouncilOption,
   timeScale: number,
   heroes: readonly CouncilHero[] = [],
+  cardId?: string,
 ): string {
   const parts = positiveEntries(councilOptionCost(state, option)).map(
     ([resource, amount]) => `−${thousands(amount)} ${resourceName(resource)}`,
@@ -130,8 +133,17 @@ function effectsText(
           : `reduz à metade o tempo restante do ferimento de ${heroes[0]?.name ?? 'quem está ferido'}`,
       );
     } else if (effect.type === 'resourcesPercent') {
+      const factor =
+        effect.resource === 'gold' && effect.ratio.num < 0 ? crownGoldFactor(state, cardId) : null;
+      const percent =
+        ((Math.abs(effect.ratio.num) * 100) / effect.ratio.den) *
+        (factor === null ? 1 : factor.num / factor.den);
+      const term =
+        factor === null
+          ? ''
+          : ` (${relics.ancientKingsSeal.label}: × ${decimal(factor.num / factor.den)})`;
       parts.push(
-        `${effect.ratio.num < 0 ? '−' : '+'}${decimal((Math.abs(effect.ratio.num) * 100) / effect.ratio.den)}% do estoque de ${resourceName(effect.resource)} na resolução`,
+        `${effect.ratio.num < 0 ? '−' : '+'}${decimal(percent)}% do estoque de ${resourceName(effect.resource)} na resolução${term}`,
       );
     } else if (effect.type === 'marketPrice') {
       const change = ((effect.factor.num - effect.factor.den) * 100) / effect.factor.den;
@@ -215,6 +227,7 @@ function optionView(
   option: CouncilOption,
   timeScale: number,
   heroes?: readonly CouncilHero[],
+  cardId?: string,
 ): CouncilOptionView {
   const cost = costView(state, councilOptionCost(state, option));
   const lock = optionLock(state, option);
@@ -225,7 +238,7 @@ function optionView(
     affordable: cost.every((entry) => entry.missing === 0),
     locked: lock !== null,
     lockedReason: lock === null ? null : `${sentenceCase(lock)}.`,
-    effectsText: effectsText(state, option, timeScale, heroes),
+    effectsText: effectsText(state, option, timeScale, heroes, cardId),
     hint: option.hint,
   };
 }
@@ -294,7 +307,7 @@ export function councilView(
       followsFrom: followsFrom(entry, catalog),
       options: card.options
         .filter((option) => optionVisible(state, option))
-        .map((option) => optionView(state, option, timeScale, entry.heroes)),
+        .map((option) => optionView(state, option, timeScale, entry.heroes, card.id)),
     });
   }
 

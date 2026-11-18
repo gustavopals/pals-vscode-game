@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   BUILDING_IDS,
@@ -70,6 +72,12 @@ function capBreakdown(state: GameState, resource: ResourceId): string | null {
       : `${thousands(units)} iniciais`;
   const difficulty = balance.difficulties[state.settings.difficulty];
   const { num, den } = difficulty.storageCapacity;
+  const relicTerm =
+    resource === 'food' && relicIsActive(state, 'saltStone')
+      ? ` × ${decimal(relics.saltStone.foodCapacity.num / relics.saltStone.foodCapacity.den)} (${relics.saltStone.label})`
+      : '';
+  if (relicTerm !== '')
+    return `${source} × ${decimal(num / den)} (${difficulty.label})${relicTerm} = ${thousands(cap / MILLI)}`;
   return num === den
     ? source
     : `${source} × ${decimal(num / den)} (${difficulty.label}) = ${thousands(cap / MILLI)}`;
@@ -98,6 +106,20 @@ function nextRateChange(
   const next = seasonAfter(season);
   const burns = season.effects.firewoodPerVillagerPerHour;
   const changes: RateChange[] = [];
+  for (const item of state.settlement.relics) {
+    if (
+      item.placed &&
+      item.effectiveFromMs !== null &&
+      item.effectiveFromMs > now &&
+      ((resource === 'wood' && (item.defId === 'oakHeart' || item.defId === 'wintersCloak')) ||
+        (resource === 'food' && item.defId === 'saltStone'))
+    ) {
+      changes.push({
+        atMs: item.effectiveFromMs,
+        before: `de ${relics[item.defId].label} entrar em vigor`,
+      });
+    }
+  }
 
   const seasonMoves =
     !sameRatio(season.effects.production[resource], next.effects.production[resource]) ||

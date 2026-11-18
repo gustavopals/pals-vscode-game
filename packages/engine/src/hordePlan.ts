@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   hordeTiles,
@@ -344,7 +346,13 @@ export function turnOmens(draft: GameState, atMs: number, events: GameEvent[]): 
 export function revealOmen(draft: GameState, wave: Wave, atMs: number, events: GameEvent[]): void {
   const plan = draft.horde.wavePlan;
   if (plan === null) return;
-  const clarity = omenClarity(Math.max(1, watchtowerLevel(draft)));
+  const clarity = omenClarity(
+    Math.max(
+      1,
+      watchtowerLevel(draft),
+      relicIsActive(draft, 'watchersEye', atMs) ? relics.watchersEye.clarityLevel : 0,
+    ),
+  );
   const composition: Partial<Record<HordeUnitId, number>> = {};
   for (const post of wave.composition)
     composition[post.unit] = (composition[post.unit] ?? 0) + post.count;

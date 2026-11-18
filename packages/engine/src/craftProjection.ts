@@ -157,7 +157,12 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
   let at = state.lastProcessedAt;
   for (;;) {
     const rates = netRates(current);
-    const settled = craftSettled(current) && moraleSettled(current, at);
+    const relicTurn = Math.min(
+      ...current.settlement.relics
+        .filter((item) => item.placed && item.effectiveFromMs !== null && item.effectiveFromMs > at)
+        .map((item) => item.effectiveFromMs!),
+    );
+    const settled = craftSettled(current) && moraleSettled(current, at) && relicTurn === Infinity;
     const scarce =
       at +
       Math.min(
@@ -175,6 +180,7 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
       return stretches;
     }
     const step = Math.min(
+      relicTurn,
       goldOut,
       settled
         ? // Nenhuma virada muda nada até lá: o trecho vai direto ao instante em que algo acaba.
@@ -194,6 +200,14 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
     stretches.push({ atMs: at, state: current, rates, untilMs: until });
     const next = fork(current);
     applyContinuous(next, until - at);
+    if (until === relicTurn) {
+      // A projeção congela a estação; só antecipa a ativação já conhecida na cópia.
+      next.settlement.relics = next.settlement.relics.map((item) =>
+        item.placed && item.effectiveFromMs !== null && item.effectiveFromMs <= until
+          ? { ...item, effectiveFromMs: current.lastProcessedAt }
+          : item,
+      );
+    }
     if (until === step) {
       // Na ordem do motor: o ferido que sara volta antes da contagem da virada.
       recoverInjured(next, step, []);

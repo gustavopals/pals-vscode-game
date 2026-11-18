@@ -1,5 +1,7 @@
 import {
   balance,
+  relics,
+  relicTexts,
   buildings,
   caravanTemplates,
   masters,
@@ -71,6 +73,8 @@ import { canonicalJson } from './canonical';
 function hashedContent(): Record<string, unknown> {
   return {
     balance,
+    relics,
+    relicTexts,
     buildings,
     objectives,
     chronicleTemplates,

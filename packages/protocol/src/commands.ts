@@ -346,7 +346,18 @@ export const CallMilitiaCommandSchema = command(
 );
 
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
+export const PlaceRelicCommandSchema = command(
+  'placeRelic',
+  z.strictObject({ relicId: z.string().min(1).max(80) }),
+);
+export const RemoveRelicCommandSchema = command(
+  'removeRelic',
+  z.strictObject({ relicId: z.string().min(1).max(80) }),
+);
+
 export const CommandSchema = z.discriminatedUnion('type', [
+  PlaceRelicCommandSchema,
+  RemoveRelicCommandSchema,
   SetVigilHourCommandSchema,
   SetWorkersCommandSchema,
   StartConstructionCommandSchema,

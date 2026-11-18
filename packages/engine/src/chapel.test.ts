@@ -85,7 +85,14 @@ describe('Capela — V5B-T1', () => {
     const buildings = Object.fromEntries(
       Object.entries(fresh.settlement.buildings).filter(([id]) => id !== 'chapel'),
     );
-    const old = { ...fresh, schemaVersion: 42, settlement: { ...fresh.settlement, buildings } };
+    const old = {
+      ...fresh,
+      schemaVersion: 42,
+      settlement: {
+        ...Object.fromEntries(Object.entries(fresh.settlement).filter(([key]) => key !== 'relics')),
+        buildings,
+      },
+    };
     const snapshot = JSON.stringify(old);
     const migrated = migrateState(old, { timeScale: 1 });
     expect(migrated).toEqual({ ...fresh, migratedAtMs: fresh.lastProcessedAt });

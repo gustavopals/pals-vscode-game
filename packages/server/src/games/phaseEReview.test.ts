@@ -53,6 +53,7 @@ it('9. o pacote de produção não leva números, memória, ondas ou textos esco
   // A mesma lista fechada da auditoria do app: nem identificadores secretos podem entrar.
   const allowed = [
     'BUILDING_IDS',
+    'RELIC_IDS',
     'DIFFICULTY_IDS',
     'ENEMY_IDS',
     'EVENT_TYPES',

@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   buildings,
@@ -167,7 +169,12 @@ export function armyView(state: GameState, timeScale: number): ArmyView {
     })),
     built: level > 0,
     level,
-    text: armyText(state),
+    text: [
+      armyText(state),
+      ...(['ancestralHorn', 'wolfBone', 'watchersEye'] as const)
+        .filter((id) => relicIsActive(state, id))
+        .map((id) => `${relics[id].label}: ${relics[id].effectText}`),
+    ].join(' '),
     total,
     cap: armyCap(state),
     foodText: `${decimal((soldierFoodRate(state) * timeScale) / MILLI)}/h (${plural(total, 'soldado', 'soldados')})`,

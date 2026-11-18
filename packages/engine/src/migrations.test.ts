@@ -239,6 +239,7 @@ function tavernBeforeExtraOffer(state: GameState): Record<string, unknown> {
 function stripComposition(copy: Draft): void {
   // Fase B: a projeção histórica também retira a Capela.
   delete copy.settlement?.buildings?.chapel;
+  delete copy.settlement?.relics;
   // Terceira junção: comparações com formas anteriores removem só os campos posteriores.
   delete copy.army?.campaign;
   delete copy.council?.bonuses;

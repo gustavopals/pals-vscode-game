@@ -39,6 +39,8 @@ describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () 
       old.schemaVersion = 39;
       delete old.siege;
       const settlement = old.settlement as Record<string, unknown>;
+      delete settlement.relics;
+      delete (settlement.buildings as Record<string, unknown>).chapel;
       delete settlement.militia;
       delete settlement.reconstructionUntilMs;
       delete (old.council as Record<string, unknown>).bonuses;

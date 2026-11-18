@@ -8,6 +8,7 @@ import {
   type HeroCaptureRuleId,
   type HordeUnitId,
   type LineId,
+  type Ratio,
   type SeasonId,
   type UnitId,
   type WingId,
@@ -56,6 +57,8 @@ export type PreviewInput = {
   readonly formationId: string;
   /** A estação da incursão provável: decide a composição-base do que não se sabe. */
   readonly season: SeasonId;
+  readonly armyMoraleBonus?: number;
+  readonly wolfAttackFactor?: Ratio;
   readonly mode: 'defense' | 'attack';
   readonly player: {
     readonly posts: BattlePosts<UnitId>;
@@ -196,6 +199,8 @@ function runOnce(input: PreviewInput, words: StreamWords, sampled: Map<string, H
     }
   }
   const battleInput: BattleInput = {
+    ...(input.armyMoraleBonus === undefined ? {} : { armyMoraleBonus: input.armyMoraleBonus }),
+    ...(input.wolfAttackFactor === undefined ? {} : { wolfAttackFactor: input.wolfAttackFactor }),
     mode: input.mode,
     player: input.player,
     horde: { posts: horde },

@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   type BuildingId,
@@ -65,7 +67,11 @@ export function storageCapacity(
   }
   const { num, den } = balance.difficulties[state.settings.difficulty].storageCapacity;
   const units = storeCapacityUnits(store.def, level ?? state.settlement.buildings[store.building]);
-  return Math.floor((units * MILLI * num) / den);
+  const factor =
+    resource === 'food' && relicIsActive(state, 'saltStone')
+      ? relics.saltStone.foodCapacity
+      : { num: 1, den: 1 };
+  return Math.floor((units * MILLI * num * factor.num) / (den * factor.den));
 }
 
 /** O estoque está no limite, ou acima dele (estoque herdado de antes dos limites). */

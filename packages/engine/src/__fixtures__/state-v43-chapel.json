@@ -66,6 +66,7 @@
    "barracks": 0,
    "chapel": 1
   },
+  "relics": [],
   "constructionQueues": [
    null,
    null

@@ -1219,7 +1219,7 @@ export const balance: Balance = {
   chapel: {
     morale: 5,
     healingDuration: { num: 3, den: 4 },
-    effectText: 'Moral +5; ferimentos novos com prazo de cura 25% menor.',
+    effectText: 'Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor.',
   },
   tavern: {
     offersByLevel: [2, 2, 3, 3, 3],

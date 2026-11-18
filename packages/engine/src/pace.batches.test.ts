@@ -173,10 +173,16 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   expect(currentShape(result.state, '')).toBeNull();
   expect(JSON.stringify(result.state)).toBe(serialized);
   const { expeditionUnlocks, ...oldMap } = result.state.map;
+  const previousSettlement = JSON.parse(JSON.stringify(result.state.settlement));
+  delete previousSettlement.relics;
+  delete previousSettlement.buildings.chapel;
   expect(expeditionUnlocks).toEqual({});
-  expect(stateV41({ ...result.state, schemaVersion: 41, map: oldMap }, '')).toBe(
-    'army.training.amount: lote acima do máximo',
-  );
+  expect(
+    stateV41(
+      { ...result.state, schemaVersion: 41, map: oldMap, settlement: previousSettlement },
+      '',
+    ),
+  ).toBe('army.training.amount: lote acima do máximo');
   const invalid = JSON.parse(JSON.stringify(result.state));
   invalid.army.training.amount = 31;
   expect(currentShape(invalid, '')).toBe('army.training.amount: lote acima do máximo');
@@ -243,11 +249,12 @@ it('preserva a reserva da campanha ao validar um exército acima do teto histór
     import: 'default',
     eager: true,
   });
-  const state = JSON.parse(files['./__fixtures__/state-v42-campaign-marching.json']!);
+  const stored = JSON.parse(files['./__fixtures__/state-v42-campaign-marching.json']!);
+  const state = migrateState(stored, { timeScale: stored.settings.timeScale });
   state.settings.timeScale = 3;
   state.settlement.buildings.barracks = 8;
   state.army.units = { spearman: 120, swordsman: 90, archer: 30, knight: 0, shieldbearer: 0 };
-  for (const wing of Object.values(state.army.campaign.formation.posts) as Array<
+  for (const wing of Object.values(state.army.campaign!.formation.posts) as Array<
     Record<string, { count: number } | null>
   >) {
     for (const post of Object.values(wing)) if (post !== null) post.count = 30;

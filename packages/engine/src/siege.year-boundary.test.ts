@@ -57,6 +57,8 @@ describe('V4G-T5.1 · as três ondas precisam caber antes do fechamento anual', 
     template.clock.gameTimeMs = template.lastProcessedAt;
     const historical = JSON.parse(JSON.stringify(template));
     historical.schemaVersion = 39;
+    delete historical.settlement.relics;
+    delete historical.settlement.buildings.chapel;
     delete historical.siege;
     delete historical.settlement.militia;
     delete historical.settlement.reconstructionUntilMs;

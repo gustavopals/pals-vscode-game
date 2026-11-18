@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   buildings,
@@ -45,7 +47,7 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold';
+  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold' | 'relic';
   ratio: Ratio;
   label: string;
 };
@@ -111,6 +113,9 @@ export function productionFactors(
   }
   if (cold) {
     factors.push({ id: 'cold', ratio: balance.winter.cold.productionMultiplier, label: 'frio' });
+  }
+  if (building === 'lumberMill' && relicIsActive(state, 'oakHeart')) {
+    factors.push({ id: 'relic', ratio: relics.oakHeart.production, label: relics.oakHeart.label });
   }
   return factors;
 }
@@ -182,7 +187,10 @@ export function firewoodRate(
   season: SeasonDef = seasonAt(state.lastProcessedAt),
 ): number {
   const { num, den } = season.effects.firewoodPerVillagerPerHour;
-  return Math.floor((inhabitants(state) * MILLI * num) / den);
+  const factor = relicIsActive(state, 'wintersCloak')
+    ? relics.wintersCloak.firewood
+    : { num: 1, den: 1 };
+  return Math.floor((inhabitants(state) * MILLI * num * factor.num) / (den * factor.den));
 }
 
 /** Saldo líquido de cada recurso, em milésimos por hora. */

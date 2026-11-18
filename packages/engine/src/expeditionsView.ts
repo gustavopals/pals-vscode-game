@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   type ExpeditionModelDef,
@@ -186,10 +188,14 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
     return [];
   }
   const now = state.lastProcessedAt;
-  const factor = durationFactorAt(now);
+  const seasonFactor = durationFactorAt(now);
+  const lamp = relicIsActive(state, 'hermitsLamp')
+    ? relics.hermitsLamp.duration
+    : { num: 1, den: 1 };
+  const factor = { num: seasonFactor.num * lamp.num, den: seasonFactor.den * lamp.den };
   const wait = durationText(rules.crossroadsWaitRealMs / SECOND_MS);
   const season = seasonAt(now);
-  const shortened = factor.num !== factor.den;
+  const shortened = seasonFactor.num !== seasonFactor.den;
   const views: ExpeditionOfferView[] = [];
   for (const model of expeditionModels) {
     const variant = model.variants[nextVariant(state, model)];
@@ -198,7 +204,9 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       continue;
     }
     const hasCrossroads = Object.values(variant.nodes).some((node) => node.kind === 'crossroads');
-    const notes: string[] = [];
+    const notes: string[] = relicIsActive(state, 'hermitsLamp')
+      ? [`${relics.hermitsLamp.label}: ${relics.hermitsLamp.effectText}`]
+      : [];
     const untilMs = state.map.expeditionUnlocks[model.id];
     const expiresInSeconds =
       untilMs === undefined ? undefined : realSecondsCeil(Math.max(0, untilMs - now), timeScale);

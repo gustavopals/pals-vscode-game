@@ -1,3 +1,5 @@
+import { relicIsActive } from './relics';
+import { relics } from '@lotg/content';
 import {
   balance,
   buildings,
@@ -622,6 +624,13 @@ export function enterNode(
     return;
   }
   expedition.status = node.kind === 'return' ? 'returning' : 'traveling';
-  expedition.nodeEndsAtMs = atMs + scaledDuration(node.durationMs, expedition.durationFactor);
+  const lamp = relicIsActive(draft, 'hermitsLamp', atMs)
+    ? relics.hermitsLamp.duration
+    : { num: 1, den: 1 };
+  const factor = {
+    num: expedition.durationFactor.num * lamp.num,
+    den: expedition.durationFactor.den * lamp.den,
+  };
+  expedition.nodeEndsAtMs = atMs + scaledDuration(node.durationMs, factor);
   expedition.crossroads = null;
 }

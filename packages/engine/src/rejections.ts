@@ -1,5 +1,6 @@
 import {
   balance,
+  relicTexts,
   buildings,
   campaignTexts,
   expeditionModels,
@@ -58,6 +59,11 @@ export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} $
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
+  CHAPEL_REQUIRED: () => relicTexts.chapelRequired,
+  RELIC_NOT_FOUND: () => relicTexts.notFound,
+  NO_RELIC_SLOT: () => relicTexts.noSlot,
+  RELIC_ALREADY_PLACED: () => relicTexts.alreadyPlaced,
+  RELIC_NOT_PLACED: () => relicTexts.notPlaced,
   SIEGE_NOT_SCHEDULED: () => siegeTexts.notScheduled,
   SIEGE_STARTED: () => siegeTexts.started,
   INVALID_WAVE: () => siegeTexts.invalidWave,

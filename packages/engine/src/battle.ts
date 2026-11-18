@@ -43,6 +43,8 @@ export type BattleCommanderInput = { readonly heroId: string; readonly heroClass
 
 export type BattleInput = {
   /** `defense`: a Horda ataca o feudo (muralha e torres valem); `attack`: o jogador ataca. */
+  readonly armyMoraleBonus?: number;
+  readonly wolfAttackFactor?: Ratio;
   readonly mode: 'defense' | 'attack';
   readonly player: {
     readonly posts: BattlePosts<UnitId | 'militia'>;
@@ -400,6 +402,7 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       morale[playerSide] += aura.morale;
     }
   }
+  morale[playerSide] += input.armyMoraleBonus ?? 0;
   const startMorale = { ...morale };
 
   const alive = (squad: Squad) => squad.count > 0;
@@ -571,6 +574,8 @@ export function resolveBattle(input: BattleInput, luck: LuckSource): BattleResol
       }
     }
     let raw = frac(squad.stats.attack * squad.count);
+    if (squad.side !== playerSide && squad.unit === 'wolf' && input.wolfAttackFactor !== undefined)
+      raw = mul(raw, input.wolfAttackFactor);
     for (const factor of factors) {
       raw = mul(raw, factor.value);
     }

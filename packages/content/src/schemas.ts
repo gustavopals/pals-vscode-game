@@ -2457,3 +2457,15 @@ export const WarRaidsSchema = z
         .reduce((sum, share) => sum + share, 0) === 100,
     'as partes dos postos não somam 100',
   );
+
+/** As oito relíquias e os seus fatores, com os mesmos ids do estado. */
+export const RelicsSchema = z.strictObject({
+  ancestralHorn: z.strictObject({ label, effectText: label, battleMorale: positiveInt }),
+  oakHeart: z.strictObject({ label, effectText: label, production: ratio }),
+  watchersEye: z.strictObject({ label, effectText: label, clarityLevel: positiveInt }),
+  ancientKingsSeal: z.strictObject({ label, effectText: label, crownGold: ratio }),
+  wolfBone: z.strictObject({ label, effectText: label, wolfAttack: ratio }),
+  hermitsLamp: z.strictObject({ label, effectText: label, duration: ratio }),
+  saltStone: z.strictObject({ label, effectText: label, foodCapacity: ratio }),
+  wintersCloak: z.strictObject({ label, effectText: label, firewood: ratio }),
+});

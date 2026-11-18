@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
-import { currentShape, migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape, migrateState } from './migrations';
+import { stateV42 } from './migrations/v42';
 import { stateV41 } from './migrations/v41';
 import { cloneState, createInitialState } from './state';
 import { DAY, settings } from './test-helpers';
@@ -23,8 +24,9 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     expect(Object.keys(currentFixtures)).toHaveLength(63);
     for (const [name, text] of Object.entries(currentFixtures)) {
       const state = JSON.parse(text);
-      expect(currentShape(state, ''), name).toBeNull();
-      expect(migrateState(state, { timeScale: state.settings.timeScale })).toBe(state);
+      expect(stateV42(state, ''), name).toBeNull();
+      const migrated = migrateState(state, { timeScale: state.settings.timeScale });
+      expect(migrateState(migrated, { timeScale: migrated.settings.timeScale })).toBe(migrated);
     }
   });
 
@@ -33,11 +35,16 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     for (const text of Object.values(fixtures)) {
       const before = JSON.parse(text);
       const after = migrateState(before, { timeScale: before.settings.timeScale });
-      expect(after.schemaVersion).toBe(42);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.map.expeditionUnlocks).toEqual({});
       expect(after).toEqual({
         ...before,
-        schemaVersion: 42,
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        settlement: {
+          ...before.settlement,
+          buildings: { ...before.settlement.buildings, chapel: 0 },
+          relics: [],
+        },
         migratedAtMs: before.lastProcessedAt,
         map: { ...before.map, expeditionUnlocks: {} },
       });
@@ -67,6 +74,8 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     const old = JSON.parse(JSON.stringify(state));
     delete old.map.expeditionUnlocks;
     old.schemaVersion = 41;
+    delete old.settlement.relics;
+    delete old.settlement.buildings.chapel;
     expect(stateV41(old, '')).toBeNull();
     expect(stateV41({ ...state, schemaVersion: 41 }, '')).not.toBeNull();
     for (const invalid of [

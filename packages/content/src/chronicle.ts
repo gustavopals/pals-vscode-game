@@ -1,6 +1,9 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'relicFound',
+  'relicPlaced',
+  'relicRemoved',
   'siegeWon',
   'siegeGlorious',
   'siegeFell',
@@ -154,6 +157,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {aldeao}, quem se feriu.
  */
 export const CHRONICLE_PLACEHOLDERS = [
+  'reliquia',
   'pressagio',
   'dia',
   'estacao',
@@ -214,6 +218,13 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  relicFound:
+    'No {dia}º dia {daEstacao}, {feudo} recebeu uma relíquia: {reliquia}. O tesouro foi guardado para a Capela.',
+  relicPlaced:
+    'No {dia}º dia {daEstacao}, {reliquia} ganhou lugar na Capela de {feudo}. Seu efeito vale a partir do próximo amanhecer.',
+  relicRemoved:
+    'No {dia}º dia {daEstacao}, {reliquia} foi retirada da Capela de {feudo}. Seu efeito cessou.',
+
   siegeWon:
     'No {dia}º dia {daEstacao}, {feudo} resistiu ao Cerco do Inverno: Vitória, apesar das brechas.',
   siegeGlorious:

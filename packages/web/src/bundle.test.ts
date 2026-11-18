@@ -16,6 +16,7 @@ import * as content from '../../content/src/index';
  */
 const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'BUILDING_IDS',
+  'RELIC_IDS',
   'DIFFICULTY_IDS',
   'ENEMY_IDS',
   'EVENT_TYPES',
