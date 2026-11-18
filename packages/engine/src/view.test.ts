@@ -195,6 +195,7 @@ describe('deriveViewState', () => {
       'market',
       'smithy',
       'barracks',
+      'chapel',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -655,7 +656,20 @@ describe('golden do ViewState', () => {
       smithyIdle: view(smithyStall(0)),
       smithyForging: view(smithyForgingScenario()),
     };
-    await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
+    // A Capela é uma adição ao contrato: preserve os bytes do golden da v0.4.
+    const previousContract = Object.fromEntries(
+      Object.entries(golden).map(([name, state]) => [
+        name,
+        {
+          ...state,
+          constructions: {
+            ...state.constructions,
+            available: state.constructions.available.filter((entry) => entry.building !== 'chapel'),
+          },
+        },
+      ]),
+    );
+    await expect(`${JSON.stringify(previousContract, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',
     );
   });

@@ -1,3 +1,4 @@
+import { healingDurationMs } from './chapel';
 import { unlockExpedition } from './expeditionUnlocks';
 import { canDepartNow } from './formations';
 import {
@@ -527,7 +528,7 @@ export function applyEffects(
         if (hero !== undefined && freeCouncilHero(hero)) {
           hero.injury = {
             severity: effect.kind,
-            untilMs: atMs + balance.injuries.durationMs[effect.kind],
+            untilMs: atMs + healingDurationMs(draft, balance.injuries.durationMs[effect.kind]),
           };
           hero.status = 'injured';
           draft.stats.heroesInjured = (draft.stats.heroesInjured ?? 0) + 1;

@@ -248,4 +248,14 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 4 },
   },
+  chapel: {
+    label: 'Capela',
+    article: 'a',
+    baseCost: { wood: 200, stone: 300, gold: 200 },
+    baseDurationMs: 30 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 3,
+    produces: null,
+    requires: { townHall: 5 },
+  },
 };

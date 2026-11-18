@@ -735,6 +735,7 @@ const balanceFields = z.strictObject({
   threat,
   raids,
   heroes,
+  chapel: z.strictObject({ morale: positiveInt, healingDuration: ratio, effectText: label }),
   tavern,
   expeditions,
   // Os ferimentos (ADR 0017, decisão 8): o grave dura mais que o leve.
@@ -1030,6 +1031,7 @@ export const BuildingsSchema = z.strictObject({
   market: BuildingSchema,
   smithy: BuildingSchema,
   barracks: BuildingSchema,
+  chapel: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [

@@ -151,6 +151,9 @@ export function moraleTermsAt(state: GameState, atMs: number): MoraleTerm[] {
       terms.push({ id: 'devout', amount, heroName: hero.name });
     }
   }
+  if (settlement.buildings.chapel > 0) {
+    terms.push({ id: 'chapel', amount: balance.chapel.morale });
+  }
   for (const effect of effectsAt(state, atMs)) {
     terms.push({ id: 'effect', amount: effect.amount, effect });
   }

@@ -1,3 +1,4 @@
+import { healingDurationMs } from './chapel';
 import {
   balance,
   type CouncilOption,
@@ -120,7 +121,7 @@ function effectsText(
       );
     } else if (effect.type === 'injureHero') {
       parts.push(
-        `um dos participantes sofre ferimento leve (${durationText(realSecondsCeil(balance.injuries.durationMs.light, timeScale))}) se ainda estiver livre no feudo`,
+        `um dos participantes sofre ferimento leve (${durationText(realSecondsCeil(healingDurationMs(state, balance.injuries.durationMs.light), timeScale))}) se ainda estiver livre no feudo`,
       );
     } else if (effect.type === 'healHero') {
       parts.push(

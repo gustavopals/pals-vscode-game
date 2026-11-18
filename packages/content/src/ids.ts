@@ -21,6 +21,7 @@ export const BUILDING_IDS = [
   'market',
   'smithy',
   'barracks',
+  'chapel',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 
@@ -101,6 +102,7 @@ export const MORALE_TERM_IDS = [
   'cold',
   'tavern',
   'devout',
+  'chapel',
   'effect',
 ] as const;
 export type MoraleTermId = (typeof MORALE_TERM_IDS)[number];

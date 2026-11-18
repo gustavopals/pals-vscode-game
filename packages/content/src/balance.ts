@@ -776,6 +776,11 @@ export type Balance = {
   readonly threat: ThreatDef;
   readonly raids: RaidsDef;
   readonly heroes: HeroesDef;
+  readonly chapel: {
+    readonly morale: number;
+    readonly healingDuration: Ratio;
+    readonly effectText: string;
+  };
   readonly tavern: TavernDef;
   readonly expeditions: ExpeditionsDef;
   readonly injuries: InjuriesDef;
@@ -1211,6 +1216,11 @@ export const balance: Balance = {
   // GDD §5.7, §6.1 e §9.1 (ADR 0017, decisões 4, 5 e 10). 24 h de jogo são 12 dias de jogo: a
   // rotação e o festival duram o mesmo, um dia real no Normal e 8 h no Rápido. O teste de
   // conteúdo confere as contas contra `calendar.dayMs` e a lista contra `buildings.tavern`.
+  chapel: {
+    morale: 5,
+    healingDuration: { num: 3, den: 4 },
+    effectText: 'Moral +5; ferimentos novos com prazo de cura 25% menor.',
+  },
   tavern: {
     offersByLevel: [2, 2, 3, 3, 3],
     rotationMs: 24 * HOUR_MS,

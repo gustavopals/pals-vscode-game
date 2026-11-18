@@ -386,7 +386,7 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Guilda dos Aventureiros | Salão 3 | 4 | Expedições; expedições simultâneas = 1 + nível/2 (arredondado para baixo); gestão de equipamentos. Vai **até o nível 4**, na v0.3 e na v0.4: o 5 daria as mesmas 3 expedições e não mudaria nada que o jogador vê ([ADR 0018](docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), decisão 12; [ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisão 6) | v0.3 |
 | Quartel | Salão 4 | 8 | Treinar soldados (§10.2); limite de exército = 10 × nível × fator de ritmo (R3, §10.2); treino 5% mais rápido por nível; com o Nv5 ou mais, o posto de uma formação comporta 30 (§10.1) | v0.4 |
 | Ferreiro | Salão 4 | 6 | Forja de armas (2 ferro + 1 madeira cada, 6 min de jogo) e reparo de equipamentos (§9.1), **na mesma fila**: um lote por vez, de até 10; a produção é +10% por nível, lida como o tempo × 10/(10 + nível − 1); o custo é cobrado ao começar, e cancelar devolve 80% ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisões 4 e 5) | v0.4 |
-| Capela | Salão 5 | 3 | 1 slot de relíquia por nível; +5 moral; heróis curam 25% mais rápido | v0.5 |
+| Capela | Salão 5 | 3 | 1 slot de relíquia por nível; +5 moral; heróis têm prazo de cura 25% menor (×3/4 ao marcar o ferimento; prazos em curso não mudam) | v0.5 |
 | Posto Avançado (no mapa) | Salão 5 | 3 | Reivindica um tile e produz o recurso dele | v0.5 |
 | Academia | Salão 6 | 5 | Pesquisas (árvore curta, §17.3) | v0.6 |
 

@@ -89,6 +89,12 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  chapel: () => {
+    const state = newGame();
+    state.settlement.buildings.townHall = 5;
+    state.settlement.buildings.chapel = 1;
+    return state;
+  },
   // V4H-T1.4: janela da caçada viva, com a continuação já agendada.
   'white-wolf-window': () => {
     const start = gameAt(AUTUMN + 1234);

@@ -1,3 +1,4 @@
+import { healingDurationMs } from './chapel';
 import {
   balance,
   battleFactorLabels,
@@ -58,7 +59,7 @@ export function applyBattleOutcome(
     }
     if (commander.fate === 'wounded') {
       const severity = commanderSeverity(report, commander.wing);
-      wound(hero, severity, atMs);
+      wound(draft, hero, severity, atMs);
       draft.stats.heroesInjured = (draft.stats.heroesInjured ?? 0) + 1;
       emit(events, draft, atMs, 'commanderInjured', { ...data, severity }, { heroi: hero.name });
     }
@@ -145,14 +146,17 @@ function listText(parts: readonly string[]): string | null {
 
 const SEVERITY_ORDER: readonly InjurySeverityId[] = ['light', 'severe'];
 
-function wound(hero: Hero, severity: InjurySeverityId, atMs: number): void {
+function wound(draft: GameState, hero: Hero, severity: InjurySeverityId, atMs: number): void {
   const before = hero.injury;
   hero.injury = {
     severity:
       before !== null && SEVERITY_ORDER.indexOf(before.severity) > SEVERITY_ORDER.indexOf(severity)
         ? before.severity
         : severity,
-    untilMs: Math.max(atMs + balance.injuries.durationMs[severity], before?.untilMs ?? 0),
+    untilMs: Math.max(
+      atMs + healingDurationMs(draft, balance.injuries.durationMs[severity]),
+      before?.untilMs ?? 0,
+    ),
   };
   if (hero.status === 'idle') {
     hero.status = 'injured';

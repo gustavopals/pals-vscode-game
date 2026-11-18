@@ -1160,6 +1160,7 @@ describe('a visão do armazenamento', () => {
           market: 5,
           smithy: 6,
           barracks: 8,
+          chapel: 3,
         };
         edit(draft);
         draft.settlement.resources.wood = storageCapacity(draft, 'wood') ?? 0;
@@ -1480,6 +1481,7 @@ describe('a visão do armazenamento', () => {
         ]),
       );
     expect(effects(newGame())).toEqual({
+      chapel: balance.chapel.effectText,
       townHall: null,
       farm: null,
       lumberMill: null,
@@ -1529,7 +1531,8 @@ describe('a visão do armazenamento', () => {
         entry.building !== 'guild' &&
         entry.building !== 'market' &&
         entry.building !== 'smithy' &&
-        entry.building !== 'barracks',
+        entry.building !== 'barracks' &&
+        entry.building !== 'chapel',
     );
     expect(depots).toMatchObject([
       {
@@ -2007,6 +2010,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       // Com a madeira-base do Quartel em 150 (resposta do autor à pendência C-1, 2026-10-21),
       // o nível 8 cabe no Armazém no nível 8.
       barracks: 8,
+      chapel: 3,
     };
     const beyondEight = ['farm 10', 'lumberMill 10', 'quarry 10', 'goldMine 10', 'housing 10'];
     expect(ceilings('peasant')).toEqual(hallAtEight);
@@ -2033,6 +2037,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       smithy: 6,
       // O Quartel 8 pede o Salão no nível 7 e o Armazém no 8, que Rei de Ferro não ergue.
       barracks: 7,
+      chapel: 3,
     });
     expect(unreachable('ironKing')).toEqual([
       'townHall 8',

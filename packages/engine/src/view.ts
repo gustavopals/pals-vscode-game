@@ -201,6 +201,7 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
  */
 function upgradeEffect(state: GameState, building: BuildingId, targetLevel: number): string | null {
   return (
+    (building === 'chapel' ? balance.chapel.effectText : null) ??
     storageEffect(state, building, targetLevel) ??
     watchtowerEffect(building, targetLevel) ??
     palisadeEffect(building, targetLevel) ??

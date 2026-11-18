@@ -421,6 +421,7 @@ describe('edifícios', () => {
       ['smithy', 6],
       // 8 no GDD, sem teto de versão (V4C-T1).
       ['barracks', 8],
+      ['chapel', 3],
     ]);
   });
 
@@ -523,6 +524,7 @@ describe('edifícios', () => {
       'market',
       'smithy',
       'barracks',
+      'chapel',
     ]);
   });
 });
@@ -1126,6 +1128,7 @@ describe('moral (GDD §5.6 e §5.7)', () => {
       'cold',
       'tavern',
       'devout',
+      'chapel',
       'effect',
     ]);
   });

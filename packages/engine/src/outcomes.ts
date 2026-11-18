@@ -1,3 +1,4 @@
+import { healingDurationMs } from './chapel';
 import {
   balance,
   type ExpeditionDisasterId,
@@ -105,7 +106,7 @@ export function applyHarm(
   const data = { heroId: hero.id, expeditionId: expedition.id, modelId: expedition.modelId };
   const words = { heroi: hero.name, expedicao: label };
   if (harm.kind === 'light' || harm.kind === 'severe') {
-    const untilMs = atMs + injuries.durationMs[harm.kind];
+    const untilMs = atMs + healingDurationMs(draft, injuries.durationMs[harm.kind]);
     const before = hero.injury;
     hero.injury = {
       severity:

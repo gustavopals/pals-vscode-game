@@ -4,7 +4,7 @@ O motor de Lords of the Guild: funções puras e determinísticas que decidem tu
 
 ## A Horda aprende (v0.4, V4E-T3)
 
-Introduzida no estado **34**; a terceira junção está no estado **42**, protocolo **4**, candidata a **0.4.0**, ainda sem publicação. O passo 33 → 34 preserva
+Introduzida no estado **34**; a terceira junção foi publicada na **0.4.0**, estado **42**, protocolo **4**. A Fase B da v0.5 usa o estado **43**, ainda em desenvolvimento. O passo 33 → 34 preserva
 as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
 não consome sorteios, cria eventos ou recalcula o passado.
 
@@ -183,6 +183,20 @@ Os números são os de `balance.craft` (GDD §5.3 e §5.4; [ADR 0013](../../docs
 - **A fome e o frio que acabam sozinhos** (`relieveScarcity`, em `craftProjection.ts`; `scarcityView.ts`). A projeção encerra, na cópia, a fome e o frio que as taxas já não sustentam, no mesmo passo em que `settleScarcity` os encerraria no motor: quando a leva em adaptação passa a render inteiro, ou quando a virada do dia muda a moral ou a experiência. Dali em diante os trechos seguem sem a penalidade, e `CraftOutlook` leva `famineEndsIn` e `coldEndsIn` (só dentro da estação de agora). Para essa pergunta a projeção não para quando a comida ou a lenha acabam, como faz para as outras previsões ("cheio em", a espera das planejadas, o feudo da próxima virada de estação): atravessa o instante como o motor (`stretchesOf(state, true)`, com `settleIndicators`, a conferência de `settleScarcity` sem a Crônica), abrindo a outra escassez na cópia, e segue mesmo com o ofício e a moral acomodados, enquanto houver comida ou lenha por acabar. Sem isso, a virada que derruba a moral e faz a lenha acabar minutos antes de os lavradores renderem inteiro escondia o fim da fome, e a tela voltava a mandar pôr gente na Fazenda. Na visão viram `famine.endsInSeconds` e `winter.cold.endsInSeconds`, uma frase a mais no texto de cada um ("Os lavradores ainda se adaptam: em 2 h rendem inteiro, a comida volta a sobrar e a fome acaba. Não é preciso mexer neles.") e o conselho da moral, que deixa de pedir gente onde já há gente que basta. `scarcityView.property.test.ts` confere contra o motor: com prazo, a fome e o frio acabam naquele segundo; sem prazo, não acabam antes de a estação virar. Os contraexemplos que ela já achou ficam lá como casos fixos (`examples` e um teste para cada).
 - **"Acaba em" atravessa a outra escassez** (`scarcityOpenings` e `opensIn`, em `craftProjection.ts`). `depletesInSeconds` da comida e da madeira é o instante em que a fome e o frio abrem na mesma projeção que atravessa a escassez: no inverno, a lenha que acaba antes abre o frio na cópia, a Fazenda rende menos e a moral cai, e a comida acaba mais cedo por isso; no caminho oposto, a fome corta a Serraria que cobria a lareira, e a madeira ganha prazo com o saldo de agora ainda positivo. A projeção que parava na primeira escassez deixava a segunda sem prazo (`docs/pendencias-v0.2.md`, C-8). Dois cuidados: no feudo em que a projeção comum não vê nada acabando, a segunda nem é feita; e a escassez que abre **depois** de outra só tem prazo dentro da estação de agora (a projeção não vira a estação, e o frio da cópia não acaba na primavera). Como toda previsão, não conta com quem chega nem com quem parte: a fome longa que faz desertar muda as bocas e a lareira. `seasonView.property.test.ts` confere contra o motor: com prazo, a fome e o frio começam naquele segundo, mesmo depois de a outra abrir; sem prazo, não começam antes de a estação virar.
 - **A comida do outro lado da virada** (`foodForecast`, em `seasonView.ts`; na visão, `calendar.nextSeason.food`). `depletesInSeconds` é a conta pela estação de agora: no outono, com a Fazenda rendendo mais, ele se cala, e é o inverno que esvazia a despensa. A previsão faz a projeção do ofício duas vezes: até a virada, com os fatores de agora (`craftForecast(...).stateAt(virada)` dá o estoque, a experiência e a moral que ela deve encontrar), e de novo a partir dela, com o relógio da cópia posto na virada (a estação já é a outra, e `settleScarcity` abre ou fecha a fome e o frio como o motor faria), até a comida acabar ou a estação terminar. Sai `{ perHour, stockAtTurn, depletesInSeconds, text }`: o saldo logo depois da virada, o que ela encontra no estoque, os segundos reais **a contar de agora** até a comida acabar (`null` quando ela cresce ou atravessa a estação, e quando a lenha acaba antes dela: com o frio a conta é outra) e a frase. A previsão inteira é `null` com fome aberta e quando a comida ou a lenha acabam antes da virada: aí o alarme é o da estação de agora. Como toda previsão, conta com os habitantes e os trabalhadores de agora e não sorteia nada; um teste confere, em quatro ritmos, que a fome do motor nunca chega antes do prazo anunciado.
+
+## Capela (v0.5, V5B-T1)
+
+Estado 43: `settlement.buildings.chapel` nasce em zero e migra assim de v42,
+sem tocar em ferimentos, recursos, gerador ou prazos. Exige Salão Nv5; custa
+200 madeira, 300 pedra e 200 ouro, leva 30 min na primeira obra e chega ao Nv3.
+Segue a fila e os eventos existentes de construção. O bônus fixo de +5 entra
+como termo "Capela" na próxima conta da moral, independentemente do nível.
+
+A cura tem prazo ×3/4 (arredondado para cima em ms), aplicado **ao marcar** cada
+ferimento de herói: expedição, batalha e carta. Construir ou
+melhorar a Capela preserva `untilMs` de ferimentos em curso. Conclusões de obra
+continuam antes das curas e dos demais eventos no mesmo instante: um ferimento
+marcado depois da conclusão já recebe o fator. Não há sorteio nem evento novo.
 
 ## Moral
 
@@ -678,7 +692,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 42):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 43):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -730,6 +744,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 40 | V4G-T2 | Cerco, milícia e reconstrução: passo efetivo 39 → 40 (o roadmap previa 35 → 36), com `siege`, `settlement.militia` e `settlement.reconstructionUntilMs` inicialmente nulos; a linha do tempo agenda na primeira virada de outono/inverno, sem sorteio ou prazo na migração. |
 | 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
+| 43 | V5B-T1 (Fase B) | Capela por construir (`chapel: 0`), sem recalcular ferimentos nem mudar sorteios. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -757,7 +772,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 
 ### Uma mecânica que muda o estado sobe a versão
 
-A regra é: **um passo por versão, uma versão por tarefa que muda a forma do estado**. Campo novo, campo que sai, campo que muda de significado ou edifício novo em `buildings`: tudo isso é versão nova, mesmo que pareça pequeno. Sem o passo, a partida de quem já joga chega ao código novo sem o campo e quebra no meio de um `advanceTo`.
+A regra é: **um passo por versão; na v0.5, uma versão por fase publicada (ADR 0022, D-4): toda a Fase B usa v43**. Campo novo, campo que sai, campo que muda de significado ou edifício novo em `buildings`: tudo isso é versão nova, mesmo que pareça pequeno. Sem o passo, a partida de quem já joga chega ao código novo sem o campo e quebra no meio de um `advanceTo`.
 
 1. **Antes de tocar no tipo**, rode os testes: `fixtures.test.ts` mantém `__fixtures__/state-v<atual>-*.json` em dia com o motor, como goldens. São esses arquivos que vão virar a entrada do seu passo. Se a mecânica anterior deixou no estado algo que nenhum cenário de `fixtures.test.ts` exercita, acrescente um cenário **antes** de subir a versão.
 2. Em `types.ts`, mude o `GameState` e suba o literal de `schemaVersion`; em `migrations.ts`, suba `CURRENT_SCHEMA_VERSION`. `createInitialState` passa a escrever a versão nova, com os valores iniciais da mecânica.
@@ -800,7 +815,7 @@ em [docs/reviews](../../docs/reviews/); provas e limites por critério em
 Continuam ausentes prévia ofensiva do Acampamento, vínculo persistido de relatório
 por onda e discriminação das perdas da Queda na visão (G-23); dispensar/ensinar
 com Mestre, compra ou segundo destino de caravana, venda de item, mapa gráfico,
-postos avançados, Capela, relíquias/plantas, Veio de Ferro, Legado, Votos e Temporadas.
+postos avançados, relíquias/plantas, Veio de Ferro, Legado, Votos e Temporadas.
 As previsões de estoques/moral não antecipam incursões, Cerco ou sorteios ocultos.
 
 ### Hora da Vigília (V4G-T1)

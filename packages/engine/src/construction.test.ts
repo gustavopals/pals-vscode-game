@@ -409,6 +409,7 @@ describe('cancelar', () => {
           market: 3,
           smithy: 3,
           barracks: 3,
+          chapel: 0,
         };
         draft.settlement.reconstructionUntilMs = draft.lastProcessedAt + 2 * DAY;
         draft.objectives = { active: [], completed: objectives.map((o) => o.id) };

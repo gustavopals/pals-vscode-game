@@ -237,6 +237,8 @@ function tavernBeforeExtraOffer(state: GameState): Record<string, unknown> {
 
 /** Tira de um estado, no lugar, a composição de cada incursão marcada (passo 32 → 33, V4E-T2.2). */
 function stripComposition(copy: Draft): void {
+  // Fase B: a projeção histórica também retira a Capela.
+  delete copy.settlement?.buildings?.chapel;
   // Terceira junção: comparações com formas anteriores removem só os campos posteriores.
   delete copy.army?.campaign;
   delete copy.council?.bonuses;
@@ -720,6 +722,70 @@ function fingerprint(text: string): string {
 // Segunda junção: v35 conserva os bytes do main; v36/v37 foram regravados após integrar
 // cartas, objetivos e Vigília (docs/balance-v0.4.md, seção "Segunda junção").
 const FROZEN: Record<string, string> = {
+  // V5B-T1: retratos v42 congelados antes de acrescentar a Capela.
+  'state-v42-campaign-defeated.json': 'bfa6ede4',
+  'state-v42-campaign-marching.json': '274c9529',
+  'state-v42-campaign-returning.json': '07baabec',
+  'state-v42-caravan-escort.json': '6e443061',
+  'state-v42-caravan.json': '1907334a',
+  'state-v42-cold.json': 'f343d43f',
+  'state-v42-construction.json': 'cddce034',
+  'state-v42-council-encounters.json': 'ec10c4b5',
+  'state-v42-council-hidden.json': 'b12748cb',
+  'state-v42-council-risk.json': 'd46d5277',
+  'state-v42-council.json': 'd23f6175',
+  'state-v42-crafts.json': '908800d3',
+  'state-v42-den-cleared.json': 'fd396b6e',
+  'state-v42-expedition-crossroads.json': 'c34d5562',
+  'state-v42-expedition-returning.json': '35e1f17a',
+  'state-v42-expedition.json': '4f79fff1',
+  'state-v42-famine-3x.json': '38e002bb',
+  'state-v42-famine-ended.json': 'a8af17e9',
+  'state-v42-famine-half.json': '8949695a',
+  'state-v42-famine-resumed.json': 'a5de3e1b',
+  'state-v42-famine-smithy.json': '185f7a7d',
+  'state-v42-famine.json': '4f0e4319',
+  'state-v42-fresh.json': '2e2c19bd',
+  'state-v42-guild.json': 'ad9cfc5b',
+  'state-v42-hero-captured.json': 'b9c73f27',
+  'state-v42-hero-injured.json': '81e0497c',
+  'state-v42-hero-promised.json': '373a8668',
+  'state-v42-horde-omens-exact.json': 'dfac8cdb',
+  'state-v42-horde-omens-partial.json': '253cd73b',
+  'state-v42-horde-omens-vague.json': '1fe36bcc',
+  'state-v42-housing-full.json': 'f45f3805',
+  'state-v42-iron-king-half.json': '5cf40739',
+  'state-v42-market-council-effects.json': 'a6860cab',
+  'state-v42-market-opening.json': '6b25179c',
+  'state-v42-market.json': 'c9478976',
+  'state-v42-master-waiting.json': '3c3030f2',
+  'state-v42-masters.json': 'a94f8408',
+  'state-v42-migrated-3x.json': '238e762b',
+  'state-v42-migrated-iron-king-caravan.json': '0e52e783',
+  'state-v42-migrated-iron-king-half.json': 'e7efe82c',
+  'state-v42-migrated-peasant-3x.json': '67566f03',
+  'state-v42-morale.json': '67a487ed',
+  'state-v42-objectives.json': 'ad8a6386',
+  'state-v42-palisade.json': '045e6ec1',
+  'state-v42-peasant-3x.json': 'a6523cd6',
+  'state-v42-queues.json': '7657cd52',
+  'state-v42-raid-announced.json': '0314bf07',
+  'state-v42-raid.json': 'c8bcf7d7',
+  'state-v42-siege-between-waves.json': 'a3130de0',
+  'state-v42-siege-ended.json': '30f0bb6b',
+  'state-v42-siege-scheduled.json': 'f6ec4212',
+  'state-v42-smithy-forging.json': '9beea8f7',
+  'state-v42-storage.json': 'a7289645',
+  'state-v42-tavern-busy.json': '8ee4abc5',
+  'state-v42-tavern.json': 'b56e08d3',
+  'state-v42-threat.json': '87499af5',
+  'state-v42-vigil-fixed-offset.json': 'd7bfe9b7',
+  'state-v42-wage-arrears-ended.json': '43fa8601',
+  'state-v42-wage-arrears-resumed.json': '317993bf',
+  'state-v42-wage-arrears.json': 'ee8341b2',
+  'state-v42-warehouse-full.json': 'a4da259b',
+  'state-v42-week-scripted.json': '22f0429b',
+  'state-v42-white-wolf-window.json': '2561e32b',
   // V4H-T1.4: bytes herdados da junção, sem regravar os retratos v41.
   'state-v41-campaign-defeated.json': 'c0175d21',
   'state-v41-campaign-marching.json': '03f31c38',
@@ -3745,6 +3811,7 @@ describe('versão 3 → 4', () => {
       'market',
       'smithy',
       'barracks',
+      'chapel',
     ]);
     const storage = unbuilt.filter(
       (entry) =>
@@ -3753,7 +3820,8 @@ describe('versão 3 → 4', () => {
         entry.building !== 'guild' &&
         entry.building !== 'market' &&
         entry.building !== 'smithy' &&
-        entry.building !== 'barracks',
+        entry.building !== 'barracks' &&
+        entry.building !== 'chapel',
     );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
@@ -5271,7 +5339,7 @@ describe('versão 15 → 16', () => {
   const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V16, 'guild', 'market', 'smithy', 'barracks']).toEqual([
+    expect([...BUILDING_IDS_V16, 'guild', 'market', 'smithy', 'barracks', 'chapel']).toEqual([
       ...BUILDING_IDS,
     ]);
     expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
@@ -5406,7 +5474,9 @@ describe('versão 16 → 17', () => {
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
     const { expeditions } = balance;
-    expect([...BUILDING_IDS_V17, 'market', 'smithy', 'barracks']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V17, 'market', 'smithy', 'barracks', 'chapel']).toEqual([
+      ...BUILDING_IDS,
+    ]);
     expect(HERO_STATUS_IDS_V17).toEqual(['idle', 'expedition']);
     expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
     expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
@@ -6307,7 +6377,7 @@ describe('versão 20 → 21', () => {
   };
 
   it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V21, 'smithy', 'barracks']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V21, 'smithy', 'barracks', 'chapel']).toEqual([...BUILDING_IDS]);
     // O ferro entrou na versão 25: o conteúdo de hoje é o da 21 com ele no fim.
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...MARKET_RESOURCE_IDS]);
     expect([...MARKET_RESOURCE_IDS_V21, 'iron']).toEqual([...balance.market.resources]);
@@ -7279,7 +7349,7 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
   const version25 = fixtures.filter((fixture) => fixture.version === 25);
 
   it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V26, 'barracks']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V26, 'barracks', 'chapel']).toEqual([...BUILDING_IDS]);
     expect(FORGE_BATCH_MAX_V26).toBe(balance.smithy.batchMax);
   });
 
@@ -7581,7 +7651,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
   const version27 = fixtures.filter((fixture) => fixture.version === 27);
 
   it('os identificadores e os números escritos na forma são os do conteúdo de hoje', () => {
-    expect(BUILDING_IDS_V28).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V28, 'chapel']).toEqual([...BUILDING_IDS]);
     expect(UNIT_IDS_V28).toEqual([...UNIT_IDS]);
     expect(ARMY_CAP_PER_LEVEL_V28).toBe(balance.army.capPerLevel);
     expect(TRAINING_BATCH_MAX_V28).toBe(balance.army.batchMax);

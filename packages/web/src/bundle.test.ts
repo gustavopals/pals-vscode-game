@@ -274,7 +274,18 @@ describe('o pacote do app', () => {
     const loose = (secret: string) =>
       secret.includes(':') ? code.includes(secret) : new RegExp(`["'\`]${secret}["'\`]`).test(code);
     // Chaves que também são palavras comuns do app ficam de fora da conferência por aspas.
-    const common = new Set(['home', 'leave', 'edge', 'trail', 'stream', 'fork', 'nest', 'climb']);
+    // chapel também é o id público do edifício (Fase B); os grafos continuam privados.
+    const common = new Set([
+      'chapel',
+      'home',
+      'leave',
+      'edge',
+      'trail',
+      'stream',
+      'fork',
+      'nest',
+      'climb',
+    ]);
     expect([...new Set(secrets)].filter((secret) => !common.has(secret)).filter(loose)).toEqual([]);
     // Os títulos, as frases e as pistas dos nós são frases do conteúdo: o teste abaixo as barra.
   });
