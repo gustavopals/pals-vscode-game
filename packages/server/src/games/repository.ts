@@ -1,3 +1,4 @@
+import { YearEndedDataSchema } from '@lotg/content';
 import {
   type GameEvent as EngineEvent,
   type GameState,
@@ -9,7 +10,14 @@ import { and, desc, eq, gt, gte, lt, notInArray, sql } from 'drizzle-orm';
 
 import { notFound } from '../api-error';
 import type { Tx } from '../db/client';
-import { commands, type GameEventRow, gameEvents, type GameRow, games } from '../db/schema';
+import {
+  commands,
+  type GameEventRow,
+  gameEvents,
+  type GameRow,
+  games,
+  legacyLedger,
+} from '../db/schema';
 import { resolveVigilTimezone } from './vigil';
 
 /** Uma partida travada, com o estado já na versão que o motor desta imagem simula. */
@@ -128,11 +136,11 @@ export async function nextCommandSeq(tx: Tx, gameId: string): Promise<number> {
 }
 
 /**
- * Escreve o estado completo e os eventos, sob o lock da partida, e incrementa `state_version`
- * exatamente uma vez. `last_processed_at` recebe o relógio de parede do avanço. O estado que
- * chega aqui já está na versão do motor: se a linha guardava uma versão anterior, é esta escrita
- * que grava a migração, junto com `schema_version`. Um estado fora da forma da versão atual não
- * é gravado: `assertStorable` lança antes de qualquer escrita.
+ * Escreve o estado completo, os eventos e os créditos de Legado sob o lock da partida. Incrementa
+ * `state_version` exatamente uma vez. `last_processed_at` recebe o relógio de parede do avanço.
+ * O estado que chega aqui já está na versão do motor: se a linha guardava uma versão anterior,
+ * é esta escrita que grava a migração, junto com `schema_version`. Um estado fora da forma da
+ * versão atual não é gravado: `assertStorable` lança antes de qualquer escrita.
  */
 export async function persistState(
   tx: Tx,
@@ -157,6 +165,19 @@ export async function persistState(
         })),
       )
       .returning();
+
+    const credits = events
+      .filter((event) => event.type === 'yearEnded')
+      .map((event) => {
+        const { year, legacy, score } = YearEndedDataSchema.parse(event.data);
+        return { accountId: game.accountId, gameId: game.id, year, points: legacy ?? score };
+      });
+    if (credits.length > 0) {
+      await tx
+        .insert(legacyLedger)
+        .values(credits)
+        .onConflictDoNothing({ target: [legacyLedger.gameId, legacyLedger.year] });
+    }
   }
   const stateVersion = game.stateVersion + 1;
   await tx

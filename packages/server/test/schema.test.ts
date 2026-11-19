@@ -10,8 +10,8 @@ import { createTestPool, resetTestDb, truncateAll } from './helpers/db';
 // Verificação independente da F2-T3: tudo aqui vem do GDD §14.6 e do MVP-ROADMAP (F2-T3),
 // inserindo linhas direto por SQL, sem passar pela API.
 
-/** As migrações de `deploy/migrations`: 0000_init e 0001_ranking_listed (ADR 0021). */
-const MIGRATIONS = 2;
+/** As migrações de `deploy/migrations`: 0000_init, 0001_ranking_listed e 0002_legacy_ledger. */
+const MIGRATIONS = 3;
 
 const TABLES = [
   'accounts',
@@ -21,6 +21,7 @@ const TABLES = [
   'commands',
   'game_events',
   'chronicles',
+  'legacy_ledger',
 ] as const;
 
 const UNIQUE_VIOLATION = '23505';
@@ -175,11 +176,15 @@ async function insertFullAccount(pool: pg.Pool) {
     await insertEvent(pool, gameId, 1);
     await insertEvent(pool, gameId, 2);
     await insertChronicle(pool, gameId, 1);
+    await pool.query(
+      'insert into legacy_ledger (account_id, game_id, year, points) values ($1, $2, 1, 10)',
+      [accountId, gameId],
+    );
   }
   return { accountId, sessionIds, gameIds };
 }
 
-/** Quantas linhas de cada uma das sete tabelas pertencem à conta. */
+/** Quantas linhas de cada tabela pertencem à conta. */
 async function rowsOfAccount(pool: pg.Pool, accountId: string): Promise<Record<string, number>> {
   const mine = `'${accountId}'`;
   const myGames = `(select id from games where account_id = ${mine})`;
@@ -195,6 +200,7 @@ async function rowsOfAccount(pool: pg.Pool, accountId: string): Promise<Record<s
     commands: await countRows(pool, 'commands', `account_id = ${mine}`),
     game_events: await countRows(pool, 'game_events', `game_id in ${myGames}`),
     chronicles: await countRows(pool, 'chronicles', `game_id in ${myGames}`),
+    legacy_ledger: await countRows(pool, 'legacy_ledger', `account_id = ${mine}`),
   };
 }
 
@@ -210,7 +216,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
   });
 
   describe('tabelas e migração', () => {
-    it('cria as sete tabelas do GDD e a tabela de controle do Drizzle', async () => {
+    it('cria as tabelas do jogo e a tabela de controle do Drizzle', async () => {
       const { rows } = await pool.query<{ table_name: string }>(
         `select table_name from information_schema.tables
          where table_schema = 'public' and table_type = 'BASE TABLE' order by table_name`,
@@ -320,6 +326,19 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
          where c.conrelid = 'game_events'::regclass and c.contype = 'p'`,
       );
       expect(rows[0]?.columns).toEqual(['game_id', 'seq']);
+    });
+
+    it('o Legado tem um crédito por partida e ano', async () => {
+      const { accountId, gameIds } = await insertFullAccount(pool);
+      const insert = (gameId: string, year: number) =>
+        pool.query(
+          'insert into legacy_ledger (account_id, game_id, year, points) values ($1, $2, $3, 20)',
+          [accountId, gameId, year],
+        );
+      for (const gameId of gameIds) {
+        expect(await sqlState(() => insert(gameId, 1))).toBe(UNIQUE_VIOLATION);
+        expect(await sqlState(() => insert(gameId, 2))).toBeNull();
+      }
     });
 
     it('chaves primárias compostas e simples batem com o GDD', async () => {
@@ -498,14 +517,15 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
          where contype = 'f' and connamespace = 'public'::regnamespace
          order by 1, 2`,
       );
-      // conta → sessões → refresh tokens; conta → partidas → comandos/eventos/Crônicas;
-      // conta → comandos. No catálogo, 'c' é CASCADE.
+      // No catálogo, 'c' é CASCADE.
       expect(rows).toEqual([
         { child: 'chronicles', parent: 'games', rule: 'c' },
         { child: 'commands', parent: 'accounts', rule: 'c' },
         { child: 'commands', parent: 'games', rule: 'c' },
         { child: 'game_events', parent: 'games', rule: 'c' },
         { child: 'games', parent: 'accounts', rule: 'c' },
+        { child: 'legacy_ledger', parent: 'accounts', rule: 'c' },
+        { child: 'legacy_ledger', parent: 'games', rule: 'c' },
         { child: 'refresh_tokens', parent: 'sessions', rule: 'c' },
         { child: 'sessions', parent: 'accounts', rule: 'c' },
       ]);
@@ -523,6 +543,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
         commands: 4,
         game_events: 4,
         chronicles: 2,
+        legacy_ledger: 2,
       };
       expect(await rowsOfAccount(pool, target.accountId)).toEqual(full);
       expect(await rowsOfAccount(pool, control.accountId)).toEqual(full);
@@ -530,7 +551,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       const deleted = await pool.query('delete from accounts where id = $1', [target.accountId]);
       expect(deleted.rowCount).toBe(1);
 
-      // Nada da conta apagada sobra em nenhuma das sete tabelas...
+      // Nenhuma linha da conta apagada sobra...
       for (const sessionId of target.sessionIds) {
         expect(await countRows(pool, 'sessions', `id = '${sessionId}'`)).toBe(0);
         expect(await countRows(pool, 'refresh_tokens', `session_id = '${sessionId}'`)).toBe(0);
@@ -543,6 +564,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       }
       expect(await countRows(pool, 'accounts', `id = '${target.accountId}'`)).toBe(0);
       expect(await countRows(pool, 'commands', `account_id = '${target.accountId}'`)).toBe(0);
+      expect(await countRows(pool, 'legacy_ledger', `account_id = '${target.accountId}'`)).toBe(0);
 
       // ...e a conta de controle continua inteira: o banco só tem as linhas dela.
       expect(await rowsOfAccount(pool, control.accountId)).toEqual(full);
@@ -563,18 +585,19 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       expect(await countRows(pool, 'games', `account_id = '${accountId}'`)).toBe(2);
     });
 
-    it('apagar uma partida leva comandos, eventos e Crônicas só dela', async () => {
+    it('apagar uma partida leva comandos, eventos, Crônicas e Legado só dela', async () => {
       const { accountId, gameIds } = await insertFullAccount(pool);
       const [gone, kept] = gameIds;
 
       await pool.query('delete from games where id = $1', [gone]);
 
-      for (const table of ['commands', 'game_events', 'chronicles']) {
+      for (const table of ['commands', 'game_events', 'chronicles', 'legacy_ledger']) {
         expect(await countRows(pool, table, `game_id = '${gone}'`)).toBe(0);
       }
       expect(await countRows(pool, 'commands', `game_id = '${kept}'`)).toBe(2);
       expect(await countRows(pool, 'game_events', `game_id = '${kept}'`)).toBe(2);
       expect(await countRows(pool, 'chronicles', `game_id = '${kept}'`)).toBe(1);
+      expect(await countRows(pool, 'legacy_ledger', `game_id = '${kept}'`)).toBe(1);
       expect(await countRows(pool, 'accounts', `id = '${accountId}'`)).toBe(1);
       expect(await countRows(pool, 'sessions', `account_id = '${accountId}'`)).toBe(2);
     });

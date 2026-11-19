@@ -7,7 +7,7 @@ import { accounts, sessions } from '../db/schema';
 /**
  * Segunda etapa da exclusão: remove do banco as contas bloqueadas há sete dias ou mais.
  * O `ON DELETE CASCADE` leva junto sessões, hashes de refresh, partidas, comandos e recibos,
- * eventos e Crônicas. Reexecutar não tem efeito.
+ * eventos, Crônicas e créditos de Legado. Reexecutar não tem efeito.
  *
  * Também limpa sessões cuja validade absoluta já passou, com todo o seu histórico de refresh.
  * Os antecessores de uma sessão ainda válida nunca são apagados: é com eles que o reuso é detectado.

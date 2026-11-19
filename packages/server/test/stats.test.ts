@@ -1,15 +1,29 @@
-import { type RankingPreference, type StatsResponse, StatsResponseSchema } from '@lotg/protocol';
+import { balance, YearEndedDataSchema } from '@lotg/content';
+import {
+  type CommandAccepted,
+  type RankingPreference,
+  type StatsResponse,
+  StatsResponseSchema,
+} from '@lotg/protocol';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { PURGE_AFTER_MS } from '../src/auth/service';
+import { advanceStaleGames } from '../src/jobs/advanceStaleGames';
+import { purgeAccounts } from '../src/jobs/purgeAccounts';
 import {
   call,
+  councilRecess,
   createTestApp,
   DAY,
+  HOUR,
   MINUTE,
   newPlayer,
+  order,
   type Player,
+  quietHorde,
   renew,
   rewriteState,
+  send,
   signUp,
   startGame,
   type TestApp,
@@ -68,6 +82,16 @@ async function setListed(player: Player, listed: boolean) {
 }
 
 const names = (body: StatsResponse) => body.ranking.map((entry) => entry.settlementName);
+const yearMs =
+  balance.calendar.dayMs * balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
+
+async function ledgerFor(accountId: string) {
+  const { rows } = await server.pool.query<{ game_id: string; year: number; points: number }>(
+    'select game_id, year, points from legacy_ledger where account_id = $1 order by year, game_id',
+    [accountId],
+  );
+  return rows;
+}
 
 describe('GET /v1/stats', () => {
   it('pede autenticação', async () => {
@@ -215,7 +239,7 @@ describe('GET /v1/stats', () => {
     const auth = await signUp(server, 'Sem Feudo');
     const reply = await call<StatsResponse>(server, 'GET', '/stats', { token: auth.accessToken });
     expect(reply.status).toBe(200);
-    expect(reply.body.me).toEqual({ listed: true, position: null, fief: null });
+    expect(reply.body.me).toEqual({ listed: true, position: null, fief: null, legacy: 0 });
     expect(names(reply.body)).toEqual(['Pedra Alta']);
   });
 
@@ -233,5 +257,102 @@ describe('GET /v1/stats', () => {
     );
     expect(after.rows).toEqual(before.rows);
     expect(other.game.id).toBeDefined();
+  });
+});
+
+describe('Legado da conta em /v1/stats', () => {
+  it('credita o score sem Votos junto do evento e do recibo, uma vez', async () => {
+    const player = await newPlayer(server);
+    await quietHorde(server, player.game.id);
+    await councilRecess(server, player.game.id);
+    const command = order('setVigilHour', { hourLocal: 21, timezone: 'America/Sao_Paulo' });
+    server.clock.advance(yearMs - 1);
+    await renew(server, player);
+    const before = await stats(player);
+    expect(before.me.legacy).toBe(0);
+    server.clock.advance(1);
+
+    server.hooks.beforeCommandReceipt = () => {
+      throw new Error('falha antes de guardar o recibo');
+    };
+    try {
+      expect((await send(server, player.token, player.game.id, command)).status).toBe(500);
+    } finally {
+      delete server.hooks.beforeCommandReceipt;
+    }
+    expect(await ledgerFor(player.accountId)).toEqual([]);
+
+    const accepted = await send<CommandAccepted>(server, player.token, player.game.id, command);
+    expect(accepted.status).toBe(200);
+    const ended = YearEndedDataSchema.parse(
+      accepted.body.events.find((event) => event.type === 'yearEnded')?.data,
+    );
+    expect(ended.legacy).toBeUndefined();
+    expect(ended.score).toBeGreaterThan(0);
+    const credited = await stats(player);
+    expect(credited.generatedAt).toBe(before.generatedAt);
+    expect(credited.me.legacy).toBe(ended.score);
+
+    const replay = await send<CommandAccepted>(server, player.token, player.game.id, command);
+    expect(replay.status).toBe(200);
+    expect(replay.body).toEqual(accepted.body);
+    server.clock.advance(HOUR + 1);
+    expect(await advanceStaleGames(server.ctx)).toMatchObject({ advanced: 1, failed: 0 });
+    expect(await ledgerFor(player.accountId)).toEqual([
+      { game_id: player.game.id, year: 1, points: ended.score },
+    ]);
+  });
+
+  it('credita o legacy calculado pelo motor no job e soma partidas da mesma conta', async () => {
+    const player = await newPlayer(server);
+    const firstGameId = player.game.id;
+    await quietHorde(server, firstGameId);
+    await councilRecess(server, firstGameId);
+    const vows = order('takeVows', { vows: ['scarceFood'] });
+    expect((await send(server, player.token, firstGameId, vows)).status).toBe(200);
+    server.clock.advance(yearMs);
+    expect(await advanceStaleGames(server.ctx)).toMatchObject({ advanced: 1, failed: 0 });
+    const { rows } = await server.pool.query<{ data: unknown }>(
+      "select payload->'data' as data from game_events where game_id = $1 and kind = 'yearEnded'",
+      [firstGameId],
+    );
+    expect(rows).toHaveLength(1);
+    const ended = YearEndedDataSchema.parse(rows[0]?.data);
+    expect(ended.legacy).toBeGreaterThan(ended.score);
+    await renew(server, player);
+    expect((await stats(player)).me.legacy).toBe(ended.legacy);
+
+    const second = await startGame(server, player.token, { replaceActive: true });
+    expect((await stats(player)).me.legacy).toBe(ended.legacy);
+    await quietHorde(server, second.id);
+    await councilRecess(server, second.id);
+    server.clock.advance(yearMs);
+    expect(await advanceStaleGames(server.ctx)).toMatchObject({ advanced: 1, failed: 0 });
+    expect(await advanceStaleGames(server.ctx)).toEqual({ advanced: 0, events: 0, failed: 0 });
+    await renew(server, player);
+    const ledger = await ledgerFor(player.accountId);
+    expect(ledger).toHaveLength(2);
+    expect(ledger).toContainEqual({ game_id: firstGameId, year: 1, points: ended.legacy });
+    expect(ledger).toContainEqual({ game_id: second.id, year: 1, points: expect.any(Number) });
+    expect((await stats(player)).me.legacy).toBe(ledger.reduce((sum, row) => sum + row.points, 0));
+  });
+
+  it('o expurgo remove o Legado da conta excluída', async () => {
+    const player = await newPlayer(server);
+    await quietHorde(server, player.game.id);
+    await councilRecess(server, player.game.id);
+    server.clock.advance(yearMs);
+    expect(await advanceStaleGames(server.ctx)).toMatchObject({ advanced: 1, failed: 0 });
+    await renew(server, player);
+    expect((await stats(player)).me.legacy).toBeGreaterThan(0);
+    const other = await newPlayer(server);
+    expect((await stats(other)).me.legacy).toBe(0);
+
+    expect((await call(server, 'DELETE', '/me', { token: player.token })).status).toBe(202);
+    expect((await call(server, 'GET', '/stats', { token: player.token })).status).toBe(401);
+    expect(await ledgerFor(player.accountId)).toHaveLength(1);
+    server.clock.advance(PURGE_AFTER_MS);
+    expect(await purgeAccounts(server.ctx)).toMatchObject({ accounts: 1 });
+    expect(await ledgerFor(player.accountId)).toEqual([]);
   });
 });

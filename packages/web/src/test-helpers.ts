@@ -613,6 +613,7 @@ export function statsFixture(): StatsResponse {
     me: {
       listed: true,
       position: 2,
+      legacy: 1234,
       fief: {
         settlementName: 'Pedra Alta',
         gold: 9_870,

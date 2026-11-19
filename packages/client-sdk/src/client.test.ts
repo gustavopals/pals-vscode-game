@@ -96,6 +96,33 @@ describe('cabeçalhos e sessão', () => {
     expect(calls[0]?.headers.authorization).toBeUndefined();
   });
 
+  it.each([
+    { fields: { legacy: 1234 }, expected: 1234 },
+    { fields: {}, expected: 0 },
+  ])('lê o Legado da conta em /stats ($fields)', async ({ fields, expected }) => {
+    const { client, calls } = setup(() => ({
+      status: 200,
+      body: {
+        generatedAt: account.createdAt,
+        kingdom: {
+          accounts: 1,
+          fiefs: 0,
+          activeLastWeek: 1,
+          gold: 0,
+          villagers: 0,
+          raidsRepelled: 0,
+          raidsSuffered: 0,
+          expeditionsSent: 0,
+        },
+        ranking: [],
+        rankedFiefs: 0,
+        me: { listed: true, position: null, fief: null, ...fields },
+      },
+    }));
+    expect((await client.getStats()).me.legacy).toBe(expected);
+    expect(calls[0]).toMatchObject({ method: 'GET', path: '/stats' });
+  });
+
   it('o catálogo é lido sem credencial e repete em falha de rede', async () => {
     const catalog = {
       contentHash: '0123456789abcdef',
@@ -695,7 +722,7 @@ describe('demais chamadas', () => {
       },
       ranking: [{ position: 1, settlementName: 'Pedra Alta', gold: 100, mine: true }],
       rankedFiefs: 1,
-      me: { listed: true, position: 1, fief: null },
+      me: { listed: true, position: 1, fief: null, legacy: 0 },
     };
     const { client, calls } = setup((call) => {
       if (call.path === '/stats') {

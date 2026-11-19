@@ -15,6 +15,13 @@
       "when": 1793378838385,
       "tag": "0001_ranking_listed",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795115932101,
+      "tag": "0002_legacy_ledger",
+      "breakpoints": true
     }
   ]
 }
