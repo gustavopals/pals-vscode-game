@@ -251,18 +251,11 @@ describe('relatório da matriz', () => {
       // Segunda junção (docs/balance-v0.4.md, seção 19): 13 cartas adicionais do lote 2 e sabotagem.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco, ondas por ano e três cercos na semana.
       // R1–R3 (§23): mesma folga sobre os novos 50 resultados, inclusive a escassez medida.
-      '| Rápido 3× | Regular | 5 a 61 | ≥ 5 | ≤ 14 | ≤ 11 | ≤ 3.453 | ≤ 4.200 | ≤ 36.221 | ≤ 73 | 0 |',
+      // Fase C (docs/balance-v0.5.md): 50 sementes nos três anos da semana do Rápido.
+      '| Rápido 3× | Regular | 4 a 59 | ≥ 4 | ≤ 10 | ≤ 15 | ≤ 3.196 | ≤ 5.460 | ≤ 38.142 | ≤ 45 | 0 |',
     );
-    // Fase C: a semana no ritmo 3 contém três anos; só essa célula muda.
-    // As faixas ficam congeladas até H e o relatório continua expondo os desvios.
-    expect(
-      matrix.cells.filter((cell) => cell.violations.length > 0).map((cell) => cell.key),
-    ).toEqual(['week/3/regular']);
-    expect(
-      matrix.cells.filter((cell) => cell.window === 'year').flatMap((cell) => cell.violations),
-    ).toEqual([]);
-    expect(text).toContain('**Fora da faixa:**');
-    expect(text).toContain('**fora**');
+    expect(text).toContain('Todas as partidas dentro das faixas.');
+    expect(text).not.toContain('**fora**');
   });
 
   it('traz a meta de desperdício do perfil Regular, célula a célula, com o veredito', () => {
@@ -307,10 +300,8 @@ describe('relatório da matriz', () => {
       '| Um ano de jogo | Normal 1× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 1 | 0 a 1,5 | 0 a 2 | ≤ 8 | dentro |',
     ]);
-    // A meta é independente das faixas; nenhum Ano 1 sai delas na Fase C.
-    expect(
-      matrix.cells.filter((cell) => cell.window === 'year').flatMap((cell) => cell.violations),
-    ).toEqual([]);
+    // A rodada fica dentro das faixas mesmo com as células do Rápido acima da meta de 8 h.
+    expect(text).toContain('Todas as partidas dentro das faixas.');
   });
 
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
@@ -513,8 +504,6 @@ describe('problemas de uma célula', () => {
     if (cell?.band === null || cell === undefined || run === undefined) {
       throw new Error('Célula week/3/regular sem faixa.');
     }
-    // O piso 17 vem das 50 sementes da terceira junção, com a mesma folga
-    // (docs/balance-v0.4.md, seção 22).
     const fine = run.summary;
     const piled = { ...fine, surplus: { ...fine.surplus, wood: 50_000 } };
     const empty = { ...fine, villagers: 3 };
@@ -522,11 +511,11 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 3453 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 5 a 61 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 3196 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: população 3, fora da faixa de 4 a 59 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 5 a 61 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 4 a 59 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });

@@ -138,9 +138,9 @@ function measured(
 const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
   peasant: {
     'week/3/preguicoso': measured([28, 39], 4, 0, 0, 4250, 4250, 15495, 66),
-    'week/3/regular': measured([5, 32], 4, 8, 8, 4568, 5748, 25364, 54),
-    'week/3/dedicado': measured([3, 6], 5, 0, 6, 6131, 2956, 37602, 15),
-    'week/3/explorador': measured([3, 22], 4, 8, 14, 3241, 4660, 21126, 54),
+    'week/3/regular': measured([6, 26], 5, 8, 8, 3810, 4198, 30491, 57),
+    'week/3/dedicado': measured([3, 9], 4, 0, 6, 5949, 3146, 37440, 15),
+    'week/3/explorador': measured([4, 28], 4, 8, 9, 2803, 5750, 21136, 54),
     'week/1/preguicoso': measured([25, 27], 2, 0, 0, 753, 2356, 2295, 32),
     'week/1/regular': measured([14, 35], 5, 0, 0, 1328, 1585, 5909, 8),
     'week/1/dedicado': measured([6, 49], 5, 0, 0, 2447, 2247, 14607, 2),
@@ -164,9 +164,9 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
   },
   lord: {
     'week/3/preguicoso': measured([17, 35], 2, 0, 0, 3400, 3400, 10885, 126),
-    'week/3/regular': measured([6, 55], 5, 13, 10, 3288, 4000, 34496, 69),
-    'week/3/dedicado': measured([3, 12], 5, 0, 6, 4856, 3764, 52843, 21),
-    'week/3/explorador': measured([5, 35], 4, 13, 9, 4000, 4600, 17595, 69),
+    'week/3/regular': measured([5, 53], 4, 9, 14, 3043, 5200, 36325, 42),
+    'week/3/dedicado': measured([3, 17], 5, 0, 9, 4929, 4968, 46980, 24),
+    'week/3/explorador': measured([4, 24], 4, 13, 9, 4194, 4000, 24048, 51),
     'week/1/preguicoso': measured([24, 28], 3, 0, 0, 1414, 1814, 1031, 31),
     'week/1/regular': measured([13, 51], 5, 0, 0, 2305, 1511, 8116, 6),
     'week/1/dedicado': measured([5, 53], 5, 0, 0, 1812, 1813, 14557, 2),
@@ -190,9 +190,9 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
   },
   ironKing: {
     'week/3/preguicoso': measured([16, 44], 2, 10, 0, 3200, 3200, 24932, 126),
-    'week/3/regular': measured([5, 33], 4, 8, 7, 3680, 3680, 31659, 63),
-    'week/3/dedicado': measured([5, 24], 5, 2, 4, 3340, 3624, 67526, 15),
-    'week/3/explorador': measured([6, 33], 4, 9, 7, 3400, 3680, 35374, 63),
+    'week/3/regular': measured([6, 34], 4, 8, 7, 2325, 3229, 46108, 63),
+    'week/3/dedicado': measured([5, 30], 5, 2, 5, 3509, 3663, 84446, 30),
+    'week/3/explorador': measured([5, 34], 4, 12, 7, 3330, 3446, 32757, 63),
     'week/1/preguicoso': measured([24, 27], 2, 0, 0, 688, 1488, 2567, 36),
     'week/1/regular': measured([14, 44], 3, 0, 0, 1410, 1547, 5995, 9),
     'week/1/dedicado': measured([10, 43], 4, 0, 0, 1623, 1688, 11073, 1),

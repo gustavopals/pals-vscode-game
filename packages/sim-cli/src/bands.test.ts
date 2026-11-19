@@ -230,31 +230,25 @@ describe('faixas a partir da linha de base medida', () => {
     // Salão Nv3, até 3 h de fome e 1 h de frio, e sequência de até 81 h após três cercos e o preparo militar.
     // R1–R3 (§23): mais tropas preservadas e vagas no Rápido, com menos braços civis;
     // a escassez aumenta e a fila militar muda os estoques. A folga continua a mesma.
+    // Fase C (docs/balance-v0.5.md): a semana do Rápido inclui os Cercos dos Anos 2 e 3.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 5, max: 61 },
-      townHallMin: 5,
-      famineHoursMax: 14,
-      coldHoursMax: 11,
-      surplusMax: { wood: 3_453, stone: 4_200, gold: 36_221 },
-      wasteStreakMax: 73,
+      villagers: { min: 4, max: 59 },
+      townHallMin: 4,
+      famineHoursMax: 10,
+      coldHoursMax: 15,
+      surplusMax: { wood: 3_196, stone: 5_460, gold: 38_142 },
+      wasteStreakMax: 45,
     });
   });
 
   it('há faixa nas três dificuldades, cada uma com a sua medida, e só nos ritmos medidos', () => {
     const cell = cellKey('week', 3, 'regular');
     expect(bandFor(cell, 'lord')).toEqual(bandFor(cell));
-    // Em Camponês o Armazém guarda 25% a mais; em Rei de Ferro guarda 20% a menos, e o teto de
-    // pedra parada acompanha a capacidade de cada dificuldade. Na terceira junção (três cercos na
-    // semana do Rápido), o piso do Salão medido nas 50 sementes é 3 em Camponês e Senhor e 5 em Rei de Ferro.
-    // R1–R3 (§23): os gastos militares e as Quedas mudam também o piso do Salão.
-    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(4);
+    // A semana do Rápido da Fase C mede o estoque final de cada dificuldade.
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(5);
     expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(4);
-    expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
-      bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,
-    );
-    expect(bandFor(cell, 'ironKing')?.surplusMax.stone).toBeLessThan(
-      bandFor(cell, 'lord')?.surplusMax.stone ?? 0,
-    );
+    expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBe(4_408);
+    expect(bandFor(cell, 'ironKing')?.surplusMax.stone).toBe(3_391);
     for (const difficulty of DIFFICULTY_IDS) {
       expect(bandFor(cell, difficulty), difficulty).not.toBeNull();
       expect(bandFor(cellKey('week', 2, 'regular'), difficulty), difficulty).toBeNull();

@@ -144,7 +144,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // fica descontente nem parte, e o custo é o ouro parado em zero nesse tempo. Com um herói
     // que não fosse Leal, 21 h passam das 12 h reais do Descontente e ficam a 3 h das 24 h em
     // que o primeiro parte; isso é conta dos prazos, não medida: nenhum bot escolhe o arqueiro.
-    // Nas outras células ninguém atrasa o soldo.
+    // Os demais atrasos medidos ficam na semana do Rápido.
     const arrears = Object.fromEntries(
       matrix.cells.map((cell) => {
         const hours = matrix.runs
@@ -162,7 +162,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Quedas nos Cercos de inverno, ainda bem abaixo das 24 h de partida de herói.
     // R1–R3 (§23): no Explorador Rápido de Senhor há três atrasos (015: 0,8 h;
     // 038: 3,6 h; 040: 3,3 h), sem partida.
+    // Fase C (docs/balance-v0.5.md): os Cercos dos Anos 2 e 3 mudam o soldo no Rápido.
     expect(Object.entries(arrears).filter(([, [, max]]) => (max ?? 0) > 0)).toEqual([
+      ['week/3/regular', [0, 9.3]],
+      ['week/3/dedicado', [0, 1.1]],
       ['week/3/explorador', [0, 3.6]],
       ['week/1/preguicoso', [21, 21]],
       ['year/1/preguicoso', [21, 21]],
@@ -216,10 +219,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
     // Senhor usa 50 sementes; Camponês e Rei de Ferro, as três do começo da lista.
     expect(explorerArrears).toEqual([
-      'peasant week/3/explorador pedra-alta-003: 9.6',
-      'lord week/3/explorador pedra-alta-015: 0.8',
+      'peasant week/3/explorador pedra-alta-003: 10.2',
+      'lord week/3/explorador pedra-alta-005: 2.9',
       'lord week/3/explorador pedra-alta-038: 3.6',
       'lord week/3/explorador pedra-alta-040: 3.3',
+      'lord week/3/explorador pedra-alta-046: 3.1',
       'ironKing week/3/explorador pedra-alta-002: 8.1',
       'ironKing year/3/explorador pedra-alta-002: 4.1',
     ]);
@@ -241,7 +245,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // seção 10), em alguma semente chegam os dois de carta com a casa cheia: de seis a oito.
     // Segunda junção (docs/balance-v0.4.md, seção 19): o novo sorteio de cartas mantém a semana
     // do Rápido com seis a sete heróis (nenhuma semente acumula os dois de carta com a casa cheia).
-    expect(heroes('week/3/explorador')).toEqual({ min: 5, max: 7 });
+    // Na Fase C, o mínimo volta a seis na semana do Rápido.
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 7 });
     // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): no Normal,
     // em alguma das 50 sementes, o cofre não paga o sexto contrato com um dia de soldo de folga
     // antes de o ano acabar, e ele termina com cinco.
@@ -319,15 +324,15 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Terceira junção (docs/balance-v0.4.md, seção 22): o preparo do Cerco, o treino de soldados e
     // as três batalhas de inverno absorvem mais ouro (teto de 52.278 no Explorador e 35.962 no Regular).
     // R1–R3 (§23): mais treino e menos braços civis; o Explorador ainda paga a equipe.
-    // O estoque final deixa de seguir a antiga ordem entre os dois perfis.
-    expect(gold('week/3/explorador')).toBe(17_595);
-    expect(gold('week/3/regular')).toBe(34_496);
+    // Na Fase C, o estoque final sobe nos dois perfis na semana do Rápido.
+    expect(gold('week/3/explorador')).toBe(24_048);
+    expect(gold('week/3/regular')).toBe(36_325);
     expect(gold('week/3/explorador')).toBeLessThan(gold('week/3/regular'));
   });
 
-  it('registra a escassez e as partidas de aldeões no Rápido após R1–R3, sem ocultar regressões', () => {
-    // §23: 50 sementes em Senhor, três nas outras dificuldades. As faixas não tornam
-    // estas perdas desejáveis. Com mais treino, civis viram soldados e podem chegar ao piso.
+  it('registra a escassez e as partidas de aldeões no Rápido', () => {
+    // 50 sementes em Senhor, três nas outras dificuldades. Os números do primeiro ano
+    // vêm de R1–R3 (§23) e os da semana do Rápido, da Fase C (docs/balance-v0.5.md).
     // Colunas: fome mín./máx., frio mín./máx., aldeões perdidos mín./máx.
     const measured: Record<string, [number, number, number, number, number, number]> = {
       'peasant/week/3/regular': [0, 0, 0, 7, 0, 0],
@@ -336,15 +341,16 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       'peasant/year/3/regular': [0, 0, 0, 7, 0, 0],
       'peasant/year/3/dedicado': [0, 0, 0, 6, 0, 0],
       'peasant/year/3/explorador': [0, 0, 0, 5, 0, 0],
-      'lord/week/3/regular': [0, 13, 0, 10, 0, 2],
-      'lord/week/3/dedicado': [0, 0, 0, 6, 0, 0],
+      'lord/week/3/regular': [0, 9, 0, 14, 0, 2],
+      'lord/week/3/dedicado': [0, 0, 0, 9, 0, 0],
       'lord/week/3/explorador': [0, 13, 0, 9, 0, 3],
       'lord/year/3/regular': [0, 5, 0, 7, 0, 1],
       'lord/year/3/dedicado': [0, 0, 0, 6, 0, 0],
       'lord/year/3/explorador': [0, 7, 0, 7, 0, 2],
       'ironKing/week/3/preguicoso': [0, 10, 0, 0, 0, 0],
-      'ironKing/week/3/regular': [0, 0, 4, 6, 0, 0],
-      'ironKing/week/3/explorador': [0, 5, 0, 6, 0, 0],
+      'ironKing/week/3/regular': [0, 4, 4, 6, 0, 0],
+      'ironKing/week/3/dedicado': [0, 0, 0, 5, 0, 0],
+      'ironKing/week/3/explorador': [0, 9, 0, 6, 0, 0],
       'ironKing/year/3/regular': [0, 0, 4, 6, 0, 0],
       'ironKing/year/3/explorador': [0, 0, 0, 6, 0, 0],
     };
@@ -689,13 +695,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.runs.every((run) => run.summary.commandsAccepted > 5)).toBe(true);
   });
 
-  it('a fome do Regular fica no Rápido: até 13 h na semana e 5 h no primeiro ano (R1–R3)', () => {
+  it('a fome do Regular fica no Rápido: até 9 h na semana e 5 h no primeiro ano', () => {
     const regular = matrix.cells.filter((cell) => cell.profile.id === 'regular');
     expect(regular).toHaveLength(WINDOWS.length * paces.length);
     for (const cell of regular) {
       // R1–R3 (§23): o lote e as vagas maiores consomem reservas antes da visita seguinte.
+      // Fase C: o máximo na janela de três anos passa de 13 h para 9 h.
       // A faixa conserva 5% de folga; a ausência de fome no Normal/Tranquilo continua cobrada.
-      const maximum = cell.timeScale === 3 ? (cell.window === 'week' ? 13 : 5) : 0;
+      const maximum = cell.timeScale === 3 ? (cell.window === 'week' ? 9 : 5) : 0;
       expect(cell.measure.famineHours, cell.key).toEqual({ min: 0, max: maximum });
       expect(cell.band?.famineHoursMax, cell.key).toBe(Math.ceil((maximum * 105) / 100));
     }
@@ -821,8 +828,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Tranquilo continuam dentro da meta.
     // R1–R3 (§23): o Normal sofre menos Quedas e fica em até 6 h; a semana do
     // Rápido desce para 69 h, mas o primeiro ano sobe para 15 h. A meta segue em 8 h.
+    // Fase C: a semana do Rápido cai para 42 h com os Cercos dos Anos 2 e 3.
     expect(over).toEqual({
-      'week/3/regular': 69,
+      'week/3/regular': 42,
       'year/3/regular': 15,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
