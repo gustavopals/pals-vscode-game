@@ -394,6 +394,8 @@ export const StatsResponseSchema = z.strictObject({
     /** A posição no ranking (ou a que o feudo teria, se a conta saiu dele); `null` sem feudo. */
     position: z.number().int().positive().nullable(),
     fief: FiefStatsSchema.nullable(),
+    /** Pontos de Legado da conta, incluindo feudos arquivados. Servidores anteriores omitem. */
+    legacy: count.default(0),
   }),
 });
 export type StatsResponse = z.infer<typeof StatsResponseSchema>;

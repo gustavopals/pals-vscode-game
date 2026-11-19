@@ -1,9 +1,9 @@
 import type { FiefStats, RankingEntry, RankingPreference, StatsResponse } from '@lotg/protocol';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 
 import { notFound } from '../api-error';
 import type { AppContext } from '../context';
-import { accounts } from '../db/schema';
+import { accounts, legacyLedger } from '../db/schema';
 
 // Estatísticas do reino e ranking de ouro (ADR 0021). Só leitura do estado **gravado**: nenhuma
 // partida é avançada aqui, nenhuma regra de jogo roda. Os campos são lidos do JSON com
@@ -234,12 +234,21 @@ export async function readStats(ctx: AppContext, accountId: string): Promise<Sta
     }
   }
   const others = snap.fiefs.filter((fief) => fief.listed && fief.accountId !== accountId).length;
+  const [legacy] = await ctx.db
+    .select({ points: sql<number>`coalesce(sum(${legacyLedger.points}), 0)`.mapWith(Number) })
+    .from(legacyLedger)
+    .where(eq(legacyLedger.accountId, accountId));
   return {
     generatedAt: new Date(snap.atMs).toISOString(),
     kingdom: snap.kingdom,
     ranking,
     rankedFiefs: others + (preference.listed && own !== null ? 1 : 0),
-    me: { listed: preference.listed, position, fief: own?.stats ?? null },
+    me: {
+      listed: preference.listed,
+      position,
+      fief: own?.stats ?? null,
+      legacy: legacy?.points ?? 0,
+    },
   };
 }
 

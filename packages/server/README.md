@@ -150,11 +150,13 @@ O servidor aplica as migrações pendentes no arranque, dentro de `pg_advisory_l
 
 A `0001_ranking_listed` (ADR 0021) acrescenta `accounts.ranking_listed`, com padrão `true`: as contas que já existem entram no ranking.
 
+A `0002_legacy_ledger` cria o registro de créditos de Legado. `persistState` grava o crédito junto com `yearEnded`, uma vez por partida e ano. O expurgo da conta remove os créditos em cascata.
+
 ## Estatísticas e ranking (ADR 0021)
 
 `src/stats/service.ts` e `src/routes/stats.ts`. Só leitura do estado **gravado**: nenhuma partida é avançada e nenhuma regra de jogo roda; os campos saem do JSON de `games.state` com `coalesce(…, 0)`, porque o estado gravado pode ser de uma versão anterior.
 
-- `GET /v1/stats` (autenticada): `kingdom` (contas, feudos ativos, ativos em 7 dias por `last_seen_at`, e as somas de ouro, aldeões, incursões repelidas e sofridas e expedições enviadas), `ranking` (os 10 primeiros por ouro, `floor(milésimos / 1000)`, e a linha do jogador no fim quando ele está fora deles), `rankedFiefs` e `me` (a preferência, a posição e as estatísticas do feudo dele, lidas na hora). Só o nome do feudo e o ouro saem de outro jogador; nada da conta.
+- `GET /v1/stats` (autenticada): `kingdom` (contas, feudos ativos, ativos em 7 dias por `last_seen_at`, e as somas de ouro, aldeões, incursões repelidas e sofridas e expedições enviadas), `ranking` (os 10 primeiros por ouro, `floor(milésimos / 1000)`, e a linha do jogador no fim quando ele está fora deles), `rankedFiefs` e `me` (a preferência, a posição, as estatísticas do feudo e o Legado da conta, lidos na hora). O Legado inclui partidas arquivadas. Só o nome do feudo e o ouro saem de outro jogador; nada da conta.
 - `GET` e `PUT /v1/me/ranking` (`{ listed }`, zod `RankingPreferenceSchema`): a saída do ranking vale para todos os feudos da conta.
 - **Cache:** os totais e a lista ordenada ficam 60 s na memória da instância (`STATS_CACHE_MS`, por `AppContext`); a frente do ranking é conferida contra a preferência e a exclusão de agora a cada leitura, e `PUT /me/ranking` esquece a consulta guardada (`forgetStats`). Um relógio que volta também a invalida, e o servidor de teste do navegador a esquece no `/__test/reset`.
 - **Fora da conta:** contas excluídas, partidas arquivadas e contas de teste do `sim-cli` (nome de exibição começando com "Bot ", como em `deploy/analytics/ops.sql`).

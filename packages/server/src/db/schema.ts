@@ -16,7 +16,8 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // Esquema do GDD §14.6. Toda relação de propriedade usa ON DELETE CASCADE:
-// conta → sessões → refresh tokens; conta → partidas → comandos, eventos e Crônicas.
+// conta → sessões → refresh tokens; conta → partidas → comandos, eventos e Crônicas;
+// o Legado pertence à conta e referencia a partida que o concedeu.
 
 const instant = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
 
@@ -160,6 +161,25 @@ export const gameEvents = pgTable(
       .notNull(),
   },
   (table) => [primaryKey({ name: 'game_events_pkey', columns: [table.gameId, table.seq] })],
+);
+
+/** Crédito de Legado na conta pelo fechamento de um ano da partida. */
+export const legacyLedger = pgTable(
+  'legacy_ledger',
+  {
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    year: integer('year').notNull(),
+    points: integer('points').notNull(),
+  },
+  (table) => [
+    uniqueIndex('legacy_ledger_game_year_key').on(table.gameId, table.year),
+    index('legacy_ledger_account_id_idx').on(table.accountId),
+  ],
 );
 
 /** Crônica do Ano. A tabela existe desde a v0.1; as linhas chegam com o cerco, na v0.4. */

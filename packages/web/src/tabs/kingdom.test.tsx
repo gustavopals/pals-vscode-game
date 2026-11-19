@@ -54,7 +54,7 @@ describe('apresentação do Reino (ui/kingdom)', () => {
     expect(positionText({ ...stats, me: { ...stats.me, listed: false } })).toBe(
       'Seu feudo está fora do ranking. Nele, seria o 2º em ouro.',
     );
-    expect(positionText({ ...stats, me: { listed: true, position: null, fief: null } })).toMatch(
+    expect(positionText({ ...stats, me: { ...stats.me, position: null, fief: null } })).toMatch(
       /funde um/,
     );
   });
@@ -110,6 +110,18 @@ describe('aba Reino', () => {
     expect(markup).toContain('até\n1 hora atrás'.replace('\n', ' '));
     // Nenhum estilo embutido (CSP) e nenhum identificador de conta.
     expect(markup).not.toContain('style=');
+  });
+
+  it('mostra o Legado acumulado na conta mesmo sem feudo ativo', () => {
+    const stats = statsFixture();
+    const zero = { ...stats, me: { ...stats.me, legacy: 0 } };
+    const noFief = { ...stats, me: { ...stats.me, position: null, fief: null } };
+    expect(html(<KingdomTab stats={ready(zero)} signedIn actions={actions} />)).toMatch(
+      /Legado da conta.*<strong>0 pontos<\/strong>/,
+    );
+    expect(html(<KingdomTab stats={ready(noFief)} signedIn actions={actions} />)).toMatch(
+      /Legado da conta.*<strong>1\.234 pontos<\/strong>/,
+    );
   });
 
   it('sem conta, sem resposta ainda e com erro', () => {

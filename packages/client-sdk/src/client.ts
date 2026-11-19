@@ -408,10 +408,14 @@ export function createClient(options: ClientOptions) {
     },
 
     /**
-     * Os totais do reino, o ranking de ouro e as estatísticas do jogador (ADR 0021). Os totais e
-     * o ranking vêm de uma consulta que o servidor guarda por um minuto (`generatedAt`).
+     * Os totais do reino, o ranking de ouro e as estatísticas do jogador, com o Legado da conta.
+     * Os totais e o ranking vêm de uma consulta que o servidor guarda por um minuto (`generatedAt`).
      */
-    getStats: (): Promise<StatsResponse> => get(StatsResponseSchema, '/stats'),
+    getStats: async (): Promise<StatsResponse> => {
+      const stats = await get(StatsResponseSchema, '/stats');
+      // Com a validação desligada, aplique o padrão quando um servidor anterior omitir o Legado.
+      return stats.me.legacy === undefined ? { ...stats, me: { ...stats.me, legacy: 0 } } : stats;
+    },
 
     /** Se os feudos desta conta aparecem no ranking de ouro. */
     getRankingPreference: (): Promise<RankingPreference> =>

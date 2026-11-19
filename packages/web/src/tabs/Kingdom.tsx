@@ -92,6 +92,9 @@ function Mine(props: { stats: StatsResponse; actions: Actions }) {
       <h2 id="kingdom-mine">
         <Icon name="person" /> Minhas estatísticas
       </h2>
+      <p>
+        <Icon name="book" /> Legado da conta · <strong>{whole(stats.me.legacy)} pontos</strong>
+      </p>
       <p class="kingdom-position">
         {stats.me.position === null || !stats.me.listed ? null : (
           <span class="kingdom-position-badge">{ordinal(stats.me.position)}</span>
