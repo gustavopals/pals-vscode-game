@@ -88,6 +88,9 @@ describe('Capela — V5B-T1', () => {
     const old = {
       ...fresh,
       schemaVersion: 42,
+      horde: Object.fromEntries(
+        Object.entries(fresh.horde).filter(([key]) => key !== 'previousYearFormation'),
+      ),
       settlement: {
         ...Object.fromEntries(Object.entries(fresh.settlement).filter(([key]) => key !== 'relics')),
         buildings,

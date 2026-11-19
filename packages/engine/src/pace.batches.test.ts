@@ -173,13 +173,21 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   expect(currentShape(result.state, '')).toBeNull();
   expect(JSON.stringify(result.state)).toBe(serialized);
   const { expeditionUnlocks, ...oldMap } = result.state.map;
+  const { previousYearFormation, ...oldHorde } = result.state.horde;
+  expect(previousYearFormation).toBeNull();
   const previousSettlement = JSON.parse(JSON.stringify(result.state.settlement));
   delete previousSettlement.relics;
   delete previousSettlement.buildings.chapel;
   expect(expeditionUnlocks).toEqual({});
   expect(
     stateV41(
-      { ...result.state, schemaVersion: 41, map: oldMap, settlement: previousSettlement },
+      {
+        ...result.state,
+        schemaVersion: 41,
+        horde: oldHorde,
+        map: oldMap,
+        settlement: previousSettlement,
+      },
       '',
     ),
   ).toBe('army.training.amount: lote acima do máximo');

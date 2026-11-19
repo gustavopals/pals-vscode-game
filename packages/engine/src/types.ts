@@ -569,7 +569,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 43;
+  schemaVersion: 44;
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -774,6 +774,7 @@ export type GameState = {
   horde: {
     scheduledRaids: ScheduledRaid[];
     lastFormationSeen: { total: number; byUnit: Partial<Record<UnitId, number>> } | null;
+    previousYearFormation: { total: number; byUnit: Partial<Record<UnitId, number>> } | null;
     /** Ondas reais que os presságios observam; o agendamento do Cerco é da Fase G. */
     wavePlan: {
       year: number;

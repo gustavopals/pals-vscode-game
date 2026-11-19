@@ -167,6 +167,8 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.market?.effects;
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
+  // Fase C: os retratos históricos continuam sem memória entre anos.
+  delete copy.horde?.previousYearFormation;
   delete copy.map?.expeditionUnlocks;
   // Terceira junção (estados 39 a 42): o Acampamento, o Cerco e o lote 3.
   delete copy.siege;

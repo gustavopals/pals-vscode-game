@@ -9,6 +9,7 @@ import {
   LINE_IDS,
   omenTexts,
   siegeWaveYearFactor,
+  siegeWaveGrowthFactor,
   UNIT_IDS,
   WING_IDS,
   warRaids,
@@ -41,7 +42,9 @@ function baseWaveLayout(draft: GameState, def: HordeWaveDef, year?: number) {
     year ?? draft.horde.wavePlan?.year ?? draft.siege?.year ?? yearOf(draft.lastProcessedAt);
   const yearFactor = siegeWaveYearFactor(planYear);
   const baseCount = Math.floor((def.baseCount * yearFactor.num) / yearFactor.den);
-  const count = Math.floor((baseCount * num) / den);
+  const growth = siegeWaveGrowthFactor(planYear);
+  const grown = Math.floor((baseCount * growth.num) / growth.den);
+  const count = Math.floor((grown * num) / den);
   const remaining = count - def.fixed.filter((p) => !p.extra).reduce((sum, p) => sum + p.count, 0);
   const hasBack = HORDE_UNIT_IDS.some(
     (unit) => hordeUnits[unit].line === 'back' && (def.mix[unit] ?? 0) > 0,
@@ -77,6 +80,7 @@ function generateWave(draft: GameState, def: HordeWaveDef, year?: number): Wave 
     draft.settings.difficulty,
     draft.horde.lastFormationSeen,
     def.mix,
+    draft.horde.wavePlan === null ? draft.horde.previousYearFormation : null,
   ).weights;
   const { slots, amounts } = baseWaveLayout(draft, def, year);
   const posts: Post[] = def.fixed.map(({ wing, line, unit, count: fixedCount }) => ({
@@ -212,6 +216,7 @@ export function observeFormation(draft: GameState, posts: readonly SeenPost[], a
 
 /** Reinício anual da memória, antes de observar qualquer batalha do ano que começa. */
 export function resetHordeYear(draft: GameState): void {
+  draft.horde.previousYearFormation = draft.horde.lastFormationSeen;
   draft.horde.lastFormationSeen = null;
   draft.horde.wavePlan = null;
   draft.horde.omens = [];

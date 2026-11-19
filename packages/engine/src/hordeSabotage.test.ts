@@ -32,8 +32,8 @@ const total = (composition: readonly { count: number }[]) =>
   composition.reduce((sum, post) => sum + post.count, 0);
 
 describe('as ondas após sabotagem', () => {
-  // Ano 3, ondas inteiras de 40, 60 e 81 (o chefe vem além): 15% dá ⌊40·85/100⌋ = 34,
-  // ⌊60·85/100⌋ = 51 e ⌊81·85/100⌋ = 68; 30%, 28/42/56; 45%, 22/33/44; a quarta fica em 45%.
+  // Ano 3, crescimento 12/10: 48, 72 e 97 (chefe extra).
+  // 15%: 40/61/82; 30%: 33/50/67; 45%: 26/39/53; a quarta fica em 45%.
   // Ano 1, ondas de 13, 20 e 27 (um terço, mais o chefe): 15% dá ⌊13·85/100⌋ = 11,
   // ⌊20·85/100⌋ = 17 e ⌊27·85/100⌋ = 22; 30%, ⌊9,1⌋ = 9, 14, ⌊18,9⌋ = 18; 45%, ⌊7,15⌋ = 7,
   // 11, ⌊14,85⌋ = 14. O piso de 1 por posto não pesa: cada posto continua com mais de um.
@@ -41,10 +41,10 @@ describe('as ondas após sabotagem', () => {
     [
       3,
       [
-        [34, 51, 68],
-        [28, 42, 56],
-        [22, 33, 44],
-        [22, 33, 44],
+        [40, 61, 82],
+        [33, 50, 67],
+        [26, 39, 53],
+        [26, 39, 53],
       ],
     ],
     [
@@ -139,8 +139,8 @@ describe('as ondas após sabotagem', () => {
   // terço: ⌊13·11/10⌋ = 14 em Senhor, e em Camponês ⌊9·11/10⌋ = 9, isto é, o alerta não soma
   // ninguém a uma primeira onda de 9 (o piso da conta; balance-v0.4, "Ondas por ano").
   it.each([
-    ['peasant', 3, 28, 30],
-    ['lord', 3, 40, 44],
+    ['peasant', 3, 33, 36],
+    ['lord', 3, 48, 52],
     ['peasant', 1, 9, 9],
     ['lord', 1, 13, 14],
   ] as const)(
@@ -163,9 +163,9 @@ describe('as ondas após sabotagem', () => {
     },
   );
 
-  // Ano 3: ⌊40·55/100⌋ = 22 e ⌊22·11/10⌋ = 24. Ano 1: ⌊13·55/100⌋ = 7 e ⌊7·11/10⌋ = 7.
+  // Ano 3: ⌊48·55/100⌋ = 26 e ⌊26·11/10⌋ = 28. Ano 1: ⌊13·55/100⌋ = 7 e ⌊7·11/10⌋ = 7.
   it.each([
-    [3, 24],
+    [3, 28],
     [1, 7],
   ] as const)(
     'alerta e redução dão o mesmo efetivo e distribuição em qualquer ordem e após regenerar (ano %i)',

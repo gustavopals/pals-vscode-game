@@ -31,7 +31,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 43,
+    schemaVersion: 44,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -111,6 +111,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     horde: {
       scheduledRaids: scriptedRaidsAfter(0),
       lastFormationSeen: null,
+      previousYearFormation: null,
       wavePlan: null,
       omens: [],
       sabotages: { attempts: 0, successes: 0, alerted: false },

@@ -28,6 +28,14 @@ export function siegeWaveYearFactor(year: number): Ratio {
   return index < hordeWaveYearFactors.length ? hordeWaveYearFactors[index]! : { num: 1, den: 1 };
 }
 
+/** D-13: +10% por ano anterior, aplicado com piso após o fator do ano. */
+export function siegeWaveGrowthFactor(year: number): Ratio {
+  return { num: 10 + Math.max(0, year - 1), den: 10 };
+}
+
+/** D-14: memória anterior só na primeira preparação, com metade da adaptação. */
+export const previousYearMemoryFactor: Ratio = { num: 1, den: 2 };
+
 /** Pesos iniciais do agente, conforme os tipos de cada onda do GDD; medir na V4G-T2. */
 export const hordeWaves: readonly HordeWaveDef[] = [
   {

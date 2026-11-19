@@ -5,6 +5,7 @@ import {
   hordeBaseMix,
   hordeUnits,
   omenTexts,
+  previousYearMemoryFactor,
   type DifficultyId,
   type HordeUnitId,
   type OmenClarityId,
@@ -26,7 +27,7 @@ export type SeenPost = { readonly unit: UnitId; readonly count: number };
 
 /**
  * O que a Horda guarda da última formação vista: o total de soldados e quantos há de cada
- * unidade (a unidade do jogador é o arquétipo). Inteiros; sem memória entre anos.
+ * unidade (a unidade do jogador é o arquétipo). Inteiros.
  */
 export type HordeMemory = {
   readonly total: number;
@@ -52,7 +53,8 @@ export function summarizeFormation(posts: readonly SeenPost[]): HordeMemory | nu
 
 /**
  * Os pesos da composição, em inteiros: `peso × scale` com `scale = den × total` (ou 1, sem
- * memória). `peso(tipo) = base(estação) + astúcia × contra(tipo, última)`, onde `contra` é
+ * memória). Com memória anterior, a escala também incorpora seu total e o denominador
+ * de seu peso. `peso(tipo) = base + astúcia × (contra(última) + contra(anterior)/2)`, onde `contra` é
  * `counterWeights[unidade que o arquétipo do tipo vence] × (parte da formação que é dela)`.
  * Só entram os tipos da composição-base da estação (a Horda não inventa inimigo de outra
  * estação). A ordem das chaves é a de `HORDE_UNIT_IDS`.
@@ -67,10 +69,18 @@ export function compositionWeights(
   difficulty: DifficultyId,
   memory: HordeMemory | null,
   base = hordeBaseMix[season],
+  previous: HordeMemory | null = null,
 ): HordeWeights {
   const cunning = balance.difficulties[difficulty].cunning;
   const total = memory?.total ?? 0;
-  const scale = total > 0 ? cunning.den * total : 1;
+  const priorTotal = previous?.total ?? 0;
+  const prior = previousYearMemoryFactor;
+  const scale =
+    priorTotal > 0
+      ? cunning.den * Math.max(1, total) * prior.den * priorTotal
+      : total > 0
+        ? cunning.den * total
+        : 1;
   const weights: Partial<Record<HordeUnitId, number>> = {};
   for (const id of HORDE_UNIT_IDS) {
     const baseWeight = base[id];
@@ -82,7 +92,18 @@ export function compositionWeights(
       hordeUnits[id].archetype === 'none' ? null : ARCHETYPE_COUNTERS[hordeUnits[id].archetype];
     if (memory !== null && countered !== null) {
       weight +=
-        cunning.num * balance.horde.counterWeights[countered] * (memory.byUnit[countered] ?? 0);
+        cunning.num *
+        balance.horde.counterWeights[countered] *
+        (memory.byUnit[countered] ?? 0) *
+        (priorTotal > 0 ? prior.den * priorTotal : 1);
+    }
+    if (previous !== null && countered !== null) {
+      weight +=
+        cunning.num *
+        balance.horde.counterWeights[countered] *
+        (previous.byUnit[countered] ?? 0) *
+        Math.max(1, total) *
+        prior.num;
     }
     weights[id] = weight;
   }

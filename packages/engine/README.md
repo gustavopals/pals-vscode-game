@@ -4,16 +4,18 @@ O motor de Lords of the Guild: funções puras e determinísticas que decidem tu
 
 ## A Horda aprende (v0.4, V4E-T3)
 
-Introduzida no estado **34**; a terceira junção foi publicada na **0.4.0**, estado **42**, protocolo **4**. A Fase B da v0.5 usa o estado **43**, ainda em desenvolvimento. O passo 33 → 34 preserva
+Introduzida no estado **34**; a terceira junção foi publicada na **0.4.0**, estado **42**, protocolo **4**. A Fase B usa o estado **43**; a Fase C usa **44**, protocolo **4**. O passo 33 → 34 preserva
 as incursões já marcadas e cria memória nula, preparação nula e presságios vazios;
 não consome sorteios, cria eventos ou recalcula o passado.
 
 `hordePlan.ts` observa os soldados que realmente entraram em batalha, antes das
 baixas, e guarda somente contagens por unidade. A próxima incursão usa os pesos
-por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). A memória zera no ano novo.
+por estação e a astúcia da dificuldade (3/10, 1/2, 4/5). No ano novo, `lastFormationSeen` passa a `previousYearFormation` e zera. Só a primeira preparação usa a memória anterior com metade da adaptação; a memória corrente conserva o peso inteiro. Incursões e revisões seguintes não usam a anterior.
 O Acampamento nasce no dia 25 e a Fortaleza na abertura do outono; o Acampamento ativo soma +2 por dia; a Fortaleza soma zero nesta base
 (resposta do autor à D-43; reavaliação ainda pendente). A subida fecha o dia anterior, portanto o tile recém-nascido
 começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
+
+As ondas aplicam pisos sucessivos: fator do ano (1/3, 2/3, 1), crescimento `(10 + ano − 1)/10` e dificuldade; sabotagem depois, com chefe extra preservado. Senhor no Ano 2: **28/44/58 + chefe**. Ano 1 e seus sorteios continuam iguais.
 
 As ondas são preparadas no outono e renovadas quando a formação vista muda,
 até o inverno. Cada preparação tem uma revisão: renovar retira do painel os
@@ -770,7 +772,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 43):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 44):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -823,6 +825,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
 | 43 | V5B-T1/T2 (Fase B) | Capela por construir (`chapel: 0`) e `settlement.relics: []`, sem recalcular ferimentos nem mudar sorteios. |
+| 44 | V5C-T1 (Fase C) | `horde.previousYearFormation: null` no passo 43→44. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 

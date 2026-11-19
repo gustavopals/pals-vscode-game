@@ -89,6 +89,11 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'horde-previous-year': () => {
+    const state = gameAt(YEAR + 1);
+    state.horde.previousYearFormation = { total: 19, byUnit: { archer: 17, spearman: 2 } };
+    return state;
+  },
   relics: () => {
     const state = gameAt(SUMMER);
     state.settlement.buildings.townHall = 5;

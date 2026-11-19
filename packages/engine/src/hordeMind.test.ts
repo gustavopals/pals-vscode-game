@@ -62,6 +62,14 @@ describe('A Horda que aprende (V4E-T3, parte pura)', () => {
     expect(spring.weights.blackKnight).toBeUndefined();
   });
 
+  it('a memória anterior soma metade da adaptação, sem reduzir a do ano corrente', () => {
+    const previous = { total: 3, byUnit: { archer: 3 } } as const;
+    const half = compositionWeights('autumn', 'lord', null, undefined, previous);
+    expect(half.weights.blackKnight! / half.scale).toBe(25 + 25);
+    const both = compositionWeights('autumn', 'lord', archers, undefined, previous);
+    expect(both.weights.blackKnight! / both.scale).toBe(25 + 45 + 25);
+  });
+
   it('a astúcia cresce com a dificuldade', () => {
     const at = (d: 'peasant' | 'lord' | 'ironKing') =>
       (compositionWeights('summer', d, archers).weights.wolf ?? 0) /

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { currentShape, migrateState } from './migrations';
 import { compositionWeights } from './hordeMind';
-import { observeFormation } from './hordePlan';
+import { observeFormation, settleHordeTiles } from './hordePlan';
 import { buildRaidComposition } from './raidArmy';
 import { nextInt } from './random';
 import { cloneState } from './state';
@@ -87,6 +87,23 @@ describe('a Horda ligada à partida (V4E-T3)', () => {
     expect(cavalry(adapted)).toBeGreaterThan(cavalry(draw(null)));
   });
 
+  it('usa a memória anterior só no primeiro plano, mesmo tendo visto formação neste ano', () => {
+    const withMemory = gameAt(YEAR + AUTUMN);
+    withMemory.horde.lastFormationSeen = { total: 10, byUnit: { spearman: 10 } };
+    withMemory.horde.previousYearFormation = { total: 20, byUnit: { archer: 20 } };
+    const withoutMemory = cloneState(withMemory);
+    withoutMemory.horde.previousYearFormation = null;
+    settleHordeTiles(withMemory, withMemory.lastProcessedAt, []);
+    settleHordeTiles(withoutMemory, withoutMemory.lastProcessedAt, []);
+    expect(withMemory.horde.wavePlan).not.toEqual(withoutMemory.horde.wavePlan);
+    // Na revisão seguinte, ambos usam só a nova formação; o mesmo fluxo prova os pesos.
+    withoutMemory.rng = cloneState(withMemory).rng;
+    for (const state of [withMemory, withoutMemory])
+      observeFormation(state, [{ unit: 'swordsman', count: 12 }], state.lastProcessedAt);
+    expect(withMemory.horde.wavePlan).toEqual(withoutMemory.horde.wavePlan);
+    expect(withMemory.rng).toEqual(withoutMemory.rng);
+  });
+
   it('depois do inverno a memória muda, mas as ondas ficam fixas', () => {
     const state = advanceTo(gameAt(AUTUMN - 1), WINTER).state;
     const waves = cloneState(state).horde.wavePlan;
@@ -95,12 +112,13 @@ describe('a Horda ligada à partida (V4E-T3)', () => {
     expect(state.horde.wavePlan).toEqual(waves);
   });
 
-  it('a virada do ano esquece a memória e os presságios e encerra a Fortaleza', () => {
+  it('a virada do ano guarda a última formação e limpa a preparação e os presságios', () => {
     const state = advanceTo(gameAt(AUTUMN - 1), WINTER).state;
     state.horde.lastFormationSeen = { total: 2, byUnit: { archer: 2 } };
     state.map.tiles.raiderCamp = { type: 'raiderCamp', threatActive: false };
     const next = advanceTo(state, YEAR).state;
     expect(next.horde.lastFormationSeen).toBeNull();
+    expect(next.horde.previousYearFormation).toEqual({ total: 2, byUnit: { archer: 2 } });
     expect(next.horde.omens).toEqual([]);
     expect(next.horde.wavePlan).toBeNull();
     // O Cerco remove a Fortaleza ao terminar, antes da virada anual.

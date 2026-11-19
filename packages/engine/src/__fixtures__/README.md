@@ -7,6 +7,7 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 
 | Cenário | O que tem |
 |---|---|
+| `horde-previous-year` | A partir da v44: Ano 2, memória anterior com 17 arqueiros e 2 lanceiros, antes da primeira preparação. |
 | `fresh` | Feudo recém-criado, sem nenhuma ordem |
 | `construction` | Obra em curso, duas obras planejadas, dois aldeões a caminho, acumuladores no meio de um trecho |
 | `famine` | Fome aberta, com um aldeão na fila de recrutamento congelada |
@@ -63,3 +64,8 @@ O relatório nó a nó (V3D-T3) subiu o estado para a versão 19: cada registro 
 Os retratos da versão 1 foram gerados com o motor da v0.1 (commit `9b1d3e8`, o mesmo motor da tag `v0.1.0`) antes de o tipo mudar. Nomes e sementes são de teste: nenhum veio de uma conta real.
 
 Como acrescentar uma versão: [README do motor](../../README.md), "Versões do estado e migração".
+
+A Fase C usa a v44. Os 65 retratos v43 estão congelados em `FROZEN`.
+Em T1, os correspondentes v44 acrescentam apenas versão/memória; a exceção é
+`peasant-3x`, que já está no Ano 3 e conserva o Cerco do Ano 2, agora escalado.
+Goldens do Cerco do Ano 1 não foram regravados.
