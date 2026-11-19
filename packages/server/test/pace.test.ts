@@ -1,4 +1,4 @@
-import { balance } from '@lotg/content';
+import { balance, VOW_IDS, vowRules } from '@lotg/content';
 import type {
   ApiError,
   ChronicleResponse,
@@ -609,8 +609,37 @@ function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
       `um lote de até ${batch * PACE} por vez: até ${cap * PACE * barracks.targetLevel} soldados`,
     ),
   );
+  // D-17: a janela dos Votos dura 24 h reais após a virada do ano (ou do fim do Cerco até 24 h
+  // reais depois da virada). No mesmo instante de jogo, o ritmo 3× gasta um terço do tempo real
+  // e mantém a oferta aberta até 72 h de jogo, quando o ritmo 1× já fechou às 24 h.
+  const vowWindow = vowRules.choiceWindowRealMs / SECOND;
+  const daySeconds = balance.calendar.dayMs / SECOND;
+  let seasonEndSeconds = 0;
+  for (const season of balance.calendar.seasons) {
+    seasonEndSeconds += season.days * daySeconds;
+    if (season.id === normalView.calendar.season) {
+      break;
+    }
+  }
+  const elapsedInYearSeconds = seasonEndSeconds - normalView.calendar.secondsToNextSeason;
+  const expectedVowsCloses =
+    normalView.vows.closesInSeconds > vowWindow
+      ? Math.ceil((normalView.vows.closesInSeconds - vowWindow) / PACE) + vowWindow
+      : normalView.vows.closesInSeconds > 0
+        ? vowWindow - Math.floor((vowWindow - normalView.vows.closesInSeconds) / PACE)
+        : Math.max(0, vowWindow - Math.floor(elapsedInYearSeconds / PACE));
+  expect(fastView.vows.taken).toEqual(normalView.vows.taken);
+  expect(fastView.vows.closesInSeconds).toBe(expectedVowsCloses);
+  if (normalView.vows.closesInSeconds > 0) {
+    expect(fastView.vows.offer).toEqual(normalView.vows.offer);
+  } else if (expectedVowsCloses > 0) {
+    expect(fastView.vows.offer.map((vow) => vow.id)).toEqual([...VOW_IDS]);
+  } else {
+    expect(fastView.vows.offer).toEqual([]);
+  }
   const withoutPaceRules = (view: ViewState): ViewState => ({
     ...view,
+    vows: { offer: [], taken: view.vows.taken, closesInSeconds: 0 },
     army: { ...view.army, offer: view.army.offer.map((offer) => ({ ...offer, batchMax: 0 })) },
     constructions: {
       ...view.constructions,
