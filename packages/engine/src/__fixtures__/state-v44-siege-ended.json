@@ -1,5 +1,11 @@
 {
  "schemaVersion": 44,
+ "vows": {
+  "year": 1,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 691200000
+ },
  "seed": "cerco-referencia-v4g",
  "settings": {
   "settlementName": "Pedra Alta",

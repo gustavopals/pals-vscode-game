@@ -1,3 +1,4 @@
+import { hordeCunning } from './vows';
 import { balance } from '@lotg/content';
 
 import { isYearBoundary, seasonAt } from './clock';
@@ -71,6 +72,9 @@ function drawRaid(draft: GameState, atMs: number): void {
       seasonAt(arrivesAtMs).id,
       draft.settings.difficulty,
       horde.lastFormationSeen,
+      undefined,
+      undefined,
+      hordeCunning(draft),
     ),
   ).map((post) => ({ ...post }));
   horde.scheduledRaids.push({

@@ -1,3 +1,4 @@
+import { legacyPoints, vowsForYear } from './vows';
 import { balance, feats, featRules, type FeatId } from '@lotg/content';
 
 import { emit } from './chronicle';
@@ -34,6 +35,7 @@ export function endYear(draft: GameState, atMs: number, events: GameEvent[]): vo
     (won ? weights.siegeVictory : 0) +
     (result === 2 ? weights.siegeGlorious : 0) +
     earned.length * weights.feat;
+  const taken = vowsForYear(draft, year);
   draft.stats.yearScore = score;
   draft.stats.yearFeats = earned.length;
   draft.stats.yearsEnded = (draft.stats.yearsEnded ?? 0) + 1;
@@ -53,6 +55,7 @@ export function endYear(draft: GameState, atMs: number, events: GameEvent[]): vo
         result === 0 ? 'fall' : result === 1 ? 'victory' : result === 2 ? 'glorious' : 'none',
       score,
       feats: earned.join(','),
+      ...(taken.length === 0 ? {} : { vows: taken.join(','), legacy: legacyPoints(score, taken) }),
     },
     { ano: year, pontos: score },
   );

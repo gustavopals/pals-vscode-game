@@ -260,6 +260,13 @@ describe('catálogo de recusas', () => {
   militiaActive.settlement.militia = { count: 1, untilMs: militiaActive.siege!.atMs };
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
+    VOWS_CLOSED: [
+      gameWith((state) => {
+        state.vows.closesAtMs = 0;
+      }),
+      command('takeVows', { vows: [] }),
+    ],
+    VOW_UNAVAILABLE: [newGame(), command('takeVows', { vows: ['missing'] })],
     CHAPEL_REQUIRED: [newGame(), command('placeRelic', { relicId: 'oakHeart' })],
     RELIC_NOT_FOUND: [
       gameWith((state) => {

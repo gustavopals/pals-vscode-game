@@ -1,3 +1,4 @@
+import { vowsView } from './vowsView';
 import { relics } from '@lotg/content';
 import { relicIsActive } from './relics';
 import { relicsView } from './relicsView';
@@ -517,6 +518,7 @@ export function deriveViewState(
     market: marketView(state, timeScale),
     smithy: smithyView(state, timeScale),
     relics: relicsView(state, timeScale),
+    vows: vowsView(state, timeScale),
     army: armyView(state, timeScale),
     siege: siege.siege,
     masters: mastersView(state, timeScale),

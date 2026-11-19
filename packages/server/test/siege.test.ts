@@ -60,6 +60,51 @@ async function row(gameId: string) {
 }
 
 describe('protocolo 4 e a decisão entre ondas (V4G-T2.7)', () => {
+  it('oferece Votos na criação sem campo novo e persiste takeVows uma só vez', async () => {
+    const player = await newPlayer(server);
+    const read = await call<ViewResponse>(server, 'GET', `/games/${player.game.id}/view`, {
+      token: player.token,
+      headers: protocol,
+    });
+    expect(read.status).toBe(200);
+    expect(read.body.view.vows.offer.map((entry) => entry.id)).toEqual([
+      'noWalls',
+      'cunningHorde',
+      'scarceFood',
+      'mortalHeroes',
+    ]);
+    const command = order('takeVows', { vows: ['scarceFood'] });
+    const accepted = await send<CommandAccepted>(
+      server,
+      player.token,
+      player.game.id,
+      command,
+      protocol,
+    );
+    expect(accepted.status).toBe(200);
+    expect(CommandAcceptedSchema.parse(accepted.body)).toEqual(accepted.body);
+    expect(accepted.body.view.vows.taken.map((entry) => entry.id)).toEqual(['scarceFood']);
+    const persisted = await row(player.game.id);
+    expect(persisted.state.vows.taken).toEqual(['scarceFood']);
+    const replay = await send<CommandAccepted>(
+      server,
+      player.token,
+      player.game.id,
+      command,
+      protocol,
+    );
+    expect(replay.body).toEqual(accepted.body);
+    expect(await row(player.game.id)).toEqual(persisted);
+    const refused = await send<GameRuleError>(
+      server,
+      player.token,
+      player.game.id,
+      order('takeVows', { vows: ['noWalls'] }),
+      protocol,
+    );
+    expect(refused.status).toBe(422);
+    expect(refused.body.details.code).toBe('VOWS_CLOSED');
+  });
   it('recusa o app do protocolo 3 em leitura e ordem, sem avançar nem gravar recibo', async () => {
     const player = await betweenWaves();
     const before = await row(player.game.id);

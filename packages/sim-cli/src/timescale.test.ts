@@ -12,15 +12,17 @@ const HOUR_MS = 3_600_000;
 /**
  * O estado sem o que depende do ritmo: o que tem de coincidir entre duas partidas de ritmos
  * diferentes quando as ordens usam os mesmos tetos e não atravessam regras de prazo real.
- * São três campos retirados da comparação: o ritmo gravado nele; o prazo de resposta das cartas do
+ * Os campos normalizados são: o ritmo gravado nele; o prazo de resposta das cartas do
  * Conselho, que é de tempo real (24 h em qualquer ritmo) e por isso cai em outro instante de
  * jogo; e o instante em que os vigias avistaram a incursão que vem, porque a antecedência do
- * aviso da Torre também é tempo real (1 h e 2 h reais, ADR 0016). Enquanto as cartas são
+ * aviso da Torre também é tempo real (1 h e 2 h reais, ADR 0016), além da janela de Votos (24 h reais, D-17). Enquanto as cartas são
  * respondidas nos mesmos instantes e ninguém passa fome, o resto do feudo coincide.
  */
 const world = (state: GameState) => ({
   ...state,
   settings: { ...state.settings, timeScale: null },
+  // D-17: conserva o prazo, normalizado para tempo real, em vez de ignorá-lo.
+  vows: { ...state.vows, closesAtMs: state.vows.closesAtMs / state.settings.timeScale },
   council: {
     ...state.council,
     pending: state.council.pending.map((card) => ({ ...card, expiresAtMs: null })),

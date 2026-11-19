@@ -1,3 +1,4 @@
+import { hordeCunning } from './vows';
 import { relicIsActive } from './relics';
 import { relics } from '@lotg/content';
 import {
@@ -82,6 +83,7 @@ function generateWave(draft: GameState, def: HordeWaveDef, year?: number): Wave 
     draft.horde.lastFormationSeen,
     hordeWaveMix(def, year ?? yearOf(draft.lastProcessedAt)),
     draft.horde.wavePlan === null ? draft.horde.previousYearFormation : null,
+    hordeCunning(draft),
   ).weights;
   const { slots, amounts } = baseWaveLayout(draft, def, year);
   const posts: Post[] = def.fixed.map(({ wing, line, unit, count: fixedCount }) => ({

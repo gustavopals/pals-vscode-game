@@ -129,6 +129,24 @@ afterEach(() => {
 });
 
 describe('cadência', () => {
+  it('antecipa a leitura ao fechar Votos e conserva a cadência normal depois do zero', async () => {
+    const { session, state } = setup();
+    state.view = { ...view, vows: { ...view.vows, closesInSeconds: 5 } };
+    session.setVisible(true);
+    await session.start(target);
+    const before = state.calls.view;
+    await vi.advanceTimersByTimeAsync(5_999);
+    expect(state.calls.view).toBe(before);
+    state.etag = 'W/"vows-closed"';
+    state.view = { ...state.view, vows: { offer: [], taken: [], closesInSeconds: 0 } };
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(before + 1);
+    await vi.advanceTimersByTimeAsync(29_999);
+    expect(state.calls.view).toBe(before + 1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(before + 2);
+    session.stop();
+  });
   it('lê a decisão siegeWave no protocolo 4 e consulta de novo no prazo real', async () => {
     const { session, state } = setup();
     state.view = {

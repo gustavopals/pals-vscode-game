@@ -241,6 +241,7 @@ function stripComposition(copy: Draft): void {
   delete copy.settlement?.buildings?.chapel;
   delete copy.settlement?.relics;
   delete copy.horde?.previousYearFormation;
+  delete copy.vows;
   // Terceira junção: comparações com formas anteriores removem só os campos posteriores.
   delete copy.army?.campaign;
   delete copy.council?.bonuses;

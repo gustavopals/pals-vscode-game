@@ -1,3 +1,4 @@
+import { turnVowsYear } from './vows';
 import { unlockExpedition } from './expeditionUnlocks';
 import {
   balance,
@@ -103,6 +104,7 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     draft.clock.gameTimeMs = atMs;
     draft.clock.year = Math.floor(atMs / YEAR) + 1;
     draft.clock.yearStartMs = Math.floor(atMs / YEAR) * YEAR;
+    turnVowsYear(draft, atMs);
     draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
     quietCouncil(draft);
     quietHorde(draft);

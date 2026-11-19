@@ -1095,6 +1095,36 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 86400
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -2404,6 +2434,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 86400
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -3751,6 +3811,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 64200
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -5329,6 +5419,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -6904,6 +6999,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -8693,6 +8793,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -10280,6 +10385,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -11863,6 +11973,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -13436,6 +13551,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -15109,6 +15229,36 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 57200
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -16764,6 +16914,36 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 57200
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -18375,6 +18555,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -20043,6 +20228,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -21710,6 +21900,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -23437,6 +23632,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -25102,6 +25302,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -26610,6 +26815,36 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 74260
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -28102,6 +28337,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -29473,6 +29713,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -31127,6 +31372,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 50500
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -32846,6 +33121,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -34697,6 +34977,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 19920
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -36629,6 +36939,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -38574,6 +38889,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -40505,6 +40825,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 11920
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -42630,6 +42980,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -44622,6 +44977,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -46303,6 +46663,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -47960,6 +48325,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -49724,6 +50094,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -51541,6 +51916,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -53075,6 +53455,11 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
@@ -54712,6 +55097,11 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [],
+      "taken": [],
+      "closesInSeconds": 0
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -56336,6 +56726,36 @@
       "slots": 0,
       "items": []
     },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 86400
+    },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",
       "campaign": null,
@@ -57911,6 +58331,36 @@
     "relics": {
       "slots": 0,
       "items": []
+    },
+    "vows": {
+      "offer": [
+        {
+          "id": "noWalls",
+          "label": "Sem muralhas",
+          "legacyBonusPercent": 40,
+          "description": "Para o Ano 1: A Paliçada não repele incursões e as muralhas não protegem nas batalhas. As torres continuam defendendo; edifício e vida da muralha são preservados. Novos reparos ficam suspensos até a virada do ano."
+        },
+        {
+          "id": "cunningHorde",
+          "label": "Horda astuta",
+          "legacyBonusPercent": 25,
+          "description": "Para o Ano 1: A Horda aprende com astúcia 0,8, tanto nas incursões quanto nas ondas do Cerco."
+        },
+        {
+          "id": "scarceFood",
+          "label": "Comida escassa",
+          "legacyBonusPercent": 20,
+          "description": "Para o Ano 1: A produção de comida é multiplicada por 0,8. O consumo e os ganhos de comida por outras fontes conservam suas regras."
+        },
+        {
+          "id": "mortalHeroes",
+          "label": "Heróis mortais",
+          "legacyBonusPercent": 35,
+          "description": "Para o Ano 1: Heróis podem morrer nas batalhas e nos Desastres de expedição que causariam morte em Rei de Ferro. Os demais ferimentos conservam suas regras."
+        }
+      ],
+      "taken": [],
+      "closesInSeconds": 86100
     },
     "army": {
       "warCouncilTitle": "Conselho de Guerra",

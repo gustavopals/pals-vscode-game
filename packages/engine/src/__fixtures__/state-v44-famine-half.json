@@ -1,5 +1,11 @@
 {
  "schemaVersion": 44,
+ "vows": {
+  "year": 1,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 43200000
+ },
  "seed": "fixture-famine-half",
  "settings": {
   "settlementName": "Pedra Alta",

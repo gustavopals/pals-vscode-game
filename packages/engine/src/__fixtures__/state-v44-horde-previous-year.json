@@ -1,5 +1,11 @@
 {
  "schemaVersion": 44,
+ "vows": {
+  "year": 2,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 691200000
+ },
  "seed": "pedra-alta",
  "settings": {
   "settlementName": "Pedra Alta",

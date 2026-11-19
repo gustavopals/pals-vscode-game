@@ -1,5 +1,8 @@
 import {
   balance,
+  vows,
+  vowRules,
+  vowTexts,
   expeditionModels,
   expeditionTexts,
   relics,
@@ -76,6 +79,9 @@ import { canonicalJson } from './canonical';
 function hashedContent(): Record<string, unknown> {
   return {
     balance,
+    vows,
+    vowRules,
+    vowTexts,
     expeditionModels,
     expeditionTexts,
     relics,

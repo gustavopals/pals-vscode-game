@@ -1,3 +1,4 @@
+import { heroCaptureRule } from './vows';
 import { battleRelicModifiers } from './relics';
 import {
   balance,
@@ -275,7 +276,7 @@ export function previewInputFor(
     // A muralha como está agora, ala por ala (V4E-T1): a ala derrubada entra sem muralha.
     wall: wallForBattle(state),
     watchtowerLevel: watchtowerLevel(state),
-    heroCapture: balance.difficulties[state.settings.difficulty].heroCapture,
+    heroCapture: heroCaptureRule(state),
   };
 }
 

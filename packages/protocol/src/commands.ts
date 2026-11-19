@@ -355,7 +355,13 @@ export const RemoveRelicCommandSchema = command(
   z.strictObject({ relicId: z.string().min(1).max(80) }),
 );
 
+export const TakeVowsCommandSchema = command(
+  'takeVows',
+  z.strictObject({ vows: z.array(z.string().min(1).max(80)) }),
+);
+
 export const CommandSchema = z.discriminatedUnion('type', [
+  TakeVowsCommandSchema,
   PlaceRelicCommandSchema,
   RemoveRelicCommandSchema,
   SetVigilHourCommandSchema,

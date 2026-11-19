@@ -52,7 +52,7 @@ exige outono, Fortaleza ativa e exatamente três heróis; até três envios por 
 mesmo que o destino apareça em `map.discovered`. A jornada completa dura seis
 horas de jogo: quatro provas, a saída e o retorno. A encruzilhada pode abreviar
 a jornada. Toda prova consulta a captura da dificuldade no Desastre: ferimento
-grave em Camponês, captura em Senhor e morte em Rei de Ferro.
+grave em Camponês, captura em Senhor e morte em Rei de Ferro; Heróis mortais aplica as situações de morte também nas demais dificuldades.
 
 Cada sucesso tira 15% da base total da onda correspondente, acumulando até 45%.
 O total é truncado uma vez e repartido pelos postos com restos em ordem fixa;
@@ -516,7 +516,7 @@ Os números são os de `balance.injuries`, `balance.equipment`, `balance.expedit
 - **O cativo** sai da equipe (`status: 'captured'`, `captivity: { sinceMs, modelId }`), sem prazo. **Não recebe soldo** (`paidHeroes`), não fica Descontente nem parte por soldo em atraso (`isBeyondArrears`, ao lado do Leal), não é dispensado nem equipado (`HERO_BUSY`), e o que levava fica com ele. **Não ocupa lugar no limite de contratação** (`lodgedHeroes`, em `heroes.ts`, conta a lista sem os cativos; resposta do autor de 2026-10-06 à pendência D-17): com a Taverna no nível 1 e um cativo, dá para contratar um substituto e montar o Resgate. O resgatado volta mesmo com a casa cheia (`rescueCaptive` não confere limite: a recompensa nunca se perde), e o feudo fica **acima do limite** até dispensar alguém ou subir a Taverna; enquanto `lodgedHeroes ≥ heroLimit`, `hireHero` recusa com `HERO_LIMIT`. O cativo continua em `guild.heroes` e conta no teto da lista (`rosterCap`, 12): com lugar no limite e a lista no teto, a contratação é recusada com `HERO_LIMIT` na frase da guarda ("A guarda do feudo abriga 12 heróis…: resgate quem está em cativeiro ou dispense um herói."), e a guarda de forma do estado continua valendo sem mudança.
 - **O Resgate** (`access: { kind: 'captive' }`) só aparece enquanto houver um cativo. O nó que liberta (`rewards.rescues`), do Sucesso em diante, solta **quem está em cativeiro há mais tempo** (`captives`; no empate, quem chegou antes ao feudo): ele volta ao feudo **no fim do nó**, pronto, com o que levava, e o soldo volta a correr (`heroRescued`). O Revés não liberta ninguém, e o Desastre no cativeiro pode deixar lá mais um.
 - **A equipe inteira capturada ou morta**: a expedição termina no nó, sem caminho de volta, **e o saque se perde**, recursos e itens (`endLost`, `expeditionLost`). O relatório fica, com `lost: true` e os nomes de quem foi.
-- **A morte** só existe em Rei de Ferro, e só onde o nó marca captura. O herói deixa a lista, e **o que ele levava volta ao arsenal** (`releaseEquipment`), como o de quem é dispensado e o de quem parte sem soldo; o que não cabe vira ouro.
+- **A morte** em expedição só existe em Rei de Ferro ou com Heróis mortais, e só onde o nó marca captura. O herói deixa a lista, e **o que ele levava volta ao arsenal** (`releaseEquipment`), como o de quem é dispensado e o de quem parte sem soldo; o que não cabe vira ouro.
 - **Experiência.** Cada prova dá `trial.xp` a **cada herói que continua na equipe**, na parte do desfecho (`xpShare`: 5/4, 1, 1/2 e, no Desastre, ainda 1/4), para baixo. Quem junta o que o nível pede (`xpToNext`) sobe, leva o resto e ganha linha (`heroLeveledUp`); pode subir mais de um nível de uma vez. **No nível 10 ninguém junta experiência**, e quem chega a ele zera a que tinha. O nível entra no poder sem compor (`heroFactors`).
 - **Equipamento.** Um item é `{ id: 'item-<n>', defId, condition }`: nasce no fim de um nó, com `nextId(draft, 'item')` (um instante da linha do tempo cria a entidade), vai no saque da expedição (`loot.items`) e entra no **arsenal** (`guild.inventory`, teto de 30) na volta. **O item que chega com o arsenal cheio vira ouro pelo valor do conteúdo**, com linha na Crônica (`stowItem`, `itemSold`). Três espaços por herói (`hero.equipment`), e o espaço é o do item: `equipItem { heroId; itemId }` não o escolhe; equipar por cima **troca** e devolve o anterior ao arsenal, no lugar do novo. `unequipItem { heroId; slot }` devolve ao arsenal e é recusado com ele cheio (`INVENTORY_FULL`: desequipar nunca vende). As recusas: `HERO_NOT_FOUND`, `HERO_BUSY` (em expedição ou em cativeiro), `ITEM_NOT_FOUND`, `WRONG_SLOT`. **Nenhuma das duas ordens sorteia nem dá identificador.** O bônus é um fator do poder (`heroFactors`, depois do nível, do Descontente e do traço da Postura, um termo por item, com o nome dele na explicação), e vale na ficha e em todo nó. **Desgasta e se repara (V4B-T3)**: `condition` é o que resta de uma durabilidade por raridade (8, 10, 14, 20); cada item equipado de quem **voltou** de uma expedição concluída perde 1 ponto (`wearTeam`, no instante da volta, em `returnHome`; a perdida, a recolhida antes do fim e a caravana não gastam; só o item que chega a 0 tem linha, `itemWorn`). Item em 0 fica com o herói ou no arsenal, **não dá bônus** (`heroFactors` põe o termo neutro `itemWorn`: "× 1,000 (arco de freixo gasto, sem bônus)") e vale em ouro o que o conteúdo diz, não a condição. Sem venda.
 - **Traços.** O Ganancioso multiplica por 5/4 os **recursos** de cada nó (dois não somam) e, em cada nó com dificuldade que renderia algo, tem 10% de perder o saque **do nó** (recursos e item). O Rastreador garante a revelação de um destino também no Revés. O Corajoso e o Prudente estão em "Quem sofre". O Veterano não tem efeito em tempo de execução: o nível já vem escrito. O que o Carismático abre no Conselho é do lote 2 de cartas (V3F-T1), e a frase dele não o promete.
@@ -697,7 +697,7 @@ das expedições e antes das caravanas**. Uma incursão no mesmo instante da vol
 luta sem os que chegam, porque `settleRaids` vem antes. `fightBattle` resolve a chegada
 com o jogador atacante, paliçada do Acampamento, guarnição da estação da chegada e sem
 Torre do feudo. O fluxo `battle:<id>` nasce e morre nesse instante. Os efeitos em heróis
-(ferimento, morte em Rei de Ferro, XP e desgaste) e o relatório são os da batalha comum.
+(ferimento, morte em Rei de Ferro ou com Heróis mortais, XP e desgaste) e o relatório são os da batalha comum.
 
 Vitória limpa o tile uma vez, reduz a Ameaça e guarda o saque para a volta; derrota ou
 recuo após o limite de rodadas não limpam. No retorno, as baixas saem do total e o saque
@@ -831,7 +831,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
 | 43 | V5B-T1/T2 (Fase B) | Capela por construir (`chapel: 0`) e `settlement.relics: []`, sem recalcular ferimentos nem mudar sorteios. |
-| 44 | V5C-T1/T2 (Fase C) | `horde.previousYearFormation: null` no passo 43→44. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
+| 44 | V5C-T1/T2/T3 (Fase C) | `horde.previousYearFormation: null` e Votos vazios no passo 43→44, com prazo pela fronteira e pelo ritmo gravado. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -902,7 +902,7 @@ em [docs/reviews](../../docs/reviews/); provas e limites por critério em
 Continuam ausentes prévia ofensiva do Acampamento, vínculo persistido de relatório
 por onda e discriminação das perdas da Queda na visão (G-23); dispensar/ensinar
 com Mestre, compra ou segundo destino de caravana, venda de item, mapa gráfico,
-postos avançados, plantas, Veio de Ferro, Legado, Votos e Temporadas.
+postos avançados, plantas, Veio de Ferro, saldo de Legado na conta, tela de Votos e Temporadas.
 As previsões de estoques/moral não antecipam incursões, Cerco ou sorteios ocultos.
 
 ### Hora da Vigília (V4G-T1)
@@ -1035,3 +1035,37 @@ dos relatórios, inclusive depois de dissolver a milícia. A validação herdada
 uma projeção desses postos; o JSON persistido conserva `militia`, e a v39 continua
 recusando essa unidade. `siege.militia-persistence.test.ts` cobre Queda, vitória,
 incursão e releitura do estado em JSON.
+
+## Votos e Legado anual (V5C-T3)
+
+Estado **44**, protocolo **4**, sem novo `pendingDecisions.kind` ou campo em
+`POST /games`. `takeVows { vows: string[] }` aceita os ids do conteúdo uma vez
+por ano de destino; array vazio também encerra a escolha. A oferta exclui a
+astúcia 4/5 e a morte já impostas por Rei de Ferro. Recusas: `VOWS_CLOSED` e
+`VOW_UNAVAILABLE`, com a mensagem do conteúdo.
+
+A janela nasce na criação ou no fim do Cerco e termina **24 h reais** depois
+da virada anual (`realToGameMs`); enquanto aberta, seu fim é um candidato de
+`nextEventAt`. A visão acrescenta `vows { offer, taken, closesInSeconds }`, com
+rótulo, descrição e bônus de Legado em cada item; zero significa escolha encerrada.
+O polling antecipa o fim, sem repetir o zero como prazo futuro.
+
+`vows { year, taken, closesAtMs, nextTaken }` conserva os Votos do ano corrente
+até o fecho. `nextTaken` distingue a escolha antecipada do próximo ano, inclusive
+um array vazio, de ainda não ter escolhido. No calendário, `endYear` emite o
+fecho com os Votos correntes; `turnVowsYear` aplica a escolha seguinte antes das
+regras do ano novo. A ordem dos demais eventos permanece igual. `vowsTaken` é
+emitido só pela ordem aceita; expirar a oferta não emite evento nem sorteia.
+
+Os efeitos consultam a mesma regra no combate e na prévia. Sem muralhas retira
+a proteção da Paliçada e o HP efetivo, conserva a estrutura e bloqueia novos
+reparos; a Torre permanece. Comida escassa só multiplica a produção de comida
+por 4/5 e aparece na explicação. Horda astuta só troca a astúcia por 4/5. Heróis
+mortais usa a morte de Rei de Ferro nas batalhas e nos Desastres de captura;
+os outros ferimentos mantêm suas regras.
+
+O `score` já inclui os Feitos. `legacy = floor(score × (100 + soma dos bônus)/100)`;
+os quatro Votos somam +120%. `yearEnded.vows` (ids separados por vírgulas) e
+`legacy` são opcionais; sem Votos o evento fica igual ao anterior. A conta e a
+tela de Legado ficam para D, e o painel de Votos para C-T4. Bots não os escolhem
+antes de H. Migração não escolhe, emite eventos, sorteia ou reconstitui o passado.

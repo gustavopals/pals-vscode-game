@@ -6,6 +6,7 @@ import {
   hordeUnits,
   omenTexts,
   previousYearMemoryFactor,
+  type Ratio,
   type DifficultyId,
   type HordeUnitId,
   type OmenClarityId,
@@ -70,8 +71,8 @@ export function compositionWeights(
   memory: HordeMemory | null,
   base = hordeBaseMix[season],
   previous: HordeMemory | null = null,
+  cunning: Ratio = balance.difficulties[difficulty].cunning,
 ): HordeWeights {
-  const cunning = balance.difficulties[difficulty].cunning;
   const total = memory?.total ?? 0;
   const priorTotal = previous?.total ?? 0;
   const prior = previousYearMemoryFactor;

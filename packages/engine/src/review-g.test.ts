@@ -84,6 +84,7 @@ describe('V4G-T5.1 · limites do Cerco', () => {
     historical.schemaVersion = 39;
     delete historical.settlement.relics;
     delete historical.horde.previousYearFormation;
+    delete historical.vows;
     delete historical.settlement.buildings.chapel;
     delete historical.siege;
     delete historical.settlement.militia;

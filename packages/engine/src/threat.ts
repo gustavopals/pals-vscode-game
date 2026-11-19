@@ -1,3 +1,4 @@
+import { vowIsActive } from './vows';
 import {
   balance,
   type EnemyId,
@@ -58,7 +59,7 @@ export function watchtowerWarningMs(state: GameState, perks: WatchtowerLevelDef)
 
 /** O nível da Paliçada; 0 enquanto não foi construída. */
 export function palisadeLevel(state: GameState): number {
-  return state.settlement.buildings.palisade;
+  return vowIsActive(state, 'noWalls') ? 0 : state.settlement.buildings.palisade;
 }
 
 /**

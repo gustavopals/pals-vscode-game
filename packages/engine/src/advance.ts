@@ -1,3 +1,4 @@
+import { turnVowsYear } from './vows';
 import { activateRelics } from './relics';
 import { expireExpeditionUnlocks } from './expeditionUnlocks';
 import { balance } from '@lotg/content';
@@ -61,6 +62,7 @@ function processCalendar(
   if (isYearBoundary(atMs)) {
     // Fecha o ano anterior antes de emitir qualquer linha da nova crônica anual.
     endYear(draft, atMs, events);
+    turnVowsYear(draft, atMs);
     draft.clock.year = yearOf(atMs);
     draft.clock.yearStartMs = atMs;
     emit(events, draft, atMs, 'yearStarted', { year: date.year });

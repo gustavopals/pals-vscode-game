@@ -1,3 +1,5 @@
+import { vowIsActive } from './vows';
+import { vowTexts, vows } from '@lotg/content';
 import {
   expeditionTexts,
   balance,
@@ -316,6 +318,7 @@ export function palisadeEffect(building: BuildingId, targetLevel: number): strin
  * Paliçada, e o nível que segura hoje segura sempre.
  */
 function wallView(state: GameState, timeScale: number): ThreatWallView {
+  const noWalls = vowIsActive(state, 'noWalls');
   const level = palisadeLevel(state);
   const full = wallHpPerWing(level);
   const hpText = {} as Record<WingId, string>;
@@ -342,8 +345,11 @@ function wallView(state: GameState, timeScale: number): ThreatWallView {
           ? 'A muralha está inteira.'
           : `Reparar tudo custa ${String(quote.stone)} de pedra e ${String(quote.gold)} de ouro e leva ${durationText(seconds)}; as obras em curso esperam o reparo.`;
   return {
-    levelLabel:
-      level === 0 ? `Sem ${fence.label}` : `${buildingLabelAt('palisade', level)} Nv${level}`,
+    levelLabel: noWalls
+      ? vows.noWalls.label
+      : level === 0
+        ? `Sem ${fence.label}`
+        : `${buildingLabelAt('palisade', level)} Nv${level}`,
     hpText,
     repairOffer: {
       canRepair: blocked === null && missing === null,
@@ -373,13 +379,18 @@ function towerView(state: GameState): ThreatTowerView {
 
 function defenseView(state: GameState, timeScale: number): ThreatDefenseView {
   const level = palisadeLevel(state);
-  const atCeiling = level >= fence.maxLevel;
+  const noWalls = vowIsActive(state, 'noWalls');
+  const atCeiling = state.settlement.buildings.palisade >= fence.maxLevel;
   const built = () => `${buildingLabelAt('palisade', level)} Nv${level}: ${holdsText(level)}.`;
-  const gain = atCeiling ? null : palisadeGainText(level + 1);
+  const gain = noWalls || atCeiling ? null : palisadeGainText(level + 1);
   return {
     building: 'palisade',
     palisadeLevel: level,
-    text: level === 0 ? `Sem ${fence.label}, nada segura um ataque.` : built(),
+    text: noWalls
+      ? vowTexts.noWallsDefense
+      : level === 0
+        ? `Sem ${fence.label}, nada segura um ataque.`
+        : built(),
     next:
       gain === null ? null : `${buildingLabelAt('palisade', level + 1)} Nv${level + 1}: ${gain}.`,
     wall: wallView(state, timeScale),
@@ -395,14 +406,15 @@ function defenseView(state: GameState, timeScale: number): ThreatDefenseView {
 function palisadeAtRaid(
   state: GameState,
   raidAtMs: number,
-): { level: number; work: 'none' | 'inTime' | 'late' } {
+): { level: number; work: 'none' | 'inTime' | 'late'; vowBlocked?: boolean } {
+  if (vowIsActive(state, 'noWalls', raidAtMs)) return { level: 0, work: 'none', vowBlocked: true };
   const underway = constructionOf(state, 'palisade');
   if (underway === null) {
-    return { level: palisadeLevel(state), work: 'none' };
+    return { level: state.settlement.buildings.palisade, work: 'none' };
   }
   return underway.finishesAtMs <= raidAtMs
     ? { level: underway.targetLevel, work: 'inTime' }
-    : { level: palisadeLevel(state), work: 'late' };
+    : { level: state.settlement.buildings.palisade, work: 'late' };
 }
 
 /**
@@ -415,9 +427,10 @@ function palisadeAtRaid(
  * diz que a obra só termina depois dele.
  */
 function incomingDefenseText(
-  { level, work }: ReturnType<typeof palisadeAtRaid>,
+  { level, work, vowBlocked }: ReturnType<typeof palisadeAtRaid>,
   sizes: readonly RaidSizeId[],
 ): string {
+  if (vowBlocked) return vowTexts.noWallsDefense;
   const late = work === 'late' ? ' A obra em curso só termina depois dele.' : '';
   if (level === 0) {
     return `Sem ${fence.label}, nada segura este ataque.${late}`;

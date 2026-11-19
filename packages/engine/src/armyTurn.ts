@@ -1,3 +1,4 @@
+import { heroCaptureRule } from './vows';
 import {
   balance,
   battleOutcomeLabels,
@@ -114,7 +115,7 @@ export function settleCampaign(draft: GameState, atMs: number, events: GameEvent
       horde: { posts: toHordePosts(rules.campGarrison[seasonAt(atMs).id]) },
       wall: Object.fromEntries(WING_IDS.map((wing) => [wing, rules.campWall])),
       watchtowerLevel: 0,
-      heroCapture: balance.difficulties[draft.settings.difficulty].heroCapture,
+      heroCapture: heroCaptureRule(draft),
     });
     const report = buildBattleReport(id, atMs, resolution, campaign.formationId);
     campaign.report = report;

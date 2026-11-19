@@ -1,3 +1,5 @@
+import { vowIsActive } from './vows';
+import { vowTexts } from '@lotg/content';
 import { balance, WING_IDS, wingPhrases, type Ratio, type WingId } from '@lotg/content';
 
 import type { BattleReport } from './battleReport';
@@ -56,6 +58,8 @@ export function currentRepairQuote(state: GameState): WallRepairQuote {
 
 /** Por que a ordem `repairWall` seria recusada agora (sem contar o recurso), ou `null`. */
 export function wallRepairBlocked(state: GameState): Rejection | null {
+  if (vowIsActive(state, 'noWalls'))
+    return { code: 'WALL_REQUIRED', message: vowTexts.noWallsRepair };
   if (state.settlement.buildings.palisade <= 0) {
     return reject('WALL_REQUIRED');
   }
@@ -222,6 +226,7 @@ export function applyWallDamage(
 
 /** A muralha que a batalha de defesa recebe: a vida de cada ala com vida (sem Paliçada, nenhuma). */
 export function wallForBattle(state: GameState): Partial<Record<WingId, number>> {
+  if (vowIsActive(state, 'noWalls')) return {};
   const wall: Partial<Record<WingId, number>> = {};
   for (const wing of WING_IDS) {
     const hp = state.settlement.wall.hp[wing];

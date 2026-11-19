@@ -172,6 +172,8 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   const serialized = JSON.stringify(result.state);
   expect(currentShape(result.state, '')).toBeNull();
   expect(JSON.stringify(result.state)).toBe(serialized);
+  const { vows: currentVows, ...previousState } = result.state;
+  expect(currentVows.taken).toEqual([]);
   const { expeditionUnlocks, ...oldMap } = result.state.map;
   const { previousYearFormation, ...oldHorde } = result.state.horde;
   expect(previousYearFormation).toBeNull();
@@ -182,7 +184,7 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   expect(
     stateV41(
       {
-        ...result.state,
+        ...previousState,
         schemaVersion: 41,
         horde: oldHorde,
         map: oldMap,

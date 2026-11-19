@@ -1,3 +1,4 @@
+import { heroCaptureRule } from './vows';
 import { balance, siegeTexts, vigilRules, type UnitId, WING_IDS } from '@lotg/content';
 
 import { availableUnits } from './campaign';
@@ -105,7 +106,7 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     horde: { posts: toHordePosts(wave.composition) },
     wall: wallForBattle(draft),
     watchtowerLevel: watchtowerLevel(draft),
-    heroCapture: balance.difficulties[draft.settings.difficulty].heroCapture,
+    heroCapture: heroCaptureRule(draft),
   });
   const report = buildBattleReport(id, atMs, resolution, formation?.id ?? null);
   applyWallDamage(draft, report, atMs, events);

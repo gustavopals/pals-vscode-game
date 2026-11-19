@@ -59,6 +59,7 @@ describe('V4G-T5.1 · as três ondas precisam caber antes do fechamento anual', 
     historical.schemaVersion = 39;
     delete historical.settlement.relics;
     delete historical.horde.previousYearFormation;
+    delete historical.vows;
     delete historical.settlement.buildings.chapel;
     delete historical.siege;
     delete historical.settlement.militia;

@@ -1,3 +1,4 @@
+import { heroCaptureRule } from './vows';
 import { healingDurationMs } from './chapel';
 import {
   balance,
@@ -55,7 +56,7 @@ export function harmOf(
   if (onDisaster === 'injury') {
     return { kind: 'severe', spared: false };
   }
-  const rule = balance.difficulties[state.settings.difficulty].heroCapture;
+  const rule = heroCaptureRule(state);
   if (rule === 'injury') {
     return { kind: 'severe', spared: true };
   }

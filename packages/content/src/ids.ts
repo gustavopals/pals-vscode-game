@@ -34,6 +34,9 @@ export const RELIC_IDS = [
   'saltStone',
   'wintersCloak',
 ] as const;
+export const VOW_IDS = ['noWalls', 'cunningHorde', 'scarceFood', 'mortalHeroes'] as const;
+export type VowId = (typeof VOW_IDS)[number];
+
 export type RelicId = (typeof RELIC_IDS)[number];
 
 export type BuildingId = (typeof BUILDING_IDS)[number];

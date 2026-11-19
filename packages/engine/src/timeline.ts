@@ -1,3 +1,4 @@
+import { nextVowCloseAt } from './vows';
 import { nextExpeditionUnlockAt } from './expeditionUnlocks';
 import { nextSiegeEventAt } from './siege';
 import { nextCampaignEventAt } from './campaign';
@@ -45,6 +46,8 @@ export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
   const { constructionQueues, recruitmentQueue, famine } = state.settlement;
   const candidates = [nextDayBoundary(now)];
+  const vowCloses = nextVowCloseAt(state);
+  if (vowCloses !== null) candidates.push(vowCloses);
   const unlockEnds = nextExpeditionUnlockAt(state);
   if (unlockEnds !== null) candidates.push(unlockEnds);
   const siegeAt = nextSiegeEventAt(state);

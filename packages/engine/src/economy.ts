@@ -1,3 +1,5 @@
+import { vowIsActive } from './vows';
+import { vows } from '@lotg/content';
 import { relicIsActive } from './relics';
 import { relics } from '@lotg/content';
 import {
@@ -47,7 +49,7 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold' | 'relic';
+  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold' | 'relic' | 'vow';
   ratio: Ratio;
   label: string;
 };
@@ -108,6 +110,12 @@ export function productionFactors(
     },
     { id: 'morale', ratio: moraleRatio(morale), label: `moral ${morale}` },
   );
+  if (building === 'farm' && vowIsActive(state, 'scarceFood'))
+    factors.push({
+      id: 'vow',
+      ratio: vows.scarceFood.productionMultiplier,
+      label: vows.scarceFood.label,
+    });
   if (famine) {
     factors.push({ id: 'famine', ratio: balance.famine.productionMultiplier, label: 'fome' });
   }

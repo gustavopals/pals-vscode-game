@@ -35,6 +35,8 @@ export const YearEndedDataSchema = z.strictObject({
   siegeResult: z.enum(['none', 'victory', 'glorious', 'fall']),
   score: z.number().int().nonnegative(),
   feats: z.string(),
+  vows: z.string().optional(),
+  legacy: z.number().int().nonnegative().optional(),
 });
 
 export type YearEndedData = z.infer<typeof YearEndedDataSchema>;

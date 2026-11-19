@@ -41,6 +41,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
         ...before,
         schemaVersion: CURRENT_SCHEMA_VERSION,
         horde: { ...before.horde, previousYearFormation: null },
+        vows: expect.objectContaining({ year: before.clock.year, taken: [], nextTaken: null }),
         settlement: {
           ...before.settlement,
           buildings: { ...before.settlement.buildings, chapel: 0 },
@@ -77,6 +78,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     old.schemaVersion = 41;
     delete old.settlement.relics;
     delete old.horde.previousYearFormation;
+    delete old.vows;
     delete old.settlement.buildings.chapel;
     expect(stateV41(old, '')).toBeNull();
     expect(stateV41({ ...state, schemaVersion: 41 }, '')).not.toBeNull();

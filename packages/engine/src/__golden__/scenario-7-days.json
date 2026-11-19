@@ -553,7 +553,13 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -739,6 +745,7 @@
       }
      ],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": null,
      "omens": [],
      "sabotages": {
@@ -830,7 +837,13 @@
    "day": 2,
    "eventsSoFar": 85,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1027,6 +1040,7 @@
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": null,
      "omens": [],
      "sabotages": {
@@ -1233,7 +1247,13 @@
    "day": 3,
    "eventsSoFar": 132,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1428,6 +1448,7 @@
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": null,
      "omens": [],
      "sabotages": {
@@ -1725,7 +1746,13 @@
    "day": 4,
    "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2048,6 +2075,7 @@
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": {
       "year": 1,
       "revision": 1,
@@ -2451,7 +2479,13 @@
    "day": 5,
    "eventsSoFar": 236,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2817,6 +2851,7 @@
       }
      ],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": {
       "year": 1,
       "revision": 1,
@@ -3266,7 +3301,13 @@
    "day": 6,
    "eventsSoFar": 289,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 1,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 86400000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -3601,6 +3642,7 @@
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": {
       "year": 1,
       "revision": 1,
@@ -4063,7 +4105,13 @@
    "day": 7,
    "eventsSoFar": 353,
    "state": {
-    "schemaVersion": 43,
+    "schemaVersion": 44,
+    "vows": {
+     "year": 2,
+     "taken": [],
+     "nextTaken": null,
+     "closesAtMs": 691200000
+    },
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -4371,6 +4419,7 @@
     "horde": {
      "scheduledRaids": [],
      "lastFormationSeen": null,
+     "previousYearFormation": null,
      "wavePlan": null,
      "omens": [],
      "sabotages": {

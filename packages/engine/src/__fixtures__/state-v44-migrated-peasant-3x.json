@@ -257,5 +257,11 @@
   "preview": null,
   "campaign": null
  },
- "siege": null
+ "siege": null,
+ "vows": {
+  "year": 3,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 1468800000
+ }
 }

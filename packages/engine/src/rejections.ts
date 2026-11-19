@@ -1,5 +1,6 @@
 import {
   balance,
+  vowTexts,
   relicTexts,
   buildings,
   campaignTexts,
@@ -59,6 +60,8 @@ export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} $
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
+  VOWS_CLOSED: () => vowTexts.closed,
+  VOW_UNAVAILABLE: () => vowTexts.unavailable,
   CHAPEL_REQUIRED: () => relicTexts.chapelRequired,
   RELIC_NOT_FOUND: () => relicTexts.notFound,
   NO_RELIC_SLOT: () => relicTexts.noSlot,

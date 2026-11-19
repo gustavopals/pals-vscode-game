@@ -5,6 +5,10 @@ import {
   masters,
   masterTemplates,
   balance,
+  hordeUnits,
+  vows,
+  vowRules,
+  vowTexts,
   expeditionModels,
   expeditionTexts,
   relics,
@@ -647,6 +651,10 @@ describe('resumo de uma partida', () => {
         .update(
           canonicalJson({
             balance,
+            hordeUnits,
+            vows,
+            vowRules,
+            vowTexts,
             expeditionModels,
             expeditionTexts,
             relics,

@@ -1,3 +1,4 @@
+import { takeVows } from './vowOrders';
 import { placeRelic, removeRelic } from './relicOrders';
 import { balance } from '@lotg/content';
 
@@ -66,6 +67,8 @@ function dispatch(
   // O servidor valida a forma com zod; o motor ainda assim não confia no payload.
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
+    case 'takeVows':
+      return takeVows(draft, payload.vows, nowMs, events);
     case 'placeRelic':
       return placeRelic(draft, payload.relicId, nowMs, events);
     case 'removeRelic':

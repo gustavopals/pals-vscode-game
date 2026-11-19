@@ -16,6 +16,8 @@ export type {
   ActiveConstructionView,
   RelicView,
   RelicsView,
+  VowsView,
+  VowView,
   BuildingId,
   Command,
   CommandResult,

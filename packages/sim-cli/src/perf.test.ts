@@ -48,7 +48,8 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
     // para 53 (medido: 53; docs/balance-v0.4.md §16). Na terceira junção (preparo militar e três
     // cercos nos 7 dias jogados), a partida entra na ausência com 37 aldeões e volta com 49 (§22).
     // R1–R3: a partida retorna com 39, após treino ampliado e Cercos.
-    expect(villagers('fim', 3)).toBe(39);
+    // Fase C: escala/memória/Trolls dos anos seguintes mudam as batalhas; medido 41.
+    expect(villagers('fim', 3)).toBe(41);
   });
 
   it('o estado e a visão ficam nos tetos medidos das ausências curtas', () => {
@@ -62,14 +63,16 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
       // guardar a formação e a prévia do Conselho de Guerra (medido: 10.028 no feudo de 7 dias).
       // R1–R3: relatórios mais longos levam o estado a 27.353 bytes (máx. nas 6
       // medidas de 1/3 dias); teto com 5% e arredondamento ao próximo kB.
-      expect(measure.stateBytes).toBeLessThan(29_000);
+      // Fase C: máximo 30.394 bytes; os mesmos 5% e arredondamento ao kB seguinte.
+      expect(measure.stateBytes).toBeLessThan(32_000);
       // O estado retém o log de rodadas; a visão resume relatórios. A antiga
       // proporção de 3× não é um contrato do motor nem um limite de tamanho.
       expect(measure.viewBytes).toBeGreaterThan(measure.stateBytes);
       // De 40.000 para 55.000 com os relatórios de batalha, a formação e a prévia na visão
       // (V4E-T2.7; medido: 50.882 no feudo de 7 dias).
       // Medido 75.664 bytes; mesma margem e arredondamento, só nesta janela curta.
-      expect(measure.viewBytes).toBeLessThan(80_000);
+      // Fase C: máximo 79.045 bytes, incluindo oferta dos Votos e relatórios novos.
+      expect(measure.viewBytes).toBeLessThan(83_000);
     }
   });
 

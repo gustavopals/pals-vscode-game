@@ -253,8 +253,16 @@ describe('relatório da matriz', () => {
       // R1–R3 (§23): mesma folga sobre os novos 50 resultados, inclusive a escassez medida.
       '| Rápido 3× | Regular | 5 a 61 | ≥ 5 | ≤ 14 | ≤ 11 | ≤ 3.453 | ≤ 4.200 | ≤ 36.221 | ≤ 73 | 0 |',
     );
-    expect(text).toContain('Todas as partidas dentro das faixas.');
-    expect(text).not.toContain('**fora**');
+    // Fase C: a semana no ritmo 3 contém três anos; só essa célula muda.
+    // As faixas ficam congeladas até H e o relatório continua expondo os desvios.
+    expect(
+      matrix.cells.filter((cell) => cell.violations.length > 0).map((cell) => cell.key),
+    ).toEqual(['week/3/regular']);
+    expect(
+      matrix.cells.filter((cell) => cell.window === 'year').flatMap((cell) => cell.violations),
+    ).toEqual([]);
+    expect(text).toContain('**Fora da faixa:**');
+    expect(text).toContain('**fora**');
   });
 
   it('traz a meta de desperdício do perfil Regular, célula a célula, com o veredito', () => {
@@ -292,15 +300,17 @@ describe('relatório da matriz', () => {
       // Segunda junção (docs/balance-v0.4.md, seção 19): novos sorteios de cartas.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco e ondas por ano.
       // R1–R3 (§23): o Normal passa a caber na meta; o ano do Rápido passa dela.
-      '| 7 dias reais | Rápido 3× | Regular | 21 a 30 | 0 a 18 | 3 a 15 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Rápido 3× | Regular | 12 a 27 | 0 a 18 | 3 a 21 | ≤ 8 | **acima** |',
       '| 7 dias reais | Normal 1× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 | 0 a 2 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 3 a 15 | 0 | 3 | ≤ 8 | **acima** |',
       '| Um ano de jogo | Normal 1× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 1 | 0 a 1,5 | 0 a 2 | ≤ 8 | dentro |',
     ]);
-    // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
-    expect(text).toContain('Todas as partidas dentro das faixas.');
+    // A meta é independente das faixas; nenhum Ano 1 sai delas na Fase C.
+    expect(
+      matrix.cells.filter((cell) => cell.window === 'year').flatMap((cell) => cell.violations),
+    ).toEqual([]);
   });
 
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
@@ -314,7 +324,7 @@ describe('relatório da matriz', () => {
       // Segunda junção (docs/balance-v0.4.md, seção 19): 13 cartas e sabotagem.
       // Terceira junção (docs/balance-v0.4.md, seção 22): preparo do Cerco e ondas por ano nas três sementes.
       // As três sementes deste teste, com os lotes/vagas e o preparo de R1–R3 (§23).
-      "  'week/3/regular': measured([10, 21], 5, 0, 2, 1470, 3288, 23655, 30),",
+      "  'week/3/regular': measured([8, 29], 4, 0, 2, 693, 5200, 36325, 27),",
     );
   });
 
@@ -350,7 +360,7 @@ describe('relatório da matriz', () => {
       // conclui treze objetivos.
       // Segunda junção (docs/balance-v0.4.md, seção 19): fim das obras 165 a — e 13 objetivos concluídos.
       // Terceira junção (docs/balance-v0.4.md, seção 22): as Quedas do Cerco reabrem obras; nenhuma semente esgota as obras na semana.
-      '| Rápido 3× | Regular | 11 | 24 | 43 | 15 | 37 | 20 | 26 | — | 56 a 69 | 7 | 13 | — |',
+      '| Rápido 3× | Regular | 11 | 24 | 43 | 15 | 37 | 20 | 26 | — | 56 a 71 | 3 a 7 | 13 | — |',
     );
     expect(year).toContain(
       // Segunda junção (docs/balance-v0.4.md, seção 19): obras que começaram sozinhas 32 a 34.
@@ -379,7 +389,7 @@ describe('relatório da matriz', () => {
     // Segunda junção (docs/balance-v0.4.md, seção 19): uma das três esgota na hora 165 (165 a —).
     // Terceira junção (docs/balance-v0.4.md, seção 22): nenhuma esgota após três cercos.
     expect(cell?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
-    expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
+    expect(cell?.measure.villagersMin).toEqual({ min: 3, max: 7 });
     // Uma semente conclui treze com a Fortaleza sem Ameaça até o Cerco (seção 13).
     // Segunda junção (docs/balance-v0.4.md, seção 19): as três sementes concluem treze objetivos.
     expect(cell?.measure.objectivesDone).toEqual({ min: 13, max: 13 });
@@ -471,7 +481,7 @@ describe('relatório da matriz', () => {
       // Junção da Vigília, da Fortaleza e dos objetivos: medida exata em balance-v0.4.md, seção 16.
       // Segunda junção (docs/balance-v0.4.md, seção 19): comida 1% a 14%, madeira 19% a 22%, pedra 13% a 14%.
       // Terceira junção (docs/balance-v0.4.md, seção 22): o preparo do Cerco aumenta a produção de comida e as Quedas reduzem o Celeiro.
-      '| Rápido 3× | Regular | 20% a 26% | 0% a 5% | 2% a 11% | 21 a 30 | 0 a 18 | 3 a 15 |',
+      '| Rápido 3× | Regular | 10% a 26% | 0% a 5% | 2% a 11% | 12 a 27 | 0 a 18 | 3 a 21 |',
     );
     expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% a 3% | 0 | 0 | 0 a 2 |');
   });

@@ -2439,16 +2439,20 @@ describe('os bots jogando contra o motor', () => {
   );
 
   it.each(['economico', 'preguicoso'] as const)(
-    'o %s, visitando duas vezes por dia no ritmo 3, não deixa a moral cair nem perde ninguém',
+    'o %s, visitando duas vezes por dia no ritmo 3, conserva a moral ao atravessar três anos',
     async (strategy) => {
       const feudo = game(3);
       const morales: number[] = [];
+      let firstYearPopulation: number | null = null;
       for (let visit = 0; visit < 14; visit += 1) {
         await strategies[strategy](feudo.view(), feudo.act);
         // 12 horas reais entre as visitas: 36 de jogo, 18 viradas de dia.
         for (let hour = 0; hour < 36; hour += 2) {
           feudo.pass(2);
-          morales.push(feudo.view().morale.value);
+          const current = feudo.view();
+          morales.push(current.morale.value);
+          if (firstYearPopulation === null && current.calendar.year === 2)
+            firstYearPopulation = current.population.villagers;
         }
         // O bot deixa uma cama vazia quando o feudo é grande. Até a Taverna (V3C-T2) isso
         // bastava para as casas nunca encherem; com a moral que ela soma, o feudo passa dos 80
@@ -2474,7 +2478,11 @@ describe('os bots jogando contra o motor', () => {
       // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
       const late = morales.slice(-90);
       expect(late.filter((value) => value >= 60).length).toBeGreaterThan(80);
-      expect(feudo.view().population.villagers).toBeGreaterThan(20);
+      // Ano 1 permanece igual. A escala/memória/Trolls mudam as perdas e o
+      // recrutamento dos Anos 2/3; as políticas continuam sem adotar mecânicas novas.
+      expect(firstYearPopulation).toBe(strategy === 'economico' ? 27 : 28);
+      expect(feudo.view().calendar.year).toBe(4);
+      expect(feudo.view().population.villagers).toBe(strategy === 'economico' ? 14 : 43);
     },
   );
 

@@ -96,6 +96,7 @@ describe('Capela — V5B-T1', () => {
         buildings,
       },
     };
+    delete (old as unknown as Record<string, unknown>).vows;
     const snapshot = JSON.stringify(old);
     const migrated = migrateState(old, { timeScale: 1 });
     expect(migrated).toEqual({ ...fresh, migratedAtMs: fresh.lastProcessedAt });

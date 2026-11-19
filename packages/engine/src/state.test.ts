@@ -76,8 +76,10 @@ describe('o ritmo gravado na partida', () => {
     expect(deriveViewState(normal, 0).calendar.secondsToNextDay).toBe(7200);
     expect(deriveViewState(fast, 0).calendar.secondsToNextDay).toBe(2400);
     expect(deriveViewState(slow, 0).calendar.secondsToNextDay).toBe(14_400);
-    // O estado de jogo é o mesmo nos três: só o ritmo gravado difere.
-    expect({ ...fast, settings: normal.settings }).toStrictEqual(normal);
+    // A janela de Votos nasce em tempo real; o restante do estado inicial coincide.
+    expect(fast.vows.closesAtMs).toBe(3 * normal.vows.closesAtMs);
+    expect(slow.vows.closesAtMs).toBe(normal.vows.closesAtMs / 2);
+    expect({ ...fast, settings: normal.settings, vows: normal.vows }).toStrictEqual(normal);
   });
 
   it('cede a `options.timeScale`, para ver o mesmo estado em outro ritmo', () => {
@@ -105,6 +107,7 @@ describe('o ritmo gravado na partida', () => {
     // Fora desses campos, a visão no ritmo 1 é a mesma da partida do ritmo 1.
     const withoutPaceRules = (view: ViewState): ViewState => ({
       ...view,
+      vows: { ...view.vows, closesInSeconds: 0 },
       army: { ...view.army, offer: view.army.offer.map((offer) => ({ ...offer, batchMax: 0 })) },
       constructions: {
         ...view.constructions,
@@ -113,6 +116,7 @@ describe('o ritmo gravado na partida', () => {
         ),
       },
     });
+    expect(seen.vows.closesInSeconds).toBe(3 * normal.vows.closesInSeconds);
     expect(withoutPaceRules(seen)).toStrictEqual(withoutPaceRules(normal));
   });
 

@@ -1,3 +1,4 @@
+import { heroCaptureRule } from './vows';
 import {
   balance,
   craftGuilds,
@@ -427,7 +428,7 @@ function fightRaid(
     horde: { posts: toHordePosts(composition) },
     wall: wallForBattle(draft),
     watchtowerLevel: watchtowerLevel(draft),
-    heroCapture: balance.difficulties[draft.settings.difficulty].heroCapture,
+    heroCapture: heroCaptureRule(draft),
   });
   const report = buildBattleReport(id, atMs, resolution, formation?.id ?? null);
   applyWallDamage(draft, report, atMs, events);

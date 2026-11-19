@@ -150,6 +150,7 @@ function withoutVigilSettings<T extends Record<string, unknown>>(
 function beforeSecondJoin<T>(state: T): T {
   const copy = JSON.parse(JSON.stringify(state)) as {
     siege?: unknown;
+    vows?: unknown;
     army?: Record<string, unknown>;
     settlement?: Record<string, unknown> & {
       forge?: Record<string, unknown> | null;
@@ -169,6 +170,7 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.horde?.sabotages;
   // Fase C: os retratos históricos continuam sem memória entre anos.
   delete copy.horde?.previousYearFormation;
+  delete copy.vows;
   delete copy.map?.expeditionUnlocks;
   // Terceira junção (estados 39 a 42): o Acampamento, o Cerco e o lote 3.
   delete copy.siege;

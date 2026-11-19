@@ -1,5 +1,8 @@
 import {
   balance,
+  vows,
+  vowRules,
+  vowTexts,
   expeditionModels,
   expeditionTexts,
   relics,
@@ -2713,6 +2716,9 @@ describe('contentHash', () => {
     expect(hashed).toEqual([
       canonicalJson({
         balance,
+        vows,
+        vowRules,
+        vowTexts,
         expeditionModels,
         expeditionTexts,
         relics,
@@ -2813,6 +2819,9 @@ describe('contentHash', () => {
       'tileTypes',
       'vigilRules',
       'vigilTexts',
+      'vowRules',
+      'vowTexts',
+      'vows',
       'wageArrearsReliefs',
       'warRaids',
       'yearChronicleTexts',

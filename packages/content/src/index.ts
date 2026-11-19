@@ -1,6 +1,7 @@
 export const CONTENT_VERSION = '0.4.0';
 
 export * from './ids';
+export { vows, vowRules, vowTexts } from './vows';
 export { relics, relicTexts } from './relics';
 export { balance } from './balance';
 export type {

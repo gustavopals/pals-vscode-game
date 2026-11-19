@@ -1,7 +1,8 @@
-import { DIFFICULTY_IDS } from '@lotg/content';
+import { DIFFICULTY_IDS, VOW_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { readySiege } from './siege.test-helpers';
+import { wallFullHp } from './wall';
 import { revealOmen, settleHordeTiles } from './hordePlan';
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
@@ -90,6 +91,26 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'vows-active': () => {
+    const state = gameAt(0);
+    state.settlement.buildings.townHall = 8;
+    state.settlement.buildings.palisade = 6;
+    state.settlement.wall.hp = wallFullHp(6);
+    state.settlement.workers.farm = 2;
+    state.settlement.workers.lumberMill = 1;
+    return accept(state, command('takeVows', { vows: [...VOW_IDS] })).state;
+  },
+  'vows-next-year': () => {
+    const state = readySiege('lord', 3);
+    state.vows.taken = ['scarceFood'];
+    state.vows.closesAtMs = 0;
+    state.settlement.buildings.watchtower = 0;
+    state.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+    for (const unit of Object.keys(state.army.units) as (keyof typeof state.army.units)[])
+      state.army.units[unit] = 0;
+    const ended = advanceTo(state, state.siege!.atMs).state;
+    return accept(ended, command('takeVows', { vows: ['noWalls', 'mortalHeroes'] })).state;
+  },
   trolls: () => {
     const state = gameAt(YEAR + AUTUMN);
     state.seed = 'trolls-1';

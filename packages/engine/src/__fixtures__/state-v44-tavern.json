@@ -1,5 +1,11 @@
 {
  "schemaVersion": 44,
+ "vows": {
+  "year": 1,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 259200000
+ },
  "seed": "fixture-tavern",
  "settings": {
   "settlementName": "Pedra Alta",

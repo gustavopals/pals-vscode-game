@@ -1,5 +1,6 @@
 import type { BattleFactorId, BattleReport } from './battleReport';
 import type {
+  VowId,
   BuildingId,
   DifficultyId,
   EnemyId,
@@ -570,6 +571,8 @@ export type MarketState = {
  */
 export type GameState = {
   schemaVersion: 44;
+  /** Ano corrente e escolha seguinte, preservada sem perder os efeitos do rescaldo. */
+  vows: { year: number; taken: VowId[]; closesAtMs: number; nextTaken: VowId[] | null };
   seed: string;
   settings: GameSettings & { realOriginMs: number; vigil: VigilSettings };
   /**
@@ -1088,7 +1091,11 @@ export type RelicView = {
 };
 export type RelicsView = { slots: number; items: RelicView[] };
 
+export type VowView = { id: VowId; label: string; description: string; legacyBonusPercent: number };
+export type VowsView = { offer: VowView[]; taken: VowView[]; closesInSeconds: number };
+
 export type Command =
+  | { commandId: string; type: 'takeVows'; payload: { vows: string[] } }
   | { commandId: string; type: 'placeRelic'; payload: { relicId: string } }
   | { commandId: string; type: 'removeRelic'; payload: { relicId: string } }
   | SiegeCommand
@@ -1256,6 +1263,8 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'VOWS_CLOSED',
+  'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
   'RELIC_NOT_FOUND',
   'NO_RELIC_SLOT',
@@ -3095,6 +3104,7 @@ export type ViewState = {
   /** Os heróis a serviço do feudo e o soldo deles. */
   guild: GuildView;
   relics: RelicsView;
+  vows: VowsView;
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernView;
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */

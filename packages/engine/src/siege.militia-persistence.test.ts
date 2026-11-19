@@ -37,6 +37,7 @@ describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () 
       // A adaptação da guarda da v40 não altera a aceitação da versão histórica.
       const old = cloneState(fallen.state) as unknown as Record<string, unknown>;
       old.schemaVersion = 39;
+      delete old.vows;
       delete (old.horde as Record<string, unknown>).previousYearFormation;
       delete old.siege;
       const settlement = old.settlement as Record<string, unknown>;

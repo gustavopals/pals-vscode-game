@@ -617,6 +617,7 @@ export class GameSession {
       // conselho fez) e a próxima audiência, que pode trazer outra.
       ...view.council.pending.map((card) => card.expiresInSeconds),
       ...siegeDeadlines(view),
+      view.vows.closesInSeconds > 0 ? view.vows.closesInSeconds : null,
       view.council.nextAudienceInSeconds,
       // A chegada da incursão que os vigias avistaram (é quando a Crônica conta o desfecho), o
       // fim do reparo da muralha e o instante em que o próximo ferido sara e volta ao ofício.

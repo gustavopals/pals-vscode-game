@@ -403,6 +403,7 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
     expect(row.state.horde).toEqual({
       scheduledRaids: [],
       lastFormationSeen: null,
+      previousYearFormation: null,
       wavePlan: null,
       omens: [],
       // Segunda junção, estado 38: a migração não inventa tentativas de sabotagem.

@@ -1,4 +1,5 @@
 import {
+  VOW_IDS,
   BUILDING_IDS,
   RELIC_IDS,
   DIFFICULTY_IDS,
@@ -22,6 +23,8 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'VOWS_CLOSED',
+  'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
   'RELIC_NOT_FOUND',
   'NO_RELIC_SLOT',
@@ -1430,6 +1433,20 @@ export const RelicsSchema = z.strictObject({
   ),
 });
 
+export const VowSchema = z.strictObject({
+  id: z.enum(VOW_IDS),
+  label: z.string(),
+  description: z.string(),
+  legacyBonusPercent: z.number(),
+});
+export const VowsSchema = z.strictObject({
+  offer: z.array(VowSchema),
+  taken: z.array(VowSchema),
+  closesInSeconds: z.number(),
+});
+export type VowView = z.infer<typeof VowSchema>;
+export type VowsView = z.infer<typeof VowsSchema>;
+
 export const ViewStateSchema = z.strictObject({
   settlement: z.strictObject({
     name: z.string(),
@@ -1676,6 +1693,7 @@ export const ViewStateSchema = z.strictObject({
   guild: GuildSchema,
   // Adição no protocolo 4: visões antigas de cache recebem o bloco vazio.
   relics: RelicsSchema.default({ slots: 0, items: [] }),
+  vows: VowsSchema.default({ offer: [], taken: [], closesInSeconds: 0 }),
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernSchema,
   /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */

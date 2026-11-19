@@ -1,5 +1,6 @@
 import {
   balance,
+  vowRules,
   BUILDING_IDS,
   buildings,
   DIFFICULTY_IDS,
@@ -10,7 +11,7 @@ import {
 
 import { scriptedRaidsAfter } from './raids';
 import type { BuildingId, GameCreationSettings, GameState, UnitId } from './types';
-import { amountsToMilli, assertTimeScale } from './units';
+import { amountsToMilli, assertTimeScale, realToGameMs } from './units';
 import { wallFullHp } from './wall';
 
 /** Cópia profunda: o estado é JSON puro, sem datas, mapas ou funções. */
@@ -32,6 +33,12 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
 
   return {
     schemaVersion: 44,
+    vows: {
+      year: 1,
+      taken: [],
+      nextTaken: null,
+      closesAtMs: realToGameMs(vowRules.choiceWindowRealMs, settings.timeScale),
+    },
     seed,
     settings: {
       settlementName: settings.settlementName,

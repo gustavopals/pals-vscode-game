@@ -1,3 +1,4 @@
+import { openVowsAfterSiege } from './vows';
 import { settleRelicSlots } from './relicOrders';
 import { balance, BUILDING_IDS, RESOURCE_IDS, siegeTexts } from '@lotg/content';
 
@@ -59,6 +60,7 @@ export function applySiegeFall(draft: GameState, atMs: number): Record<string, n
 export function finishSiege(draft: GameState, atMs: number, events: GameEvent[]): void {
   const siege = draft.siege!;
   const result = siege.result!;
+  openVowsAfterSiege(draft, atMs);
   const data: Record<string, string | number> = {
     year: siege.year,
     waves: siege.current,

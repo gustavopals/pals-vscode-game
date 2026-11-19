@@ -1,5 +1,11 @@
 {
  "schemaVersion": 44,
+ "vows": {
+  "year": 1,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 86400000
+ },
  "seed": "fixture-raid-announced",
  "settings": {
   "settlementName": "Pedra Alta",

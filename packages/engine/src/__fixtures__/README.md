@@ -7,6 +7,8 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 
 | Cenário | O que tem |
 |---|---|
+| `vows-active` | Desde v44/T3: os quatro Votos ativos, com estrutura física da muralha preservada. |
+| `vows-next-year` | Desde v44/T3: Comida escassa ainda ativa no rescaldo, Sem muralhas/Heróis mortais escolhidos para o próximo ano. |
 | `trolls` | Desde v44/T2: Ano 2, segunda onda com Trolls e presságio exato. |
 | `horde-previous-year` | A partir da v44: Ano 2, memória anterior com 17 arqueiros e 2 lanceiros, antes da primeira preparação. |
 | `fresh` | Feudo recém-criado, sem nenhuma ordem |
@@ -70,3 +72,6 @@ A Fase C usa a v44. Os 65 retratos v43 estão congelados em `FROZEN`.
 Em T1, os correspondentes v44 acrescentam apenas versão/memória; a exceção é
 `peasant-3x`, que já está no Ano 3 e conserva o Cerco do Ano 2, agora escalado.
 Goldens do Cerco do Ano 1 não foram regravados.
+
+T3 acrescenta `vows` aos 67 retratos v44 existentes e dois cenários próprios.
+Nenhum campo anterior mudou; v43 e versões anteriores permanecem congeladas.

@@ -1,6 +1,7 @@
 import type { EnemyId, MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
+  'vowsTaken',
   'relicFound',
   'relicPlaced',
   'relicRemoved',
@@ -157,6 +158,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {aldeao}, quem se feriu.
  */
 export const CHRONICLE_PLACEHOLDERS = [
+  'votos',
   'reliquia',
   'pressagio',
   'dia',
@@ -256,6 +258,7 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o senhor de {feudo} mudou a Hora da Vigília. Os acontecimentos já marcados mantiveram sua hora.',
   dayStarted: 'Amanhece o {dia}º dia {daEstacao} em {feudo}.',
   seasonChanged: 'Chega {aEstacao} a {feudo}.',
+  vowsTaken: '{feudo} firmou para o Ano {ano}: {votos}.',
   yearStarted: 'Começa o ano {ano} da Casa de {feudo}.',
   yearEnded:
     'Encerra-se o ano {ano} da Casa de {feudo}. Os escribas registram {pontos} pontos e os Feitos do ano.',
