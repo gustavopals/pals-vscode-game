@@ -845,6 +845,18 @@ progress::-webkit-progress-value {
   margin-top: 8px;
 }
 
+.welcome .welcome-seed {
+  margin-top: 12px;
+}
+
+.welcome .welcome-actions {
+  margin-top: 8px;
+}
+
+.welcome .welcome-actions .primary {
+  margin-top: 0;
+}
+
 /*
  * Dificuldade e ritmo: dois grupos lado a lado quando cabem, um sob o outro em tela estreita. A
  * frase de cada opção fica à vista, para comparar sem clicar.
@@ -1504,6 +1516,14 @@ progress::-webkit-progress-value {
 
 .settings-game button {
   margin-top: 4px;
+}
+
+.settings-game-actions {
+  margin-top: 4px;
+}
+
+.settings-game-actions button {
+  margin-top: 0;
 }
 
 dl.facts {

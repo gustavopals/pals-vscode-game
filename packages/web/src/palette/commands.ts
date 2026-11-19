@@ -1,4 +1,9 @@
-import { type AccountConflictDetails, DisplayNameSchema, type ViewState } from '@lotg/protocol';
+import {
+  type AccountConflictDetails,
+  DisplayNameSchema,
+  GameSeedSchema,
+  type ViewState,
+} from '@lotg/protocol';
 
 import { awaitGithubAuthorization } from '../account/githubDevice';
 import { type ConflictChoice, conflictOptions } from '../account/githubLink';
@@ -4065,10 +4070,40 @@ export function createCommands(
     return timeScale === undefined ? null : { difficulty, timeScale };
   };
 
-  const askAndStartNewGame = async () => {
+  const seedValidation = (value: string): Validation | null => {
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      return null;
+    }
+    return GameSeedSchema.safeParse(trimmed).success
+      ? null
+      : { message: 'Até 64 caracteres, sem caracteres de controle.', severity: 'error' };
+  };
+
+  const parseNewGameArg = (arg: unknown): { seed: string | null; askSeed: boolean } => {
+    if (typeof arg === 'string') {
+      const parsed = GameSeedSchema.safeParse(arg);
+      return { seed: parsed.success ? parsed.data : null, askSeed: false };
+    }
+    if (typeof arg === 'object' && arg !== null) {
+      const record = arg as { seed?: unknown; askSeed?: unknown };
+      const parsed = typeof record.seed === 'string' ? GameSeedSchema.safeParse(record.seed) : null;
+      return {
+        seed: parsed?.success ? parsed.data : null,
+        askSeed: record.askSeed === true,
+      };
+    }
+    return { seed: null, askSeed: false };
+  };
+
+  const askAndStartNewGame = async (arg?: unknown) => {
+    const { seed: initialSeed, askSeed } = parseNewGameArg(arg);
     // Uma função, para o compilador não supor que a conta é a mesma depois de uma espera.
     const accountNow = () => controller.account.state;
     if (accountNow().kind === 'signedOut') {
+      if (initialSeed !== null || askSeed) {
+        controller.setPendingSeed(initialSeed, true);
+      }
       controller.navigate('welcome');
       return;
     }
@@ -4079,8 +4114,26 @@ export function createCommands(
     // fundado ou arquivado o feudo, enquanto as opções não chegavam.
     const state = accountNow();
     if (state.kind === 'signedOut') {
+      if (initialSeed !== null || askSeed) {
+        controller.setPendingSeed(initialSeed, true);
+      }
       controller.navigate('welcome');
       return;
+    }
+    let chosenSeed: string | undefined = initialSeed ?? undefined;
+    if (askSeed) {
+      const typedSeed = await dialogs.input({
+        title: 'Nova partida: semente',
+        prompt: 'Semente da partida (opcional). Deixe em branco para sortear uma nova.',
+        value: chosenSeed ?? '',
+        confirmLabel: 'Continuar',
+        validate: seedValidation,
+      });
+      if (typedSeed === undefined) {
+        return;
+      }
+      const trimmed = typedSeed.trim();
+      chosenSeed = trimmed === '' ? undefined : trimmed;
     }
     const options = controller.newGameOptions;
     const choice = options === null ? undefined : await chooseNewGame(options);
@@ -4097,6 +4150,7 @@ export function createCommands(
             : [
                 `O novo feudo nasce assim: ${choiceSummary(options, choice)}. Os dois não mudam durante o ano.`,
               ]),
+          ...(chosenSeed === undefined ? [] : [`Semente: ${chosenSeed}.`]),
         ],
         confirmLabel: 'Começar outro feudo',
       });
@@ -4113,7 +4167,7 @@ export function createCommands(
     });
     if (settlementName !== undefined) {
       await controller.attempt(async () => {
-        await controller.startNewGame(settlementName, choice);
+        await controller.startNewGame(settlementName, choice, chosenSeed);
         controller.navigate('fief');
       });
     }
@@ -4126,13 +4180,13 @@ export function createCommands(
    * o segundo feudo fundado arquivaria o primeiro.
    */
   let startingNewGame = false;
-  const newGame = async () => {
+  const newGame = async (arg?: unknown) => {
     if (startingNewGame) {
       return;
     }
     startingNewGame = true;
     try {
-      await askAndStartNewGame();
+      await askAndStartNewGame(arg);
     } finally {
       startingNewGame = false;
     }

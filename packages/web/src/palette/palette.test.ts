@@ -2203,6 +2203,37 @@ describe('recrutar, renomear e nova partida', () => {
     expect(controller.toasts.filter((toast) => toast.kind === 'error')).toEqual([]);
   });
 
+  it('nova partida com esta semente mostra a semente na confirmação e a envia no corpo (V5D-T1)', async () => {
+    const { run, answers, shown, api } = await setup();
+    answers.push(1, 0, true, 'Pedra Nova');
+    await run('lords.newGame', { seed: 'semente-fixa-42' });
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm', 'input']);
+    expect(shownAs(shown, 2, 'confirm').detail).toContain('Semente: semente-fixa-42.');
+    expect(api.state.gameRequests.at(-1)).toMatchObject({
+      settlementName: 'Pedra Nova',
+      seed: 'semente-fixa-42',
+      replaceActive: true,
+    });
+  });
+
+  it('#/nova?seed=… com partida ativa abre o campo da semente preenchido (V5D-T1)', async () => {
+    const { run, answers, shown, api } = await setup();
+    answers.push('semente-do-link', 1, 0, true, 'Vila Semente');
+    await run('lords.newGame', { seed: 'semente-do-link', askSeed: true });
+    expect(shown.map((entry) => entry.kind)).toEqual(['input', 'pick', 'pick', 'confirm', 'input']);
+    const seedPrompt = shownAs(shown, 0, 'input');
+    expect(seedPrompt.title).toBe('Nova partida: semente');
+    expect(seedPrompt.value).toBe('semente-do-link');
+    expect(seedPrompt.validate?.('')).toBeNull();
+    expect(seedPrompt.validate?.('a'.repeat(65))?.severity).toBe('error');
+    expect(shownAs(shown, 3, 'confirm').detail).toContain('Semente: semente-do-link.');
+    expect(api.state.gameRequests.at(-1)).toMatchObject({
+      settlementName: 'Vila Semente',
+      seed: 'semente-do-link',
+      replaceActive: true,
+    });
+  });
+
   it('aceitar os padrões nas duas listas manda exatamente o que estava marcado', async () => {
     const { run, answers, shown, api } = await setup();
     // Uma primeira passada só para ver as duas listas; desiste na segunda.

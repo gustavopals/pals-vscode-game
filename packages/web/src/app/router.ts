@@ -1,3 +1,5 @@
+import { GameSeedSchema } from '@lotg/protocol';
+
 /** As abas da área central. */
 export const ROUTES = [
   'welcome',
@@ -85,9 +87,38 @@ export function formatHash(route: Route): string {
   return `#/${PATHS[route]}`;
 }
 
+/** `#/nova?seed=…`: abre a criação de partida com a semente preenchida. */
+export function formatNewGameHash(seed?: string | null): string {
+  const trimmed = seed?.trim();
+  return trimmed ? `#/nova?seed=${encodeURIComponent(trimmed)}` : '#/nova';
+}
+
+export type ParsedHash = { kind: 'route'; route: Route } | { kind: 'newGame'; seed: string | null };
+
+/**
+ * Lê o endereço da barra (`#/feudo`, `#/nova?seed=…`). Devolve `null` para caminhos
+ * desconhecidos. A semente de `#/nova` é validada contra o protocolo: vazia ou inválida vira `null`.
+ */
+export function parseHashTarget(hash: string): ParsedHash | null {
+  const raw = hash.replace(/^#\/?/, '');
+  const queryIndex = raw.indexOf('?');
+  const path = (queryIndex === -1 ? raw : raw.slice(0, queryIndex)).replace(/\/+$/, '');
+  if (path === 'nova') {
+    const query = queryIndex === -1 ? '' : raw.slice(queryIndex + 1);
+    const seedParam = new URLSearchParams(query).get('seed');
+    const parsed = seedParam === null ? null : GameSeedSchema.safeParse(seedParam);
+    return { kind: 'newGame', seed: parsed?.success ? parsed.data : null };
+  }
+  if (queryIndex !== -1) {
+    return null;
+  }
+  const route = ROUTES.find((candidate) => PATHS[candidate] === path) ?? null;
+  return route === null ? null : { kind: 'route', route };
+}
+
 export function parseHash(hash: string): Route | null {
-  const path = hash.replace(/^#\/?/, '').replace(/\/+$/, '');
-  return ROUTES.find((route) => PATHS[route] === path) ?? null;
+  const parsed = parseHashTarget(hash);
+  return parsed?.kind === 'route' ? parsed.route : null;
 }
 
 /**

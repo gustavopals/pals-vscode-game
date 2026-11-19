@@ -1448,6 +1448,8 @@ export type VowView = z.infer<typeof VowSchema>;
 export type VowsView = z.infer<typeof VowsSchema>;
 
 export const ViewStateSchema = z.strictObject({
+  /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
+  seed: z.string().min(1).optional(),
   settlement: z.strictObject({
     name: z.string(),
     townHallLevel: z.number(),

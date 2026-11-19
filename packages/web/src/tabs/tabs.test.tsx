@@ -551,6 +551,14 @@ describe('aba Preferências', () => {
       expect(markup.indexOf('Esta partida')).toBeGreaterThan(markup.indexOf('Hora da Vigília'));
       expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1 + 1);
     });
+
+    it('exibe a semente da partida, o link #/nova?seed=… e o botão "Nova partida com esta semente" (V5D-T1)', () => {
+      const markup = section(render({ game: { ...game, seed: 'pedra-alta 42' } })) ?? '';
+      expect(markup).not.toMatch(/<(input|select)/);
+      expect(markup).toContain('<code>pedra-alta 42</code>');
+      expect(markup).toContain('href="#/nova?seed=pedra-alta%2042"');
+      expect(markup).toMatch(/<button type="button"[^>]*>Nova partida com esta semente<\/button>/);
+    });
   });
 
   it('todo campo tem rótulo: nenhum input ou select fica fora de um <label>', () => {

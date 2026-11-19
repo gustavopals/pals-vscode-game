@@ -271,6 +271,10 @@ export class Controller {
    * feudo nasce com os padrões do servidor.
    */
   catalog: Loadable<NewGameOptions> = { status: 'idle' };
+  /** Semente pedida pelo endereço (`#/nova?seed=…`) para preencher a tela de boas-vindas. */
+  pendingSeed: string | null = null;
+  /** Campo de semente aberto nas boas-vindas (ex.: ao chegar por `#/nova`). */
+  openSeedField = false;
   /** A aba do navegador está à vista. */
   visible = true;
   /** Executa um comando da paleta pelo id. Ligado por `palette/commands.ts`. */
@@ -406,12 +410,24 @@ export class Controller {
     return this.queue;
   }
 
+  /** Define a semente pré-preenchida para a tela de boas-vindas (`#/nova?seed=…`). */
+  setPendingSeed(seed: string | null, open = seed !== null): void {
+    this.pendingSeed = seed;
+    this.openSeedField = open;
+    this.changes.emit();
+  }
+
   /**
    * Ao abrir a página: retoma a conta guardada e, se houver partida, abre a sessão. `requested`
    * é a aba pedida pelo endereço (`#/feudo`); depois de uma ausência longa vale a aba Hoje.
    */
-  async start(requested: Route | null = null): Promise<void> {
+  async start(requested: Route | null = null, newGame?: { seed: string | null }): Promise<void> {
     this.previousAccount = this.account.restore();
+    if (newGame !== undefined && !this.hasGame) {
+      this.pendingSeed = newGame.seed;
+      this.openSeedField = true;
+      requested = 'welcome';
+    }
     this.route = resolveRoute(requested ?? this.defaultRoute(), this.hasGame, this.defaultRoute());
     this.openIfClosable(this.route);
     if (this.options.persistentStorage === false) {
@@ -1640,17 +1656,41 @@ export class Controller {
    * "Jogar agora". `choice` é a dificuldade e o ritmo marcados nas boas-vindas; sem ela (as
    * opções não chegaram), o feudo nasce com os padrões do servidor.
    */
-  playNow(displayName: string, settlementName: string, choice?: NewGameChoice): Promise<unknown> {
-    return this.founding(() =>
-      this.account.playNow({ displayName, settlementName, ...this.gameDefaults(), ...choice }),
-    );
+  playNow(
+    displayName: string,
+    settlementName: string,
+    choice?: NewGameChoice,
+    seed?: string,
+  ): Promise<unknown> {
+    const trimmedSeed = seed?.trim();
+    return this.founding(async () => {
+      const result = await this.account.playNow({
+        displayName,
+        settlementName,
+        ...this.gameDefaults(),
+        ...choice,
+        ...(trimmedSeed ? { seed: trimmedSeed } : {}),
+      });
+      this.pendingSeed = null;
+      this.openSeedField = false;
+      return result;
+    });
   }
 
   /** "Nova partida": arquiva o feudo atual e funda outro, com a dificuldade e o ritmo escolhidos. */
-  startNewGame(settlementName: string, choice?: NewGameChoice): Promise<unknown> {
-    return this.founding(() =>
-      this.account.startNewGame({ settlementName, ...this.gameDefaults(), ...choice }),
-    );
+  startNewGame(settlementName: string, choice?: NewGameChoice, seed?: string): Promise<unknown> {
+    const trimmedSeed = seed?.trim();
+    return this.founding(async () => {
+      const result = await this.account.startNewGame({
+        settlementName,
+        ...this.gameDefaults(),
+        ...choice,
+        ...(trimmedSeed ? { seed: trimmedSeed } : {}),
+      });
+      this.pendingSeed = null;
+      this.openSeedField = false;
+      return result;
+    });
   }
 
   /** Funda um feudo marcando a interface como ocupada. */

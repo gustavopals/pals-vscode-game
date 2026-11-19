@@ -33,7 +33,6 @@ describe('loadConfig', () => {
       advanceStaleAfterMs: 3_600_000,
       githubApiUrl: 'https://api.github.com',
       trustProxy: false,
-      allowGameSeed: false,
     });
     expect(config.jwtSecret).toHaveLength(48);
     expect(config.recoveryCodeSecret).toHaveLength(48);
@@ -55,11 +54,6 @@ describe('loadConfig', () => {
       trustProxy: true,
       advanceJobIntervalMs: 1000,
     });
-  });
-
-  it('só aceita semente informada em ambiente de teste', () => {
-    expect(loadConfig({ ...base, NODE_ENV: 'test' }).allowGameSeed).toBe(true);
-    expect(loadConfig({ ...base, NODE_ENV: 'production' }).allowGameSeed).toBe(false);
   });
 
   it('falha rápido dizendo qual variável falta', () => {

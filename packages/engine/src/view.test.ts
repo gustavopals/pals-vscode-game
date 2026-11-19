@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { createInitialState } from './state';
 import {
   accept,
   autumnScenario,
@@ -67,6 +68,7 @@ describe('deriveViewState', () => {
   });
   it('estado inicial: 5 aldeões livres, 10 vagas e nada em andamento', () => {
     const initial = view(newGame());
+    expect(initial.seed).toBe('pedra-alta');
     expect(initial.settlement).toEqual({
       name: 'Pedra Alta',
       townHallLevel: 1,
@@ -568,6 +570,62 @@ describe('ofícios na visão (GDD §5.4)', () => {
       breakdown:
         '4 trabalhadores × 10 × 1,4 (Nv3) × 1,132 (mestria 44) × 1,3 (outono) × 1,05 (moral 60) = 86,53/h',
     });
+  });
+});
+
+describe('semente na visão e reprodutibilidade (V5D-T1)', () => {
+  it('duas partidas com a mesma semente e ritmo têm as mesmas cartas elegíveis e a mesma Horda base', () => {
+    const baseSettings = {
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+      difficulty: 'lord' as const,
+      timeScale: 3,
+      vigil: { hourLocal: 20, utcOffsetMinutes: -180, timezoneResolved: true },
+    };
+    const first = advanceTo(
+      createInitialState('desafio-v5d', {
+        ...baseSettings,
+        settlementName: 'Pedra Alta',
+        realOriginMs: 0,
+      }),
+      YEAR - 1,
+    );
+    const second = advanceTo(
+      createInitialState('desafio-v5d', {
+        ...baseSettings,
+        settlementName: 'Vale Fundo',
+        // Sete dias reais depois, no mesmo horário local de Vigília.
+        realOriginMs: 7 * 24 * HOUR,
+      }),
+      YEAR - 1,
+    );
+    const other = advanceTo(
+      createInitialState('outra-semente-v5d', {
+        ...baseSettings,
+        settlementName: 'Pedra Alta',
+        realOriginMs: 0,
+      }),
+      YEAR - 1,
+    );
+
+    expect(view(first.state).seed).toBe('desafio-v5d');
+    expect(view(second.state).seed).toBe('desafio-v5d');
+    expect(view(other.state).seed).toBe('outra-semente-v5d');
+
+    const drawnCards = (events: typeof first.events) =>
+      events.filter((event) => event.type === 'cardDrawn').map((event) => event.data.cardId);
+
+    expect(first.state.council.seenThisYear.length).toBeGreaterThan(0);
+    expect(first.state.council.seenThisYear).toEqual(second.state.council.seenThisYear);
+    expect(drawnCards(first.events).length).toBeGreaterThan(0);
+    expect(drawnCards(first.events)).toEqual(drawnCards(second.events));
+
+    expect(first.state.horde.wavePlan).not.toBeNull();
+    expect(first.state.horde.wavePlan?.waves).toEqual(second.state.horde.wavePlan?.waves);
+    expect(first.state.horde.scheduledRaids).toEqual(second.state.horde.scheduledRaids);
+    expect(first.state.horde.omens).toEqual(second.state.horde.omens);
+
+    expect(drawnCards(other.events)).not.toEqual(drawnCards(first.events));
   });
 });
 

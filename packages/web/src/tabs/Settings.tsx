@@ -1,3 +1,4 @@
+import { formatNewGameHash } from '../app/router';
 import { Icon } from '../components/shared';
 import type { NotificationLevel } from '../notifications/policy';
 import { type Preferences, THEMES, type ThemeId } from '../services/preferences';
@@ -13,12 +14,14 @@ const LEVELS: Array<{ value: NotificationLevel; label: string; hint: string }> =
   { value: 'all', label: 'Todos', hint: 'também obras, aldeões e objetivos concluídos' },
 ];
 
-/** A dificuldade e o ritmo do feudo aberto, com os textos que vieram do servidor. */
+/** A dificuldade, o ritmo e a semente do feudo aberto, com os textos que vieram do servidor. */
 export type GameSettings = {
   difficultyLabel: string;
   paceLabel: string;
   /** O que a dificuldade muda, em uma frase; `null` se o servidor ainda não a mandou. */
   difficultyAbout: string | null;
+  /** Semente da partida pessoal (D-19); ausente em visões antigas. */
+  seed?: string | undefined;
   vigil?: { hourLocal: number; timezone: string; text: string; warning: string | null };
   siegeText?: string | null;
 };
@@ -45,6 +48,8 @@ export function SettingsTab(props: {
   onBrowserNotifications: (enabled: boolean) => void;
   /** "Nova partida…": é onde se escolhe outra dificuldade ou outro ritmo. */
   onNewGame: () => void;
+  /** "Nova partida com esta semente": abre a criação já com a semente atual. */
+  onNewGameWithSeed?: (seed: string) => void;
 }) {
   const { preferences } = props;
   return (
@@ -198,13 +203,30 @@ export function SettingsTab(props: {
           {props.game.difficultyAbout === null ? null : (
             <p class="muted hint">{props.game.difficultyAbout}</p>
           )}
+          {props.game.seed === undefined ? null : (
+            <p class="settings-seed">
+              Semente: <code>{props.game.seed}</code> ·{' '}
+              <a href={formatNewGameHash(props.game.seed)}>Link desta semente</a>
+            </p>
+          )}
           <p class="muted hint">
             Ficam gravados no feudo, em qualquer navegador. Para jogar em outro ritmo ou em outra
             dificuldade, comece uma nova partida: o feudo atual é arquivado.
           </p>
-          <button type="button" class="secondary" onClick={props.onNewGame}>
-            Nova partida…
-          </button>
+          <div class="row settings-game-actions">
+            <button type="button" class="secondary" onClick={props.onNewGame}>
+              Nova partida…
+            </button>
+            {props.game.seed === undefined ? null : (
+              <button
+                type="button"
+                class="secondary"
+                onClick={() => props.onNewGameWithSeed?.(props.game!.seed!)}
+              >
+                Nova partida com esta semente
+              </button>
+            )}
+          </div>
         </fieldset>
       )}
     </form>

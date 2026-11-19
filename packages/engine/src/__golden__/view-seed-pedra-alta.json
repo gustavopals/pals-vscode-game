@@ -1,5 +1,6 @@
 {
   "initial": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -1314,6 +1315,7 @@
     }
   },
   "afterFirstAllocation": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -2654,6 +2656,7 @@
     }
   },
   "afterObjectivesScenario": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -4031,6 +4034,7 @@
     }
   },
   "autumnBeforeWinter": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -5613,6 +5617,7 @@
     }
   },
   "winterCold": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -7234,6 +7239,7 @@
     }
   },
   "queuesAndPlans": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 4,
@@ -8987,6 +8993,7 @@
     }
   },
   "crafts": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -10579,6 +10586,7 @@
     }
   },
   "impoverished": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -12167,6 +12175,7 @@
     }
   },
   "proud": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -13746,6 +13755,7 @@
     }
   },
   "councilTable": {
+    "seed": "fixture-council-1915",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -15448,6 +15458,7 @@
     }
   },
   "strangerAtTable": {
+    "seed": "fixture-council-1915",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -17133,6 +17144,7 @@
     }
   },
   "threatWatched": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -18795,6 +18807,7 @@
     }
   },
   "threatIncoming": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -20467,6 +20480,7 @@
     }
   },
   "raidAftermath": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 2,
@@ -22199,6 +22213,7 @@
     }
   },
   "palisadeRaised": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -23871,6 +23886,7 @@
     }
   },
   "palisadePromiseDue": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -25496,6 +25512,7 @@
     }
   },
   "guildPaid": {
+    "seed": "fixture-guild-view",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -27053,6 +27070,7 @@
     }
   },
   "guildInArrears": {
+    "seed": "fixture-wage-arrears",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -28587,6 +28605,7 @@
     }
   },
   "heroPromised": {
+    "seed": "fixture-hero-promised",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -29908,6 +29927,7 @@
     }
   },
   "tavernOpen": {
+    "seed": "fixture-tavern",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -31599,6 +31619,7 @@
     }
   },
   "tavernBusy": {
+    "seed": "fixture-tavern-busy",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -33329,6 +33350,7 @@
     }
   },
   "expeditionTraveling": {
+    "seed": "fixture-expedition",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -35210,6 +35232,7 @@
     }
   },
   "expeditionCrossroads": {
+    "seed": "fixture-expedition-crossroads",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -37147,6 +37170,7 @@
     }
   },
   "expeditionReturning": {
+    "seed": "fixture-expedition-returning",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -39102,6 +39126,7 @@
     }
   },
   "heroInjured": {
+    "seed": "fixture-hero-injured",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -41058,6 +41083,7 @@
     }
   },
   "heroCaptured": {
+    "seed": "fixture-hero-captured",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -43233,6 +43259,7 @@
     }
   },
   "denCleared": {
+    "seed": "fixture-den-cleared",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -45184,6 +45211,7 @@
     }
   },
   "marketOpening": {
+    "seed": "fixture-market-opening",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -46857,6 +46885,7 @@
     }
   },
   "marketDay": {
+    "seed": "fixture-market",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -48560,6 +48589,7 @@
     }
   },
   "caravan": {
+    "seed": "fixture-caravan",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -50289,6 +50319,7 @@
     }
   },
   "caravanEscort": {
+    "seed": "fixture-caravan-escort",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 3,
@@ -52123,6 +52154,7 @@
     }
   },
   "masters": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -53759,6 +53791,7 @@
     }
   },
   "masterWaiting": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 1,
@@ -55348,6 +55381,7 @@
     }
   },
   "smithyIdle": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 4,
@@ -56945,6 +56979,7 @@
     }
   },
   "smithyForging": {
+    "seed": "pedra-alta",
     "settlement": {
       "name": "Pedra Alta",
       "townHallLevel": 4,

@@ -1,5 +1,5 @@
-import { DisplayNameSchema } from '@lotg/protocol';
-import { useState } from 'preact/hooks';
+import { DisplayNameSchema, GameSeedSchema } from '@lotg/protocol';
+import { useEffect, useState } from 'preact/hooks';
 
 import {
   difficultyLine,
@@ -74,20 +74,46 @@ export function Welcome(props: {
    * não as tem): a tela fica como na v0.1 e o feudo nasce com os padrões do servidor.
    */
   options: NewGameOptions | null;
+  /** Semente preenchida pelo endereço (`#/nova?seed=…`); `null` sem pedido. */
+  initialSeed?: string | null;
+  /** Abre o campo de semente já na primeira exibição (ex.: ao chegar por `#/nova`). */
+  openSeed?: boolean;
   actions: Actions;
 }) {
   const { account, busy, online, actions, options } = props;
   const [displayName, setDisplayName] = useState('');
   const [settlementName, setSettlementName] = useState('Pedra Alta');
   const [picked, setPicked] = useState<Partial<NewGameChoice>>({});
+  const [seedOpen, setSeedOpen] = useState(
+    () =>
+      props.openSeed === true || (props.initialSeed !== undefined && props.initialSeed !== null),
+  );
+  const [seed, setSeed] = useState(() => props.initialSeed ?? '');
+
+  useEffect(() => {
+    if (props.initialSeed !== undefined && props.initialSeed !== null) {
+      setSeedOpen(true);
+      setSeed(props.initialSeed);
+    } else if (props.openSeed === true) {
+      setSeedOpen(true);
+    }
+  }, [props.initialSeed, props.openSeed]);
+
   const ruler = account?.displayName ?? displayName;
-  const ready = validName(ruler) && validName(settlementName);
+  const trimmedSeed = seed.trim();
+  const seedValid = trimmedSeed === '' || GameSeedSchema.safeParse(trimmedSeed).success;
+  const ready = validName(ruler) && validName(settlementName) && seedValid;
   const choice = options === null ? undefined : resolveChoice(options, picked);
 
   const submit = (event: Event) => {
     event.preventDefault();
     if (ready && !busy) {
-      actions.playNow(ruler.trim(), settlementName.trim(), choice);
+      actions.playNow(
+        ruler.trim(),
+        settlementName.trim(),
+        choice,
+        trimmedSeed === '' ? undefined : trimmedSeed,
+      );
     }
   };
 
@@ -164,9 +190,40 @@ export function Welcome(props: {
             </p>
           </div>
         )}
-        <button type="submit" class="primary" disabled={!ready || busy || !online}>
-          {busy ? 'Abrindo os portões…' : account === null ? 'Jogar agora' : 'Fundar o feudo'}
-        </button>
+        {seedOpen ? (
+          <div class="welcome-seed">
+            <label>
+              Semente (opcional)
+              <input
+                type="text"
+                name="seed"
+                value={seed}
+                maxLength={64}
+                autocomplete="off"
+                aria-describedby="seed-rule"
+                onInput={(event) => setSeed((event.target as HTMLInputElement).value)}
+              />
+            </label>
+            <p id="seed-rule" class="muted hint">
+              Deixe em branco para sortear uma nova. Mesma semente e ritmo geram a mesma jornada.
+            </p>
+          </div>
+        ) : null}
+        <div class="row welcome-actions">
+          <button type="submit" class="primary" disabled={!ready || busy || !online}>
+            {busy ? 'Abrindo os portões…' : account === null ? 'Jogar agora' : 'Fundar o feudo'}
+          </button>
+          {seedOpen ? null : (
+            <button
+              type="button"
+              class="secondary"
+              disabled={busy}
+              onClick={() => setSeedOpen(true)}
+            >
+              Escolher semente…
+            </button>
+          )}
+        </div>
         {online ? null : (
           <p class="blocked" role="status">
             Sem ligação com o reino. Tente de novo em instantes.

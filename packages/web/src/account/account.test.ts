@@ -291,6 +291,15 @@ describe('corpo de criação de partida', () => {
       },
     ]);
   });
+
+  it('semente escolhida vai aparada no corpo; em branco é omitida (V5D-T1)', () => {
+    const base = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    const withSeed = gameRequest({ ...base, seed: '  desafio-v5d  ' });
+    expect(withSeed).toEqual({ ...base, seed: 'desafio-v5d' });
+    expect(CreateGameRequestSchema.safeParse(withSeed).success).toBe(true);
+    const blank = gameRequest({ ...base, seed: '   ' });
+    expect(blank).not.toHaveProperty('seed');
+  });
 });
 
 describe('validação do Código do Reino', () => {

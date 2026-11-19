@@ -13,7 +13,8 @@ export type Actions = {
   run(commandId: string, arg?: unknown): void;
   /**
    * "Jogar agora": cria a conta, se ainda não houver, e funda o feudo. `choice` é a dificuldade
-   * e o ritmo marcados na tela; sem ela, valem os padrões do servidor.
+   * e o ritmo marcados na tela; sem ela, valem os padrões do servidor. `seed` é a semente
+   * escolhida (opcional).
    */
-  playNow(displayName: string, settlementName: string, choice?: NewGameChoice): void;
+  playNow(displayName: string, settlementName: string, choice?: NewGameChoice, seed?: string): void;
 };

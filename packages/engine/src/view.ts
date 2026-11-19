@@ -391,6 +391,7 @@ export function deriveViewState(
   );
 
   return {
+    seed: state.seed,
     settlement: {
       name: settlement.name,
       townHallLevel: settlement.buildings.townHall,

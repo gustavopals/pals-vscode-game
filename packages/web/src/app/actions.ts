@@ -8,9 +8,9 @@ export function controllerActions(controller: Controller): Actions {
       void controller.order(type, payload as never);
     },
     run: (commandId, arg) => controller.runCommand(commandId, arg),
-    playNow: (displayName, settlementName, choice) => {
+    playNow: (displayName, settlementName, choice, seed) => {
       void controller.attempt(async () => {
-        await controller.playNow(displayName, settlementName, choice);
+        await controller.playNow(displayName, settlementName, choice, seed);
       });
     },
   };

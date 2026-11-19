@@ -2420,6 +2420,36 @@ describe('contratos da API', () => {
     expect(CreateGameRequestSchema.safeParse({ ...body, timeScale: 2 }).success).toBe(true);
   });
 
+  it('criação de partida: a semente é opcional, aparada e limitada a texto armazenável', () => {
+    const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    expect(CreateGameRequestSchema.safeParse(body).data).not.toHaveProperty('seed');
+    expect(
+      CreateGameRequestSchema.safeParse({ ...body, seed: '  pedra-alta-42  ' }).data?.seed,
+    ).toBe('pedra-alta-42');
+    expect(CreateGameRequestSchema.safeParse({ ...body, seed: 'a'.repeat(64) }).success).toBe(true);
+    for (const seed of ['', '   ', 'a'.repeat(65), 'ok\u0000no', 'linha\nquebra', null, 42]) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, seed }).success).toBe(false);
+    }
+  });
+
+  it('ViewStateSchema aceita seed ausente (cache antigo) ou preenchida, e recusa vazia', () => {
+    const state = createInitialState('pedra-alta', {
+      settlementName: 'Pedra Alta',
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 1,
+    });
+    const view = deriveViewState(state, 0);
+    expect(view.seed).toBe('pedra-alta');
+    expect(ViewStateSchema.safeParse(view).success).toBe(true);
+    const { seed: _seed, ...withoutSeed } = view;
+    void _seed;
+    expect(ViewStateSchema.safeParse(withoutSeed).success).toBe(true);
+    expect(ViewStateSchema.safeParse({ ...view, seed: '' }).success).toBe(false);
+    expect(ViewStateSchema.safeParse({ ...view, seed: 123 }).success).toBe(false);
+  });
+
   it('nenhum módulo do protocolo que o app carrega lê números do conteúdo', () => {
     // `contentHash.ts` lê o conteúdo inteiro de propósito e só é chamado pelo servidor e pelo
     // simulador; o build do app o descarta (packages/web/src/bundle.test.ts confere o pacote).

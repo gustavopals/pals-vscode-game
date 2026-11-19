@@ -62,6 +62,8 @@ function TabContent(props: {
           online={online}
           githubAvailable={controller.githubAvailable}
           options={controller.newGameOptions}
+          initialSeed={controller.pendingSeed}
+          openSeed={controller.openSeedField}
           actions={actions}
         />
       );
@@ -77,6 +79,7 @@ function TabContent(props: {
               : {
                   difficultyLabel: view.settlement.difficultyLabel,
                   paceLabel: view.settlement.paceLabel,
+                  seed: view.seed,
                   vigil: view.settlement.vigil,
                   siegeText: view.siege?.result === null ? siegeSummary(view, elapsed) : null,
                   difficultyAbout: difficultyDescription(
@@ -94,6 +97,7 @@ function TabContent(props: {
           onChange={(patch) => void controller.setPreferences(patch)}
           onBrowserNotifications={(enabled) => void controller.setBrowserNotifications(enabled)}
           onNewGame={() => actions.run('lords.newGame')}
+          onNewGameWithSeed={(seed) => actions.run('lords.newGame', { seed })}
         />
       );
     case 'about':

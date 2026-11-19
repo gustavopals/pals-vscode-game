@@ -66,10 +66,7 @@ export async function createGame(
         .where(eq(games.id, active.id));
     }
 
-    const seed =
-      ctx.config.allowGameSeed && input.seed !== undefined
-        ? input.seed
-        : randomBytes(12).toString('hex');
+    const seed = input.seed ?? randomBytes(12).toString('hex');
     const difficulty = input.difficulty ?? defaultDifficulty();
     const timeScale = input.timeScale ?? ctx.config.gameTimeScale;
     const state = createInitialState(seed, {

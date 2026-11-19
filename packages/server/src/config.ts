@@ -63,8 +63,6 @@ export type Config = {
    * nas que já existem.
    */
   gameTimeScale: number;
-  /** Aceitar a semente informada em `POST /games`. Só em ambiente de teste. */
-  allowGameSeed: boolean;
 };
 
 const MIN_SECRET_BYTES = 32;
@@ -138,6 +136,5 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     githubDeviceStartsPerHourPerIp: values.GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP,
     trustProxy: values.TRUST_PROXY,
     gameTimeScale: values.GAME_TIME_SCALE,
-    allowGameSeed: values.NODE_ENV === 'test',
   };
 }

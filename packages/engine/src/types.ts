@@ -2825,6 +2825,8 @@ export type MarketView = {
 
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
+  /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
+  seed?: string | undefined;
   settlement: {
     name: string;
     townHallLevel: number;

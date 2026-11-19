@@ -25,11 +25,12 @@ export type SignedInState = Exclude<AccountState, { kind: 'signedOut' }>;
  */
 export type NewGameInput = Pick<
   CreateGameRequest,
-  'settlementName' | 'timezone' | 'vigilHourLocal' | 'difficulty' | 'timeScale'
+  'settlementName' | 'timezone' | 'vigilHourLocal' | 'difficulty' | 'timeScale' | 'seed'
 >;
 
 /** Corpo de `POST /games` montado a partir do formulário de boas-vindas. */
 export function gameRequest(input: NewGameInput, replaceActive = false): CreateGameRequest {
+  const seed = input.seed?.trim();
   return {
     settlementName: input.settlementName.trim(),
     timezone: input.timezone,
@@ -37,6 +38,7 @@ export function gameRequest(input: NewGameInput, replaceActive = false): CreateG
     ...(input.difficulty === undefined ? {} : { difficulty: input.difficulty }),
     // O número vai como veio do catálogo, sem conversão.
     ...(input.timeScale === undefined ? {} : { timeScale: input.timeScale }),
+    ...(seed === undefined || seed === '' ? {} : { seed }),
     ...(replaceActive ? { replaceActive: true } : {}),
   };
 }

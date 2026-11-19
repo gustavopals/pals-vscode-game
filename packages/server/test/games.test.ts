@@ -378,6 +378,75 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
     expect(onlyPace).toMatchObject({ difficulty: 'lord', timeScale: 0.5 });
   });
 
+  it('aceita semente escolhida em produção, expõe na visão do dono e não vaza para terceiros (V5D-T1)', async () => {
+    const prod = await createTestApp({ config: { NODE_ENV: 'production' } });
+    try {
+      const owner = await signUp(prod);
+      const created = await call<CreateGameResponse>(prod, 'POST', '/games', {
+        token: owner.accessToken,
+        body: {
+          settlementName: 'Pedra Alta',
+          timezone: 'America/Sao_Paulo',
+          vigilHourLocal: 20,
+          seed: '  semente-em-producao-42  ',
+        },
+      });
+      expect(created.status).toBe(201);
+      expect(GameSummarySchema.safeParse(created.body.game).error).toBeUndefined();
+
+      const view = await getView(prod, owner.accessToken, created.body.game.id);
+      expect(view.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(view.body).error).toBeUndefined();
+      expect(view.body.view.seed).toBe('semente-em-producao-42');
+
+      const { rows } = await prod.pool.query<{ seed: string; stateSeed: string }>(
+        'select seed, state ->> \'seed\' as "stateSeed" from games where id = $1',
+        [created.body.game.id],
+      );
+      expect(rows[0]).toEqual({
+        seed: 'semente-em-producao-42',
+        stateSeed: 'semente-em-producao-42',
+      });
+
+      // Outro jogador não vê a partida nem a semente dela.
+      const stranger = await signUp(prod);
+      const denied = await getView(prod, stranger.accessToken, created.body.game.id);
+      expect(denied.status).toBe(404);
+      expect(JSON.stringify(denied.body)).not.toContain('semente-em-producao-42');
+
+      // Semente sorteada também aparece na visão do próprio dono.
+      const randomCreated = await call<CreateGameResponse>(prod, 'POST', '/games', {
+        token: stranger.accessToken,
+        body: { settlementName: 'Vale Fundo', timezone: 'UTC', vigilHourLocal: 18 },
+      });
+      expect(randomCreated.status).toBe(201);
+      const randomView = await getView(prod, stranger.accessToken, randomCreated.body.game.id);
+      expect(randomView.status).toBe(200);
+      expect(randomView.body.view.seed).toMatch(/^[0-9a-f]{24}$/);
+
+      // Semente inválida é recusada com 400 VALIDATION e não arquiva a partida ativa.
+      for (const badSeed of ['', '   ', 'x'.repeat(65), 'com\u0000nulo', 'com\nquebra']) {
+        const bad = await call<ApiError>(prod, 'POST', '/games', {
+          token: owner.accessToken,
+          body: {
+            settlementName: 'Outro Feudo',
+            timezone: 'UTC',
+            vigilHourLocal: 20,
+            replaceActive: true,
+            seed: badSeed,
+          },
+        });
+        expect(bad.status).toBe(400);
+        expect(bad.body.code).toBe('VALIDATION');
+      }
+      const stillActive = await getView(prod, owner.accessToken, created.body.game.id);
+      expect(stillActive.status).toBe(200);
+      expect(stillActive.body.view.seed).toBe('semente-em-producao-42');
+    } finally {
+      await prod.close();
+    }
+  });
+
   it.each([
     ['difficulty', 'normal'],
     ['difficulty', 'LORD'],

@@ -22,6 +22,9 @@ export const DeviceLabelSchema = z
   .max(64)
   .refine(isStorableText, UNSTORABLE);
 
+/** Semente escolhida para uma partida pessoal (D-19): 1 a 64 caracteres armazenáveis. */
+export const GameSeedSchema = z.string().trim().min(1).max(64).refine(isStorableText, UNSTORABLE);
+
 const timezone = z
   .string()
   .min(1)
@@ -180,8 +183,8 @@ export const CreateGameRequestSchema = z.strictObject({
   timeScale: PaceTimeScaleSchema.optional(),
   /** Arquiva a partida ativa, se houver, em vez de recusar com `ACTIVE_GAME_EXISTS`. */
   replaceActive: z.boolean().optional(),
-  /** Semente fixa. Só é aceita por servidores em ambiente de teste. */
-  seed: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE).optional(),
+  /** Semente escolhida para a partida (D-19). Sem ela, o servidor sorteia uma. */
+  seed: GameSeedSchema.optional(),
 });
 export type CreateGameRequest = z.infer<typeof CreateGameRequestSchema>;
 

@@ -10,7 +10,7 @@ import { controllerActions } from './app/actions';
 import { Controller } from './app/controller';
 import { DialogHost } from './app/DialogHost';
 import { DialogService } from './app/dialogs';
-import { formatHash, parseHash } from './app/router';
+import { formatHash, formatNewGameHash, parseHashTarget } from './app/router';
 import { browserNotifier, type NotificationApi } from './notifications/browserNotifications';
 import { Toasts } from './notifications/Toasts';
 import { isPaletteShortcut, openPalette } from './palette/CommandPalette';
@@ -182,7 +182,10 @@ const syncTheme = () => applyTheme(document.documentElement, currentTheme());
  */
 let correcting = true;
 const syncHash = () => {
-  const hash = formatHash(controller.route);
+  const hash =
+    controller.route === 'welcome' && controller.pendingSeed !== null
+      ? formatNewGameHash(controller.pendingSeed)
+      : formatHash(controller.route);
   if (window.location.hash === hash) {
     return;
   }
@@ -203,9 +206,18 @@ window.addEventListener('hashchange', () => {
   // O endereço mudou por fora (voltar, avançar, digitado): o que o app ajustar a partir daqui
   // é correção, não navegação nova.
   correcting = true;
-  const route = parseHash(window.location.hash);
-  if (route !== null && route !== controller.route) {
-    controller.navigate(route);
+  const target = parseHashTarget(window.location.hash);
+  if (target?.kind === 'newGame') {
+    if (controller.hasGame) {
+      syncHash();
+      correcting = false;
+      controller.runCommand('lords.newGame', { seed: target.seed, askSeed: true });
+      return;
+    }
+    controller.setPendingSeed(target.seed, true);
+    controller.navigate('welcome');
+  } else if (target !== null && target.route !== controller.route) {
+    controller.navigate(target.route);
   }
   syncHash();
   correcting = false;
@@ -230,7 +242,11 @@ watchOtherTabs(window, (change) => controller.handleTabChange(change));
 
 // A conta e o estado guardados são lidos antes do primeiro desenho: quem recarrega a página
 // vê o feudo de imediato, sem passar pelas boas-vindas (cujo campo roubaria o foco).
-const started = controller.start(parseHash(window.location.hash));
+const initialTarget = parseHashTarget(window.location.hash);
+const started = controller.start(
+  initialTarget?.kind === 'route' ? initialTarget.route : null,
+  initialTarget?.kind === 'newGame' ? { seed: initialTarget.seed } : undefined,
+);
 
 const root = document.getElementById('root');
 if (root !== null) {
@@ -242,4 +258,7 @@ void started.then(() => {
   correcting = false;
   // Só depois da primeira abertura as mudanças de aba passam a mexer no endereço.
   controller.onChange(syncHash);
+  if (initialTarget?.kind === 'newGame' && controller.hasGame) {
+    controller.runCommand('lords.newGame', { seed: initialTarget.seed, askSeed: true });
+  }
 });

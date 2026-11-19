@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   CLOSABLE_ROUTES,
   formatHash,
+  formatNewGameHash,
   GAME_ROUTES,
   parseHash,
+  parseHashTarget,
   resolveRoute,
   type Route,
   ROUTE_ICONS,
@@ -60,6 +62,33 @@ describe('endereço da aba (hash)', () => {
       expect(ROUTE_LABELS[route]).not.toBe('');
       expect(ROUTE_ICONS[route]).toMatch(/^[a-z-]+$/);
     }
+  });
+
+  it('#/nova?seed=… gera e lê o link da semente (V5D-T1)', () => {
+    expect(formatNewGameHash('pedra-alta-42')).toBe('#/nova?seed=pedra-alta-42');
+    expect(formatNewGameHash('  com espaço & sinal  ')).toBe(
+      '#/nova?seed=com%20espa%C3%A7o%20%26%20sinal',
+    );
+    expect(formatNewGameHash('')).toBe('#/nova');
+    expect(formatNewGameHash()).toBe('#/nova');
+
+    expect(parseHashTarget('#/nova?seed=pedra-alta-42')).toEqual({
+      kind: 'newGame',
+      seed: 'pedra-alta-42',
+    });
+    expect(parseHashTarget('#/nova?seed=com%20espa%C3%A7o%20%26%20sinal')).toEqual({
+      kind: 'newGame',
+      seed: 'com espaço & sinal',
+    });
+    expect(parseHashTarget('#/nova')).toEqual({ kind: 'newGame', seed: null });
+    expect(parseHashTarget('#/nova?seed=   ')).toEqual({ kind: 'newGame', seed: null });
+    expect(parseHashTarget(`#/nova?seed=${'x'.repeat(65)}`)).toEqual({
+      kind: 'newGame',
+      seed: null,
+    });
+    expect(parseHashTarget('#/feudo')).toEqual({ kind: 'route', route: 'fief' });
+    expect(parseHashTarget('#/feudo?seed=abc')).toBeNull();
+    expect(parseHash('#/nova?seed=pedra-alta-42')).toBeNull();
   });
 });
 

@@ -95,6 +95,8 @@ const welcome = (
     online: boolean;
     githubAvailable: boolean;
     options: NewGameOptions | null;
+    initialSeed: string | null;
+    openSeed: boolean;
   }> = {},
 ) =>
   html(
@@ -179,6 +181,14 @@ describe('boas-vindas', () => {
     const page = welcome({ online: false });
     expect(page).toContain('Sem ligação com o reino.');
     expect(page).toMatch(/<button type="submit"[^>]*disabled/);
+  });
+
+  it('com initialSeed (#/nova?seed=…), abre com o campo da semente preenchido (V5D-T1)', () => {
+    const page = welcome({ initialSeed: 'semente-do-link' });
+    expect(page).toContain('Semente (opcional)');
+    expect(page).toContain('name="seed"');
+    expect(page).toContain('value="semente-do-link"');
+    expect(page).not.toContain('Escolher semente…');
   });
 });
 
