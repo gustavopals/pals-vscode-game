@@ -67,6 +67,7 @@ export const HordeWavesSchema = z
       number: z.union([z.literal(1), z.literal(2), z.literal(3)]),
       baseCount: positiveInt,
       mix: z.partialRecord(z.enum(HORDE_UNIT_IDS), positiveInt),
+      mixFromYear2: z.partialRecord(z.enum(HORDE_UNIT_IDS), positiveInt).optional(),
       fixed: z.array(
         z.strictObject({
           wing: z.enum(WING_IDS),
@@ -107,6 +108,15 @@ export const HordeWavesSchema = z
           code: 'custom',
           message: 'pesos-base não somam 100',
           path: [index, 'mix'],
+        });
+      if (
+        wave.mixFromYear2 !== undefined &&
+        Object.values(wave.mixFromYear2).reduce((sum, weight) => sum + weight, 0) !== 100
+      )
+        context.addIssue({
+          code: 'custom',
+          message: 'pesos do Ano 2 não somam 100',
+          path: [index, 'mixFromYear2'],
         });
     }
   });

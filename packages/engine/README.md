@@ -17,6 +17,12 @@ começa a contribuir na virada seguinte. As linhas de aparição exigem Torre.
 
 As ondas aplicam pisos sucessivos: fator do ano (1/3, 2/3, 1), crescimento `(10 + ano − 1)/10` e dificuldade; sabotagem depois, com chefe extra preservado. Senhor no Ano 2: **28/44/58 + chefe**. Ano 1 e seus sorteios continuam iguais.
 
+Desde V5C-T2, a segunda onda usa Trolls só no Ano 2+: pesos 40/15/25/20
+para lobos/ogros/saqueadores/trolls. Troll: 12/4/120, iniciativa 1, recebe
+×3/2 de Lanceiros. A resolução e a prévia compartilham essa regra por dados;
+a amostra usa só a mistura pública e os presságios, nunca a memória oculta.
+O id novo não entra na lista de reserva nem no hash da prévia do Ano 1.
+
 As ondas são preparadas no outono e renovadas quando a formação vista muda,
 até o inverno. Cada preparação tem uma revisão: renovar retira do painel os
 presságios da revisão anterior; suas linhas permanecem como história na Crônica.
@@ -825,7 +831,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 41 | V4H-T2 | Bônus do Conselho em `council.bonuses`, inicialmente nulos, e rendimento extra da forja. Guarda do item `lordsSword`; passo 40 → 41 sem prazo ou sorteio. |
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
 | 43 | V5B-T1/T2 (Fase B) | Capela por construir (`chapel: 0`) e `settlement.relics: []`, sem recalcular ferimentos nem mudar sorteios. |
-| 44 | V5C-T1 (Fase C) | `horde.previousYearFormation: null` no passo 43→44. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
+| 44 | V5C-T1/T2 (Fase C) | `horde.previousYearFormation: null` no passo 43→44. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 

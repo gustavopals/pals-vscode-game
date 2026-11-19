@@ -2,6 +2,7 @@ import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { readySiege } from './siege.test-helpers';
+import { revealOmen, settleHordeTiles } from './hordePlan';
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { housingCapacity } from './population';
@@ -89,6 +90,14 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  trolls: () => {
+    const state = gameAt(YEAR + AUTUMN);
+    state.seed = 'trolls-1';
+    state.settlement.buildings.watchtower = 5;
+    settleHordeTiles(state, state.lastProcessedAt, []);
+    revealOmen(state, state.horde.wavePlan!.waves[1]!, state.lastProcessedAt, []);
+    return state;
+  },
   'horde-previous-year': () => {
     const state = gameAt(YEAR + 1);
     state.horde.previousYearFormation = { total: 19, byUnit: { archer: 17, spearman: 2 } };

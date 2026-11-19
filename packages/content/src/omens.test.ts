@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { balance, DIFFICULTY_IDS, hordeWaves, HORDE_UNIT_IDS, omenTexts, UNIT_IDS } from './index';
+import {
+  balance,
+  DIFFICULTY_IDS,
+  hordeWaves,
+  HORDE_UNIT_IDS,
+  omenTexts,
+  UNIT_IDS,
+  hordeWaveMix,
+} from './index';
 import { BalanceSchema, HordeWavesSchema } from './schemas';
 
 describe('A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18)', () => {
@@ -27,6 +35,14 @@ describe('A Horda que aprende e os presságios (ADR 0020, decisões 15 e 18)', (
       extra: true,
     });
     expect(HordeWavesSchema.safeParse([...hordeWaves].reverse()).success).toBe(false);
+  });
+
+  it('só a mistura do Ano 2 em diante inclui Trolls na segunda onda', () => {
+    expect(hordeWaves.map((wave) => hordeWaveMix(wave, 1))).toEqual(
+      hordeWaves.map((wave) => wave.mix),
+    );
+    expect(hordeWaveMix(hordeWaves[1]!, 2)).toEqual({ wolf: 40, ogre: 15, raider: 25, troll: 20 });
+    expect(omenTexts.vague.troll).toContain('trolls');
   });
 
   it('a astúcia é a do ADR 0020: 3/10, 1/2 e 4/5', () => {

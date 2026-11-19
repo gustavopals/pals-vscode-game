@@ -69,7 +69,7 @@ export type HordeUnitDef = {
   readonly bonusAgainst?: Partial<Record<UnitId, Ratio>>;
 };
 
-/** Os oito inimigos do GDD §10.3, na ordem da tabela. */
+/** Ids publicados em ordem fixa; o Troll da v0.5 entra ao final. */
 export const hordeUnits: Record<HordeUnitId, HordeUnitDef> = {
   wolf: {
     label: 'Lobo',
@@ -160,6 +160,17 @@ export const hordeUnits: Record<HordeUnitId, HordeUnitDef> = {
     noMorale: true,
     auraArmy: { num: 5, den: 4 },
     endsWaveOnDeath: true,
+  },
+  troll: {
+    label: 'Troll',
+    pluralLabel: 'trolls',
+    archetype: 'none',
+    attack: 12,
+    defense: 4,
+    health: 120,
+    initiative: 1,
+    line: 'front',
+    takesBonusFrom: { spearman: { num: 3, den: 2 } },
   },
 };
 

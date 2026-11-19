@@ -5,6 +5,7 @@ export type HordeWaveDef = {
   readonly number: 1 | 2 | 3;
   readonly baseCount: number;
   readonly mix: Partial<Record<HordeUnitId, number>>;
+  readonly mixFromYear2?: Partial<Record<HordeUnitId, number>>;
   readonly fixed: readonly {
     readonly wing: WingId;
     readonly line: LineId;
@@ -44,7 +45,13 @@ export const hordeWaves: readonly HordeWaveDef[] = [
     mix: { raider: 70, banditArcher: 30 },
     fixed: [{ wing: 'center', line: 'back', unit: 'shaman', count: 1, extra: false }],
   },
-  { number: 2, baseCount: 60, mix: { wolf: 50, ogre: 20, raider: 30 }, fixed: [] },
+  {
+    number: 2,
+    baseCount: 60,
+    mix: { wolf: 50, ogre: 20, raider: 30 },
+    mixFromYear2: { wolf: 40, ogre: 15, raider: 25, troll: 20 },
+    fixed: [],
+  },
   {
     number: 3,
     baseCount: 80,
@@ -52,6 +59,14 @@ export const hordeWaves: readonly HordeWaveDef[] = [
     fixed: [{ wing: 'center', line: 'front', unit: 'warlord', count: 1, extra: true }],
   },
 ];
+
+/** D-15: a mistura original e a ordem dos sorteios do Ano 1 ficam intactas. */
+export function hordeWaveMix(
+  def: HordeWaveDef,
+  year: number,
+): Partial<Record<HordeUnitId, number>> {
+  return year >= 2 ? (def.mixFromYear2 ?? def.mix) : def.mix;
+}
 
 /** Datas dos tiles em dias de jogo; a Fortaleza segue a estação. */
 export const hordeTiles = { campAtGameDay: 25, fortressSeason: 'autumn' as const };

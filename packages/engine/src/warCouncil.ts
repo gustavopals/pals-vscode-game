@@ -158,7 +158,11 @@ function candidatesFor(season: SeasonId, line: LineId, mix = hordeBaseMix[season
   // A estação não traz ninguém nesta linha (a Retaguarda da Primavera): pesos iguais entre as
   // unidades comuns da linha (o Senhor da Guerra e o Esqueleto são das ondas, não da base).
   return HORDE_UNIT_IDS.filter(
-    (unit) => hordeUnits[unit].line === line && unit !== 'warlord' && unit !== 'skeleton',
+    (unit) =>
+      hordeUnits[unit].line === line &&
+      unit !== 'warlord' &&
+      unit !== 'skeleton' &&
+      unit !== 'troll',
   ).map((unit) => ({ unit, weight: 1 }));
 }
 
@@ -220,7 +224,9 @@ function streamNameFor(input: PreviewInput, run: number): string {
   const mixKey =
     input.mix === undefined
       ? ''
-      : HORDE_UNIT_IDS.map((unit) => `${unit}:${input.mix?.[unit] ?? 0}`).join(',');
+      : HORDE_UNIT_IDS.filter((unit) => unit !== 'troll' || (input.mix?.troll ?? 0) > 0)
+          .map((unit) => `${unit}:${input.mix?.[unit] ?? 0}`)
+          .join(',');
   return `preview:${input.formationId}:${String(hashText(sampleKey + mixKey))}:${String(run)}`;
 }
 

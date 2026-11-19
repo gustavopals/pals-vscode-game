@@ -84,6 +84,7 @@ export const warRaids: WarRaidsDef = {
     skeleton: 1,
     shaman: 1,
     warlord: 12,
+    troll: 6,
   },
   scripted: [
     // As duas primeiras são leves e não ferem (D-39, 2026-10-26); o id da do dia 37 continua

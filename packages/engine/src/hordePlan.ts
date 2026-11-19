@@ -5,6 +5,7 @@ import {
   hordeTiles,
   hordeUnits,
   hordeWaves,
+  hordeWaveMix,
   HORDE_UNIT_IDS,
   LINE_IDS,
   omenTexts,
@@ -79,7 +80,7 @@ function generateWave(draft: GameState, def: HordeWaveDef, year?: number): Wave 
     'autumn',
     draft.settings.difficulty,
     draft.horde.lastFormationSeen,
-    def.mix,
+    hordeWaveMix(def, year ?? yearOf(draft.lastProcessedAt)),
     draft.horde.wavePlan === null ? draft.horde.previousYearFormation : null,
   ).weights;
   const { slots, amounts } = baseWaveLayout(draft, def, year);

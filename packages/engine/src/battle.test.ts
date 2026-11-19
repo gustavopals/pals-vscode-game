@@ -286,6 +286,18 @@ describe('as regras fora dos sete cenários', () => {
     expect(at(2).rounds[0]?.actions.some((action) => action.kind === 'tower')).toBe(false);
   });
 
+  it('o Troll lento recebe o contra-ataque de Lanceiros e conserva vida residual', () => {
+    const result = resolveBattle(
+      battle({ center: { front: ['spearman', 6] } }, { center: { front: ['troll', 2] } }),
+      EVEN_LUCK,
+    );
+    const mine = attacks(result, 1).find((action) => action.actor.side === 'D');
+    expect(mine?.factors).toContainEqual({ kind: 'counter', value: { num: 3, den: 2 } });
+    expect(attacks(result, 1)[0]?.unit).toBe('spearman');
+    expect(mine?.hits[0]?.casualties).toBe(0);
+    expect(mine?.hits[0]?.residualAfter).toBeGreaterThan(0);
+  });
+
   it('o Mago bate em área a cada 3 rodadas, em dobro contra os mortos-vivos', () => {
     const resolution = resolveBattle(
       battle(

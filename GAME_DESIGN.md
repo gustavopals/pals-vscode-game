@@ -689,6 +689,7 @@ Soldados **saem da população** ([ADR 0019](docs/decisions/0019-ferro-exercito-
 | Esqueleto | Lanceiro | 5 | 4 | 16 | 2 | Sem moral; recebe ×2 de Mago e Clériga |
 | Xamã | Apoio | 4 | 2 | 14 | 3 | Retaguarda; +20% de ataque para a própria ala |
 | Senhor da Guerra (chefe) | — | 18 | 8 | 200 | 4 | Aura +25% para toda a Horda; derrotá-lo encerra a onda |
+| Troll (Ano 2+) | — | 12 | 4 | 120 | 1 | Recebe ×1,5 de Lanceiros; sem ignorar muralha |
 
 ### 10.4 Resolução (até 12 rodadas)
 
@@ -792,7 +793,7 @@ Em cada virada de outono e de inverno há `35% + 10% × (Torre − 1)` de chance
 | Onda | Tamanho base (Senhor, antes dos fatores) | Composição típica (antes da adaptação) |
 |---|---:|---|
 | 1 — "Os Saqueadores" | 40 unidades | Saqueadores, Bandoleiros Arqueiros, 1 Xamã |
-| 2 — "As Feras" | 60 unidades | Lobos, Ogros, Saqueadores |
+| 2 — "As Feras" | 60 unidades | Ano 1: Lobos 50%, Ogros 20%, Saqueadores 30%. Ano 2+: Lobos 40%, Ogros 15%, Saqueadores 25%, Trolls 20% |
 | 3 — "A Longa Noite" | 80 unidades + Senhor da Guerra | Cavaleiros Negros, Esqueletos, Xamãs, chefe no Centro |
 
 ```

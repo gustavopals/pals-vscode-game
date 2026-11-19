@@ -46,6 +46,8 @@ export const stateV44: Shape = (value, path) => {
         if (!object(post)) continue;
         const invalid = positive(post.count, at('horde.waves.count'));
         if (invalid !== null) return invalid;
+        if (post.unit === 'troll' && (plan.year as number) < 2)
+          return `${at('horde.waves')}: Troll só a partir do Ano 2`;
         total += post.count as number;
       }
       if (!Number.isSafeInteger(total) || total > max)
@@ -63,7 +65,8 @@ export const stateV44: Shape = (value, path) => {
         const actual = wave.composition.find(
           (p) => object(p) && p.wing === post.wing && p.line === post.line && p.unit === post.unit,
         );
-        if (object(actual) && (omen.clarity === 'exact' || omen.clarity === 'partial')) {
+        if (omen.clarity === 'exact' || omen.clarity === 'partial') {
+          if (!object(actual)) return `${at('horde.omens')}: posto difere da onda`;
           const expected =
             omen.clarity === 'exact'
               ? actual.count
@@ -73,7 +76,10 @@ export const stateV44: Shape = (value, path) => {
       }
     }
   }
-  if (!needsProjection) return stateV43({ ...value, schemaVersion: 43, horde }, path);
+  // A nova unidade é validada como Ogro na fachada histórica: mesmas posições
+  // possíveis, sem alterar o JSON persistido ou as enumerações da v43.
+  if (!needsProjection && stateV43({ ...value, schemaVersion: 43, horde }, path) === null)
+    return null;
   const inherited = JSON.parse(
     JSON.stringify({ ...value, schemaVersion: 43, horde }),
   ) as StoredState;
@@ -89,6 +95,14 @@ export const stateV44: Shape = (value, path) => {
   capPosts(oldHorde.wavePlan);
   capPosts(oldHorde.omens);
   capPosts(inherited.siege);
+  const projectTrolls = (entry: unknown): void => {
+    if (Array.isArray(entry)) entry.forEach(projectTrolls);
+    else if (object(entry)) {
+      if (entry.unit === 'troll') entry.unit = 'ogre';
+      Object.values(entry).forEach(projectTrolls);
+    }
+  };
+  projectTrolls(inherited);
   return stateV43(inherited, path);
 };
 

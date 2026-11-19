@@ -46,3 +46,7 @@ oferecer Votos pela visão inicial e ordem existente se possível, sem mudar
 T1 concluída: foco, tipos, guarda, retratos, sentinelas e 14.287 testes de
 migração aprovados; integrações games-migration e siege aprovadas. Goldens
 intactos; a escala anual aparece apenas no Cerco do Ano 2 do retrato peasant-3x.
+
+T2 concluída: Trolls, presságio, prévia/combate e persistência conferidos.
+14.294 testes de migrações, tipos, foco e sentinelas aprovados. Só o retrato
+existente do Cerco do Ano 2 mudou de composição; Ano 1 e goldens intactos.

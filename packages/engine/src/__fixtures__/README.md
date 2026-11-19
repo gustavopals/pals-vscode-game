@@ -7,6 +7,7 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 
 | Cenário | O que tem |
 |---|---|
+| `trolls` | Desde v44/T2: Ano 2, segunda onda com Trolls e presságio exato. |
 | `horde-previous-year` | A partir da v44: Ano 2, memória anterior com 17 arqueiros e 2 lanceiros, antes da primeira preparação. |
 | `fresh` | Feudo recém-criado, sem nenhuma ordem |
 | `construction` | Obra em curso, duas obras planejadas, dois aldeões a caminho, acumuladores no meio de um trecho |

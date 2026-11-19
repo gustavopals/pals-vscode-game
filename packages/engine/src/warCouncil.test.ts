@@ -82,20 +82,23 @@ const unknownAll: EnemyGuessPosts = {
 };
 
 describe('a prévia do Conselho de Guerra (V4D-T2)', () => {
-  it('critério 2: inimigo conhecido e a semente da batalha real dão o relatório da batalha real', () => {
-    const input = base(
-      knownEnemy({ left: ['wolf', 8], center: ['raider', 18], right: ['blackKnight', 6] }),
-    );
-    const state = cloneState(newGame('pedra-alta'));
-    const real = fightBattle(state, toBattle(input));
-    const realReport = buildBattleReport('battle-1', 0, real.resolution);
-    const preview = previewRun(
-      { ...input, seed: state.seed, streamNameOf: () => `battle:${real.id}`, runs: 1 },
-      0,
-    );
-    expect(preview.report).toEqual({ ...realReport, id: 'preview' });
-    expect(JSON.stringify(preview.resolution)).toBe(JSON.stringify(real.resolution));
-  });
+  it.each(['raider', 'troll'] as const)(
+    'critério 2: prévia com %s e a semente real dá a batalha real',
+    (unit) => {
+      const input = base(
+        knownEnemy({ left: ['wolf', 8], center: [unit, 18], right: ['blackKnight', 6] }),
+      );
+      const state = cloneState(newGame('pedra-alta'));
+      const real = fightBattle(state, toBattle(input));
+      const realReport = buildBattleReport('battle-1', 0, real.resolution);
+      const preview = previewRun(
+        { ...input, seed: state.seed, streamNameOf: () => `battle:${real.id}`, runs: 1 },
+        0,
+      );
+      expect(preview.report).toEqual({ ...realReport, id: 'preview' });
+      expect(JSON.stringify(preview.resolution)).toBe(JSON.stringify(real.resolution));
+    },
+  );
 
   it('a Gloriosa é vencer sem que a Frente de nenhuma ala caia, com ou sem muralha (V4D-T5)', () => {
     const input = base(knownEnemy({ left: ['wolf', 12], center: ['raider', 20] }));

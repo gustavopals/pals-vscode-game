@@ -243,7 +243,7 @@
      {
       "wing": "left",
       "line": "front",
-      "unit": "ogre",
+      "unit": "troll",
       "count": 8
      },
      {
@@ -255,7 +255,7 @@
      {
       "wing": "right",
       "line": "front",
-      "unit": "raider",
+      "unit": "ogre",
       "count": 9
      }
     ]

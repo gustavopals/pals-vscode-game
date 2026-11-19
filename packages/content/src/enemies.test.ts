@@ -13,7 +13,7 @@ import {
 import { HordeUnitsSchema } from './schemas';
 
 describe('Inimigos da Horda (GDD §10.3; ADR 0019, decisão 11)', () => {
-  it('são os oito da tabela, na ordem, e passam no schema', () => {
+  it('preservam os oito ids publicados e acrescentam o Troll, na ordem, e passam no schema', () => {
     expect(HORDE_UNIT_IDS).toEqual([
       'wolf',
       'raider',
@@ -23,6 +23,7 @@ describe('Inimigos da Horda (GDD §10.3; ADR 0019, decisão 11)', () => {
       'skeleton',
       'shaman',
       'warlord',
+      'troll',
     ]);
     expect(HordeUnitsSchema.safeParse(hordeUnits).error).toBeUndefined();
   });
@@ -40,6 +41,7 @@ describe('Inimigos da Horda (GDD §10.3; ADR 0019, decisão 11)', () => {
     expect(row('skeleton')).toEqual([5, 4, 16, 2, 'front']);
     expect(row('shaman')).toEqual([4, 2, 14, 3, 'back']);
     expect(row('warlord')).toEqual([18, 8, 200, 4, 'front']);
+    expect(row('troll')).toEqual([12, 4, 120, 1, 'front']);
   });
 
   it('todo arquétipo usado tem contra-ataque definido, e os do ciclo repetem units.ts', () => {
@@ -58,6 +60,7 @@ describe('Inimigos da Horda (GDD §10.3; ADR 0019, decisão 11)', () => {
     expect(hordeUnits.wolf.bonusAgainst).toEqual({ archer: { num: 3, den: 2 } });
     expect(hordeUnits.ogre.ignoresWallHalf).toBe(true);
     expect(hordeUnits.ogre.takesBonusFrom).toEqual({ spearman: { num: 3, den: 2 } });
+    expect(hordeUnits.troll.takesBonusFrom).toEqual({ spearman: { num: 3, den: 2 } });
     expect(hordeUnits.skeleton.noMorale).toBe(true);
     expect(hordeUnits.skeleton.takesDoubleFrom).toEqual(['mage', 'cleric']);
     expect(hordeUnits.shaman.auraWing).toEqual({ num: 6, den: 5 });

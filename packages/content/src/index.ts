@@ -59,6 +59,7 @@ export {
   siegeWaveYearFactor,
   siegeWaveGrowthFactor,
   previousYearMemoryFactor,
+  hordeWaveMix,
 } from './horde';
 export type { HordeWaveDef } from './horde';
 export { COUNTER_CYCLE, militiaUnit, unitTexts, units } from './units';

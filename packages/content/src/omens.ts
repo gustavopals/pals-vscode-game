@@ -16,6 +16,7 @@ export const omenTexts = {
     skeleton: 'Os cães uivam para o cemitério: a Horda trará os mortos.',
     shaman: 'Cantos estranhos descem dos morros: a Horda trará feitiçaria.',
     warlord: 'Um estandarte negro foi visto além do rio: a Horda terá um chefe.',
+    troll: 'Pegadas fundas cercam as pontes partidas: a Horda trará muitos trolls.',
   } satisfies Record<HordeUnitId, string>,
   /** Nível 3: `{contagem}`, `{inimigo}` (plural), `{ala}` (com preposição) e `{onda}`. */
   partial:

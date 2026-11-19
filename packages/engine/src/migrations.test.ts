@@ -8043,7 +8043,7 @@ describe('versão 29 → 30 (V4D-T1.6: os relatórios de batalha)', () => {
 
   it('os identificadores e os números escritos na forma são os do conteúdo e do motor de hoje', () => {
     expect(BATTLE_REPORTS_CAP_V30).toBe(balance.army.reportsKept);
-    expect(HORDE_UNIT_IDS_V30).toEqual([...HORDE_UNIT_IDS]);
+    expect([...HORDE_UNIT_IDS_V30, 'troll']).toEqual([...HORDE_UNIT_IDS]);
     expect(HERO_CLASS_IDS_V30).toEqual([...HERO_CLASS_IDS]);
     expect(BATTLE_FACTORS_V30).toEqual([...BATTLE_FACTOR_IDS]);
     expect(BATTLE_OUTCOMES_V30).toEqual(['victory', 'held', 'defeat', 'withdrew']);

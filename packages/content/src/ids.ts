@@ -59,6 +59,7 @@ export const HORDE_UNIT_IDS = [
   'skeleton',
   'shaman',
   'warlord',
+  'troll',
 ] as const;
 export type HordeUnitId = (typeof HORDE_UNIT_IDS)[number];
 

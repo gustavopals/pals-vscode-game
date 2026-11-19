@@ -3,6 +3,8 @@ import {
   balance,
   hordeBaseMix,
   hordeUnits,
+  hordeWaves,
+  hordeWaveMix,
   HORDE_UNIT_IDS,
   LINE_IDS,
   siegeTexts,
@@ -262,6 +264,14 @@ export function previewInputFor(
     ...(siegeWave === undefined
       ? publicEnemyKnowledge(state)
       : { enemy: publicWaveKnowledge(state, siegeWave) }),
+    ...(siegeWave !== undefined && state.clock.year >= 2
+      ? {
+          mix: hordeWaveMix(
+            hordeWaves.find((wave) => wave.number === siegeWave)!,
+            state.clock.year,
+          ),
+        }
+      : {}),
     // A muralha como está agora, ala por ala (V4E-T1): a ala derrubada entra sem muralha.
     wall: wallForBattle(state),
     watchtowerLevel: watchtowerLevel(state),
