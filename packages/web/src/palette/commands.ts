@@ -163,6 +163,19 @@ import {
   relicsOf,
   relicStateBadge,
 } from '../ui/relics';
+import {
+  isYearTurnVows,
+  VOW_ICON,
+  vowBonusText,
+  type VowId,
+  VOWS_ANCHOR,
+  VOWS_SECTION,
+  vowsConfirmationText,
+  vowsDeadlineText,
+  vowsOf,
+  vowsReviewSignature,
+  vowsWindowOpen,
+} from '../ui/vows';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -214,6 +227,7 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
   [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
   [RELICS_SECTION]: { route: 'guild', anchor: RELICS_ANCHOR },
+  [VOWS_SECTION]: { route: 'today', anchor: VOWS_ANCHOR },
   [SMITHY_SECTION]: { route: 'fief', anchor: SMITHY_ANCHOR },
   [ARMY_SECTION]: { route: 'army', anchor: ARMY_ANCHOR },
   [MARKET_SECTION]: { route: 'market', anchor: MARKET_ANCHOR },
@@ -3814,6 +3828,178 @@ export function createCommands(
     (arg) => relicRequest(arg),
   );
 
+  const seeVows = {
+    label: 'Ver os Votos',
+    run: () => controller.runCommand('lords.openPanel', VOWS_SECTION),
+  };
+
+  /**
+   * Firma os Votos do ano (`lords.takeVows`): direto quando o painel já fez a conferência em duas
+   * etapas (`confirmed: true`); pela paleta, marca ou desmarca os Votos oferecidos em lista e
+   * confirma em segunda etapa com o aviso de irreversibilidade, relendo a visão após cada diálogo.
+   */
+  const takeVows = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const asked =
+      typeof arg === 'object' && arg !== null
+        ? (arg as { vows?: unknown; confirmed?: unknown })
+        : {};
+    const validIds = (raw: unknown): VowId[] | undefined => {
+      if (!Array.isArray(raw)) {
+        return undefined;
+      }
+      const offerIds = new Set(vowsOf(controller.view ?? view).offer.map((vow) => vow.id));
+      const ids = raw.filter(
+        (entry): entry is VowId => typeof entry === 'string' && offerIds.has(entry as VowId),
+      );
+      return ids.length === raw.length && new Set(ids).size === ids.length ? ids : undefined;
+    };
+    if (asked.confirmed === true) {
+      const ids = validIds(asked.vows);
+      if (ids === undefined || !vowsWindowOpen(view, elapsed())) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A janela de Votos mudou ou já fechou: confira os Votos antes de confirmar.',
+          actions: [seeVows],
+        });
+        return;
+      }
+      await controller.takeVows(ids);
+      return;
+    }
+    if (!vowsWindowOpen(view, elapsed())) {
+      const taken = vowsOf(view).taken;
+      controller.toast({
+        kind: 'info',
+        text:
+          taken.length > 0
+            ? `A janela de Votos deste ano já fechou. Votos ativos: ${taken.map((vow) => vow.label).join(', ')}.`
+            : 'A janela de Votos deste ano já está encerrada.',
+        actions: [seeVows],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const chosen = new Set<VowId>(validIds(asked.vows) ?? []);
+    if (asked.vows === undefined) {
+      for (;;) {
+        const current = controller.view;
+        if (current === null || !vowsWindowOpen(current, elapsed())) {
+          controller.toast({
+            kind: 'warning',
+            text: 'A janela de Votos fechou enquanto a lista estava aberta: nada foi enviado.',
+            actions: [seeVows],
+          });
+          return;
+        }
+        const offer = vowsOf(current).offer;
+        const selectedVows = offer.filter((vow) => chosen.has(vow.id));
+        type VowStepChoice = { kind: 'review' } | { kind: 'toggle'; id: VowId };
+        const picked = await dialogs.pick<VowStepChoice>({
+          title: 'Votos do Ano',
+          placeholder: 'Marque os desafios desejados e avance para a conferência',
+          detail: [
+            `Janela aberta (${vowsDeadlineText(current, elapsed())}). A escolha é única e irreversível no ano; seguir sem nenhum Voto também é uma escolha.`,
+          ],
+          items: [
+            {
+              icon: 'check',
+              label:
+                selectedVows.length === 0
+                  ? 'Conferir escolha: nenhum Voto'
+                  : `Conferir escolha: ${selectedVows.map((vow) => vow.label).join(', ')}`,
+              description: vowsDeadlineText(current, elapsed()),
+              detail: 'Avançar para a segunda etapa da conferência.',
+              value: { kind: 'review' },
+            },
+            ...offer.map((vow) => {
+              const marked = chosen.has(vow.id);
+              return {
+                icon: marked ? 'check' : VOW_ICON,
+                label: `${marked ? 'Desmarcar' : 'Marcar'}: ${vow.label}`,
+                description: vowBonusText(vow),
+                detail: vow.description,
+                value: { kind: 'toggle' as const, id: vow.id },
+              };
+            }),
+          ],
+        });
+        if (picked === undefined) {
+          return;
+        }
+        if (!sameGame(gameId)) {
+          sessionEnded('a escolha dos Votos');
+          return;
+        }
+        if (picked.kind === 'review') {
+          break;
+        }
+        if (chosen.has(picked.id)) {
+          chosen.delete(picked.id);
+        } else {
+          chosen.add(picked.id);
+        }
+      }
+    }
+    const beforeConfirm = controller.view;
+    if (beforeConfirm === null || !vowsWindowOpen(beforeConfirm, elapsed())) {
+      controller.toast({
+        kind: 'warning',
+        text: 'A janela de Votos fechou antes da confirmação: nada foi enviado.',
+        actions: [seeVows],
+      });
+      return;
+    }
+    const offerBefore = vowsOf(beforeConfirm).offer;
+    const selectedBefore = offerBefore.filter((vow) => chosen.has(vow.id));
+    const sigBefore = vowsReviewSignature(
+      offerBefore,
+      selectedBefore.map((vow) => vow.id),
+    );
+    const confirmed = await dialogs.confirm({
+      title: 'Confirmar Votos do Ano?',
+      detail: [vowsConfirmationText(selectedBefore)],
+      confirmLabel: 'Confirmar Votos',
+      cancelLabel: 'Voltar',
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (!sameGame(gameId)) {
+      sessionEnded('a escolha dos Votos');
+      return;
+    }
+    const afterConfirm = controller.view;
+    if (afterConfirm === null || !vowsWindowOpen(afterConfirm, elapsed())) {
+      controller.toast({
+        kind: 'warning',
+        text: 'A janela de Votos fechou enquanto a confirmação estava aberta: nada foi enviado.',
+        actions: [seeVows],
+      });
+      return;
+    }
+    const offerAfter = vowsOf(afterConfirm).offer;
+    const selectedAfter = offerAfter.filter((vow) => chosen.has(vow.id));
+    if (
+      selectedAfter.length !== selectedBefore.length ||
+      vowsReviewSignature(
+        offerAfter,
+        selectedAfter.map((vow) => vow.id),
+      ) !== sigBefore
+    ) {
+      controller.toast({
+        kind: 'warning',
+        text: 'A oferta de Votos mudou enquanto a confirmação estava aberta: confira de novo.',
+        actions: [seeVows],
+      });
+      return;
+    }
+    await controller.takeVows(selectedAfter.map((vow) => vow.id));
+  });
+
   /** "Ver o relatório": a aba Guilda, com a folha dessa expedição aberta e à vista. */
   const openReport = (arg?: unknown) => {
     const expeditionId = typeof arg === 'string' ? arg : expeditionRequest(arg).expeditionId;
@@ -4530,6 +4716,13 @@ export function createCommands(
       run: removeRelic,
     },
     {
+      id: 'lords.takeVows',
+      title: 'Firmar Votos do ano…',
+      palette: true,
+      when: hasGame,
+      run: takeVows,
+    },
+    {
       id: 'lords.renameSettlement',
       title: 'Renomear o feudo',
       palette: true,
@@ -4672,6 +4865,11 @@ export function createCommands(
     },
     // Usados pela árvore, pela barra de status e pelos avisos; não aparecem na paleta.
     hidden('lords.openPanel', (arg) => {
+      if (arg === VOWS_SECTION && controller.view !== null && !isYearTurnVows(controller.view)) {
+        controller.navigate('army');
+        env.reveal(VOWS_ANCHOR);
+        return;
+      }
       const section = typeof arg === 'string' ? SECTIONS[arg] : undefined;
       if (section !== undefined) {
         // Uma seção de uma aba: a aba abre, e a página e o foco vão até a seção.

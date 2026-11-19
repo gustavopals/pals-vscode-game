@@ -1,3 +1,5 @@
+import type { GameEvent, ViewState } from '@lotg/protocol';
+
 import type { Loadable } from '../app/controller';
 import type { Actions } from '../components/actions';
 import { Icon } from '../components/shared';
@@ -94,6 +96,9 @@ export function ChronicleTab(props: {
   completedYears?: readonly number[] | undefined;
   /** As expedições que têm relatório guardado na visão. */
   reports?: ReadonlySet<string>;
+  events?: readonly GameEvent[] | undefined;
+  vows?: ViewState['vows'] | undefined;
+  vowLabels?: ReadonlyMap<string, string> | undefined;
   actions: Actions;
 }) {
   const { actions } = props;
@@ -107,6 +112,9 @@ export function ChronicleTab(props: {
           completedYears={props.completedYears}
           selected={year}
           loading={annual && chronicle.status === 'loading'}
+          events={props.events}
+          vows={props.vows}
+          vowLabels={props.vowLabels}
           actions={actions}
         />
       )}

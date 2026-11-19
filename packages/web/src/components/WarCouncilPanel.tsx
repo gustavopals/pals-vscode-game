@@ -37,6 +37,15 @@ export function BattlePreview(props: { preview: NonNullable<Army['preview']>; st
         </div>
       </dl>
       <p data-testid="war-risk">{preview.riskText}</p>
+      {preview.knownEnemy.length === 0 ? null : (
+        <p class="muted" data-testid="war-known-enemy">
+          Inimigo previsto:{' '}
+          {preview.knownEnemy
+            .map((entry) => `${entry.wingLabel} (${entry.lineLabel.toLowerCase()}): ${entry.text}`)
+            .join(' · ')}
+          .
+        </p>
+      )}
       {preview.expectedLosses.length === 0 ? null : (
         <>
           <h4>Perdas esperadas</h4>

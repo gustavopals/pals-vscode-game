@@ -253,9 +253,10 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
   });
   // O volume do Mercado de hoje sem uso com o depósito perto do limite: o item de "Antes de
   // partir" que oferece a venda (`Vender: cabem N hoje`) é uma decisão, e não uma perda.
-  const works = leavingItems(view)
+  const works = leavingItems(view, elapsedSeconds)
     .filter(
       (item) =>
+        item.id === 'vows' ||
         item.id === 'queue' ||
         item.id === 'idle' ||
         item.id === 'expedition' ||
@@ -298,6 +299,8 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // O fechamento anual já traz a pontuação e os Feitos na frase emitida pelo motor.
     case 'yearEnded':
       return { block: 'prospered', topic: 'chronicle' };
+    case 'vowsTaken':
+      return { block: 'prospered', topic: 'vows' };
     case 'siegeGlorious':
     case 'siegeWon':
     case 'warlordSlain':

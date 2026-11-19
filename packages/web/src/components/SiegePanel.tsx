@@ -14,6 +14,7 @@ import {
 import type { Actions } from './actions';
 import { formatCountdown } from './format';
 import { WallPanel } from './WallPanel';
+import { VowsPanel } from './VowsPanel';
 import { BattlePreview } from './WarCouncilPanel';
 import { activeFormation } from '../ui/format';
 import { Icon } from './shared';
@@ -358,6 +359,13 @@ export function SiegePanel(props: {
               <Icon name="book" /> Ler a Crônica
             </button>
           </div>
+          <VowsPanel
+            view={view}
+            elapsed={elapsed}
+            disabled={props.disabled}
+            busy={props.busy}
+            actions={actions}
+          />
         </div>
       ) : null}
       {decision === undefined ? (

@@ -85,6 +85,7 @@ import { cardDecisions, documentTitle, formatAway, type StatusBarInput } from '.
 import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
 import { SMITHY_SECTION } from '../ui/smithy';
 import { THREAT_SECTION } from '../ui/threat';
+import { type VowId, vowsOf, vowsReviewSignature } from '../ui/vows';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
 
@@ -96,6 +97,10 @@ const CHRONICLE_LINES = 20;
  * Crônica escreve bem mais que 20 linhas.
  */
 const CHRONICLE_LOOKBACK = 200;
+
+/** Os eventos anuais preservados fora da janela de 20 linhas da Crônica recente (V5C-T4). */
+const isYearRecordEvent = (event: GameEvent): boolean =>
+  event.type === 'yearEnded' || event.type === 'vowsTaken';
 
 /** Junta duas listas de eventos sem repetir nenhum, na ordem da Crônica. */
 function mergeBySeq(...lists: GameEvent[][]): GameEvent[] {
@@ -232,6 +237,10 @@ export class Controller {
   /** Abas que o jogador abriu (Crônica, Preferências, Novidades, Sobre). */
   opened: Route[] = [];
   chronicle: GameEvent[] = [];
+  /** Os fechos anuais e escolhas de Votos preservados para a Crônica do Ano. */
+  yearEvents: GameEvent[] = [];
+  /** Rótulos de Votos já recebidos na visão desta partida, para exibir anos anteriores sem duplicar texto de regra. */
+  vowLabels = new Map<string, string>();
   /** O que o conselho registrou na Crônica, para a aba do Conselho (`CouncilLog`). */
   councilLog: CouncilLog = EMPTY_COUNCIL_LOG;
   report: ReturnReport | null = null;
@@ -670,6 +679,8 @@ export class Controller {
         await this.session.clearCache(beforeTarget);
       }
       this.chronicle = [];
+      this.yearEvents = [];
+      this.vowLabels = new Map();
       this.councilLog = EMPTY_COUNCIL_LOG;
       // O Reino e a preferência do ranking são da conta: outra conta (ou outro feudo) lê de novo.
       this.stats = { status: 'idle' };
@@ -756,6 +767,10 @@ export class Controller {
       }
       // Os eventos que chegaram enquanto a leitura vinha ficam: a lista é a soma das duas.
       this.chronicle = mergeBySeq(entries, this.chronicle).slice(-CHRONICLE_LINES);
+      const yearRecords = entries.filter(isYearRecordEvent);
+      if (yearRecords.length > 0) {
+        this.yearEvents = mergeBySeq(yearRecords, this.yearEvents);
+      }
       this.councilLog = {
         status: 'ready',
         lines: mergeBySeq(entries.filter(isCouncilEvent), this.councilLog.lines).slice(
@@ -785,6 +800,10 @@ export class Controller {
     this.viewReceivedAt = this.now();
     const view = this.view;
     if (view !== null) {
+      const vows = vowsOf(view);
+      for (const entry of [...vows.offer, ...vows.taken]) {
+        this.vowLabels.set(entry.id, entry.label);
+      }
       const { id, changes } = view.calendar.nextSeason;
       this.seasonChanges.set(id, changes);
       // A carta que já não espera resposta leva embora o aviso que a anunciou.
@@ -894,6 +913,10 @@ export class Controller {
     this.chronicle = [...this.chronicle, ...events.filter(isChronicleEvent)]
       .filter((event, index, all) => all.findIndex((other) => other.seq === event.seq) === index)
       .slice(-CHRONICLE_LINES);
+    const yearRecords = events.filter(isYearRecordEvent);
+    if (yearRecords.length > 0) {
+      this.yearEvents = mergeBySeq(this.yearEvents, yearRecords);
+    }
     const council = events.filter(isCouncilEvent);
     if (council.length > 0) {
       // O registro do conselho tem a sua própria conta: as linhas dele não saem com as 20 da
@@ -2110,6 +2133,24 @@ export class Controller {
   /** Põe uma formação como a Defesa ativa (`null` tira a Defesa). */
   setActiveFormation(id: string | null): Promise<boolean> {
     return this.guildOrder('formation:active', 'setActiveFormation', { id }, 'ao Exército');
+  }
+
+  /** Firma os Votos do ano (ou fecha a janela sem Votos); a trava é `vows`. */
+  takeVows(vows: Extract<Command, { type: 'takeVows' }>['payload']['vows']): Promise<boolean> {
+    const originSig =
+      this.view === null ? null : vowsReviewSignature(vowsOf(this.view).offer, vows as VowId[]);
+    return this.guildOrder(
+      'vows',
+      'takeVows',
+      { vows },
+      'aos Votos',
+      () =>
+        this.view !== null &&
+        originSig !== null &&
+        this.view.vows.closesInSeconds > (this.now() - this.viewReceivedAt) / 1000 &&
+        vowsReviewSignature(vowsOf(this.view).offer, vows as VowId[]) === originSig,
+      'A janela de Votos mudou ou já fechou: a ordem antiga não foi reenviada.',
+    );
   }
 
   /**

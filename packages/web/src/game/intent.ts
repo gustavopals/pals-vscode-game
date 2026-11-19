@@ -61,6 +61,9 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
   if (type === 'setActiveFormation') {
     return 'formation:active';
   }
+  if (type === 'takeVows') {
+    return 'vows';
+  }
   if (type === 'disbandSoldiers') {
     return `disbandSoldiers:${String(fields.unit)}`;
   }

@@ -13,7 +13,9 @@ import { WarCouncilPanel } from '../components/WarCouncilPanel';
 import { OmensPanel } from '../components/OmensPanel';
 import { Icon } from '../components/shared';
 import { SiegePanel } from '../components/SiegePanel';
+import { VowsPanel } from '../components/VowsPanel';
 import { type Draft, draftOf, emptyDraft } from '../ui/formation';
+import { hasVowOffer, vowsOf } from '../ui/vows';
 
 /**
  * As formações: a lista e o editor dividem o rascunho, que é estado da tela. Salvar uma formação
@@ -140,6 +142,16 @@ export function ArmyTab(props: {
         busy={props.busy}
         actions={actions}
       />
+      {(view.siege === null || view.siege.result === null) &&
+      (hasVowOffer(view) || vowsOf(view).taken.length > 0 || view.calendar.year > 1) ? (
+        <VowsPanel
+          view={view}
+          elapsed={elapsed}
+          disabled={disabled}
+          busy={props.busy}
+          actions={actions}
+        />
+      ) : null}
       <div class="fief army">
         <div class="column">
           <BarracksPanel

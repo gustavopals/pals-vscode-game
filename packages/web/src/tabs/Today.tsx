@@ -15,6 +15,7 @@ export function TodayTab(props: {
   online: boolean;
   retryInSeconds: number | null;
   report: ReturnReport | null;
+  busy?: ReadonlySet<string> | undefined;
   actions: Actions;
 }) {
   return (
@@ -32,6 +33,7 @@ export function TodayTab(props: {
         view={props.view}
         online={props.online}
         elapsed={props.elapsed}
+        busy={props.busy}
         actions={props.actions}
       />
     </div>

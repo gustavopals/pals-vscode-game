@@ -122,6 +122,9 @@ function TabContent(props: {
           selectedYear={controller.selectedChronicleYear}
           completedYears={controller.view?.calendar.completedYears ?? []}
           reports={keptReports(controller.view?.guild)}
+          events={controller.yearEvents}
+          vows={controller.view?.vows}
+          vowLabels={controller.vowLabels}
           actions={actions}
         />
       );
@@ -200,6 +203,7 @@ function TabContent(props: {
           online={online}
           retryInSeconds={retryInSeconds}
           report={controller.report}
+          busy={controller.guildOrders}
           actions={actions}
         />
       ) : (

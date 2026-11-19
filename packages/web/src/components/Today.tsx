@@ -8,10 +8,12 @@ import { CROSSROADS_ICON } from '../ui/expeditions';
 import { hasMarket } from '../ui/market';
 import { moraleBurdened, moraleIcon, moraleSince } from '../ui/morale';
 import { waveDeadline } from '../ui/siege';
+import { hasVowOffer, isYearTurnVows } from '../ui/vows';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
 import { ObjectivesPanel } from './ObjectivesPanel';
 import { Icon } from './shared';
+import { VowsPanel } from './VowsPanel';
 
 /** Uma casa decimal: a soma de duas parcelas não mostra ruído de ponto flutuante. */
 const tidy = (value: number) => Math.round(value * 10) / 10;
@@ -530,10 +532,22 @@ export function Today(props: {
   online?: boolean;
   /** Segundos desde que a visão chegou: os prazos das cartas descem com o relógio da página. */
   elapsed?: number;
+  /** As ordens a caminho do servidor (`controller.guildOrders`). */
+  busy?: ReadonlySet<string> | undefined;
 }) {
   const { report } = props;
   const online = props.online ?? true;
   const elapsed = props.elapsed ?? 0;
+  const openVows = isYearTurnVows(props.view) && hasVowOffer(props.view);
+  const vows = isYearTurnVows(props.view) ? (
+    <VowsPanel
+      view={props.view}
+      elapsed={elapsed}
+      disabled={!online}
+      busy={props.busy}
+      actions={props.actions}
+    />
+  ) : null;
   const blocks = report === null ? null : currentBlocks(report, props.view, elapsed);
   const leaving = (
     <BeforeLeaving
@@ -555,6 +569,7 @@ export function Today(props: {
   return (
     <div class="today">
       {report === null && waiting ? decisions : null}
+      {report === null && openVows ? vows : null}
       {report === null ? leaving : null}
       {report === null ? objectives : null}
       <section aria-labelledby="report-title">
@@ -575,6 +590,7 @@ export function Today(props: {
           />
         )}
       </section>
+      {report === null ? (openVows ? null : vows) : vows}
       {report === null ? null : leaving}
       {report === null ? null : objectives}
       {report === null && !waiting ? decisions : null}

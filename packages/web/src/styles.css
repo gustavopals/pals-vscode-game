@@ -2335,3 +2335,77 @@ table.ranking tr.ranking-mine td:first-child {
   border-bottom: 1px solid var(--vscode-panel-border);
   text-align: left;
 }
+
+.year-chronicle-legacy {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--vscode-panel-border);
+}
+
+.year-chronicle-legacy p {
+  margin: 4px 0;
+}
+
+/* Painel dos Votos do Ano (V5C-T4) */
+.vows-panel {
+  padding: 14px;
+  margin: 14px 0;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+  min-width: 0;
+}
+
+.vows-panel h2 {
+  margin: 0 0 8px;
+  color: var(--vscode-foreground);
+  font-size: 1.05em;
+}
+
+.vows-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+  padding: 0;
+  margin: 12px 0;
+  list-style: none;
+}
+
+.vow-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--vscode-panel-border);
+  min-width: 0;
+}
+
+.vow-item.vow-selected,
+.vow-item.vow-taken {
+  border-color: var(--vscode-focusBorder);
+}
+
+.vow-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.vow-taken .vow-label {
+  cursor: default;
+}
+
+.vow-description {
+  margin: 0;
+}
+
+.vows-confirm {
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid var(--vscode-focusBorder);
+}
+
+.vows-confirm p {
+  margin: 0 0 10px;
+}

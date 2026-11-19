@@ -38,6 +38,15 @@ import {
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 import { SIEGE_SECTION, siegeSummary, waveDeadline, waveDecision } from '../ui/siege';
 import { SMITHY_SECTION } from '../ui/smithy';
+import {
+  isYearTurnVows,
+  vowBonusText,
+  VOWS_SECTION,
+  vowsDeadlineText,
+  vowsOf,
+  vowsSecondsLeft,
+  vowsWindowOpen,
+} from '../ui/vows';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -903,6 +912,25 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
+ * Os Votos do ano abertos no rescaldo do Cerco ou na virada para o novo ano (V5C-T4): lembra o
+ * prazo ("fecha em …") e os desafios oferecidos pela visão; o botão leva ao painel dos Votos.
+ */
+function vowsItem(view: ViewState, elapsedSeconds = 0): LeavingItem | null {
+  if (!isYearTurnVows(view) || !vowsWindowOpen(view, elapsedSeconds)) {
+    return null;
+  }
+  const vows = vowsOf(view);
+  const left = vowsSecondsLeft(view, elapsedSeconds);
+  const list = vows.offer.map((vow) => `${vow.label} (${vowBonusText(vow)})`).join(', ');
+  return {
+    id: 'vows',
+    severity: left < FULL_SOON_SECONDS ? 'warning' : 'info',
+    text: `Votos do ano abertos (${vowsDeadlineText(view, elapsedSeconds)}): ${list}.`,
+    command: { id: 'lords.openPanel', arg: VOWS_SECTION, label: 'Escolher Votos' },
+  };
+}
+
+/**
  * Ordem de apresentação (V4H-T4.1; F-6 da v0.3): decisão entre ondas → incursão → Plano
  * ainda padrão → muralha danificada → Ameaça → comida → lenha → soldo → Defesa ativa →
  * campanha → encruzilhadas → depósitos → obras → aldeões livres → ferro excedente →
@@ -946,6 +974,7 @@ export function leavingItems(view: ViewState, elapsedSeconds = 0): LeavingItem[]
     armyDefenseItem(view),
     campaignItem(view),
     crossroadsItem(view),
+    vowsItem(view, elapsedSeconds),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),

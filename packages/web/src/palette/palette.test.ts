@@ -589,6 +589,7 @@ describe('toda ação da interface tem um comando', () => {
       'lords.showCommands',
       'lords.playNow',
       'lords.reload',
+      'lords.takeVows',
     ]) {
       expect([...used.keys()]).toContain(id);
     }
@@ -628,6 +629,7 @@ describe('toda ação da interface tem um comando', () => {
       ['lords.privacy', /^Privacidade/],
       ['lords.about', /^Sobre/],
       ['lords.openSettings', /^Preferências/],
+      ['lords.takeVows', /Firmar Votos/],
     ];
     for (const [id, title] of expected) {
       const command = commands.find((candidate) => candidate.id === id);
