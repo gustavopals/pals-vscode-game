@@ -2489,7 +2489,7 @@ table.ranking tr.ranking-mine td:first-child {
 .hex-map-svg {
   display: block;
   width: 100%;
-  max-width: 440px;
+  max-width: 680px;
   height: auto;
   overflow: visible;
 }
