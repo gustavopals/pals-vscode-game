@@ -257,6 +257,8 @@ function stripComposition(copy: Draft): void {
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
   delete copy.map?.expeditionUnlocks;
+  delete copy.map?.hexes;
+  delete copy.map?.radius;
   for (const occurrence of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
     delete occurrence.heroes;
   }
@@ -725,6 +727,75 @@ function fingerprint(text: string): string {
 // Segunda junção: v35 conserva os bytes do main; v36/v37 foram regravados após integrar
 // cartas, objetivos e Vigília (docs/balance-v0.4.md, seção "Segunda junção").
 const FROZEN: Record<string, string> = {
+  'state-v44-campaign-defeated.json': '9db3dfd4',
+  'state-v44-campaign-marching.json': '6365dbad',
+  'state-v44-campaign-returning.json': 'a9bff414',
+  'state-v44-caravan-escort.json': 'c75e3735',
+  'state-v44-caravan.json': '2263a2d6',
+  'state-v44-chapel.json': '63d609af',
+  'state-v44-cold.json': 'd3134fe5',
+  'state-v44-construction.json': '4564f1c6',
+  'state-v44-council-encounters.json': '2cba3715',
+  'state-v44-council-hidden.json': '2a73e0d9',
+  'state-v44-council-risk.json': 'ee78aa8b',
+  'state-v44-council.json': 'b43a04df',
+  'state-v44-crafts.json': 'c15f36f5',
+  'state-v44-den-cleared.json': '4c6edadb',
+  'state-v44-expedition-crossroads.json': '09eb5b6c',
+  'state-v44-expedition-returning.json': '5d6af6eb',
+  'state-v44-expedition.json': '6e1db6e1',
+  'state-v44-famine-3x.json': 'e2beaf33',
+  'state-v44-famine-ended.json': 'b6b80693',
+  'state-v44-famine-half.json': '26da34e7',
+  'state-v44-famine-resumed.json': '5bb6fa3d',
+  'state-v44-famine-smithy.json': 'f9e976a3',
+  'state-v44-famine.json': 'cb80f3e5',
+  'state-v44-fresh.json': '43faff55',
+  'state-v44-guild.json': '41aab8b1',
+  'state-v44-hero-captured.json': 'b22590bf',
+  'state-v44-hero-injured.json': 'a089aae8',
+  'state-v44-hero-promised.json': '7e4e80e8',
+  'state-v44-horde-omens-exact.json': '16f59855',
+  'state-v44-horde-omens-partial.json': 'cee3cbc9',
+  'state-v44-horde-omens-vague.json': 'db3cf0d8',
+  'state-v44-horde-previous-year.json': '29455f7d',
+  'state-v44-housing-full.json': 'e7a09023',
+  'state-v44-iron-king-half.json': '8a952dfe',
+  'state-v44-market-council-effects.json': 'dc6f8507',
+  'state-v44-market-opening.json': 'f10da87c',
+  'state-v44-market.json': 'b553fbb4',
+  'state-v44-master-waiting.json': '91a690ac',
+  'state-v44-masters.json': '1c9d4b50',
+  'state-v44-migrated-3x.json': 'c390b2dc',
+  'state-v44-migrated-iron-king-caravan.json': '140bb7a4',
+  'state-v44-migrated-iron-king-half.json': 'af93d72b',
+  'state-v44-migrated-peasant-3x.json': '46978f70',
+  'state-v44-morale.json': 'af41158b',
+  'state-v44-objectives.json': 'a8a54e2e',
+  'state-v44-palisade.json': '96dde47d',
+  'state-v44-peasant-3x.json': '1cd0ff93',
+  'state-v44-queues.json': 'e4118dc2',
+  'state-v44-raid-announced.json': 'e41faeb7',
+  'state-v44-raid.json': '1c6ad429',
+  'state-v44-relics.json': 'f86542e5',
+  'state-v44-siege-between-waves.json': '2e8de5b6',
+  'state-v44-siege-ended.json': '3879acdd',
+  'state-v44-siege-scheduled.json': '87cea00e',
+  'state-v44-smithy-forging.json': 'c56fe95b',
+  'state-v44-storage.json': '253baa2b',
+  'state-v44-tavern-busy.json': 'b6a23d01',
+  'state-v44-tavern.json': 'b5b77235',
+  'state-v44-threat.json': '8938a909',
+  'state-v44-trolls.json': 'b1651241',
+  'state-v44-vigil-fixed-offset.json': '681e86cd',
+  'state-v44-vows-active.json': '1c20f24c',
+  'state-v44-vows-next-year.json': 'cf83f4b8',
+  'state-v44-wage-arrears-ended.json': 'a26ff09d',
+  'state-v44-wage-arrears-resumed.json': 'fc96d51d',
+  'state-v44-wage-arrears.json': 'b0a4da08',
+  'state-v44-warehouse-full.json': 'e6748b81',
+  'state-v44-week-scripted.json': 'a3a1f19e',
+  'state-v44-white-wolf-window.json': 'df00d647',
   'state-v43-campaign-defeated.json': '024f1336',
   'state-v43-campaign-marching.json': '53be988b',
   'state-v43-campaign-returning.json': '95dbabfe',
@@ -4387,7 +4458,7 @@ describe('versão 8 → 9', () => {
 
   it('o que o passo escreve é o que uma partida nova tem', () => {
     const fresh = migrated(named('state-v8-fresh.json'));
-    expect(fresh.map).toEqual(newGame().map);
+    expect(fresh.map).toEqual(newGame(fresh.seed).map);
     expect(fresh.horde).toEqual(newGame().horde);
     expect(fresh.settlement.buildings).toEqual(newGame().settlement.buildings);
     expect(Object.keys(fresh.settlement.buildings)).toEqual([...BUILDING_IDS]);

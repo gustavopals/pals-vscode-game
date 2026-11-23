@@ -13,8 +13,7 @@ import { wallFullHp } from './wall';
  */
 export function siegeYard(difficulty: DifficultyId = 'lord', timeScale = 1, year = 1): GameState {
   const autumn = (year - 1) * YEAR + AUTUMN;
-  const state = gameAt(autumn);
-  state.seed = 'cerco-referencia-v4g';
+  const state = gameAt(autumn, undefined, 'cerco-referencia-v4g');
   state.settings.difficulty = difficulty;
   state.settings.timeScale = timeScale;
   state.council.nextDrawAtMs = Number.MAX_SAFE_INTEGER;

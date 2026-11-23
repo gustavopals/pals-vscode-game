@@ -79,6 +79,8 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
   it('uma partida nova nasce com o Covil de Lobos ativo, a Ameaça em zero e só a incursão do roteiro marcada', () => {
     const state = newGame();
     expect(state.map).toEqual({
+      radius: 5,
+      hexes: expect.any(Object),
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
       discovered: [],

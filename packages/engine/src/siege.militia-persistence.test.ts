@@ -47,6 +47,8 @@ describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () 
       delete settlement.reconstructionUntilMs;
       delete (old.council as Record<string, unknown>).bonuses;
       delete (old.map as Record<string, unknown>).expeditionUnlocks;
+      delete (old.map as Record<string, unknown>).hexes;
+      delete (old.map as Record<string, unknown>).radius;
       expect(stateV39(old, '')).toContain('casualties.0.unit');
       const invalid = cloneState(fallen.state);
       Object.assign(invalid.army.reports[0]!.casualties[0]!, { unit: 'unidade-inventada' });

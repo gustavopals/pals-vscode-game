@@ -66,6 +66,8 @@ describe('V4G-T5.1 · as três ondas precisam caber antes do fechamento anual', 
     delete historical.settlement.reconstructionUntilMs;
     delete historical.council.bonuses;
     delete historical.map.expeditionUnlocks;
+    delete historical.map.hexes;
+    delete historical.map.radius;
     const migrated = migrateState(historical, { timeScale: 1 });
     const after = advanceTo(migrated, YEAR - 6 * HOUR);
     // A antecedência de 5 h a partir da virada em 162 h daria 167/168/169 h.

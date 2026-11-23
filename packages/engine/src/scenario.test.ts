@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import weekV44 from './__golden__/scenario-7-days.json';
+import weekV45 from './__fixtures__/state-v45-week-scripted.json';
+
 import { HOUR, MINUTE, NO_TAVERN, runWeekScenario as runScenario } from './test-helpers';
 import { CURRENT_SCHEMA_VERSION } from './migrations';
 import { deriveViewState } from './view';
@@ -7,15 +10,22 @@ import { deriveViewState } from './view';
 const DAY_REAL = 24 * HOUR;
 
 describe('cenário golden de 7 dias', () => {
-  it('estado a cada 24 h, ordens e eventos idênticos ao golden', async () => {
+  it('estado a cada 24 h, ordens e eventos idênticos ao golden', () => {
     const { orders, days, events } = runScenario();
     expect(days.every(({ state }) => state.schemaVersion === CURRENT_SCHEMA_VERSION)).toBe(true);
     expect(days.every(({ state }) => Object.keys(state.map.expeditionUnlocks).length === 0)).toBe(
       true,
     );
-    await expect(`${JSON.stringify({ orders, days, events }, null, 1)}\n`).toMatchFileSnapshot(
-      './__golden__/scenario-7-days.json',
-    );
+    // O roteiro v44 congela inclusive os sorteios. Acrescentamos só a grade do retrato
+    // v45 à referência para comparar o resultado inteiro em cada dia (GDD §8.1).
+    const { radius, hexes } = weekV45.map;
+    expect({ orders, days, events }).toEqual({
+      ...weekV44,
+      days: weekV44.days.map((day) => ({
+        ...day,
+        state: { ...day.state, schemaVersion: 45, map: { ...day.state.map, radius, hexes } },
+      })),
+    });
   });
 
   it('rodar duas vezes dá exatamente o mesmo resultado', () => {

@@ -75,3 +75,5 @@ Goldens do Cerco do Ano 1 não foram regravados.
 
 T3 acrescenta `vows` aos 67 retratos v44 existentes e dois cenários próprios.
 Nenhum campo anterior mudou; v43 e versões anteriores permanecem congeladas.
+
+Na Fase E, os 69 retratos v44 passam a ter impressão digital em `FROZEN`. Os correspondentes v45 acrescentam `map.radius` e `map.hexes`. Os cenários com semente própria recebem essa semente já na criação da grade.

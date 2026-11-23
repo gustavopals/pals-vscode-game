@@ -4,7 +4,16 @@ import { advanceTo } from './advance';
 import { currentShape, migrateState } from './migrations';
 import { applyHarm } from './outcomes';
 import { cloneState } from './state';
-import { accept, addHero, command, DAY, gameWith, MINUTE, refuse } from './test-helpers';
+import {
+  mapBeforeGrid,
+  accept,
+  addHero,
+  command,
+  DAY,
+  gameWith,
+  MINUTE,
+  refuse,
+} from './test-helpers';
 import type { Expedition, GameEvent, GameState } from './types';
 import { deriveViewState } from './view';
 
@@ -88,6 +97,7 @@ describe('Capela — V5B-T1', () => {
     const old = {
       ...fresh,
       schemaVersion: 42,
+      map: mapBeforeGrid(fresh.map),
       horde: Object.fromEntries(
         Object.entries(fresh.horde).filter(([key]) => key !== 'previousYearFormation'),
       ),

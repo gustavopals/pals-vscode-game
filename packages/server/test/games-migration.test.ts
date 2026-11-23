@@ -16,7 +16,7 @@ import {
   GameRuleErrorSchema,
   ViewResponseSchema,
 } from '@lotg/protocol';
-import { CURRENT_SCHEMA_VERSION } from '@lotg/engine';
+import { CURRENT_SCHEMA_VERSION, type GameState } from '@lotg/engine';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { lockGame, persistState } from '../src/games/repository';
@@ -44,6 +44,38 @@ import { resetTestDb, truncateAll } from './helpers/db';
 
 const REPLAYED = 'x-lords-replayed';
 const CURRENT = CURRENT_SCHEMA_VERSION;
+
+it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o terreno desconhecido', async () => {
+  const before = JSON.parse(
+    readFileSync(
+      new URL('../../engine/src/__fixtures__/state-v44-hero-captured.json', import.meta.url),
+      'utf8',
+    ),
+  ) as StoredState;
+  const game = await insertGame(server, before, { timeScale: 1, stateVersion: 7 });
+  const first = await getView(server, game);
+  expect(first.status).toBe(200);
+  expect(first.body.view.map.hexes.find((hex) => hex.q === 3 && hex.r === -2)).toMatchObject({
+    fog: 'explored',
+    site: 'ruins',
+  });
+  expect(first.body.view.map.hexes.find((hex) => hex.q === 2 && hex.r === -5)).toEqual({
+    q: 2,
+    r: -5,
+  });
+  const row = await rowOf(server, game.id);
+  expect(row).toMatchObject({ schemaVersion: 45, stateVersion: 8 });
+  const saved = row.state as StoredState & Pick<GameState, 'map'>;
+  expect(Object.keys(saved.map.hexes)).toHaveLength(91);
+  expect(saved.map.hexes['2,-5']).toMatchObject({ fog: 'unknown', site: 'hordeFortress' });
+  saved.map.hexes['2,-5']!.terrain = 'lake';
+  const other = await insertGame(server, saved, { timeScale: 1, stateVersion: 8 });
+  const second = await getView(server, other);
+  expect(second.status).toBe(200);
+  expect(second.body.view).toEqual(first.body.view);
+  expect((await getView(server, game)).body.view).toEqual(first.body.view);
+  expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+});
 
 describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {
   it.each(['fresh', 'crafts', 'cold', 'caravan', 'raid-announced', 'week-scripted'])(
@@ -172,6 +204,8 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.horde?.previousYearFormation;
   delete copy.vows;
   delete copy.map?.expeditionUnlocks;
+  delete copy.map?.hexes;
+  delete copy.map?.radius;
   // Terceira junção (estados 39 a 42): o Acampamento, o Cerco e o lote 3.
   delete copy.siege;
   delete copy.army?.campaign;

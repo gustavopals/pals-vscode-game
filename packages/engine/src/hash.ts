@@ -1,6 +1,7 @@
 /**
  * O hash de um texto, sem estado: é a semente de cada fluxo de sorteio (`random.ts`) e a conta
  * que escolhe a variante de uma expedição sem sortear (`expeditions.ts`; ADR 0017, decisão 9).
+ * Também distribui os terrenos da grade axial por semente e coordenada (estado 45).
  * Fica fora de `random.ts` para quem só lê poder usá-lo sem importar o gerador: `purity.test.ts`
  * barra a importação de `random.ts` em quem mostra, agenda ou cumpre ordens.
  *

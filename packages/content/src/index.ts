@@ -180,3 +180,4 @@ export {
   type YearEndedData,
 } from './feats';
 export type { FeatId } from './feats';
+export { mapRules, terrains, fixedHexes, type MapSiteId } from './map';

@@ -1,0 +1,646 @@
+{
+ "schemaVersion": 45,
+ "seed": "fixture-peasant-3x",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "peasant",
+  "timeScale": 3,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": 1246380777,
+ "clock": {
+  "gameTimeMs": 1304523496,
+  "yearStartMs": 1209600000,
+  "year": 3
+ },
+ "lastProcessedAt": 1304523496,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 8785422,
+   "wood": 5459470,
+   "stone": 28024,
+   "gold": 160000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 50288,
+   "wood": 1920176,
+   "stone": 3328995,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 0,
+   "chapel": 0
+  },
+  "constructionQueues": [
+   {
+    "building": "townHall",
+    "targetLevel": 2,
+    "startedAtMs": 1304520777,
+    "finishesAtMs": 1305120777,
+    "costPaid": {
+     "wood": 150,
+     "stone": 100,
+     "gold": 100
+    }
+   },
+   null
+  ],
+  "planned": [
+   {
+    "building": "farm",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [
+   {
+    "finishesAtMs": 1305480777
+   }
+  ],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 14265,
+   "wood": 3887,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 32,
+   "lumberMill": 32,
+   "quarry": 32,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "lastFamine": null,
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 0,
+  "forge": null,
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "militia": null,
+  "reconstructionUntilMs": null,
+  "relics": []
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "vigilRehearsalMarked": 1,
+  "chronicle:populationMax": 5,
+  "wasted_food": 553265,
+  "wasted_wood": 140887,
+  "cardsDrawn": 1,
+  "cardsDrawn:woundedStranger": 1,
+  "constructionsStarted:townHall": 1
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "woundedStranger-1",
+    "cardId": "woundedStranger",
+    "drawnAtMs": 1281600000,
+    "expiresAtMs": 1540800000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "woundedStranger"
+  ],
+  "nextDrawAtMs": 1310400000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [],
+  "bonuses": {
+   "smithySpeed": null,
+   "smithyBatch": null,
+   "repairDiscount": null,
+   "revealedRaidId": null
+  }
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 16,
+  "discovered": [],
+  "expeditionUnlocks": {},
+  "radius": 5,
+  "hexes": {
+   "-5,0": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-5,1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-5,2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-5,3": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-5,4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-5,5": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "-4,-1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-4,0": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-4,1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-4,2": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-4,3": {
+    "terrain": "swamp",
+    "site": "swamp",
+    "fog": "unknown"
+   },
+   "-4,4": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "-4,5": {
+    "terrain": "ironVein",
+    "fog": "unknown"
+   },
+   "-3,-2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-3,-1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-3,0": {
+    "terrain": "ironVein",
+    "site": "abandonedMine",
+    "fog": "sighted"
+   },
+   "-3,1": {
+    "terrain": "forest",
+    "site": "whiteWolfHunt",
+    "fog": "sighted"
+   },
+   "-3,2": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-3,3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-3,4": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "-3,5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-2,-3": {
+    "terrain": "ruins",
+    "fog": "unknown"
+   },
+   "-2,-2": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-2,-1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-2,0": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-2,1": {
+    "terrain": "forest",
+    "site": "oldForest",
+    "fog": "sighted"
+   },
+   "-2,2": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-2,3": {
+    "terrain": "swamp",
+    "fog": "sighted"
+   },
+   "-2,4": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-2,5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-1,-4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-1,-3": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-1,-2": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "-1,-1": {
+    "terrain": "forest",
+    "site": "wolfDen",
+    "fog": "sighted"
+   },
+   "-1,0": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "-1,1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-1,2": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-1,3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-1,4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-1,5": {
+    "terrain": "forest",
+    "site": "hermitsRefuge",
+    "fog": "unknown"
+   },
+   "0,-5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "0,-4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "0,-3": {
+    "terrain": "swamp",
+    "fog": "sighted"
+   },
+   "0,-2": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "0,-1": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "0,0": {
+    "terrain": "fields",
+    "fog": "explored"
+   },
+   "0,1": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "0,2": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "0,3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "0,4": {
+    "terrain": "sanctuary",
+    "fog": "unknown"
+   },
+   "0,5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "1,-5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "1,-4": {
+    "terrain": "ruins",
+    "fog": "unknown"
+   },
+   "1,-3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "1,-2": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "1,-1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "1,0": {
+    "terrain": "fields",
+    "site": "patrol",
+    "fog": "sighted"
+   },
+   "1,1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "1,2": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "1,3": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "1,4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "2,-5": {
+    "terrain": "hills",
+    "site": "hordeFortress",
+    "fog": "unknown"
+   },
+   "2,-4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "2,-3": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "2,-2": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "2,-1": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "2,0": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "2,1": {
+    "terrain": "hills",
+    "site": "rescue",
+    "fog": "sighted"
+   },
+   "2,2": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "2,3": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "3,-5": {
+    "terrain": "ruins",
+    "fog": "unknown"
+   },
+   "3,-4": {
+    "terrain": "hills",
+    "site": "raiderCamp",
+    "fog": "unknown"
+   },
+   "3,-3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "3,-2": {
+    "terrain": "ruins",
+    "site": "ruins",
+    "fog": "sighted"
+   },
+   "3,-1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "3,0": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "3,1": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "3,2": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "4,-5": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "4,-4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "4,-3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "4,-2": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,-1": {
+    "terrain": "ruins",
+    "site": "ancestralVault",
+    "fog": "unknown"
+   },
+   "4,0": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,1": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "5,-5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "5,-4": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "5,-3": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "5,-2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "5,-1": {
+    "terrain": "ironVein",
+    "fog": "unknown"
+   },
+   "5,0": {
+    "terrain": "forest",
+    "fog": "unknown"
+   }
+  }
+ },
+ "horde": {
+  "scheduledRaids": [],
+  "lastFormationSeen": null,
+  "wavePlan": null,
+  "omens": [],
+  "sabotages": {
+   "attempts": 0,
+   "successes": 0,
+   "alerted": false
+  },
+  "previousYearFormation": null
+ },
+ "ids": {},
+ "guild": {
+  "heroes": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "arriving": [],
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null,
+   "extraOffer": false
+  },
+  "expeditions": [],
+  "reports": [],
+  "inventory": []
+ },
+ "market": {
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": [],
+  "effects": []
+ },
+ "army": {
+  "units": {
+   "spearman": 0,
+   "swordsman": 0,
+   "archer": 0,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [],
+  "activeFormationId": null,
+  "reports": [],
+  "preview": null,
+  "campaign": null
+ },
+ "siege": null,
+ "vows": {
+  "year": 3,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 1468800000
+ }
+}

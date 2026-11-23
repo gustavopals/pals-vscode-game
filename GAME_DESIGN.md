@@ -515,13 +515,14 @@ Exemplos completos no Apêndice B. Meta de conteúdo para o primeiro ano: **60 c
 
 ### 8.1 O mapa `[v0.5]` (dados e tiles de ameaça já existem de forma abstrata na `[v0.2]`)
 
-- Grade **hexagonal** centrada em Pedra Alta, raio 3 no início (37 tiles), expandindo para raio 5 com a Torre de Vigia e expedições.
+- O motor grava desde a fundação os 91 hexágonos do raio 5, em coordenadas axiais `q,r`. O feudo em `0,0` começa **Explorado**. Os demais 36 hexágonos até distância 3 começam **Avistados** (terreno visível), e os 54 mais distantes, **Desconhecidos**. A migração para o estado 45 marca como **Explorados** os destinos que a partida já descobriu, inclusive nos anéis externos.
+- A semente e a coordenada determinam o terreno. O Santuário, os destinos e os tiles de ameaça têm posições fixas. A Fortaleza ocupa `2,-5`, na borda norte, onde a Sabotagem acontece quando ela surge no outono.
 - Cada tile tem **estado de névoa**: Desconhecido → Avistado (tipo visível) → Explorado (detalhes e recompensas) → Reivindicado (posto avançado).
 - Tipos de tile: Floresta, Colinas, Campos, Lago, Pântano, Ruínas, Veio de Ferro, Santuário, Covil de Lobos, Acampamento de Saqueadores, Fortaleza da Horda (surge no outono, sempre na borda norte).
 - Revelação: Torre de Vigia revela anéis em volta do feudo; Patrulhas revelam tiles adjacentes aos já explorados; expedições exploram um tile específico.
 - `[v0.5]` **Postos Avançados:** reivindicar um tile produz o recurso dele (Veio de Ferro: 3 ferro/h; Floresta: +15% madeira; Campos: +15% comida; Colinas: +15% pedra). Até 3 postos. Postos podem ser atacados por incursões (perdem produção até reparo).
 
-Até a `v0.5`, o mapa gráfico não existe: tiles de ameaça e destinos de expedição aparecem como **listas** no painel. O motor já modela tiles desde a `v0.2` para que o mapa visual seja apenas uma camada de interface.
+Na V5E-T1, a visão já traz a grade com a névoa aplicada pelo servidor. Os tiles de ameaça e os destinos de expedição continuam disponíveis nas listas do painel. A aba Mapa e a revelação durante o jogo são as próximas tarefas da Fase E.
 
 ### 8.2 Ameaça e incursões `[v0.2 lobos]` `[v0.4 completo]`
 

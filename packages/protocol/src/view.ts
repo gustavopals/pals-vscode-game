@@ -1,5 +1,6 @@
 import {
   VOW_IDS,
+  TERRAIN_IDS,
   BUILDING_IDS,
   RELIC_IDS,
   DIFFICULTY_IDS,
@@ -1447,7 +1448,30 @@ export const VowsSchema = z.strictObject({
 export type VowView = z.infer<typeof VowSchema>;
 export type VowsView = z.infer<typeof VowsSchema>;
 
+const coordinates = { q: z.int(), r: z.int() };
+const visibleTerrain = { ...coordinates, terrain: z.enum(TERRAIN_IDS), terrainLabel: z.string() };
+const mapHexSchema = z.union([
+  z.strictObject(coordinates),
+  z.strictObject({ ...visibleTerrain, fog: z.literal('sighted') }),
+  z.strictObject({
+    ...visibleTerrain,
+    fog: z.enum(['explored', 'claimed']),
+    site: z.string().min(1).nullable(),
+    label: z.string(),
+    detail: z.string(),
+    actions: z.array(
+      z.discriminatedUnion('type', [
+        z.strictObject({ type: z.literal('attackCamp') }),
+        z.strictObject({ type: z.literal('sendExpedition'), modelId: z.string().min(1) }),
+      ]),
+    ),
+  }),
+]);
+
 export const ViewStateSchema = z.strictObject({
+  map: z
+    .strictObject({ radius: z.int().nonnegative(), hexes: z.array(mapHexSchema) })
+    .default({ radius: 0, hexes: [] }),
   /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
   seed: z.string().min(1).optional(),
   settlement: z.strictObject({

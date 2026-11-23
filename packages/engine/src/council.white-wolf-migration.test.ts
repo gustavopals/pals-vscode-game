@@ -48,7 +48,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
           relics: [],
         },
         migratedAtMs: before.lastProcessedAt,
-        map: { ...before.map, expeditionUnlocks: {} },
+        map: { ...before.map, expeditionUnlocks: {}, radius: 5, hexes: expect.any(Object) },
       });
       expect(JSON.stringify(before)).toBe(JSON.stringify(JSON.parse(text)));
       expect(migrateState(after, { timeScale: after.settings.timeScale })).toBe(after);
@@ -75,6 +75,8 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     expect(currentShape(state, '')).toBeNull();
     const old = JSON.parse(JSON.stringify(state));
     delete old.map.expeditionUnlocks;
+    delete old.map.hexes;
+    delete old.map.radius;
     old.schemaVersion = 41;
     delete old.settlement.relics;
     delete old.horde.previousYearFormation;

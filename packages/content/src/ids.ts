@@ -330,3 +330,16 @@ export type Ratio = { readonly num: number; readonly den: number };
 
 /** Quantidades em unidades inteiras de recurso (o motor converte para milésimos). */
 export type ResourceAmounts = Partial<Record<ResourceId, number>>;
+
+/** Terrenos da grade axial, persistidos desde a versão 45 (GDD §8.1). */
+export const TERRAIN_IDS = [
+  'forest',
+  'hills',
+  'fields',
+  'lake',
+  'swamp',
+  'ruins',
+  'ironVein',
+  'sanctuary',
+] as const;
+export type TerrainId = (typeof TERRAIN_IDS)[number];

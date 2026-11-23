@@ -1,4 +1,7 @@
 import {
+  mapRules,
+  fixedHexes,
+  terrains,
   balance,
   vows,
   vowRules,
@@ -78,6 +81,9 @@ import { canonicalJson } from './canonical';
  */
 function hashedContent(): Record<string, unknown> {
   return {
+    mapRules,
+    fixedHexes,
+    terrains,
     balance,
     vows,
     vowRules,

@@ -64,7 +64,8 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
       // R1–R3: relatórios mais longos levam o estado a 27.353 bytes (máx. nas 6
       // medidas de 1/3 dias); teto com 5% e arredondamento ao próximo kB.
       // Fase C: máximo 30.394 bytes; os mesmos 5% e arredondamento ao kB seguinte.
-      expect(measure.stateBytes).toBeLessThan(32_000);
+      // Na semente desta medição a grade v45 acrescenta 4.216 bytes ao JSON do estado.
+      expect(measure.stateBytes).toBeLessThan(32_000 + 4_216);
       // O estado retém o log de rodadas; a visão resume relatórios. A antiga
       // proporção de 3× não é um contrato do motor nem um limite de tamanho.
       expect(measure.viewBytes).toBeGreaterThan(measure.stateBytes);
@@ -72,7 +73,8 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
       // (V4E-T2.7; medido: 50.882 no feudo de 7 dias).
       // Medido 75.664 bytes; mesma margem e arredondamento, só nesta janela curta.
       // Fase C: máximo 79.045 bytes, incluindo oferta dos Votos e relatórios novos.
-      expect(measure.viewBytes).toBeLessThan(83_000);
+      // A projeção dos 91 hexágonos acrescenta 3.719 bytes ao JSON da visão.
+      expect(measure.viewBytes).toBeLessThan(83_000 + 3_719);
     }
   });
 

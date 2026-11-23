@@ -341,6 +341,14 @@ sem efeito em presságios ou no Cerco.
 dificuldades; os testes específicos conferem acesso, prazo exato, névoa, ausência
 de sorteio e divisão de intervalo.
 
+## Grade hexagonal e névoa (V5E-T1)
+
+O estado 45 acrescenta `map.radius = 5` e `map.hexes`. Cada chave axial canônica `q,r` guarda `terrain`, `fog` e, quando há um lugar, `site`. O conteúdo em `map.ts` fixa os terrenos, os pesos e as posições dos três tiles de ameaça e dos onze modelos de expedição. O Covil ocupa um só hexágono, assim como a Fortaleza (`2,-5`) e a Sabotagem. O Santuário é único, em `0,4`. Nos hexágonos livres, o motor calcula `hashText(seed + ':map:' + q + ',' + r) % 100` e aplica os pesos na ordem de `TERRAIN_IDS`.
+
+O centro começa Explorado, os anéis 1 a 3 Avistados e os anéis 4 e 5 Desconhecidos. O passo 44 → 45 usa sua própria cópia do gerador e considera Explorado cada destino presente em `map.discovered`. A grade e os prazos de acesso às expedições são independentes. A criação e a migração preservam os fluxos de sorteio e os contadores de identidade.
+
+`ViewState.map.hexes` vem em anéis do centro para fora. Cada anel começa em `(-distância, distância)` e segue primeiro para leste. A ordem independe da ordem de chaves do JSONB. Um Desconhecido traz só `{ q, r }`. Avistado acrescenta `fog: 'sighted'`, `terrain` e `terrainLabel`. Explorado e Reivindicado trazem `fog: 'explored' | 'claimed'`, o nome, o detalhe do terreno, o id do local (ou `null`) e as ações disponíveis. Ações vêm das ofertas da Guilda e do Exército. A Fortaleza e o Acampamento só aparecem como locais depois de surgirem no jogo. O protocolo 4 aceita a visão em cache anterior à grade com `{ radius: 0, hexes: [] }`.
+
 ## Ameaça, Torre de Vigia e Paliçada
 
 Os números são os de `balance.threat` e `balance.raids`; os tiles, os inimigos e os nomes dos tamanhos de incursão, os de `tiles.ts`; e as frases das incursões, as de `raidTemplates`, `injuryTemplates` e `injuredLoss`, em `@lotg/content` (GDD §8.2 e §12.3; [ADR 0014](../../docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisões 10, 11 e 20). A subida da Ameaça e a regra da Paliçada ficam em `threat.ts`; o sorteio da incursão, em `hordeTurn.ts`; o roteiro, o aviso da Torre, a resolução e os feridos, em `raids.ts` (delega o sorteio de batalha a `battleTurn.ts`; as previsões não resolvem o combate); o que a visão diz, em `threatView.ts`.
@@ -778,7 +786,7 @@ A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 44):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 45):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -832,6 +840,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 | 42 | V4H-T1.4 | `map.expeditionUnlocks`, inicialmente vazio no passo 41 → 42. Guarda fixa do destino `whiteWolfHunt` e correspondência entre descoberta e prazo. Não abre destinos nem cria prazos, eventos ou sorteios. Os 62 retratos v41 ficam congelados em `FROZEN`; os 63 v42 incluem a janela ativa. A guarda atual também valida os lotes ampliados de R2 diretamente, sem importar conteúdo ou depender de mensagens das guardas históricas; v28–v41 conservam o teto de 10. |
 | 43 | V5B-T1/T2 (Fase B) | Capela por construir (`chapel: 0`) e `settlement.relics: []`, sem recalcular ferimentos nem mudar sorteios. |
 | 44 | V5C-T1/T2/T3 (Fase C) | `horde.previousYearFormation: null` e Votos vazios no passo 43→44, com prazo pela fronteira e pelo ritmo gravado. Guarda aceita a escala por ano sem alterar as guardas históricas. Retratos v43 congelados. |
+| 45 | V5E-T1 (Fase E) | Grade axial pela semente. O passo 44 → 45 congela posições, pesos e hash. Destinos descobertos entram explorados. Os 69 retratos v44 ficam congelados. |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -889,6 +898,8 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test  # regrava; confira o diff antes
 pnpm --filter @lotg/engine test -- --coverage    # cobertura do motor
 ```
 
+Na V5E-T1, `view-seed-pedra-alta.json` ganha o mapa nas 35 visões. `scenario-7-days.json` conserva a referência v44. O teste acrescenta à expectativa de cada dia a versão 45 e a grade do retrato `state-v45-week-scripted.json` da mesma semente. Assim compara por inteiro as ordens, os eventos e os sete estados produzidos pelo motor.
+
 Mudar uma regra exige atualizar o golden correspondente e o GDD (GDD §18.3).
 
 ## O que ainda não existe
@@ -901,8 +912,9 @@ em [docs/reviews](../../docs/reviews/); provas e limites por critério em
 
 Continuam ausentes prévia ofensiva do Acampamento, vínculo persistido de relatório
 por onda e discriminação das perdas da Queda na visão (G-23); dispensar/ensinar
-com Mestre, compra ou segundo destino de caravana, venda de item, mapa gráfico,
-postos avançados, plantas, Veio de Ferro, saldo de Legado na conta, tela de Votos e Temporadas.
+com Mestre, compra ou segundo destino de caravana e venda de item. No mapa faltam
+a revelação por Torre ou expedição, a aba gráfica, a relíquia do Santuário, Serra do Ferro,
+os postos avançados e a produção contínua do Veio de Ferro. Plantas e Temporadas seguem por fazer.
 As previsões de estoques/moral não antecipam incursões, Cerco ou sorteios ocultos.
 
 ### Hora da Vigília (V4G-T1)

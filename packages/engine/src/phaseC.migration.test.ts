@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { currentShape, migrateState } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape, migrateState } from './migrations';
 import { stateV43 } from './migrations/v43';
 import { revealWaveThree } from './hordePlan';
-import { gameAt, HOUR, YEAR, newGame } from './test-helpers';
+import { mapBeforeGrid, gameAt, HOUR, YEAR, newGame } from './test-helpers';
 import { siegeYard } from './siege.test-helpers';
 
 describe('Fase C: passo 43 → 44', () => {
@@ -10,13 +10,14 @@ describe('Fase C: passo 43 → 44', () => {
     const { previousYearFormation, ...horde } = newGame().horde;
     void previousYearFormation;
     const { vows: initialVows, ...withoutVows } = newGame();
-    const old = { ...withoutVows, schemaVersion: 43, horde };
+    const old = { ...withoutVows, schemaVersion: 43, horde, map: mapBeforeGrid(withoutVows.map) };
     const before = JSON.stringify(old);
     expect(stateV43(old, '')).toBeNull();
     const migrated = migrateState(old, { timeScale: 1 });
     expect(migrated).toEqual({
       ...old,
-      schemaVersion: 44,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      map: newGame().map,
       vows: initialVows,
       migratedAtMs: 0,
       horde: { ...horde, previousYearFormation: null },
@@ -45,7 +46,13 @@ describe('Fase C: passo 43 → 44', () => {
       const { previousYearFormation, ...horde } = withoutVows.horde;
       void vows;
       void previousYearFormation;
-      const old = { ...withoutVows, horde, schemaVersion: 43, migratedAtMs: 0 };
+      const old = {
+        ...withoutVows,
+        horde,
+        map: mapBeforeGrid(fresh.map),
+        schemaVersion: 43,
+        migratedAtMs: 0,
+      };
       const before = JSON.stringify(old);
       const migrated = migrateState(old, { timeScale: 7 });
       expect(migrated.vows).toEqual({

@@ -71,6 +71,7 @@ import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
 import { marketEffect, marketView } from './marketView';
 import { smithyEffect, smithyView } from './smithyView';
+import { mapView } from './mapView';
 import { armyEffect, armyView } from './armyView';
 import { soldierCount } from './army';
 import { inhabitants } from './masters';
@@ -369,6 +370,7 @@ export function deriveViewState(
   const atTurn = stateAtNextMoraleTurn(state);
   const council = councilView(state, timeScale);
   const guild = guildView(state, timeScale, outlook);
+  const army = armyView(state, timeScale);
   const siege = siegeView(state, timeScale);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
   // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
@@ -392,6 +394,7 @@ export function deriveViewState(
 
   return {
     seed: state.seed,
+    map: mapView(state, guild.guild, army),
     settlement: {
       name: settlement.name,
       townHallLevel: settlement.buildings.townHall,
@@ -520,7 +523,7 @@ export function deriveViewState(
     smithy: smithyView(state, timeScale),
     relics: relicsView(state, timeScale),
     vows: vowsView(state, timeScale),
-    army: armyView(state, timeScale),
+    army,
     siege: siege.siege,
     masters: mastersView(state, timeScale),
     mastersWaiting: mastersWaitingView(state),

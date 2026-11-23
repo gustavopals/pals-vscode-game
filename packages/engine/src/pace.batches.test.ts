@@ -8,7 +8,7 @@ import { currentShape, migrateState, migrationSteps } from './migrations';
 import { stateV41 } from './migrations/v41';
 import { recruitmentBlock, recruitmentDurationMs } from './population';
 import { seasonAt } from './clock';
-import { accept, apply, barracksYard, command, MINUTE } from './test-helpers';
+import { mapBeforeGrid, accept, apply, barracksYard, command, MINUTE } from './test-helpers';
 import { MILLI, paceScaled } from './units';
 import { deriveViewState } from './view';
 
@@ -174,7 +174,7 @@ it('a guarda atual aceita o lote ampliado sem afrouxar as guardas históricas ou
   expect(JSON.stringify(result.state)).toBe(serialized);
   const { vows: currentVows, ...previousState } = result.state;
   expect(currentVows.taken).toEqual([]);
-  const { expeditionUnlocks, ...oldMap } = result.state.map;
+  const { expeditionUnlocks, ...oldMap } = mapBeforeGrid(result.state.map);
   const { previousYearFormation, ...oldHorde } = result.state.horde;
   expect(previousYearFormation).toBeNull();
   const previousSettlement = JSON.parse(JSON.stringify(result.state.settlement));

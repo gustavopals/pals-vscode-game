@@ -81,12 +81,15 @@ function frozenState(name: string): unknown {
  * que já existiu tem retratos feitos pelo motor da época, sem ninguém ter de lembrar de gerá-los.
  */
 function omensScenario(tower: number): GameState {
-  const start = gameAt(AUTUMN - 1, (state) => {
-    state.seed = `fixture-horde-omens-${tower}`;
-    state.settlement.buildings.watchtower = tower;
-    // Uma formação observada antes de seus soldados morrerem: só o resumo continua guardado.
-    state.horde.lastFormationSeen = { total: 20, byUnit: { archer: 20 } };
-  });
+  const start = gameAt(
+    AUTUMN - 1,
+    (state) => {
+      state.settlement.buildings.watchtower = tower;
+      // Uma formação observada antes de seus soldados morrerem: só o resumo continua guardado.
+      state.horde.lastFormationSeen = { total: 20, byUnit: { archer: 20 } };
+    },
+    `fixture-horde-omens-${tower}`,
+  );
   return advanceTo(start, AUTUMN + 8 * DAY).state;
 }
 
@@ -112,8 +115,7 @@ const scenarios: Record<string, () => GameState> = {
     return accept(ended, command('takeVows', { vows: ['noWalls', 'mortalHeroes'] })).state;
   },
   trolls: () => {
-    const state = gameAt(YEAR + AUTUMN);
-    state.seed = 'trolls-1';
+    const state = gameAt(YEAR + AUTUMN, undefined, 'trolls-1');
     state.settlement.buildings.watchtower = 5;
     settleHordeTiles(state, state.lastProcessedAt, []);
     revealOmen(state, state.horde.wavePlan!.waves[1]!, state.lastProcessedAt, []);
@@ -889,6 +891,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // cenário de 7 dias, na marca dos 70, com a Torre no teto desta versão.
     const threat = of('threat');
     expect(threat.map).toEqual({
+      radius: 5,
+      hexes: expect.any(Object),
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 18,
       discovered: [],

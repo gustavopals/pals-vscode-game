@@ -47,6 +47,8 @@ import {
   tavernCandidates,
   threatMarkTemplates,
   TILE_TYPE_IDS,
+  TERRAIN_IDS,
+  terrains,
   tileTypes,
   wageArrearsReliefs,
 } from './index';
@@ -639,6 +641,21 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     // aviso são exatamente 30 min de jogo: só quem dá a ordem no instante do alarme chega a
     // tempo. O nível 2 da Torre avisa com o dobro.
     expect(tight).toEqual(['Tranquilo, Inverno']);
+  });
+
+  it('fixa os ids publicados dos terrenos e os pesos da grade', () => {
+    expect(TERRAIN_IDS).toEqual([
+      'forest',
+      'hills',
+      'fields',
+      'lake',
+      'swamp',
+      'ruins',
+      'ironVein',
+      'sanctuary',
+    ]);
+    expect(Object.keys(terrains)).toEqual([...TERRAIN_IDS]);
+    expect(Object.values(terrains).reduce((sum, terrain) => sum + terrain.weight, 0)).toBe(100);
   });
 
   it('o único tile é o Covil de Lobos, ativo desde o primeiro dia, e nele moram lobos', () => {

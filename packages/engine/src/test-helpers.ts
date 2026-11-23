@@ -83,9 +83,14 @@ export function newGame(seed = 'pedra-alta'): GameState {
   return createInitialState(seed, settings);
 }
 
+/** Campos gravados nas versões 42–44, para construir entradas históricas. */
+export function mapBeforeGrid({ tiles, threat, discovered, expeditionUnlocks }: GameState['map']) {
+  return { tiles, threat, discovered, expeditionUnlocks };
+}
+
 /** Estado inicial com ajustes diretos, para montar cenários que os comandos não alcançam rápido. */
-export function gameWith(edit: (draft: GameState) => void): GameState {
-  const draft = cloneState(newGame());
+export function gameWith(edit: (draft: GameState) => void, seed?: string): GameState {
+  const draft = cloneState(newGame(seed));
   edit(draft);
   return draft;
 }
@@ -98,7 +103,11 @@ export function gameWith(edit: (draft: GameState) => void): GameState {
  * dos eventos. O cenário que quer o Conselho chama `councilInSession` no `edit`; o que quer
  * incursões põe as dele em `horde.scheduledRaids`, ou chama `hordeAwake`.
  */
-export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}): GameState {
+export function gameAt(
+  atMs: number,
+  edit: (draft: GameState) => void = () => {},
+  seed?: string,
+): GameState {
   return gameWith((draft) => {
     draft.lastProcessedAt = atMs;
     draft.clock.gameTimeMs = atMs;
@@ -109,7 +118,7 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     quietCouncil(draft);
     quietHorde(draft);
     edit(draft);
-  });
+  }, seed);
 }
 
 /**
@@ -2407,7 +2416,6 @@ export function campaignYard(atMs = 0, strong = true, seed = 'campanha-acampamen
   let state = barracksYard(
     atMs,
     (draft) => {
-      draft.seed = seed;
       draft.settlement.buildings.watchtower = 1;
       draft.map.tiles.raiderCamp = { type: 'raiderCamp', threatActive: true };
       draft.map.threat = 70;
@@ -2415,7 +2423,7 @@ export function campaignYard(atMs = 0, strong = true, seed = 'campanha-acampamen
       draft.army.units.archer = strong ? 15 : 0;
       addHero(draft, { name: 'Edda', gender: 'f', classId: 'warrior', traits: ['loyal'] });
     },
-    { level: 8 },
+    { level: 8, seed },
   );
   const posts = emptyPosts();
   if (strong) {

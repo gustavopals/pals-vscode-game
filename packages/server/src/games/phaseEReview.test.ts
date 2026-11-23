@@ -54,6 +54,7 @@ it('9. o pacote de produção não leva números, memória, ondas ou textos esco
   const allowed = [
     'BUILDING_IDS',
     'RELIC_IDS',
+    'TERRAIN_IDS',
     'VOW_IDS',
     'DIFFICULTY_IDS',
     'ENEMY_IDS',

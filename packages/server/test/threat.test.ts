@@ -395,6 +395,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
     expect(row.state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
+      radius: 5,
+      hexes: expect.any(Object),
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
       discovered: [],

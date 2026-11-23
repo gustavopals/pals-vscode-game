@@ -9,6 +9,7 @@ import {
   UNIT_IDS,
 } from '@lotg/content';
 
+import { generateHexMap } from './hexmap';
 import { scriptedRaidsAfter } from './raids';
 import type { BuildingId, GameCreationSettings, GameState, UnitId } from './types';
 import { amountsToMilli, assertTimeScale, realToGameMs } from './units';
@@ -32,7 +33,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 44,
+    schemaVersion: 45,
     vows: {
       year: 1,
       taken: [],
@@ -102,6 +103,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // O Covil de Lobos está ativo desde o primeiro dia, e a Ameaça começa em zero (GDD §8.2).
     map: {
+      ...generateHexMap(seed, []),
       tiles: Object.fromEntries(
         startingTiles.map((tile) => [
           tile.id,

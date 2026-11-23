@@ -1,6 +1,8 @@
 import type { BattleFactorId, BattleReport } from './battleReport';
 import type {
   VowId,
+  TerrainId,
+  MapSiteId,
   BuildingId,
   DifficultyId,
   EnemyId,
@@ -570,7 +572,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 44;
+  schemaVersion: 45;
   /** Ano corrente e escolha seguinte, preservada sem perder os efeitos do rescaldo. */
   vows: { year: number; taken: VowId[]; closesAtMs: number; nextTaken: VowId[] | null };
   seed: string;
@@ -755,11 +757,18 @@ export type GameState = {
     expired: string[];
   };
   /**
-   * O mapa, ainda sem grade (GDD §8.1 e §8.2; ADR 0014, decisão 11): os tiles de ameaça, pela
-   * chave de cada um, e a Ameaça, de 0 a 100. Ela só muda na virada de cada dia de jogo e só sai
-   * na visão de quem tem a Torre de Vigia.
+   * Grade axial e névoa (GDD §8.1). A Ameaça e seus tiles continuam regidos pelo §8.2.
    */
   map: {
+    radius: number;
+    hexes: Record<
+      `${number},${number}`,
+      {
+        terrain: TerrainId;
+        fog: 'unknown' | 'sighted' | 'explored' | 'claimed';
+        site?: MapSiteId;
+      }
+    >;
     tiles: Record<string, MapTile>;
     threat: number;
     /**
@@ -2823,8 +2832,26 @@ export type MarketView = {
   caravanOffer: CaravanOfferView;
 };
 
+export type MapActionView = { type: 'sendExpedition'; modelId: string } | { type: 'attackCamp' };
+
+export type MapHexView =
+  | { q: number; r: number }
+  | { q: number; r: number; fog: 'sighted'; terrain: TerrainId; terrainLabel: string }
+  | {
+      q: number;
+      r: number;
+      fog: 'explored' | 'claimed';
+      terrain: TerrainId;
+      terrainLabel: string;
+      site: string | null;
+      label: string;
+      detail: string;
+      actions: MapActionView[];
+    };
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
+  map: { radius: number; hexes: MapHexView[] };
   /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
   seed?: string | undefined;
   settlement: {

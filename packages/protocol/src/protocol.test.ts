@@ -1,6 +1,9 @@
 import {
   balance,
   vows,
+  mapRules,
+  terrains,
+  fixedHexes,
   vowRules,
   vowTexts,
   expeditionModels,
@@ -2432,6 +2435,30 @@ describe('contratos da API', () => {
     }
   });
 
+  it('aceita o cache anterior ao mapa e exige só coordenadas para um hexágono desconhecido', () => {
+    const state = createInitialState('névoa', {
+      settlementName: 'Pedra Alta',
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 1,
+    });
+    const { map, ...oldView } = deriveViewState(state, 0);
+    expect(ViewStateSchema.parse(oldView).map).toEqual({ radius: 0, hexes: [] });
+    expect(ViewStateSchema.parse({ ...oldView, map }).map).toEqual(map);
+    const schema = ViewStateSchema.shape.map;
+    const coordinate = { q: 2, r: -5 };
+    for (const extra of [
+      { site: 'ruins' },
+      { terrain: 'ruins' },
+      { actions: [] },
+      { fog: 'sighted', terrain: 'ruins', terrainLabel: 'Ruínas', site: 'ruins' },
+    ])
+      expect(schema.safeParse({ radius: 5, hexes: [{ ...coordinate, ...extra }] }).success).toBe(
+        false,
+      );
+  });
+
   it('ViewStateSchema aceita seed ausente (cache antigo) ou preenchida, e recusa vazia', () => {
     const state = createInitialState('pedra-alta', {
       settlementName: 'Pedra Alta',
@@ -2747,6 +2774,9 @@ describe('contentHash', () => {
       canonicalJson({
         balance,
         vows,
+        mapRules,
+        terrains,
+        fixedHexes,
         vowRules,
         vowTexts,
         expeditionModels,
@@ -2818,6 +2848,7 @@ describe('contentHash', () => {
       'expeditionTexts',
       'featRules',
       'feats',
+      'fixedHexes',
       'foundingTemplates',
       'heroAttributes',
       'heroClasses',
@@ -2830,6 +2861,7 @@ describe('contentHash', () => {
       'idleVillager',
       'injuredLoss',
       'injuryTemplates',
+      'mapRules',
       'marketTemplates',
       'masterTemplates',
       'masters',
@@ -2845,6 +2877,7 @@ describe('contentHash', () => {
       'siegeTexts',
       'startingTiles',
       'tavernCandidates',
+      'terrains',
       'threatMarkTemplates',
       'tileTypes',
       'vigilRules',
