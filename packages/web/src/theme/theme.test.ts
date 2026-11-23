@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { THEMES, type ThemeId } from '../services/preferences';
+import { FOG_STATES, TERRAIN_ICONS } from '../ui/hexmap';
 import { applyTheme, nextTheme, resolveTheme, systemTheme, THEME_LABELS } from './theme';
 
 // O CSS é lido como texto pelo Vitest, sem tocar o sistema de arquivos.
@@ -321,6 +322,19 @@ describe('themes.css', () => {
     ['ícone de aviso da notificação', 'editorWarning-foreground', 'notifications-background'],
     ['ícone de erro da notificação', 'editorError-foreground', 'notifications-background'],
     ['dica ao passar o mouse', 'editorHoverWidget-foreground', 'editorHoverWidget-background'],
+    // Aba Mapa (V5E-T3): texto e ícones sobre os quatro estados de névoa e os oito terrenos.
+    ['mapa: texto sobre Desconhecido', 'map-hex-foreground', 'map-fog-unknown'],
+    ['mapa: texto sobre Avistado', 'map-hex-foreground', 'map-fog-sighted'],
+    ['mapa: texto sobre Explorado', 'map-hex-foreground', 'map-fog-explored'],
+    ['mapa: texto sobre Reivindicado', 'map-hex-foreground', 'map-fog-claimed'],
+    ['mapa: texto sobre Floresta', 'map-hex-foreground', 'map-terrain-forest'],
+    ['mapa: texto sobre Colinas', 'map-hex-foreground', 'map-terrain-hills'],
+    ['mapa: texto sobre Campos', 'map-hex-foreground', 'map-terrain-fields'],
+    ['mapa: texto sobre Lago', 'map-hex-foreground', 'map-terrain-lake'],
+    ['mapa: texto sobre Pântano', 'map-hex-foreground', 'map-terrain-swamp'],
+    ['mapa: texto sobre Ruínas', 'map-hex-foreground', 'map-terrain-ruins'],
+    ['mapa: texto sobre Veio de Ferro', 'map-hex-foreground', 'map-terrain-ironVein'],
+    ['mapa: texto sobre Santuário', 'map-hex-foreground', 'map-terrain-sanctuary'],
   ];
 
   const cases = THEMES.flatMap((theme) =>
@@ -343,7 +357,7 @@ describe('themes.css', () => {
     },
   );
 
-  it('o indicador de foco se destaca do fundo em todos os temas (3:1)', () => {
+  it('o indicador de foco e a seleção do mapa se destacam do fundo em todos os temas (3:1)', () => {
     for (const theme of THEMES) {
       const declarations = themeBlock(theme).declarations;
       const focus = declarations.get('--vscode-focusBorder') ?? '';
@@ -356,6 +370,32 @@ describe('themes.css', () => {
           contrast(focus, declarations.get(`--vscode-${background}`) ?? ''),
           `foco sobre ${background} no tema ${theme}`,
         ).toBeGreaterThanOrEqual(3);
+      }
+      const selected = declarations.get('--vscode-map-hex-selected') ?? '';
+      expect(
+        contrast(selected, declarations.get('--vscode-editor-background') ?? ''),
+        `seleção do mapa sobre editor-background no tema ${theme}`,
+      ).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('o mapa define uma cor para cada terreno e cada estado de névoa nos três temas', () => {
+    const terrains = Object.keys(TERRAIN_ICONS);
+    expect(terrains).toHaveLength(8);
+    expect(FOG_STATES).toHaveLength(4);
+    for (const theme of THEMES) {
+      const declarations = themeBlock(theme).declarations;
+      for (const terrain of terrains) {
+        expect(
+          declarations.get(`--vscode-map-terrain-${terrain}`),
+          `--vscode-map-terrain-${terrain} no tema ${theme}`,
+        ).toMatch(/^#[0-9a-f]{6}$/i);
+      }
+      for (const fog of FOG_STATES) {
+        expect(
+          declarations.get(`--vscode-map-fog-${fog}`),
+          `--vscode-map-fog-${fog} no tema ${theme}`,
+        ).toMatch(/^#[0-9a-f]{6}$/i);
       }
     }
   });

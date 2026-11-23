@@ -110,6 +110,11 @@ export type World = {
    */
   reveal(modelId: string): Promise<void>;
   /**
+   * Ajusta a névoa de hexágonos já existentes no mapa (`/__test/map-fog`), para a aba Mapa ter
+   * hexágonos explorados e ações vindas do motor sem esperar a revelação da V5E-T2.
+   */
+  mapFog(hexes: Record<string, 'unknown' | 'sighted' | 'explored' | 'claimed'>): Promise<void>;
+  /**
    * Põe em cativeiro o herói com este nome, que está no feudo e pronto (`/__test/captive`): o
    * cenário do Resgate tem um cativo sem depender de um Desastre. Daí em diante é do motor.
    */
@@ -240,6 +245,9 @@ export const test = base.extend<{ world: World }>({
         },
         reveal: async (modelId) => {
           await control('reveal', { modelId });
+        },
+        mapFog: async (hexes) => {
+          await control('map-fog', { hexes });
         },
         captive: async (name) => {
           const result = (await control('captive', { name })) as { placed: number };

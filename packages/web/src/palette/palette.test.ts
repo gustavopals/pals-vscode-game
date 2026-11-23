@@ -663,12 +663,18 @@ describe('controller.runCommand', () => {
     // A barra de status e a árvore levam ao Conselho pelo mesmo comando.
     controller.runCommand('lords.openPanel', 'council');
     expect(controller.route).toBe('council');
+    controller.runCommand('lords.openPanel', 'army');
+    expect(controller.route).toBe('army');
+    controller.runCommand('lords.openPanel', 'map');
+    expect(controller.route).toBe('map');
     controller.runCommand('lords.openPanel', 'chronicle');
     expect(controller.route).toBe('chronicle');
     controller.runCommand('lords.openPanel', 'mercado');
     expect(controller.route).toBe('fief');
     controller.runCommand('lords.openCouncil');
     expect(controller.route).toBe('council');
+    controller.runCommand('lords.openMap');
+    expect(controller.route).toBe('map');
   });
 
   it('um id desconhecido não faz nada e não quebra', async () => {

@@ -672,6 +672,32 @@ control.post('/__test/reveal', async (request) => {
 });
 
 /**
+ * Ajusta o estado de névoa de hexágonos já existentes no mapa (`{ hexes: { '1,0': 'explored' } }`)
+ * para os cenários em navegador da aba Mapa (V5E-T3), sem alterar a grade gerada pela semente.
+ */
+control.post('/__test/map-fog', async (request) => {
+  const { hexes } = request.body as {
+    hexes: Record<string, 'unknown' | 'sighted' | 'explored' | 'claimed'>;
+  };
+  const games = await pool.query<{ id: string; state: GameState }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    for (const [key, fog] of Object.entries(hexes)) {
+      const hex = state.map.hexes[key as `${number},${number}`];
+      if (hex !== undefined) {
+        hex.fog = fog;
+      }
+    }
+    migrateState(state, { timeScale: state.settings.timeScale });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
  * Põe em cativeiro o herói de todos os feudos com o nome pedido, que precisa estar no feudo e
  * pronto: é como um cenário do Resgate tem um cativo sem depender de um Desastre com captura,
  * que é sorte. O cativeiro é gravado como o motor o grava (desde o último instante processado,

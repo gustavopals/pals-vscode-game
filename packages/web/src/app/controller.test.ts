@@ -370,7 +370,7 @@ describe('abertura da página', () => {
     });
     expect(controller.hasGame).toBe(true);
     expect(controller.view?.settlement.name).toBe('Vale Verde');
-    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
     expect(controller.busy).toBe(false);
     // A conta fica guardada neste navegador para a próxima visita.
     expect(store.get(ACCOUNT_KEY)).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
@@ -453,7 +453,7 @@ describe('abertura da página', () => {
     expect(controller.route).toBe('fief');
     expect(controller.view?.settlement.name).toBe('Pedra Alta');
     expect(controller.connection).toEqual({ kind: 'online' });
-    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
     expect(count(api.state.requests, VIEW_REQUEST)).toBe(1);
     // Nenhuma conta nova: a guardada foi retomada.
     expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
@@ -503,6 +503,7 @@ describe('abertura da página', () => {
       'guild',
       'market',
       'army',
+      'map',
       'settings',
     ]);
 
@@ -545,6 +546,7 @@ describe('abertura da página', () => {
       'guild',
       'market',
       'army',
+      'map',
       'chronicle',
     ]);
     expect(controller.chronicleDocument.status).toBe('ready');
@@ -2143,6 +2145,7 @@ describe('abas e navegação', () => {
       'guild',
       'market',
       'army',
+      'map',
       'chronicle',
     ]);
     expect(controller.chronicleDocument).toEqual({ status: 'loading' });
@@ -2154,7 +2157,7 @@ describe('abas e navegação', () => {
 
     controller.closeTab('chronicle');
     expect(controller.route).toBe('fief');
-    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
   });
 
   it('a Crônica aberta é lida de novo quando chegam eventos', async () => {
@@ -2215,6 +2218,7 @@ describe('abas e navegação', () => {
       'guild',
       'market',
       'army',
+      'map',
       'settings',
     ]);
   });
@@ -2232,6 +2236,7 @@ describe('abas e navegação', () => {
       'guild',
       'market',
       'army',
+      'map',
       'about',
     ]);
   });
@@ -2244,7 +2249,7 @@ describe('abas e navegação', () => {
     });
     controller.closeTab('fief');
     controller.closeTab('today');
-    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
     expect(controller.route).toBe('fief');
     expect(changes).toBe(0);
   });
@@ -2463,7 +2468,7 @@ describe('outras abas do navegador', () => {
     expect(controller.account.state).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
     expect(controller.route).toBe('fief');
     expect(controller.view?.settlement.name).toBe('Pedra Alta');
-    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
     // Adotar não cria conta nem funda feudo de novo.
     expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
     expect(count(api.state.requests, 'POST /games')).toBe(0);

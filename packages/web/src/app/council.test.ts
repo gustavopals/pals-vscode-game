@@ -315,7 +315,15 @@ describe('responder uma carta (controller.answerCard)', () => {
 describe('aba do Conselho', () => {
   it('é uma aba fixa do feudo, e o endereço #/conselho abre nela', async () => {
     const made = await opened();
-    expect(made.controller.tabs).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+    expect(made.controller.tabs).toEqual([
+      'today',
+      'fief',
+      'council',
+      'guild',
+      'market',
+      'army',
+      'map',
+    ]);
     made.controller.navigate('council');
     expect(made.controller.route).toBe('council');
     // Ir ao Conselho não é ter visto as novidades em badge.

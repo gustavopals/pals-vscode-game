@@ -2429,3 +2429,410 @@ table.ranking tr.ranking-mine td:first-child {
 .vows-confirm p {
   margin: 0 0 10px;
 }
+
+/* --- Aba Mapa (V5E-T3) --------------------------------------------------- */
+
+.map-section {
+  margin-top: 10px;
+}
+
+.map-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+.map-head h2 {
+  margin: 0;
+  color: var(--vscode-foreground);
+  font-size: 1.05em;
+  letter-spacing: 0.04em;
+}
+
+.map-hint {
+  font-size: 0.92em;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.hex-map-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 10px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.hex-map-compass {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 2px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hex-map-svg {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  overflow: visible;
+}
+
+.hex-cell {
+  cursor: pointer;
+}
+
+.hex-cell:focus,
+.hex-cell:focus-visible {
+  outline: none;
+}
+
+.hex-map-svg:has(.hex-cell:focus-visible) .hex-selected-ring {
+  stroke: var(--vscode-focusBorder);
+  stroke-width: 3.4;
+}
+
+.hex-poly {
+  fill: var(--vscode-map-fog-unknown);
+  stroke: var(--vscode-map-hex-border);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+.hex-fog-unknown .hex-poly {
+  fill: var(--vscode-map-fog-unknown);
+  stroke-opacity: 0.65;
+}
+
+.hex-fog-sighted .hex-poly {
+  fill-opacity: 0.62;
+  stroke-dasharray: 4 2.5;
+}
+
+.hex-fog-explored .hex-poly {
+  fill-opacity: 1;
+  stroke: var(--vscode-map-hex-foreground);
+  stroke-width: 1.75;
+}
+
+.hex-fog-claimed .hex-poly {
+  fill-opacity: 1;
+  stroke: var(--vscode-map-hex-selected);
+  stroke-width: 2.2;
+}
+
+.hex-home .hex-poly {
+  stroke: var(--vscode-map-hex-selected);
+  stroke-width: 2.2;
+}
+
+.hex-cell:hover .hex-poly {
+  stroke: var(--vscode-map-hex-selected);
+  stroke-width: 2;
+}
+
+.hex-cell:focus-visible .hex-poly {
+  stroke: var(--vscode-focusBorder);
+  stroke-width: 2.5;
+}
+
+.hex-terrain-forest .hex-poly {
+  fill: var(--vscode-map-terrain-forest);
+}
+
+.hex-terrain-hills .hex-poly {
+  fill: var(--vscode-map-terrain-hills);
+}
+
+.hex-terrain-fields .hex-poly {
+  fill: var(--vscode-map-terrain-fields);
+}
+
+.hex-terrain-lake .hex-poly {
+  fill: var(--vscode-map-terrain-lake);
+}
+
+.hex-terrain-swamp .hex-poly {
+  fill: var(--vscode-map-terrain-swamp);
+}
+
+.hex-terrain-ruins .hex-poly {
+  fill: var(--vscode-map-terrain-ruins);
+}
+
+.hex-terrain-ironVein .hex-poly {
+  fill: var(--vscode-map-terrain-ironVein);
+}
+
+.hex-terrain-sanctuary .hex-poly {
+  fill: var(--vscode-map-terrain-sanctuary);
+}
+
+.hex-icon-box {
+  pointer-events: none;
+  overflow: visible;
+}
+
+.hex-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--vscode-map-hex-foreground);
+}
+
+.hex-cell .hex-icon-wrap .codicon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.hex-fog-sighted .hex-icon-wrap {
+  opacity: 0.85;
+}
+
+.hex-home .hex-icon-wrap .codicon,
+.hex-fog-explored .hex-icon-wrap .codicon,
+.hex-fog-claimed .hex-icon-wrap .codicon {
+  font-size: 18px;
+}
+
+.hex-action-dot {
+  fill: var(--vscode-map-hex-selected);
+  stroke: var(--vscode-editor-background);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.hex-selection-layer {
+  pointer-events: none;
+}
+
+.hex-selected-ring {
+  fill: none;
+  stroke: var(--vscode-map-hex-selected);
+  stroke-width: 2.8;
+  stroke-linejoin: round;
+}
+
+.map-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--vscode-panel-border);
+  border-top: 3px solid var(--vscode-panelTitle-activeBorder);
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background);
+  overflow-wrap: anywhere;
+}
+
+.map-sheet-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-sheet-head h2 {
+  margin: 0;
+  color: var(--vscode-foreground);
+  font-size: 1.15em;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.map-sheet-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-fog-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--vscode-map-hex-border);
+  border-radius: 10px;
+  color: var(--vscode-map-hex-foreground);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.map-fog-unknown {
+  background: var(--vscode-map-fog-unknown);
+}
+
+.map-fog-sighted {
+  background: var(--vscode-map-fog-sighted);
+}
+
+.map-fog-explored {
+  background: var(--vscode-map-fog-explored);
+}
+
+.map-fog-claimed {
+  background: var(--vscode-map-fog-claimed);
+}
+
+.map-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-terrain-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.map-swatch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--vscode-map-hex-border);
+  border-radius: 3px;
+  color: var(--vscode-map-hex-foreground);
+}
+
+.map-swatch .codicon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.map-swatch.hex-terrain-forest {
+  background: var(--vscode-map-terrain-forest);
+}
+
+.map-swatch.hex-terrain-hills {
+  background: var(--vscode-map-terrain-hills);
+}
+
+.map-swatch.hex-terrain-fields {
+  background: var(--vscode-map-terrain-fields);
+}
+
+.map-swatch.hex-terrain-lake {
+  background: var(--vscode-map-terrain-lake);
+}
+
+.map-swatch.hex-terrain-swamp {
+  background: var(--vscode-map-terrain-swamp);
+}
+
+.map-swatch.hex-terrain-ruins {
+  background: var(--vscode-map-terrain-ruins);
+}
+
+.map-swatch.hex-terrain-ironVein {
+  background: var(--vscode-map-terrain-ironVein);
+}
+
+.map-swatch.hex-terrain-sanctuary {
+  background: var(--vscode-map-terrain-sanctuary);
+}
+
+.map-sheet-detail,
+.map-sheet-note {
+  margin: 0;
+}
+
+.map-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.map-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.map-action-meta {
+  font-size: 0.92em;
+}
+
+.map-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.map-legend-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.map-legend-heading {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.map-legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92em;
+}
+
+@media (max-width: 900px) {
+  .map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .hex-map-stage {
+    padding: 8px 6px 10px;
+  }
+
+  .map-sheet {
+    padding: 12px;
+  }
+}
