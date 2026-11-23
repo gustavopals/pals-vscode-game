@@ -3,12 +3,16 @@ import { useEffect, useState } from 'preact/hooks';
 
 import {
   difficultyLine,
+  isScenarioLocked,
   type NewGameChoice,
   type NewGameOptions,
   paceLine,
   resolveChoice,
+  scenarioLine,
+  scenarioLockedText,
 } from '../game/newGame';
 import type { Actions } from './actions';
+import { Icon } from './shared';
 
 const NAME_RULE = 'De 2 a 24 caracteres.';
 // A regra do nome é a do protocolo: o app não repete os limites.
@@ -22,7 +26,13 @@ const validName = (value: string) => DisplayNameSchema.safeParse(value).success;
 function ChoiceGroup<T extends string | number>(props: {
   name: string;
   legend: string;
-  options: Array<{ value: T; line: string; about: string }>;
+  options: Array<{
+    value: T;
+    line: string;
+    about: string;
+    disabled?: boolean;
+    locked?: string | null;
+  }>;
   selected: T;
   disabled: boolean;
   onSelect: (value: T) => void;
@@ -36,23 +46,43 @@ function ChoiceGroup<T extends string | number>(props: {
       disabled={props.disabled}
     >
       <legend id={`${name}-legend`}>{props.legend}</legend>
-      {props.options.map((option, index) => (
-        <label key={String(option.value)} class="choice-option">
-          <input
-            type="radio"
-            name={name}
-            value={String(option.value)}
-            checked={option.value === props.selected}
-            aria-labelledby={`${name}-${index}-line`}
-            aria-describedby={`${name}-${index}-about`}
-            onChange={() => props.onSelect(option.value)}
-          />
-          <span id={`${name}-${index}-line`}>{option.line}</span>
-          <span id={`${name}-${index}-about`} class="choice-about muted">
-            {option.about}
-          </span>
-        </label>
-      ))}
+      {props.options.map((option, index) => {
+        const optionDisabled = option.disabled === true;
+        const describedBy =
+          option.locked !== undefined && option.locked !== null
+            ? `${name}-${index}-about ${name}-${index}-locked`
+            : `${name}-${index}-about`;
+        return (
+          <label
+            key={String(option.value)}
+            class={optionDisabled ? 'choice-option choice-option-locked' : 'choice-option'}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={String(option.value)}
+              checked={option.value === props.selected}
+              disabled={optionDisabled}
+              aria-labelledby={`${name}-${index}-line`}
+              aria-describedby={describedBy}
+              onChange={() => {
+                if (!optionDisabled) {
+                  props.onSelect(option.value);
+                }
+              }}
+            />
+            <span id={`${name}-${index}-line`}>{option.line}</span>
+            <span id={`${name}-${index}-about`} class="choice-about muted">
+              {option.about}
+            </span>
+            {option.locked !== undefined && option.locked !== null ? (
+              <span id={`${name}-${index}-locked`} class="choice-about blocked">
+                <Icon name="lock" /> {option.locked}
+              </span>
+            ) : null}
+          </label>
+        );
+      })}
     </fieldset>
   );
 }
@@ -74,6 +104,8 @@ export function Welcome(props: {
    * não as tem): a tela fica como na v0.1 e o feudo nasce com os padrões do servidor.
    */
   options: NewGameOptions | null;
+  /** Legado acumulado da conta, vindo de `GET /v1/stats`; `0` sem conta, `null` enquanto carrega. */
+  legacy?: number | null;
   /** Semente preenchida pelo endereço (`#/nova?seed=…`); `null` sem pedido. */
   initialSeed?: string | null;
   /** Abre o campo de semente já na primeira exibição (ex.: ao chegar por `#/nova`). */
@@ -103,7 +135,10 @@ export function Welcome(props: {
   const trimmedSeed = seed.trim();
   const seedValid = trimmedSeed === '' || GameSeedSchema.safeParse(trimmedSeed).success;
   const ready = validName(ruler) && validName(settlementName) && seedValid;
-  const choice = options === null ? undefined : resolveChoice(options, picked);
+  const legacy = props.legacy === undefined ? (account === null ? 0 : null) : props.legacy;
+  const choice = options === null ? undefined : resolveChoice(options, picked, legacy);
+  const scenarios = options?.scenarios;
+  const hasScenarios = scenarios !== undefined && scenarios.length > 0;
 
   const submit = (event: Event) => {
     event.preventDefault();
@@ -185,8 +220,26 @@ export function Welcome(props: {
               disabled={busy}
               onSelect={(timeScale) => setPicked({ ...picked, timeScale })}
             />
+            {hasScenarios && choice.scenario !== undefined ? (
+              <ChoiceGroup
+                name="scenario"
+                legend="Cenário"
+                options={scenarios.map((option) => ({
+                  value: option.id,
+                  line: scenarioLine(option),
+                  about: option.description,
+                  disabled: isScenarioLocked(option, legacy),
+                  locked: scenarioLockedText(option, legacy),
+                }))}
+                selected={choice.scenario}
+                disabled={busy}
+                onSelect={(scenario) => setPicked({ ...picked, scenario })}
+              />
+            ) : null}
             <p class="muted hint choices-note">
-              Os dois ficam gravados no feudo e não mudam durante o ano. Na dúvida, deixe como está.
+              {hasScenarios
+                ? 'Ficam gravados no feudo e não mudam durante o ano. Na dúvida, deixe como está.'
+                : 'Os dois ficam gravados no feudo e não mudam durante o ano. Na dúvida, deixe como está.'}
             </p>
           </div>
         )}

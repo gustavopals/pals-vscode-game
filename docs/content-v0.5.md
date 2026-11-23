@@ -39,3 +39,28 @@ sem sorteio adicional. Se o feudo já o possui, vale o mesmo consolo de 100 de o
 Ids, duração, provas, variantes, janela da carta e pagamentos anteriores ficam
 preservados. Os textos completos dos desfechos estão nos arquivos `missions/`;
 o catálogo golden percorre os ramos e registra a leitura do relatório.
+
+## Santuário no mapa (V5E-T4; ADR 0022, D-6)
+
+O hexágono fixo `0,4` (`terrain: 'sanctuary'`) entrega uma relíquia uma única vez por
+partida quando passa ao estado **Explorado** (`mapTurn.ts`, guardado por `stats.sanctuaryClaimed`).
+Sem sorteio, percorre `sanctuaryReward.from` na ordem canônica de `RELIC_IDS`
+(`ancestralHorn` → `oakHeart` → `watchersEye` → `ancientKingsSeal` → `wolfBone` →
+`hermitsLamp` → `saltStone` → `wintersCloak`) e chama `grantRelic` para a primeira que o
+feudo ainda não possui, emitindo `sanctuaryExplored` e `relicFound`. Se o feudo já tiver
+todas as oito relíquias, credita **100 de ouro** (`sanctuaryReward.consolationGold`, fixo)
+e emite `sanctuaryExplored` com `sanctuaryConsolationTemplate`.
+
+## Cenários de mapa — Serra do Ferro (V5E-T4; ADR 0022, D-18)
+
+Definidos em `packages/content/src/map.ts` (`mapScenarios`, `SCENARIO_IDS`):
+
+| Cenário (`id`) | Nome | Legado exigido na conta | Floresta | Colinas | Campos | Lago | Pântano | Ruínas | Veio de Ferro | Santuário |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `standard` | Terras do Feudo (recomendado) | 0 | 30 | 22 | 28 | 8 | 6 | 4 | 2 | 0 |
+| `ironRidge` | Serra do Ferro | 200 | 20 | 40 | 16 | 4 | 4 | 4 | 12 | 0 |
+
+Os pesos somam 100 e aplicam-se somente aos hexágonos livres; todos os hexágonos fixos
+(sede, destinos, tiles de ameaça e o Santuário único em `0,4`) mantêm terreno e posição.
+O custo em Legado é verificado pelo servidor contra a soma de `legacy_ledger.points` da
+conta em `POST /games` (desbloqueio permanente; não desconta pontos).

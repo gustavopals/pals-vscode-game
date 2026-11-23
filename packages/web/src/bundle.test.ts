@@ -30,6 +30,7 @@ const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'MORALE_TERM_IDS',
   'PRODUCTION_BUILDING_IDS',
   'RESOURCE_IDS',
+  'SCENARIO_IDS',
   'SEASON_IDS',
   'TRADE_DIRECTION_IDS',
   // As unidades do Quartel (V4C-T1): o schema da ordem de treino e o da visão as usam.
@@ -459,5 +460,28 @@ describe('o pacote do app', () => {
     // A lista não pode esvaziar sem ninguém notar: dificuldades, ritmos, objetivos e Crônica.
     expect(secret.length).toBeGreaterThan(30);
     expect(secret.filter((phrase) => code.includes(phrase))).toEqual([]);
+  });
+
+  it('não leva pesos, custos ou textos de cenários de mapa nem do Santuário (V5E-T4)', () => {
+    const markers = [
+      'terrainWeights:{',
+      'consolationGold:',
+      'sanctuaryReward',
+      'mapScenarios',
+      'mapTexts',
+      'sanctuaryConsolationTemplate',
+      asJavaScript(content.mapScenarios.ironRidge.terrainWeights),
+    ];
+    const leaked = asJavaScript({
+      mapScenarios: content.mapScenarios,
+      sanctuaryReward: content.sanctuaryReward,
+    });
+    expect(leaked).toContain('terrainWeights:{');
+    expect(leaked).toContain('consolationGold:');
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    for (const def of Object.values(content.mapScenarios)) {
+      expect(code.includes(def.label), def.label).toBe(false);
+      expect(code.includes(def.description), def.description).toBe(false);
+    }
   });
 });

@@ -259,6 +259,7 @@ function stripComposition(copy: Draft): void {
   delete copy.map?.expeditionUnlocks;
   delete copy.map?.hexes;
   delete copy.map?.radius;
+  delete copy.map?.scenario;
   for (const occurrence of [...(copy.council?.pending ?? []), ...(copy.council?.delayed ?? [])]) {
     delete occurrence.heroes;
   }

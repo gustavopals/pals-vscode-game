@@ -92,13 +92,16 @@ const hex: Shape = (value, path) =>
   object(value) && Object.hasOwn(value, 'site') ? withSite(value, path) : bare(value, path);
 const grid = exactObject(Object.fromEntries(coordinates.map(({ key }) => [key, hex])));
 
+const scenarios = ['standard', 'ironRidge'] as const;
+
 export const stateV45: Shape = (value, path) => {
   const at = (field: string) => (path ? `${path}.${field}` : field);
   if (!object(value) || !object(value.map)) return `${at('map')}: mapa ausente`;
-  const { radius, hexes, ...map } = value.map;
+  const { radius, scenario, hexes, ...map } = value.map;
   return (
     literal(45)(value.schemaVersion, at('schemaVersion')) ??
     literal(5)(radius, at('map.radius')) ??
+    oneOf(scenarios)(scenario, at('map.scenario')) ??
     grid(hexes, at('map.hexes')) ??
     stateV44({ ...value, map, schemaVersion: 44 }, path)
   );
@@ -106,7 +109,8 @@ export const stateV45: Shape = (value, path) => {
 
 export const v44ToV45: MigrationStep = {
   from: 44,
-  summary: 'Posiciona terrenos e destinos pela semente e preserva as descobertas na névoa.',
+  summary:
+    'Posiciona terrenos e destinos pela semente, define o cenário padrão e preserva as descobertas na névoa.',
   shape: stateV44,
   migrate: (state) => {
     const map = state.map as StoredState;
@@ -129,6 +133,6 @@ export const v44ToV45: MigrationStep = {
         ];
       }),
     );
-    return { ...state, schemaVersion: 45, map: { ...map, radius: 5, hexes } };
+    return { ...state, schemaVersion: 45, map: { ...map, radius: 5, scenario: 'standard', hexes } };
   },
 };

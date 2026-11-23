@@ -241,6 +241,29 @@ describe('lista de escolha (QuickPick)', () => {
     // Sem texto, a lista é a de sempre.
     expect(draw()).not.toContain('quickpick-reading');
   });
+
+  it('itens desabilitados mostram aria-disabled e classe própria (V5E-T4)', () => {
+    const markup = renderToString(
+      h(QuickPick, {
+        title: 'Cenário',
+        items: [
+          { label: 'Terras do Feudo', value: 'standard' },
+          {
+            label: 'Serra do Ferro',
+            detail: 'Requer 200 pontos de Legado.',
+            icon: 'lock',
+            disabled: true,
+            value: 'ironRidge',
+          },
+        ],
+        onPick: () => {},
+      }),
+    );
+    const rows = markup.match(/<li[^>]*>/g) ?? [];
+    expect(rows[0]).not.toContain('aria-disabled');
+    expect(rows[1]).toContain('aria-disabled="true"');
+    expect(rows[1]).toContain('quickpick-item-disabled');
+  });
 });
 
 describe('itens da paleta (paletteItems)', () => {
@@ -2115,12 +2138,12 @@ describe('recrutar, renomear e nova partida', () => {
     expect(orders()).toEqual([]);
   });
 
-  it('nova partida pergunta dificuldade e ritmo, com o padrão do servidor já marcado', async () => {
+  it('nova partida pergunta dificuldade, ritmo e cenário, com o padrão do servidor já marcado', async () => {
     const { run, answers, shown, requested } = await setup();
-    // Desiste na confirmação: até ali, nada foi pedido ao servidor além das opções.
-    answers.push(1, 0, false);
+    // Desiste na confirmação: até ali, nada foi pedido ao servidor além das opções e do Legado.
+    answers.push(1, 0, 0, false);
     await run('lords.newGame');
-    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm']);
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'pick', 'confirm']);
 
     const difficulty = shownAs(shown, 0, 'pick');
     expect(difficulty.title).toBe('Nova partida: dificuldade');
@@ -2151,8 +2174,41 @@ describe('recrutar, renomear e nova partida', () => {
       'Para quem abre o jogo uma vez por dia: o feudo anda devagar e espera por você.',
     ]);
     expect(pace.selected).toBe(0);
+
+    const scenario = shownAs(shown, 2, 'pick');
+    expect(scenario.title).toBe('Nova partida: cenário');
+    expect(scenario.items.map((item) => item.label)).toEqual([
+      'Terras do Feudo (recomendado)',
+      'Serra do Ferro (200 de Legado)',
+    ]);
+    expect(scenario.items.map((item) => item.value)).toEqual(['standard', 'ironRidge']);
+    // No fakeApi padrão a conta tem 1.234 de Legado: Serra do Ferro está desbloqueada.
+    expect(scenario.items.map((item) => item.disabled)).toEqual([undefined, undefined]);
+    expect(scenario.selected).toBe(0);
     expect(requested('GET /catalog')).toBe(1);
     expect(requested('POST /games')).toBe(0);
+  });
+
+  it('sem Legado suficiente, Serra do Ferro aparece trancada com motivo na lista de cenário (V5E-T4)', async () => {
+    const api = fakeApi();
+    api.state.stats.me.legacy = 40;
+    const { run, answers, shown } = await setup({ api });
+    answers.push(1, 0, undefined);
+    await run('lords.newGame');
+    const scenario = shownAs(shown, 2, 'pick');
+    expect(scenario.items[0]).toMatchObject({
+      value: 'standard',
+      label: 'Terras do Feudo (recomendado)',
+    });
+    expect(scenario.items[0]?.disabled).toBeUndefined();
+    expect(scenario.items[1]).toMatchObject({
+      value: 'ironRidge',
+      label: 'Serra do Ferro (200 de Legado)',
+      icon: 'lock',
+      disabled: true,
+    });
+    expect(scenario.items[1]?.detail).toContain('Requer 200 pontos de Legado na conta.');
+    expect(scenario.items[1]?.detail).toContain('Legado atual: 40.');
   });
 
   it('o ritmo marcado é o padrão do servidor, mesmo quando o recomendado é outro', async () => {
@@ -2169,13 +2225,15 @@ describe('recrutar, renomear e nova partida', () => {
 
   it('nova partida pede confirmação antes de mudar qualquer coisa, e diz como o feudo nasce', async () => {
     const { run, answers, shown, requested, api } = await setup();
-    answers.push(2, 2, false);
+    answers.push(2, 2, 1, false);
     await run('lords.newGame');
-    const confirm = shownAs(shown, 2, 'confirm');
+    const confirm = shownAs(shown, 3, 'confirm');
     expect(confirm.title).toBe('Começar uma nova partida?');
     expect(confirm.detail?.join(' ')).toMatch(/arquivado/);
     // O custo (o feudo atual) e a escolha ficam lado a lado na mesma pergunta.
-    expect(confirm.detail?.join(' ')).toContain('Rei de Ferro · Tranquilo: um ano em 14 dias');
+    expect(confirm.detail?.join(' ')).toContain(
+      'Rei de Ferro · Tranquilo: um ano em 14 dias · Serra do Ferro',
+    );
     expect(requested('POST /games')).toBe(0);
     expect(api.state.game?.settlementName).toBe('Pedra Alta');
   });
@@ -2183,10 +2241,10 @@ describe('recrutar, renomear e nova partida', () => {
   it('confirmada, pergunta o nome e funda o outro feudo no lugar do atual, com a escolha', async () => {
     const { run, answers, shown, requested, api, controller } = await setup();
     controller.navigate('today');
-    answers.push(2, 2, true, 'Vila Nova');
+    answers.push(2, 2, 1, true, 'Vila Nova');
     await run('lords.newGame');
-    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm', 'input']);
-    const input = shownAs(shown, 3, 'input');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'pick', 'confirm', 'input']);
+    const input = shownAs(shown, 4, 'input');
     expect(input.validate?.('a')?.severity).toBe('error');
     expect(input.validate?.('   ')?.severity).toBe('error');
     expect(input.validate?.('x'.repeat(25))?.severity).toBe('error');
@@ -2201,6 +2259,7 @@ describe('recrutar, renomear e nova partida', () => {
         vigilHourLocal: 20,
         difficulty: 'ironKing',
         timeScale: 0.5,
+        scenario: 'ironRidge',
         replaceActive: true,
       },
     ]);
@@ -2211,49 +2270,66 @@ describe('recrutar, renomear e nova partida', () => {
 
   it('nova partida com esta semente mostra a semente na confirmação e a envia no corpo (V5D-T1)', async () => {
     const { run, answers, shown, api } = await setup();
-    answers.push(1, 0, true, 'Pedra Nova');
+    answers.push(1, 0, 0, true, 'Pedra Nova');
     await run('lords.newGame', { seed: 'semente-fixa-42' });
-    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm', 'input']);
-    expect(shownAs(shown, 2, 'confirm').detail).toContain('Semente: semente-fixa-42.');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'pick', 'confirm', 'input']);
+    expect(shownAs(shown, 3, 'confirm').detail).toContain('Semente: semente-fixa-42.');
     expect(api.state.gameRequests.at(-1)).toMatchObject({
       settlementName: 'Pedra Nova',
       seed: 'semente-fixa-42',
+      scenario: 'standard',
       replaceActive: true,
     });
   });
 
   it('#/nova?seed=… com partida ativa abre o campo da semente preenchido (V5D-T1)', async () => {
     const { run, answers, shown, api } = await setup();
-    answers.push('semente-do-link', 1, 0, true, 'Vila Semente');
+    answers.push('semente-do-link', 1, 0, 0, true, 'Vila Semente');
     await run('lords.newGame', { seed: 'semente-do-link', askSeed: true });
-    expect(shown.map((entry) => entry.kind)).toEqual(['input', 'pick', 'pick', 'confirm', 'input']);
+    expect(shown.map((entry) => entry.kind)).toEqual([
+      'input',
+      'pick',
+      'pick',
+      'pick',
+      'confirm',
+      'input',
+    ]);
     const seedPrompt = shownAs(shown, 0, 'input');
     expect(seedPrompt.title).toBe('Nova partida: semente');
     expect(seedPrompt.value).toBe('semente-do-link');
     expect(seedPrompt.validate?.('')).toBeNull();
     expect(seedPrompt.validate?.('a'.repeat(65))?.severity).toBe('error');
-    expect(shownAs(shown, 3, 'confirm').detail).toContain('Semente: semente-do-link.');
+    expect(shownAs(shown, 4, 'confirm').detail).toContain('Semente: semente-do-link.');
     expect(api.state.gameRequests.at(-1)).toMatchObject({
       settlementName: 'Vila Semente',
       seed: 'semente-do-link',
+      scenario: 'standard',
       replaceActive: true,
     });
   });
 
-  it('aceitar os padrões nas duas listas manda exatamente o que estava marcado', async () => {
+  it('aceitar os padrões nas listas manda exatamente o que estava marcado', async () => {
     const { run, answers, shown, api } = await setup();
-    // Uma primeira passada só para ver as duas listas; desiste na segunda.
-    answers.push(0, undefined);
+    // Uma primeira passada só para ver as listas; desiste na terceira.
+    answers.push(0, 0, undefined);
     await run('lords.newGame');
-    const [difficulty, pace] = [shownAs(shown, 0, 'pick'), shownAs(shown, 1, 'pick')];
+    const [difficulty, pace, scenario] = [
+      shownAs(shown, 0, 'pick'),
+      shownAs(shown, 1, 'pick'),
+      shownAs(shown, 2, 'pick'),
+    ];
     shown.length = 0;
-    // Enter, Enter: o item marcado de cada lista.
-    answers.push(difficulty.selected, pace.selected, true, 'Vila Nova');
+    // Enter, Enter, Enter: o item marcado de cada lista.
+    answers.push(difficulty.selected, pace.selected, scenario.selected, true, 'Vila Nova');
     await run('lords.newGame');
-    expect(api.state.gameRequests.at(-1)).toMatchObject({ difficulty: 'lord', timeScale: 3 });
+    expect(api.state.gameRequests.at(-1)).toMatchObject({
+      difficulty: 'lord',
+      timeScale: 3,
+      scenario: 'standard',
+    });
   });
 
-  it('desistir em qualquer das duas listas não pergunta mais nada nem muda o feudo', async () => {
+  it('desistir em qualquer das listas não pergunta mais nada nem muda o feudo', async () => {
     const { run, answers, shown, requested } = await setup();
     answers.push(undefined);
     await run('lords.newGame');
@@ -2262,12 +2338,16 @@ describe('recrutar, renomear e nova partida', () => {
     answers.push(0, undefined);
     await run('lords.newGame');
     expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick']);
+    shown.length = 0;
+    answers.push(0, 0, undefined);
+    await run('lords.newGame');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'pick']);
     expect(requested('POST /games')).toBe(0);
   });
 
   it('confirmada mas sem nome (desistiu no campo), nada muda', async () => {
     const { run, answers, requested } = await setup();
-    answers.push(1, 0, true, undefined);
+    answers.push(1, 0, 0, true, undefined);
     await run('lords.newGame');
     expect(requested('POST /games')).toBe(0);
   });
@@ -2305,13 +2385,14 @@ describe('recrutar, renomear e nova partida', () => {
       },
     });
     expect(controller.hasGame).toBe(false);
-    answers.push(0, 1, 'Vau Alto');
+    answers.push(0, 1, 0, 'Vau Alto');
     await run('lords.newGame');
-    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'input']);
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'pick', 'input']);
     expect(api.state.gameRequests.at(-1)).toMatchObject({
       settlementName: 'Vau Alto',
       difficulty: 'peasant',
       timeScale: 1,
+      scenario: 'standard',
     });
     expect(controller.route).toBe('fief');
   });
@@ -2390,6 +2471,7 @@ describe('recrutar, renomear e nova partida', () => {
       expect(await acceptEverything(controller, dialogs)).toEqual([
         'Nova partida: dificuldade',
         'Nova partida: ritmo',
+        'Nova partida: cenário',
         'Começar uma nova partida?',
         'Nova partida',
       ]);
@@ -2415,7 +2497,7 @@ describe('recrutar, renomear e nova partida', () => {
       expect(dialogs.current).toBeNull();
 
       controller.runCommand('lords.newGame');
-      expect(await acceptEverything(controller, dialogs)).toHaveLength(4);
+      expect(await acceptEverything(controller, dialogs)).toHaveLength(5);
       expect(api.state.gameRequests).toHaveLength(1);
     });
 

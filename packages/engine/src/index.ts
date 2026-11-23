@@ -61,6 +61,7 @@ export type {
   RejectionCode,
   ResourceCostView,
   ResourceId,
+  ScenarioId,
   ScheduledRaid,
   SeasonId,
   SiegeView,

@@ -3,6 +3,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -1802,6 +1804,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -3627,6 +3631,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -5489,6 +5495,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -7556,6 +7564,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -9662,6 +9672,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -11900,6 +11912,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -13977,6 +13991,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -16050,6 +16066,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -18114,6 +18132,8 @@
     "seed": "fixture-council-1915",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -20301,6 +20321,8 @@
     "seed": "fixture-council-1915",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -22471,6 +22493,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -24618,6 +24642,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -26775,6 +26801,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -28992,6 +29020,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -31149,6 +31179,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -33259,6 +33291,8 @@
     "seed": "fixture-guild-view",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -35301,6 +35335,8 @@
     "seed": "fixture-wage-arrears",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -37320,6 +37356,8 @@
     "seed": "fixture-hero-promised",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -39126,6 +39164,8 @@
     "seed": "fixture-tavern",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -41302,6 +41342,8 @@
     "seed": "fixture-tavern-busy",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -43517,6 +43559,8 @@
     "seed": "fixture-expedition",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -45883,6 +45927,8 @@
     "seed": "fixture-expedition-crossroads",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -48309,6 +48355,8 @@
     "seed": "fixture-expedition-returning",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -50749,6 +50797,8 @@
     "seed": "fixture-hero-injured",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -53199,6 +53249,8 @@
     "seed": "fixture-hero-captured",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -55867,6 +55919,8 @@
     "seed": "fixture-den-cleared",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -58307,6 +58361,8 @@
     "seed": "fixture-market-opening",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -60465,6 +60521,8 @@
     "seed": "fixture-market",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -62653,6 +62711,8 @@
     "seed": "fixture-caravan",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -64867,6 +64927,8 @@
     "seed": "fixture-caravan-escort",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -67186,6 +67248,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -69307,6 +69371,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -71381,6 +71447,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,
@@ -73463,6 +73531,8 @@
     "seed": "pedra-alta",
     "map": {
       "radius": 5,
+      "scenario": "standard",
+      "scenarioLabel": "Terras do Feudo",
       "hexes": [
         {
           "q": 0,

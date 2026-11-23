@@ -56,6 +56,8 @@ it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o ter
   const game = await insertGame(server, before, { timeScale: 1, stateVersion: 7 });
   const first = await getView(server, game);
   expect(first.status).toBe(200);
+  expect(first.body.view.map.scenario).toBe('standard');
+  expect(first.body.view.map.scenarioLabel).toBe('Terras do Feudo');
   expect(first.body.view.map.hexes.find((hex) => hex.q === 3 && hex.r === -2)).toMatchObject({
     fog: 'explored',
     site: 'ruins',
@@ -67,6 +69,7 @@ it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o ter
   const row = await rowOf(server, game.id);
   expect(row).toMatchObject({ schemaVersion: 45, stateVersion: 8 });
   const saved = row.state as StoredState & Pick<GameState, 'map'>;
+  expect(saved.map.scenario).toBe('standard');
   expect(Object.keys(saved.map.hexes)).toHaveLength(91);
   expect(saved.map.hexes['2,-5']).toMatchObject({ fog: 'unknown', site: 'hordeFortress' });
   saved.map.hexes['2,-5']!.terrain = 'lake';
@@ -245,6 +248,7 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.map?.expeditionUnlocks;
   delete copy.map?.hexes;
   delete copy.map?.radius;
+  delete copy.map?.scenario;
   // Terceira junção (estados 39 a 42): o Acampamento, o Cerco e o lote 3.
   delete copy.siege;
   delete copy.army?.campaign;

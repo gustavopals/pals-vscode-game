@@ -355,6 +355,16 @@ test.describe('governar o feudo', () => {
       'Normal: um ano em 7 dias',
     );
     await page.keyboard.press('Enter');
+    const scenario = page.getByRole('dialog', { name: 'Nova partida: cenário' });
+    await expect(scenario.getByRole('option')).toHaveCount(2);
+    await expect(scenario.getByRole('option', { selected: true })).toContainText(
+      'Terras do Feudo (recomendado)',
+    );
+    await expect(scenario.getByRole('option', { name: /Serra do Ferro/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    await page.keyboard.press('Enter');
     const confirm = page.getByRole('dialog', { name: 'Começar uma nova partida?' });
     await expect(confirm).toContainText('O feudo atual é arquivado');
     await expect(confirm).toContainText('Senhor · Normal: um ano em 7 dias');
@@ -377,6 +387,8 @@ test.describe('governar o feudo', () => {
     await expect(pace.getByRole('option', { selected: true })).toContainText(
       'Tranquilo: um ano em 14 dias',
     );
+    await page.keyboard.press('Enter');
+    await expect(scenario).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(confirm).toContainText('Rei de Ferro · Tranquilo: um ano em 14 dias');
     await confirm.getByRole('button', { name: 'Começar outro feudo' }).click();

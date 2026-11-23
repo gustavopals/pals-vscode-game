@@ -93,6 +93,7 @@ describe('V4G-T5.1 · limites do Cerco', () => {
     delete historical.map.expeditionUnlocks;
     delete historical.map.hexes;
     delete historical.map.radius;
+    delete historical.map.scenario;
     const migrated = migrateState(historical, { timeScale: 1 });
     expect(migrated.siege).toBeNull();
     expect(migrated.rng).toEqual(template.rng);

@@ -95,6 +95,7 @@ const welcome = (
     online: boolean;
     githubAvailable: boolean;
     options: NewGameOptions | null;
+    legacy: number | null;
     initialSeed: string | null;
     openSeed: boolean;
   }> = {},
@@ -207,14 +208,15 @@ describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
   const textOf = (page: string, id: string) =>
     new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(page)?.[1] ?? null;
 
-  it('dois grupos de opções, na ordem do servidor, cada um com nome para leitores de tela', () => {
+  it('três grupos de opções, na ordem do servidor, cada um com nome para leitores de tela', () => {
     const page = welcome({ options });
     const groups = tags(page, /<fieldset[^>]*>/g);
-    expect(groups).toHaveLength(2);
+    expect(groups).toHaveLength(3);
     expect(groups.every((tag) => attribute(tag, 'role') === 'radiogroup')).toBe(true);
     expect(groups.map((tag) => textOf(page, attribute(tag, 'aria-labelledby') ?? ''))).toEqual([
       'Dificuldade',
       'Ritmo',
+      'Cenário',
     ]);
     expect(radios(page, 'difficulty').map((tag) => attribute(tag, 'value'))).toEqual([
       'peasant',
@@ -222,6 +224,10 @@ describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
       'ironKing',
     ]);
     expect(radios(page, 'pace').map((tag) => attribute(tag, 'value'))).toEqual(['3', '1', '0.5']);
+    expect(radios(page, 'scenario').map((tag) => attribute(tag, 'value'))).toEqual([
+      'standard',
+      'ironRidge',
+    ]);
   });
 
   it('cada opção tem a linha curta como nome e uma frase como descrição, as duas à vista', () => {
@@ -229,7 +235,7 @@ describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
     const named = (name: string) =>
       radios(page, name).map((tag) => ({
         line: textOf(page, attribute(tag, 'aria-labelledby') ?? ''),
-        about: textOf(page, attribute(tag, 'aria-describedby') ?? ''),
+        about: textOf(page, (attribute(tag, 'aria-describedby') ?? '').split(' ')[0] ?? ''),
       }));
     expect(named('difficulty')).toEqual([
       { line: 'Camponês', about: options.difficulties[0]?.description },
@@ -241,8 +247,48 @@ describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
       { line: 'Normal: um ano em 7 dias', about: options.paces[1]?.hint },
       { line: 'Tranquilo: um ano em 14 dias', about: options.paces[2]?.hint },
     ]);
-    // Nenhuma frase fica escondida atrás de um clique ou do mouse.
-    expect(page).not.toMatch(/hidden|title="/);
+    expect(named('scenario')).toEqual([
+      { line: 'Terras do Feudo (recomendado)', about: options.scenarios?.[0]?.description },
+      { line: 'Serra do Ferro (200 de Legado)', about: options.scenarios?.[1]?.description },
+    ]);
+    // Nenhuma frase fica escondida atrás de um clique ou do mouse (o ícone decorativo do cadeado é vazio).
+    expect(
+      page.replace(/<span class="codicon [^"]*" aria-hidden="true"><\/span>/g, ''),
+    ).not.toMatch(/hidden|title="/);
+  });
+
+  it('cenário: sem Legado suficiente aparece trancado com o motivo do servidor; com Legado libera e sem catálogo de cenários omite o grupo (V5E-T4)', () => {
+    const locked = welcome({ options, legacy: 0 });
+    const lockedRadios = radios(locked, 'scenario');
+    expect(checked(locked, 'scenario')).toEqual(['standard']);
+    expect(lockedRadios[0]).not.toMatch(/\sdisabled/);
+    expect(lockedRadios[1]).toMatch(/\sdisabled/);
+    expect(locked).toContain('Requer 200 pontos de Legado na conta.');
+    expect(locked).toContain('codicon-lock');
+
+    const partial = welcome({ options, account: { displayName: 'Gustavo' }, legacy: 50 });
+    expect(radios(partial, 'scenario')[1]).toMatch(/\sdisabled/);
+    expect(partial).toContain('Requer 200 pontos de Legado na conta. Legado atual: 50.');
+
+    const unlocked = welcome({ options, account: { displayName: 'Gustavo' }, legacy: 200 });
+    expect(radios(unlocked, 'scenario')[1]).not.toMatch(/\sdisabled/);
+    expect(unlocked).not.toContain('Requer 200 pontos de Legado na conta.');
+    expect(unlocked).toContain('Serra do Ferro (200 de Legado)');
+
+    // Servidor anterior sem `scenarios`: só Dificuldade e Ritmo aparecem.
+    const { scenarios: _s, ...oldNewGame } = options;
+    void _s;
+    const withoutScenarios = welcome({
+      options: {
+        ...oldNewGame,
+        defaults: {
+          difficulty: options.defaults.difficulty,
+          timeScale: options.defaults.timeScale,
+        },
+      },
+    });
+    expect(tags(withoutScenarios, /<fieldset[^>]*>/g)).toHaveLength(2);
+    expect(withoutScenarios).not.toContain('Cenário');
   });
 
   it('vem marcado o que o servidor manda marcar, e diz que os dois não mudam durante o ano', () => {
@@ -281,14 +327,39 @@ describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
           recommended: false,
         },
       ],
-      defaults: { difficulty: 'lord', timeScale: 1 },
+      scenarios: [
+        {
+          id: 'standard',
+          label: 'Planalto Inventado',
+          description: 'Descrição exclusiva do servidor.',
+          legacyCost: 0,
+          costLabel: null,
+          lockedReason: null,
+          recommended: false,
+        },
+        {
+          id: 'ironRidge',
+          label: 'Cume Inventado',
+          description: 'Pedras inventadas pelo servidor.',
+          legacyCost: 777,
+          costLabel: '777 brasões',
+          lockedReason: 'Exige 777 brasões do servidor.',
+          recommended: false,
+        },
+      ],
+      defaults: { difficulty: 'lord', timeScale: 1, scenario: 'standard' },
     };
-    const page = welcome({ options: other });
+    const page = welcome({ options: other, legacy: 0 });
     expect(page).toContain('Alcaide');
     expect(page).toContain('Frase que só o servidor conhece.');
     expect(page).toContain('Passo de boi: um ano em 9 luas');
     expect(page).toContain('Para quem ara devagar.');
-    expect(page).not.toMatch(/Senhor|Camponês|Rei de Ferro|Rápido|Tranquilo|recomendado/);
+    expect(page).toContain('Planalto Inventado');
+    expect(page).toContain('Cume Inventado (777 brasões)');
+    expect(page).toContain('Exige 777 brasões do servidor.');
+    expect(page).not.toMatch(
+      /Senhor|Camponês|Rei de Ferro|Rápido|Tranquilo|recomendado|Serra do Ferro|Terras do Feudo|200 de Legado/,
+    );
   });
 
   it('escolher é opcional: com os nomes válidos, "Jogar agora" já pode ser clicado', () => {

@@ -1,10 +1,11 @@
 import {
   fixedHexes,
   mapRules,
-  terrains,
+  mapScenarios,
   TERRAIN_IDS,
   type ExpeditionModelId,
   type MapSiteId,
+  type ScenarioId,
   type TerrainId,
 } from '@lotg/content';
 import { hashText } from './hash';
@@ -54,20 +55,26 @@ export function siteDestination(site: MapSiteId): ExpeditionModelId | null {
   return site === 'hordeFortress' ? 'sabotage' : site;
 }
 
-function terrainAt(seed: string, key: string): TerrainId {
+function terrainAt(
+  seed: string,
+  key: string,
+  weights: Readonly<Record<TerrainId, number>>,
+): TerrainId {
   let part = hashText(`${seed}:map:${key}`) % 100;
   for (const terrain of TERRAIN_IDS) {
-    part -= terrains[terrain].weight;
+    part -= weights[terrain];
     if (part < 0) return terrain;
   }
   throw new Error('Os pesos dos terrenos devem somar 100.');
 }
 
-/** A semente e a coordenada bastam para cada terreno livre. */
+/** A semente, o cenário e a coordenada bastam para cada terreno livre. */
 export function generateHexMap(
   seed: string,
   discovered: readonly string[],
-): Pick<GameState['map'], 'hexes' | 'radius'> {
+  scenario: ScenarioId = 'standard',
+): Pick<GameState['map'], 'hexes' | 'radius' | 'scenario'> {
+  const weights = mapScenarios[scenario].terrainWeights;
   const hexes: GameState['map']['hexes'] = {};
   for (const { q, r } of mapCoordinates) {
     const key = `${q},${r}` as const;
@@ -76,9 +83,9 @@ export function generateHexMap(
     const destination = fixed?.site && siteDestination(fixed.site);
     const explored = distance === 0 || (destination && discovered.includes(destination));
     hexes[key] = {
-      ...(fixed ?? { terrain: terrainAt(seed, key) }),
+      ...(fixed ?? { terrain: terrainAt(seed, key, weights) }),
       fog: explored ? 'explored' : distance <= mapRules.sightedRadius ? 'sighted' : 'unknown',
     };
   }
-  return { radius: mapRules.radius, hexes };
+  return { radius: mapRules.radius, scenario, hexes };
 }

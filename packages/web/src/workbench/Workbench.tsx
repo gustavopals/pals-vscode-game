@@ -63,6 +63,7 @@ function TabContent(props: {
           online={online}
           githubAvailable={controller.githubAvailable}
           options={controller.newGameOptions}
+          legacy={controller.accountLegacy}
           initialSeed={controller.pendingSeed}
           openSeed={controller.openSeedField}
           actions={actions}

@@ -5,6 +5,7 @@ import {
   buildings,
   DIFFICULTY_IDS,
   objectives,
+  SCENARIO_IDS,
   startingTiles,
   UNIT_IDS,
 } from '@lotg/content';
@@ -25,6 +26,10 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   assertTimeScale(settings.timeScale);
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
+  }
+  const scenario = settings.scenario ?? 'standard';
+  if (!SCENARIO_IDS.includes(scenario)) {
+    throw new Error(`Cenário desconhecido: ${String(scenario)}.`);
   }
   // O Celeiro, o Armazém, a Torre de Vigia, a Paliçada, a Taverna e a Guilda nascem no nível 0: ainda não
   // foram construídos.
@@ -103,7 +108,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // O Covil de Lobos está ativo desde o primeiro dia, e a Ameaça começa em zero (GDD §8.2).
     map: {
-      ...generateHexMap(seed, []),
+      ...generateHexMap(seed, [], scenario),
       tiles: Object.fromEntries(
         startingTiles.map((tile) => [
           tile.id,

@@ -645,6 +645,9 @@ export class Controller {
     if (this.route === 'welcome' || this.route === 'settings') {
       void this.loadCatalog();
     }
+    if (this.route === 'welcome' && this.account.state.kind !== 'signedOut') {
+      void this.loadStats();
+    }
   }
 
   closeTab(route: Route): void {
@@ -672,11 +675,14 @@ export class Controller {
     this.previousAccount = state;
     const beforeTarget = this.targetOf(before);
     const target = this.targetOf(state);
+    const sameAccount =
+      before.kind !== 'signedOut' &&
+      state.kind !== 'signedOut' &&
+      before.accountId === state.accountId;
     const sameGame =
-      beforeTarget !== null &&
-      target !== null &&
-      beforeTarget.accountId === target.accountId &&
-      beforeTarget.gameId === target.gameId;
+      sameAccount &&
+      ((beforeTarget === null && target === null) ||
+        (beforeTarget !== null && target !== null && beforeTarget.gameId === target.gameId));
 
     if (!sameGame) {
       const leftAccount =
@@ -2411,6 +2417,14 @@ export class Controller {
   /** As opções de nova partida, se já chegaram. */
   get newGameOptions(): NewGameOptions | null {
     return this.catalog.status === 'ready' ? this.catalog.value : null;
+  }
+
+  /** Legado acumulado da conta; `0` sem conta, `null` enquanto ainda não foi lido. */
+  get accountLegacy(): number | null {
+    if (this.account.state.kind === 'signedOut') {
+      return 0;
+    }
+    return this.stats.status === 'ready' ? this.stats.value.me.legacy : null;
   }
 
   /** Versão do servidor e o que ele tem ligado (`GET /version`). */

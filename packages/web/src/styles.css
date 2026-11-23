@@ -895,6 +895,15 @@ progress::-webkit-progress-value {
   background: var(--vscode-list-hoverBackground);
 }
 
+.choice-option-locked {
+  cursor: not-allowed;
+  color: var(--vscode-descriptionForeground);
+}
+
+.choice-option-locked:hover {
+  background: transparent;
+}
+
 .choice-option input[type='radio'] {
   margin: 4px 0 0;
   accent-color: var(--vscode-button-background);

@@ -201,6 +201,7 @@
  },
  "map": {
   "radius": 5,
+  "scenario": "standard",
   "hexes": {
    "0,0": {
     "terrain": "fields",

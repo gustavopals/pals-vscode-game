@@ -545,6 +545,11 @@ input::placeholder {
   cursor: pointer;
 }
 
+.quickpick-item-disabled {
+  cursor: not-allowed;
+  color: var(--vscode-descriptionForeground);
+}
+
 .quickpick-item[aria-selected='true'] {
   color: var(--vscode-quickInputList-focusForeground);
   background: var(--vscode-quickInputList-focusBackground);

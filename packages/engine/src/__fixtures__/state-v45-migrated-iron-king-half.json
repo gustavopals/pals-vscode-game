@@ -187,6 +187,7 @@
   "discovered": [],
   "expeditionUnlocks": {},
   "radius": 5,
+  "scenario": "standard",
   "hexes": {
    "-5,0": {
     "terrain": "forest",

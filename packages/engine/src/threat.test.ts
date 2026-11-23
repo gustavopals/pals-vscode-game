@@ -80,6 +80,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     const state = newGame();
     expect(state.map).toEqual({
       radius: 5,
+      scenario: 'standard',
       hexes: expect.any(Object),
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,

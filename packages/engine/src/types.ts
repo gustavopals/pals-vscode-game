@@ -29,6 +29,7 @@ import type {
   Ratio,
   ResourceAmounts,
   ResourceId,
+  ScenarioId,
   SeasonId,
   TileTypeId,
   TradeDirectionId,
@@ -62,6 +63,7 @@ export type {
   ProductionBuildingId,
   RaidSizeId,
   ResourceId,
+  ScenarioId,
   SeasonId,
   TileTypeId,
   TradeDirectionId,
@@ -91,6 +93,8 @@ export type GameCreationSettings = GameSettings & {
   /** Chamadas offline sem contexto usam a época UTC, de forma reproduzível. */
   realOriginMs?: number;
   vigil?: VigilSettings;
+  /** Cenário do gerador de mapa (D-18); sem ele, vale o padrão (`standard`). */
+  scenario?: ScenarioId;
 };
 
 export type Construction = {
@@ -761,6 +765,7 @@ export type GameState = {
    */
   map: {
     radius: number;
+    scenario: ScenarioId;
     hexes: Record<
       `${number},${number}`,
       {
@@ -2851,7 +2856,12 @@ export type MapHexView =
 
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
-  map: { radius: number; hexes: MapHexView[] };
+  map: {
+    radius: number;
+    scenario?: ScenarioId | undefined;
+    scenarioLabel?: string | undefined;
+    hexes: MapHexView[];
+  };
   /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
   seed?: string | undefined;
   settlement: {

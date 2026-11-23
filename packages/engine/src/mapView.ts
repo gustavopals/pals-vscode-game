@@ -1,4 +1,4 @@
-import { terrains, tileTypes } from '@lotg/content';
+import { mapScenarios, mapTexts, terrains, tileTypes } from '@lotg/content';
 import { expeditionLabel } from './expeditions';
 import { mapCoordinates, siteDestination } from './hexmap';
 import type { GameState, ViewState, MapHexView, MapActionView } from './types';
@@ -34,7 +34,16 @@ export function mapView(
     if (q === 0 && r === 0) label = state.settlement.name;
     else if (tile) label = tileTypes[tile.type].label;
     else if (destination) label = expeditionLabel(destination);
-    return { ...visible, fog: hex.fog, site, label, detail: terrain.detail, actions };
+    const detail =
+      hex.terrain === 'sanctuary' && (state.stats.sanctuaryClaimed ?? 0) > 0
+        ? mapTexts.sanctuaryClaimedDetail
+        : terrain.detail;
+    return { ...visible, fog: hex.fog, site, label, detail, actions };
   });
-  return { radius: state.map.radius, hexes };
+  return {
+    radius: state.map.radius,
+    scenario: state.map.scenario,
+    scenarioLabel: mapScenarios[state.map.scenario].label,
+    hexes,
+  };
 }

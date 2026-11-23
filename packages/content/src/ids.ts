@@ -343,3 +343,7 @@ export const TERRAIN_IDS = [
   'sanctuary',
 ] as const;
 export type TerrainId = (typeof TERRAIN_IDS)[number];
+
+/** Cenários do gerador de mapa (GDD §11.5; ADR 0022, D-18). O id fica gravado no estado (`map.scenario`). */
+export const SCENARIO_IDS = ['standard', 'ironRidge'] as const;
+export type ScenarioId = (typeof SCENARIO_IDS)[number];
