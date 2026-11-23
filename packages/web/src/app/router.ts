@@ -9,6 +9,7 @@ export const ROUTES = [
   'guild',
   'market',
   'army',
+  'map',
   'chronicle',
   'kingdom',
   'settings',
@@ -25,6 +26,7 @@ export const GAME_ROUTES: readonly Route[] = [
   'guild',
   'market',
   'army',
+  'map',
   'chronicle',
 ];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
@@ -45,6 +47,7 @@ const PATHS: Record<Route, string> = {
   guild: 'guilda',
   market: 'mercado',
   army: 'exercito',
+  map: 'mapa',
   chronicle: 'cronica',
   kingdom: 'reino',
   settings: 'preferencias',
@@ -60,6 +63,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   guild: 'Guilda',
   market: 'Mercado',
   army: 'Exército',
+  map: 'Mapa',
   chronicle: 'Crônica',
   kingdom: 'Reino',
   settings: 'Preferências',
@@ -75,6 +79,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   guild: 'compass',
   market: 'tag',
   army: 'organization',
+  map: 'map',
   chronicle: 'book',
   kingdom: 'graph',
   settings: 'gear',
@@ -142,7 +147,7 @@ export function resolveRoute(requested: Route, hasGame: boolean, fallback: Route
  */
 export function visibleTabs(hasGame: boolean, opened: readonly Route[]): Route[] {
   const fixed: Route[] = hasGame
-    ? ['today', 'fief', 'council', 'guild', 'market', 'army']
+    ? ['today', 'fief', 'council', 'guild', 'market', 'army', 'map']
     : ['welcome'];
   const extra = CLOSABLE_ROUTES.filter(
     (route) => opened.includes(route) && (hasGame || !GAME_ROUTES.includes(route)),

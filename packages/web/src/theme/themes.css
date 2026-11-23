@@ -96,6 +96,22 @@
   --vscode-notifications-foreground: #d7dae0;
   --vscode-notifications-border: #43464e;
   --vscode-scrollbarSlider-background: #4b4f58;
+
+  --vscode-map-hex-foreground: #f0f1f3;
+  --vscode-map-hex-border: #4b505c;
+  --vscode-map-hex-selected: #e5b547;
+  --vscode-map-fog-unknown: #23252b;
+  --vscode-map-fog-sighted: #343b48;
+  --vscode-map-fog-explored: #2d4c3e;
+  --vscode-map-fog-claimed: #5c4518;
+  --vscode-map-terrain-forest: #22422d;
+  --vscode-map-terrain-hills: #4d3d30;
+  --vscode-map-terrain-fields: #434625;
+  --vscode-map-terrain-lake: #1f3e59;
+  --vscode-map-terrain-swamp: #244340;
+  --vscode-map-terrain-ruins: #3d334c;
+  --vscode-map-terrain-ironVein: #373f4a;
+  --vscode-map-terrain-sanctuary: #52421d;
 }
 
 :root[data-theme='light'] {
@@ -182,6 +198,22 @@
   --vscode-notifications-foreground: #24292f;
   --vscode-notifications-border: #b4b9c1;
   --vscode-scrollbarSlider-background: #b4b9c1;
+
+  --vscode-map-hex-foreground: #1b1f24;
+  --vscode-map-hex-border: #8c959f;
+  --vscode-map-hex-selected: #9a6b00;
+  --vscode-map-fog-unknown: #e6e9ee;
+  --vscode-map-fog-sighted: #dce3ec;
+  --vscode-map-fog-explored: #d5eadc;
+  --vscode-map-fog-claimed: #f2e2b8;
+  --vscode-map-terrain-forest: #cde3d0;
+  --vscode-map-terrain-hills: #e6d8ca;
+  --vscode-map-terrain-fields: #e7e5c3;
+  --vscode-map-terrain-lake: #cbe0f2;
+  --vscode-map-terrain-swamp: #cde1dc;
+  --vscode-map-terrain-ruins: #dfd6ea;
+  --vscode-map-terrain-ironVein: #d6dce3;
+  --vscode-map-terrain-sanctuary: #f2e3b8;
 }
 
 :root[data-theme='high-contrast'] {
@@ -268,4 +300,20 @@
   --vscode-notifications-foreground: #ffffff;
   --vscode-notifications-border: #6fc3df;
   --vscode-scrollbarSlider-background: #6fc3df;
+
+  --vscode-map-hex-foreground: #ffffff;
+  --vscode-map-hex-border: #6fc3df;
+  --vscode-map-hex-selected: #f38518;
+  --vscode-map-fog-unknown: #000000;
+  --vscode-map-fog-sighted: #101820;
+  --vscode-map-fog-explored: #0b2418;
+  --vscode-map-fog-claimed: #2e1f00;
+  --vscode-map-terrain-forest: #082914;
+  --vscode-map-terrain-hills: #2b1d12;
+  --vscode-map-terrain-fields: #242608;
+  --vscode-map-terrain-lake: #08223a;
+  --vscode-map-terrain-swamp: #082927;
+  --vscode-map-terrain-ruins: #221433;
+  --vscode-map-terrain-ironVein: #1a222b;
+  --vscode-map-terrain-sanctuary: #2e2200;
 }

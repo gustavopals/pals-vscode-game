@@ -30,6 +30,7 @@ describe('endereço da aba (hash)', () => {
     expect(formatHash('fief')).toBe('#/feudo');
     expect(formatHash('today')).toBe('#/hoje');
     expect(formatHash('council')).toBe('#/conselho');
+    expect(formatHash('map')).toBe('#/mapa');
     expect(formatHash('chronicle')).toBe('#/cronica');
     expect(formatHash('settings')).toBe('#/preferencias');
     expect(formatHash('about')).toBe('#/sobre');
@@ -43,6 +44,8 @@ describe('endereço da aba (hash)', () => {
     expect(parseHash('#/feudo/')).toBe('fief');
     expect(parseHash('#/hoje//')).toBe('today');
     expect(parseHash('#/conselho')).toBe('council');
+    expect(parseHash('#/mapa')).toBe('map');
+    expect(parseHash('#/mapa/')).toBe('map');
   });
 
   it('endereço vazio ou desconhecido não é aba nenhuma', () => {
@@ -124,8 +127,16 @@ describe('visibleTabs', () => {
     expect(visibleTabs(false, [])).toEqual(['welcome']);
   });
 
-  it('com feudo, Hoje, Feudo, Conselho, Guilda e Mercado estão sempre lá, nessa ordem', () => {
-    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army']);
+  it('com feudo, Hoje, Feudo, Conselho, Guilda, Mercado, Exército e Mapa estão sempre lá, nessa ordem', () => {
+    expect(visibleTabs(true, [])).toEqual([
+      'today',
+      'fief',
+      'council',
+      'guild',
+      'market',
+      'army',
+      'map',
+    ]);
   });
 
   it('as abas abertas vêm depois das fixas, em ordem estável', () => {
@@ -136,6 +147,7 @@ describe('visibleTabs', () => {
       'guild',
       'market',
       'army',
+      'map',
       'chronicle',
       'settings',
       'about',
@@ -147,6 +159,7 @@ describe('visibleTabs', () => {
       'guild',
       'market',
       'army',
+      'map',
       'settings',
     ]);
   });
@@ -160,14 +173,9 @@ describe('visibleTabs', () => {
   });
 
   it('uma aba fixa na lista de abertas não aparece duas vezes', () => {
-    expect(visibleTabs(true, ['fief', 'today', 'council', 'guild', 'market', 'army'])).toEqual([
-      'today',
-      'fief',
-      'council',
-      'guild',
-      'market',
-      'army',
-    ]);
+    expect(
+      visibleTabs(true, ['fief', 'today', 'council', 'guild', 'market', 'army', 'map']),
+    ).toEqual(['today', 'fief', 'council', 'guild', 'market', 'army', 'map']);
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
 
@@ -185,6 +193,7 @@ describe('visibleTabs', () => {
       'council',
       'fief',
       'guild',
+      'map',
       'market',
       'today',
     ]);

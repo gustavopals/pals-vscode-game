@@ -16,6 +16,7 @@ import { CouncilTab } from '../tabs/Council';
 import { GuildTab } from '../tabs/Guild';
 import { KingdomTab } from '../tabs/Kingdom';
 import { FiefTab } from '../tabs/Fief';
+import { MapTab } from '../tabs/Map';
 import { MarketTab } from '../tabs/Market';
 import { NewsTab } from '../tabs/News';
 import { SettingsTab } from '../tabs/Settings';
@@ -138,6 +139,7 @@ function TabContent(props: {
     case 'guild':
     case 'market':
     case 'army':
+    case 'map':
       if (view === null) {
         return (
           <main class="loading">
@@ -148,6 +150,18 @@ function TabContent(props: {
                 : 'Ainda não há um estado guardado neste navegador.'}
             </p>
           </main>
+        );
+      }
+      if (route === 'map') {
+        return (
+          <MapTab
+            view={view}
+            elapsed={elapsed}
+            online={online}
+            retryInSeconds={retryInSeconds}
+            busy={controller.guildOrders}
+            actions={actions}
+          />
         );
       }
       if (route === 'council') {

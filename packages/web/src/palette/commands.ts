@@ -4574,6 +4574,13 @@ export function createCommands(
       run: go('army'),
     },
     {
+      id: 'lords.openMap',
+      title: 'Ir para o Mapa',
+      palette: true,
+      when: hasGame,
+      run: go('map'),
+    },
+    {
       id: 'lords.trainSoldiers',
       title: 'Treinar soldados…',
       palette: true,
@@ -4938,6 +4945,7 @@ export function createCommands(
           arg === 'guild' ||
           arg === 'market' ||
           arg === 'army' ||
+          arg === 'map' ||
           arg === 'chronicle'
           ? arg
           : controller.defaultRoute(),

@@ -90,6 +90,7 @@ import {
   objectiveTreeLine,
 } from './objectives';
 import { ARMY_ICON, ARMY_NODE, ARMY_SECTION, armyTreeLine } from './army';
+import { MAP_ICON, mapTreeLine, mapTreeTooltip } from './hexmap';
 import {
   CHAPEL_NODE,
   chapelLines,
@@ -776,6 +777,21 @@ function armyNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * O mapa hexagonal (V5E-T3, GDD §8.1): resumo do que já foi explorado e avistado.
+ * O clique abre a aba Mapa; as ações saem da ficha de cada hexágono.
+ */
+function mapNode(view: ViewState): TreeNode {
+  return {
+    id: 'map',
+    label: 'Mapa',
+    description: mapTreeLine(view.map),
+    tooltip: mapTreeTooltip(view.map),
+    icon: MAP_ICON,
+    command: { id: 'lords.openPanel', args: ['map'] },
+  };
+}
+
+/**
  * Os Mestres (GDD §5.4): quem trabalha onde e com que bônus (na frase do servidor), quem ainda se
  * adapta e quem espera uma vaga nas casas. O botão "Mover" de cada linha abre a lista dos
  * edifícios com o que cada um renderia. Sem Mestre nenhum, a árvore nem fala deles.
@@ -1053,6 +1069,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         marketNode(view, input.elapsedSeconds),
         smithyNode(view, input.elapsedSeconds),
         armyNode(view, input.elapsedSeconds),
+        mapNode(view),
         ...mastersNode(view),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),
