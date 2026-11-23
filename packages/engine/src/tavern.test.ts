@@ -893,7 +893,7 @@ describe('a Taverna na visão e na névoa', () => {
           traits: [
             {
               label: 'Rastreador',
-              text: 'Acha o caminho de volta a um lugar mesmo quando a jornada vai mal.',
+              text: 'Acha o caminho de volta a um lugar mesmo quando a jornada vai mal. Explora mais um hexágono por expedição.',
             },
           ],
           price: 100,

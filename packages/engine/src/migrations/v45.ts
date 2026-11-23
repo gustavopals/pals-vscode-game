@@ -111,6 +111,8 @@ export const v44ToV45: MigrationStep = {
   migrate: (state) => {
     const map = state.map as StoredState;
     const discovered = map.discovered as string[];
+    const buildings = (state.settlement as StoredState).buildings as StoredState;
+    const sightedRadius = Math.min(5, 3 + (buildings.watchtower as number));
     const hexes = Object.fromEntries(
       coordinates.map(({ key, distance }) => {
         const place = fixed[key];
@@ -122,7 +124,7 @@ export const v44ToV45: MigrationStep = {
           key,
           {
             ...(place ?? { terrain: terrainAt(state.seed as string, key) }),
-            fog: explored ? 'explored' : distance <= 3 ? 'sighted' : 'unknown',
+            fog: explored ? 'explored' : distance <= sightedRadius ? 'sighted' : 'unknown',
           },
         ];
       }),

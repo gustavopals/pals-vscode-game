@@ -193,7 +193,7 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
   tracker: {
     label: 'Rastreador',
     labelFeminine: 'Rastreadora',
-    text: 'Acha o caminho de volta a um lugar mesmo quando a jornada vai mal.',
+    text: 'Acha o caminho de volta a um lugar mesmo quando a jornada vai mal. Explora mais um hexágono por expedição.',
     effects: { revealsOnSetback: true },
   },
 };

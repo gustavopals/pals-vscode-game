@@ -114,6 +114,82 @@ function atFork(
   return { state, expedition: only(state), arrivedAt };
 }
 
+describe('cartografia das expedições', () => {
+  it('explora o destino na volta e um lugar extra mesmo com dois Rastreadores', () => {
+    const start = hall();
+    start.guild.heroes[0]!.traits = ['tracker'];
+    start.guild.heroes[1]!.traits = ['tracker'];
+    const sent = send(start, 'oldForest', ['hero-1', 'hero-2'], 'bold', 0);
+    const fork = advanceTo(sent.state, sent.expedition.nodeEndsAtMs!).state;
+    expect(fork.map.hexes).toEqual(start.map.hexes);
+    const chosen = accept(fork, choose(sent.expedition.id, 'thicket')).state;
+    const end = advanceTo(chosen, 3 * HOUR);
+
+    expect(end.events.filter(({ type }) => type === 'mapRevealed')).toMatchObject([
+      {
+        text: 'No 1º dia da Primavera, a expedição "Floresta Antiga" trouxe novos detalhes para o mapa.',
+        data: { expeditionId: sent.expedition.id, modelId: 'oldForest', count: 2 },
+      },
+    ]);
+    expect(end.state.map.hexes['-2,1']?.fog).toBe('explored');
+    expect(end.state.map.hexes['-1,1']?.fog).toBe('explored');
+  });
+
+  it('destino já explorado só emite mapRevealed com Rastreador; equipe recolhida ou perdida não explora', () => {
+    const explored = hall();
+    explored.map.hexes['-2,1']!.fog = 'explored';
+    const plain = send(explored, 'oldForest', ['hero-1', 'hero-2'], 'bold', 0);
+    const plainFork = advanceTo(plain.state, plain.expedition.nodeEndsAtMs!).state;
+    const plainEnd = advanceTo(
+      accept(plainFork, choose(plain.expedition.id, 'thicket')).state,
+      3 * HOUR,
+    );
+    expect(plainEnd.events.filter(({ type }) => type === 'mapRevealed')).toEqual([]);
+    expect(plainEnd.state.map.hexes).toEqual(explored.map.hexes);
+
+    const tracked = cloneState(explored);
+    tracked.guild.heroes[0]!.traits = ['tracker'];
+    const withTracker = send(tracked, 'oldForest', ['hero-1', 'hero-2'], 'bold', 0);
+    const trackerFork = advanceTo(withTracker.state, withTracker.expedition.nodeEndsAtMs!).state;
+    const trackerEnd = advanceTo(
+      accept(trackerFork, choose(withTracker.expedition.id, 'thicket')).state,
+      3 * HOUR,
+    );
+    expect(trackerEnd.events.filter(({ type }) => type === 'mapRevealed')).toMatchObject([
+      { data: { expeditionId: withTracker.expedition.id, modelId: 'oldForest', count: 1 } },
+    ]);
+    expect(trackerEnd.state.map.hexes['-1,1']?.fog).toBe('explored');
+    // Mesmo sem sorteio novo: desfecho e saque do nó são idênticos ao grupo sem Rastreador.
+    expect(trackerEnd.state.guild.reports[0]).toEqual(plainEnd.state.guild.reports[0]);
+
+    // Expedição recolhida na fronteira (nó sumiu do conteúdo) não conta como concluída nem revela mapa.
+    const stranded = send(hall(), 'oldForest', ['hero-1'], 'balanced', 0);
+    stranded.state.guild.expeditions[0]!.nodeId = 'vanished';
+    const recalled = advanceTo(stranded.state, 1);
+    expect(recalled.events.filter(({ type }) => type === 'expeditionReturned')).toHaveLength(1);
+    expect(recalled.events.filter(({ type }) => type === 'mapRevealed')).toEqual([]);
+    expect(recalled.state.map.hexes['-2,1']?.fog).toBe('sighted');
+
+    // Expedição perdida (único herói cai na prova) não volta com mapa.
+    const doomed = hall({ difficulty: 'ironKing', level: 4 }, (draft) => {
+      draft.map.discovered = ['ruins'];
+      draft.guild.heroes[0]!.classId = 'cleric';
+      draft.guild.heroes[0]!.level = 2;
+      draft.guild.heroes[0]!.discontent = true;
+      draft.guild.heroes[1]!.level = 2;
+    });
+    const toRuins = send(doomed, 'ruins', ['hero-1', 'hero-2'], 'bold', 0);
+    toRuins.state.guild.expeditions[0]!.heroIds = ['hero-1'];
+    toRuins.state.guild.heroes[1]!.status = 'idle';
+    toRuins.state.guild.expeditions[0]!.nodeId = 'stoneGuardian';
+    toRuins.state.guild.expeditions[0]!.nodeEndsAtMs = 10 * MINUTE;
+    const lost = advanceTo(toRuins.state, HOUR);
+    expect(lost.events.some(({ type }) => type === 'expeditionLost')).toBe(true);
+    expect(lost.events.filter(({ type }) => type === 'mapRevealed')).toEqual([]);
+    expect(lost.state.map.hexes['3,-2']?.fog).toBe('sighted');
+  });
+});
+
 describe('a Guilda dos Aventureiros', () => {
   it('sustenta 1, 2, 2 e 3 expedições, e nenhuma sem ser erguida', () => {
     expect([0, 1, 2, 3, 4, 9].map(slotsAtLevel)).toEqual([0, 1, 2, 2, 3, 3]);
@@ -475,6 +551,7 @@ describe('o percurso por eventos da linha do tempo', () => {
     const resolved = advanceTo(before.state, 10 * MINUTE);
     const [nodeEvent] = ofExpeditions(resolved.events);
     expect(types(resolved.events)).toEqual(['expeditionNodeResolved']);
+    expect(resolved.state.map.hexes).toEqual(start.map.hexes);
     expect(nodeEvent?.atMs).toBe(10 * MINUTE);
     const expedition = only(resolved.state);
     const [entry] = expedition.log;
@@ -514,6 +591,15 @@ describe('o percurso por eventos da linha do tempo', () => {
 
     const home = advanceTo(resolved.state, 15 * MINUTE);
     expect(types(home.events)).toEqual(['expeditionReturned']);
+    expect(home.events.slice(0, 2)).toMatchObject([
+      { type: 'expeditionReturned' },
+      {
+        type: 'mapRevealed',
+        atMs: 15 * MINUTE,
+        data: { source: 'expedition', expeditionId: 'expedition-1', modelId: 'patrol', count: 1 },
+      },
+    ]);
+    expect(home.state.map.hexes['-1,1']?.fog).toBe('explored');
     const [returned] = ofExpeditions(home.events);
     expect(returned?.atMs).toBe(15 * MINUTE);
     expect(returned?.text).toBe(

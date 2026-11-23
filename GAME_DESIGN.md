@@ -379,7 +379,7 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Habitações | — | 10 | +5 de capacidade por nível | v0.1 |
 | Celeiro | Salão 2 | 8 | Capacidade de comida | v0.2 |
 | Armazém | Salão 2 | 8 | Capacidade de madeira, pedra e ferro | v0.2 |
-| Torre de Vigia | Salão 2 | 5 (2 na v0.2) | **Na v0.2:** Nv1 mostra a Ameaça com a explicação e avisa de uma incursão **1 h real** antes; Nv2 avisa **2 h reais** antes e diz o tamanho (a antecedência é tempo real, a mesma em todo ritmo, §8.2). **Depois:** revela mapa (raio 1 + nível/2) `[v0.5]`; presságios mais claros e, a partir do Nv3, dispara contra inimigos (§10.4) `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
+| Torre de Vigia | Salão 2 | 5 (2 na v0.2) | **Na v0.2:** Nv1 mostra a Ameaça com a explicação e avisa de uma incursão **1 h real** antes; Nv2 avisa **2 h reais** antes e diz o tamanho (a antecedência é tempo real, a mesma em todo ritmo, §8.2). **Depois:** avista um anel a mais no mapa por nível, até a borda (§8.1) `[v0.5]`; presságios mais claros e, a partir do Nv3, dispara contra inimigos (§10.4) `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
 | Paliçada / Muralha | Salão 3 | 6 (2 na v0.2) | **Na v0.2:** Paliçada Nv1 segura as incursões leves (sem perda nem ferido) e corta pela metade a perda de uma média, com 1 ferido; Nv2 segura também as médias (§8.2). **Depois:** HP de muralha em batalha: Nv1–2 Paliçada (madeira), Nv3–4 Muralha de Pedra, Nv5–6 Baluarte `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
 | Taverna | Salão 3 | 5 | +5 moral por nível; 2 candidatos a herói nos níveis 1 e 2 e 3 a partir do nível 3, trocados a cada 12 dias de jogo; limite de heróis = 1 + nível (§9.1); festivais (§5.7) | v0.3 |
 | Mercado | Salão 3 | 5 | Comércio, com volume diário de 200 × nível por recurso; caravanas a partir do Nv2, duas por vez a partir do Nv4 (§5.9) | v0.3 |
@@ -515,14 +515,15 @@ Exemplos completos no Apêndice B. Meta de conteúdo para o primeiro ano: **60 c
 
 ### 8.1 O mapa `[v0.5]` (dados e tiles de ameaça já existem de forma abstrata na `[v0.2]`)
 
-- O motor grava desde a fundação os 91 hexágonos do raio 5, em coordenadas axiais `q,r`. O feudo em `0,0` começa **Explorado**. Os demais 36 hexágonos até distância 3 começam **Avistados** (terreno visível), e os 54 mais distantes, **Desconhecidos**. A migração para o estado 45 marca como **Explorados** os destinos que a partida já descobriu, inclusive nos anéis externos.
+- O motor grava desde a fundação os 91 hexágonos do raio 5, em coordenadas axiais `q,r`. O feudo em `0,0` começa **Explorado**. Os demais 36 hexágonos até distância 3 começam **Avistados** (terreno visível), e os 54 mais distantes, **Desconhecidos**. A migração para o estado 45 avista os anéis ao alcance da Torre já concluída e marca como **Explorados** os destinos que a partida já descobriu, inclusive nos anéis externos.
 - A semente e a coordenada determinam o terreno. O Santuário, os destinos e os tiles de ameaça têm posições fixas. A Fortaleza ocupa `2,-5`, na borda norte, onde a Sabotagem acontece quando ela surge no outono.
 - Cada tile tem **estado de névoa**: Desconhecido → Avistado (tipo visível) → Explorado (detalhes e recompensas) → Reivindicado (posto avançado).
 - Tipos de tile: Floresta, Colinas, Campos, Lago, Pântano, Ruínas, Veio de Ferro, Santuário, Covil de Lobos, Acampamento de Saqueadores, Fortaleza da Horda (surge no outono, sempre na borda norte).
-- Revelação: Torre de Vigia revela anéis em volta do feudo; Patrulhas revelam tiles adjacentes aos já explorados; expedições exploram um tile específico.
+- Cada nível concluído da Torre de Vigia avista um anel a mais em volta do feudo, até a borda do mapa. O nível 1 alcança o anel 4 e o nível 2, o anel 5. A névoa fica gravada e só avança, inclusive quando a Queda danifica a Torre.
+- Na volta pelo fim do percurso, a expedição explora o hexágono do destino. A Patrulha explora o hexágono ainda inexplorado mais próximo do feudo entre os vizinhos dos já explorados ou reivindicados. Uma equipe com Rastreador explora mais um hexágono dessa fronteira, a partir do destino (ou do feudo na Patrulha). Empates seguem a ordem dos anéis da grade, do centro para fora, começando pelo sudoeste de cada anel e seguindo primeiro para leste. A Crônica registra uma linha por obra ou expedição que acrescentou algo ao mapa.
 - `[v0.5]` **Postos Avançados:** reivindicar um tile produz o recurso dele (Veio de Ferro: 3 ferro/h; Floresta: +15% madeira; Campos: +15% comida; Colinas: +15% pedra). Até 3 postos. Postos podem ser atacados por incursões (perdem produção até reparo).
 
-Na V5E-T1, a visão já traz a grade com a névoa aplicada pelo servidor. Os tiles de ameaça e os destinos de expedição continuam disponíveis nas listas do painel. A aba Mapa e a revelação durante o jogo são as próximas tarefas da Fase E.
+A visão traz a grade com a névoa aplicada pelo servidor. Os tiles de ameaça e os destinos de expedição continuam disponíveis nas listas do painel. A aba Mapa é a próxima tarefa da Fase E.
 
 ### 8.2 Ameaça e incursões `[v0.2 lobos]` `[v0.4 completo]`
 
@@ -1614,7 +1615,7 @@ Postura Cautelosa escolhe N3c; Equilibrada N3b; Ousada N3a. O relatório cita qu
 | Leal | Nunca parte por falta de soldo |
 | Rastreador | Revela 1 tile extra por expedição |
 
-`[v0.3]` Os oito traços entram só com os efeitos que a versão usa, em inteiros; a aura de comandante do Veterano e o "tile extra" do Rastreador ficam para as versões delas. A leitura de cada um está no [ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), "Os oito traços".
+`[v0.3]` Os oito traços entram com os efeitos que a versão usa, em inteiros. A aura de comandante do Veterano fica para a versão dela. O hexágono extra do Rastreador chega na `[v0.5]` (§8.1). A leitura de cada um está no [ADR 0017](docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), "Os oito traços".
 
 **Relíquias (Capela, `[v0.5]`):** Chifre dos Ancestrais (+10 moral do exército em batalha) · Coração de Carvalho (Serraria +15%) · Olho do Vigia (presságios com clareza de pelo menos Torre Nv3: parcial na tabela atual; preserva uma Torre melhor, sem aumentar a chance) · Selo do Rei Antigo (metade do ouro pedido pelas cartas da Coroa, `kingsTax` e `kingsCollector`; [ADR 0022](docs/decisions/0022-regras-da-v0.5.md), D-10) · Osso de Lobo (lobos −30% de ataque) · Lâmpada do Eremita (prazo de viagem/retorno das expedições −10%; ativar ou retirar ajusta só o restante do trecho em curso; espera da encruzilhada não muda) · Pedra de Sal (cap de comida +20%) · Manto do Inverno (lenha −50%). Trocar relíquias na Capela é livre, e a colocada passa a valer na próxima virada de dia de jogo (ADR 0022, D-8).
 

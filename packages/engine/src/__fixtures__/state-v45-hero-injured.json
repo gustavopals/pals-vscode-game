@@ -219,7 +219,7 @@
    "-2,1": {
     "terrain": "forest",
     "site": "oldForest",
-    "fog": "sighted"
+    "fog": "explored"
    },
    "-3,3": {
     "terrain": "lake",

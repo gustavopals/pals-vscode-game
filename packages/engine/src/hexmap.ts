@@ -10,7 +10,7 @@ import {
 import { hashText } from './hash';
 import type { GameState } from './types';
 
-type Axial = { readonly q: number; readonly r: number };
+export type Axial = { readonly q: number; readonly r: number };
 const directions = [
   [1, 0],
   [1, -1],

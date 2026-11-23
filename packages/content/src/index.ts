@@ -76,6 +76,7 @@ export {
   craftGuilds,
   cutRewardTemplates,
   EVENT_TYPES,
+  expeditionMapTemplate,
   foundingTemplates,
   heroDismissalTemplates,
   heroHarmTemplates,

@@ -1,6 +1,6 @@
 import type { ExpeditionModelId, TerrainId, TileTypeId } from './ids';
 
-export const mapRules = { radius: 5, sightedRadius: 3 } as const;
+export const mapRules = { radius: 5, sightedRadius: 3, watchtowerRingsPerLevel: 1 } as const;
 
 /** Pesos em cem partes nos hexágonos livres. O Santuário tem uma posição única. */
 export const terrains = {

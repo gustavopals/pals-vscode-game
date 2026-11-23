@@ -344,224 +344,224 @@
    },
    "-4,4": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-3,4": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-2,4": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-1,4": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "0,4": {
     "terrain": "sanctuary",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "1,3": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "2,2": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "3,1": {
     "terrain": "ruins",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,0": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,-1": {
     "terrain": "ruins",
     "site": "ancestralVault",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,-2": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,-3": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,-4": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "3,-4": {
     "terrain": "hills",
     "site": "raiderCamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "2,-4": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "1,-4": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "0,-4": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-1,-3": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-2,-2": {
     "terrain": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-3,-1": {
     "terrain": "ruins",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,0": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,1": {
     "terrain": "lake",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,2": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,3": {
     "terrain": "swamp",
     "site": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,5": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,5": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-3,5": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-2,5": {
     "terrain": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-1,5": {
     "terrain": "forest",
     "site": "hermitsRefuge",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "0,5": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "1,4": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "2,3": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "3,2": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,1": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,0": {
     "terrain": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,-1": {
     "terrain": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,-2": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,-3": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,-4": {
     "terrain": "ruins",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "5,-5": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "4,-5": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "3,-5": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "2,-5": {
     "terrain": "hills",
     "site": "hordeFortress",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "1,-5": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "0,-5": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-1,-4": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-2,-3": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-3,-2": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-4,-1": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,0": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,1": {
     "terrain": "hills",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,2": {
     "terrain": "swamp",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,3": {
     "terrain": "forest",
-    "fog": "unknown"
+    "fog": "sighted"
    },
    "-5,4": {
     "terrain": "fields",
-    "fog": "unknown"
+    "fog": "sighted"
    }
   },
   "tiles": {

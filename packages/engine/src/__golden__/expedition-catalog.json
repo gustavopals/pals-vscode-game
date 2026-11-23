@@ -4,7 +4,8 @@
   "events": [
    "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Patrulha dos Arredores. A equipe: Edda.",
    "expeditionNodeResolved: No 1º dia da Primavera, Edda seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. Uma bolsa esquecida ainda estava lá.",
-   "expeditionReturned: No 1º dia da Primavera, a expedição \"Patrulha dos Arredores\" voltou a Pedra Alta com 2 de ouro. A equipe está de novo no feudo: Edda."
+   "expeditionReturned: No 1º dia da Primavera, a expedição \"Patrulha dos Arredores\" voltou a Pedra Alta com 2 de ouro. A equipe está de novo no feudo: Edda.",
+   "mapRevealed: No 1º dia da Primavera, a expedição \"Patrulha dos Arredores\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -48,7 +49,8 @@
    "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Floresta Antiga\" parou em uma encruzilhada: O tronco oco. A equipe espera a palavra do senhor de Pedra Alta.",
    "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Floresta Antiga\": descer o barranco.",
    "expeditionNodeResolved: No 1º dia da Primavera, Edda desceu na frente e achou o fundo do barranco vazio, com os troncos prontos para levar.",
-   "expeditionReturned: No 1º dia da Primavera, a expedição \"Floresta Antiga\" voltou a Pedra Alta com 87 de madeira. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 1º dia da Primavera, a expedição \"Floresta Antiga\" voltou a Pedra Alta com 87 de madeira. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 1º dia da Primavera, a expedição \"Floresta Antiga\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -110,7 +112,8 @@
    "expeditionNodeResolved: No 1º dia da Primavera, Rolf seguiu a trilha sob a geada e encontrou a passagem para o bosque fechado. A equipe de Pedra Alta avançou sem perder tempo.",
    "expeditionNodeResolved: No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 15 de comida. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 15 de comida. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -166,7 +169,8 @@
    "expeditionNodeFailed: No 1º dia da Primavera, o vento virou a fumaça contra Edda, e a matilha saiu da toca inteira e furiosa. A prova pedia mais do que a equipe tinha: gente mais calejada.",
    "heroInjured: No 1º dia da Primavera, Edda sofreu um ferimento leve em \"Covil de Lobos\". Termina a jornada, mas depois precisa de descanso.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 35 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 35 de ouro. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"Covil de Lobos\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -233,7 +237,8 @@
    "expeditionNodeFailed: No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e as cordas ficaram por cortar. A prova pedia mais do que a equipe tinha: gente mais calejada.",
    "heroInjured: No 1º dia da Primavera, Rolf sofreu um ferimento leve em \"Resgate\". Termina a jornada, mas depois precisa de descanso.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta com 14 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta com 14 de ouro. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"Resgate\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -301,7 +306,8 @@
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
    "expeditionNodeResolved: No 2º dia da Primavera, Edda quebrou o guardião de pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta.",
    "itemFound: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" pôs na bagagem um achado: Cota rebitada.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta com 190 de pedra e 133 de ouro e um item (Cota rebitada). A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta com 190 de pedra e 133 de ouro e um item (Cota rebitada). A equipe está de novo no feudo: Edda, Rolf e Isolda.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -381,7 +387,8 @@
    "expeditionNodeResolved: No 2º dia da Primavera, Rolf venceu os degraus de rocha, e a expedição de Pedra Alta tirou o ferro do veio seco.",
    "heroRecovered: No 3º dia da Primavera, Rolf sarou das feridas e já pode partir de Pedra Alta outra vez.",
    "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 3º dia da Primavera, a expedição \"Mina Abandonada\" voltou a Pedra Alta com 22 de pedra e 45 de ferro. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 3º dia da Primavera, a expedição \"Mina Abandonada\" voltou a Pedra Alta com 22 de pedra e 45 de ferro. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 3º dia da Primavera, a expedição \"Mina Abandonada\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -465,7 +472,8 @@
    "heroLeveledUp: No 3º dia da Primavera, Rolf aprendeu com a estrada: chegou ao nível 2.",
    "heroLeveledUp: No 3º dia da Primavera, Isolda aprendeu com a estrada: chegou ao nível 2.",
    "heroRecovered: No 3º dia da Primavera, Isolda sarou das feridas e já pode partir de Pedra Alta outra vez.",
-   "expeditionReturned: No 3º dia da Primavera, a expedição \"Pântano Nebuloso\" voltou a Pedra Alta com 83 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionReturned: No 3º dia da Primavera, a expedição \"Pântano Nebuloso\" voltou a Pedra Alta com 83 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda.",
+   "mapRevealed: No 3º dia da Primavera, a expedição \"Pântano Nebuloso\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -570,7 +578,8 @@
    "expeditionNodeResolved: No 3º dia do Outono, a expedição de Pedra Alta atravessou os fossos da Fortaleza e alcançou a trilha da fronteira.",
    "heroRecovered: No 4º dia do Outono, Rolf sarou das feridas e já pode partir de Pedra Alta outra vez.",
    "dayStarted: Amanhece o 4º dia do Outono em Pedra Alta.",
-   "expeditionReturned: No 4º dia do Outono, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionReturned: No 4º dia do Outono, a expedição \"Sabotagem da Fortaleza\" voltou a Pedra Alta com 59 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda.",
+   "mapRevealed: No 4º dia do Outono, a expedição \"Sabotagem da Fortaleza\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -674,7 +683,8 @@
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
    "expeditionNodeResolved: No 2º dia da Primavera, Edda suportou cada golpe que a sentinela do nicho desferiu até a expedição de Pedra Alta alcançar o tesouro.",
    "relicFound: No 2º dia da Primavera, Pedra Alta recebeu uma relíquia: Chifre dos Ancestrais. O tesouro foi guardado para a Capela.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Câmara dos Ancestrais\" voltou a Pedra Alta com 36 de pedra e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Câmara dos Ancestrais\" voltou a Pedra Alta com 36 de pedra e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"Câmara dos Ancestrais\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -742,7 +752,8 @@
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
    "expeditionNodeResolved: No 2º dia da Primavera, Edda suportou cada golpe que o guardião do pomar desferiu até a expedição de Pedra Alta alcançar o tesouro.",
    "relicFound: No 2º dia da Primavera, Pedra Alta recebeu uma relíquia: Coração de Carvalho. O tesouro foi guardado para a Capela.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Refúgio do Eremita\" voltou a Pedra Alta com 36 de madeira e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Refúgio do Eremita\" voltou a Pedra Alta com 36 de madeira e 88 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"Refúgio do Eremita\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",
@@ -808,7 +819,8 @@
    "expeditionNodeResolved: No 1º dia da Primavera, Edda cercou o Lobo Branco à margem do riacho e desferiu o golpe antes do salto. A fera caiu na neve sem erguer a cabeça.",
    "relicFound: No 1º dia da Primavera, Pedra Alta recebeu uma relíquia: Osso de Lobo. O tesouro foi guardado para a Capela.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 15 de comida. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" voltou a Pedra Alta com 15 de comida. A equipe está de novo no feudo: Edda e Rolf.",
+   "mapRevealed: No 2º dia da Primavera, a expedição \"A caçada do Lobo Branco\" trouxe novos detalhes para o mapa."
   ],
   "report": {
    "expeditionId": "expedition-1",

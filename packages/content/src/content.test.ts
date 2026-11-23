@@ -13,6 +13,7 @@ import {
   enemies,
   ENEMY_IDS,
   EVENT_TYPES,
+  expeditionMapTemplate,
   foundingTemplates,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
@@ -48,6 +49,7 @@ import {
   threatMarkTemplates,
   TILE_TYPE_IDS,
   TERRAIN_IDS,
+  mapRules,
   terrains,
   tileTypes,
   wageArrearsReliefs,
@@ -59,6 +61,7 @@ import {
   CraftGuildsSchema,
   CutRewardTemplatesSchema,
   EnemiesSchema,
+  ExpeditionMapTemplateSchema,
   FoundingTemplatesSchema,
   HeroAttributesSchema,
   HeroClassesSchema,
@@ -656,6 +659,16 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     ]);
     expect(Object.keys(terrains)).toEqual([...TERRAIN_IDS]);
     expect(Object.values(terrains).reduce((sum, terrain) => sum + terrain.weight, 0)).toBe(100);
+    expect(mapRules).toEqual({ radius: 5, sightedRadius: 3, watchtowerRingsPerLevel: 1 });
+    expect(EVENT_TYPES).toContain('mapRevealed');
+    expect(chronicleTemplates.mapRevealed).toMatch(/^No \{dia\}º dia \{daEstacao\}, .*\.$/);
+    expect(chronicleTemplates.mapRevealed).not.toMatch(/\d/);
+    expect(ExpeditionMapTemplateSchema.safeParse(expeditionMapTemplate).error).toBeUndefined();
+    expect(expeditionMapTemplate).not.toMatch(/\d/);
+    expect(ExpeditionMapTemplateSchema.safeParse('Sem data nem {expedicao}.').success).toBe(false);
+    expect(
+      ExpeditionMapTemplateSchema.safeParse('No {dia}º dia {daEstacao}, mapa atualizado.').success,
+    ).toBe(false);
   });
 
   it('o único tile é o Covil de Lobos, ativo desde o primeiro dia, e nele moram lobos', () => {

@@ -4,6 +4,7 @@ import weekV44 from './__golden__/scenario-7-days.json';
 import weekV45 from './__fixtures__/state-v45-week-scripted.json';
 
 import { HOUR, MINUTE, NO_TAVERN, runWeekScenario as runScenario } from './test-helpers';
+import { hexDistance } from './hexmap';
 import { CURRENT_SCHEMA_VERSION } from './migrations';
 import { deriveViewState } from './view';
 
@@ -16,15 +17,54 @@ describe('cenário golden de 7 dias', () => {
     expect(days.every(({ state }) => Object.keys(state.map.expeditionUnlocks).length === 0)).toBe(
       true,
     );
-    // O roteiro v44 congela inclusive os sorteios. Acrescentamos só a grade do retrato
-    // v45 à referência para comparar o resultado inteiro em cada dia (GDD §8.1).
+    // O roteiro v44 congela inclusive os sorteios. A expectativa v45 acrescenta
+    // a grade a cada dia e uma linha de Crônica a cada conclusão da Torre.
     const { radius, hexes } = weekV45.map;
+    const revelations = [
+      {
+        atMs: 25 * HOUR + 12 * MINUTE,
+        level: 1,
+        count: 24,
+        text: 'No 13º dia da Primavera, a Torre de Vigia avistou novas terras.',
+      },
+      {
+        atMs: 96 * HOUR + 18 * MINUTE,
+        level: 2,
+        count: 30,
+        text: 'No 1º dia do Outono, a Torre de Vigia avistou novas terras.',
+      },
+    ].map(({ atMs, level, count, text }) => ({
+      type: 'mapRevealed',
+      atMs,
+      text,
+      data: { source: 'watchtower', level, count },
+    }));
+    const eventsWithMap = weekV44.events.flatMap((event) => {
+      const revealed = revelations.find(({ atMs }) => atMs === event.atMs);
+      return revealed && event.data.building === 'watchtower' ? [event, revealed] : [event];
+    });
     expect({ orders, days, events }).toEqual({
       ...weekV44,
-      days: weekV44.days.map((day) => ({
-        ...day,
-        state: { ...day.state, schemaVersion: 45, map: { ...day.state.map, radius, hexes } },
-      })),
+      events: eventsWithMap,
+      days: weekV44.days.map((day) => {
+        const seen = revelations.filter(({ atMs }) => atMs <= day.state.lastProcessedAt);
+        const sightedRadius = 3 + seen.length;
+        const dayHexes = Object.fromEntries(
+          Object.entries(hexes).map(([key, hex]) => {
+            const [q, r] = key.split(',').map(Number);
+            return [key, hexDistance(q!, r!) <= sightedRadius ? hex : { ...hex, fog: 'unknown' }];
+          }),
+        );
+        return {
+          ...day,
+          eventsSoFar: day.eventsSoFar + seen.length,
+          state: {
+            ...day.state,
+            schemaVersion: 45,
+            map: { ...day.state.map, radius, hexes: dayHexes },
+          },
+        };
+      }),
     });
   });
 
@@ -55,6 +95,7 @@ describe('cenário golden de 7 dias', () => {
       'cardExpired',
       'cardEffectApplied',
       'buildingFounded',
+      'mapRevealed',
       'threatRose',
       'wolvesHowl',
       'raidAnnounced',

@@ -43146,7 +43146,7 @@
           "traits": [
             {
               "label": "Rastreador",
-              "text": "Acha o caminho de volta a um lugar mesmo quando a jornada vai mal."
+              "text": "Acha o caminho de volta a um lugar mesmo quando a jornada vai mal. Explora mais um hexágono por expedição."
             }
           ],
           "price": 80,
@@ -45900,7 +45900,11 @@
           "r": 1,
           "terrain": "hills",
           "terrainLabel": "Colinas",
-          "fog": "sighted"
+          "fog": "explored",
+          "site": null,
+          "label": "Colinas",
+          "detail": "Elevações de pedra se erguem sobre os campos.",
+          "actions": []
         },
         {
           "q": 0,
@@ -50881,7 +50885,16 @@
           "r": 1,
           "terrain": "forest",
           "terrainLabel": "Floresta",
-          "fog": "sighted"
+          "fog": "explored",
+          "site": "oldForest",
+          "label": "Floresta Antiga",
+          "detail": "Árvores antigas cobrem este trecho do reino.",
+          "actions": [
+            {
+              "type": "sendExpedition",
+              "modelId": "oldForest"
+            }
+          ]
         },
         {
           "q": -3,
@@ -53280,7 +53293,11 @@
           "r": -1,
           "terrain": "hills",
           "terrainLabel": "Colinas",
-          "fog": "sighted"
+          "fog": "explored",
+          "site": null,
+          "label": "Colinas",
+          "detail": "Elevações de pedra se erguem sobre os campos.",
+          "actions": []
         },
         {
           "q": 2,
@@ -53385,7 +53402,11 @@
           "r": -2,
           "terrain": "ruins",
           "terrainLabel": "Ruínas",
-          "fog": "sighted"
+          "fog": "explored",
+          "site": "ruins",
+          "label": "Ruínas de Vel'Thar",
+          "detail": "Restos de muralhas marcam uma antiga povoação.",
+          "actions": []
         },
         {
           "q": 3,
@@ -55306,7 +55327,7 @@
           "traits": [
             {
               "label": "Rastreador",
-              "text": "Acha o caminho de volta a um lugar mesmo quando a jornada vai mal."
+              "text": "Acha o caminho de volta a um lugar mesmo quando a jornada vai mal. Explora mais um hexágono por expedição."
             }
           ],
           "statusText": "No feudo",
@@ -55968,7 +55989,11 @@
           "r": -1,
           "terrain": "forest",
           "terrainLabel": "Floresta",
-          "fog": "sighted"
+          "fog": "explored",
+          "site": "wolfDen",
+          "label": "Covil de Lobos",
+          "detail": "Árvores antigas cobrem este trecho do reino.",
+          "actions": []
         },
         {
           "q": -2,

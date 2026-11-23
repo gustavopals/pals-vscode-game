@@ -13,6 +13,7 @@ import type {
 import {
   canonicalJson,
   CommandAcceptedSchema,
+  EventsResponseSchema,
   GameRuleErrorSchema,
   ViewResponseSchema,
 } from '@lotg/protocol';
@@ -75,6 +76,44 @@ it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o ter
   expect(second.body.view).toEqual(first.body.view);
   expect((await getView(server, game)).body.view).toEqual(first.body.view);
   expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+});
+
+it('44 → 45 avista pela Torre existente e grava uma linha quando a melhoria termina', async () => {
+  const before = JSON.parse(
+    readFileSync(
+      new URL('../../engine/src/__fixtures__/state-v44-threat.json', import.meta.url),
+      'utf8',
+    ),
+  ) as StoredState & Pick<GameState, 'settlement'>;
+  const game = await insertGame(server, before);
+  const first = await getView(server, game);
+  expect(first.status).toBe(200);
+  expect(first.body.view.map.hexes.find((hex) => hex.q === 0 && hex.r === 4)).toMatchObject({
+    fog: 'sighted',
+  });
+  expect(first.body.view.map.hexes.find((hex) => hex.q === 2 && hex.r === -5)).toEqual({
+    q: 2,
+    r: -5,
+  });
+
+  const atMs = before.settlement.constructionQueues[0]!.finishesAtMs;
+  server.clock.advance(atMs - before.lastProcessedAt);
+  const finished = await getView(server, game);
+  expect(finished.body.view.map.hexes.find((hex) => hex.q === 2 && hex.r === -5)).toMatchObject({
+    fog: 'sighted',
+  });
+  const row = await rowOf(server, game.id);
+  expect((row.state as StoredState & Pick<GameState, 'map'>).map.hexes['2,-5']?.fog).toBe(
+    'sighted',
+  );
+  expect((await getView(server, game)).body.view).toEqual(finished.body.view);
+  const events = await call<EventsResponse>(server, 'GET', `/games/${game.id}/events?after=0`, {
+    token: game.token,
+  });
+  expect(events.status).toBe(200);
+  expect(
+    EventsResponseSchema.parse(events.body).events.filter(({ type }) => type === 'mapRevealed'),
+  ).toMatchObject([{ atMs, data: { source: 'watchtower', level: 2, count: 30 } }]);
 });
 
 describe('partidas gravadas na versão 33: memória da Horda (V4E-T3)', () => {

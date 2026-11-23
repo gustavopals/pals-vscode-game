@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { upgradeCost, upgradeDurationMs, upgradeQuote } from './construction';
+import { hexRing } from './hexmap';
 import { cloneState } from './state';
 import { housingCapacity } from './population';
 import {
@@ -27,6 +28,73 @@ import { deriveViewState } from './view';
 
 const rich = gameWith((draft) => {
   draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6, iron: 0 };
+});
+
+describe('cartografia da Torre de Vigia', () => {
+  it('avista um anel no instante em que cada nível termina, até a borda do mapa', () => {
+    let state = cloneState(rich);
+    state.settlement.buildings.townHall = 2;
+    state.map.hexes['0,4']!.fog = 'claimed';
+
+    for (const [level, count] of [
+      [1, 23],
+      [2, 30],
+      [3, 0],
+    ] as const) {
+      const started = accept(state, command('startConstruction', { building: 'watchtower' }));
+      const atMs = started.state.settlement.constructionQueues[0]!.finishesAtMs;
+      const before = advanceTo(started.state, atMs - 1);
+      expect(before.state.map.hexes).toEqual(state.map.hexes);
+      expect(eventsOfType(before.events, 'mapRevealed')).toEqual([]);
+
+      const finished = advanceTo(before.state, atMs);
+      expect(finished.state.settlement.buildings.watchtower).toBe(level);
+      const ring = hexRing(Math.min(3 + level, 5));
+      for (const { q, r } of ring) {
+        expect(finished.state.map.hexes[`${q},${r}`]?.fog).toBe(
+          q === 0 && r === 4 ? 'claimed' : 'sighted',
+        );
+      }
+      if (level === 1) expect(finished.state.map.hexes['2,-5']?.fog).toBe('unknown');
+      expect(eventsOfType(finished.events, 'mapRevealed')).toMatchObject(
+        count === 0 ? [] : [{ atMs, data: { source: 'watchtower', level, count } }],
+      );
+      if (count > 0) {
+        expect(finished.events.slice(0, 2).map(({ type }) => type)).toEqual([
+          level === 1 ? 'buildingFounded' : 'constructionFinished',
+          'mapRevealed',
+        ]);
+      }
+      state = finished.state;
+    }
+  });
+
+  it('reconstruir a Torre depois da Queda conserva a névoa gravada sem repetir mapRevealed e respeita divisão de intervalo', () => {
+    const start = cloneState(rich);
+    start.settlement.buildings.townHall = 2;
+    const started = accept(start, command('startConstruction', { building: 'watchtower' }));
+    const finishesAt = started.state.settlement.constructionQueues[0]!.finishesAtMs;
+    const direct = advanceTo(started.state, finishesAt);
+    const mid = advanceTo(started.state, Math.floor(finishesAt / 2));
+    const split = advanceTo(mid.state, finishesAt);
+    expect(split.state).toStrictEqual(direct.state);
+    expect([...mid.events, ...split.events]).toStrictEqual(direct.events);
+
+    // Simula a Queda baixando a Torre do nível 2 para o 1 com os anéis 4 e 5 já avistados.
+    const up = accept(direct.state, command('startConstruction', { building: 'watchtower' }));
+    const atLevel2 = advanceTo(up.state, up.state.settlement.constructionQueues[0]!.finishesAtMs);
+    expect(atLevel2.state.map.hexes['2,-5']?.fog).toBe('sighted');
+    const afterFall = cloneState(atLevel2.state);
+    afterFall.settlement.buildings.watchtower = 1;
+    const rebuilt = accept(afterFall, command('startConstruction', { building: 'watchtower' }));
+    const done = advanceTo(
+      rebuilt.state,
+      rebuilt.state.settlement.constructionQueues[0]!.finishesAtMs,
+    );
+    expect(done.state.settlement.buildings.watchtower).toBe(2);
+    expect(done.state.map.hexes).toEqual(atLevel2.state.map.hexes);
+    expect(eventsOfType(done.events, 'mapRevealed')).toEqual([]);
+  });
 });
 
 describe('fórmulas de custo e tempo (GDD §6.2)', () => {

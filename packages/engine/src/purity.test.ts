@@ -72,12 +72,13 @@ describe('pureza do motor', () => {
     // sorteio mora em `caravanTurn.ts` (a emboscada, na chegada); `caravans.ts` (as contas),
     // `caravanOrders.ts` (enviar) e `caravansView.ts` não sorteiam.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hexmap|mapView|hash|market|marketOrders|marketView|caravans|caravanOrders|caravansView|masters|masterOrders|masterTurn|mastersView)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hexmap|mapTurn|mapView|hash|market|marketOrders|marketView|caravans|caravanOrders|caravansView|masters|masterOrders|masterTurn|mastersView)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
         './view.ts',
         './hexmap.ts',
+        './mapTurn.ts',
         './mapView.ts',
         './migrations/v45.ts',
         './seasonView.ts',
@@ -158,12 +159,13 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hexmap|hash|market|marketOrders|marketTurn|caravans|caravanTurn|masters|masterOrders)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hexmap|mapTurn|hash|market|marketOrders|marketTurn|caravans|caravanTurn|masters|masterOrders)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
         './view.ts',
         './hexmap.ts',
+        './mapTurn.ts',
         './mapView.ts',
         './migrations/v45.ts',
         './seasonView.ts',

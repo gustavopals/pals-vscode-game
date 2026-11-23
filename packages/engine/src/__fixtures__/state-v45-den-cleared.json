@@ -209,7 +209,7 @@
    "-1,-1": {
     "terrain": "forest",
     "site": "wolfDen",
-    "fog": "sighted"
+    "fog": "explored"
    },
    "-2,0": {
     "terrain": "swamp",

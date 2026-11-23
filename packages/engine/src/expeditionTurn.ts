@@ -33,6 +33,7 @@ import { joinList } from './format';
 import { durabilityOf, itemDefOf } from './heroes';
 import { alertHordeFortress, applyWaveSabotage, revealWaveThree } from './hordePlan';
 import { nextId } from './ids';
+import { revealExpedition } from './mapTurn';
 import { deliverMaster, masterCanArrive } from './masterTurn';
 import {
   applyHarm,
@@ -469,6 +470,7 @@ function returnHome(
   completed = !recalled,
 ): void {
   const team = heroesOf(draft, expedition.heroIds);
+  const label = expeditionLabel(expedition.modelId);
   const stored = noAmounts();
   const wasted = noAmounts();
   for (const resource of RESOURCE_IDS) {
@@ -524,7 +526,7 @@ function returnHome(
       ...amountKeys('lost', lost),
     },
     {
-      expedicao: expeditionLabel(expedition.modelId),
+      expedicao: label,
       herois: teamNames(team),
       saque: describeLoot(expedition.loot),
       perda: describeLoss(lost),
@@ -540,6 +542,7 @@ function returnHome(
   // O desgaste é de quem concluiu o caminho (a recolhida antes e a perdida não contam), cobrado
   // no instante da volta, depois da linha dela e antes de o saque ir ao arsenal.
   if (completed) {
+    revealExpedition(draft, atMs, events, expedition, label, hasTracker(team));
     wearTeam(draft, team, atMs, events);
   }
   // Depois da linha da volta: o item que não cabe no arsenal vira ouro, com a linha dele.

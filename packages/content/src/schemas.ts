@@ -1298,6 +1298,11 @@ export const ThreatMarkTemplatesSchema = z.record(
  * (o desfecho e o conselho) são frases inteiras, com maiúscula e ponto, e não repetem a data.
  */
 const datedTemplate = chronicleTemplate.regex(/^No \{dia\}º dia \{daEstacao\}, .*\.$/);
+/** A frase de `mapRevealed` para expedições: leva data e o nome da expedição. */
+export const ExpeditionMapTemplateSchema = datedTemplate.refine(
+  (template) => template.includes('{expedicao}'),
+  'frase do mapa sem a expedição',
+);
 const followingSentence = chronicleTemplate
   .regex(/^\p{Lu}.*\.$/u)
   .refine((template) => !template.includes('{dia}'), 'frase de continuação com data');

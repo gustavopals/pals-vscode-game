@@ -13,6 +13,7 @@ import { emit } from './chronicle';
 import { raiseWall, repairDelayMs } from './wallRepair';
 import { seasonAt } from './clock';
 import { sentenceCase } from './format';
+import { revealWatchtower } from './mapTurn';
 import { reject } from './rejections';
 import { type BeyondStorage, costBeyondStorage, storagePlace, storeResource } from './storage';
 import type {
@@ -487,6 +488,7 @@ export function finishConstructions(draft: GameState, atMs: number, events: Game
       { building: slot.building, level: slot.targetLevel },
       { edificio: buildingWithArticle(slot.building), nivel: slot.targetLevel },
     );
+    if (slot.building === 'watchtower') revealWatchtower(draft, atMs, events);
   });
 }
 
