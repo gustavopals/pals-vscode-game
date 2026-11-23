@@ -77,6 +77,7 @@ export {
   cutRewardTemplates,
   EVENT_TYPES,
   expeditionMapTemplate,
+  sanctuaryConsolationTemplate,
   foundingTemplates,
   heroDismissalTemplates,
   heroHarmTemplates,
@@ -181,4 +182,13 @@ export {
   type YearEndedData,
 } from './feats';
 export type { FeatId } from './feats';
-export { mapRules, terrains, fixedHexes, type MapSiteId } from './map';
+export {
+  mapRules,
+  terrains,
+  fixedHexes,
+  mapScenarios,
+  sanctuaryReward,
+  mapTexts,
+  type MapScenarioDef,
+  type MapSiteId,
+} from './map';

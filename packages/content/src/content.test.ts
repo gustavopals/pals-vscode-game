@@ -41,7 +41,11 @@ import {
   RAID_SIZE_IDS,
   raidSizes,
   raidTemplates,
+  RELIC_IDS,
   RESOURCE_IDS,
+  sanctuaryConsolationTemplate,
+  sanctuaryReward,
+  SCENARIO_IDS,
   SEASON_IDS,
   startingTiles,
   TAVERN_CANDIDATE_IDS,
@@ -50,6 +54,8 @@ import {
   TILE_TYPE_IDS,
   TERRAIN_IDS,
   mapRules,
+  mapScenarios,
+  mapTexts,
   terrains,
   tileTypes,
   wageArrearsReliefs,
@@ -71,10 +77,14 @@ import {
   IdleVillagerSchema,
   InjuredLossSchema,
   InjuryTemplatesSchema,
+  MapScenariosSchema,
+  MapTextsSchema,
   MoraleBandTemplatesSchema,
   ObjectivesSchema,
   RaidSizesSchema,
   RaidTemplatesSchema,
+  SanctuaryConsolationTemplateSchema,
+  SanctuaryRewardSchema,
   StartingTilesSchema,
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
@@ -668,6 +678,70 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(ExpeditionMapTemplateSchema.safeParse('Sem data nem {expedicao}.').success).toBe(false);
     expect(
       ExpeditionMapTemplateSchema.safeParse('No {dia}º dia {daEstacao}, mapa atualizado.').success,
+    ).toBe(false);
+  });
+
+  it('valida os cenários de mapa, a Serra do Ferro e a recompensa do Santuário (V5E-T4)', () => {
+    expect(SCENARIO_IDS).toEqual(['standard', 'ironRidge']);
+    expect(Object.keys(mapScenarios)).toEqual([...SCENARIO_IDS]);
+    expect(MapScenariosSchema.safeParse(mapScenarios).error).toBeUndefined();
+    expect(SanctuaryRewardSchema.safeParse(sanctuaryReward).error).toBeUndefined();
+    expect(MapTextsSchema.safeParse(mapTexts).error).toBeUndefined();
+    expect(
+      SanctuaryConsolationTemplateSchema.safeParse(sanctuaryConsolationTemplate).error,
+    ).toBeUndefined();
+
+    expect(mapScenarios.standard.legacyCost).toBe(0);
+    expect(mapScenarios.standard.recommended).toBe(true);
+    expect(mapScenarios.ironRidge.legacyCost).toBe(200);
+    expect(mapScenarios.ironRidge.recommended).toBe(false);
+    expect(mapScenarios.ironRidge.terrainWeights.hills).toBeGreaterThan(
+      mapScenarios.standard.terrainWeights.hills,
+    );
+    expect(mapScenarios.ironRidge.terrainWeights.ironVein).toBeGreaterThan(
+      mapScenarios.standard.terrainWeights.ironVein,
+    );
+
+    expect(sanctuaryReward.from).toEqual(RELIC_IDS);
+    expect(sanctuaryReward.consolationGold).toBe(100);
+    expect(EVENT_TYPES).toContain('sanctuaryExplored');
+    expect(chronicleTemplates.sanctuaryExplored).toMatch(/^No \{dia\}º dia \{daEstacao\}, .*\.$/);
+    expect(chronicleTemplates.sanctuaryExplored).toContain('{reliquia}');
+    expect(chronicleTemplates.sanctuaryExplored).not.toMatch(/\d/);
+    expect(sanctuaryConsolationTemplate).not.toMatch(/\d/);
+
+    expect(
+      MapScenariosSchema.safeParse({
+        ...mapScenarios,
+        ironRidge: { ...mapScenarios.ironRidge, recommended: true },
+      }).success,
+    ).toBe(false);
+    expect(
+      MapScenariosSchema.safeParse({
+        ...mapScenarios,
+        ironRidge: {
+          ...mapScenarios.ironRidge,
+          terrainWeights: { ...mapScenarios.ironRidge.terrainWeights, hills: 39 },
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      MapScenariosSchema.safeParse({
+        ...mapScenarios,
+        ironRidge: {
+          ...mapScenarios.ironRidge,
+          terrainWeights: { ...mapScenarios.ironRidge.terrainWeights, hills: 39, sanctuary: 1 },
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      SanctuaryRewardSchema.safeParse({
+        ...sanctuaryReward,
+        from: Array.from({ length: RELIC_IDS.length }, () => RELIC_IDS[0]),
+      }).success,
+    ).toBe(false);
+    expect(
+      MapTextsSchema.safeParse({ ...mapTexts, scenarioLocked: 'Requer 200 de Legado.' }).success,
     ).toBe(false);
   });
 

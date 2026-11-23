@@ -1,14 +1,24 @@
-import { EXPEDITION_MODEL_IDS, TILE_TYPE_IDS } from '@lotg/content';
+import {
+  EXPEDITION_MODEL_IDS,
+  mapScenarios,
+  mapTexts,
+  RELIC_IDS,
+  relics,
+  sanctuaryReward,
+  TILE_TYPE_IDS,
+} from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { generateHexMap, hexDistance, hexNeighbors, hexRing, siteDestination } from './hexmap';
 import { revealExpedition, revealWatchtower } from './mapTurn';
 import { currentShape, migrateState } from './migrations';
+import { grantRelic } from './relics';
 import { readySiege } from './siege.test-helpers';
-import { cloneState } from './state';
-import { campaignYard, heroesStart, HOUR, newGame } from './test-helpers';
-import type { GameEvent } from './types';
+import { cloneState, createInitialState } from './state';
+import { campaignYard, heroesStart, HOUR, newGame, settings } from './test-helpers';
+import type { GameEvent, ScenarioId } from './types';
+import { MILLI } from './units';
 import { deriveViewState } from './view';
 import v42 from './__fixtures__/state-v42-fresh.json';
 import v44 from './__fixtures__/state-v44-fresh.json';
@@ -144,6 +154,202 @@ describe('grade axial da Fase E', () => {
     expect(
       deriveViewState(state, 0).map.hexes.find((hex) => hex.q === 1 && hex.r === 0),
     ).toMatchObject({ fog: 'claimed', site: 'patrol' });
+    invalid({ ...state.map, scenario: 'unknown' });
+    const withoutScenario = { ...state.map } as Record<string, unknown>;
+    delete withoutScenario.scenario;
+    invalid(withoutScenario);
+  });
+});
+
+describe('Santuário e Serra do Ferro (V5E-T4)', () => {
+  const exploreSanctuary = (
+    state: ReturnType<typeof newGame>,
+    tracker = false,
+    atMs = 0,
+  ): GameEvent[] => {
+    // Deixa (0,4) como único hexágono não explorado do mapa: a próxima Patrulha o alcança.
+    for (const [key, hex] of Object.entries(state.map.hexes)) {
+      hex.fog = key === '0,4' ? 'sighted' : 'explored';
+    }
+    const events: GameEvent[] = [];
+    revealExpedition(
+      state,
+      atMs,
+      events,
+      { id: 'expedition-1', modelId: 'patrol' },
+      'Patrulha dos Arredores',
+      tracker,
+    );
+    return events;
+  };
+
+  it('explorar o Santuário entrega uma relíquia via grantRelic, emite Crônica e nunca repete', () => {
+    const state = newGame('santuario-1');
+    const initialRng = cloneState(state).rng;
+    const initialIds = cloneState(state).ids;
+
+    // Avistar com a Torre de Vigia não entrega relíquia.
+    state.settlement.buildings.watchtower = 2;
+    const towerEvents: GameEvent[] = [];
+    revealWatchtower(state, 0, towerEvents);
+    expect(state.map.hexes['0,4']?.fog).toBe('sighted');
+    expect(state.settlement.relics).toEqual([]);
+    expect(towerEvents.map((event) => event.type)).toEqual(['mapRevealed']);
+
+    // Explorar entrega a primeira relíquia da lista fixa, sem sorteio.
+    const events = exploreSanctuary(state);
+    expect(state.map.hexes['0,4']?.fog).toBe('explored');
+    expect(state.stats.sanctuaryClaimed).toBe(1);
+    const firstRelic = sanctuaryReward.from[0]!;
+    expect(state.settlement.relics).toEqual([
+      { defId: firstRelic, placed: false, effectiveFromMs: null },
+    ]);
+    expect(events.map((event) => event.type)).toEqual([
+      'mapRevealed',
+      'sanctuaryExplored',
+      'relicFound',
+    ]);
+    expect(events[1]).toMatchObject({
+      type: 'sanctuaryExplored',
+      data: { hex: '0,4', relicId: firstRelic },
+    });
+    expect(events[1]?.text).toContain('Santuário');
+    expect(events[1]?.text).toContain(relics[firstRelic].label);
+    expect(events[2]).toMatchObject({ type: 'relicFound', data: { relicId: firstRelic } });
+    expect(state.rng).toEqual(initialRng);
+    expect(state.ids).toEqual(initialIds);
+
+    // A visão do Santuário passa a informar que a relíquia já foi entregue.
+    const sheet = deriveViewState(state, 0).map.hexes.find((hex) => hex.q === 0 && hex.r === 4);
+    expect(sheet).toMatchObject({
+      fog: 'explored',
+      terrain: 'sanctuary',
+      detail: mapTexts.sanctuaryClaimedDetail,
+    });
+
+    // Repetir a expedição (mesmo forçando a névoa de volta) não entrega segunda relíquia.
+    const again: GameEvent[] = [];
+    revealExpedition(
+      state,
+      0,
+      again,
+      { id: 'expedition-2', modelId: 'patrol' },
+      'Patrulha dos Arredores',
+      false,
+    );
+    expect(again).toEqual([]);
+
+    state.map.hexes['0,4']!.fog = 'sighted';
+    const forced = exploreSanctuary(state);
+    expect(forced.map((event) => event.type)).toEqual(['mapRevealed']);
+    expect(state.settlement.relics).toHaveLength(1);
+  });
+
+  it('o Santuário entrega a próxima relíquia ausente da lista fixa e também dispara pelo hexágono extra do Rastreador', () => {
+    const state = newGame('santuario-rastreador');
+    grantRelic(state, sanctuaryReward.from[0]!, 0, []);
+    grantRelic(state, sanctuaryReward.from[1]!, 0, []);
+    // Deixa dois hexágonos por explorar: (-1,4) é visitado primeiro na fronteira, (0,4) é o extra do Rastreador.
+    for (const [key, hex] of Object.entries(state.map.hexes)) {
+      hex.fog = key === '-1,4' || key === '0,4' ? 'sighted' : 'explored';
+    }
+    const events: GameEvent[] = [];
+    revealExpedition(
+      state,
+      0,
+      events,
+      { id: 'expedition-1', modelId: 'patrol' },
+      'Patrulha dos Arredores',
+      true,
+    );
+    const expected = sanctuaryReward.from[2]!;
+    expect(state.map.hexes['0,4']?.fog).toBe('explored');
+    expect(state.settlement.relics.map((entry) => entry.defId)).toEqual([
+      sanctuaryReward.from[0],
+      sanctuaryReward.from[1],
+      expected,
+    ]);
+    expect(events.map((event) => event.type)).toEqual([
+      'mapRevealed',
+      'sanctuaryExplored',
+      'relicFound',
+    ]);
+    expect(events[1]?.data).toEqual({ hex: '0,4', relicId: expected });
+  });
+
+  it('com todas as oito relíquias já no feudo, o Santuário entrega o consolo fixo de ouro uma vez', () => {
+    const state = newGame('santuario-todas');
+    for (const id of RELIC_IDS) grantRelic(state, id, 0, []);
+    const goldBefore = state.settlement.resources.gold;
+    const events = exploreSanctuary(state);
+    expect(state.settlement.relics).toHaveLength(RELIC_IDS.length);
+    expect(state.settlement.resources.gold).toBe(
+      goldBefore + sanctuaryReward.consolationGold * MILLI,
+    );
+    expect(events.map((event) => event.type)).toEqual(['mapRevealed', 'sanctuaryExplored']);
+    expect(events[1]?.data).toEqual({
+      hex: '0,4',
+      gained_gold: sanctuaryReward.consolationGold,
+    });
+    expect(events[1]?.text).toContain(String(sanctuaryReward.consolationGold));
+    expect(events[1]?.text).toContain('ouro');
+  });
+
+  it('Serra do Ferro é determinística pela semente, altera a proporção de terrenos e preserva os hexágonos fixos', () => {
+    const standard = createInitialState('serra-semente', settings);
+    const ridgeA = createInitialState('serra-semente', { ...settings, scenario: 'ironRidge' });
+    const ridgeB = createInitialState('serra-semente', { ...settings, scenario: 'ironRidge' });
+    const ridgeOther = createInitialState('outra-semente', { ...settings, scenario: 'ironRidge' });
+
+    expect(standard.map.scenario).toBe('standard');
+    expect(ridgeA.map.scenario).toBe('ironRidge');
+    expect(ridgeA.map).toEqual(ridgeB.map);
+    expect(ridgeA.map.hexes).not.toEqual(standard.map.hexes);
+    expect(ridgeA.map.hexes).not.toEqual(ridgeOther.map.hexes);
+    expect(currentShape(ridgeA, '')).toBeNull();
+    expect(ridgeA.rng).toEqual({});
+    expect(ridgeA.ids).toEqual({});
+
+    // Hexágonos fixos permanecem intactos (1 Santuário, feudo e todos os destinos).
+    expect(
+      Object.values(ridgeA.map.hexes).filter((hex) => hex.terrain === 'sanctuary'),
+    ).toHaveLength(1);
+    expect(ridgeA.map.hexes['0,0']).toEqual({ terrain: 'fields', fog: 'explored' });
+    expect(ridgeA.map.hexes['2,-5']?.site).toBe('hordeFortress');
+
+    // A visão expõe cenário e rótulo do conteúdo.
+    expect(deriveViewState(standard, 0).map).toMatchObject({
+      scenario: 'standard',
+      scenarioLabel: mapScenarios.standard.label,
+    });
+    expect(deriveViewState(ridgeA, 0).map).toMatchObject({
+      scenario: 'ironRidge',
+      scenarioLabel: mapScenarios.ironRidge.label,
+    });
+
+    // Proporção sobre 100 sementes: Serra do Ferro gera substancialmente mais colinas e veios de ferro.
+    const countTerrain = (scenario: ScenarioId) => {
+      const totals: Record<string, number> = {};
+      for (let i = 0; i < 100; i += 1) {
+        const { hexes } = generateHexMap(`dist-${i}`, [], scenario);
+        for (const hex of Object.values(hexes)) {
+          totals[hex.terrain] = (totals[hex.terrain] ?? 0) + 1;
+        }
+      }
+      return totals;
+    };
+    const stdCounts = countTerrain('standard');
+    const ridgeCounts = countTerrain('ironRidge');
+    expect(ridgeCounts.hills!).toBeGreaterThan((stdCounts.hills ?? 0) * 1.4);
+    expect(ridgeCounts.ironVein!).toBeGreaterThan((stdCounts.ironVein ?? 0) * 2.5);
+    expect(ridgeCounts.fields!).toBeLessThan(stdCounts.fields!);
+    expect(ridgeCounts.forest!).toBeLessThan(stdCounts.forest!);
+
+    // Cenário desconhecido é recusado na criação; migração v44 → v45 recebe `standard`.
+    expect(() =>
+      createInitialState('invalido', { ...settings, scenario: 'coastal' as ScenarioId }),
+    ).toThrow(/Cenário desconhecido/);
+    expect(migrateState(v44, { timeScale: 1 }).map.scenario).toBe('standard');
   });
 });
 

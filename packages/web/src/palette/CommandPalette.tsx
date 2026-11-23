@@ -64,7 +64,7 @@ export function QuickPick(props: {
     if (event.key === 'Enter') {
       event.preventDefault();
       const item = matches[index];
-      if (item !== undefined) {
+      if (item !== undefined && item.disabled !== true) {
         props.onPick(item.value);
       }
       return;
@@ -119,10 +119,17 @@ export function QuickPick(props: {
             key={position}
             id={`quickpick-${position}`}
             role="option"
-            class="quickpick-item"
+            class={
+              item.disabled === true ? 'quickpick-item quickpick-item-disabled' : 'quickpick-item'
+            }
             aria-selected={position === index}
+            aria-disabled={item.disabled === true ? 'true' : undefined}
             onMouseMove={() => setSelected(position)}
-            onClick={() => props.onPick(item.value)}
+            onClick={() => {
+              if (item.disabled !== true) {
+                props.onPick(item.value);
+              }
+            }}
           >
             {item.icon === undefined ? null : <Icon name={item.icon} />}
             <span>{item.label}</span>

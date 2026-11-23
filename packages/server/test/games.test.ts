@@ -447,6 +447,97 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
     }
   });
 
+  it('cenário Serra do Ferro exige Legado na conta: recusa com frase legível sem arquivar e cria quando há Legado (V5E-T4)', async () => {
+    const auth = await signUp(server);
+    // Sem Legado (0 pontos): recusa com 403 FORBIDDEN e frase legível, sem criar partida.
+    const denied = await call<ApiError>(server, 'POST', '/games', {
+      token: auth.accessToken,
+      body: {
+        settlementName: 'Pico do Ferro',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        scenario: 'ironRidge',
+      },
+    });
+    expect(denied.status).toBe(403);
+    expect(denied.body.code).toBe('FORBIDDEN');
+    expect(denied.body.message).toContain('Serra do Ferro');
+    expect(denied.body.message).toContain('200');
+    expect(denied.body.message).toContain('0');
+    expect(await countRows(server.pool, 'games', `account_id = '${auth.account.id}'`)).toBe(0);
+
+    // Com partida ativa e Legado abaixo do custo (199 pontos), replaceActive não arquiva a atual.
+    const baseline = await startGame(server, auth.accessToken, {
+      settlementName: 'Pedra Alta',
+      seed: 'mesma-semente-serra',
+    });
+    const baselineView = await getView(server, auth.accessToken, baseline.id);
+    expect(baselineView.status).toBe(200);
+    expect(baselineView.body.view.map).toMatchObject({
+      scenario: 'standard',
+      scenarioLabel: 'Terras do Feudo',
+    });
+    await server.pool.query(
+      `insert into legacy_ledger (account_id, game_id, year, points)
+       values ($1, $2, 1, 199)`,
+      [auth.account.id, baseline.id],
+    );
+    const short = await call<ApiError>(server, 'POST', '/games', {
+      token: auth.accessToken,
+      body: {
+        settlementName: 'Pico do Ferro',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        replaceActive: true,
+        scenario: 'ironRidge',
+      },
+    });
+    expect(short.status).toBe(403);
+    expect(short.body.code).toBe('FORBIDDEN');
+    expect(short.body.message).toContain('199');
+    expect((await snapshot(server, baseline.id)).status).toBe('active');
+
+    // Com 200 pontos acumulados na conta (soma de linhas do livro-razão), a criação é aceita.
+    await server.pool.query(
+      `insert into legacy_ledger (account_id, game_id, year, points)
+       values ($1, $2, 2, 1)`,
+      [auth.account.id, baseline.id],
+    );
+    const created = await call<CreateGameResponse>(server, 'POST', '/games', {
+      token: auth.accessToken,
+      body: {
+        settlementName: 'Pico do Ferro',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        replaceActive: true,
+        seed: 'mesma-semente-serra',
+        scenario: 'ironRidge',
+      },
+    });
+    expect(created.status).toBe(201);
+    expect((await snapshot(server, baseline.id)).status).toBe('archived');
+
+    const { rows } = await server.pool.query<{ id: string; scenario: string; hexes: unknown }>(
+      `select id, state -> 'map' ->> 'scenario' as scenario, state -> 'map' -> 'hexes' as hexes
+         from games where id in ($1, $2)`,
+      [baseline.id, created.body.game.id],
+    );
+    const baselineMap = rows.find((row) => row.id === baseline.id);
+    const createdMap = rows.find((row) => row.id === created.body.game.id);
+    expect(baselineMap?.scenario).toBe('standard');
+    expect(createdMap?.scenario).toBe('ironRidge');
+    // Na mesma semente, Serra do Ferro gera grade distinta da padrão.
+    expect(createdMap?.hexes).not.toEqual(baselineMap?.hexes);
+
+    const view = await getView(server, auth.accessToken, created.body.game.id);
+    expect(view.status).toBe(200);
+    expect(ViewResponseSchema.safeParse(view.body).error).toBeUndefined();
+    expect(view.body.view.map).toMatchObject({
+      scenario: 'ironRidge',
+      scenarioLabel: 'Serra do Ferro',
+    });
+  });
+
   it.each([
     ['difficulty', 'normal'],
     ['difficulty', 'LORD'],
@@ -460,6 +551,10 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
     ['timeScale', -1],
     ['timeScale', '3'],
     ['timeScale', null],
+    ['scenario', 'coastal'],
+    ['scenario', 'IRONRIDGE'],
+    ['scenario', ''],
+    ['scenario', null],
   ])('%s: %j no corpo é 400 VALIDATION e não cria partida', async (field, value) => {
     const auth = await signUp(server);
     const reply = await call<ApiError>(server, 'POST', '/games', {

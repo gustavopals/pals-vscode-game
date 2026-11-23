@@ -25,9 +25,14 @@ test.describe('primeira abertura', () => {
     await expect(welcome.getByRole('textbox')).toHaveCount(2);
     await expect(welcome.getByLabel('Nome do feudo')).toHaveValue('Pedra Alta');
     await expect(welcome.getByText(/e-mail|senha/i)).toHaveCount(0);
-    // A dificuldade e o ritmo chegam do servidor, já com uma opção marcada em cada grupo.
-    await expect(welcome.getByRole('radiogroup')).toHaveCount(2);
-    await expect(welcome.getByRole('radio', { checked: true })).toHaveCount(2);
+    // A dificuldade, o ritmo e o cenário chegam do servidor, já com uma opção marcada em cada grupo.
+    await expect(welcome.getByRole('radiogroup')).toHaveCount(3);
+    await expect(welcome.getByRole('radio', { checked: true })).toHaveCount(3);
+    await expect(
+      welcome
+        .getByRole('radiogroup', { name: 'Cenário' })
+        .getByRole('radio', { name: /Serra do Ferro/ }),
+    ).toBeDisabled();
     // Antes de o jogador agir, só o que é público é consultado (a versão do servidor e as opções
     // de nova partida): nenhuma conta é criada.
     const api = requests.filter((url) => url.includes('/v1/')).map((url) => new URL(url).pathname);
@@ -184,6 +189,7 @@ const welcomeTab = (page: Page) => page.getByRole('tabpanel', { name: 'Boas-vind
 const difficulty = (page: Page) =>
   welcomeTab(page).getByRole('radiogroup', { name: 'Dificuldade' });
 const pace = (page: Page) => welcomeTab(page).getByRole('radiogroup', { name: 'Ritmo' });
+const scenario = (page: Page) => welcomeTab(page).getByRole('radiogroup', { name: 'Cenário' });
 const settings = (page: Page) => page.getByRole('tabpanel', { name: 'Preferências' });
 
 /** Os corpos de `POST /v1/games` que saírem deste contexto. */
@@ -275,6 +281,7 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
         vigilHourLocal: 20,
         difficulty: 'lord',
         timeScale: 1,
+        scenario: 'standard',
       },
     ]);
 
@@ -316,6 +323,11 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
     expect(await fast.evaluate((element) => element.matches(':focus-visible'))).toBe(true);
 
     await page.keyboard.press('Tab');
+    await expect(
+      scenario(page).getByRole('radio', { name: 'Terras do Feudo (recomendado)' }),
+    ).toBeFocused();
+
+    await page.keyboard.press('Tab');
     await expect(welcomeTab(page).getByRole('button', { name: 'Jogar agora' })).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Pedra Alta', level: 1 })).toBeVisible();
@@ -326,6 +338,7 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
         vigilHourLocal: 20,
         difficulty: 'ironKing',
         timeScale: 3,
+        scenario: 'standard',
       },
     ]);
 

@@ -375,6 +375,8 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'prospered', topic: 'expedition' };
     case 'relicFound':
       return { block: 'prospered', topic: 'relic' };
+    case 'sanctuaryExplored':
+      return { block: 'prospered', topic: 'map' };
     // (`itemSold` é o item que não coube no arsenal e foi vendido: a frase diz que ele virou
     // ouro; sem ela, "achou um item" ficaria sozinho, e o item não está em lugar nenhum. O ouro
     // entra na tabela como recebido, pelo total do evento.)

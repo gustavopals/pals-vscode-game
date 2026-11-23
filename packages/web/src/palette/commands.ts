@@ -24,10 +24,13 @@ import {
 import {
   choiceSummary,
   difficultyLine,
+  isScenarioLocked,
   type NewGameChoice,
   type NewGameOptions,
   paceLine,
   resolveChoice,
+  scenarioLine,
+  scenarioLockedText,
 } from '../game/newGame';
 import { nextTheme, THEME_LABELS } from '../theme/theme';
 import type { ThemeId } from '../services/preferences';
@@ -4039,11 +4042,14 @@ export function createCommands(
   };
 
   /**
-   * Dificuldade e ritmo do feudo novo, em duas listas com o padrão do servidor já marcado:
-   * `Enter`, `Enter` aceita os dois. `null` é desistência.
+   * Dificuldade, ritmo e cenário do feudo novo, com o padrão do servidor já marcado:
+   * `Enter` em cada etapa aceita os padrões. `null` é desistência.
    */
-  const chooseNewGame = async (options: NewGameOptions): Promise<NewGameChoice | null> => {
-    const defaults = resolveChoice(options);
+  const chooseNewGame = async (
+    options: NewGameOptions,
+    legacy: number | null,
+  ): Promise<NewGameChoice | null> => {
+    const defaults = resolveChoice(options, {}, legacy);
     const difficulty = await dialogs.pick({
       title: 'Nova partida: dificuldade',
       placeholder: 'Fica gravada no feudo e não muda durante o ano.',
@@ -4067,7 +4073,32 @@ export function createCommands(
       })),
       selected: options.paces.findIndex((option) => option.timeScale === defaults.timeScale),
     });
-    return timeScale === undefined ? null : { difficulty, timeScale };
+    if (timeScale === undefined) {
+      return null;
+    }
+    const scenarios = options.scenarios;
+    if (scenarios === undefined || scenarios.length === 0) {
+      return { difficulty, timeScale };
+    }
+    const scenario = await dialogs.pick({
+      title: 'Nova partida: cenário',
+      placeholder: 'Fica gravado no feudo e não muda durante o ano.',
+      items: scenarios.map((option) => {
+        const locked = isScenarioLocked(option, legacy);
+        const reason = scenarioLockedText(option, legacy);
+        return {
+          ...(locked ? { icon: 'lock', disabled: true } : {}),
+          label: scenarioLine(option),
+          detail: reason === null ? option.description : `${option.description} ${reason}`,
+          value: option.id,
+        };
+      }),
+      selected: Math.max(
+        0,
+        scenarios.findIndex((option) => option.id === defaults.scenario),
+      ),
+    });
+    return scenario === undefined ? null : { difficulty, timeScale, scenario };
   };
 
   const seedValidation = (value: string): Validation | null => {
@@ -4107,9 +4138,9 @@ export function createCommands(
       controller.navigate('welcome');
       return;
     }
-    // As opções vêm do servidor. Sem elas (sem ligação, servidor de uma versão anterior), nada é
+    // As opções e o Legado vêm do servidor. Sem catálogo (sem ligação, servidor anterior), nada é
     // perguntado e o feudo nasce com os padrões dele, como na v0.1.
-    await controller.loadCatalog();
+    await Promise.all([controller.loadCatalog(), controller.loadStats(true)]);
     // A conta é lida depois da espera: a sessão pode ter terminado, ou outra aba pode ter
     // fundado ou arquivado o feudo, enquanto as opções não chegavam.
     const state = accountNow();
@@ -4136,7 +4167,8 @@ export function createCommands(
       chosenSeed = trimmed === '' ? undefined : trimmed;
     }
     const options = controller.newGameOptions;
-    const choice = options === null ? undefined : await chooseNewGame(options);
+    const choice =
+      options === null ? undefined : await chooseNewGame(options, controller.accountLegacy);
     if (choice === null) {
       return;
     }
@@ -4148,7 +4180,7 @@ export function createCommands(
           ...(options === null || choice === undefined
             ? []
             : [
-                `O novo feudo nasce assim: ${choiceSummary(options, choice)}. Os dois não mudam durante o ano.`,
+                `O novo feudo nasce assim: ${choiceSummary(options, choice)}. ${choice.scenario === undefined ? 'Os dois' : 'As escolhas'} não mudam durante o ano.`,
               ]),
           ...(chosenSeed === undefined ? [] : [`Semente: ${chosenSeed}.`]),
         ],

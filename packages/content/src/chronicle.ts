@@ -82,6 +82,7 @@ export const EVENT_TYPES = [
   'itemUnequipped',
   'destinationRevealed',
   'mapRevealed',
+  'sanctuaryExplored',
   'threatTileCleared',
   'threatTileRestored',
   'marketTraded',
@@ -222,6 +223,8 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
   mapRevealed: 'No {dia}º dia {daEstacao}, a Torre de Vigia avistou novas terras.',
+  sanctuaryExplored:
+    'No {dia}º dia {daEstacao}, os batedores de {feudo} alcançaram o Santuário e encontraram {reliquia}.',
   relicFound:
     'No {dia}º dia {daEstacao}, {feudo} recebeu uma relíquia: {reliquia}. O tesouro foi guardado para a Capela.',
   relicPlaced:
@@ -490,6 +493,10 @@ export const chronicleTemplates: Record<GameEventType, string> = {
 /** A linha agrupada de `mapRevealed` quando uma expedição conclui o percurso (GDD §8.1). */
 export const expeditionMapTemplate =
   'No {dia}º dia {daEstacao}, a expedição "{expedicao}" trouxe novos detalhes para o mapa.';
+
+/** A linha de `sanctuaryExplored` quando o feudo já possui todas as relíquias (GDD §8.1; D-6). */
+export const sanctuaryConsolationTemplate =
+  'No {dia}º dia {daEstacao}, os batedores de {feudo} alcançaram o Santuário; com todas as relíquias já guardadas, recolheram {quantidade} de ouro.';
 
 /**
  * As frases do Mercado (GDD §5.9; ADR 0018, decisão 16). A negociação é o mesmo evento com uma

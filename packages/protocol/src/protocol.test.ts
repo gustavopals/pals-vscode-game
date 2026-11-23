@@ -2,6 +2,10 @@ import {
   balance,
   vows,
   mapRules,
+  mapScenarios,
+  mapTexts,
+  sanctuaryConsolationTemplate,
+  sanctuaryReward,
   terrains,
   fixedHexes,
   vowRules,
@@ -2436,6 +2440,19 @@ describe('contratos da API', () => {
     }
   });
 
+  it('criação de partida: cenário é opcional e aceita apenas os ids publicados (V5E-T4)', () => {
+    const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    expect(CreateGameRequestSchema.safeParse(body).data).not.toHaveProperty('scenario');
+    for (const scenario of ['standard', 'ironRidge'] as const) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, scenario }).data?.scenario).toBe(
+        scenario,
+      );
+    }
+    for (const scenario of ['mistValley', 'IRONRIDGE', '', null, 1]) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, scenario }).success).toBe(false);
+    }
+  });
+
   it('aceita o cache anterior ao mapa e exige só coordenadas para um hexágono desconhecido', () => {
     const state = createInitialState('névoa', {
       settlementName: 'Pedra Alta',
@@ -2544,6 +2561,47 @@ describe('contratos da API', () => {
     expect(CatalogResponseSchema.safeParse(withNewGame({ difficulties: leaking })).success).toBe(
       false,
     );
+
+    // Com cenários (V5E-T4): `defaults.scenario` acompanha `scenarios`, e pesos não vazam.
+    const scenarios = [
+      {
+        id: 'standard',
+        label: 'Terras do Feudo',
+        description: 'Equilíbrio.',
+        legacyCost: 0,
+        costLabel: null,
+        lockedReason: null,
+        recommended: true,
+      },
+      {
+        id: 'ironRidge',
+        label: 'Serra do Ferro',
+        description: 'Mais ferro.',
+        legacyCost: 200,
+        costLabel: '200 de Legado',
+        lockedReason: 'Requer 200 pontos de Legado na conta.',
+        recommended: false,
+      },
+    ];
+    expect(
+      CatalogResponseSchema.safeParse(
+        withNewGame({ scenarios, defaults: { ...newGame.defaults, scenario: 'standard' } }),
+      ).error,
+    ).toBeUndefined();
+    expect(CatalogResponseSchema.safeParse(withNewGame({ scenarios })).success).toBe(false);
+    expect(
+      CatalogResponseSchema.safeParse(
+        withNewGame({ defaults: { ...newGame.defaults, scenario: 'standard' } }),
+      ).success,
+    ).toBe(false);
+    expect(
+      CatalogResponseSchema.safeParse(
+        withNewGame({
+          scenarios: scenarios.map((entry) => ({ ...entry, terrainWeights: { hills: 40 } })),
+          defaults: { ...newGame.defaults, scenario: 'standard' },
+        }),
+      ).success,
+    ).toBe(false);
   });
 
   it('a resposta do GitHub traz os tokens só quando nasce uma sessão', () => {
@@ -2776,6 +2834,10 @@ describe('contentHash', () => {
         balance,
         vows,
         mapRules,
+        mapScenarios,
+        mapTexts,
+        sanctuaryConsolationTemplate,
+        sanctuaryReward,
         terrains,
         fixedHexes,
         vowRules,
@@ -2865,6 +2927,8 @@ describe('contentHash', () => {
       'injuredLoss',
       'injuryTemplates',
       'mapRules',
+      'mapScenarios',
+      'mapTexts',
       'marketTemplates',
       'masterTemplates',
       'masters',
@@ -2877,6 +2941,8 @@ describe('contentHash', () => {
       'raidTemplates',
       'relicTexts',
       'relics',
+      'sanctuaryConsolationTemplate',
+      'sanctuaryReward',
       'siegeTexts',
       'startingTiles',
       'tavernCandidates',

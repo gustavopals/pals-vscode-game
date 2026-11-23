@@ -1,14 +1,15 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 
+import { mapScenarios, mapTexts } from '@lotg/content';
 import { advanceTo, createInitialState, type GameState } from '@lotg/engine';
 import type { CreateGameRequest, GameSummary } from '@lotg/protocol';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import { ApiError, sessionRevoked } from '../api-error';
-import { defaultDifficulty } from '../catalog';
+import { defaultDifficulty, defaultScenario } from '../catalog';
 import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
-import { accounts, games } from '../db/schema';
+import { accounts, games, legacyLedger } from '../db/schema';
 import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
 import { resolveVigilTimezone } from './vigil';
 
@@ -49,6 +50,27 @@ export async function createGame(
     if (account === undefined) {
       throw sessionRevoked();
     }
+    const scenario = input.scenario ?? defaultScenario();
+    const scenarioDef = mapScenarios[scenario];
+    if (scenarioDef.legacyCost > 0) {
+      const [legacy] = await tx
+        .select({
+          points: sql<number>`coalesce(sum(${legacyLedger.points}), 0)`.mapWith(Number),
+        })
+        .from(legacyLedger)
+        .where(eq(legacyLedger.accountId, accountId));
+      const points = legacy?.points ?? 0;
+      if (points < scenarioDef.legacyCost) {
+        const format = new Intl.NumberFormat('pt-BR');
+        throw new ApiError(
+          'FORBIDDEN',
+          mapTexts.scenarioInsufficientLegacy
+            .replace('{cenario}', scenarioDef.label)
+            .replace('{custo}', format.format(scenarioDef.legacyCost))
+            .replace('{legado}', format.format(points)),
+        );
+      }
+    }
     const [active] = await tx
       .select({ id: games.id })
       .from(games)
@@ -75,6 +97,7 @@ export async function createGame(
       vigilHourLocal: input.vigilHourLocal,
       difficulty,
       timeScale,
+      scenario,
       realOriginMs: now.getTime(),
       vigil: {
         hourLocal: input.vigilHourLocal,

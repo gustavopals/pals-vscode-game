@@ -94,6 +94,8 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  'iron-ridge': () =>
+    createInitialState('fixture-iron-ridge', { ...settings, scenario: 'ironRidge' }),
   'vows-active': () => {
     const state = gameAt(0);
     state.settlement.buildings.townHall = 8;
@@ -758,6 +760,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const all0 = () => Object.values(built);
 
     expect(of('fresh').lastProcessedAt).toBe(0);
+    expect(of('fresh').map.scenario).toBe('standard');
+    expect(of('iron-ridge').map.scenario).toBe('ironRidge');
     expect(of('white-wolf-window').map.expeditionUnlocks).toEqual({
       whiteWolfHunt: AUTUMN + 1234 + 6 * DAY,
     });
@@ -892,6 +896,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const threat = of('threat');
     expect(threat.map).toEqual({
       radius: 5,
+      scenario: 'standard',
       hexes: expect.any(Object),
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 18,

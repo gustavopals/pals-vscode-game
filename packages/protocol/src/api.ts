@@ -1,4 +1,4 @@
-import { DIFFICULTY_IDS } from '@lotg/content';
+import { DIFFICULTY_IDS, SCENARIO_IDS } from '@lotg/content';
 import { z } from 'zod';
 
 import { CommandSchema } from './commands';
@@ -161,6 +161,9 @@ export type GameSummary = z.infer<typeof GameSummarySchema>;
 /** Uma das dificuldades do conteúdo (GDD §12.1). */
 export const DifficultySchema = z.enum(DIFFICULTY_IDS);
 
+/** Um dos cenários de mapa do conteúdo (GDD §11.5; D-18). */
+export const ScenarioSchema = z.enum(SCENARIO_IDS);
+
 /**
  * O ritmo pedido para a partida (GDD §4.2): horas de jogo por hora real. Aqui só a forma. Quais
  * ritmos o jogo oferece é conteúdo (`balance.paces`), e quem confere é o servidor, que recusa
@@ -185,6 +188,8 @@ export const CreateGameRequestSchema = z.strictObject({
   replaceActive: z.boolean().optional(),
   /** Semente escolhida para a partida (D-19). Sem ela, o servidor sorteia uma. */
   seed: GameSeedSchema.optional(),
+  /** Cenário do gerador de mapa (D-18). Sem ele, vale o cenário padrão. */
+  scenario: ScenarioSchema.optional(),
 });
 export type CreateGameRequest = z.infer<typeof CreateGameRequestSchema>;
 
@@ -294,17 +299,42 @@ export const CatalogResponseSchema = z
           }),
         )
         .min(1),
+      /** Cenários de mapa oferecidos na criação (D-18); opcional por adição no protocolo 4. */
+      scenarios: z
+        .array(
+          z.strictObject({
+            id: ScenarioSchema,
+            label: z.string(),
+            description: z.string(),
+            legacyCost: z.number().int().nonnegative(),
+            /** Custo pronto para exibir ("200 de Legado"); `null` quando gratuito. */
+            costLabel: z.string().nullable(),
+            /** Motivo pronto quando falta Legado na conta; `null` quando gratuito. */
+            lockedReason: z.string().nullable(),
+            recommended: z.boolean(),
+          }),
+        )
+        .min(1)
+        .optional(),
       /**
-       * O que as boas-vindas trazem marcado: a dificuldade recomendada e o ritmo padrão do
-       * servidor, quando ele é um dos oferecidos (senão, o ritmo recomendado).
+       * O que as boas-vindas trazem marcado: a dificuldade recomendada, o ritmo padrão do
+       * servidor (quando oferecido; senão, o recomendado) e o cenário padrão.
        */
-      defaults: z.strictObject({ difficulty: DifficultySchema, timeScale: z.number().positive() }),
+      defaults: z.strictObject({
+        difficulty: DifficultySchema,
+        timeScale: z.number().positive(),
+        scenario: ScenarioSchema.optional(),
+      }),
     }),
   })
   .refine(
     ({ newGame }) =>
       newGame.difficulties.some((entry) => entry.id === newGame.defaults.difficulty) &&
-      newGame.paces.some((entry) => entry.timeScale === newGame.defaults.timeScale),
+      newGame.paces.some((entry) => entry.timeScale === newGame.defaults.timeScale) &&
+      (newGame.scenarios === undefined
+        ? newGame.defaults.scenario === undefined
+        : newGame.defaults.scenario !== undefined &&
+          newGame.scenarios.some((entry) => entry.id === newGame.defaults.scenario)),
     'os padrões têm de estar entre as opções',
   );
 export type CatalogResponse = z.infer<typeof CatalogResponseSchema>;

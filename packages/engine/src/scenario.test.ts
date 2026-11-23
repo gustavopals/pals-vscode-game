@@ -19,7 +19,7 @@ describe('cenário golden de 7 dias', () => {
     );
     // O roteiro v44 congela inclusive os sorteios. A expectativa v45 acrescenta
     // a grade a cada dia e uma linha de Crônica a cada conclusão da Torre.
-    const { radius, hexes } = weekV45.map;
+    const { radius, scenario, hexes } = weekV45.map;
     const revelations = [
       {
         atMs: 25 * HOUR + 12 * MINUTE,
@@ -61,7 +61,7 @@ describe('cenário golden de 7 dias', () => {
           state: {
             ...day.state,
             schemaVersion: 45,
-            map: { ...day.state.map, radius, hexes: dayHexes },
+            map: { ...day.state.map, radius, scenario, hexes: dayHexes },
           },
         };
       }),

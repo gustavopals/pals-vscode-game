@@ -13,6 +13,7 @@ import {
   MORALE_TERM_IDS,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
+  SCENARIO_IDS,
   SEASON_IDS,
   UNIT_IDS,
   WING_IDS,
@@ -1470,7 +1471,12 @@ const mapHexSchema = z.union([
 
 export const ViewStateSchema = z.strictObject({
   map: z
-    .strictObject({ radius: z.int().nonnegative(), hexes: z.array(mapHexSchema) })
+    .strictObject({
+      radius: z.int().nonnegative(),
+      scenario: z.enum(SCENARIO_IDS).optional(),
+      scenarioLabel: z.string().optional(),
+      hexes: z.array(mapHexSchema),
+    })
     .default({ radius: 0, hexes: [] }),
   /** Semente da partida pessoal (D-19); opcional por adição no protocolo 4. */
   seed: z.string().min(1).optional(),

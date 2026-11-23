@@ -11,6 +11,8 @@ export type PickItem<T> = {
   detail?: string;
   /** Nome de um codicon. */
   icon?: string;
+  /** Opção visível para leitura do motivo, mas impedida de ser escolhida. */
+  disabled?: boolean;
   value: T;
 };
 

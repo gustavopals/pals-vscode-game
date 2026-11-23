@@ -46,8 +46,10 @@ import {
   WATCHTOWER_COMPOSITION_IDS,
   RESOURCE_IDS,
   RELIC_IDS,
+  SCENARIO_IDS,
   SEASON_IDS,
   TAVERN_CANDIDATE_IDS,
+  TERRAIN_IDS,
   TILE_TYPE_IDS,
   UNIT_IDS,
   HORDE_UNIT_IDS,
@@ -55,6 +57,7 @@ import {
   WING_IDS,
 } from './ids';
 import { ARCHETYPES, hordeUnits } from './enemies';
+import { mapTexts, terrains } from './map';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
 const positiveInt = z.number().int().positive();
@@ -1303,6 +1306,11 @@ export const ExpeditionMapTemplateSchema = datedTemplate.refine(
   (template) => template.includes('{expedicao}'),
   'frase do mapa sem a expedição',
 );
+/** A frase de `sanctuaryExplored` quando o feudo já possui todas as relíquias. */
+export const SanctuaryConsolationTemplateSchema = datedTemplate.refine(
+  (template) => template.includes('{feudo}') && template.includes('{quantidade}'),
+  'frase de consolo do Santuário sem feudo ou quantidade',
+);
 const followingSentence = chronicleTemplate
   .regex(/^\p{Lu}.*\.$/u)
   .refine((template) => !template.includes('{dia}'), 'frase de continuação com data');
@@ -2508,3 +2516,60 @@ export const RelicsSchema = z.strictObject({
   saltStone: z.strictObject({ label, effectText: label, foodCapacity: ratio }),
   wintersCloak: z.strictObject({ label, effectText: label, firewood: ratio }),
 });
+
+const terrainWeightsSchema = z
+  .strictObject({
+    forest: nonNegInt,
+    hills: nonNegInt,
+    fields: nonNegInt,
+    lake: nonNegInt,
+    swamp: nonNegInt,
+    ruins: nonNegInt,
+    ironVein: nonNegInt,
+    sanctuary: nonNegInt,
+  })
+  .refine(
+    (weights) => Object.values(weights).reduce((sum, weight) => sum + weight, 0) === 100,
+    'pesos dos terrenos não somam 100',
+  )
+  .refine((weights) => weights.sanctuary === 0, 'o Santuário tem posição única e peso zero');
+
+const mapScenarioDef = z.strictObject({
+  label,
+  description: label.regex(/^\p{Lu}[^0-9{}]*\.$/u),
+  legacyCost: nonNegInt,
+  recommended: z.boolean(),
+  terrainWeights: terrainWeightsSchema,
+});
+
+/** Cenários de mapa (`map.ts`; D-18): pesos em 100, Santuário em 0 e um único recomendado. */
+export const MapScenariosSchema = z
+  .strictObject({
+    standard: mapScenarioDef,
+    ironRidge: mapScenarioDef,
+  })
+  .refine(
+    (scenarios) =>
+      Object.keys(scenarios).length === SCENARIO_IDS.length &&
+      exactlyOneRecommended(Object.values(scenarios)),
+    'exatamente um cenário recomendado',
+  )
+  .refine(
+    (scenarios) =>
+      TERRAIN_IDS.every((id) => scenarios.standard.terrainWeights[id] === terrains[id].weight),
+    'cenário padrão diverge dos pesos de terrenos publicados',
+  );
+
+/** Recompensa do Santuário (`map.ts`; D-6): todas as relíquias sem repetição e ouro de consolo. */
+export const SanctuaryRewardSchema = z.strictObject({
+  from: z
+    .array(z.enum(RELIC_IDS))
+    .length(RELIC_IDS.length)
+    .refine((list) => new Set(list).size === list.length, 'relíquia repetida no Santuário'),
+  consolationGold: positiveInt,
+});
+
+/** Frases do mapa e cenários: nenhum número de regra escrito, só lacunas. */
+export const MapTextsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(mapTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
+);

@@ -529,7 +529,11 @@ type ErrorBody = { code: string; message: string; details?: unknown };
  * `defaults` é o que vem marcado: o padrão do servidor, que pode não ser o recomendado.
  */
 export function catalogFixture(
-  defaults: CatalogResponse['newGame']['defaults'] = { difficulty: 'lord', timeScale: 3 },
+  defaults: CatalogResponse['newGame']['defaults'] = {
+    difficulty: 'lord',
+    timeScale: 3,
+    scenario: 'standard',
+  },
 ): CatalogResponse {
   return {
     contentHash: '0123456789abcdef',
@@ -580,7 +584,28 @@ export function catalogFixture(
           recommended: false,
         },
       ],
-      defaults,
+      scenarios: [
+        {
+          id: 'standard',
+          label: 'Terras do Feudo',
+          description: 'Equilíbrio entre campos, florestas e colinas ao redor do feudo.',
+          legacyCost: 0,
+          costLabel: null,
+          lockedReason: null,
+          recommended: true,
+        },
+        {
+          id: 'ironRidge',
+          label: 'Serra do Ferro',
+          description:
+            'Mais colinas e veios de ferro espalhados pelo mapa, com menos campos e florestas.',
+          legacyCost: 200,
+          costLabel: '200 de Legado',
+          lockedReason: 'Requer 200 pontos de Legado na conta.',
+          recommended: false,
+        },
+      ],
+      defaults: { ...defaults, scenario: defaults.scenario ?? 'standard' },
     },
   };
 }

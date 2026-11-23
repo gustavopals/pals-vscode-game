@@ -87,8 +87,29 @@ describe('GET /catalog', () => {
           recommended: false,
         },
       ],
+      scenarios: [
+        {
+          id: 'standard',
+          label: 'Terras do Feudo',
+          description: 'Equilíbrio entre campos, florestas e colinas ao redor do feudo.',
+          legacyCost: 0,
+          costLabel: null,
+          lockedReason: null,
+          recommended: true,
+        },
+        {
+          id: 'ironRidge',
+          label: 'Serra do Ferro',
+          description:
+            'Mais colinas e veios de ferro espalhados pelo mapa, com menos campos e florestas.',
+          legacyCost: 200,
+          costLabel: '200 de Legado',
+          lockedReason: 'Requer 200 pontos de Legado na conta.',
+          recommended: false,
+        },
+      ],
       // O servidor dos testes roda com GAME_TIME_SCALE=1.
-      defaults: { difficulty: 'lord', timeScale: 1 },
+      defaults: { difficulty: 'lord', timeScale: 1, scenario: 'standard' },
     });
   });
 
@@ -125,7 +146,11 @@ describe('GET /catalog', () => {
   it('o ritmo padrão é o GAME_TIME_SCALE do servidor quando ele é um dos oferecidos', async () => {
     const normal = await call<CatalogResponse>(server, 'GET', '/catalog');
     const fast = await call<CatalogResponse>(production, 'GET', '/catalog');
-    expect(fast.body.newGame.defaults).toEqual({ difficulty: 'lord', timeScale: 3 });
+    expect(fast.body.newGame.defaults).toEqual({
+      difficulty: 'lord',
+      timeScale: 3,
+      scenario: 'standard',
+    });
     // O conteúdo é o mesmo; só o padrão muda, e com ele o ETag.
     expect({ ...fast.body.newGame, defaults: null }).toEqual({
       ...normal.body.newGame,
@@ -138,7 +163,11 @@ describe('GET /catalog', () => {
   it('GAME_TIME_SCALE fora da lista: as boas-vindas marcam o ritmo recomendado', async () => {
     const reply = await call<CatalogResponse>(odd, 'GET', '/catalog');
     expect(CatalogResponseSchema.safeParse(reply.body).error).toBeUndefined();
-    expect(reply.body.newGame.defaults).toEqual({ difficulty: 'lord', timeScale: 3 });
+    expect(reply.body.newGame.defaults).toEqual({
+      difficulty: 'lord',
+      timeScale: 3,
+      scenario: 'standard',
+    });
     expect(reply.body.newGame.paces.map((pace) => pace.timeScale)).toEqual([3, 1, 0.5]);
   });
 });
@@ -188,7 +217,17 @@ describe('o catálogo e a criação de partida dizem o mesmo', () => {
         body: { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 },
       });
       expect(created.status).toBe(201);
-      expect(created.body.game).toMatchObject(defaults);
+      expect(created.body.game).toMatchObject({
+        difficulty: defaults.difficulty,
+        timeScale: defaults.timeScale,
+      });
+      const view = await call<ViewResponse>(
+        instance,
+        'GET',
+        `/games/${created.body.game.id}/view`,
+        { token: auth.accessToken },
+      );
+      expect(view.body.view.map.scenario).toBe(defaults.scenario);
     }
   });
 });

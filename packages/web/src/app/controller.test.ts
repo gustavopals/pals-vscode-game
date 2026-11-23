@@ -177,7 +177,11 @@ describe('opções de nova partida (GET /catalog)', () => {
     await settle(controller);
     expect(controller.catalog.status).toBe('ready');
     expect(controller.newGameOptions).toEqual(catalogFixture().newGame);
-    expect(controller.newGameOptions?.defaults).toEqual({ difficulty: 'lord', timeScale: 3 });
+    expect(controller.newGameOptions?.defaults).toEqual({
+      difficulty: 'lord',
+      timeScale: 3,
+      scenario: 'standard',
+    });
     expect(count(api.state.requests, CATALOG)).toBe(1);
   });
 
@@ -324,7 +328,11 @@ describe('opções de nova partida (GET /catalog)', () => {
 
   it('"Nova partida" pelo controlador arquiva o feudo atual e leva a escolha', async () => {
     const { controller, api } = await opened();
-    await controller.startNewGame('Vau Alto', { difficulty: 'peasant', timeScale: 1 });
+    await controller.startNewGame('Vau Alto', {
+      difficulty: 'peasant',
+      timeScale: 1,
+      scenario: 'ironRidge',
+    });
     await settle(controller);
     expect(api.state.gameRequests).toEqual([
       {
@@ -333,10 +341,33 @@ describe('opções de nova partida (GET /catalog)', () => {
         vigilHourLocal: 20,
         difficulty: 'peasant',
         timeScale: 1,
+        scenario: 'ironRidge',
         replaceActive: true,
       },
     ]);
     expect(controller.busy).toBe(false);
+  });
+
+  it('accountLegacy é 0 sem conta e consulta /stats nas boas-vindas de uma conta sem feudo (V5E-T4)', async () => {
+    const signedOut = make();
+    await signedOut.controller.start();
+    await settle(signedOut.controller);
+    expect(signedOut.controller.accountLegacy).toBe(0);
+    expect(count(signedOut.api.state.requests, 'GET /stats')).toBe(0);
+
+    const api = fakeApi();
+    api.state.stats.me.legacy = 320;
+    const withoutGame = make({ api, signedIn: true });
+    api.state.game = null;
+    withoutGame.store.data[ACCOUNT_KEY] = {
+      ...(withoutGame.store.data[ACCOUNT_KEY] as object),
+      gameId: null,
+    };
+    await withoutGame.controller.start();
+    await settle(withoutGame.controller);
+    expect(withoutGame.controller.route).toBe('welcome');
+    expect(count(api.state.requests, 'GET /stats')).toBe(1);
+    expect(withoutGame.controller.accountLegacy).toBe(320);
   });
 });
 

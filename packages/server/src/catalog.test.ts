@@ -144,7 +144,11 @@ describe('GET /v1/catalog', () => {
     expect(first.statusCode).toBe(200);
     expect(CatalogResponseSchema.safeParse(first.json()).error).toBeUndefined();
     // Sem GAME_TIME_SCALE, o servidor usa 3: é o que vem marcado.
-    expect(first.json().newGame.defaults).toEqual({ difficulty: 'lord', timeScale: 3 });
+    expect(first.json().newGame.defaults).toEqual({
+      difficulty: 'lord',
+      timeScale: 3,
+      scenario: 'standard',
+    });
     expect(first.headers['cache-control']).toBe('no-cache');
     const etag = String(first.headers.etag);
     expect(etag).toMatch(/^W\/"[0-9a-f]{64}"$/);
@@ -166,7 +170,11 @@ describe('GET /v1/catalog', () => {
     const fast = await app.inject({ url: '/v1/catalog' });
     const calm = await slow.inject({ url: '/v1/catalog' });
     expect(calm.json().contentHash).toBe(fast.json().contentHash);
-    expect(calm.json().newGame.defaults).toEqual({ difficulty: 'lord', timeScale: 0.5 });
+    expect(calm.json().newGame.defaults).toEqual({
+      difficulty: 'lord',
+      timeScale: 0.5,
+      scenario: 'standard',
+    });
     expect(calm.headers.etag).not.toBe(fast.headers.etag);
     // O ETag de uma configuração não vale na outra: a resposta vem inteira.
     const crossed = await slow.inject({

@@ -41,6 +41,12 @@ test.describe('19 · Semente visível e escolhida (V5D-T1)', () => {
     await page.keyboard.press('Enter');
     await expect(dialog).toContainText('Nova partida: ritmo');
     await page.keyboard.press('Enter');
+    await expect(dialog).toContainText('Nova partida: cenário');
+    await expect(dialog.getByRole('option', { name: /Serra do Ferro/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    await page.keyboard.press('Enter');
     await expect(dialog).toContainText('Começar uma nova partida?');
     await expect(dialog).toContainText(`Semente: ${seed}.`);
     await dialog.getByRole('button', { name: 'Começar outro feudo' }).click();
