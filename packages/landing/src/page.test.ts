@@ -450,10 +450,10 @@ describe('index.html', () => {
       // As capturas reproduzem os ícones do app, que pedem crédito (CC BY 4.0).
       expect(prose).toMatch(/Codicons \(licença CC BY 4\.0\)/);
       expect(prose).toMatch(/Isso ainda não se joga\./);
-      // A guerra e o Cerco saíram do horizonte com a v0.4, as relíquias com a Capela (v0.5, Fase B) e o Legado (Fase D).
-      expect(prose).toMatch(/No horizonte, sem data: o mapa desenhado\./);
+      // A guerra e o Cerco saíram do horizonte com a v0.4, as relíquias com a Capela (v0.5, Fase B), o Legado (Fase D) e o mapa desenhado (Fase E).
+      expect(prose).toMatch(/No horizonte, sem data: postos avançados no mapa\./);
       expect(prose).not.toMatch(
-        /No horizonte[^.]*(Guilda|expedi|guerra|Cerco|Horda|muralha|relíqu|Capela|legado|Legado)/i,
+        /No horizonte[^.]*(Guilda|expedi|guerra|Cerco|Horda|muralha|relíqu|Capela|legado|Legado|desenhado)/i,
       );
       expect(prose).toMatch(/não é afiliado a nenhum editor de código/);
     });
