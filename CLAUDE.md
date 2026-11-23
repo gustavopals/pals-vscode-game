@@ -13,7 +13,7 @@ motor determinístico TypeScript, servidor Fastify/PostgreSQL autoritativo, app 
 - [Arquitetura](docs/architecture.md), [ADRs](docs/decisions/README.md), [histórico/conferência](docs/historico.md). Planos anteriores são históricos; leia as seções da tarefa.
 
 **Publicação e trabalho.** A v0.4.0 está publicada (CHANGELOG, `333df054`).
-Raiz, oito pacotes e constantes públicas: 0.4.0; Fase C em desenvolvimento: `CURRENT_SCHEMA_VERSION = 44`
+Raiz, oito pacotes e constantes públicas: 0.4.0; Fases A–D publicadas com estado 44; Fase E em desenvolvimento: `CURRENT_SCHEMA_VERSION = 45`
 (`engine/src/migrations.ts`), `PROTOCOL_VERSION = 4` (`protocol/src/index.ts`).
 Confira `server`, `protocol` e `builtAt` em `/v1/version` para identificar produção.
 Novidades registra 0.4.0 como publicada em 2026-11-17.
@@ -90,7 +90,7 @@ Landing sem pacotes do jogo; testes podem conferir conteúdo.
 3. Recursos em milésimos inteiros; avanço por segmentos, com divisão de intervalo exata (Motor).
 4. Ação do jogador: comando validado, idempotente por `commandId`.
 5. Bibliotecas permitidas: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify e plugins oficiais `@fastify/*`, `pg`, Drizzle, `jose`, `pino`, `tsx`, Vite, `@preact/preset-vite`, `@vscode/codicons`, `@playwright/test`, ESLint e Prettier (ADR 0008). Hash/HMAC com `node:crypto` só no servidor; não instalar `argon2`. Qualquer outra dependência exige ADR aprovado.
-6. **Não antecipar mecânicas nem estruturas vazias.** Base v0.4: economia/Conselho, Guilda/expedições, Mercado/Mestres, ferro/exército/Horda/Cerco, Crônica anual/Reino/Novidades. **Ainda não existem:** plantas, tela de Votos, Legado na conta, mapa gráfico, Veio de Ferro com produção contínua, postos avançados, Temporadas e mercado entre jogadores; outras lacunas da base estão no README do motor, “O que ainda não existe”. v0.5 por fase: B Capela/relíquias; C Ano 2/Trolls/Votos; D sementes/Legado; E mapa; F postos; G Temporadas. Plantas ficam fora (§10). Só implementar a fase da tarefa, sem bloquear evolução do GDD. Fora de Rei de Ferro, morte de herói só com o Voto Heróis mortais (Fase C).
+6. **Não antecipar mecânicas nem estruturas vazias.** Base v0.4: economia/Conselho, Guilda/expedições, Mercado/Mestres, ferro/exército/Horda/Cerco, Crônica anual/Reino/Novidades. A tela de Votos permite escolher os desafios do ano e a aba Reino mostra o Legado da conta. **Ainda não existem:** plantas, mapa gráfico, Veio de Ferro com produção contínua, postos avançados, Temporadas e mercado entre jogadores; outras lacunas da base estão no README do motor, “O que ainda não existe”. v0.5 por fase: B Capela/relíquias; C Ano 2/Trolls/Votos; D sementes/Legado; E mapa; F postos; G Temporadas. Plantas ficam fora (§10). Só implementar a fase da tarefa, sem bloquear evolução do GDD. Fora de Rei de Ferro, morte de herói só com o Voto Heróis mortais (Fase C).
 7. Desvio do GDD: ADR em `docs/decisions/`, aprovação do autor. D-1 aprovada; D-2…D-31 valem com recomendação (§4), sem nova espera ou escolha inventada. Hospedagem/OAuth App/nome/ícone/privacidade são do autor. Resposta datada prevalece; hipótese não é aprovação.
 8. Mudança de regra atualiza golden e GDD. Mecânica nova traz dados em `content`, recusa legível, evento na Crônica, explicação na visão e teste.
 
