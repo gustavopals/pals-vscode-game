@@ -10,6 +10,7 @@ import { defaultDifficulty, defaultScenario } from '../catalog';
 import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
 import { accounts, games, legacyLedger } from '../db/schema';
+import { forgetStats } from '../stats/service';
 import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
 import { resolveVigilTimezone } from './vigil';
 
@@ -38,7 +39,7 @@ export async function createGame(
   input: CreateGameRequest,
 ): Promise<GameSummary> {
   const now = ctx.clock();
-  return ctx.db.transaction(async (tx) => {
+  const created = await ctx.db.transaction(async (tx) => {
     // O lock da conta serializa duas criações simultâneas e impede criar para conta excluída.
     const [account] = await tx
       .select({ id: accounts.id })
@@ -128,6 +129,10 @@ export async function createGame(
     }
     return toGameSummary(row);
   });
+  // O feudo novo entra nos totais do Reino desta instância já na próxima leitura: a tela de
+  // boas-vindas lê `/v1/stats` (o Legado) antes de fundar, e o cache ficaria um minuto atrás.
+  forgetStats(ctx);
+  return created;
 }
 
 export type GameReading = {

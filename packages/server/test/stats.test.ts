@@ -219,12 +219,21 @@ describe('GET /v1/stats', () => {
   it('guarda os totais por um minuto e conta só as contas vistas nos últimos 7 dias', async () => {
     const eu = await fief('Vau Raso', 10);
     const first = await stats(eu);
-    await fief('Pedra Alta', 500);
+    // Um feudo fundado nesta instância entra logo nos totais (a criação esquece o cache): as
+    // boas-vindas leem o Legado em `/v1/stats` antes de fundar.
+    const other = await fief('Pedra Alta', 500);
+    const afterCreate = await stats(eu);
+    expect(afterCreate.kingdom.fiefs).toBe(2);
+    expect(afterCreate.kingdom.gold).toBe(510);
+    // Fora a criação, o que muda nos feudos espera o minuto do cache.
+    await rewriteState(server, other.game.id, (state) => {
+      state.settlement.resources.gold = 2_000 * 1000;
+    });
     const cached = await stats(eu);
-    expect(cached.generatedAt).toBe(first.generatedAt);
-    expect(cached.kingdom.fiefs).toBe(1);
+    expect(cached.generatedAt).toBe(afterCreate.generatedAt);
+    expect(cached.kingdom.gold).toBe(510);
     // A posição do jogador é de agora, contra a consulta guardada.
-    expect(cached.me.position).toBe(1);
+    expect(cached.me.position).toBe(2);
 
     server.clock.advance(8 * DAY);
     await renew(server, eu);

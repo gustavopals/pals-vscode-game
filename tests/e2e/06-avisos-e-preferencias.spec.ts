@@ -460,6 +460,7 @@ test.describe('preferências, sobre e privacidade', () => {
       vigilHourLocal: 7,
       difficulty: 'lord',
       timeScale: 1,
+      scenario: 'standard',
     });
     // A preferência também fica no navegador como padrão das próximas partidas.
     const saved = await page.evaluate(() => localStorage.getItem('lords.preferences'));
