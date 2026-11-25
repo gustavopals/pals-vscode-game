@@ -517,12 +517,16 @@ function raidItem(view: ViewState): LeavingItem | null {
   const unguarded = lacksDefense(view.army);
   const away = raidBeforeReturn(view);
   const composition = incoming.compositionText === null ? '' : ` ${incoming.compositionText}`;
+  const outpostRisk =
+    incoming.outpostRiskText === undefined || incoming.outpostRiskText === ''
+      ? ''
+      : ` ${incoming.outpostRiskText}`;
   return {
     id: 'raid',
     severity: unguarded || away ? 'danger' : 'warning',
     text:
       `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}.${composition} ` +
-      `${incoming.defenseText}${unguarded ? ' Nenhuma formação guarda o feudo: os soldados não lutam.' : ''}` +
+      `${incoming.defenseText}${outpostRisk}${unguarded ? ' Nenhuma formação guarda o feudo: os soldados não lutam.' : ''}` +
       (away && view.army.campaign !== null ? ` ${campaignLine(view.army.campaign)}` : ''),
     command: away
       ? { id: 'lords.openPanel', arg: ARMY_SECTION, label: 'Ver o Exército' }

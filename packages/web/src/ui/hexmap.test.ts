@@ -279,17 +279,27 @@ describe('apresentação da grade e respeito à névoa (ui/hexmap.ts)', () => {
       label: 'Mina Abandonada',
       outpost: { id: 'outpost-1', status: 'active', readyInSeconds: 0 },
     };
-    const damagedHex = {
+    const damagedHex: ExploredMapHex = {
       ...activeHex,
       q: 1,
       r: 0,
-      terrain: 'fields' as const,
+      terrain: 'fields',
       terrainLabel: 'Campos',
-      site: 'patrol' as const,
+      site: 'patrol',
       label: 'Patrulha nos Arredores',
-      outpost: { id: 'outpost-2', status: 'damaged' as const, readyInSeconds: 0 },
-      actions: [{ type: 'repairOutpost' as const, outpostId: 'outpost-2' }],
-    } as unknown as ExploredMapHex;
+      outpost: {
+        id: 'outpost-2',
+        status: 'damaged',
+        readyInSeconds: null,
+        detail: 'Posto avançado danificado: a produção está parada até o reparo.',
+        repairCost: [
+          { resource: 'wood', label: 'Madeira', amount: 125, missing: 0 },
+          { resource: 'stone', label: 'Pedra', amount: 75, missing: 0 },
+        ],
+        repairBlockedReason: null,
+      },
+      actions: [{ type: 'repairOutpost', outpostId: 'outpost-2' }],
+    };
     const claimableHex: ExploredMapHex = {
       q: -2,
       r: 1,

@@ -194,7 +194,29 @@ describe('o relatório de batalha (V4D-T4.3)', () => {
       <BattleReports reports={[{ ...report, adjustFormationId: null }]} onAdjust={noop} />,
     );
     expect(markup).not.toContain('battle-adjust');
+    expect(markup).not.toContain('battle-damaged-outpost');
     expect(html(<BattleReports reports={[]} onAdjust={noop} />)).toBe('');
+  });
+
+  it('mostra o aviso de posto avançado danificado quando o relatório traz damagedOutpost', () => {
+    const damagedText =
+      'O ataque que rompeu a defesa danificou o posto avançado em Veio de Ferro (-3,0).';
+    const markup = html(
+      <BattleReports
+        reports={[
+          {
+            ...report,
+            outcome: 'defeat',
+            outcomeLabel: 'Derrota',
+            damagedOutpost: { outpostId: 'outpost-1', hex: '-3,0', text: damagedText },
+          },
+        ]}
+        onAdjust={noop}
+      />,
+    );
+    expect(markup).toContain('data-testid="battle-damaged-outpost"');
+    expect(text(markup)).toContain('Posto avançado');
+    expect(text(markup)).toContain(damagedText);
   });
 });
 

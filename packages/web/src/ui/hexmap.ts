@@ -6,9 +6,7 @@ export type MapView = ViewState['map'];
 export type MapHex = MapView['hexes'][number];
 export type SightedMapHex = Extract<MapHex, { fog: 'sighted' }>;
 export type ExploredMapHex = Extract<MapHex, { fog: 'explored' | 'claimed' }>;
-// V5F-T2: ação de reparo de posto avançado declarada localmente até a junção no protocolo.
-export type RepairOutpostAction = { readonly type: 'repairOutpost'; readonly outpostId: string };
-export type MapAction = ExploredMapHex['actions'][number] | RepairOutpostAction;
+export type MapAction = ExploredMapHex['actions'][number];
 export type MapOutpost = NonNullable<ExploredMapHex['outpost']>;
 export type OutpostStatus = MapOutpost['status'];
 export type MapTerrain = SightedMapHex['terrain'];
@@ -114,7 +112,7 @@ export function hexOutpost(hex: MapHex): MapOutpost | null {
 }
 
 export function hexActions(hex: ExploredMapHex): readonly MapAction[] {
-  return hex.actions as readonly MapAction[];
+  return hex.actions;
 }
 
 /** Frase de estado de um posto avançado na ficha do hexágono e nas dicas da árvore. */

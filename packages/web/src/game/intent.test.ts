@@ -144,4 +144,18 @@ describe('o Mercado, as caravanas e os Mestres', () => {
       intentsOf('repairItem', { itemId: 'item-2' }),
     );
   });
+
+  it('postos avançados: reivindicação é por hexágono e reparo é por posto', () => {
+    expect(intentOf('claimOutpost', { hex: '-3,0' })).toBe('claimOutpost:-3,0');
+    expect(intentOf('claimOutpost', { hex: '-3,0' })).not.toBe(
+      intentOf('claimOutpost', { hex: '1,0' }),
+    );
+    expect(intentOf('repairOutpost', { outpostId: 'outpost-1' })).toBe('repairOutpost:outpost-1');
+    expect(intentOf('repairOutpost', { outpostId: 'outpost-1' })).not.toBe(
+      intentOf('repairOutpost', { outpostId: 'outpost-2' }),
+    );
+    expect(intentOf('repairOutpost', { outpostId: 'outpost-1' })).not.toBe(
+      intentOf('claimOutpost', { hex: '-3,0' }),
+    );
+  });
 });

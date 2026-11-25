@@ -598,6 +598,20 @@ describe('política de notificações', () => {
         expect(raidAhead(initialView)).toEqual([]);
         expect(raidAhead(null)).toEqual([]);
       });
+
+      it('inclui outpostRiskText quando a visão avisa de posto avançado em risco', () => {
+        const threat = threatIncomingView.threat;
+        if (!threat.known || threat.incoming === null) {
+          throw new Error('A visão de exemplo precisa de incursão à vista.');
+        }
+        const riskText =
+          'Se a defesa ceder, o posto avançado em Veio de Ferro (-3,0) será danificado.';
+        const withRisk = {
+          ...threatIncomingView,
+          threat: { ...threat, incoming: { ...threat.incoming, outpostRiskText: riskText } },
+        };
+        expect(raidAhead(withRisk)).toContain(riskText);
+      });
     });
 
     it('o ataque sofrido diz quem ficou ferido e quando sara, na frase do servidor', () => {
@@ -1182,7 +1196,7 @@ describe('os postos avançados nos avisos (V5F-T3)', () => {
   const outpostEvent = (
     type: 'outpostClaimed' | 'outpostDamaged' | 'outpostRepaired',
     seq = 1,
-  ): GameEvent => event(type as GameEvent['type'], seq);
+  ): GameEvent => event(type, seq);
 
   it('outpostDamaged é alarme essencial e leva ao Mapa; outpostClaimed e outpostRepaired avisam em "Todas"', () => {
     const damaged = outpostEvent('outpostDamaged', 1);

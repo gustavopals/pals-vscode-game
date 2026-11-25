@@ -3177,14 +3177,21 @@ describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
             terrainLabel: 'Veio de Ferro',
             site: 'abandonedMine' as const,
             label: 'Mina Abandonada',
-            detail: 'Veios de ferro afloram na rocha.',
-            outpost: { id: 'outpost-1', status: 'damaged' as const, readyInSeconds: 0 },
-            // V5F-T2: ação repairOutpost no hexágono com posto danificado.
-            actions: [
-              { type: 'repairOutpost', outpostId: 'outpost-1' },
-            ] as unknown as ViewState['map']['hexes'][number] extends { actions: infer A }
-              ? A
-              : never,
+            detail:
+              'Posto avançado danificado: a produção está parada até o reparo (125 madeira e 75 pedra).',
+            outpost: {
+              id: 'outpost-1',
+              status: 'damaged' as const,
+              readyInSeconds: null,
+              detail:
+                'Posto avançado danificado: a produção está parada até o reparo (125 madeira e 75 pedra).',
+              repairCost: [
+                { resource: 'wood' as const, label: 'Madeira', amount: 125, missing: 0 },
+                { resource: 'stone' as const, label: 'Pedra', amount: 75, missing: 0 },
+              ],
+              repairBlockedReason: null,
+            },
+            actions: [{ type: 'repairOutpost' as const, outpostId: 'outpost-1' }],
           };
         }
         if (hex.q === 1 && hex.r === 0) {
@@ -3268,9 +3275,8 @@ describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
     ]);
   });
 
-  it('repara posto avançado danificado pela paleta, pela ficha ou pelo botão da árvore (contrato V5F-T2)', async () => {
+  it('repara posto avançado danificado pela paleta, pela ficha ou pelo botão da árvore', async () => {
     const { run, answers, shown, orders, labels, controller } = await setup({
-      overrides: { validateResponses: false },
       before: ({ api, store }) => {
         delete store.data[`lords.cache:${ACCOUNT_ID}`];
         api.state.view = outpostsView;
@@ -3303,13 +3309,17 @@ describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
       },
     ]);
 
-    // Pela paleta: lista o posto danificado e envia repairOutpost.
+    // Pela paleta: lista o posto danificado com custo e detalhe e envia repairOutpost.
     answers.push(0);
     await run('lords.repairOutpost');
     const pick = shownAs(shown, 0, 'pick');
     expect(pick.title).toBe('Reparar posto avançado');
-    expect(pick.items.map((item) => [item.label, item.description])).toEqual([
-      ['Mina Abandonada (-3, 0)', 'Veio de Ferro · Danificado'],
+    expect(pick.items.map((item) => [item.label, item.description, item.detail])).toEqual([
+      [
+        'Mina Abandonada (-3, 0)',
+        'Veio de Ferro · 125 madeira, 75 pedra',
+        'Posto avançado danificado: a produção está parada até o reparo (125 madeira e 75 pedra).',
+      ],
     ]);
     expect(orders()).toEqual([{ type: 'repairOutpost', payload: { outpostId: 'outpost-1' } }]);
 
@@ -3322,7 +3332,7 @@ describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
     ]);
   });
 
-  it('avisa quando não há posto danificado para reparar', async () => {
+  it('avisa quando não há posto danificado ou quando o reparo está bloqueado por falta de recursos', async () => {
     const { run, shown, orders, controller } = await setup();
     await run('lords.repairOutpost');
     expect(shown).toEqual([]);
@@ -3333,5 +3343,51 @@ describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
         text: 'Não há posto avançado danificado para reparar agora.',
       },
     ]);
+
+    const reason = 'Falta madeira para isso: precisa de 125, há 50.';
+    const blockedView: ViewState = {
+      ...outpostsView,
+      map: {
+        ...outpostsView.map,
+        hexes: outpostsView.map.hexes.map((hex) =>
+          hex.q === -3 && hex.r === 0 && 'outpost' in hex && hex.outpost !== undefined
+            ? {
+                ...hex,
+                outpost: {
+                  ...hex.outpost,
+                  repairCost: [
+                    { resource: 'wood' as const, label: 'Madeira', amount: 125, missing: 75 },
+                    { resource: 'stone' as const, label: 'Pedra', amount: 75, missing: 0 },
+                  ],
+                  repairBlockedReason: reason,
+                },
+                actions: [],
+              }
+            : hex,
+        ),
+      },
+    };
+    const blocked = await setup({
+      before: ({ api, store }) => {
+        delete store.data[`lords.cache:${ACCOUNT_ID}`];
+        api.state.view = blockedView;
+      },
+    });
+    await blocked.run('lords.repairOutpost');
+    expect(blocked.shown).toEqual([]);
+    expect(blocked.orders()).toEqual([]);
+    expect(blocked.controller.toasts).toMatchObject([{ kind: 'info', text: reason }]);
+
+    const blockedTree = buildTree({
+      view: blocked.controller.view,
+      account: blocked.controller.account.state,
+      connection: blocked.controller.connection,
+      unseen: blocked.controller.unseen,
+      elapsedSeconds: 0,
+      chronicle: blocked.controller.chronicle,
+    });
+    const blockedNode = everyNode(blockedTree).find((node) => node.id === 'outpost:outpost-1');
+    expect(blockedNode?.tooltip).toContain(reason);
+    expect(blockedNode !== undefined ? rowActions(blockedNode) : []).toEqual([]);
   });
 });

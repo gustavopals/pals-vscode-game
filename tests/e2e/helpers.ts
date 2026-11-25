@@ -65,6 +65,7 @@ export type World = {
       | 'watchtower'
       | 'palisade'
       | 'townHall'
+      | 'warehouse'
       | 'tavern'
       | 'guild'
       | 'market'

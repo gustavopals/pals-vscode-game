@@ -811,7 +811,11 @@ function mapNode(view: ViewState, elapsedSeconds = 0): TreeNode {
             tooltip: [
               outpostSheetLine(outpost, elapsedSeconds),
               `${hex.terrainLabel} (${hex.q}, ${hex.r})`,
-              hex.detail,
+              outpost.detail ?? hex.detail,
+              ...(typeof outpost.repairBlockedReason === 'string' &&
+              outpost.repairBlockedReason !== ''
+                ? [outpost.repairBlockedReason]
+                : []),
             ].join('\n'),
             icon: OUTPOST_STATUS_ICONS[outpost.status],
             command: open,

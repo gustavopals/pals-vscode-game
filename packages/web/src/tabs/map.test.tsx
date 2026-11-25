@@ -321,7 +321,9 @@ describe('aba Mapa (V5E-T3)', () => {
       outpost: { id: 'outpost-2', status: 'active', readyInSeconds: 0 },
       actions: [],
     };
-    const damagedHex = {
+    const damagedDetail =
+      'Posto avançado danificado: a produção está parada até o reparo (125 madeira e 75 pedra).';
+    const damagedHex: MapHex = {
       ...claimableHex,
       q: -2,
       r: 1,
@@ -330,9 +332,20 @@ describe('aba Mapa (V5E-T3)', () => {
       terrainLabel: 'Floresta',
       site: 'oldForest',
       label: 'Floresta Antiga',
-      outpost: { id: 'outpost-3', status: 'damaged', readyInSeconds: 0 },
+      detail: damagedDetail,
+      outpost: {
+        id: 'outpost-3',
+        status: 'damaged',
+        readyInSeconds: null,
+        detail: damagedDetail,
+        repairCost: [
+          { resource: 'wood', label: 'Madeira', amount: 125, missing: 0 },
+          { resource: 'stone', label: 'Pedra', amount: 75, missing: 0 },
+        ],
+        repairBlockedReason: null,
+      },
       actions: [{ type: 'repairOutpost', outpostId: 'outpost-3' }],
-    } as unknown as MapHex;
+    };
 
     // 1. Hexágono elegível para reivindicar posto avançado.
     const claimMarkup = html(
@@ -400,8 +413,55 @@ describe('aba Mapa (V5E-T3)', () => {
       />,
     );
     expect(damagedSheetMarkup).toContain('Posto avançado: danificado');
+    expect(damagedSheetMarkup).toContain('data-testid="hex-outpost-detail"');
+    expect(damagedSheetMarkup).toContain(damagedDetail);
+    // Sem duplicar a mesma frase de detalhe na ficha quando hex.detail e outpost.detail coincidem.
+    expect(damagedSheetMarkup.split(damagedDetail)).toHaveLength(2);
+    expect(damagedSheetMarkup).toContain('data-testid="hex-outpost-repair-cost"');
+    expect(damagedSheetMarkup).toContain('125 madeira');
+    expect(damagedSheetMarkup).toContain('75 pedra');
+    expect(damagedSheetMarkup).not.toContain('chip-missing');
+    expect(damagedSheetMarkup).not.toContain('data-testid="hex-outpost-repair-blocked"');
     expect(damagedSheetMarkup).toContain('data-map-action="repairOutpost"');
     expect(damagedSheetMarkup).toContain('Reparar posto');
+
+    // 3b. Posto danificado bloqueado por falta de recursos: chips com o que falta, botão desabilitado e motivo.
+    const blockedReason = 'Falta madeira para isso: precisa de 125, há 80.';
+    const blockedDamagedHex: MapHex = {
+      ...damagedHex,
+      outpost: {
+        ...damagedHex.outpost!,
+        repairCost: [
+          { resource: 'wood', label: 'Madeira', amount: 125, missing: 45 },
+          { resource: 'stone', label: 'Pedra', amount: 75, missing: 0 },
+        ],
+        repairBlockedReason: blockedReason,
+      },
+      actions: [],
+    };
+    const blockedSheetMarkup = html(
+      <HexSheet
+        hex={blockedDamagedHex}
+        view={goldenView}
+        elapsed={0}
+        activeThreats={new Set()}
+        disabled={false}
+        busy={new Set()}
+        actions={recording}
+        titleRef={{ current: null }}
+      />,
+    );
+    expect(blockedSheetMarkup).not.toMatch(/\sstyle=/i);
+    expect(blockedSheetMarkup).toContain('data-testid="hex-outpost-detail"');
+    expect(blockedSheetMarkup).toContain('chip chip-missing');
+    expect(blockedSheetMarkup).toContain('125 madeira (faltam 45)');
+    expect(blockedSheetMarkup).toContain('75 pedra');
+    expect(blockedSheetMarkup).toContain('data-testid="hex-outpost-repair-blocked"');
+    expect(blockedSheetMarkup).toContain(blockedReason);
+    expect(blockedSheetMarkup).toMatch(
+      /<button[^>]*data-map-action="repairOutpost"[^>]*disabled[^>]*aria-describedby="map-repair-blocked-outpost-3"/,
+    );
+    expect(blockedSheetMarkup).not.toContain('Nenhuma ação disponível neste hexágono.');
 
     // 4. Clique nos botões de Reivindicar e Reparar dispara os comandos da paleta.
     type VNodeLike = { type?: unknown; props?: Record<string, unknown> };

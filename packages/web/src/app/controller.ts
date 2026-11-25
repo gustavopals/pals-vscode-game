@@ -10,6 +10,7 @@ import {
   type ApiErrorCode,
   CatalogResponseSchema,
   type Command,
+  type CommandType,
   type GameEvent,
   type ReturnReport,
   type StatsResponse,
@@ -28,7 +29,7 @@ import {
   type SessionTarget,
   StaleOrderError,
 } from '../game/gameSession';
-import { intentsOf, type WebCommand, type WebCommandType } from '../game/intent';
+import { intentsOf } from '../game/intent';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
@@ -1753,12 +1754,12 @@ export class Controller {
    * antes do envio (um "Tentar de novo" que ficou para trás), ela não segue para o feudo novo:
    * o envio recusa com `StaleOrderError`, sem tocar a rede.
    */
-  prepare<T extends WebCommandType>(
+  prepare<T extends CommandType>(
     type: T,
-    payload: Extract<WebCommand, { type: T }>['payload'],
+    payload: Extract<Command, { type: T }>['payload'],
   ): () => Promise<void> {
     const commandId = (this.options.randomUUID ?? randomUUID)();
-    const command = { commandId, type, payload } as unknown as Command;
+    const command = { commandId, type, payload } as Command;
     const origin = this.session.targetKey;
     return async () => {
       if (this.session.targetKey !== origin) {
@@ -1776,9 +1777,9 @@ export class Controller {
   }
 
   /** Uma ordem nova do jogador, com os avisos de `attempt`. */
-  order<T extends WebCommandType>(
+  order<T extends CommandType>(
     type: T,
-    payload: Extract<WebCommand, { type: T }>['payload'],
+    payload: Extract<Command, { type: T }>['payload'],
   ): Promise<boolean> {
     // O TypeScript não relaciona `T` entre duas funções genéricas; os tipos são os mesmos.
     return this.attempt(this.prepare(type, payload as never), {
@@ -1837,10 +1838,10 @@ export class Controller {
    * trava é por alvo (o recurso, o Mestre), e `where` diz a quem a ordem não chegou, se a sessão
    * acabar com ela a caminho.
    */
-  private async guildOrder<T extends WebCommandType>(
+  private async guildOrder<T extends CommandType>(
     key: string,
     type: T,
-    payload: Extract<WebCommand, { type: T }>['payload'],
+    payload: Extract<Command, { type: T }>['payload'],
     where = 'à Guilda',
     stillValid?: () => boolean,
     invalidText?: string,
@@ -1962,7 +1963,7 @@ export class Controller {
     return this.guildOrder(`claimOutpost:${hex}`, 'claimOutpost', { hex }, 'ao Mapa');
   }
 
-  /** Repara um posto avançado danificado (`repairOutpost`, V5F-T3 / V5F-T2). */
+  /** Repara um posto avançado danificado (`repairOutpost`, V5F-T3). */
   repairOutpost(outpostId: string): Promise<boolean> {
     return this.guildOrder(`repairOutpost:${outpostId}`, 'repairOutpost', { outpostId }, 'ao Mapa');
   }

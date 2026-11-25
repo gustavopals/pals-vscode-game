@@ -55,6 +55,14 @@ export function BattleReport(props: { report: Report; onAdjust: (formationId: st
           </ul>
         </>
       )}
+      {report.damagedOutpost === undefined ? null : (
+        <>
+          <h5>Posto avançado</h5>
+          <p class="battle-damaged-outpost" data-testid="battle-damaged-outpost">
+            <Icon name="warning" /> {report.damagedOutpost.text}
+          </p>
+        </>
+      )}
       {report.commanders.length === 0 ? null : (
         <>
           <h5>Comandantes</h5>

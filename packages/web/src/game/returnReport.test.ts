@@ -1375,7 +1375,7 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       type: 'outpostClaimed' | 'outpostDamaged' | 'outpostRepaired',
       text: string,
       data: GameEvent['data'] = {},
-    ) => event(type as GameEvent['type'], text, data);
+    ) => event(type, text, data);
 
     const viewWithDamagedOutpost: ViewState = {
       ...guildView,
@@ -1392,12 +1392,8 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
                 site: 'abandonedMine' as const,
                 label: 'Mina Abandonada',
                 detail: 'Veios de ferro afloram na rocha.',
-                outpost: { id: 'outpost-1', status: 'damaged' as const, readyInSeconds: 0 },
-                actions: [
-                  { type: 'repairOutpost', outpostId: 'outpost-1' },
-                ] as unknown as ViewState['map']['hexes'][number] extends { actions: infer A }
-                  ? A
-                  : never,
+                outpost: { id: 'outpost-1', status: 'damaged' as const, readyInSeconds: null },
+                actions: [{ type: 'repairOutpost' as const, outpostId: 'outpost-1' }],
               }
             : hex,
         ),

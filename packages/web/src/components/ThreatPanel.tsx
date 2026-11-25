@@ -267,6 +267,11 @@ function Watched(props: { threat: WatchedThreat; elapsed: number }) {
             <p class="threat-holds">
               <Icon name={DEFENSE_ICON} /> {incoming.defenseText}
             </p>
+            {incoming.outpostRiskText === undefined || incoming.outpostRiskText === '' ? null : (
+              <p class="threat-outpost-risk" data-testid="raid-outpost-risk">
+                <Icon name="warning" /> {incoming.outpostRiskText}
+              </p>
+            )}
           </div>
         </div>
       )}

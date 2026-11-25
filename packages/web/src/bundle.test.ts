@@ -484,4 +484,23 @@ describe('o pacote do app', () => {
       expect(code.includes(def.description), def.description).toBe(false);
     }
   });
+
+  it('não leva custos, prazos nem textos de regra dos postos avançados (V5F-T3)', () => {
+    const { outposts } = content.balance;
+    const markers = [
+      'repairCost:{',
+      'ironPerHour:',
+      'productionFactor:{',
+      'outpostDamagedDetail',
+      'incomingOutpostRisk',
+      'battleOutpostDamaged',
+      asJavaScript(outposts.cost),
+      asJavaScript(outposts.repairCost),
+    ];
+    const leaked = asJavaScript({ outposts });
+    expect(leaked).toContain('repairCost:{');
+    expect(leaked).toContain('ironPerHour:');
+    expect(leaked).toContain('productionFactor:{');
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+  });
 });

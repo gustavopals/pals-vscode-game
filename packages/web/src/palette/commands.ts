@@ -3952,9 +3952,9 @@ export function createCommands(
   );
 
   /**
-   * Repara um posto avançado danificado (`lords.repairOutpost`, V5F-T3 / V5F-T2): direto quando a
-   * ficha, a árvore ou o Relatório de Retorno já deram o `outpostId`; por lista de postos
-   * elegíveis na paleta, relendo a visão depois da escolha.
+   * Repara um posto avançado danificado (`lords.repairOutpost`, V5F-T3): direto quando a ficha, a
+   * árvore ou o Relatório de Retorno já deram o `outpostId`; por lista de postos elegíveis na
+   * paleta, relendo a visão depois da escolha.
    */
   const repairOutpost = oneAtATime(
     async (arg) => {
@@ -3969,12 +3969,16 @@ export function createCommands(
       }
       const candidates = repairableOutposts(view.map);
       if (candidates.length === 0) {
-        const hasDamaged = outpostsOf(view.map).some((entry) => entry.outpost.status === 'damaged');
+        const damaged = outpostsOf(view.map).filter((entry) => entry.outpost.status === 'damaged');
+        const reason = damaged.length === 1 ? damaged[0]?.outpost.repairBlockedReason : null;
         controller.toast({
           kind: 'info',
-          text: hasDamaged
-            ? 'Não há posto avançado com reparo liberado agora: confira os recursos na aba Mapa.'
-            : 'Não há posto avançado danificado para reparar agora.',
+          text:
+            typeof reason === 'string' && reason !== ''
+              ? reason
+              : damaged.length > 0
+                ? 'Não há posto avançado com reparo liberado agora: confira os recursos na aba Mapa.'
+                : 'Não há posto avançado danificado para reparar agora.',
           actions: [seeMap],
         });
         return;
@@ -3986,8 +3990,11 @@ export function createCommands(
         items: candidates.map((entry) => ({
           icon: 'tools',
           label: `${entry.hex.label} (${entry.hex.q}, ${entry.hex.r})`,
-          description: `${entry.hex.terrainLabel} · Danificado`,
-          detail: entry.hex.detail,
+          description:
+            entry.hex.outpost?.repairCost !== undefined && entry.hex.outpost.repairCost.length > 0
+              ? `${entry.hex.terrainLabel} · ${formatCost(entry.hex.outpost.repairCost)}`
+              : `${entry.hex.terrainLabel} · Danificado`,
+          detail: entry.hex.outpost?.detail ?? entry.hex.detail,
           value: entry,
         })),
       });

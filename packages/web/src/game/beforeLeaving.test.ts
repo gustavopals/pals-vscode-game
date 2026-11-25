@@ -1229,4 +1229,20 @@ describe('a guerra em "Antes de partir" (V4E-T4)', () => {
     // O item da incursão já absorve a falta de Defesa ativa: não repete 'army-defense'.
     expect(items.find((item) => item.id === 'army-defense')).toBeUndefined();
   });
+
+  it('a incursão à vista inclui outpostRiskText quando há posto avançado em risco', () => {
+    const threat = threatIncomingView.threat;
+    if (!threat.known || threat.incoming === null) {
+      throw new Error('A visão de exemplo precisa de incursão à vista.');
+    }
+    const riskText = 'Se a defesa ceder, o posto avançado em Veio de Ferro (-3,0) será danificado.';
+    const view: ViewState = {
+      ...threatIncomingView,
+      threat: { ...threat, incoming: { ...threat.incoming, outpostRiskText: riskText } },
+    };
+    const raid = leavingItems(view).find((item) => item.id === 'raid');
+    expect(raid?.text).toContain(riskText);
+    const withoutRisk = leavingItems(threatIncomingView).find((item) => item.id === 'raid');
+    expect(withoutRisk?.text).not.toContain(riskText);
+  });
 });

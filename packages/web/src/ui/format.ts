@@ -580,7 +580,14 @@ function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
     return {
       bar: {
         text: `$(megaphone) ${due}`,
-        tooltip: `${name}: ${incoming.text} ${incoming.costText} ${incoming.defenseText}`,
+        tooltip: [
+          `${name}: ${incoming.text}`,
+          incoming.costText,
+          incoming.defenseText,
+          ...(incoming.outpostRiskText === undefined || incoming.outpostRiskText === ''
+            ? []
+            : [incoming.outpostRiskText]),
+        ].join(' '),
         // O painel da Ameaça (`THREAT_SECTION`, em `ui/threat.ts`): é onde está a obra da defesa.
         target: 'threat',
       },

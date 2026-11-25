@@ -398,6 +398,15 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     expect(text(panel(unsized))).toContain(
       'Lobos a caminho. Daqui os vigias ainda não distinguem quantos são. Chegada em 15:40.',
     );
+    // Quando há posto avançado ativo em risco, o aviso da incursão exibe outpostRiskText.
+    const riskText = 'Se a defesa ceder, o posto avançado em Veio de Ferro (-3,0) será danificado.';
+    expect(markup).not.toContain('data-testid="raid-outpost-risk"');
+    const withOutpostRisk = withThreat(threatIncomingView, {
+      incoming: incoming === null ? null : { ...incoming, outpostRiskText: riskText },
+    });
+    const riskMarkup = panel(withOutpostRisk);
+    expect(riskMarkup).toContain('data-testid="raid-outpost-risk"');
+    expect(text(riskMarkup)).toContain(riskText);
   });
 
   it('com a Torre no nível 2 a frase é a do servidor, e a obra do nível 3 existe (V4E-T1)', () => {

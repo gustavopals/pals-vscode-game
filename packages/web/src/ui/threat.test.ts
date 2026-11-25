@@ -396,6 +396,13 @@ describe('a explicação da Ameaça, frase a frase', () => {
       'Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido.',
     );
     expect(raised).toContain('320 madeira, 80 pedra · 10 min.');
+    // Com posto avançado ativo em risco, outpostRiskText entra logo após a defesa.
+    const riskText = 'Se a defesa ceder, o posto avançado em Veio de Ferro (-3,0) será danificado.';
+    const incoming = watched(threatIncomingView).incoming;
+    const withRisk = withThreat(threatIncomingView, {
+      incoming: incoming === null ? null : { ...incoming, outpostRiskText: riskText },
+    });
+    expect(threatLines(withRisk, 0)).toContain(riskText);
   });
 
   it('no máximo a Ameaça não sobe: a frase do servidor basta, sem prazo', () => {

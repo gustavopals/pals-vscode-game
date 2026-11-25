@@ -3,6 +3,7 @@ import { useRef, useState } from 'preact/hooks';
 
 import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
+import { Cost } from '../components/ConstructionsPanel';
 import { Header } from '../components/Header';
 import { HexMap } from '../components/HexMap';
 import { Icon } from '../components/shared';
@@ -33,21 +34,41 @@ import {
   type MapHex,
 } from '../ui/hexmap';
 
-function actionMetaText(action: MapAction): string | null {
-  const record = action as Record<string, unknown>;
-  if (typeof record.text === 'string' && record.text !== '') {
-    return record.text;
-  }
-  if (typeof record.costText === 'string' && record.costText !== '') {
-    return record.costText;
-  }
-  return null;
+function OutpostRepairAction(props: {
+  outpostId: string;
+  blockedReason: string | null;
+  disabled: boolean;
+  busy: ReadonlySet<string>;
+  actions: Actions;
+}) {
+  const blocked = props.blockedReason !== null && props.blockedReason !== '';
+  const blockedId = `map-repair-blocked-${props.outpostId}`;
+  return (
+    <div class="map-action-item">
+      <button
+        type="button"
+        data-map-action="repairOutpost"
+        data-outpost-id={props.outpostId}
+        disabled={props.disabled || blocked || props.busy.has(`repairOutpost:${props.outpostId}`)}
+        aria-describedby={blocked ? blockedId : undefined}
+        onClick={() => props.actions.run('lords.repairOutpost', props.outpostId)}
+      >
+        <Icon name="tools" /> Reparar posto
+      </button>
+      {blocked ? (
+        <p class="blocked map-sheet-note" id={blockedId} data-testid="hex-outpost-repair-blocked">
+          <Icon name="lock" /> {props.blockedReason}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function HexActionButton(props: {
   action: MapAction;
   hex: ExploredMapHex;
   view: ViewState;
+  repairBlockedReason: string | null;
   disabled: boolean;
   busy: ReadonlySet<string>;
   actions: Actions;
@@ -75,10 +96,8 @@ function HexActionButton(props: {
     );
   }
   if (action.type === 'claimOutpost') {
-    const meta = actionMetaText(action);
     return (
       <div class="map-action-item">
-        {meta === null ? null : <p class="muted map-action-meta">{meta}</p>}
         <button
           type="button"
           data-map-action="claimOutpost"
@@ -92,20 +111,14 @@ function HexActionButton(props: {
     );
   }
   if (action.type === 'repairOutpost') {
-    const meta = actionMetaText(action);
     return (
-      <div class="map-action-item">
-        {meta === null ? null : <p class="muted map-action-meta">{meta}</p>}
-        <button
-          type="button"
-          data-map-action="repairOutpost"
-          data-outpost-id={action.outpostId}
-          disabled={props.disabled || props.busy.has(`repairOutpost:${action.outpostId}`)}
-          onClick={() => props.actions.run('lords.repairOutpost', action.outpostId)}
-        >
-          <Icon name="tools" /> Reparar posto
-        </button>
-      </div>
+      <OutpostRepairAction
+        outpostId={action.outpostId}
+        blockedReason={props.repairBlockedReason}
+        disabled={props.disabled}
+        busy={props.busy}
+        actions={props.actions}
+      />
     );
   }
   return (
@@ -145,8 +158,26 @@ export function HexSheet(props: {
   const fog = hexFog(hex);
   const icon = hexIcon(hex, props.activeThreats);
 
+  const outpost = isExploredHex(hex) ? hex.outpost : undefined;
+  const repairBlockedReason =
+    outpost?.status === 'damaged' &&
+    typeof outpost.repairBlockedReason === 'string' &&
+    outpost.repairBlockedReason !== ''
+      ? outpost.repairBlockedReason
+      : null;
+  const hasRepairAction =
+    isExploredHex(hex) && hexActions(hex).some((action) => action.type === 'repairOutpost');
+  const blockedRepairId =
+    !hasRepairAction && repairBlockedReason !== null && outpost !== undefined ? outpost.id : null;
+
   let siteHint: string | null = null;
-  if (isExploredHex(hex) && hexActions(hex).length === 0 && hex.site !== null && !isHomeHex(hex)) {
+  if (
+    isExploredHex(hex) &&
+    hexActions(hex).length === 0 &&
+    blockedRepairId === null &&
+    hex.site !== null &&
+    !isHomeHex(hex)
+  ) {
     const offer = view.guild.available.find(
       (entry) => entry.modelId === hex.site || entry.label === hex.label,
     );
@@ -205,7 +236,9 @@ export function HexSheet(props: {
             </span>
             <span>Terreno: {hex.terrainLabel}</span>
           </p>
-          <p class="map-sheet-detail">{hex.detail}</p>
+          {hex.detail !== '' && hex.detail !== hex.outpost?.detail ? (
+            <p class="map-sheet-detail">{hex.detail}</p>
+          ) : null}
           {isHomeHex(hex) ? (
             <p class="muted map-sheet-note">
               Sede do feudo · Salão Nv{view.settlement.townHallLevel}.
@@ -217,14 +250,26 @@ export function HexSheet(props: {
               data-testid="hex-outpost-status"
               data-outpost-status={hex.outpost.status}
             >
-              <span class={`map-outpost-badge map-outpost-badge-${hex.outpost.status}`}>
-                <Icon name={OUTPOST_STATUS_ICONS[hex.outpost.status]} />{' '}
-                {OUTPOST_STATUS_LABELS[hex.outpost.status]}
-              </span>
-              <span class="num">{outpostSheetLine(hex.outpost, elapsed)}</span>
+              <div class="map-outpost-status-head">
+                <span class={`map-outpost-badge map-outpost-badge-${hex.outpost.status}`}>
+                  <Icon name={OUTPOST_STATUS_ICONS[hex.outpost.status]} />{' '}
+                  {OUTPOST_STATUS_LABELS[hex.outpost.status]}
+                </span>
+                <span class="num">{outpostSheetLine(hex.outpost, elapsed)}</span>
+              </div>
+              {hex.outpost.detail !== undefined && hex.outpost.detail !== '' ? (
+                <p class="map-outpost-detail" data-testid="hex-outpost-detail">
+                  {hex.outpost.detail}
+                </p>
+              ) : null}
+              {hex.outpost.repairCost !== undefined && hex.outpost.repairCost.length > 0 ? (
+                <div class="map-outpost-cost" data-testid="hex-outpost-repair-cost">
+                  <span class="muted">Custo do reparo:</span> <Cost cost={hex.outpost.repairCost} />
+                </div>
+              ) : null}
             </div>
           )}
-          {hexActions(hex).length > 0 ? (
+          {hexActions(hex).length > 0 || blockedRepairId !== null ? (
             <div class="map-sheet-actions" role="group" aria-label="Ações neste hexágono">
               {hexActions(hex).map((action) => (
                 <HexActionButton
@@ -240,11 +285,21 @@ export function HexSheet(props: {
                   action={action}
                   hex={hex}
                   view={view}
+                  repairBlockedReason={repairBlockedReason}
                   disabled={props.disabled}
                   busy={props.busy}
                   actions={props.actions}
                 />
               ))}
+              {blockedRepairId === null ? null : (
+                <OutpostRepairAction
+                  outpostId={blockedRepairId}
+                  blockedReason={repairBlockedReason}
+                  disabled={props.disabled}
+                  busy={props.busy}
+                  actions={props.actions}
+                />
+              )}
             </div>
           ) : siteHint !== null ? (
             <p class="blocked map-sheet-note">

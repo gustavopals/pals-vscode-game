@@ -1,14 +1,5 @@
 import type { Command, CommandType } from '@lotg/protocol';
 
-// V5F-T2: comando repairOutpost declarado localmente até a junção no protocolo.
-export type RepairOutpostCommand = {
-  commandId: string;
-  type: 'repairOutpost';
-  payload: { outpostId: string };
-};
-export type WebCommand = Command | RepairOutpostCommand;
-export type WebCommandType = WebCommand['type'];
-
 /** As ordens que decidem a obra de um edifício: a nova de uma delas desfaz a espera das outras. */
 const CONSTRUCTION_ORDERS: ReadonlySet<CommandType> = new Set([
   'startConstruction',
@@ -47,7 +38,7 @@ const TRAINING_ORDERS: ReadonlySet<CommandType> = new Set(['trainSoldiers', 'can
  *
  * Só agrupa pelo alvo que vem na própria ordem: nenhuma regra de jogo.
  */
-export function intentOf(type: WebCommandType, payload: WebCommand['payload']): string {
+export function intentOf(type: CommandType, payload: Command['payload']): string {
   const fields = payload as Record<string, unknown>;
   if (type === 'setBattlePlan') {
     return `siege:plan:${String(fields.wave)}`;
@@ -55,7 +46,7 @@ export function intentOf(type: WebCommandType, payload: WebCommand['payload']): 
   if (type === 'repairWall' || type === 'emergencyRepair') {
     return 'wall';
   }
-  if (TRAINING_ORDERS.has(type as CommandType)) {
+  if (TRAINING_ORDERS.has(type)) {
     return 'training';
   }
   if (type === 'saveFormation' || type === 'deleteFormation') {
@@ -79,13 +70,13 @@ export function intentOf(type: WebCommandType, payload: WebCommand['payload']): 
   // Equipar e desequipar mexem no equipamento de um herói: a ordem nova sobre ele aposenta a
   // retentativa da anterior, seja qual for o item ou o espaço. Colocar e retirar uma relíquia da
   // Capela disputam a mesma relíquia (`relic:<relicId>`).
-  const family = CONSTRUCTION_ORDERS.has(type as CommandType)
+  const family = CONSTRUCTION_ORDERS.has(type)
     ? 'construction'
     : type === 'equipItem' || type === 'unequipItem'
       ? 'equipment'
       : type === 'placeRelic' || type === 'removeRelic'
         ? 'relic'
-        : FORGE_ORDERS.has(type as CommandType)
+        : FORGE_ORDERS.has(type)
           ? 'forge'
           : type;
   const target =
@@ -110,7 +101,7 @@ export function intentOf(type: WebCommandType, payload: WebCommand['payload']): 
  * mesma coisa quando têm alguma destas chaves em comum. Como `intentOf`, só agrupa pelo que vem
  * na própria ordem: nenhuma regra de jogo.
  */
-export function intentsOf(type: WebCommandType, payload: WebCommand['payload']): string[] {
+export function intentsOf(type: CommandType, payload: Command['payload']): string[] {
   const { heroIds } = payload as Record<string, unknown>;
   const heroes =
     type === 'sendExpedition' && Array.isArray(heroIds)

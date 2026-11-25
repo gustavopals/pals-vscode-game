@@ -238,6 +238,9 @@ export function threatLines(
           `${incoming.text} Chegada em ${formatDuration(remainingNow(incoming.inSeconds, elapsedSeconds))}.`,
           incoming.costText,
           incoming.defenseText,
+          ...(incoming.outpostRiskText === undefined || incoming.outpostRiskText === ''
+            ? []
+            : [incoming.outpostRiskText]),
         ]),
     ...fence,
     watchtower.text,

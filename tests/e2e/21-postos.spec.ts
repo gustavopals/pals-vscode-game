@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import {
   cutTreeRows,
   expect,
+  fief,
   lowContrast,
   MINUTE,
   overflow,
@@ -11,6 +12,7 @@ import {
   serverView,
   test,
   THEMES,
+  toasts,
   tree,
 } from './helpers';
 
@@ -162,13 +164,243 @@ test.describe('21 · Postos Avançados no Mapa (V5F-T3)', () => {
     expect(world.problems).toEqual([]);
   });
 
-  test.fixme('repara posto avançado danificado pela ficha do mapa e pela paleta — depende da V5F-T2', async ({
+  test('incursão real rompe a defesa, avisa o risco, aparece no relatório de batalha, recusa reparo sem recursos e repara pela ficha e pela paleta', async ({
     context,
+    request,
     world,
   }) => {
     world.seed('postos-reparo-v5f-t3');
     const page = await world.open(context);
     await playNow(page);
-    // O coordenador liga este teste após juntar a V5F-T2 (comando repairOutpost e dano em incursão).
+
+    // Salão Nv5 libera os postos; Torre Nv2 revela a incursão à vista; Quartel exibe o relatório de batalha.
+    // Sem Paliçada e sem soldados, a incursão real rompe a defesa e danifica o posto ativo mais distante.
+    await world.raise('townHall', 5);
+    await world.raise('warehouse', 1);
+    await world.raise('watchtower', 2);
+    await world.raise('barracks', 1);
+    await world.stock('wood', 700);
+    await world.stock('stone', 500);
+    await world.stock('gold', 400);
+    await world.mapFog({
+      '-3,0': 'explored',
+      '1,0': 'explored',
+    });
+    await world.passTime(MINUTE, page);
+
+    // 1. Reivindica dois postos (-3,0 distância 3 e 1,0 distância 1) e conclui as obras.
+    await tree(page).locator('[data-node="map"]').click();
+    const mapSvg = page.locator('svg.hex-map-svg');
+    const sheet = page.getByTestId('hex-sheet');
+    const mineHex = mapSvg.locator('g[data-hex="-3,0"]');
+    const patrolHex = mapSvg.locator('g[data-hex="1,0"]');
+
+    await mineHex.click();
+    await sheet.locator('[data-map-action="claimOutpost"]').click();
+    await expect(mineHex).toHaveAttribute('data-outpost', 'building');
+
+    await patrolHex.click();
+    await sheet.locator('[data-map-action="claimOutpost"]').click();
+    await expect(patrolHex).toHaveAttribute('data-outpost', 'building');
+
+    await world.passTime(45 * MINUTE, page);
+    await expect(mineHex).toHaveAttribute('data-outpost', 'active');
+    await expect(patrolHex).toHaveAttribute('data-outpost', 'active');
+
+    // 2. Agenda uma incursão real: Ameaça e Hoje mostram `outpostRiskText` apontando para o posto mais distante.
+    await world.control('raid-in', { inSeconds: 300 });
+    await world.passTime(MINUTE, page);
+
+    const beforeRaid = await serverView(page, request);
+    const riskText = beforeRaid.threat.incoming?.outpostRiskText;
+    expect(riskText).toBeTruthy();
+
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    const riskLine = fief(page).getByTestId('raid-outpost-risk');
+    await expect(riskLine).toBeVisible();
+    await expect(riskLine).toContainText(riskText!);
+
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    const leaving = page
+      .getByRole('tabpanel', { name: 'Hoje' })
+      .getByRole('region', { name: 'Antes de partir' });
+    await expect(leaving.getByRole('listitem').first()).toContainText(riskText!);
+
+    // 3. A incursão chega, rompe a defesa, danifica -3,0 e registra `damagedOutpost.text` no relatório de batalha.
+    await world.passTime(5 * MINUTE, page);
+
+    const afterRaid = await serverView(page, request);
+    const damagedMine = afterRaid.map.hexes.find((hex) => hex.q === -3 && hex.r === 0);
+    const intactPatrol = afterRaid.map.hexes.find((hex) => hex.q === 1 && hex.r === 0);
+    expect(damagedMine && 'outpost' in damagedMine ? damagedMine.outpost?.status : null).toBe(
+      'damaged',
+    );
+    expect(intactPatrol && 'outpost' in intactPatrol ? intactPatrol.outpost?.status : null).toBe(
+      'active',
+    );
+    const battleDamagedText = afterRaid.army.reports[0]?.damagedOutpost?.text;
+    expect(battleDamagedText).toBeTruthy();
+
+    await page.getByRole('tab', { name: 'Exército' }).click();
+    const battleDamaged = page.getByTestId('battle-damaged-outpost').first();
+    await expect(battleDamaged).toBeVisible();
+    await expect(battleDamaged).toContainText(battleDamagedText!);
+
+    // 4. Na aba Mapa, confere estado danificado, detalhe, custo de reparo e recusa real por falta de recursos.
+    await world.stock('wood', 300);
+    await world.stock('stone', 200);
+    await world.passTime(MINUTE, page);
+
+    // Dispensa os avisos da incursão no canto inferior direito antes de clicar nos botões da ficha.
+    const dismissToasts = async () => {
+      const closeButtons = toasts(page).getByRole('button', { name: 'Dispensar aviso' });
+      while ((await closeButtons.count()) > 0) {
+        await closeButtons.first().click();
+      }
+    };
+    await dismissToasts();
+
+    await page.getByRole('tab', { name: 'Mapa' }).click();
+    await mineHex.click();
+    await expect(mineHex).toHaveAttribute('data-outpost', 'damaged');
+    await expect(mineHex.locator('[data-outpost-mark="damaged"]')).toHaveCount(1);
+    await expect(sheet.getByTestId('hex-outpost-status')).toContainText(
+      'Posto avançado: danificado',
+    );
+
+    const readyView = await serverView(page, request);
+    const readyHex = readyView.map.hexes.find((hex) => hex.q === -3 && hex.r === 0);
+    const readyOutpost = readyHex && 'outpost' in readyHex ? readyHex.outpost : undefined;
+    expect(readyOutpost?.detail).toBeTruthy();
+    expect(readyOutpost?.repairCost?.length).toBeGreaterThan(0);
+
+    await expect(sheet.getByTestId('hex-outpost-detail')).toHaveText(readyOutpost!.detail!);
+    const costBox = sheet.getByTestId('hex-outpost-repair-cost');
+    for (const entry of readyOutpost!.repairCost!) {
+      await expect(costBox).toContainText(`${entry.amount} ${entry.label.toLowerCase()}`);
+    }
+    const repairButton = sheet.locator('[data-map-action="repairOutpost"]');
+    await expect(repairButton).toBeEnabled();
+
+    // Baixa a madeira no servidor sem atualizar a tela: o clique envia `repairOutpost`, recebe 422
+    // por falta de recursos, exibe o aviso e atualiza a ficha com o chip faltante e o botão travado.
+    await world.stock('wood', 20);
+    await repairButton.click();
+
+    const blockedView = await serverView(page, request);
+    const blockedHex = blockedView.map.hexes.find((hex) => hex.q === -3 && hex.r === 0);
+    const blockedOutpost = blockedHex && 'outpost' in blockedHex ? blockedHex.outpost : undefined;
+    const blockedReason = blockedOutpost?.repairBlockedReason;
+    expect(blockedReason).toBeTruthy();
+
+    await expect(toasts(page)).toContainText(blockedReason!);
+    await expect(sheet.getByTestId('hex-outpost-repair-blocked')).toContainText(blockedReason!);
+    await expect(costBox.locator('.chip-missing')).toContainText('faltam');
+    await expect(repairButton).toBeDisabled();
+    await expect(mineHex).toHaveAttribute('data-outpost', 'damaged');
+    await expect(tree(page).locator('[data-node="outpost:outpost-1"]')).toContainText(
+      '⚠ danificado',
+    );
+
+    // Pela paleta, sem recursos para o posto danificado, não abre diálogo e informa o motivo do servidor.
+    await dismissToasts();
+    await palette(page, 'Reparar posto');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(toasts(page)).toContainText(blockedReason!);
+
+    // Fecha os avisos antes das capturas para a ficha do posto danificado ficar desimpedida.
+    await dismissToasts();
+
+    // Contraste, transbordo e capturas do posto danificado nos três temas (via LOTG_CAPTURE_DIR).
+    if (CAPTURE_DIR !== undefined) {
+      mkdirSync(CAPTURE_DIR, { recursive: true });
+      await page.locator('.editor-content').evaluate((el) => el.scrollTo(0, 0));
+    }
+    for (const theme of THEMES) {
+      await page.evaluate((chosen) => {
+        document.documentElement.setAttribute('data-theme', chosen);
+      }, theme);
+      expect(await lowContrast(page), `contraste posto danificado (${theme})`).toEqual([]);
+      expect(await overflow(page), `transbordo posto danificado (${theme})`).toEqual({
+        page: 0,
+        content: 0,
+      });
+      if (CAPTURE_DIR !== undefined) {
+        await page.screenshot({
+          path: `${CAPTURE_DIR}/postos-danificado-${theme}.png`,
+          caret: 'hide',
+          animations: 'disabled',
+        });
+      }
+    }
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    });
+
+    // 5. Repõe madeira e pedra e repara pela ficha do mapa: desconta custo e volta a "ativo".
+    await world.stock('wood', 400);
+    await world.stock('stone', 300);
+    await world.passTime(MINUTE, page);
+
+    await expect(sheet.getByTestId('hex-outpost-repair-blocked')).toHaveCount(0);
+    await expect(costBox.locator('.chip-missing')).toHaveCount(0);
+    await expect(repairButton).toBeEnabled();
+    expect(await lowContrast(page), 'contraste posto pronto para reparo (dark)').toEqual([]);
+
+    const stockBefore = await serverView(page, request);
+    const woodBefore = stockBefore.resources.find((row) => row.id === 'wood')!.stock;
+    const stoneBefore = stockBefore.resources.find((row) => row.id === 'stone')!.stock;
+
+    await repairButton.click();
+
+    await expect(mineHex).toHaveAttribute('data-outpost', 'active');
+    await expect(mineHex).toHaveAttribute('data-fog', 'claimed');
+    await expect(mineHex.locator('[data-outpost-mark="active"]')).toHaveCount(1);
+    await expect(sheet.getByTestId('hex-outpost-status')).toContainText('Posto avançado: ativo');
+    await expect(sheet.getByTestId('hex-outpost-repair-cost')).toHaveCount(0);
+    await expect(repairButton).toHaveCount(0);
+    await expect(tree(page).locator('[data-node="outpost:outpost-1"]')).toContainText('ativo');
+
+    const afterSheetRepair = await serverView(page, request);
+    const repairedHex = afterSheetRepair.map.hexes.find((hex) => hex.q === -3 && hex.r === 0);
+    expect(repairedHex && 'outpost' in repairedHex ? repairedHex.outpost?.status : null).toBe(
+      'active',
+    );
+    const woodCost = readyOutpost!.repairCost!.find((entry) => entry.resource === 'wood')!.amount;
+    const stoneCost = readyOutpost!.repairCost!.find((entry) => entry.resource === 'stone')!.amount;
+    expect(afterSheetRepair.resources.find((row) => row.id === 'wood')!.stock).toBeLessThanOrEqual(
+      woodBefore - woodCost + 1,
+    );
+    expect(afterSheetRepair.resources.find((row) => row.id === 'stone')!.stock).toBeLessThanOrEqual(
+      stoneBefore - stoneCost + 1,
+    );
+
+    // 6. Segunda incursão real danifica o posto novamente; repara pela Paleta de Comandos e volta a "ativo".
+    await world.control('raid-in', { inSeconds: 120 });
+    await world.passTime(3 * MINUTE, page);
+    await expect(mineHex).toHaveAttribute('data-outpost', 'damaged');
+
+    await world.stock('wood', 400);
+    await world.stock('stone', 300);
+    await world.passTime(MINUTE, page);
+
+    await palette(page, 'Reparar posto');
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Reparar posto avançado');
+    await expect(dialog).toContainText('Mina Abandonada (-3, 0)');
+    await expect(dialog).toContainText(`${woodCost} madeira, ${stoneCost} pedra`);
+    await dialog.getByRole('option', { name: /Mina Abandonada \(-3, 0\)/ }).click();
+    await expect(dialog).toHaveCount(0);
+
+    await expect(mineHex).toHaveAttribute('data-outpost', 'active');
+    await expect(sheet.getByTestId('hex-outpost-status')).toContainText('Posto avançado: ativo');
+    await expect(tree(page).locator('[data-node="outpost:outpost-1"]')).toContainText('ativo');
+    expect(await cutTreeRows(page)).toEqual([]);
+    await expect(mapSvg.locator('[style]')).toHaveCount(0);
+
+    const finalView = await serverView(page, request);
+    const finalHex = finalView.map.hexes.find((hex) => hex.q === -3 && hex.r === 0);
+    expect(finalHex && 'outpost' in finalHex ? finalHex.outpost?.status : null).toBe('active');
+    expect(world.problems).toEqual([]);
   });
 });

@@ -6,7 +6,6 @@ import {
   type ViewState,
 } from '@lotg/protocol';
 
-import type { PolicyEventType } from '../notifications/policy';
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
@@ -308,7 +307,7 @@ function moraleFell(event: GameEvent): boolean {
 
 /** Em que bloco um evento cai, e com que assunto; `null` para o que não é desfecho. */
 function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string } | null {
-  switch (event.type as PolicyEventType) {
+  switch (event.type) {
     // O fechamento anual já traz a pontuação e os Feitos na frase emitida pelo motor.
     case 'yearEnded':
       return { block: 'prospered', topic: 'chronicle' };
@@ -390,7 +389,7 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'prospered', topic: 'relic' };
     case 'sanctuaryExplored':
       return { block: 'prospered', topic: 'map' };
-    // V5F-T2 / V5F-T3: postos avançados concluídos, reparados e danificados em incursões.
+    // Postos avançados concluídos, reparados e danificados em incursões (V5F-T3).
     case 'outpostClaimed':
     case 'outpostRepaired':
       return { block: 'prospered', topic: 'outpost' };

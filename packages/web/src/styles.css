@@ -1909,6 +1909,10 @@ table.army-units td.num {
   cursor: pointer;
 }
 
+.battle-damaged-outpost {
+  margin: 4px 0 8px;
+}
+
 .battle-round summary:focus-visible {
   outline: 1px solid var(--vscode-focusBorder);
 }
@@ -2731,12 +2735,29 @@ table.ranking tr.ranking-mine td:first-child {
 
 .map-outpost-status {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+}
+
+.map-outpost-status-head {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: 4px;
+}
+
+.map-outpost-detail {
+  margin: 0;
+}
+
+.map-outpost-cost {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
 }
 
 .map-outpost-badge {
