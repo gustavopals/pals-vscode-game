@@ -3110,6 +3110,8 @@ describe('sem feudo aberto', () => {
       'lords.recruit',
       'lords.renameSettlement',
       'lords.downloadChronicle',
+      'lords.claimOutpost',
+      'lords.repairOutpost',
     ]) {
       await run(id);
     }
@@ -3121,5 +3123,215 @@ describe('sem feudo aberto', () => {
     expect(controller.toasts[0]).toMatchObject({ kind: 'info' });
     expect(controller.toasts[0]?.text).toMatch(/Ainda não há um feudo aberto/);
     expect(controller.toasts[0]?.actions.map((action) => action.label)).toEqual(['Jogar agora']);
+  });
+});
+
+describe('postos avançados na paleta e na árvore (V5F-T3)', () => {
+  const claimableView: ViewState = {
+    ...goldenView,
+    map: {
+      radius: goldenView.map.radius,
+      hexes: goldenView.map.hexes.map((hex) => {
+        if (hex.q === -3 && hex.r === 0) {
+          return {
+            q: -3,
+            r: 0,
+            fog: 'explored' as const,
+            terrain: 'ironVein' as const,
+            terrainLabel: 'Veio de Ferro',
+            site: 'abandonedMine' as const,
+            label: 'Mina Abandonada',
+            detail: 'Veios de ferro afloram na rocha.',
+            actions: [{ type: 'claimOutpost' as const, hex: '-3,0' }],
+          };
+        }
+        if (hex.q === 1 && hex.r === 0) {
+          return {
+            q: 1,
+            r: 0,
+            fog: 'explored' as const,
+            terrain: 'fields' as const,
+            terrainLabel: 'Campos',
+            site: 'patrol' as const,
+            label: 'Patrulha nos Arredores',
+            detail: 'A planície se abre entre os caminhos do feudo.',
+            actions: [{ type: 'claimOutpost' as const, hex: '1,0' }],
+          };
+        }
+        return hex;
+      }),
+    },
+  };
+
+  const outpostsView: ViewState = {
+    ...goldenView,
+    map: {
+      radius: goldenView.map.radius,
+      hexes: goldenView.map.hexes.map((hex) => {
+        if (hex.q === -3 && hex.r === 0) {
+          return {
+            q: -3,
+            r: 0,
+            fog: 'claimed' as const,
+            terrain: 'ironVein' as const,
+            terrainLabel: 'Veio de Ferro',
+            site: 'abandonedMine' as const,
+            label: 'Mina Abandonada',
+            detail: 'Veios de ferro afloram na rocha.',
+            outpost: { id: 'outpost-1', status: 'damaged' as const, readyInSeconds: 0 },
+            // V5F-T2: ação repairOutpost no hexágono com posto danificado.
+            actions: [
+              { type: 'repairOutpost', outpostId: 'outpost-1' },
+            ] as unknown as ViewState['map']['hexes'][number] extends { actions: infer A }
+              ? A
+              : never,
+          };
+        }
+        if (hex.q === 1 && hex.r === 0) {
+          return {
+            q: 1,
+            r: 0,
+            fog: 'explored' as const,
+            terrain: 'fields' as const,
+            terrainLabel: 'Campos',
+            site: 'patrol' as const,
+            label: 'Patrulha nos Arredores',
+            detail: 'A planície se abre entre os caminhos do feudo.',
+            outpost: { id: 'outpost-2', status: 'building' as const, readyInSeconds: 1500 },
+            actions: [],
+          };
+        }
+        return hex;
+      }),
+    },
+  };
+
+  it('reivindica posto avançado pela paleta ou direto da ficha do hexágono', async () => {
+    const { run, answers, shown, orders, labels } = await setup({
+      before: ({ api }) => {
+        api.state.view = claimableView;
+      },
+    });
+    expect(labels()).toContain('Lords: Reivindicar posto avançado…');
+    expect(labels()).toContain('Lords: Reparar posto avançado…');
+
+    // Pela paleta: abre lista com os hexágonos elegíveis e envia claimOutpost ao escolher.
+    answers.push(1);
+    await run('lords.claimOutpost');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.title).toBe('Reivindicar posto avançado');
+    expect(pick.items.map((item) => [item.label, item.description])).toEqual([
+      ['Patrulha nos Arredores (1, 0)', 'Campos'],
+      ['Mina Abandonada (-3, 0)', 'Veio de Ferro'],
+    ]);
+    expect(orders()).toEqual([{ type: 'claimOutpost', payload: { hex: '-3,0' } }]);
+
+    // Direto da ficha do hexágono: sem abrir diálogo.
+    await run('lords.claimOutpost', '1,0');
+    expect(shown).toHaveLength(1);
+    expect(orders()).toEqual([
+      { type: 'claimOutpost', payload: { hex: '-3,0' } },
+      { type: 'claimOutpost', payload: { hex: '1,0' } },
+    ]);
+  });
+
+  it('avisa quando não há hexágono elegível para reivindicar ou se o mapa mudou durante o diálogo', async () => {
+    const { run, shown, orders, controller } = await setup();
+    await run('lords.claimOutpost');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([]);
+    expect(controller.toasts).toMatchObject([
+      {
+        kind: 'info',
+        text: 'Não há hexágono elegível para reivindicar um posto avançado agora.',
+      },
+    ]);
+
+    const stale = await setup({
+      before: ({ api }) => {
+        api.state.view = claimableView;
+      },
+    });
+    stale.answers.push(async () => {
+      stale.api.state.view = goldenView;
+      stale.api.state.stateVersion += 1;
+      await stale.controller.session.syncNow();
+      return 1;
+    });
+    await stale.run('lords.claimOutpost');
+    expect(stale.orders()).toEqual([]);
+    expect(stale.controller.toasts).toMatchObject([
+      {
+        kind: 'warning',
+        text: 'O mapa mudou enquanto a lista estava aberta: confira os hexágonos antes de tentar de novo.',
+      },
+    ]);
+  });
+
+  it('repara posto avançado danificado pela paleta, pela ficha ou pelo botão da árvore (contrato V5F-T2)', async () => {
+    const { run, answers, shown, orders, labels, controller } = await setup({
+      overrides: { validateResponses: false },
+      before: ({ api, store }) => {
+        delete store.data[`lords.cache:${ACCOUNT_ID}`];
+        api.state.view = outpostsView;
+      },
+    });
+    expect(labels()).toContain('Lords: Reparar posto avançado…');
+
+    // Árvore lista os postos sob Mapa com estado e ação embutida "Reparar" no danificado.
+    const tree = buildTree({
+      view: controller.view,
+      account: controller.account.state,
+      connection: controller.connection,
+      unseen: controller.unseen,
+      elapsedSeconds: 0,
+      chronicle: controller.chronicle,
+    });
+    const mapNode = everyNode(tree).find((node) => node.id === 'map');
+    expect(mapNode?.description).toBe('3 explorados · 34 avistados · 2 postos · ⚠ 1 danificado');
+    expect(mapNode?.children?.map((child) => [child.id, child.label, child.description])).toEqual([
+      ['outpost:outpost-2', 'Patrulha nos Arredores (1, 0)', 'em obra · 00:25'],
+      ['outpost:outpost-1', 'Mina Abandonada (-3, 0)', '⚠ danificado'],
+    ]);
+    const damagedNode = mapNode?.children?.[1];
+    expect(damagedNode !== undefined ? rowActions(damagedNode) : []).toEqual([
+      {
+        command: 'lords.repairOutpost',
+        arg: 'outpost-1',
+        label: 'Reparar posto: Mina Abandonada (-3, 0)',
+        text: 'Reparar',
+      },
+    ]);
+
+    // Pela paleta: lista o posto danificado e envia repairOutpost.
+    answers.push(0);
+    await run('lords.repairOutpost');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.title).toBe('Reparar posto avançado');
+    expect(pick.items.map((item) => [item.label, item.description])).toEqual([
+      ['Mina Abandonada (-3, 0)', 'Veio de Ferro · Danificado'],
+    ]);
+    expect(orders()).toEqual([{ type: 'repairOutpost', payload: { outpostId: 'outpost-1' } }]);
+
+    // Pelo item da árvore ou argumento direto: repara sem diálogo.
+    await run('lords.repairOutpost', { id: 'outpost:outpost-1' });
+    expect(shown).toHaveLength(1);
+    expect(orders()).toEqual([
+      { type: 'repairOutpost', payload: { outpostId: 'outpost-1' } },
+      { type: 'repairOutpost', payload: { outpostId: 'outpost-1' } },
+    ]);
+  });
+
+  it('avisa quando não há posto danificado para reparar', async () => {
+    const { run, shown, orders, controller } = await setup();
+    await run('lords.repairOutpost');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([]);
+    expect(controller.toasts).toMatchObject([
+      {
+        kind: 'info',
+        text: 'Não há posto avançado danificado para reparar agora.',
+      },
+    ]);
   });
 });

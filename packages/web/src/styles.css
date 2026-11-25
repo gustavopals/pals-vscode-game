@@ -2593,6 +2593,34 @@ table.ranking tr.ranking-mine td:first-child {
   fill: var(--vscode-map-terrain-sanctuary);
 }
 
+.hex-outpost-crest {
+  stroke: var(--vscode-map-hex-foreground);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.hex-outpost-crest-building {
+  fill: var(--vscode-map-outpost-building);
+  stroke-dasharray: 3.5 2;
+}
+
+.hex-outpost-crest-active {
+  fill: var(--vscode-map-outpost-active);
+  stroke: var(--vscode-map-hex-selected);
+  stroke-width: 1.8;
+}
+
+.hex-outpost-crest-damaged {
+  fill: var(--vscode-map-outpost-damaged);
+  stroke-dasharray: 2 2;
+}
+
+.hex-outpost-damaged .hex-poly {
+  stroke: var(--vscode-map-hex-foreground);
+  stroke-dasharray: 4 2;
+}
+
 .hex-icon-box {
   pointer-events: none;
   overflow: visible;
@@ -2699,6 +2727,45 @@ table.ranking tr.ranking-mine td:first-child {
 
 .map-fog-claimed {
   background: var(--vscode-map-fog-claimed);
+}
+
+.map-outpost-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+}
+
+.map-outpost-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--vscode-map-hex-border);
+  border-radius: 10px;
+  color: var(--vscode-map-hex-foreground);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.map-outpost-badge .codicon {
+  font-size: 12px;
+}
+
+.map-outpost-badge-building {
+  background: var(--vscode-map-outpost-building);
+}
+
+.map-outpost-badge-active {
+  background: var(--vscode-map-outpost-active);
+}
+
+.map-outpost-badge-damaged {
+  background: var(--vscode-map-outpost-damaged);
 }
 
 .map-sheet-body {

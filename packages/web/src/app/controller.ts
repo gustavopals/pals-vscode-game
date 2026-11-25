@@ -10,7 +10,6 @@ import {
   type ApiErrorCode,
   CatalogResponseSchema,
   type Command,
-  type CommandType,
   type GameEvent,
   type ReturnReport,
   type StatsResponse,
@@ -29,7 +28,7 @@ import {
   type SessionTarget,
   StaleOrderError,
 } from '../game/gameSession';
-import { intentsOf } from '../game/intent';
+import { intentsOf, type WebCommand, type WebCommandType } from '../game/intent';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
@@ -60,6 +59,7 @@ import {
   isArmyEvent,
   isSmithyEvent,
   isWallEvent,
+  isMapEvent,
   isSiegeEvent,
   siegeNotice,
   MUTE_DURATION_MS,
@@ -1139,7 +1139,9 @@ export class Controller {
                     ? 'market'
                     : isArmyEvent(event)
                       ? 'army'
-                      : 'fief',
+                      : isMapEvent(event)
+                        ? 'map'
+                        : 'fief',
             ...(isWatchReport(event) || isRaidOutcome(event) || isWallEvent(event)
               ? { section: THREAT_SECTION }
               : {}),
@@ -1313,7 +1315,7 @@ export class Controller {
      */
     action: {
       label: string;
-      route: 'today' | 'fief' | 'council' | 'guild' | 'market' | 'army' | 'chronicle';
+      route: 'today' | 'fief' | 'council' | 'guild' | 'market' | 'army' | 'map' | 'chronicle';
       section?: string;
       /**
        * Em vez de só navegar, o botão executa este comando do app (que leva à aba e abre o que
@@ -1751,12 +1753,12 @@ export class Controller {
    * antes do envio (um "Tentar de novo" que ficou para trás), ela não segue para o feudo novo:
    * o envio recusa com `StaleOrderError`, sem tocar a rede.
    */
-  prepare<T extends CommandType>(
+  prepare<T extends WebCommandType>(
     type: T,
-    payload: Extract<Command, { type: T }>['payload'],
+    payload: Extract<WebCommand, { type: T }>['payload'],
   ): () => Promise<void> {
     const commandId = (this.options.randomUUID ?? randomUUID)();
-    const command = { commandId, type, payload } as Command;
+    const command = { commandId, type, payload } as unknown as Command;
     const origin = this.session.targetKey;
     return async () => {
       if (this.session.targetKey !== origin) {
@@ -1774,9 +1776,9 @@ export class Controller {
   }
 
   /** Uma ordem nova do jogador, com os avisos de `attempt`. */
-  order<T extends CommandType>(
+  order<T extends WebCommandType>(
     type: T,
-    payload: Extract<Command, { type: T }>['payload'],
+    payload: Extract<WebCommand, { type: T }>['payload'],
   ): Promise<boolean> {
     // O TypeScript não relaciona `T` entre duas funções genéricas; os tipos são os mesmos.
     return this.attempt(this.prepare(type, payload as never), {
@@ -1835,10 +1837,10 @@ export class Controller {
    * trava é por alvo (o recurso, o Mestre), e `where` diz a quem a ordem não chegou, se a sessão
    * acabar com ela a caminho.
    */
-  private async guildOrder<T extends CommandType>(
+  private async guildOrder<T extends WebCommandType>(
     key: string,
     type: T,
-    payload: Extract<Command, { type: T }>['payload'],
+    payload: Extract<WebCommand, { type: T }>['payload'],
     where = 'à Guilda',
     stillValid?: () => boolean,
     invalidText?: string,
@@ -1953,6 +1955,16 @@ export class Controller {
   removeRelic(relicId: string): Promise<boolean> {
     const id = relicId as Extract<Command, { type: 'removeRelic' }>['payload']['relicId'];
     return this.guildOrder(`relic:${relicId}`, 'removeRelic', { relicId: id }, 'à Capela');
+  }
+
+  /** Reivindica um posto avançado no hexágono explorado (`claimOutpost`, V5F-T3). */
+  claimOutpost(hex: string): Promise<boolean> {
+    return this.guildOrder(`claimOutpost:${hex}`, 'claimOutpost', { hex }, 'ao Mapa');
+  }
+
+  /** Repara um posto avançado danificado (`repairOutpost`, V5F-T3 / V5F-T2). */
+  repairOutpost(outpostId: string): Promise<boolean> {
+    return this.guildOrder(`repairOutpost:${outpostId}`, 'repairOutpost', { outpostId }, 'ao Mapa');
   }
 
   /**

@@ -25,6 +25,7 @@ import {
   isExpeditionEnd,
   isGuildEvent,
   isArmyEvent,
+  isMapEvent,
   isRaidAlarm,
   isRaidOutcome,
   isRelief,
@@ -1174,5 +1175,42 @@ describe('sabotagem e campanha nos avisos (V4F-T3, revisão 4)', () => {
       fought,
       other,
     ]);
+  });
+});
+
+describe('os postos avançados nos avisos (V5F-T3)', () => {
+  const outpostEvent = (
+    type: 'outpostClaimed' | 'outpostDamaged' | 'outpostRepaired',
+    seq = 1,
+  ): GameEvent => event(type as GameEvent['type'], seq);
+
+  it('outpostDamaged é alarme essencial e leva ao Mapa; outpostClaimed e outpostRepaired avisam em "Todas"', () => {
+    const damaged = outpostEvent('outpostDamaged', 1);
+    const claimed = outpostEvent('outpostClaimed', 2);
+    const repaired = outpostEvent('outpostRepaired', 3);
+
+    expect(isEssential(damaged)).toBe(true);
+    expect(isMapEvent(damaged)).toBe(true);
+    expect(eventIcon(damaged)).toBe('warning');
+
+    expect(isEssential(claimed)).toBe(false);
+    expect(isMapEvent(claimed)).toBe(true);
+    expect(eventIcon(claimed)).toBe('flag');
+
+    expect(isEssential(repaired)).toBe(false);
+    expect(isMapEvent(repaired)).toBe(true);
+    expect(eventIcon(repaired)).toBe('tools');
+
+    expect(
+      decideNotifications(
+        input({ level: 'essential', events: [claimed, damaged, repaired] }),
+      ).show.map((entry) => entry.type),
+    ).toEqual(['outpostDamaged']);
+
+    expect(
+      decideNotifications(input({ level: 'all', events: [claimed, damaged, repaired] })).show.map(
+        (entry) => entry.type,
+      ),
+    ).toEqual(['outpostDamaged', 'outpostClaimed', 'outpostRepaired']);
   });
 });

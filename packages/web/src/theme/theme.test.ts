@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { THEMES, type ThemeId } from '../services/preferences';
-import { FOG_STATES, TERRAIN_ICONS } from '../ui/hexmap';
+import { FOG_STATES, OUTPOST_STATUSES, TERRAIN_ICONS } from '../ui/hexmap';
 import { applyTheme, nextTheme, resolveTheme, systemTheme, THEME_LABELS } from './theme';
 
 // O CSS é lido como texto pelo Vitest, sem tocar o sistema de arquivos.
@@ -335,6 +335,10 @@ describe('themes.css', () => {
     ['mapa: texto sobre Ruínas', 'map-hex-foreground', 'map-terrain-ruins'],
     ['mapa: texto sobre Veio de Ferro', 'map-hex-foreground', 'map-terrain-ironVein'],
     ['mapa: texto sobre Santuário', 'map-hex-foreground', 'map-terrain-sanctuary'],
+    // Postos avançados no mapa (V5F-T3): texto e ícones sobre a marca de cada estado.
+    ['mapa: posto em obra', 'map-hex-foreground', 'map-outpost-building'],
+    ['mapa: posto ativo', 'map-hex-foreground', 'map-outpost-active'],
+    ['mapa: posto danificado', 'map-hex-foreground', 'map-outpost-damaged'],
   ];
 
   const cases = THEMES.flatMap((theme) =>
@@ -395,6 +399,12 @@ describe('themes.css', () => {
         expect(
           declarations.get(`--vscode-map-fog-${fog}`),
           `--vscode-map-fog-${fog} no tema ${theme}`,
+        ).toMatch(/^#[0-9a-f]{6}$/i);
+      }
+      for (const status of OUTPOST_STATUSES) {
+        expect(
+          declarations.get(`--vscode-map-outpost-${status}`),
+          `--vscode-map-outpost-${status} no tema ${theme}`,
         ).toMatch(/^#[0-9a-f]{6}$/i);
       }
     }

@@ -172,6 +172,16 @@ import {
   relicStateBadge,
 } from '../ui/relics';
 import {
+  claimableHexes,
+  hexKey,
+  OUTPOST_NODE,
+  outpostsOf,
+  repairableOutposts,
+  TERRAIN_ICONS,
+  type ExploredMapHex,
+  type RepairableOutpost,
+} from '../ui/hexmap';
+import {
   isYearTurnVows,
   VOW_ICON,
   vowBonusText,
@@ -349,6 +359,45 @@ export function relicRequest(arg: unknown): string | undefined {
   }
   return typeof id === 'string' && id.startsWith(RELIC_NODE)
     ? id.slice(RELIC_NODE.length)
+    : undefined;
+}
+
+/**
+ * O hexágono que quem chamou `lords.claimOutpost` já escolheu: a ficha manda `"q,r"` ou
+ * `{ hex: "q,r" }`; a paleta, nada.
+ */
+export function claimOutpostRequest(arg: unknown): string | undefined {
+  if (typeof arg === 'string') {
+    return arg === '' ? undefined : arg;
+  }
+  if (typeof arg !== 'object' || arg === null) {
+    return undefined;
+  }
+  const { hex } = arg as Record<string, unknown>;
+  return typeof hex === 'string' && hex !== '' ? hex : undefined;
+}
+
+/**
+ * O posto que quem chamou `lords.repairOutpost` já escolheu: a ficha e o Relatório de Retorno
+ * mandam o `outpostId` (como texto ou `{ outpostId }`); a árvore, a linha (`outpost:<id>`); a
+ * paleta, nada.
+ */
+export function repairOutpostRequest(arg: unknown): string | undefined {
+  if (typeof arg === 'string') {
+    if (arg === '') {
+      return undefined;
+    }
+    return arg.startsWith(OUTPOST_NODE) ? arg.slice(OUTPOST_NODE.length) : arg;
+  }
+  if (typeof arg !== 'object' || arg === null) {
+    return undefined;
+  }
+  const { id, outpostId } = arg as Record<string, unknown>;
+  if (typeof outpostId === 'string') {
+    return outpostId === '' ? undefined : outpostId;
+  }
+  return typeof id === 'string' && id.startsWith(OUTPOST_NODE)
+    ? id.slice(OUTPOST_NODE.length)
     : undefined;
 }
 
@@ -3836,6 +3885,137 @@ export function createCommands(
     (arg) => relicRequest(arg),
   );
 
+  const seeMap = {
+    label: 'Ver o mapa',
+    run: () => controller.navigate('map'),
+  };
+
+  /**
+   * Reivindica um posto avançado (`lords.claimOutpost`, V5F-T3): direto quando a ficha do hexágono
+   * já informou a coordenada; por lista de hexágonos elegíveis na paleta, relendo a visão depois
+   * da escolha.
+   */
+  const claimOutpost = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const requested = claimOutpostRequest(arg);
+      if (requested !== undefined) {
+        await controller.claimOutpost(requested);
+        return;
+      }
+      const candidates = claimableHexes(view.map);
+      if (candidates.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: 'Não há hexágono elegível para reivindicar um posto avançado agora.',
+          actions: [seeMap],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const picked = await dialogs.pick<ExploredMapHex>({
+        title: 'Reivindicar posto avançado',
+        placeholder: 'Em qual hexágono erguer o posto avançado?',
+        items: candidates.map((hex) => ({
+          icon: TERRAIN_ICONS[hex.terrain],
+          label: `${hex.label} (${hex.q}, ${hex.r})`,
+          description: hex.terrainLabel,
+          detail: hex.detail,
+          value: hex,
+        })),
+      });
+      if (picked === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a reivindicação do posto');
+        return;
+      }
+      const targetKey = hexKey(picked.q, picked.r);
+      const stillClaimable =
+        controller.view !== null &&
+        claimableHexes(controller.view.map).some((hex) => hexKey(hex.q, hex.r) === targetKey);
+      if (!stillClaimable) {
+        controller.toast({
+          kind: 'warning',
+          text: 'O mapa mudou enquanto a lista estava aberta: confira os hexágonos antes de tentar de novo.',
+          actions: [seeMap],
+        });
+        return;
+      }
+      await controller.claimOutpost(targetKey);
+    },
+    (arg) => claimOutpostRequest(arg),
+  );
+
+  /**
+   * Repara um posto avançado danificado (`lords.repairOutpost`, V5F-T3 / V5F-T2): direto quando a
+   * ficha, a árvore ou o Relatório de Retorno já deram o `outpostId`; por lista de postos
+   * elegíveis na paleta, relendo a visão depois da escolha.
+   */
+  const repairOutpost = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const requested = repairOutpostRequest(arg);
+      if (requested !== undefined) {
+        await controller.repairOutpost(requested);
+        return;
+      }
+      const candidates = repairableOutposts(view.map);
+      if (candidates.length === 0) {
+        const hasDamaged = outpostsOf(view.map).some((entry) => entry.outpost.status === 'damaged');
+        controller.toast({
+          kind: 'info',
+          text: hasDamaged
+            ? 'Não há posto avançado com reparo liberado agora: confira os recursos na aba Mapa.'
+            : 'Não há posto avançado danificado para reparar agora.',
+          actions: [seeMap],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const picked = await dialogs.pick<RepairableOutpost>({
+        title: 'Reparar posto avançado',
+        placeholder: 'Qual posto avançado reparar?',
+        items: candidates.map((entry) => ({
+          icon: 'tools',
+          label: `${entry.hex.label} (${entry.hex.q}, ${entry.hex.r})`,
+          description: `${entry.hex.terrainLabel} · Danificado`,
+          detail: entry.hex.detail,
+          value: entry,
+        })),
+      });
+      if (picked === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('o reparo do posto');
+        return;
+      }
+      const stillRepairable =
+        controller.view !== null &&
+        repairableOutposts(controller.view.map).some(
+          (entry) => entry.outpostId === picked.outpostId,
+        );
+      if (!stillRepairable) {
+        controller.toast({
+          kind: 'warning',
+          text: 'O estado do posto avançado mudou enquanto a lista estava aberta: confira o mapa antes de tentar de novo.',
+          actions: [seeMap],
+        });
+        return;
+      }
+      await controller.repairOutpost(picked.outpostId);
+    },
+    (arg) => repairOutpostRequest(arg),
+  );
+
   const seeVows = {
     label: 'Ver os Votos',
     run: () => controller.runCommand('lords.openPanel', VOWS_SECTION),
@@ -4611,6 +4791,20 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: go('map'),
+    },
+    {
+      id: 'lords.claimOutpost',
+      title: 'Reivindicar posto avançado…',
+      palette: true,
+      when: hasGame,
+      run: claimOutpost,
+    },
+    {
+      id: 'lords.repairOutpost',
+      title: 'Reparar posto avançado…',
+      palette: true,
+      when: hasGame,
+      run: repairOutpost,
     },
     {
       id: 'lords.trainSoldiers',

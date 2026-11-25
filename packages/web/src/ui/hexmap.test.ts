@@ -4,6 +4,7 @@ import { goldenView, threatWatchedView } from '../test-helpers';
 import {
   activeThreatSites,
   axialToPixel,
+  claimableHexes,
   defaultHexKey,
   FOG_LABELS,
   FOG_STATES,
@@ -14,6 +15,7 @@ import {
   hexFog,
   hexIcon,
   hexKey,
+  hexOutpost,
   hexPointsAttr,
   hexTerrain,
   hexTitle,
@@ -25,6 +27,13 @@ import {
   mapSummary,
   mapTreeLine,
   mapTreeTooltip,
+  OUTPOST_STATUS_ICONS,
+  OUTPOST_STATUS_LABELS,
+  OUTPOST_STATUSES,
+  outpostsOf,
+  outpostSheetLine,
+  outpostTreeDescription,
+  repairableOutposts,
   TERRAIN_ICONS,
   visibleLegendTerrains,
   type ExploredMapHex,
@@ -237,5 +246,123 @@ describe('apresentação da grade e respeito à névoa (ui/hexmap.ts)', () => {
     const legend = visibleLegendTerrains([unknownHex, sightedHex, homeHex]);
     expect(legend.map((entry) => entry.terrain)).toEqual(['forest', 'fields']);
     expect(legend.map((entry) => entry.label)).toEqual(['Floresta', 'Campos']);
+  });
+
+  it('modela postos avançados em obra, ativos e danificados na ficha, no ícone e na árvore (V5F-T3)', () => {
+    expect(OUTPOST_STATUSES).toEqual(['building', 'active', 'damaged']);
+    expect(OUTPOST_STATUS_LABELS).toEqual({
+      building: 'Em obra',
+      active: 'Ativo',
+      damaged: 'Danificado',
+    });
+    expect(OUTPOST_STATUS_ICONS).toEqual({
+      building: 'tools',
+      active: 'flag',
+      damaged: 'warning',
+    });
+
+    const buildingHex: ExploredMapHex = {
+      q: -3,
+      r: 0,
+      fog: 'explored',
+      terrain: 'ironVein',
+      terrainLabel: 'Veio de Ferro',
+      site: 'abandonedMine',
+      label: 'Mina Abandonada',
+      detail: 'Veios de ferro afloram na rocha.',
+      outpost: { id: 'outpost-1', status: 'building', readyInSeconds: 1800 },
+      actions: [],
+    };
+    const activeHex: ExploredMapHex = {
+      ...claimedHex,
+      site: 'abandonedMine',
+      label: 'Mina Abandonada',
+      outpost: { id: 'outpost-1', status: 'active', readyInSeconds: 0 },
+    };
+    const damagedHex = {
+      ...activeHex,
+      q: 1,
+      r: 0,
+      terrain: 'fields' as const,
+      terrainLabel: 'Campos',
+      site: 'patrol' as const,
+      label: 'Patrulha nos Arredores',
+      outpost: { id: 'outpost-2', status: 'damaged' as const, readyInSeconds: 0 },
+      actions: [{ type: 'repairOutpost' as const, outpostId: 'outpost-2' }],
+    } as unknown as ExploredMapHex;
+    const claimableHex: ExploredMapHex = {
+      q: -2,
+      r: 1,
+      fog: 'explored',
+      terrain: 'forest',
+      terrainLabel: 'Floresta',
+      site: 'oldForest',
+      label: 'Floresta Antiga',
+      detail: 'Carvalhos cerrados guardam madeira.',
+      actions: [{ type: 'claimOutpost', hex: '-2,1' }],
+    };
+
+    expect(hexOutpost(unknownHex)).toBeNull();
+    expect(hexOutpost(sightedHex)).toBeNull();
+    expect(hexOutpost(homeHex)).toBeNull();
+    expect(hexOutpost(buildingHex)).toEqual({
+      id: 'outpost-1',
+      status: 'building',
+      readyInSeconds: 1800,
+    });
+
+    expect(hexIcon(buildingHex)).toBe('tools');
+    expect(hexIcon(activeHex)).toBe('flag');
+    expect(hexIcon(damagedHex)).toBe('warning');
+
+    expect(hexAccessibleLabel(buildingHex)).toBe(
+      'Mina Abandonada (Veio de Ferro), Explorado (-3, 0), Posto avançado (em obra)',
+    );
+    expect(hexAccessibleLabel(activeHex)).toBe(
+      'Mina Abandonada (Veio de Ferro), Reivindicado (-3, 0), Posto avançado (ativo)',
+    );
+    expect(hexAccessibleLabel(damagedHex)).toBe(
+      'Patrulha nos Arredores (Campos), Reivindicado (1, 0), Posto avançado (danificado)',
+    );
+
+    expect(outpostSheetLine(buildingHex.outpost!, 0)).toBe(
+      'Posto avançado: em obra · conclui em 00:30',
+    );
+    expect(outpostSheetLine({ ...buildingHex.outpost!, readyInSeconds: null }, 0)).toBe(
+      'Posto avançado: em obra',
+    );
+    expect(outpostSheetLine(activeHex.outpost!, 0)).toBe('Posto avançado: ativo');
+    expect(outpostSheetLine(damagedHex.outpost!, 0)).toBe('Posto avançado: danificado');
+
+    expect(outpostTreeDescription(buildingHex.outpost!, 0)).toBe('em obra · 00:30');
+    expect(outpostTreeDescription({ ...buildingHex.outpost!, readyInSeconds: null }, 0)).toBe(
+      'em obra',
+    );
+    expect(outpostTreeDescription(activeHex.outpost!, 0)).toBe('ativo');
+    expect(outpostTreeDescription(damagedHex.outpost!, 0)).toBe('⚠ danificado');
+
+    const hexes: MapHex[] = [homeHex, buildingHex, damagedHex, claimableHex, unknownHex];
+    const map = { radius: 5, hexes };
+    expect(
+      outpostsOf(map).map((entry) => [
+        entry.outpost.id,
+        hexKey(entry.hex.q, entry.hex.r),
+        entry.canRepair,
+      ]),
+    ).toEqual([
+      ['outpost-1', '-3,0', false],
+      ['outpost-2', '1,0', true],
+    ]);
+    expect(claimableHexes(map).map((hex) => [hexKey(hex.q, hex.r), hex.label])).toEqual([
+      ['-2,1', 'Floresta Antiga'],
+    ]);
+    expect(
+      repairableOutposts(map).map((entry) => [entry.outpostId, hexKey(entry.hex.q, entry.hex.r)]),
+    ).toEqual([['outpost-2', '1,0']]);
+
+    expect(mapTreeLine(map)).toBe('4 explorados · 0 avistados · 2 postos · ⚠ 1 danificado');
+    expect(mapTreeTooltip(map)).toContain(
+      'Postos avançados: Mina Abandonada (-3, 0): em obra; Patrulha nos Arredores (1, 0): danificado.',
+    );
   });
 });

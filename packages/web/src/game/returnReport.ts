@@ -6,10 +6,12 @@ import {
   type ViewState,
 } from '@lotg/protocol';
 
+import type { PolicyEventType } from '../notifications/policy';
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
 import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
 import { ARMY_SECTION, isCampAssaultDuplicate } from '../ui/army';
+import { repairableOutposts } from '../ui/hexmap';
 import { THREAT_SECTION } from '../ui/threat';
 import { TAVERN_SECTION } from '../ui/guild';
 import { CARAVANS_SECTION } from '../ui/market';
@@ -175,6 +177,17 @@ export function costAction(
   if (topic === 'worn') {
     return { command: 'lords.repairItem', label: 'Reparar…' };
   }
+  if (topic === 'outpost') {
+    const repairable = repairableOutposts(view.map);
+    if (repairable.length > 0) {
+      return {
+        command: 'lords.repairOutpost',
+        ...(repairable.length === 1 ? { arg: repairable[0]!.outpostId } : {}),
+        label: 'Reparar posto',
+      };
+    }
+    return { command: 'lords.openPanel', arg: 'map', label: 'Ver o mapa' };
+  }
   if (topic === 'caravan') {
     // A estrada: quem foi emboscado sem escolta aprende com a próxima; quem chegou inteiro vê as
     // caravanas para mandar outra.
@@ -295,7 +308,7 @@ function moraleFell(event: GameEvent): boolean {
 
 /** Em que bloco um evento cai, e com que assunto; `null` para o que não é desfecho. */
 function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string } | null {
-  switch (event.type) {
+  switch (event.type as PolicyEventType) {
     // O fechamento anual já traz a pontuação e os Feitos na frase emitida pelo motor.
     case 'yearEnded':
       return { block: 'prospered', topic: 'chronicle' };
@@ -377,6 +390,12 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'prospered', topic: 'relic' };
     case 'sanctuaryExplored':
       return { block: 'prospered', topic: 'map' };
+    // V5F-T2 / V5F-T3: postos avançados concluídos, reparados e danificados em incursões.
+    case 'outpostClaimed':
+    case 'outpostRepaired':
+      return { block: 'prospered', topic: 'outpost' };
+    case 'outpostDamaged':
+      return { block: 'cost', topic: 'outpost' };
     // (`itemSold` é o item que não coube no arsenal e foi vendido: a frase diz que ele virou
     // ouro; sem ela, "achou um item" ficaria sozinho, e o item não está em lugar nenhum. O ouro
     // entra na tabela como recebido, pelo total do evento.)
