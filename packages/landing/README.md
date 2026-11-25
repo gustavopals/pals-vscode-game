@@ -83,7 +83,7 @@ O que os testes não alcançam e quem edita precisa manter:
 - **Nenhum número de regra no texto** (custos, taxas, prazos). As capturas mostram números porque são a tela do jogo; a página não os repete. As contagens que o texto traz ("cinco tropas", "três ondas", o tamanho do baralho) são de coisas que a página lista pelo nome ou que um teste confere.
 - **O texto corrido é da página, e não é conferido palavra por palavra.** Ele parafraseia o que o jogo faz (a Paliçada que pode repelir sem batalha, o Plano que vale com o jogador fora, a Horda que guarda a formação, a milícia cujas baixas são permanentes, a Queda que não encerra a partida). Quando uma regra dessas mudar, o parágrafo muda junto.
 - **A pintura é arte conceitual**, gerada por IA, e a página diz isso em cada janela e no cólofon. O jogo tem a cara das capturas, e é com uma captura que a página abre. As capturas mostram os ícones do app (Codicons, CC BY 4.0): o crédito fica no cólofon e em `public/licencas.txt`.
-- **O que ainda não existe** (hoje, os postos avançados) só aparece no parágrafo "No horizonte", sem data. A guerra e o Cerco saíram de lá com a v0.4; relíquias, Legado e o mapa desenhado, com a v0.5.
+- **O que ainda não existe** (hoje, as Temporadas) só aparece no parágrafo "No horizonte", sem data. A guerra e o Cerco saíram de lá com a v0.4; relíquias, Legado, o mapa desenhado e os postos avançados, com a v0.5.
 - **Nada de terceiros**: nenhuma letra, script, imagem ou medição de audiência de outra origem. A política de conteúdo barra, e o GDD §18.1 proíbe telemetria.
 
 ## Capturas do jogo
