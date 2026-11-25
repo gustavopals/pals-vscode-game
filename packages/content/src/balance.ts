@@ -779,6 +779,7 @@ export type Balance = {
   readonly heroes: HeroesDef;
   readonly outposts: {
     readonly cost: ResourceAmounts;
+    readonly repairCost: ResourceAmounts;
     readonly durationMs: number;
     readonly limit: number;
     readonly townHallLevel: number;
@@ -1223,9 +1224,10 @@ export const balance: Balance = {
     xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700],
     power: { attack: SAME, defense: SAME, health: { num: 1, den: 10 } },
   },
-  // GDD §8.1, ADR 0022 D-23. Prazo e taxa de ferro em tempo de jogo.
+  // GDD §8.1, ADR 0022 D-23/D-24. Prazo e taxa de ferro em tempo de jogo; reparo em madeira e pedra.
   outposts: {
     cost: { wood: 250, stone: 150, gold: 100 },
+    repairCost: { wood: 125, stone: 75 },
     durationMs: 45 * MINUTE_MS,
     limit: 3,
     townHallLevel: 5,

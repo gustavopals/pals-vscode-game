@@ -8,17 +8,41 @@ const postShape = exactObject({
   status: oneOf(['building', 'active', 'damaged']),
   readyAtMs: nullable(natural),
 });
+const damagedOutpostShape = exactObject({ id: text, hex: text });
 const postsShape = listOf(postShape);
 const object = (value: unknown): value is StoredState =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
+
+function parseOutpostId(id: string): number {
+  return /^outpost-[1-9][0-9]*$/.test(id) ? Number(id.slice(8)) : Number.NaN;
+}
 
 export const stateV46: Shape = (value, path) => {
   const at = (field: string) => (path ? `${path}.${field}` : field);
   if (!object(value) || !object(value.map)) return `${at('map')}: mapa ausente`;
   const { outposts, ...map } = value.map;
+  let inheritedArmy = value.army;
+  if (object(value.army) && Array.isArray(value.army.reports)) {
+    const reports: unknown[] = [];
+    for (const [index, report] of value.army.reports.entries()) {
+      if (object(report) && Object.hasOwn(report, 'damagedOutpost')) {
+        const bad = damagedOutpostShape(
+          report.damagedOutpost,
+          at(`army.reports.${index}.damagedOutpost`),
+        );
+        if (bad) return bad;
+        const rest = { ...report };
+        delete rest.damagedOutpost;
+        reports.push(rest);
+      } else {
+        reports.push(report);
+      }
+    }
+    inheritedArmy = { ...value.army, reports };
+  }
   const invalid =
     literal(46)(value.schemaVersion, at('schemaVersion')) ??
-    stateV45({ ...value, map, schemaVersion: 45 }, path) ??
+    stateV45({ ...value, map, army: inheritedArmy, schemaVersion: 45 }, path) ??
     natural((value.ids as StoredState).outpost, at('ids.outpost')) ??
     postsShape(outposts, at('map.outposts'));
   if (invalid) return invalid;
@@ -31,7 +55,7 @@ export const stateV46: Shape = (value, path) => {
   const occupied = new Set<string>();
   for (const [index, post] of posts.entries()) {
     const where = at(`map.outposts.${index}`);
-    const idNum = /^outpost-[1-9][0-9]*$/.test(post.id) ? Number(post.id.slice(8)) : Number.NaN;
+    const idNum = parseOutpostId(post.id);
     if (!Number.isSafeInteger(idNum) || idNum > issued || idNum <= prevId)
       return `${where}.id: identidade repetida, fora de ordem ou fora do contador`;
     prevId = idNum;
@@ -53,6 +77,21 @@ export const stateV46: Shape = (value, path) => {
         : post.readyAtMs !== null
     )
       return `${where}.readyAtMs: prazo incompatível com a situação do posto`;
+  }
+  const storedReports = (value.army as { reports: StoredState[] }).reports;
+  for (const [index, report] of storedReports.entries()) {
+    if (!Object.hasOwn(report, 'damagedOutpost')) continue;
+    const where = at(`army.reports.${index}.damagedOutpost`);
+    const ref = report.damagedOutpost as { id: string; hex: string };
+    const idNum = parseOutpostId(ref.id);
+    if (
+      report.mode !== 'defense' ||
+      report.outcome !== 'defeat' ||
+      !Number.isSafeInteger(idNum) ||
+      idNum > issued ||
+      !posts.some((post) => post.id === ref.id && post.hex === ref.hex)
+    )
+      return `${where}: posto danificado incompatível com a batalha ou com o mapa`;
   }
   return null;
 };

@@ -3,6 +3,7 @@ import { balance, terrains } from '@lotg/content';
 import { emit } from './chronicle';
 import { amountsData, missingResources, payResources } from './construction';
 import { nextId } from './ids';
+import { outpostPlace } from './outposts';
 import { reject } from './rejections';
 import type { GameEvent, GameState, Outpost, Rejection } from './types';
 
@@ -49,6 +50,42 @@ export function claimOutpost(
     'outpostStarted',
     { outpostId: id, hex: key, readyAtMs, ...amountsData('spent', cost) },
     { lugar: terrains[draft.map.hexes[key]!.terrain].label },
+  );
+  return null;
+}
+
+export function repairOutpostBlock(state: GameState, outpostId: string): Rejection | null {
+  const post = state.map.outposts.find((entry) => entry.id === outpostId);
+  if (!post || post.status !== 'damaged') return reject('OUTPOST_NOT_DAMAGED');
+  const missing = missingResources(state, balance.outposts.repairCost);
+  return missing === null ? null : reject('INSUFFICIENT_RESOURCES', { missing });
+}
+
+/**
+ * Repara um posto avançado danificado (V5F-T2; D-24): cobra madeira e pedra e devolve o posto
+ * imediatamente a `active` (sem obra). O hexágono permanece `claimed`.
+ */
+export function repairOutpost(
+  draft: GameState,
+  outpostId: unknown,
+  nowMs: number,
+  events: GameEvent[],
+): Rejection | null {
+  if (typeof outpostId !== 'string') return reject('OUTPOST_NOT_DAMAGED');
+  const blocked = repairOutpostBlock(draft, outpostId);
+  if (blocked) return blocked;
+  const post = draft.map.outposts.find((entry) => entry.id === outpostId)!;
+  const { repairCost } = balance.outposts;
+  payResources(draft, repairCost);
+  post.status = 'active';
+  post.readyAtMs = null;
+  emit(
+    events,
+    draft,
+    nowMs,
+    'outpostRepaired',
+    { outpostId: post.id, hex: post.hex, ...amountsData('spent', repairCost) },
+    { lugar: outpostPlace(draft, post.hex) },
   );
   return null;
 }

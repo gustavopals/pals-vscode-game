@@ -127,6 +127,7 @@ describe('equivalência de tipos com o motor', () => {
 describe('CommandSchema', () => {
   const valid: Command[] = [
     { commandId: uuid, type: 'claimOutpost', payload: { hex: '-3,0' } },
+    { commandId: uuid, type: 'repairOutpost', payload: { outpostId: 'outpost-1' } },
     { commandId: uuid, type: 'setWorkers', payload: { building: 'farm', count: 2 } },
     { commandId: uuid, type: 'startConstruction', payload: { building: 'townHall' } },
     { commandId: uuid, type: 'cancelConstruction', payload: { building: 'housing' } },
@@ -207,6 +208,10 @@ describe('CommandSchema', () => {
     [
       'coordenada fora da forma',
       { commandId: uuid, type: 'claimOutpost', payload: { hex: 'leste' } },
+    ],
+    [
+      'posto vazio no reparo',
+      { commandId: uuid, type: 'repairOutpost', payload: { outpostId: '' } },
     ],
     ['tipo desconhecido', { commandId: uuid, type: 'declareWar', payload: {} }],
     [

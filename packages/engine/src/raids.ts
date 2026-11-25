@@ -9,6 +9,7 @@ import {
   idleVillager,
   injuredLoss,
   injuryTemplates,
+  mapTexts,
   type RaidSizeId,
   raidTemplates,
   type Ratio,
@@ -27,8 +28,9 @@ import { nominationReason } from './formations';
 import { observeFormation } from './hordePlan';
 import { baseRaidComposition, buildDefender, scaledLoss, toHordePosts } from './raidArmy';
 import { applyWallDamage, wallForBattle } from './wallRepair';
-import { decimal, joinList } from './format';
+import { decimal, fillText, joinList } from './format';
 import { addMoraleEffect } from './morale';
+import { damageFarthestOutpost, farthestActiveOutpost, outpostPlace } from './outposts';
 import { ableVillagers, releaseExcessWorkers } from './population';
 import {
   isThreatWatched,
@@ -595,6 +597,12 @@ function resolveRaid(
   }
   stats.raids_suffered = (stats.raids_suffered ?? 0) + 1;
 
+  const targetOutpost = farthestActiveOutpost(draft);
+  if (targetOutpost !== null) {
+    data.damagedOutpostId = targetOutpost.id;
+    data.damagedOutpostHex = targetOutpost.hex;
+  }
+
   const needed = raid.size === 'strong' ? null : holdingLevel(raid.size);
   if (needed !== null) {
     data.palisadeLevelNeeded = needed;
@@ -607,6 +615,11 @@ function resolveRaid(
         ? phrases.outcome.breached
         : phrases.outcome.open,
   ];
+  if (targetOutpost !== null) {
+    sentences.push(
+      fillText(mapTexts.raidOutpostDamaged, { lugar: outpostPlace(draft, targetOutpost.hex) }),
+    );
+  }
   if (needed !== null) {
     sentences.push(needed <= 1 ? phrases.advice.build : phrases.advice.upgrade);
   }
@@ -634,6 +647,12 @@ function resolveRaid(
       injuryTemplates.villagerInjured[building === null ? 'idle' : 'worker'],
     );
   }
+  damageFarthestOutpost(
+    draft,
+    atMs,
+    events,
+    typeof data.battleId === 'string' ? data.battleId : undefined,
+  );
 }
 
 /**

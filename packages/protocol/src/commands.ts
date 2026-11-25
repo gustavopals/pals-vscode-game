@@ -370,8 +370,16 @@ export const ClaimOutpostCommandSchema = command(
   }),
 );
 
+export const RepairOutpostCommandSchema = command(
+  'repairOutpost',
+  z.strictObject({
+    outpostId: z.string().min(1).max(64).refine(isStorableText, UNSTORABLE),
+  }),
+);
+
 export const CommandSchema = z.discriminatedUnion('type', [
   ClaimOutpostCommandSchema,
+  RepairOutpostCommandSchema,
   TakeVowsCommandSchema,
   PlaceRelicCommandSchema,
   RemoveRelicCommandSchema,

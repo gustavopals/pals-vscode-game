@@ -83,6 +83,8 @@ export const EVENT_TYPES = [
   'destinationRevealed',
   'outpostStarted',
   'outpostClaimed',
+  'outpostDamaged',
+  'outpostRepaired',
   'mapRevealed',
   'sanctuaryExplored',
   'threatTileCleared',
@@ -227,6 +229,10 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   outpostStarted: 'No {dia}º dia {daEstacao}, os pedreiros começaram um posto avançado em {lugar}.',
   outpostClaimed:
     'No {dia}º dia {daEstacao}, a bandeira de {feudo} foi hasteada no posto avançado de {lugar}.',
+  outpostDamaged:
+    'No {dia}º dia {daEstacao}, o ataque que rompeu a defesa danificou o posto avançado em {lugar}: a produção cessou até o reparo.',
+  outpostRepaired:
+    'No {dia}º dia {daEstacao}, os pedreiros repararam o posto avançado em {lugar}: a produção foi retomada.',
   mapRevealed: 'No {dia}º dia {daEstacao}, a Torre de Vigia avistou novas terras.',
   sanctuaryExplored:
     'No {dia}º dia {daEstacao}, os batedores de {feudo} alcançaram o Santuário e encontraram {reliquia}.',

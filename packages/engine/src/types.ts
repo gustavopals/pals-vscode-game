@@ -1118,6 +1118,7 @@ export type VowsView = { offer: VowView[]; taken: VowView[]; closesInSeconds: nu
 
 export type Command =
   | { commandId: string; type: 'claimOutpost'; payload: { hex: string } }
+  | { commandId: string; type: 'repairOutpost'; payload: { outpostId: string } }
   | { commandId: string; type: 'takeVows'; payload: { vows: string[] } }
   | { commandId: string; type: 'placeRelic'; payload: { relicId: string } }
   | { commandId: string; type: 'removeRelic'; payload: { relicId: string } }
@@ -1289,6 +1290,7 @@ export const REJECTION_CODES = [
   'HEX_NOT_EXPLORED',
   'NOT_CLAIMABLE',
   'OUTPOST_LIMIT',
+  'OUTPOST_NOT_DAMAGED',
   'VOWS_CLOSED',
   'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
@@ -1854,6 +1856,8 @@ export type ThreatIncomingView = {
    * nunca sai além disto.
    */
   compositionText: string | null;
+  /** Qual posto avançado ativo será danificado se a defesa ceder; ausente sem posto ativo. */
+  outpostRiskText?: string | undefined;
 };
 
 /**
@@ -2719,6 +2723,8 @@ export type ArmyReportView = {
   }>;
   /** A formação para a qual "Ajustar formação" leva: a Defesa ativa que existe; `null` se não. */
   adjustFormationId: string | null;
+  /** Posto avançado danificado quando esta batalha rompeu a defesa; ausente quando nenhum posto sofreu. */
+  damagedOutpost?: { outpostId: string; hex: string; text: string } | undefined;
 };
 
 /** A prévia do Conselho de Guerra na visão: percentuais inteiros e frases prontas. */
@@ -2851,6 +2857,7 @@ export type MarketView = {
 
 export type MapActionView =
   | { type: 'claimOutpost'; hex: string }
+  | { type: 'repairOutpost'; outpostId: string }
   | { type: 'sendExpedition'; modelId: string }
   | { type: 'attackCamp' };
 
@@ -2867,7 +2874,15 @@ export type MapHexView =
       label: string;
       detail: string;
       outpost?:
-        { id: string; status: Outpost['status']; readyInSeconds: number | null } | undefined;
+        | {
+            id: string;
+            status: Outpost['status'];
+            readyInSeconds: number | null;
+            detail?: string | undefined;
+            repairCost?: ResourceCostView[] | undefined;
+            repairBlockedReason?: string | null | undefined;
+          }
+        | undefined;
       actions: MapActionView[];
     };
 

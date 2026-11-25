@@ -751,6 +751,7 @@ const balanceFields = z.strictObject({
   heroes,
   outposts: z.strictObject({
     cost: resourceAmounts,
+    repairCost: z.strictObject({ wood: positiveInt, stone: positiveInt }),
     durationMs: positiveInt,
     limit: positiveInt,
     townHallLevel: positiveInt,

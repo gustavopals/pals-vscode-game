@@ -296,3 +296,57 @@ describe('as incursões-batalha do roteiro do ano 1 (V4E-T2.4)', () => {
     expect(Number(suffered?.data.injured)).toBeLessThanOrEqual(warRaids.losses.strong.injuries);
   });
 });
+
+describe('postos avançados na incursão-batalha (V5F-T2)', () => {
+  it('lobos do dia 16 sem defesa danificam o posto ativo mais distante e registram no relatório', () => {
+    const before = beforeWolves();
+    before.ids.outpost = 2;
+    before.map.hexes['1,0']!.fog = 'claimed';
+    before.map.hexes['-3,0']!.fog = 'claimed';
+    before.map.outposts = [
+      { id: 'outpost-1', hex: '1,0', status: 'active', readyAtMs: null },
+      { id: 'outpost-2', hex: '-3,0', status: 'active', readyAtMs: null },
+    ];
+    const { state, events } = advanceTo(before, WOLVES_AT);
+    const here = at(events, WOLVES_AT);
+    expect(state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '1,0', status: 'active', readyAtMs: null },
+      { id: 'outpost-2', hex: '-3,0', status: 'damaged', readyAtMs: null },
+    ]);
+    expect(here.find((event) => event.type === 'outpostDamaged')).toMatchObject({
+      data: { outpostId: 'outpost-2', hex: '-3,0', battleId: 'battle-1' },
+    });
+    expect(deriveViewState(state, WOLVES_AT).army.reports[0]?.damagedOutpost).toMatchObject({
+      outpostId: 'outpost-2',
+      hex: '-3,0',
+    });
+  });
+
+  it('Defesa ativa que vence os lobos do dia 16 preserva todos os postos ativos intactos', () => {
+    const before = beforeWolves();
+    before.ids.outpost = 1;
+    before.map.hexes['-3,0']!.fog = 'claimed';
+    before.map.outposts = [{ id: 'outpost-1', hex: '-3,0', status: 'active', readyAtMs: null }];
+    before.army.units.spearman = 30;
+    before.army.units.archer = 30;
+    before.ids.formation = 1;
+    before.army.formations = [
+      {
+        id: 'formation-1',
+        name: 'Muro de lanças',
+        posts: {
+          left: { front: { unit: 'spearman', count: 10 }, back: { unit: 'archer', count: 10 } },
+          center: { front: { unit: 'spearman', count: 10 }, back: { unit: 'archer', count: 10 } },
+          right: { front: { unit: 'spearman', count: 10 }, back: { unit: 'archer', count: 10 } },
+        },
+        commanders: { left: null, center: null, right: null },
+      },
+    ];
+    before.army.activeFormationId = 'formation-1';
+    const { state, events } = advanceTo(before, WOLVES_AT);
+    expect(at(events, WOLVES_AT).some((event) => event.type === 'raidRepelled')).toBe(true);
+    expect(at(events, WOLVES_AT).some((event) => event.type === 'outpostDamaged')).toBe(false);
+    expect(state.map.outposts[0]?.status).toBe('active');
+    expect(deriveViewState(state, WOLVES_AT).army.reports[0]).not.toHaveProperty('damagedOutpost');
+  });
+});
