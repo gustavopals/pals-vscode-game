@@ -441,7 +441,7 @@ describe('index.html', () => {
       expect(prose).not.toMatch(/github/i);
     });
 
-    it('as pinturas são apresentadas como arte conceitual, e o que ainda não existe, como horizonte', () => {
+    it('as pinturas são apresentadas como arte conceitual, sem horizonte vencido', () => {
       // Cada janela em arco leva a legenda dela, e o cólofon repete para a página inteira.
       const arches = html.match(/<figure class="arch">[\s\S]*?<\/figure>/g) ?? [];
       expect(arches).toHaveLength(4);
@@ -449,12 +449,10 @@ describe('index.html', () => {
       expect(prose).toMatch(/As pinturas desta página são arte conceitual gerada por IA/);
       // As capturas reproduzem os ícones do app, que pedem crédito (CC BY 4.0).
       expect(prose).toMatch(/Codicons \(licença CC BY 4\.0\)/);
-      expect(prose).toMatch(/Isso ainda não se joga\./);
-      // A guerra e o Cerco saíram do horizonte com a v0.4, as relíquias com a Capela (v0.5, Fase B), o Legado (Fase D), o mapa desenhado (Fase E) e os postos avançados (Fase F).
-      expect(prose).toMatch(/No horizonte, sem data: as Temporadas\./);
-      expect(prose).not.toMatch(
-        /No horizonte[^.]*(Guilda|expedi|guerra|Cerco|Horda|muralha|relíqu|Capela|legado|Legado|desenhado|posto)/i,
-      );
+      // A guerra e o Cerco saíram do horizonte com a v0.4; relíquias, Legado, mapa desenhado,
+      // postos avançados e Temporadas, com a v0.5. Hoje não há nada prometido.
+      expect(prose).toMatch(/O que esta página descreve já está lá, e já dá trabalho\./);
+      expect(prose).not.toMatch(/No horizonte|ainda não se joga/i);
       expect(prose).toMatch(/não é afiliado a nenhum editor de código/);
     });
   });
