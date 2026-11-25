@@ -15,6 +15,8 @@ import {
   CommandAcceptedSchema,
   type CreateGameRequest,
   CreateGameResponseSchema,
+  type CurrentSeasonResponse,
+  CurrentSeasonResponseSchema,
   type DeleteMeResponse,
   DeleteMeResponseSchema,
   type EventsResponse,
@@ -30,6 +32,9 @@ import {
   HEADERS,
   type HealthResponse,
   HealthResponseSchema,
+  type JoinSeasonRequest,
+  type JoinSeasonResponse,
+  JoinSeasonResponseSchema,
   ListGamesResponseSchema,
   PROTOCOL_VERSION,
   type RankingPreference,
@@ -438,6 +443,20 @@ export function createClient(options: ClientOptions) {
      */
     createGame: async (input: CreateGameRequest): Promise<GameSummary> =>
       (await json(CreateGameResponseSchema, 'POST', '/games', { auth: true, body: input })).game,
+
+    /**
+     * Temporada da semana (abre sob demanda no servidor se ainda não existir) e a situação da
+     * conta autenticada nela. A semente é sempre `null` antes do fecho (D-27).
+     */
+    getCurrentSeason: (): Promise<CurrentSeasonResponse> =>
+      get(CurrentSeasonResponseSchema, '/seasons/current'),
+
+    /**
+     * Entra na Temporada da semana com a semente, a dificuldade e o ritmo fixos dela (D-26).
+     * Não repete em falha de rede (criação não idempotente).
+     */
+    joinCurrentSeason: (input: JoinSeasonRequest): Promise<JoinSeasonResponse> =>
+      json(JoinSeasonResponseSchema, 'POST', '/seasons/current/join', { auth: true, body: input }),
 
     /** Lê o estado da partida. Com o `etag` da última leitura, um corpo igual volta como 304. */
     getView: async (gameId: string, known: { etag?: string | null } = {}): Promise<ViewResult> => {

@@ -48,6 +48,7 @@ describe('contexto civil da linha ao migrar', () => {
     const row: GameRow = {
       id: 'game-test',
       accountId: 'account-test',
+      seasonId: null,
       status: 'active',
       seed: 'fixture-fresh',
       difficulty: 'lord',

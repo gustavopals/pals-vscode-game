@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { advanceTo, applyCommand, deriveViewState } from '@lotg/engine';
+import { advanceTo, applyCommand } from '@lotg/engine';
 import {
   canonicalJson,
   type Command,
@@ -13,8 +13,15 @@ import { ApiError } from '../api-error';
 import type { AppContext } from '../context';
 import { commands, games } from '../db/schema';
 import { resolveVigilTimezone } from './vigil';
-import { gameTimeAt, lockGame, nextCommandSeq, persistState } from './repository';
-import { assertActive } from './service';
+import {
+  deriveGameView,
+  gameTimeAt,
+  loadGameSeason,
+  lockGame,
+  nextCommandSeq,
+  persistState,
+} from './repository';
+import { assertPlayable } from './service';
 
 export type CommandOutcome = {
   status: number;
@@ -73,11 +80,12 @@ export async function executeCommand(
         replayed: true,
       };
     }
-    assertActive(game);
+    const now = ctx.clock();
+    const season = await loadGameSeason(tx, game);
+    assertPlayable(game, season, now);
 
     // A versão persistida e o instante são capturados sob o lock, antes do avanço.
     const staleView = knownStateVersion !== null && knownStateVersion !== String(game.stateVersion);
-    const now = ctx.clock();
     const gameNowMs = gameTimeAt(game, now);
 
     const advanced = advanceTo(game.state, gameNowMs);
@@ -97,7 +105,7 @@ export async function executeCommand(
         .where(eq(games.id, game.id));
     }
     const accepted: CommandAccepted = {
-      view: deriveViewState(state, gameNowMs, { timeScale: Number(game.timeScale) }),
+      view: deriveGameView(game, state, gameNowMs),
       events: persisted.events,
       stateVersion: String(persisted.stateVersion),
       staleView,

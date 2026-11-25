@@ -44,7 +44,7 @@ const FIEFS = `
     ), 0)::bigint as expeditions_sent
   from games g
   join accounts a on a.id = g.account_id
-  where g.status = 'active' and ${COUNTED_ACCOUNT}
+  where g.status = 'active' and g.season_id is null and ${COUNTED_ACCOUNT}
 `;
 
 type Candidate = {
@@ -154,7 +154,7 @@ async function ownFief(
          where key like 'constructionsStarted:%'
        ), 0)::bigint as constructions_started
      from games g
-     where g.account_id = $1 and g.status = 'active'`,
+     where g.account_id = $1 and g.status = 'active' and g.season_id is null`,
     [accountId],
   );
   const row = found.rows[0];

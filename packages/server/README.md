@@ -71,6 +71,7 @@ Os helpers sobem a API com `GAME_TIME_SCALE=1`, porque os cenários foram escrit
 | `src/auth/` | Tokens (JWT e refresh), sessões, exclusão, Código do Reino, GitHub (validação do token e repasse do *device flow*) |
 | `src/games/` | Lock, migração do estado e persistência (`repository`), criação e leitura (`service`), `/view` e ETag, comandos com recibo, eventos e Crônica |
 | `src/jobs/` | Avanço de partidas paradas, expurgo de contas, agendador com advisory lock |
+| `src/seasons/` | Temporadas semanais: calendário de Brasília (`calendar`), abertura sob demanda, entrada e fecho (`service`) |
 | `src/db/` | Esquema Drizzle e migrador |
 | `src/routes/` | Rotas: validam a forma com os schemas de `@lotg/protocol` e chamam os serviços |
 
@@ -152,6 +153,21 @@ A `0001_ranking_listed` (ADR 0021) acrescenta `accounts.ranking_listed`, com pad
 
 A `0002_legacy_ledger` cria o registro de créditos de Legado. `persistState` grava o crédito junto com `yearEnded`, uma vez por partida e ano. O expurgo da conta remove os créditos em cascata.
 
+A `0003_seasons` (V5G-T1) cria `seasons`, acrescenta `games.season_id` (nulo, FK `restrict`) e troca o índice único `games_one_active_per_account` por dois parciais: `games_one_active_personal_per_account` (`status = 'active' and season_id is null`) e `games_one_per_account_season` (`(account_id, season_id) where season_id is not null`, uma entrada por conta e Temporada, ativa ou arquivada). Cria os novos antes de derrubar o antigo. A imagem anterior continua funcionando durante o deploy: ela não conhece `season_id` e grava `null`, e o índice novo da pessoal é o antigo restrito a essas linhas. Só uma partida de Temporada criada pela imagem nova enquanto a antiga ainda atende ficaria visível para a antiga como "a ativa" (lista, `replaceActive`, `/stats`); a janela é a da troca de réplicas.
+
+## Temporadas (V5G-T1)
+
+`src/seasons/` e `src/routes/seasons.ts` (GDD §11.6; ADR 0022, D-25 a D-27). Só tabelas do servidor: nenhuma versão de estado nova, protocolo 4 por adição.
+
+- **Calendário.** Brasília em **UTC−3 fixo** (`BRASILIA_UTC_OFFSET_MINUTES = -180`, `seasons/calendar.ts`): o Brasil não tem horário de verão desde o Decreto 9.772/2019, e o deslocamento fixo dá a mesma fronteira em toda réplica, sem depender da ICU. A Temporada abre segunda 00:00 (`starts_at`, `03:00Z`), aceita entradas até terça 23:59:59 (`join_ends_at` = quarta 00:00, exclusivo) e fecha domingo 23:59 (`ends_at`). `code` é a semana ISO (`2026-W48`). Tudo por `ctx.clock()`.
+- **Abertura sem agendador.** `GET /v1/seasons/current` cria a linha da semana se faltar, dentro de `pg_advisory_xact_lock(7272)` e com `starts_at`/`code` únicos: chamadas simultâneas de várias réplicas gravam uma vez. Semente sorteada (`randomBytes(12)`), `lord`, `3`, cenário `standard`.
+- **Semente escondida (D-27).** `season.seed` é `null` até `status = 'closed'`. A partida da Temporada também não leva `seed` na visão (`deriveGameView`): nem em `/view`, nem na resposta de `/commands` (aceita ou 422), nem no recibo gravado. `GameSummary` nunca teve semente.
+- **Entrada.** `POST /v1/seasons/current/join` (`{ settlementName, timezone, vigilHourLocal }`, campos extras são `400`) trava a conta (`FOR NO KEY UPDATE`, como `POST /games`) e cria a partida com a semente, a dificuldade e o ritmo da linha, sem Legado nem cenário escolhido. Recusas: `409 CONFLICT` com `details.reason = 'SEASON_JOIN_CLOSED'` a partir de quarta 00:00, `'SEASON_CLOSED'` depois do fecho, `409 ACTIVE_GAME_EXISTS` se a partida desta Temporada está ativa, `409 CONFLICT` ("já participou") se ela foi arquivada; conta excluída é `401 SESSION_REVOKED`. Uma partida ativa de Temporada anterior que o job ainda não fechou é avançada até o fecho dela e arquivada na mesma transação.
+- **Dois trilhos.** A conta tem no máximo uma pessoal ativa e uma por Temporada. `POST /games` (com ou sem `replaceActive`) só olha e só arquiva a pessoal. `GET /games` lista as duas, com `seasonId` (`null` na pessoal). `DELETE /me` arquiva as duas; o expurgo apaga as partidas e mantém a linha de `seasons`.
+- **Depois do fecho.** A partida de Temporada nunca simula além de `ends_at`: leitura, comando e job param ali, e `/view` e comandos novos são `409 CONFLICT` a partir desse instante, mesmo antes do job (reenvio de recibo continua). O job (`closeExpiredSeasons`, na mesma rodada horária e antes do avanço) avança cada partida ativa até `ends_at`, arquiva uma por transação (`FOR UPDATE SKIP LOCKED`) e só então marca a Temporada `closed`, com `closed_at` = `rankingPublishedAt`; falhas contam em `failed` e a Temporada fica aberta para a rodada seguinte.
+- **Stats e Legado.** `/stats` (totais, ranking de ouro, `me.fief`) conta só partidas pessoais (`season_id is null`). O `yearEnded` da Temporada credita Legado na conta como qualquer ano fechado (`legacy_ledger` não distingue a origem).
+- Teste: `test/seasons.test.ts`; calendário sem banco em `src/seasons/calendar.test.ts`.
+
 ## Estatísticas e ranking (ADR 0021)
 
 `src/stats/service.ts` e `src/routes/stats.ts`. Só leitura do estado **gravado**: nenhuma partida é avançada e nenhuma regra de jogo roda; os campos saem do JSON de `games.state` com `coalesce(…, 0)`, porque o estado gravado pode ser de uma versão anterior.
@@ -159,7 +175,7 @@ A `0002_legacy_ledger` cria o registro de créditos de Legado. `persistState` gr
 - `GET /v1/stats` (autenticada): `kingdom` (contas, feudos ativos, ativos em 7 dias por `last_seen_at`, e as somas de ouro, aldeões, incursões repelidas e sofridas e expedições enviadas), `ranking` (os 10 primeiros por ouro, `floor(milésimos / 1000)`, e a linha do jogador no fim quando ele está fora deles), `rankedFiefs` e `me` (a preferência, a posição, as estatísticas do feudo e o Legado da conta, lidos na hora). O Legado inclui partidas arquivadas. Só o nome do feudo e o ouro saem de outro jogador; nada da conta.
 - `GET` e `PUT /v1/me/ranking` (`{ listed }`, zod `RankingPreferenceSchema`): a saída do ranking vale para todos os feudos da conta.
 - **Cache:** os totais e a lista ordenada ficam 60 s na memória da instância (`STATS_CACHE_MS`, por `AppContext`); a frente do ranking é conferida contra a preferência e a exclusão de agora a cada leitura, e `PUT /me/ranking` esquece a consulta guardada (`forgetStats`). Um relógio que volta também a invalida, e o servidor de teste do navegador a esquece no `/__test/reset`.
-- **Fora da conta:** contas excluídas, partidas arquivadas e contas de teste do `sim-cli` (nome de exibição começando com "Bot ", como em `deploy/analytics/ops.sql`).
+- **Fora da conta:** contas excluídas, partidas arquivadas, partidas de Temporada (só pessoais contam) e contas de teste do `sim-cli` (nome de exibição começando com "Bot ", como em `deploy/analytics/ops.sql`).
 - Teste: `test/stats.test.ts`.
 
 ## Build e imagem

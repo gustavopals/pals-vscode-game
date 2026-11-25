@@ -25,6 +25,7 @@ function serviceAt(state: GameState) {
   vi.mocked(nextCommandSeq).mockReset();
   const game = {
     id: 'partida',
+    seasonId: null,
     status: 'active',
     state,
     stateVersion: 1,

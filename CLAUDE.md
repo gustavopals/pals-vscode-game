@@ -13,7 +13,7 @@ motor determinístico TypeScript, servidor Fastify/PostgreSQL autoritativo, app 
 - [Arquitetura](docs/architecture.md), [ADRs](docs/decisions/README.md), [histórico/conferência](docs/historico.md). Planos anteriores são históricos; leia as seções da tarefa.
 
 **Publicação e trabalho.** A v0.4.0 está publicada (CHANGELOG, `333df054`).
-Raiz, oito pacotes e constantes públicas: 0.4.0; Fases A–E publicadas com estado 45. Fase F em desenvolvimento com `CURRENT_SCHEMA_VERSION = 46`
+Raiz, oito pacotes e constantes públicas: 0.4.0; Fases A–E publicadas com estado 45. Fases A–F prontas, não publicadas; Fase G em desenvolvimento (sem versão de estado). Estado atual: `CURRENT_SCHEMA_VERSION = 46`
 (`engine/src/migrations.ts`), `PROTOCOL_VERSION = 4` (`protocol/src/index.ts`).
 Confira `server`, `protocol` e `builtAt` em `/v1/version` para identificar produção.
 Novidades registra 0.4.0 como publicada em 2026-11-17.

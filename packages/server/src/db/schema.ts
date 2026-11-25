@@ -84,6 +84,43 @@ export const refreshTokens = pgTable(
   ],
 );
 
+/**
+ * Temporadas semanais compartilhadas (GDD §11.6; ADR 0022, D-25 a D-28).
+ * Calendário em horário fixo de Brasília (`America/Sao_Paulo`, UTC−3, sem horário de verão desde
+ * o Decreto 9.772/2019): abre segunda 00:00, aceita entradas até terça (limite exclusivo quarta
+ * 00:00) e fecha no domingo 23:59, quando as partidas ativas da Temporada são arquivadas e a
+ * semente pode ser revelada.
+ */
+export const seasons = pgTable(
+  'seasons',
+  {
+    id: uuid('id').primaryKey(),
+    /** Semana ISO em Brasília (ex.: `"2026-W48"`). Única por semana civil. */
+    code: text('code').notNull().unique('seasons_code_key'),
+    /** Segunda-feira 00:00:00.000 de Brasília (`03:00:00.000Z`). */
+    startsAt: instant('starts_at').notNull().unique('seasons_starts_at_key'),
+    /** Quarta-feira 00:00:00.000 de Brasília (limite exclusivo; entradas até terça 23:59:59). */
+    joinEndsAt: instant('join_ends_at').notNull(),
+    /** Domingo 23:59:00.000 de Brasília: fecho previsto da Temporada e publicação do ranking. */
+    endsAt: instant('ends_at').notNull(),
+    /** Semente compartilhada da semana; nunca exposta antes de `status = 'closed'` (D-27). */
+    seed: text('seed').notNull(),
+    /** Dificuldade fixa (D-26: `lord`). */
+    difficulty: text('difficulty').notNull(),
+    /** Ritmo fixo (D-26: `3`). */
+    timeScale: numeric('time_scale').notNull(),
+    status: text('status', { enum: ['open', 'closed'] }).notNull(),
+    /** Instante em que a Temporada foi fechada após arquivar todas as partidas ativas dela. */
+    closedAt: instant('closed_at'),
+    createdAt: instant('created_at').notNull(),
+  },
+  (table) => [
+    index('seasons_open_ends_at_idx')
+      .on(table.endsAt)
+      .where(sql`status = 'open'`),
+  ],
+);
+
 export const games = pgTable(
   'games',
   {
@@ -91,6 +128,8 @@ export const games = pgTable(
     accountId: uuid('account_id')
       .notNull()
       .references(() => accounts.id, { onDelete: 'cascade' }),
+    /** `null` para partida pessoal; referencia `seasons.id` para partida de Temporada (D-25). */
+    seasonId: uuid('season_id').references(() => seasons.id, { onDelete: 'restrict' }),
     status: text('status', { enum: ['active', 'archived'] }).notNull(),
     seed: text('seed').notNull(),
     difficulty: text('difficulty').notNull(),
@@ -107,13 +146,22 @@ export const games = pgTable(
     updatedAt: instant('updated_at').notNull(),
   },
   (table) => [
-    uniqueIndex('games_one_active_per_account')
+    // Dois índices parciais independentes (D-25): no máximo uma ativa pessoal por conta, e no
+    // máximo uma partida por conta em cada Temporada (ativa ou arquivada, garantindo uma única
+    // entrada no ranking semanal).
+    uniqueIndex('games_one_active_personal_per_account')
       .on(table.accountId)
-      .where(sql`status = 'active'`),
+      .where(sql`status = 'active' and season_id is null`),
+    uniqueIndex('games_one_per_account_season')
+      .on(table.accountId, table.seasonId)
+      .where(sql`season_id is not null`),
     index('games_stale_idx')
       .on(table.lastProcessedAt)
       .where(sql`status = 'active'`),
     index('games_account_id_idx').on(table.accountId),
+    index('games_season_id_idx')
+      .on(table.seasonId)
+      .where(sql`season_id is not null`),
   ],
 );
 
@@ -200,6 +248,7 @@ export const chronicles = pgTable(
 
 export type AccountRow = typeof accounts.$inferSelect;
 export type SessionRow = typeof sessions.$inferSelect;
+export type SeasonRow = typeof seasons.$inferSelect;
 export type GameRow = typeof games.$inferSelect;
 export type CommandRow = typeof commands.$inferSelect;
 export type GameEventRow = typeof gameEvents.$inferSelect;

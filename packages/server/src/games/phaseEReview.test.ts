@@ -163,6 +163,7 @@ it('o carregador do servidor migra o retrato de inverno sem eventos retroativos 
   const row: GameRow = {
     id: '11111111-1111-4111-8111-111111111111',
     accountId: '22222222-2222-4222-8222-222222222222',
+    seasonId: null,
     status: 'active',
     seed: old.seed,
     difficulty: 'lord',

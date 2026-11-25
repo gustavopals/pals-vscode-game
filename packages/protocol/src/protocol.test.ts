@@ -83,12 +83,17 @@ import {
   CommandAcceptedSchema,
   CommandSchema,
   CreateGameRequestSchema,
+  CurrentSeasonResponseSchema,
   DeleteMeResponseSchema,
   EventsQuerySchema,
+  GameSummarySchema,
   GithubDevicePollRequestSchema,
   GithubDevicePollResponseSchema,
   GithubDeviceStartResponseSchema,
+  JoinSeasonRequestSchema,
+  JoinSeasonResponseSchema,
   ReturnReportSchema,
+  SeasonSummarySchema,
   type GameEvent,
   GameEventSchema,
   GameRuleErrorSchema,
@@ -3143,6 +3148,105 @@ describe('as ordens das formações salvas (V4C-T2)', () => {
       { name: 'Portão', posts, commanders },
     ]) {
       expect(CommandSchema.safeParse(save(bad)).success).toBe(false);
+    }
+  });
+});
+
+describe('contratos da Temporada (V5G-T1, protocolo 4 por adição)', () => {
+  const seasonId = '22222222-2222-4222-8222-222222222222';
+  const baseGame = {
+    id: uuid,
+    status: 'active' as const,
+    settlementName: 'Pedra Alta',
+    difficulty: 'lord',
+    timeScale: 3,
+    timezone: 'America/Sao_Paulo',
+    vigilHourLocal: 20,
+    stateVersion: '1',
+    createdAt: '2026-11-23T12:00:00.000Z',
+  };
+  const openSeason = {
+    id: seasonId,
+    code: '2026-W48',
+    status: 'open' as const,
+    timezone: 'America/Sao_Paulo' as const,
+    difficulty: 'lord' as const,
+    timeScale: 3,
+    startsAt: '2026-11-23T03:00:00.000Z',
+    joinEndsAt: '2026-11-25T03:00:00.000Z',
+    endsAt: '2026-11-30T02:59:00.000Z',
+    rankingPublishedAt: null,
+    joinOpen: true,
+    seed: null,
+  };
+
+  it('GameSummarySchema aceita seasonId ausente, null (pessoal) ou UUID (Temporada)', () => {
+    expect(GameSummarySchema.safeParse(baseGame).success).toBe(true);
+    expect(GameSummarySchema.safeParse({ ...baseGame, seasonId: null }).success).toBe(true);
+    expect(GameSummarySchema.safeParse({ ...baseGame, seasonId }).success).toBe(true);
+    expect(GameSummarySchema.safeParse({ ...baseGame, seasonId: 'nao-uuid' }).success).toBe(false);
+  });
+
+  it('SeasonSummarySchema, CurrentSeasonResponseSchema e JoinSeasonResponseSchema validam forma estrita', () => {
+    expect(SeasonSummarySchema.safeParse(openSeason).error).toBeUndefined();
+    expect(
+      SeasonSummarySchema.safeParse({
+        ...openSeason,
+        status: 'closed',
+        rankingPublishedAt: '2026-11-30T02:59:00.000Z',
+        joinOpen: false,
+        seed: 'semente-revelada',
+      }).error,
+    ).toBeUndefined();
+    expect(
+      CurrentSeasonResponseSchema.safeParse({
+        season: openSeason,
+        joined: false,
+        game: null,
+      }).error,
+    ).toBeUndefined();
+    expect(
+      CurrentSeasonResponseSchema.safeParse({
+        season: openSeason,
+        joined: true,
+        game: { ...baseGame, seasonId },
+      }).error,
+    ).toBeUndefined();
+    expect(
+      JoinSeasonResponseSchema.safeParse({
+        season: openSeason,
+        game: { ...baseGame, seasonId },
+      }).error,
+    ).toBeUndefined();
+
+    for (const bad of [
+      { ...openSeason, timezone: 'UTC' },
+      { ...openSeason, code: '2026-48' },
+      { ...openSeason, seed: '' },
+      { ...openSeason, extra: true },
+    ]) {
+      expect(SeasonSummarySchema.safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it('JoinSeasonRequestSchema aceita só nome, fuso e Vigília, recusando seed/ritmo/dificuldade/cenário', () => {
+    const valid = {
+      settlementName: 'Vigia do Sul',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+    };
+    expect(JoinSeasonRequestSchema.safeParse(valid).error).toBeUndefined();
+    for (const bad of [
+      { ...valid, seed: 'tentativa' },
+      { ...valid, difficulty: 'peasant' },
+      { ...valid, timeScale: 1 },
+      { ...valid, scenario: 'ironRidge' },
+      { ...valid, replaceActive: true },
+      { ...valid, timezone: 'Marte/Olimpo' },
+      { ...valid, vigilHourLocal: 24 },
+      { ...valid, settlementName: 'A' },
+    ]) {
+      expect(JoinSeasonRequestSchema.safeParse(bad).success).toBe(false);
     }
   });
 });

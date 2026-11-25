@@ -15,6 +15,7 @@ import { registerCatalogRoutes } from './routes/catalog';
 import { registerGameRoutes } from './routes/games';
 import { registerHealthRoutes } from './routes/health';
 import { registerMeRoutes } from './routes/me';
+import { registerSeasonRoutes } from './routes/seasons';
 import { registerStatsRoutes } from './routes/stats';
 import { registerVersionRoutes } from './routes/version';
 
@@ -90,6 +91,7 @@ export async function buildApp(deps: AppDeps) {
       registerAuthRoutes(api, ctx);
       registerMeRoutes(api, ctx);
       registerStatsRoutes(api, ctx);
+      registerSeasonRoutes(api, ctx);
       registerGameRoutes(api, ctx);
     },
     { prefix: API_PREFIX },

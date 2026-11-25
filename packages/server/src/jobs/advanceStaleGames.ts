@@ -3,7 +3,7 @@ import { and, eq, lt, notInArray } from 'drizzle-orm';
 
 import type { AppContext } from '../context';
 import { games } from '../db/schema';
-import { gameTimeAt, loadGame, persistState } from '../games/repository';
+import { gameTimeAt, loadGame, loadGameSeason, persistState } from '../games/repository';
 import { safeError } from '../safe-error';
 
 const BATCH_SIZE = 100;
@@ -93,8 +93,12 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
             return null;
           }
           const game = loadGame(row);
-          const advanced = advanceTo(game.state, gameTimeAt(game, now));
-          await persistState(tx, game, advanced.state, advanced.events, now);
+          const season = await loadGameSeason(tx, game);
+          // Partida de Temporada nunca avança além do fecho semanal, mesmo antes do job de fecho.
+          const effectiveNow =
+            season !== null && now.getTime() > season.endsAt.getTime() ? season.endsAt : now;
+          const advanced = advanceTo(game.state, gameTimeAt(game, effectiveNow));
+          await persistState(tx, game, advanced.state, advanced.events, effectiveNow);
           return advanced.events.length;
         });
         if (events !== null) {

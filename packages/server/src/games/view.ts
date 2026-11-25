@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 
-import { deriveViewState } from '@lotg/engine';
 import { canonicalJson, type ViewResponse } from '@lotg/protocol';
 
 import type { AppContext } from '../context';
-import { assertActive, withGameReading } from './service';
+import { deriveGameView, loadGameSeason, lockGame } from './repository';
+import { assertPlayable, readLockedGame } from './service';
 
 /**
  * ETag fraco do corpo completo de `/view`. Não é a `stateVersion`: produção e contagens
@@ -31,12 +31,14 @@ export async function readView(
   accountId: string,
   gameId: string,
 ): Promise<{ body: ViewResponse; etag: string }> {
-  const body = await withGameReading(ctx, accountId, gameId, (reading): ViewResponse => {
-    assertActive(reading.game);
+  const body = await ctx.db.transaction(async (tx): Promise<ViewResponse> => {
+    const game = await lockGame(tx, accountId, gameId);
+    const now = ctx.clock();
+    const season = await loadGameSeason(tx, game);
+    assertPlayable(game, season, now);
+    const reading = await readLockedGame(ctx, tx, game, now, season);
     return {
-      view: deriveViewState(reading.state, reading.gameNowMs, {
-        timeScale: Number(reading.game.timeScale),
-      }),
+      view: deriveGameView(reading.game, reading.state, reading.gameNowMs),
       stateVersion: String(reading.stateVersion),
     };
   });

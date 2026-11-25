@@ -136,6 +136,18 @@ describe('máquina de estados da conta', () => {
     });
   });
 
+  it('com a pessoal e a da Temporada ativas, segue a pessoal', async () => {
+    const { service } = setup({
+      listGames: [
+        { id: 'temporada', status: 'active', seasonId: '11111111-1111-4111-8111-111111111111' },
+        { id: 'pessoal', status: 'active', seasonId: null },
+      ],
+    });
+    expect(await service.signInWithRecoveryCode('PEDR7F3AK9QDM2XW4HTB')).toMatchObject({
+      gameId: 'pessoal',
+    });
+  });
+
   it('vincular ao GitHub passa a conta para "linked"', async () => {
     const { service } = setup();
     await service.playNow(welcome);

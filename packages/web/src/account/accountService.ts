@@ -115,7 +115,9 @@ export class AccountService {
 
   private async activeGameId(): Promise<string | null> {
     const games = await this.deps.client.listGames();
-    return games.find((game) => game.status === 'active')?.id ?? null;
+    // Com a Fase G a conta pode ter duas ativas (D-25): a pessoal e a da Temporada. Até o
+    // seletor da V5G-T3, a aba segue só a pessoal (`seasonId` nulo ou ausente).
+    return games.find((game) => game.status === 'active' && game.seasonId == null)?.id ?? null;
   }
 
   /** Confere a conta e a partida ativa com o servidor. */

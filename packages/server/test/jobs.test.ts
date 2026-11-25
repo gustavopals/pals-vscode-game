@@ -760,6 +760,8 @@ describe('jobs de avanço e exclusão definitiva (F2-T7)', () => {
       }
       expect(Object.keys(report).sort()).toEqual([
         'advanced',
+        'archivedSeasonGames',
+        'closedSeasons',
         'events',
         'expiredSessions',
         'failed',

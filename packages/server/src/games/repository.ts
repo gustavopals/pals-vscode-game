@@ -1,9 +1,12 @@
 import { YearEndedDataSchema } from '@lotg/content';
 import {
+  advanceTo,
+  deriveViewState,
   type GameEvent as EngineEvent,
   type GameState,
   migrateState,
   StateMigrationError,
+  type ViewState,
 } from '@lotg/engine';
 import { CHRONICLE_HIDDEN_EVENT_TYPES, type GameEvent, type GameSummary } from '@lotg/protocol';
 import { and, desc, eq, gt, gte, lt, notInArray, sql } from 'drizzle-orm';
@@ -17,6 +20,7 @@ import {
   type GameRow,
   games,
   legacyLedger,
+  seasons,
 } from '../db/schema';
 import { resolveVigilTimezone } from './vigil';
 
@@ -275,5 +279,69 @@ export function toGameSummary(row: GameRow | LoadedGame): GameSummary {
     vigilHourLocal: row.vigilHour,
     stateVersion: String(row.stateVersion),
     createdAt: row.createdAt.toISOString(),
+    seasonId: row.seasonId ?? null,
   };
+}
+
+/** Dados mínimos da Temporada de uma partida para limitar o avanço e o acesso ao fim dela. */
+export type GameSeasonGuard = {
+  id: string;
+  status: 'open' | 'closed';
+  endsAt: Date;
+};
+
+/** Carrega a Temporada de uma partida sazonal; `null` para partidas pessoais (sem consulta). */
+export async function loadGameSeason(
+  tx: Tx,
+  game: Pick<GameRow, 'seasonId'>,
+): Promise<GameSeasonGuard | null> {
+  if (game.seasonId == null) {
+    return null;
+  }
+  const [row] = await tx
+    .select({ id: seasons.id, status: seasons.status, endsAt: seasons.endsAt })
+    .from(seasons)
+    .where(eq(seasons.id, game.seasonId));
+  return row ?? null;
+}
+
+/**
+ * Deriva a visão do motor respeitando a névoa da Temporada (D-27): partidas de Temporada nunca
+ * expõem a semente no `ViewState` (nem em `/view`, nem em respostas ou recibos de `/commands`).
+ */
+export function deriveGameView(
+  game: Pick<LoadedGame, 'timeScale' | 'seasonId'>,
+  state: GameState,
+  gameNowMs: number,
+): ViewState {
+  const view = deriveViewState(state, gameNowMs, { timeScale: Number(game.timeScale) });
+  if (game.seasonId == null) {
+    return view;
+  }
+  const { seed: _hidden, ...withoutSeed } = view;
+  void _hidden;
+  return withoutSeed;
+}
+
+/**
+ * Avança uma partida ativa já travada até o instante `advanceUntil` (tipicamente o fecho da
+ * Temporada), grava eventos/Legado se houver avanço ou migração, e a arquiva na mesma transação.
+ */
+export async function archiveGameAt(
+  tx: Tx,
+  game: LoadedGame,
+  advanceUntil: Date,
+  now: Date,
+): Promise<{ events: number }> {
+  const targetGameMs = gameTimeAt(game, advanceUntil);
+  const advanced = advanceTo(game.state, targetGameMs);
+  if (
+    advanced.events.length > 0 ||
+    game.migratedFrom !== null ||
+    targetGameMs > game.state.lastProcessedAt
+  ) {
+    await persistState(tx, game, advanced.state, advanced.events, advanceUntil);
+  }
+  await tx.update(games).set({ status: 'archived', updatedAt: now }).where(eq(games.id, game.id));
+  return { events: advanced.events.length };
 }

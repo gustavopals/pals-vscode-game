@@ -10,13 +10,17 @@ import { createTestPool, resetTestDb, truncateAll } from './helpers/db';
 // Verificação independente da F2-T3: tudo aqui vem do GDD §14.6 e do MVP-ROADMAP (F2-T3),
 // inserindo linhas direto por SQL, sem passar pela API.
 
-/** As migrações de `deploy/migrations`: 0000_init, 0001_ranking_listed e 0002_legacy_ledger. */
-const MIGRATIONS = 3;
+/**
+ * As migrações de `deploy/migrations`: 0000_init, 0001_ranking_listed, 0002_legacy_ledger e
+ * 0003_seasons.
+ */
+const MIGRATIONS = 4;
 
 const TABLES = [
   'accounts',
   'sessions',
   'refresh_tokens',
+  'seasons',
   'games',
   'commands',
   'game_events',
@@ -80,17 +84,38 @@ async function insertRefreshToken(
   return tokenHash;
 }
 
+async function insertSeason(
+  pool: pg.Pool,
+  fields: { code?: string; startsAt?: string } = {},
+): Promise<string> {
+  const id = randomUUID();
+  const code = fields.code ?? `2026-W${String(Math.floor(Math.random() * 40) + 10)}`;
+  const startsAt = fields.startsAt ?? '2026-11-23T03:00:00.000Z';
+  await pool.query(
+    `insert into seasons (id, code, starts_at, join_ends_at, ends_at, seed, difficulty,
+                          time_scale, status, closed_at, created_at)
+     values ($1, $2, $3::timestamptz, $3::timestamptz + interval '2 days',
+             $3::timestamptz + interval '7 days' - interval '1 minute',
+             'semente-temporada', 'lord', 3, 'open', null, $4)`,
+    [id, code, startsAt, NOW],
+  );
+  return id;
+}
+
 async function insertGame(
   pool: pg.Pool,
   accountId: string,
   status: 'active' | 'archived',
+  seasonId: string | null = null,
 ): Promise<string> {
   const id = randomUUID();
   await pool.query(
-    `insert into games (id, account_id, status, seed, difficulty, time_scale, timezone, vigil_hour,
-                        schema_version, state, state_version, last_processed_at, created_at, updated_at)
-     values ($1, $2, $3, 'semente', 'normal', 1, 'America/Sao_Paulo', 20, 1, '{}'::jsonb, 1, $4, $4, $4)`,
-    [id, accountId, status, NOW],
+    `insert into games (id, account_id, season_id, status, seed, difficulty, time_scale, timezone,
+                        vigil_hour, schema_version, state, state_version, last_processed_at,
+                        created_at, updated_at)
+     values ($1, $2, $3, $4, 'semente', 'normal', 1, 'America/Sao_Paulo', 20, 1, '{}'::jsonb, 1,
+             $5, $5, $5)`,
+    [id, accountId, seasonId, status, NOW],
   );
   return id;
 }
@@ -356,6 +381,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
         accounts: ['id'],
         sessions: ['id'],
         refresh_tokens: ['token_hash'],
+        seasons: ['id'],
         games: ['id'],
         commands: ['game_id', 'id'],
         game_events: ['game_id', 'seq'],
@@ -363,22 +389,48 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
       });
     });
 
-    it('permite no máximo uma partida ativa por conta, e várias arquivadas', async () => {
+    it('permite uma ativa pessoal e uma por Temporada na mesma conta, recusando duplicata em cada trilho', async () => {
       const accountId = await insertAccount(pool);
       const other = await insertAccount(pool);
-      await insertGame(pool, accountId, 'active');
+      const seasonA = await insertSeason(pool, {
+        code: '2026-W48',
+        startsAt: '2026-11-23T03:00:00.000Z',
+      });
+      const seasonB = await insertSeason(pool, {
+        code: '2026-W49',
+        startsAt: '2026-11-30T03:00:00.000Z',
+      });
+      await insertGame(pool, accountId, 'active', null);
 
-      expect(await sqlState(() => insertGame(pool, accountId, 'active'))).toBe(UNIQUE_VIOLATION);
-      expect(await sqlState(() => insertGame(pool, accountId, 'archived'))).toBeNull();
-      expect(await sqlState(() => insertGame(pool, accountId, 'archived'))).toBeNull();
+      // Trilho pessoal: no máximo uma ativa, várias arquivadas.
+      expect(await sqlState(() => insertGame(pool, accountId, 'active', null))).toBe(
+        UNIQUE_VIOLATION,
+      );
+      expect(await sqlState(() => insertGame(pool, accountId, 'archived', null))).toBeNull();
+      expect(await sqlState(() => insertGame(pool, accountId, 'archived', null))).toBeNull();
       // Outra conta tem a sua própria partida ativa.
-      expect(await sqlState(() => insertGame(pool, other, 'active'))).toBeNull();
+      expect(await sqlState(() => insertGame(pool, other, 'active', null))).toBeNull();
 
-      // Reativar uma arquivada enquanto há outra ativa também esbarra no índice.
+      // Reativar uma arquivada pessoal enquanto há outra ativa pessoal esbarra no índice.
       const reactivated = await sqlState(() =>
-        pool.query(`update games set status = 'active' where account_id = $1`, [accountId]),
+        pool.query(
+          `update games set status = 'active' where account_id = $1 and season_id is null`,
+          [accountId],
+        ),
       );
       expect(reactivated).toBe(UNIQUE_VIOLATION);
+
+      // Trilho da Temporada: convive com a ativa pessoal e aceita uma única partida por (conta, Temporada).
+      expect(await sqlState(() => insertGame(pool, accountId, 'active', seasonA))).toBeNull();
+      expect(await sqlState(() => insertGame(pool, accountId, 'active', seasonA))).toBe(
+        UNIQUE_VIOLATION,
+      );
+      expect(await sqlState(() => insertGame(pool, accountId, 'archived', seasonA))).toBe(
+        UNIQUE_VIOLATION,
+      );
+      // Outra conta na mesma Temporada e a mesma conta em outra Temporada passam.
+      expect(await sqlState(() => insertGame(pool, other, 'active', seasonA))).toBeNull();
+      expect(await sqlState(() => insertGame(pool, accountId, 'active', seasonB))).toBeNull();
     });
 
     it('permite no máximo um refresh token não utilizado por sessão, e vários utilizados', async () => {
@@ -444,7 +496,16 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
 
       // games(last_processed_at) where status = 'active': a consulta do job horário.
       expect(has('games', /\(last_processed_at\) WHERE \(?status = 'active'/)).toBe(true);
-      expect(has('games', /UNIQUE INDEX .*\(account_id\) WHERE \(?status = 'active'/)).toBe(true);
+      expect(
+        has(
+          'games',
+          /UNIQUE INDEX .*\(account_id\) WHERE \(\(?status = 'active'.*season_id IS NULL/,
+        ),
+      ).toBe(true);
+      expect(
+        has('games', /UNIQUE INDEX .*\(account_id, season_id\) WHERE \(?season_id IS NOT NULL/),
+      ).toBe(true);
+      expect(has('seasons', /\(ends_at\) WHERE \(?status = 'open'/)).toBe(true);
       expect(has('sessions', /\(account_id\)/)).toBe(true);
       expect(has('refresh_tokens', /^CREATE INDEX .*\(session_id\)$/)).toBe(true);
       expect(has('refresh_tokens', /UNIQUE INDEX .*\(session_id\) WHERE \(?used_at IS NULL/)).toBe(
@@ -517,13 +578,14 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
          where contype = 'f' and connamespace = 'public'::regnamespace
          order by 1, 2`,
       );
-      // No catálogo, 'c' é CASCADE.
+      // No catálogo, 'c' é CASCADE (propriedade) e 'r' é RESTRICT (referência de calendário).
       expect(rows).toEqual([
         { child: 'chronicles', parent: 'games', rule: 'c' },
         { child: 'commands', parent: 'accounts', rule: 'c' },
         { child: 'commands', parent: 'games', rule: 'c' },
         { child: 'game_events', parent: 'games', rule: 'c' },
         { child: 'games', parent: 'accounts', rule: 'c' },
+        { child: 'games', parent: 'seasons', rule: 'r' },
         { child: 'legacy_ledger', parent: 'accounts', rule: 'c' },
         { child: 'legacy_ledger', parent: 'games', rule: 'c' },
         { child: 'refresh_tokens', parent: 'sessions', rule: 'c' },
@@ -568,7 +630,7 @@ describe('esquema do banco (F2-T3, GDD §14.6)', () => {
 
       // ...e a conta de controle continua inteira: o banco só tem as linhas dela.
       expect(await rowsOfAccount(pool, control.accountId)).toEqual(full);
-      for (const table of TABLES) {
+      for (const table of Object.keys(full) as Array<keyof typeof full>) {
         expect(await countRows(pool, table)).toBe(full[table]);
       }
     });

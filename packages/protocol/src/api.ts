@@ -155,6 +155,11 @@ export const GameSummarySchema = z.strictObject({
   vigilHourLocal: z.number().int(),
   stateVersion: StateVersionSchema,
   createdAt: isoDate,
+  /**
+   * Identificador da Temporada à qual a partida pertence (`null` para partida pessoal). Opcional
+   * por adição no protocolo 4: clientes/servidores anteriores à Fase G omitem o campo.
+   */
+  seasonId: z.uuid().nullable().optional(),
 });
 export type GameSummary = z.infer<typeof GameSummarySchema>;
 
@@ -429,3 +434,65 @@ export const StatsResponseSchema = z.strictObject({
   }),
 });
 export type StatsResponse = z.infer<typeof StatsResponseSchema>;
+
+// --- Temporadas (GDD §11.6; ADR 0022, D-25 a D-28) --------------------------
+
+export const SeasonStatusSchema = z.enum(['open', 'closed']);
+export type SeasonStatus = z.infer<typeof SeasonStatusSchema>;
+
+/**
+ * Resumo público de uma Temporada semanal. Fuso fixo de Brasília (`America/Sao_Paulo`, UTC−3,
+ * sem horário de verão desde 2019). A semente é sempre `null` antes do fecho (D-27).
+ */
+export const SeasonSummarySchema = z.strictObject({
+  id: z.uuid(),
+  /** Semana ISO em Brasília (ex.: `"2026-W48"`). */
+  code: z.string().regex(/^\d{4}-W\d{2}$/),
+  status: SeasonStatusSchema,
+  timezone: z.literal('America/Sao_Paulo'),
+  /** Dificuldade fixa para todos os participantes (D-26: `lord`). */
+  difficulty: DifficultySchema,
+  /** Ritmo fixo para todos os participantes (D-26: 3×). */
+  timeScale: PaceTimeScaleSchema,
+  /** Abertura da semana: segunda-feira 00:00 de Brasília. */
+  startsAt: isoDate,
+  /** Fim da janela de entrada: quarta-feira 00:00 de Brasília (aceita até terça 23:59:59). */
+  joinEndsAt: isoDate,
+  /** Fecho previsto da Temporada e horário do ranking: domingo 23:59 de Brasília. */
+  endsAt: isoDate,
+  /** Instante em que a Temporada fechou e o ranking foi publicado; `null` enquanto aberta. */
+  rankingPublishedAt: isoDate.nullable(),
+  /** A janela de entrada está aberta no relógio do servidor (`status === 'open'` e `< joinEndsAt`). */
+  joinOpen: z.boolean(),
+  /** Semente da Temporada: `null` enquanto aberta (D-27); revelada somente após o fecho. */
+  seed: z.string().min(1).nullable(),
+});
+export type SeasonSummary = z.infer<typeof SeasonSummarySchema>;
+
+/** `GET /v1/seasons/current`: Temporada da semana e situação da conta autenticada nela. */
+export const CurrentSeasonResponseSchema = z.strictObject({
+  season: SeasonSummarySchema,
+  /** Se a conta autenticada já entrou nesta Temporada. */
+  joined: z.boolean(),
+  /** A partida da conta nesta Temporada (`null` se ainda não entrou). */
+  game: GameSummarySchema.nullable(),
+});
+export type CurrentSeasonResponse = z.infer<typeof CurrentSeasonResponseSchema>;
+
+/**
+ * `POST /v1/seasons/current/join`: apenas nome do feudo e preferência da Vigília. Semente,
+ * dificuldade (`lord`), ritmo (3×) e cenário (`standard`) vêm da Temporada (D-26).
+ */
+export const JoinSeasonRequestSchema = z.strictObject({
+  settlementName: DisplayNameSchema,
+  timezone,
+  vigilHourLocal: z.number().int().min(0).max(23),
+});
+export type JoinSeasonRequest = z.infer<typeof JoinSeasonRequestSchema>;
+
+/** `201` de `POST /v1/seasons/current/join`: a Temporada atual e a partida recém-criada. */
+export const JoinSeasonResponseSchema = z.strictObject({
+  season: SeasonSummarySchema,
+  game: GameSummarySchema,
+});
+export type JoinSeasonResponse = z.infer<typeof JoinSeasonResponseSchema>;

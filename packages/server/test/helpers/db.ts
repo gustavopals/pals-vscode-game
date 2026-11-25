@@ -35,6 +35,6 @@ export async function resetTestDb(): Promise<void> {
 /** Esvazia todas as tabelas, mantendo o esquema. Mais rápido que recriar entre testes. */
 export async function truncateAll(pool: pg.Pool): Promise<void> {
   await pool.query(
-    'truncate accounts, sessions, refresh_tokens, games, commands, game_events, chronicles cascade',
+    'truncate accounts, sessions, refresh_tokens, seasons, games, commands, game_events, chronicles, legacy_ledger cascade',
   );
 }

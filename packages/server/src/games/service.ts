@@ -11,7 +11,15 @@ import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
 import { accounts, games, legacyLedger } from '../db/schema';
 import { forgetStats } from '../stats/service';
-import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
+import {
+  type GameSeasonGuard,
+  gameTimeAt,
+  type LoadedGame,
+  loadGameSeason,
+  lockGame,
+  persistState,
+  toGameSummary,
+} from './repository';
 import { resolveVigilTimezone } from './vigil';
 
 export async function listGames(ctx: AppContext, accountId: string): Promise<GameSummary[]> {
@@ -24,8 +32,9 @@ export async function listGames(ctx: AppContext, accountId: string): Promise<Gam
 }
 
 /**
- * `POST /games`. Uma partida ativa por conta: com uma já ativa, recusa com `ACTIVE_GAME_EXISTS`,
- * a não ser que venha `replaceActive`, que arquiva a atual.
+ * `POST /games`. Uma partida **pessoal** ativa por conta: com uma já ativa, recusa com
+ * `ACTIVE_GAME_EXISTS`, a não ser que venha `replaceActive`, que arquiva a atual. A partida da
+ * Temporada (`season_id` preenchido, D-25) não conta aqui e nunca é arquivada por esta rota.
  *
  * Dificuldade e ritmo são os do corpo, que a rota já conferiu contra o conteúdo: a dificuldade
  * pelo schema do protocolo, o ritmo por `OfferedGameRequestSchema`. Sem eles (o app da v0.1, o
@@ -75,7 +84,9 @@ export async function createGame(
     const [active] = await tx
       .select({ id: games.id })
       .from(games)
-      .where(and(eq(games.accountId, accountId), eq(games.status, 'active')));
+      .where(
+        and(eq(games.accountId, accountId), eq(games.status, 'active'), isNull(games.seasonId)),
+      );
     if (active !== undefined) {
       if (input.replaceActive !== true) {
         throw new ApiError(
@@ -110,6 +121,7 @@ export async function createGame(
       .values({
         id: randomUUID(),
         accountId,
+        seasonId: null,
         status: 'active',
         seed,
         difficulty,
@@ -153,6 +165,8 @@ export async function readLockedGame(
   ctx: AppContext,
   tx: Tx,
   game: LoadedGame,
+  now: Date = ctx.clock(),
+  loadedSeason?: GameSeasonGuard | null,
 ): Promise<GameReading> {
   if (game.status !== 'active') {
     return {
@@ -162,13 +176,17 @@ export async function readLockedGame(
       stateVersion: game.stateVersion,
     };
   }
-  const now = ctx.clock();
-  const gameNowMs = gameTimeAt(game, now);
+  const season = loadedSeason === undefined ? await loadGameSeason(tx, game) : loadedSeason;
+  // Uma partida de Temporada nunca simula depois do fecho da semana, mesmo que o job de
+  // arquivamento ainda não tenha rodado.
+  const effectiveNow =
+    season !== null && now.getTime() > season.endsAt.getTime() ? season.endsAt : now;
+  const gameNowMs = gameTimeAt(game, effectiveNow);
   const advanced = advanceTo(game.state, gameNowMs);
   if (advanced.events.length === 0 && game.migratedFrom === null) {
     return { game, state: advanced.state, gameNowMs, stateVersion: game.stateVersion };
   }
-  const persisted = await persistState(tx, game, advanced.state, advanced.events, now);
+  const persisted = await persistState(tx, game, advanced.state, advanced.events, effectiveNow);
   return { game, state: advanced.state, gameNowMs, stateVersion: persisted.stateVersion };
 }
 
@@ -188,5 +206,20 @@ export async function withGameReading<T>(
 export function assertActive(game: Pick<LoadedGame, 'status'>): void {
   if (game.status !== 'active') {
     throw new ApiError('CONFLICT', 'Esta partida foi arquivada e não aceita mais ordens.');
+  }
+}
+
+/** Recusa leitura de visão e novas ordens para partidas arquivadas ou de Temporada encerrada. */
+export function assertPlayable(
+  game: Pick<LoadedGame, 'status'>,
+  season: GameSeasonGuard | null,
+  now: Date,
+): void {
+  assertActive(game);
+  if (season !== null && (season.status === 'closed' || now.getTime() >= season.endsAt.getTime())) {
+    throw new ApiError(
+      'CONFLICT',
+      'Esta Temporada foi encerrada e a partida não aceita mais ordens.',
+    );
   }
 }

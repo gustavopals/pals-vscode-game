@@ -741,6 +741,63 @@ describe('demais chamadas', () => {
     expect(calls[2]?.headers.authorization).toBe('Bearer jwt-velho');
   });
 
+  it('lê a Temporada atual e entra nela, validando o protocolo (V5G-T1)', async () => {
+    const seasonId = '22222222-2222-4222-8222-222222222222';
+    const season = {
+      id: seasonId,
+      code: '2026-W48',
+      status: 'open' as const,
+      timezone: 'America/Sao_Paulo' as const,
+      difficulty: 'lord' as const,
+      timeScale: 3,
+      startsAt: '2026-11-23T03:00:00.000Z',
+      joinEndsAt: '2026-11-25T03:00:00.000Z',
+      endsAt: '2026-11-30T02:59:00.000Z',
+      rankingPublishedAt: null,
+      joinOpen: true,
+      seed: null,
+    };
+    const seasonGame = {
+      id: gameId,
+      status: 'active' as const,
+      settlementName: 'Vigia do Sul',
+      difficulty: 'lord',
+      timeScale: 3,
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+      stateVersion: '1',
+      createdAt: '2026-11-23T12:00:00.000Z',
+      seasonId,
+    };
+    const { client, calls } = setup((call) => {
+      if (call.path === '/seasons/current' && call.method === 'GET') {
+        return { status: 200, body: { season, joined: false, game: null } };
+      }
+      if (call.path === '/seasons/current/join' && call.method === 'POST') {
+        return { status: 201, body: { season, game: seasonGame } };
+      }
+      return { status: 404, body: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } };
+    });
+    expect(await client.getCurrentSeason()).toEqual({ season, joined: false, game: null });
+    expect(
+      await client.joinCurrentSeason({
+        settlementName: 'Vigia do Sul',
+        timezone: 'America/Sao_Paulo',
+        vigilHourLocal: 20,
+      }),
+    ).toEqual({ season, game: seasonGame });
+    expect(calls.map((call) => [call.method, call.path, call.body])).toEqual([
+      ['GET', '/seasons/current', undefined],
+      [
+        'POST',
+        '/seasons/current/join',
+        { settlementName: 'Vigia do Sul', timezone: 'America/Sao_Paulo', vigilHourLocal: 20 },
+      ],
+    ]);
+    expect(calls[0]?.headers.authorization).toBe('Bearer jwt-velho');
+    expect(calls[1]?.headers.authorization).toBe('Bearer jwt-velho');
+  });
+
   it('valida as respostas contra o protocolo quando pedido', async () => {
     const client = createClient({
       baseUrl: 'http://servidor',
