@@ -137,6 +137,7 @@ describe('Ranking e Crônicas da Temporada (V5G-T2)', () => {
     const result = {
       score: ended.score,
       siegeOutcome: ended.siegeResult,
+      siegeOutcomeText: expect.any(String) as string,
       feats: ended.feats.split(',').length,
       chronicleAvailable: true,
     };

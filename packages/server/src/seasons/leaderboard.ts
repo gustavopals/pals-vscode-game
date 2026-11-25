@@ -1,4 +1,4 @@
-import { YearEndedDataSchema } from '@lotg/content';
+import { siegeTexts, YearEndedDataSchema, yearChronicleTexts } from '@lotg/content';
 import type { LeaderboardResponse, SeasonChronicleResponse } from '@lotg/protocol';
 import { and, asc, eq, exists, isNull, lte, or, sql } from 'drizzle-orm';
 
@@ -116,6 +116,10 @@ export async function readLeaderboard(
           settlementName: row.settlementName,
           score: ended.score,
           siegeOutcome: ended.siegeResult,
+          siegeOutcomeText:
+            ended.siegeResult === 'none'
+              ? yearChronicleTexts.siegeResults.none
+              : siegeTexts.result[ended.siegeResult],
           feats: ended.feats.split(',').filter(Boolean).length,
           mine: row.mine,
           chronicleAvailable: viewer.joined,

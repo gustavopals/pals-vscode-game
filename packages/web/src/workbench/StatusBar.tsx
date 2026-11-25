@@ -1,3 +1,4 @@
+import type { FiefChoice } from '../app/controller';
 import { Icon } from '../components/shared';
 import { splitIcons, type StatusBarInput, statusBar } from '../ui/format';
 
@@ -24,6 +25,8 @@ export function StatusBar(props: {
   input: StatusBarInput;
   /** Os avisos estão silenciados ("Silenciar 2h"). */
   muted: boolean;
+  fief?: FiefChoice | undefined;
+  switchingDisabled?: boolean;
   onCommand: (id: string, arg?: unknown) => void;
 }) {
   const { input } = props;
@@ -52,6 +55,20 @@ export function StatusBar(props: {
         </button>
       </div>
       <div class="statusbar-group">
+        {props.fief === undefined ? null : (
+          <button
+            type="button"
+            class="status-fief"
+            disabled={props.switchingDisabled}
+            aria-label={`Trocar de feudo · ${props.fief === 'season' ? 'Temporada' : 'Meu feudo'}`}
+            aria-haspopup="dialog"
+            onClick={() => props.onCommand('lords.switchFief')}
+          >
+            <Icon name={props.fief === 'season' ? 'flag' : 'shield'} />
+            <span>{props.fief === 'season' ? 'Temporada' : 'Meu feudo'}</span>
+            <Icon name="chevron-down" />
+          </button>
+        )}
         {props.muted && !input.discreetMode ? (
           <span class="sr-only" role="status">
             Notificações silenciadas

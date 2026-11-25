@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 
 import type { Controller } from '../app/controller';
-import type { Route } from '../app/router';
+import { GAME_ROUTES, type Route } from '../app/router';
 import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
 import { useElapsedSeconds } from '../components/shared';
@@ -116,6 +116,18 @@ function TabContent(props: {
       return (
         <KingdomTab
           stats={controller.stats}
+          season={{
+            current: controller.currentSeason,
+            ranking: controller.seasonRanking,
+            chronicle: controller.seasonChronicle,
+            options: controller.newGameOptions,
+            now: controller.now(),
+            online,
+            joining: controller.joiningSeason,
+            joinError: controller.seasonJoinError,
+            viewingSeason: controller.activeFief === 'season',
+            hasSeasonFief: controller.seasonFief !== null,
+          }}
           signedIn={account.kind !== 'signedOut'}
           actions={actions}
         />
@@ -336,6 +348,7 @@ export function Workbench(props: {
           aria-labelledby={`tab-${controller.route}`}
         >
           <TabContent
+            key={GAME_ROUTES.includes(controller.route) ? controller.gameOpening : undefined}
             controller={controller}
             route={controller.route}
             elapsed={elapsed}
@@ -347,6 +360,8 @@ export function Workbench(props: {
       </div>
       <StatusBar
         input={controller.statusInput(elapsed)}
+        fief={controller.seasonFief === null ? undefined : controller.activeFief}
+        switchingDisabled={controller.busy}
         muted={
           controller.preferences.mutedUntil !== null &&
           controller.now() < controller.preferences.mutedUntil

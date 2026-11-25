@@ -2933,3 +2933,148 @@ table.ranking tr.ranking-mine td:first-child {
     padding: 12px;
   }
 }
+
+/* Temporada, no mesmo documento dos rankings do Reino. */
+.kingdom .season-card {
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 6px;
+  background: var(--vscode-editorWidget-background);
+  color: var(--vscode-foreground);
+}
+
+.season-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.season-card .season-header :is(h2, h3) {
+  margin: 0;
+}
+
+.season-code {
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.season-intro {
+  margin: 8px 0 14px;
+}
+
+.season-terms,
+.season-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+.season-terms {
+  margin: 0 0 14px;
+}
+
+.season-terms > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.season-terms dt,
+.season-deadline dt {
+  color: var(--vscode-descriptionForeground);
+}
+
+.season-terms dd,
+.season-deadline dd {
+  margin: 0;
+}
+
+.season-terms dd {
+  font-weight: 600;
+}
+
+.season-deadlines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.season-deadline,
+.season-chronicle {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: var(--vscode-editor-background);
+}
+
+.season-countdown {
+  font-size: 1.24em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.season-timezone {
+  margin: 8px 0 12px;
+  font-size: 0.9em;
+}
+
+.season-action,
+.season-ranking-note {
+  margin: 12px 0 0;
+}
+
+.season-ranking {
+  padding-top: 12px;
+  margin-top: 14px;
+  border-top: 1px solid var(--vscode-editorWidget-border);
+}
+
+.season-ranking h3,
+.season-position {
+  margin: 0 0 8px;
+}
+
+.season-ranking-scroll {
+  overflow-x: auto;
+}
+
+.season-ranking table.ranking :is(th, td) {
+  padding: 6px 10px;
+}
+
+.season-ranking .ranking thead,
+.season-ranking .ranking .num {
+  white-space: nowrap;
+}
+
+.season-chronicle-link {
+  display: block;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.season-chronicle {
+  margin-top: 14px;
+}
+
+.season-chronicle article {
+  margin-top: 10px;
+}
+
+.season-chronicle article h4 {
+  font-size: 1.12em;
+}
+
+.season-chronicle article h5 {
+  font-size: 1em;
+}
+
+.season-ranking .ranking-mine .season-chronicle-link {
+  color: inherit;
+}

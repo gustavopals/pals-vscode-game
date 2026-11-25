@@ -662,3 +662,8 @@ input::placeholder {
     display: none;
   }
 }
+
+.statusbar .status-fief {
+  border-inline: 1px solid var(--vscode-statusBarItem-hoverBackground);
+  font-weight: 600;
+}

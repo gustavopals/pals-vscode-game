@@ -552,6 +552,7 @@ export function createCommands(
     });
 
   const allocate = async (arg?: unknown) => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -577,6 +578,7 @@ export function createCommands(
       validate: (value) => workersValidation(row, rules, free, value),
     });
     if (answer !== undefined && Number(answer) !== row.assigned) {
+      if (opening !== controller.gameOpening) return;
       await controller.order('setWorkers', { building: row.building, count: Number(answer) });
     }
   };
@@ -601,6 +603,7 @@ export function createCommands(
   };
 
   const build = async (arg?: unknown) => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -650,13 +653,14 @@ export function createCommands(
         })),
       });
     }
-    if (building !== undefined) {
+    if (building !== undefined && opening === controller.gameOpening) {
       // Mesmo bloqueada, a ordem segue: é o servidor que recusa, com o motivo atualizado.
       await controller.order('startConstruction', { building });
     }
   };
 
   const cancelConstruction = async (arg?: unknown) => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -694,6 +698,7 @@ export function createCommands(
       cancelLabel: 'Manter a obra',
     });
     if (confirmed) {
+      if (opening !== controller.gameOpening) return;
       await controller.order('cancelConstruction', { building: active.building });
     }
   };
@@ -730,6 +735,7 @@ export function createCommands(
   };
 
   const planConstruction = async () => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -763,6 +769,7 @@ export function createCommands(
       return;
     }
     if (picked.upgrade === null) {
+      if (opening !== controller.gameOpening) return;
       await controller.order('unplanConstruction', { building: picked.building });
       return;
     }
@@ -770,6 +777,7 @@ export function createCommands(
     if (autoStart !== undefined) {
       // A ordem leva o nível que a lista mostrou: se outra aba passou na frente, o servidor
       // recusa em vez de planejar (e, na automática, pagar) o nível seguinte.
+      if (opening !== controller.gameOpening) return;
       await controller.order('planConstruction', {
         building: picked.building,
         autoStart,
@@ -792,6 +800,7 @@ export function createCommands(
    * linha da árvore, troca a marca daquela obra; pela paleta, pergunta de qual.
    */
   const toggleAutoStart = async (arg?: unknown) => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -816,7 +825,7 @@ export function createCommands(
           'As marcadas começam sozinhas, na ordem da lista, quando houver recursos e fila livre.',
         items: planned.map(autoStartItem),
       }));
-    if (plan !== undefined) {
+    if (plan !== undefined && opening === controller.gameOpening) {
       await controller.order('setAutoStart', {
         building: plan.building,
         autoStart: !plan.autoStart,
@@ -826,6 +835,7 @@ export function createCommands(
   };
 
   const recruit = async () => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -857,6 +867,7 @@ export function createCommands(
       },
     });
     if (answer !== undefined) {
+      if (opening !== controller.gameOpening) return;
       await controller.order('recruitVillagers', { quantity: Number(answer) });
     }
   };
@@ -957,6 +968,7 @@ export function createCommands(
    * motivo atualizado.
    */
   const answerCard = async (arg?: unknown) => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -1002,6 +1014,7 @@ export function createCommands(
                 value: entry,
               })),
             });
+      if (opening !== controller.gameOpening) return;
       if (card !== undefined && !stillPending(card)) {
         explainGone(card, opened + cardSecondsLeft(card, since) * 1000);
         return;
@@ -1011,7 +1024,7 @@ export function createCommands(
       return;
     }
     const optionId = await pickOption(card);
-    if (optionId !== null) {
+    if (optionId !== null && opening === controller.gameOpening) {
       await controller.answerCard(card.instanceId, optionId);
     }
   };
@@ -4212,6 +4225,7 @@ export function createCommands(
   };
 
   const renameSettlement = async () => {
+    const opening = controller.gameOpening;
     const view = requireView();
     if (view === null) {
       return;
@@ -4224,6 +4238,7 @@ export function createCommands(
       validate: nameValidation,
     });
     if (name !== undefined && name.trim() !== view.settlement.name) {
+      if (opening !== controller.gameOpening) return;
       await controller.order('renameSettlement', { name: name.trim() });
     }
   };
@@ -4363,7 +4378,9 @@ export function createCommands(
       const confirmed = await dialogs.confirm({
         title: 'Começar uma nova partida?',
         detail: [
-          'O feudo atual é arquivado e não pode mais receber ordens.',
+          controller.seasonFief === null
+            ? 'O feudo atual é arquivado e não pode mais receber ordens.'
+            : 'O feudo pessoal é arquivado e não pode mais receber ordens.',
           ...(options === null || choice === undefined
             ? []
             : [
@@ -4408,6 +4425,63 @@ export function createCommands(
       await askAndStartNewGame(arg);
     } finally {
       startingNewGame = false;
+    }
+  };
+
+  const switchFief = async (arg?: unknown) => {
+    const account = controller.account.state;
+    if (account.kind === 'signedOut' || controller.seasonFief === null || controller.busy) return;
+    const items = [
+      ...(account.gameId === null
+        ? []
+        : [{ value: 'personal' as const, label: 'Meu feudo', icon: 'shield' }]),
+      { value: 'season' as const, label: 'Temporada', icon: 'flag' },
+    ];
+    const choice =
+      arg === 'personal' || arg === 'season'
+        ? arg
+        : await dialogs.pick({
+            title: 'Trocar de feudo',
+            items,
+            selected: items.findIndex((item) => item.value === controller.activeFief),
+          });
+    const current = controller.account.state;
+    if (
+      choice !== undefined &&
+      current.kind !== 'signedOut' &&
+      current.accountId === account.accountId
+    ) {
+      await controller.switchFief(choice);
+    }
+  };
+
+  let confirmingSeason = false;
+  const joinSeason = async () => {
+    const account = controller.account.state;
+    const current = controller.currentSeason;
+    if (
+      account.kind === 'signedOut' ||
+      current.status !== 'ready' ||
+      current.value.joined ||
+      !current.value.season.joinOpen ||
+      confirmingSeason ||
+      controller.joiningSeason
+    )
+      return;
+    confirmingSeason = true;
+    try {
+      const name = await dialogs.input({
+        title: `Entrar na Temporada ${current.value.season.code}`,
+        prompt: 'Confirme o nome do feudo que levará seu estandarte nesta semana.',
+        confirmLabel: 'Entrar na Temporada',
+        validate: nameValidation,
+      });
+      const now = controller.account.state;
+      if (name !== undefined && now.kind !== 'signedOut' && now.accountId === account.accountId) {
+        await controller.joinSeason(current.value.season.id, name);
+      }
+    } finally {
+      confirmingSeason = false;
     }
   };
 
@@ -5186,6 +5260,36 @@ export function createCommands(
     }),
     hidden('lords.openReport', openReport),
     hidden('lords.refreshKingdom', () => controller.loadStats(true)),
+    hidden('lords.refreshSeason', () => controller.loadSeason()),
+    {
+      id: 'lords.switchFief',
+      title: 'Trocar de feudo',
+      palette: true,
+      when: () => controller.seasonFief !== null && !controller.busy,
+      run: switchFief,
+    },
+    {
+      id: 'lords.openSeason',
+      title: 'Temporada',
+      palette: true,
+      when: signedIn,
+      run: () => {
+        controller.navigate('kingdom');
+        env.reveal('season-title');
+      },
+    },
+    hidden('lords.joinSeason', joinSeason),
+    hidden('lords.openSeasonChronicle', async (arg) => {
+      if (typeof arg !== 'number') return;
+      const loading = controller.openSeasonChronicle(arg);
+      env.reveal('season-chronicle-title');
+      await loading;
+    }),
+    hidden('lords.closeSeasonChronicle', () => {
+      const position = controller.seasonChronicle?.position;
+      controller.closeSeasonChronicle();
+      if (position !== undefined) env.reveal(`season-position-${position}`);
+    }),
 
     hidden('lords.openBattleReport', (arg) => {
       const reports = controller.view?.army.reports ?? [];

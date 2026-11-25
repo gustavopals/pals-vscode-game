@@ -328,6 +328,42 @@ A aba Reino (`tabs/Kingdom.tsx`, `#/reino`) é da conta, não do feudo: fecha co
 - A opção "Mostrar meu feudo no ranking" fica nas Preferências (`controller.rankingListed`, lido de `GET /me/ranking` ao abrir a aba); `controller.setRankingListed` manda o `PUT`, desfaz a marca se falhar e relê o Reino.
 - Testes: `tabs/kingdom.test.tsx` e, em navegador, `tests/e2e/15-reino.spec.ts` (teclado, paleta, saída do ranking, três temas e 720 px; com `KINGDOM_SHOTS_DIR` ele grava as capturas da aba).
 
+## A Temporada
+
+O cartão fica em **Reino**, junto aos rankings da conta. A aba continua acessível
+sem feudo ativo e depois do arquivamento. **Lords: Temporada** abre e foca o cartão.
+A semana, a dificuldade, o ritmo e os horários vêm de `GET /v1/seasons/current`.
+Os rótulos de dificuldade e ritmo vêm do catálogo. As contagens usam `joinEndsAt`
+e `endsAt`, com os horários em Brasília. Esses prazos antecipam `nextPollMs`. Até
+o servidor confirmar o fecho, o cartão explica quando sai o ranking.
+
+**Entrar na Temporada** confirma o nome do feudo antes de enviar o pedido.
+A barra de status e **Lords: Trocar de feudo** abrem a mesma lista acessível pelo
+teclado. A opção **Temporada** depende da partida ativa. O navegador restaura a
+escolha de cada conta por `lords.activeFief:<conta>`. A troca abre o cache e o
+cursor do feudo escolhido, interrompe as leituras do anterior e descarta seus
+avisos, documentos em leitura e retentativas. O UUID permanece com a ordem no
+feudo onde nasceu. Sair limpa a preferência e os caches da conta.
+
+Após o fecho, o cartão mostra os resultados do ranking e a situação do próprio
+feudo. O servidor fornece a pontuação, os Feitos e o rótulo do Cerco. As Crônicas
+liberadas abrem no mesmo documento com o renderizador da Crônica anual. O botão
+para fechar devolve o foco à posição que abriu a leitura. A escolha de aparecer
+nos rankings vale para todos os feudos nas Preferências.
+
+A API identifica semanas passadas por UUID. Enquanto a semana atual aguarda
+publicação, o cartão tenta o ranking publicado mais recente dentre as semanas
+conhecidas. O navegador guarda os identificadores consultados por conta e também
+usa os das partidas retornadas por `GET /v1/games`. Um navegador que ainda não
+conhece a semana anterior só consegue descobri-la se a conta tiver jogado nela.
+Os resultados e as Crônicas são lidos do servidor e não ficam no armazenamento
+local.
+
+`22-temporada.spec.ts` percorre a inscrição, o seletor, o fecho e a leitura da
+Crônica em navegador headless. Com `LOTG_SEASON_CAPTURE_DIR`, grava seis capturas
+em claro e escuro. O cenário verifica o contraste nos três temas e a leitura em
+720 px.
+
 ## Ameaça e Torre de Vigia (GDD §8.2)
 
 A Torre de Vigia compra informação. Sem ela, o servidor **não manda** o número da Ameaça, a tendência, as origens, os tiles nem a incursão marcada: `ViewState.threat` é uma união de duas formas fechadas, e o app confere `threat.known` antes de procurar qualquer número. O app não conhece quanto a Ameaça sobe por dia, as marcas da Crônica, a chance de uma incursão nem a antecedência do aviso. As frases de ligação e as escolhas de apresentação ficam em `ui/threat.ts`.

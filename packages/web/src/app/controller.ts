@@ -11,8 +11,11 @@ import {
   CatalogResponseSchema,
   type Command,
   type CommandType,
+  type CurrentSeasonResponse,
   type GameEvent,
+  type LeaderboardResponse,
   type ReturnReport,
+  type SeasonChronicleResponse,
   type StatsResponse,
   type VersionResponse,
   type ViewState,
@@ -20,7 +23,7 @@ import {
 
 import { type AccountState, AccountService } from '../account/accountService';
 import { readReminderRecord, shouldRemindToLink } from '../account/linkReminder';
-import type { Connection } from '../game/connection';
+import { type Connection, pollIntervalMs } from '../game/connection';
 import {
   clearAccountCaches,
   GameSession,
@@ -115,6 +118,16 @@ function mergeBySeq(...lists: GameEvent[][]): GameEvent[] {
 const reminderKey = (accountId: string) => `lords.linkReminder:${accountId}`;
 /** No navegador o servidor é sempre a própria origem: uma chave só. */
 const SERVER_KEY = 'self';
+
+export type FiefChoice = 'personal' | 'season';
+const fiefChoiceKey = (accountId: string) => `lords.activeFief:${accountId}`;
+const seasonHistoryKey = (accountId: string) => `lords.seasonHistory:${accountId}`;
+type SeasonReference = { id: string; at: string };
+type SeasonHistory = {
+  latest: SeasonReference;
+  previous?: SeasonReference;
+  published?: SeasonReference;
+};
 
 export type ErrorCode = ApiErrorCode | 'NETWORK';
 
@@ -232,6 +245,24 @@ export class Controller {
   readonly account: AccountService;
   readonly session: GameSession;
   private readonly newsRead: NewsReadState;
+
+  private fiefChoice: FiefChoice = 'personal';
+  /** Marca cada abertura, inclusive ao voltar ao mesmo feudo. */
+  gameOpening = 0;
+  currentSeason: Loadable<CurrentSeasonResponse> = { status: 'idle' };
+  seasonRanking: Loadable<LeaderboardResponse> = { status: 'idle' };
+  seasonChronicle: {
+    seasonId: string;
+    position: number;
+    name: string;
+    document: Loadable<SeasonChronicleResponse>;
+  } | null = null;
+  seasonJoinError: string | null = null;
+  joiningSeason = false;
+  private seasonRead: Promise<void> | null = null;
+  private seasonTimer: ReturnType<typeof setTimeout> | null = null;
+  private accountOpening = 0;
+  private unavailableSeasonGame: string | null = null;
 
   preferences: Preferences;
   route: Route = 'welcome';
@@ -374,6 +405,7 @@ export class Controller {
       client: this.client,
       store: options.store,
       now: () => this.now(),
+      deadline: () => this.seasonDeadline(),
     });
     this.subscriptions = [
       this.account.onDidChange((state) => this.enqueue(() => this.accountChanged(state))),
@@ -383,7 +415,10 @@ export class Controller {
       this.session.onReturnReport((report) => this.reportArrived(report)),
       this.session.onReturnWhileOpen((report) => this.reportArrivedWhileOpen(report)),
       this.session.onProblem((error) => this.problemArrived(error)),
-      this.session.onCycle(() => this.refreshStatsIfShown()),
+      this.session.onCycle(() => {
+        this.refreshStatsIfShown();
+        this.refreshSeasonIfNeeded();
+      }),
     ];
   }
 
@@ -424,6 +459,7 @@ export class Controller {
    */
   async start(requested: Route | null = null, newGame?: { seed: string | null }): Promise<void> {
     this.previousAccount = this.account.restore();
+    this.fiefChoice = this.restoreFiefChoice(this.previousAccount);
     if (newGame !== undefined && !this.hasGame) {
       this.pendingSeed = newGame.seed;
       this.openSeedField = true;
@@ -442,8 +478,9 @@ export class Controller {
     this.serverInfo = this.loadServerInfo();
     // As boas-vindas mostram as opções assim que chegarem; "Jogar agora" não espera por elas.
     this.loadCatalogIfShown();
-    await this.openGame();
-    if (this.report !== null) {
+    await this.openGame(this.targetOf(this.account.state));
+    this.refreshSeasonIfNeeded();
+    if (this.report !== null && this.route !== 'kingdom') {
       this.route = 'today';
     }
     if (this.route === 'chronicle') {
@@ -473,6 +510,9 @@ export class Controller {
       unsubscribe();
     }
     this.subscriptions = [];
+    this.accountOpening += 1;
+    this.seasonRead = null;
+    this.clearSeasonTimer();
     this.session.stop();
   }
 
@@ -483,12 +523,15 @@ export class Controller {
     this.visible = visible;
     this.session.setVisible(visible);
     this.refreshStatsIfShown();
+    if (visible) this.refreshSeasonIfNeeded();
+    else this.clearSeasonTimer();
     this.changes.emit();
   }
 
   /** O navegador avisou que a rede voltou: sincroniza na hora, sem esperar o recuo. */
   handleOnline(): void {
     void this.session.syncNow();
+    this.refreshSeasonIfNeeded();
     if (this.server.status === 'error') {
       void this.loadServerInfo();
     }
@@ -531,7 +574,7 @@ export class Controller {
 
   get hasGame(): boolean {
     const state = this.account.state;
-    return state.kind !== 'signedOut' && state.gameId !== null;
+    return this.targetOf(state) !== null;
   }
 
   get tabs(): Route[] {
@@ -611,6 +654,10 @@ export class Controller {
       // Saiu da aba Guilda: o relatório pedido para ver já foi visto.
       this.reportAsked = null;
     }
+    if (this.route === 'kingdom' && route !== 'kingdom') {
+      this.seasonChronicle = null;
+      this.clearSeasonTimer();
+    }
     this.route = route;
     if (route === 'army') this.dropSiegeToast();
     if (route === 'today' || route === 'fief') {
@@ -629,6 +676,7 @@ export class Controller {
     }
     if (route === 'kingdom') {
       void this.loadStats();
+      this.refreshSeasonIfNeeded();
     }
     if (route === 'settings') {
       void this.loadRankingPreference();
@@ -657,6 +705,10 @@ export class Controller {
     }
     this.opened = this.opened.filter((entry) => entry !== route);
     if (this.route === route) {
+      if (route === 'kingdom') {
+        this.seasonChronicle = null;
+        this.clearSeasonTimer();
+      }
       this.route = this.defaultRoute();
       this.loadCatalogIfShown();
     }
@@ -665,71 +717,133 @@ export class Controller {
 
   // --- Reações -------------------------------------------------------------------
 
+  private restoreFiefChoice(state: AccountState): FiefChoice {
+    return state.kind !== 'signedOut' &&
+      this.options.store.get(fiefChoiceKey(state.accountId)) === 'season'
+      ? 'season'
+      : 'personal';
+  }
+
+  private seasonFiefOf(state: AccountState): string | null {
+    if (state.kind === 'signedOut') return null;
+    const current = this.currentSeason.status === 'ready' ? this.currentSeason.value.season : null;
+    return (
+      state.seasonGames?.find(
+        (game) =>
+          game.status === 'active' &&
+          game.id !== this.unavailableSeasonGame &&
+          (current === null || (current.id === game.seasonId && current.status === 'open')),
+      )?.id ?? null
+    );
+  }
+
+  get seasonFief(): string | null {
+    return this.seasonFiefOf(this.account.state);
+  }
+
+  get activeFief(): FiefChoice {
+    const displayed = this.session.gameId ?? this.targetOf(this.account.state)?.gameId;
+    return this.seasonFief !== null && displayed === this.seasonFief ? 'season' : 'personal';
+  }
+
   private targetOf(state: AccountState): SessionTarget | null {
-    return state.kind === 'signedOut' || state.gameId === null
-      ? null
-      : { serverKey: SERVER_KEY, accountId: state.accountId, gameId: state.gameId };
+    if (state.kind === 'signedOut') return null;
+    const season = this.seasonFiefOf(state);
+    const gameId =
+      this.fiefChoice === 'season' ? (season ?? state.gameId) : (state.gameId ?? season);
+    return gameId === null ? null : { serverKey: SERVER_KEY, accountId: state.accountId, gameId };
+  }
+
+  async switchFief(choice: FiefChoice): Promise<void> {
+    this.enqueue(async () => {
+      const state = this.account.state;
+      if (state.kind === 'signedOut' || this.busy) return;
+      if ((choice === 'season' ? this.seasonFief : state.gameId) === null) return;
+      if (this.activeFief === choice) return;
+      this.fiefChoice = choice;
+      const saved = this.options.store.update(fiefChoiceKey(state.accountId), choice);
+      const target = this.targetOf(state);
+      this.resetFief();
+      this.route = 'fief';
+      await this.openGame(target);
+      await saved;
+    });
+    await this.settled();
+  }
+
+  private resetFief(): void {
+    this.gameOpening += 1;
+    this.session.stop();
+    this.chronicle = [];
+    this.yearEvents = [];
+    this.vowLabels = new Map();
+    this.councilLog = EMPTY_COUNCIL_LOG;
+    this.chronicleDocument = { status: 'idle' };
+    this.selectedChronicleYear = null;
+    this.yearChronicleDocument = { status: 'idle' };
+    this.yearChronicleRequest += 1;
+    this.seasonChronicle = null;
+    this.report = null;
+    this.unseen = 0;
+    this.viewReceivedAt = 0;
+    this.seasonChanges.clear();
+    this.notificationHistory = [];
+    this.answering = new Set();
+    this.guildOrders = new Set();
+    this.reportAsked = null;
+    this.intentTurns.clear();
+    this.dropGameToasts();
+    this.dropRetryToasts();
   }
 
   private async accountChanged(state: AccountState): Promise<void> {
     const before = this.previousAccount;
     this.previousAccount = state;
-    const beforeTarget = this.targetOf(before);
+    const beforeId = before.kind === 'signedOut' ? null : before.accountId;
+    const accountId = state.kind === 'signedOut' ? null : state.accountId;
+    const changedAccount = beforeId !== accountId;
+    const beforeGame = this.session.gameId;
+    if (changedAccount) {
+      this.accountOpening += 1;
+      this.clearSeasonTimer();
+      this.currentSeason = { status: 'idle' };
+      this.seasonRanking = { status: 'idle' };
+      this.seasonRead = null;
+      this.seasonJoinError = null;
+      this.joiningSeason = false;
+      this.unavailableSeasonGame = null;
+      this.fiefChoice = this.restoreFiefChoice(state);
+      this.rankingListed = null;
+    }
     const target = this.targetOf(state);
-    const sameAccount =
-      before.kind !== 'signedOut' &&
-      state.kind !== 'signedOut' &&
-      before.accountId === state.accountId;
-    const sameGame =
-      sameAccount &&
-      ((beforeTarget === null && target === null) ||
-        (beforeTarget !== null && target !== null && beforeTarget.gameId === target.gameId));
-
-    if (!sameGame) {
-      const leftAccount =
-        before.kind !== 'signedOut' &&
-        (state.kind === 'signedOut' || state.accountId !== before.accountId);
-      if (before.kind !== 'signedOut' && leftAccount) {
-        // Saiu, foi excluída, perdeu a sessão ou trocou de conta: nada da conta anterior fica
-        // neste navegador, nem das partidas arquivadas, para um erro de autenticação nunca
-        // parecer só falta de rede.
-        this.session.stop();
-        await clearAccountCaches(this.options.store, SERVER_KEY, before.accountId);
-        await this.options.store.update(reminderKey(before.accountId), undefined);
-        await this.newsRead.forget(before.accountId);
-      } else if (beforeTarget !== null) {
-        // Mesma conta, outra partida: a anterior foi arquivada e o cache dela não serve mais.
-        await this.session.clearCache(beforeTarget);
-      }
-      this.chronicle = [];
-      this.yearEvents = [];
-      this.vowLabels = new Map();
-      this.councilLog = EMPTY_COUNCIL_LOG;
-      // O Reino e a preferência do ranking são da conta: outra conta (ou outro feudo) lê de novo.
+    const changedGame = changedAccount || beforeGame !== (target?.gameId ?? null);
+    if (changedGame) {
+      this.resetFief();
       this.stats = { status: 'idle' };
       this.statsReadAt = Number.NEGATIVE_INFINITY;
-      if (leftAccount) {
-        this.rankingListed = null;
+      if (beforeId !== null && changedAccount) {
+        // Sair, excluir, perder sessão ou trocar de conta também apaga os caches arquivados.
+        await clearAccountCaches(this.options.store, SERVER_KEY, beforeId);
+        await this.options.store.update(reminderKey(beforeId), undefined);
+        await this.options.store.update(fiefChoiceKey(beforeId), undefined);
+        await this.options.store.update(seasonHistoryKey(beforeId), undefined);
+        await this.newsRead.forget(beforeId);
       }
-      this.chronicleDocument = { status: 'idle' };
-      this.selectedChronicleYear = null;
-      this.yearChronicleDocument = { status: 'idle' };
-      this.yearChronicleRequest += 1;
-      this.report = null;
-      this.unseen = 0;
-      this.seasonChanges.clear();
-      this.dropSeasonToast();
-      this.dropCardToasts(() => true);
-      this.dropRaidToast();
-      this.dropWatchToast();
-      this.answering = new Set();
-      this.dropSiegeToast();
-      this.guildOrders = new Set();
-      this.reportAsked = null;
-      this.dropCrossroadsToasts(() => true);
-      // O "Tentar de novo" de uma ordem dada ao feudo anterior não fica para o seguinte.
-      this.dropRetryToasts();
-      await this.openGame();
+      await this.openGame(target);
+    }
+    if (
+      !changedAccount &&
+      before.kind !== 'signedOut' &&
+      state.kind !== 'signedOut' &&
+      before.gameId !== null &&
+      before.gameId !== state.gameId
+    ) {
+      // O servidor substituiu a partida pessoal, mesmo se a Temporada estiver à vista.
+      await this.session.clearCache({
+        serverKey: SERVER_KEY,
+        accountId: before.accountId,
+        gameId: before.gameId,
+      });
     }
     if (state.kind === 'signedOut') {
       this.opened = this.opened.filter((route) => route !== 'chronicle');
@@ -741,28 +855,25 @@ export class Controller {
         });
       }
       this.expectedSignOut = false;
-    } else if (state.gameId === null) {
-      this.route = 'welcome';
-    } else if (!sameGame) {
-      // Entrou em um feudo (por GitHub, Código do Reino ou "Jogar agora"): sai das boas-vindas.
+    } else if (changedGame && (this.route !== 'kingdom' || changedAccount)) {
       this.route = this.defaultRoute();
     }
     this.loadCatalogIfShown();
-    if (state.kind !== 'signedOut' && this.route === 'kingdom') {
-      void this.loadStats();
-    }
+    if (this.route === 'kingdom') void this.loadStats();
+    if (changedAccount || changedGame) this.refreshSeasonIfNeeded();
     this.changes.emit();
   }
 
-  /** Abre a sessão da partida ativa da conta, se houver. */
-  private async openGame(): Promise<void> {
-    const target = this.targetOf(this.account.state);
-    if (target === null) {
-      this.session.stop();
+  /** Abre só a partida à vista. A troca cancela o ciclo anterior e preserva seu cache. */
+  private async openGame(target: SessionTarget | null): Promise<void> {
+    const account = this.account.state;
+    if (target === null || account.kind === 'signedOut' || target.accountId !== account.accountId)
       return;
-    }
+    this.clearSeasonTimer();
     this.session.setVisible(this.visible);
-    await this.session.start(target);
+    const opening = this.session.start(target);
+    this.changes.emit();
+    await opening;
     if (this.session.connection.kind === 'online') {
       await this.loadRecentChronicle();
     }
@@ -777,6 +888,7 @@ export class Controller {
    */
   private async loadRecentChronicle(): Promise<void> {
     const gameId = this.session.gameId;
+    const opening = this.gameOpening;
     if (gameId === null || this.councilLog.status === 'loading') {
       return;
     }
@@ -785,7 +897,7 @@ export class Controller {
       const { entries } = await this.client.getChronicle(gameId, { limit: CHRONICLE_LOOKBACK });
       // A resposta só vale se a partida aberta ainda for a mesma: nada da conta anterior
       // aparece na seguinte.
-      if (this.session.gameId !== gameId) {
+      if (this.gameOpening !== opening || this.session.gameId !== gameId) {
         return;
       }
       // Os eventos que chegaram enquanto a leitura vinha ficam: a lista é a soma das duas.
@@ -802,7 +914,7 @@ export class Controller {
         complete: entries.length < CHRONICLE_LOOKBACK,
       };
     } catch (error) {
-      if (this.session.gameId !== gameId) {
+      if (this.gameOpening !== opening || this.session.gameId !== gameId) {
         return;
       }
       this.log(`Crônica indisponível: ${describeError(error).message}`);
@@ -1426,8 +1538,8 @@ export class Controller {
   private reportArrived(report: ReturnReport): void {
     this.report = report;
     this.unseen += report.highlights.length;
-    // Depois de uma ausência longa, o app abre na aba Hoje.
-    if (this.hasGame) {
+    // No Reino, o relatório espera em Hoje sem tirar a leitura da Temporada da tela.
+    if (this.hasGame && this.route !== 'kingdom') {
       this.route = 'today';
     }
     this.changes.emit();
@@ -1448,6 +1560,7 @@ export class Controller {
       this.toast({
         kind: 'info',
         icon: 'home',
+        game: true,
         text: `Você esteve fora por ${formatAway(report.awaySeconds)}. O Relatório de Retorno espera na aba Hoje.`,
         actions: [{ label: 'Ver', run: () => this.navigate('today') }],
       });
@@ -1466,7 +1579,16 @@ export class Controller {
       }
       return;
     }
-    // Partida arquivada ou inexistente: outro navegador começou um feudo novo. Confere a conta.
+    // O fecho pode barrar a visão antes de o job arquivar a partida.
+    if (
+      this.session.gameId !== null &&
+      this.session.gameId === this.seasonFief &&
+      (code === 'CONFLICT' || code === 'NOT_FOUND')
+    ) {
+      this.unavailableSeasonGame = this.session.gameId;
+      this.enqueue(() => this.accountChanged(this.account.state));
+      void this.loadSeason();
+    }
     void this.revalidateAccount();
   }
 
@@ -1590,6 +1712,7 @@ export class Controller {
     turn: number,
   ): Promise<boolean> {
     const intents = options.intents ?? [];
+    const opening = this.gameOpening;
     if (options.busy?.() === true) {
       return false;
     }
@@ -1598,6 +1721,7 @@ export class Controller {
       await action();
       return true;
     } catch (error) {
+      if (intents.length > 0 && opening !== this.gameOpening) return false;
       const { code, message } = describeError(error);
       if (code === 'UPGRADE_REQUIRED') {
         // Uma ordem que não foi aceita sempre tem resposta na tela, mesmo que o aviso do ciclo
@@ -1606,7 +1730,7 @@ export class Controller {
         this.askToReload();
       } else if (isGameRuleError(error) || error instanceof StaleOrderError) {
         // A ordem de outro feudo não tem "Tentar de novo": repetir não a faria valer aqui.
-        this.toast({ kind: 'warning', text: message });
+        this.toast({ kind: 'warning', text: message, game: intents.length > 0 });
       } else if (code === 'NETWORK') {
         this.toast({
           kind: 'error',
@@ -1618,6 +1742,16 @@ export class Controller {
               label: 'Tentar de novo',
               run: async () => {
                 // Uma tentativa mais nova de alguma das intenções já tomou o lugar desta.
+                if (opening !== this.gameOpening) {
+                  if (intents.length > 0) {
+                    this.toast({
+                      kind: 'warning',
+                      text: new StaleOrderError().message,
+                      game: true,
+                    });
+                  }
+                  return;
+                }
                 if (intents.every((intent) => this.intentTurns.get(intent) === turn)) {
                   await this.runAttempt(action, options, turn);
                 }
@@ -1626,7 +1760,7 @@ export class Controller {
           ],
         });
       } else {
-        this.toast({ kind: 'error', text: message });
+        this.toast({ kind: 'error', text: message, game: intents.length > 0 });
       }
       return false;
     }
@@ -1698,6 +1832,11 @@ export class Controller {
       });
       this.pendingSeed = null;
       this.openSeedField = false;
+      if (this.fiefChoice === 'season') {
+        this.fiefChoice = 'personal';
+        await this.options.store.update(fiefChoiceKey(result.accountId), 'personal');
+        this.enqueue(() => this.accountChanged(this.account.state));
+      }
       return result;
     });
   }
@@ -1760,9 +1899,10 @@ export class Controller {
   ): () => Promise<void> {
     const commandId = (this.options.randomUUID ?? randomUUID)();
     const command = { commandId, type, payload } as Command;
-    const origin = this.session.targetKey;
+    const origin = this.gameOpening;
+    const target = this.session.targetKey;
     return async () => {
-      if (this.session.targetKey !== origin) {
+      if (this.gameOpening !== origin || this.session.targetKey !== target) {
         throw new StaleOrderError();
       }
       await this.send(command);
@@ -1805,6 +1945,7 @@ export class Controller {
     };
     const attempted = await this.attempt(async () => {
       answered = false;
+      const opening = this.gameOpening;
       this.setAnswering(instanceId, true);
       try {
         await send();
@@ -1820,7 +1961,7 @@ export class Controller {
           text: 'A sessão terminou antes de a resposta chegar ao conselho. A carta continua à espera: entre de novo para decidir.',
         });
       } finally {
-        this.setAnswering(instanceId, false);
+        if (this.gameOpening === opening) this.setAnswering(instanceId, false);
       }
     }, options);
     return attempted && answered;
@@ -1870,6 +2011,7 @@ export class Controller {
         });
         return;
       }
+      const opening = this.gameOpening;
       this.setGuildOrder(key, true);
       try {
         await send();
@@ -1884,7 +2026,7 @@ export class Controller {
           text: `A sessão terminou antes de a ordem chegar ${where}: nada foi feito. Entre de novo para repetir.`,
         });
       } finally {
-        this.setGuildOrder(key, false);
+        if (this.gameOpening === opening) this.setGuildOrder(key, false);
       }
     }, options);
     return attempted && done;
@@ -2365,6 +2507,7 @@ export class Controller {
    */
   async loadChronicle(): Promise<string | null> {
     const gameId = this.session.gameId;
+    const opening = this.gameOpening;
     if (gameId === null) {
       this.chronicleDocument = { status: 'idle' };
       return null;
@@ -2375,7 +2518,7 @@ export class Controller {
     }
     try {
       const markdown = await this.client.getChronicleMarkdown(gameId, { links: true });
-      if (this.session.gameId !== gameId) {
+      if (this.gameOpening !== opening || this.session.gameId !== gameId) {
         // O jogador saiu ou trocou de feudo enquanto a Crônica vinha: ela não é mais a dele.
         return null;
       }
@@ -2383,7 +2526,7 @@ export class Controller {
       this.changes.emit();
       return markdown;
     } catch (error) {
-      if (this.session.gameId !== gameId) {
+      if (this.gameOpening !== opening || this.session.gameId !== gameId) {
         return null;
       }
       this.chronicleDocument = { status: 'error', message: describeError(error).message };
@@ -2454,6 +2597,279 @@ export class Controller {
     } catch (error) {
       this.server = { status: 'error', message: describeError(error).message };
     }
+    this.changes.emit();
+  }
+
+  private seasonDeadline(): number {
+    if (this.currentSeason.status !== 'ready') return Number.POSITIVE_INFINITY;
+    const { season } = this.currentSeason.value;
+    if (season.status === 'closed' || (this.route !== 'kingdom' && this.seasonFief === null)) {
+      return Number.POSITIVE_INFINITY;
+    }
+    const ends = Date.parse(season.endsAt);
+    const joinEnds = Date.parse(season.joinEndsAt);
+    const now = this.now();
+    if (this.route === 'kingdom' && season.joinOpen && joinEnds > now) return joinEnds;
+    return ends > now ? ends : Number.POSITIVE_INFINITY;
+  }
+
+  private clearSeasonTimer(): void {
+    if (this.seasonTimer !== null) {
+      clearTimeout(this.seasonTimer);
+      this.seasonTimer = null;
+    }
+  }
+
+  private refreshSeasonIfNeeded(): void {
+    if (!this.visible || this.account.state.kind === 'signedOut') return;
+    const current = this.currentSeason.status === 'ready' ? this.currentSeason.value.season : null;
+    if (
+      this.route === 'kingdom' ||
+      (this.seasonFief !== null && (current === null || this.now() >= Date.parse(current.endsAt)))
+    ) {
+      void this.loadSeason();
+    }
+  }
+
+  loadSeason(): Promise<void> {
+    const account = this.account.state;
+    if (account.kind === 'signedOut') return Promise.resolve();
+    if (this.seasonRead !== null) return this.seasonRead;
+    this.clearSeasonTimer();
+    const opening = this.accountOpening;
+    const read = this.readSeason(account.accountId, opening).finally(() => {
+      if (this.seasonRead !== read) return;
+      this.seasonRead = null;
+      this.session.deadlineChanged();
+      // O Reino também abre para quem ainda não tem feudo, sem ciclo de /view.
+      if (this.visible && this.route === 'kingdom' && this.session.gameId === null) {
+        const delay = Math.max(
+          2000,
+          Math.min(pollIntervalMs(true), this.seasonDeadline() - this.now() + 1000),
+        );
+        this.seasonTimer = setTimeout(() => this.refreshSeasonIfNeeded(), delay);
+        (this.seasonTimer as { unref?: () => void }).unref?.();
+      }
+    });
+    this.seasonRead = read;
+    return read;
+  }
+
+  private async readSeason(accountId: string, opening: number): Promise<void> {
+    const stillHere = () => {
+      const account = this.account.state;
+      return (
+        this.accountOpening === opening &&
+        account.kind !== 'signedOut' &&
+        account.accountId === accountId
+      );
+    };
+    if (this.currentSeason.status !== 'ready') {
+      this.currentSeason = { status: 'loading' };
+      this.changes.emit();
+    }
+    let value: CurrentSeasonResponse;
+    try {
+      value = await this.client.getCurrentSeason();
+    } catch (error) {
+      if (stillHere() && this.currentSeason.status !== 'ready') {
+        this.currentSeason = {
+          status: 'error',
+          message:
+            error instanceof ApiClientError && error.status === 404
+              ? 'As Temporadas ainda não chegaram a este reino.'
+              : describeError(error).message,
+        };
+        this.changes.emit();
+      }
+      return;
+    }
+    if (!stillHere()) return;
+    const old = this.currentSeason.status === 'ready' ? this.currentSeason.value.season : null;
+    this.currentSeason = { status: 'ready', value };
+    if (old !== null && old.id !== value.season.id) {
+      this.seasonJoinError = null;
+      this.seasonChronicle = null;
+    }
+    if (value.game !== null) await this.account.rememberSeasonGame(accountId, value.game);
+    if (!stillHere()) return;
+    if (this.session.gameId !== (this.targetOf(this.account.state)?.gameId ?? null)) {
+      this.enqueue(() => this.accountChanged(this.account.state));
+    }
+    this.changes.emit();
+
+    const { season } = value;
+    const key = seasonHistoryKey(accountId);
+    const history = this.options.store.get<SeasonHistory>(key);
+    const latest = { id: season.id, at: season.startsAt };
+    const previous = history?.latest?.id === latest.id ? history.previous : history?.latest;
+    const published = history?.published;
+    const remembered: SeasonHistory = {
+      latest,
+      ...(previous === undefined ? {} : { previous }),
+      ...(published === undefined ? {} : { published }),
+    };
+    if (history?.latest?.id !== latest.id) await this.options.store.update(key, remembered);
+    if (!stillHere() || this.route !== 'kingdom') return;
+    if (this.catalog.status === 'idle') void this.loadCatalog();
+
+    const state = this.account.state;
+    const known = state.kind === 'signedOut' ? [] : (state.seasonGames ?? []);
+    const candidates =
+      season.status === 'closed'
+        ? [latest]
+        : [
+            ...(previous === undefined ? [] : [previous]),
+            ...(published === undefined ? [] : [published]),
+            ...known.map((game) => ({ id: game.seasonId, at: game.createdAt })),
+          ]
+            .filter((item) => item.id !== latest.id && Date.parse(item.at) < Date.parse(latest.at))
+            .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+    if (candidates.length === 0) {
+      this.seasonRanking = { status: 'idle' };
+      this.changes.emit();
+      return;
+    }
+    if (
+      this.seasonRanking.status !== 'ready' ||
+      (season.status === 'closed' && this.seasonRanking.value.season.id !== season.id)
+    ) {
+      this.seasonRanking = { status: 'loading' };
+      this.changes.emit();
+    }
+    try {
+      for (const id of new Set(candidates.map((item) => item.id))) {
+        const ranking = await this.client.getLeaderboard(id);
+        if (!stillHere()) return;
+        if (ranking.published) {
+          this.seasonRanking = { status: 'ready', value: ranking };
+          if (published?.id !== id) {
+            await this.options.store.update(key, {
+              ...remembered,
+              published: { id, at: ranking.season.startsAt },
+            });
+          }
+          if (!stillHere()) return;
+          this.changes.emit();
+          return;
+        }
+      }
+      if (stillHere()) this.seasonRanking = { status: 'idle' };
+    } catch (error) {
+      if (!stillHere()) return;
+      this.seasonRanking = { status: 'error', message: describeError(error).message };
+    }
+    this.changes.emit();
+  }
+
+  async joinSeason(seasonId: string, settlementName: string): Promise<void> {
+    const state = this.account.state;
+    const opening = this.accountOpening;
+    if (state.kind === 'signedOut' || this.joiningSeason) return;
+    this.joiningSeason = true;
+    this.seasonJoinError = null;
+    this.changes.emit();
+    const stillHere = () => {
+      const account = this.account.state;
+      return (
+        this.accountOpening === opening &&
+        account.kind !== 'signedOut' &&
+        account.accountId === state.accountId
+      );
+    };
+    try {
+      await this.loadSeason();
+      if (!stillHere()) return;
+      if (
+        this.currentSeason.status !== 'ready' ||
+        this.currentSeason.value.season.id !== seasonId
+      ) {
+        this.seasonJoinError = 'A semana mudou. Confira a Temporada antes de entrar.';
+        return;
+      }
+      const current = this.currentSeason.value;
+      if (current.joined) {
+        this.seasonJoinError = 'Você já tem um feudo nesta Temporada.';
+        return;
+      }
+      if (!current.season.joinOpen) {
+        this.seasonJoinError =
+          current.season.status === 'closed'
+            ? 'Esta Temporada já terminou.'
+            : 'As inscrições desta Temporada foram encerradas.';
+        return;
+      }
+      const { game } = await this.client.joinCurrentSeason({
+        settlementName: settlementName.trim(),
+        ...this.gameDefaults(),
+      });
+      if (!stillHere()) return;
+      this.fiefChoice = 'season';
+      await this.options.store.update(fiefChoiceKey(state.accountId), 'season');
+      if (!stillHere()) return;
+      await this.account.rememberSeasonGame(state.accountId, game);
+      await this.settled();
+      if (stillHere()) this.navigate('fief');
+    } catch (error) {
+      if (!stillHere()) return;
+      const { code, message } = describeError(error);
+      const details = error instanceof ApiClientError ? error.details : null;
+      const reason =
+        typeof details === 'object' && details !== null && 'reason' in details
+          ? details.reason
+          : code;
+      this.seasonJoinError =
+        reason === 'SEASON_JOIN_CLOSED'
+          ? 'As inscrições desta Temporada foram encerradas.'
+          : reason === 'SEASON_CLOSED'
+            ? 'Esta Temporada já terminou.'
+            : code === 'ACTIVE_GAME_EXISTS'
+              ? 'Você já tem um feudo nesta Temporada.'
+              : message;
+    } finally {
+      if (stillHere()) {
+        this.joiningSeason = false;
+        this.changes.emit();
+        void this.loadSeason();
+      }
+    }
+  }
+
+  async openSeasonChronicle(position: number): Promise<void> {
+    if (this.route !== 'kingdom' || this.seasonRanking.status !== 'ready') return;
+    const ranking = this.seasonRanking.value;
+    const entry = ranking.entries.find(
+      (row) => row.position === position && row.chronicleAvailable,
+    );
+    if (entry === undefined) return;
+    const selected = {
+      seasonId: ranking.season.id,
+      position,
+      name: entry.settlementName,
+      document: { status: 'loading' } as Loadable<SeasonChronicleResponse>,
+    };
+    this.seasonChronicle = selected;
+    this.changes.emit();
+    try {
+      const value = await this.client.getSeasonChronicle(selected.seasonId, position);
+      selected.document = { status: 'ready', value };
+    } catch (error) {
+      const status = error instanceof ApiClientError ? error.status : null;
+      selected.document = {
+        status: 'error',
+        message:
+          status === 403
+            ? 'Só quem disputou esta Temporada pode ler suas Crônicas.'
+            : status === 404
+              ? 'A Crônica deste feudo não está mais disponível nesta posição.'
+              : describeError(error).message,
+      };
+    }
+    if (this.seasonChronicle === selected) this.changes.emit();
+  }
+
+  closeSeasonChronicle(): void {
+    this.seasonChronicle = null;
     this.changes.emit();
   }
 

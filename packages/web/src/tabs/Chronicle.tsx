@@ -133,12 +133,13 @@ export function ChronicleTab(props: {
   );
 }
 
-function ChronicleDocument(props: {
+export function ChronicleDocument(props: {
   document: Loadable<string>;
   reports?: ReadonlySet<string>;
   actions: Actions;
   retry: () => void;
   annual: boolean;
+  embedded?: boolean;
 }) {
   const { document: chronicle, actions } = props;
   if (chronicle.status === 'error') {
@@ -201,9 +202,17 @@ function ChronicleDocument(props: {
               </div>
             );
           case 'title':
-            return <h1 key={index}>{block.text}</h1>;
+            return props.embedded ? (
+              <h4 key={index}>{block.text}</h4>
+            ) : (
+              <h1 key={index}>{block.text}</h1>
+            );
           case 'heading':
-            return <h2 key={index}>{block.text}</h2>;
+            return props.embedded ? (
+              <h5 key={index}>{block.text}</h5>
+            ) : (
+              <h2 key={index}>{block.text}</h2>
+            );
           case 'list':
             return (
               <ul key={index}>

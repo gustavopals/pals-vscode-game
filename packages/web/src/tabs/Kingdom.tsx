@@ -3,6 +3,7 @@ import type { StatsResponse } from '@lotg/protocol';
 import type { Loadable } from '../app/controller';
 import type { Actions } from '../components/actions';
 import { Icon } from '../components/shared';
+import { SeasonCard, type SeasonCardProps } from '../components/SeasonCard';
 import {
   fiefFacts,
   gapBefore,
@@ -137,6 +138,7 @@ function Mine(props: { stats: StatsResponse; actions: Actions }) {
 export function KingdomTab(props: {
   stats: Loadable<StatsResponse>;
   signedIn: boolean;
+  season?: Omit<SeasonCardProps, 'actions'>;
   actions: Actions;
 }) {
   const { stats, actions } = props;
@@ -146,6 +148,9 @@ export function KingdomTab(props: {
         <Icon name="graph" /> Reino
       </h1>
       <p class="lead">Os feudos de todo o reino, lado a lado.</p>
+      {props.signedIn && props.season !== undefined ? (
+        <SeasonCard {...props.season} actions={actions} />
+      ) : null}
       {!props.signedIn ? (
         <p>Entre no jogo para ver o reino e o ranking de ouro.</p>
       ) : stats.status === 'ready' ? (

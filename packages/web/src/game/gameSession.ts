@@ -284,6 +284,7 @@ export class GameSession {
   private cache: GameCache | null = null;
   private connectionState: Connection = { kind: 'online' };
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private pollAt = Number.POSITIVE_INFINITY;
   private visible = false;
   private syncing: Promise<void> | null = null;
   private generation = 0;
@@ -337,7 +338,12 @@ export class GameSession {
   readonly onProblem = this.problems.on;
 
   constructor(
-    private readonly deps: { client: Client; store: KeyValueStore; now?: () => number },
+    private readonly deps: {
+      client: Client;
+      store: KeyValueStore;
+      now?: () => number;
+      deadline?: () => number;
+    },
   ) {}
 
   private now(): number {
@@ -598,7 +604,9 @@ export class GameSession {
    * servidor tempo de virar o prazo.
    */
   private nextPollMs(): number {
-    const poll = pollIntervalMs(this.visible);
+    const poll = this.visible
+      ? Math.min(pollIntervalMs(true), this.deadlinePollMs())
+      : pollIntervalMs(false);
     const view = this.cache?.view;
     if (!this.visible || view === undefined) {
       return poll;
@@ -635,6 +643,19 @@ export class GameSession {
       Number.POSITIVE_INFINITY,
     );
     return Math.max(MIN_POLL_MS, Math.min(poll, (soonest + 1) * 1000));
+  }
+
+  private deadlinePollMs(): number {
+    const left = (this.deps.deadline?.() ?? Number.POSITIVE_INFINITY) - this.now();
+    return Math.max(MIN_POLL_MS, left + 1000);
+  }
+
+  /** Um prazo da conta chegou depois da visão. Só antecipa o ciclo já marcado. */
+  deadlineChanged(): void {
+    if (this.visible && this.connection.kind === 'online' && this.timer !== null) {
+      const delay = this.deadlinePollMs();
+      if (this.now() + delay < this.pollAt) this.schedule(delay);
+    }
   }
 
   private isServerTrouble(error: unknown): boolean {
@@ -774,6 +795,7 @@ export class GameSession {
       const result = await this.deps.client.sendCommand(target.gameId, command, {
         stateVersion: this.cache?.stateVersion ?? null,
       });
+      if (this.target !== target) throw new StaleOrderError();
       if (result.replayed) {
         // Recibo de uma ordem antiga: a visão dele pode estar no passado. Lê a atual.
         await this.syncNow();
@@ -781,6 +803,7 @@ export class GameSession {
       }
       await this.adopt(target, result.view, result.stateVersion, result.events);
     } catch (error) {
+      if (this.target !== target) throw error;
       if (isGameRuleError(error)) {
         if (error.replayed) {
           await this.syncNow();
@@ -878,6 +901,7 @@ export class GameSession {
   private schedule(delayMs: number): void {
     this.clearTimer();
     const generation = this.generation;
+    this.pollAt = this.now() + delayMs;
     this.timer = setTimeout(() => {
       if (generation === this.generation) {
         void this.syncNow();

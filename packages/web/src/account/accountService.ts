@@ -1,5 +1,10 @@
 import type { Client } from '@lotg/client-sdk';
-import type { Account, AccountConflictDetails, CreateGameRequest } from '@lotg/protocol';
+import type {
+  Account,
+  AccountConflictDetails,
+  CreateGameRequest,
+  GameSummary,
+} from '@lotg/protocol';
 
 import { Emitter, type KeyValueStore } from '../services/store';
 import { type ConflictChoice, linkOrSignInWithGithub } from './githubLink';
@@ -13,11 +18,13 @@ export type AccountState =
       accountId: string;
       displayName: string;
       hasRecoveryCode: boolean;
-      /** Partida ativa; `null` quando a conta ainda não fundou um feudo. */
+      /** Partida pessoal ativa; `null` quando a conta ainda não fundou um feudo pessoal. */
       gameId: string | null;
+      seasonGames?: SeasonGame[];
     };
 
 export type SignedInState = Exclude<AccountState, { kind: 'signedOut' }>;
+type SeasonGame = Pick<GameSummary, 'id' | 'status' | 'createdAt'> & { seasonId: string };
 
 /**
  * O que funda um feudo. `difficulty` e `timeScale` só vêm quando o jogador viu as opções do
@@ -50,13 +57,20 @@ export function gameRequest(input: NewGameInput, replaceActive = false): CreateG
   };
 }
 
-function stateOf(account: Account, gameId: string | null): SignedInState {
+function seasonGame(game: GameSummary): SeasonGame[] {
+  const { id, status, seasonId, createdAt } = game;
+  return seasonId == null ? [] : [{ id, status, seasonId, createdAt }];
+}
+
+function stateOf(account: Account, games: GameSummary[] = []): SignedInState {
+  const seasonGames = games.flatMap(seasonGame).slice(0, 2);
   return {
     kind: account.linked.github ? 'linked' : 'anonymous',
     accountId: account.id,
     displayName: account.displayName,
     hasRecoveryCode: account.hasRecoveryCode,
-    gameId,
+    gameId: games.find((game) => game.status === 'active' && game.seasonId == null)?.id ?? null,
+    ...(seasonGames.length === 0 ? {} : { seasonGames }),
   };
 }
 
@@ -113,27 +127,20 @@ export class AccountService {
     return this.current;
   }
 
-  private async activeGameId(): Promise<string | null> {
-    const games = await this.deps.client.listGames();
-    // Com a Fase G a conta pode ter duas ativas (D-25): a pessoal e a da Temporada. Até o
-    // seletor da V5G-T3, a aba segue só a pessoal (`seasonId` nulo ou ausente).
-    return games.find((game) => game.status === 'active' && game.seasonId == null)?.id ?? null;
-  }
-
-  /** Confere a conta e a partida ativa com o servidor. */
+  /** Confere a conta e suas partidas com o servidor. */
   async sync(): Promise<AccountState> {
     if (this.current.kind === 'signedOut') {
       return this.current;
     }
     const before = this.current;
     const account = await this.deps.client.getMe();
-    const gameId = await this.activeGameId();
+    const games = await this.deps.client.listGames();
     // Enquanto o servidor respondia, o jogador pode ter saído ou trocado de conta: a resposta
     // é da conta antiga e não pode ser gravada por cima.
     if (this.current !== before) {
       return this.current;
     }
-    await this.set(stateOf(account, gameId));
+    await this.set(stateOf(account, games));
     return this.current;
   }
 
@@ -148,7 +155,7 @@ export class AccountService {
         displayName: input.displayName.trim(),
         deviceLabel: this.deps.deviceLabel,
       });
-      state = stateOf(auth.account, null);
+      state = stateOf(auth.account);
       // A conta já existe: guardar agora evita criar outra se a fundação do feudo falhar.
       await this.set(state);
     }
@@ -169,13 +176,27 @@ export class AccountService {
     return signedIn;
   }
 
+  /** Adota a partida que a leitura ou a entrada na Temporada devolveu e avisa as outras abas. */
+  async rememberSeasonGame(accountId: string, game: GameSummary): Promise<void> {
+    const state = this.current;
+    if (state.kind === 'signedOut' || state.accountId !== accountId) return;
+    const [entry] = seasonGame(game);
+    if (entry === undefined) return;
+    const seasons = state.seasonGames ?? [];
+    if (seasons.some((known) => known.id === entry.id && known.status === entry.status)) return;
+    const seasonGames = [entry, ...seasons.filter((known) => known.seasonId !== entry.seasonId)]
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .slice(0, 2);
+    await this.set({ ...state, seasonGames });
+  }
+
   /** Entra em outra máquina com o Código do Reino. */
   async signInWithRecoveryCode(code: string): Promise<SignedInState> {
     const auth = await this.deps.client.recover({
       code: normalizeRecoveryCode(code),
       deviceLabel: this.deps.deviceLabel,
     });
-    const state = stateOf(auth.account, await this.activeGameId());
+    const state = stateOf(auth.account, await this.deps.client.listGames());
     await this.set(state);
     return state;
   }
@@ -197,7 +218,7 @@ export class AccountService {
     if (response === null) {
       return null;
     }
-    const state = stateOf(response.account, await this.activeGameId());
+    const state = stateOf(response.account, await this.deps.client.listGames());
     await this.set(state);
     return state;
   }

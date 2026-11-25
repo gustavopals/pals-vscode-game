@@ -140,7 +140,7 @@ export function SettingsTab(props: {
           <p class="muted hint">
             {props.ranking.listed === null
               ? 'Consultando o reino…'
-              : 'Na aba Reino, todos os jogadores veem o nome do seu feudo e o ouro dele. O nome da sua conta não aparece, nem nada além disso. Vale para todos os feudos desta conta, em qualquer navegador; os totais do reino contam com você mesmo fora do ranking, sem nome.'}
+              : 'O ranking de ouro mostra o nome do seu feudo e o ouro dele. O da Temporada publica a pontuação, o Cerco e os Feitos. Quem disputou a mesma semana pode ler a Crônica anual dos feudos listados. Esta escolha vale para todos os seus feudos.'}
           </p>
         </fieldset>
       )}

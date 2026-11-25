@@ -505,6 +505,7 @@ export const LeaderboardEntrySchema = z.strictObject({
   settlementName: z.string(),
   score: count,
   siegeOutcome: z.string(),
+  siegeOutcomeText: z.string().optional(),
   feats: count,
   mine: z.boolean(),
   chronicleAvailable: z.boolean(),
