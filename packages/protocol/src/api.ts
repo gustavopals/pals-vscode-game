@@ -370,7 +370,7 @@ export type VersionResponse = z.infer<typeof VersionResponseSchema>;
 
 const count = z.number().int().nonnegative();
 
-/** `GET` e `PUT /v1/me/ranking`: se os feudos da conta aparecem no ranking de ouro. */
+/** `GET` e `PUT /v1/me/ranking`: se os feudos da conta aparecem nos rankings. */
 export const RankingPreferenceSchema = z.strictObject({ listed: z.boolean() });
 export type RankingPreference = z.infer<typeof RankingPreferenceSchema>;
 
@@ -496,3 +496,41 @@ export const JoinSeasonResponseSchema = z.strictObject({
   game: GameSummarySchema,
 });
 export type JoinSeasonResponse = z.infer<typeof JoinSeasonResponseSchema>;
+
+/** `GET /v1/leaderboard?season=<id>`: identifica a Temporada pelo UUID público. */
+export const LeaderboardQuerySchema = z.strictObject({ season: z.uuid() });
+
+export const LeaderboardEntrySchema = z.strictObject({
+  position: z.number().int().positive(),
+  settlementName: z.string(),
+  score: count,
+  siegeOutcome: z.string(),
+  feats: count,
+  mine: z.boolean(),
+  chronicleAvailable: z.boolean(),
+});
+export type LeaderboardEntry = z.infer<typeof LeaderboardEntrySchema>;
+
+export const LeaderboardResponseSchema = z.strictObject({
+  season: SeasonSummarySchema,
+  published: z.boolean(),
+  entries: z.array(LeaderboardEntrySchema),
+  me: z.strictObject({
+    position: LeaderboardEntrySchema.shape.position.nullable(),
+    listed: z.boolean(),
+  }),
+});
+export type LeaderboardResponse = z.infer<typeof LeaderboardResponseSchema>;
+
+/** `GET /v1/seasons/:id/chronicles/:position`: Crônica do Ano 1 do feudo listado. */
+export const SeasonChronicleParamsSchema = z.strictObject({
+  id: z.uuid(),
+  position: z.coerce.number().int().positive(),
+});
+
+export const SeasonChronicleResponseSchema = z.strictObject({
+  settlementName: z.string(),
+  position: LeaderboardEntrySchema.shape.position,
+  markdown: z.string(),
+});
+export type SeasonChronicleResponse = z.infer<typeof SeasonChronicleResponseSchema>;

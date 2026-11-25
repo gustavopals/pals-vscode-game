@@ -841,6 +841,8 @@ Após o cerco, até o fim do inverno: reparos com desconto, luto (moral −10 po
 
 Com o progresso no servidor, o calendário pode ser **compartilhado**. Toda segunda-feira às **00:00 de Brasília** (`America/Sao_Paulo`, mostrado na tela; o servidor usa UTC−3 fixo, porque o Brasil não tem horário de verão desde 2019) o servidor abre uma **Temporada**: semente única (escondida até o ranking fechar, ADR 0022, D-27), **ritmo Rápido (3×) e dificuldade Senhor** iguais para todos, mesmo mapa, mesmas cartas elegíveis e mesma Horda base; entrada aberta até terça-feira e ranking publicado no domingo às 23:59 (ADR 0022, D-26). Quem entra joga o Ano 1, a pontuação vai para um **ranking da semana** (pelo nome do feudo, respeitando a saída do ranking do [ADR 0021](docs/decisions/0021-estatisticas-e-ranking.md)), e só a Crônica do Ano fechada de quem está listado pode ser lida por quem está na mesma Temporada (ADR 0022, D-28). A partida pessoal e a da Temporada coexistem ativas com seletor na tela, e a da Temporada é arquivada ao fechar o ranking (ADR 0022, D-25). Não há interação entre feudos: é a mesma prova, não a mesma arena.
 
+O ranking mostra a pontuação, o resultado do Cerco e a quantidade de Feitos do Ano 1. Feudos que ficam com o ano em aberto ficam fora do ranking. Empates favorecem a fundação mais antiga e seguem uma ordem fixa entre fundações simultâneas. Se uma conta sair do ranking, sua linha e sua Crônica somem e a posição fica vaga. O expurgo definitivo de uma conta pode alterar as posições seguintes.
+
 ---
 
 ## 12. Dificuldade, objetivos e tutorial
@@ -1144,7 +1146,8 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 | `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor. As viradas de dia e o fecho diário do desperdício não entram na Crônica; continuam em `GET /events` (ADRs [0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md) e [0015](docs/decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md)) | sessão |
 | `GET /catalog` | Catálogos estáticos de conteúdo (ETag e `304`). **Passa a existir na v0.2**, com as opções de nova partida: `{ contentHash, newGame: { difficulties: [{ id, label, description, recommended }], paces: [{ timeScale, label, description, hint, recommended }], defaults: { difficulty, timeScale } } }` ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 2a). `recommended` é a marca do conteúdo (Senhor e Rápido); `defaults` é o que as boas-vindas trazem marcado: `lord` e o `GAME_TIME_SCALE` do servidor quando ele é um dos ritmos oferecidos (senão, o recomendado). Os fatores de regra de cada dificuldade não saem no catálogo. Não existia na v0.1, em que o `ViewState` já trazia tudo o que o app exibia | — |
 | `GET /health` · `GET /version` | Saúde (inclui o banco) · versão do servidor, hash do conteúdo e o que está ligado (`features.githubDevice`, verdadeiro quando há `GITHUB_CLIENT_ID`; [ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md)) | — |
-| `GET /seasons/current` · `GET /leaderboard?season=` | Temporada da semana e ranking `[v0.5]` | — |
+| `GET /seasons/current` · `GET /leaderboard?season=<id>` | Temporada da semana e ranking `[v0.5]` | sessão |
+| `GET /seasons/:id/chronicles/:position` | Crônica do Ano 1 do feudo listado naquela posição `[v0.5]` | sessão de participante |
 
 Regras:
 

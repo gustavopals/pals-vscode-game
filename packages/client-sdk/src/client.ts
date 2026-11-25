@@ -35,10 +35,14 @@ import {
   type JoinSeasonRequest,
   type JoinSeasonResponse,
   JoinSeasonResponseSchema,
+  type LeaderboardResponse,
+  LeaderboardResponseSchema,
   ListGamesResponseSchema,
   PROTOCOL_VERSION,
   type RankingPreference,
   RankingPreferenceSchema,
+  type SeasonChronicleResponse,
+  SeasonChronicleResponseSchema,
   type StatsResponse,
   StatsResponseSchema,
   TokenPairSchema,
@@ -422,11 +426,11 @@ export function createClient(options: ClientOptions) {
       return stats.me.legacy === undefined ? { ...stats, me: { ...stats.me, legacy: 0 } } : stats;
     },
 
-    /** Se os feudos desta conta aparecem no ranking de ouro. */
+    /** Se os feudos desta conta aparecem nos rankings de ouro e da Temporada. */
     getRankingPreference: (): Promise<RankingPreference> =>
       get(RankingPreferenceSchema, '/me/ranking'),
 
-    /** Sai do ranking de ouro (`false`) ou volta a ele; vale para todos os feudos da conta. */
+    /** Sai dos rankings (`false`) ou volta a eles. Vale para todos os feudos da conta. */
     setRankingListed: (listed: boolean): Promise<RankingPreference> =>
       json(RankingPreferenceSchema, 'PUT', '/me/ranking', {
         auth: true,
@@ -457,6 +461,17 @@ export function createClient(options: ClientOptions) {
      */
     joinCurrentSeason: (input: JoinSeasonRequest): Promise<JoinSeasonResponse> =>
       json(JoinSeasonResponseSchema, 'POST', '/seasons/current/join', { auth: true, body: input }),
+
+    /** Ranking do Ano 1 da Temporada. As posições só saem após a publicação. */
+    getLeaderboard: (seasonId: string): Promise<LeaderboardResponse> =>
+      get(LeaderboardResponseSchema, `/leaderboard?season=${encodeURIComponent(seasonId)}`),
+
+    /** Crônica anual publicada na posição do ranking, para quem jogou a mesma Temporada. */
+    getSeasonChronicle: (seasonId: string, position: number): Promise<SeasonChronicleResponse> =>
+      get(
+        SeasonChronicleResponseSchema,
+        `/seasons/${encodeURIComponent(seasonId)}/chronicles/${position}`,
+      ),
 
     /** Lê o estado da partida. Com o `etag` da última leitura, um corpo igual volta como 304. */
     getView: async (gameId: string, known: { etag?: string | null } = {}): Promise<ViewResult> => {

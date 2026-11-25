@@ -11,6 +11,7 @@ import { and, eq, gt, lte, notInArray, sql } from 'drizzle-orm';
 
 import { notFound } from '../api-error';
 import type { AppContext } from '../context';
+import type { Tx } from '../db/client';
 import { gameEvents } from '../db/schema';
 import { withGameReading } from './service';
 
@@ -168,6 +169,27 @@ export function buildYearChronicleMarkdown(
   return lines.join('\n');
 }
 
+/** Eventos visíveis de um ano já autorizado, entre as sequências dos dois fechos. */
+export async function readYearChronicleRows(
+  tx: Tx,
+  gameId: string,
+  endSeq: number,
+  startSeq = 0,
+): Promise<YearChronicleRow[]> {
+  return tx
+    .select({ kind: gameEvents.kind, payload: gameEvents.payload })
+    .from(gameEvents)
+    .where(
+      and(
+        eq(gameEvents.gameId, gameId),
+        gt(gameEvents.seq, startSeq),
+        lte(gameEvents.seq, endSeq),
+        notInArray(gameEvents.kind, [...CHRONICLE_HIDDEN_EVENT_TYPES]),
+      ),
+    )
+    .orderBy(gameEvents.seq);
+}
+
 /**
  * Lê os eventos do ano de uma partida autorizada e monta a Crônica do Ano em Markdown.
  * Lança 404 se a Crônica do ano pedido ainda não foi publicada (evento yearEnded ausente).
@@ -211,20 +233,7 @@ export async function readYearChronicleMarkdown(
       startSeq = prevYearEnded?.seq ?? 0;
     }
 
-    const endSeq = yearEndedRow.seq;
-
-    const rows = await tx
-      .select()
-      .from(gameEvents)
-      .where(
-        and(
-          eq(gameEvents.gameId, reading.game.id),
-          gt(gameEvents.seq, startSeq),
-          lte(gameEvents.seq, endSeq),
-          notInArray(gameEvents.kind, [...CHRONICLE_HIDDEN_EVENT_TYPES]),
-        ),
-      )
-      .orderBy(gameEvents.seq);
+    const rows = await readYearChronicleRows(tx, reading.game.id, yearEndedRow.seq, startSeq);
 
     return buildYearChronicleMarkdown(
       reading.state.settlement.name,

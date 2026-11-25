@@ -798,6 +798,54 @@ describe('demais chamadas', () => {
     expect(calls[1]?.headers.authorization).toBe('Bearer jwt-velho');
   });
 
+  it('lê o ranking e a Crônica da Temporada com autenticação e validação do protocolo', async () => {
+    const seasonId = '22222222-2222-4222-8222-222222222222';
+    const chronicle = { position: 1, settlementName: 'Vigia do Sul', markdown: '# Ano 1' };
+    const leaderboard = {
+      season: {
+        id: seasonId,
+        code: '2026-W48',
+        status: 'closed',
+        timezone: 'America/Sao_Paulo',
+        difficulty: 'lord',
+        timeScale: 3,
+        startsAt: '2026-11-23T03:00:00.000Z',
+        joinEndsAt: '2026-11-25T03:00:00.000Z',
+        endsAt: '2026-11-30T02:59:00.000Z',
+        rankingPublishedAt: '2026-11-30T02:59:00.000Z',
+        joinOpen: false,
+        seed: 'semente-revelada',
+      },
+      published: true,
+      entries: [
+        {
+          position: 1,
+          settlementName: 'Vigia do Sul',
+          score: 20,
+          siegeOutcome: 'victory',
+          feats: 1,
+          mine: true,
+          chronicleAvailable: true,
+        },
+      ],
+      me: { position: 1, listed: true },
+    };
+    const leaderboardPath = `/leaderboard?season=${seasonId}`;
+    const chroniclePath = `/seasons/${seasonId}/chronicles/1`;
+    const { client, calls } = setup((call) => ({
+      status: 200,
+      body: call.path === leaderboardPath ? leaderboard : chronicle,
+    }));
+    expect(await client.getLeaderboard(seasonId)).toEqual(leaderboard);
+    expect(await client.getSeasonChronicle(seasonId, 1)).toEqual(chronicle);
+    expect(calls.map(({ method, path, headers }) => [method, path, headers.authorization])).toEqual(
+      [
+        ['GET', leaderboardPath, 'Bearer jwt-velho'],
+        ['GET', chroniclePath, 'Bearer jwt-velho'],
+      ],
+    );
+  });
+
   it('valida as respostas contra o protocolo quando pedido', async () => {
     const client = createClient({
       baseUrl: 'http://servidor',
