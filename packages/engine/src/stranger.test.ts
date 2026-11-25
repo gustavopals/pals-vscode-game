@@ -83,7 +83,7 @@ describe('a carta chega pelo roteiro, na audiência do 13º dia de jogo', () => 
       );
       // Até a véspera, nada: nem carta, nem herói, nem identificador.
       expect(about(before.events)).toEqual([]);
-      expect(before.state.ids).toEqual({});
+      expect(before.state.ids).toEqual({ outpost: 0 });
       expect(scriptedCard(before.state, DAY_13 - 1, CATALOG)).toBeNull();
       expect(scriptedCard(before.state, DAY_13, CATALOG)?.id).toBe(STRANGER);
 
@@ -107,7 +107,7 @@ describe('a carta chega pelo roteiro, na audiência do 13º dia de jogo', () => 
         lastWageArrears: null,
         ...NO_TAVERN,
       });
-      expect(at.state.ids).toEqual({});
+      expect(at.state.ids).toEqual({ outpost: 0 });
     },
   );
 
@@ -213,7 +213,7 @@ describe.each(DIFFICULTY_IDS)('responder à carta, em %s', (difficulty) => {
       },
     ]);
     expect(state.guild.arriving).toEqual([]);
-    expect(state.ids).toEqual({ hero: 1 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 1 });
     // Nada saiu do estoque na resposta.
     expect(state.settlement.resources).toEqual(table.settlement.resources);
     expect(tableOf(state)).not.toContain(STRANGER);
@@ -261,7 +261,7 @@ describe.each(DIFFICULTY_IDS)('responder à carta, em %s', (difficulty) => {
     // A promessa fica gravada, e não é segredo: a visão diz quem vem e quando.
     expect(state.guild.heroes).toEqual([]);
     expect(state.guild.arriving).toEqual([{ namedHeroId: 'rolf', atMs: now + DAY }]);
-    expect(state.ids).toEqual({});
+    expect(state.ids).toEqual({ outpost: 0 });
     expect(deriveViewState(state, now).guild.arriving).toEqual([
       {
         name: 'Rolf',
@@ -307,7 +307,7 @@ describe.each(DIFFICULTY_IDS)('responder à carta, em %s', (difficulty) => {
       },
     ]);
     expect(there.state.guild.arriving).toEqual([]);
-    expect(there.state.ids).toEqual({ hero: 1 });
+    expect(there.state.ids).toEqual({ outpost: 0, hero: 1 });
     // O soldo só começa a contar na chegada, nem um instante antes.
     const hour = advanceTo(there.state, now + DAY + HOUR).state;
     const twin = cloneState(there.state);
@@ -358,7 +358,7 @@ describe('a carta que expira também entrega um herói', () => {
         ['Edda', deadline],
       ]);
       // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte.
-      expect({ ...end.state.ids, battle: undefined }).toEqual({ hero: 1 });
+      expect({ ...end.state.ids, battle: undefined }).toEqual({ outpost: 0, hero: 1 });
       expect(end.state.stats.cardsExpired).toBeGreaterThanOrEqual(1);
     },
   );
@@ -525,7 +525,7 @@ describe('partidas que já passaram do 13º dia (ADR 0017, decisão 6: "Sim, a t
     expect(scriptedCard(years.state, years.state.lastProcessedAt, CATALOG)).toBeNull();
     // A virada do ano zera a lista das cartas vistas, e a estrangeira não depende dela.
     expect(years.state.council.seenThisYear).not.toContain(STRANGER);
-    expect({ ...years.state.ids, battle: undefined }).toEqual({ hero: 1 });
+    expect({ ...years.state.ids, battle: undefined }).toEqual({ outpost: 0, hero: 1 });
   });
 });
 
@@ -548,7 +548,7 @@ describe('o teto da lista de heróis não tira a recompensa de ninguém (ADR 001
     const table = dealt(one, STRANGER).state;
     const { state } = accept(table, answer(table, 'shelter'));
     expect(state.guild.heroes.map((hero) => hero.name)).toEqual(['Brann', 'Edda']);
-    expect(state.ids).toEqual({ hero: 2 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 2 });
   });
 
   it('com a lista no teto, o herói espera à porta e entra no instante em que um lugar abre por dispensa', () => {
@@ -628,7 +628,7 @@ describe('o teto da lista de heróis não tira a recompensa de ninguém (ADR 001
     const later = advanceTo(state, 20 * DAY + HOUR);
     expect(later.events.filter((event) => event.type === 'heroJoined')).toEqual([]);
     expect(later.state.guild).toMatchObject({ heroes: [], arriving: [] });
-    expect(later.state.ids).toEqual({});
+    expect(later.state.ids).toEqual({ outpost: 0 });
   });
 });
 

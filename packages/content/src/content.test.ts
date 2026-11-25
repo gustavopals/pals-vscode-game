@@ -681,6 +681,22 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     ).toBe(false);
   });
 
+  it('fixa custo, prazos, produção e eventos dos postos avançados (D-23)', () => {
+    expect(balance.outposts).toEqual({
+      cost: { wood: 250, stone: 150, gold: 100 },
+      durationMs: 45 * 60_000,
+      limit: 3,
+      townHallLevel: 5,
+      ironPerHour: 3,
+      productionFactor: { num: 23, den: 20 },
+      resources: { forest: 'wood', fields: 'food', hills: 'stone', ironVein: 'iron' },
+    });
+    for (const type of ['outpostStarted', 'outpostClaimed'] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type]).toContain('{lugar}');
+    }
+  });
+
   it('valida os cenários de mapa, a Serra do Ferro e a recompensa do Santuário (V5E-T4)', () => {
     expect(SCENARIO_IDS).toEqual(['standard', 'ironRidge']);
     expect(Object.keys(mapScenarios)).toEqual([...SCENARIO_IDS]);

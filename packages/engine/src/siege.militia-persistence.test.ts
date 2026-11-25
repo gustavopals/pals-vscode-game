@@ -49,6 +49,7 @@ describe('V4G-T5.1 · milícia e persistência da Queda com três aldeões', () 
       delete (old.map as Record<string, unknown>).expeditionUnlocks;
       delete (old.map as Record<string, unknown>).hexes;
       delete (old.map as Record<string, unknown>).radius;
+      delete (old.map as Record<string, unknown>).outposts;
       delete (old.map as Record<string, unknown>).scenario;
       expect(stateV39(old, '')).toContain('casualties.0.unit');
       const invalid = cloneState(fallen.state);

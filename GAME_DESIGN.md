@@ -387,7 +387,7 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Quartel | Salão 4 | 8 | Treinar soldados (§10.2); limite de exército = 10 × nível × fator de ritmo (R3, §10.2); treino 5% mais rápido por nível; com o Nv5 ou mais, o posto de uma formação comporta 30 (§10.1) | v0.4 |
 | Ferreiro | Salão 4 | 6 | Forja de armas (2 ferro + 1 madeira cada, 6 min de jogo) e reparo de equipamentos (§9.1), **na mesma fila**: um lote por vez, de até 10; a produção é +10% por nível, lida como o tempo × 10/(10 + nível − 1); o custo é cobrado ao começar, e cancelar devolve 80% ([ADR 0019](docs/decisions/0019-ferro-exercito-formacoes-e-combate-na-v0.4.md), decisões 4 e 5) | v0.4 |
 | Capela | Salão 5 | 3 | 1 slot de relíquia por nível; +5 moral; heróis têm prazo de cura 25% menor (×3/4 ao marcar o ferimento; prazos em curso não mudam) | v0.5 |
-| Posto Avançado (no mapa) | Salão 5 | 3 | Reivindica um tile e produz o recurso dele | v0.5 |
+| Posto Avançado (no mapa) | Salão 5 | 3 postos, incluindo os em obra | Reivindica um hexágono explorado ao terminar a obra (§8.1) | v0.5 |
 | Academia | Salão 6 | 5 | Pesquisas (árvore curta, §17.3) | v0.6 |
 
 Regra de gate: um edifício nunca pode ultrapassar `nível do Salão + 1`. O pré-requisito da tabela ("Salão 2") vale além dessa regra: um edifício que nasce no nível 0 só pode ser erguido quando o Salão chega ao nível pedido.
@@ -424,7 +424,7 @@ Os seis edifícios da v0.1 nascem no nível 1: para eles o expoente é `nível �
 | Quartel | 150 madeira, 150 pedra, 100 ouro | 20 min |
 | Ferreiro | 200 madeira, 200 pedra, 150 ouro | 20 min |
 | Capela | 200 madeira, 300 pedra, 200 ouro | 30 min |
-| Posto Avançado | 250 madeira, 150 pedra, 100 ouro | 45 min |
+| Posto Avançado | 250 madeira, 150 pedra, 100 ouro | 45 min de jogo, fora da fila do feudo |
 
 `[v0.4]` **O ouro da Muralha** ([ADR 0020](docs/decisions/0020-horda-cerco-e-cronica-do-ano.md), "Números da Fase E"): os níveis 3 a 6 da Paliçada pedem ouro além da madeira e da pedra, ×3 por nível: Muralha de Pedra Nv3 2.000 e Nv4 6.000; Baluarte Nv5 18.000 e Nv6 54.000. O reparo da muralha custa ouro igual à pedra (50% da pedra do nível), também o de emergência entre as ondas. É o destino do ouro de fim de jogo do ritmo Rápido.
 
@@ -523,7 +523,7 @@ Exemplos completos no Apêndice B. Meta de conteúdo para o primeiro ano: **60 c
 - Na volta pelo fim do percurso, a expedição explora o hexágono do destino. A Patrulha explora o hexágono ainda inexplorado mais próximo do feudo entre os vizinhos dos já explorados ou reivindicados. Uma equipe com Rastreador explora mais um hexágono dessa fronteira, a partir do destino (ou do feudo na Patrulha). Empates seguem a ordem dos anéis da grade, do centro para fora, começando pelo sudoeste de cada anel e seguindo primeiro para leste. A Crônica registra uma linha por obra ou expedição que acrescentou algo ao mapa.
 - **Santuário** (`0,4`; ADR 0022, D-6): quando o hexágono `sanctuary` passa a **Explorado** pela primeira vez na partida, entrega sem sorteio, via `grantRelic`, a próxima relíquia da lista fixa (`RELIC_IDS`: Chifre dos Ancestrais → Coração de Carvalho → Olho do Vigia → Selo do Rei Antigo → Osso de Lobo → Lâmpada do Eremita → Pedra de Sal → Manto do Inverno) que o feudo ainda não possui, emitindo `sanctuaryExplored` e `relicFound` na Crônica. Se o feudo já possuir todas as oito relíquias, entrega o consolo fixo de **100 de ouro** e registra o consolo em `sanctuaryExplored`. A entrega ocorre no máximo uma vez por partida (`stats.sanctuaryClaimed`), e a ficha do hexágono passa a indicar que o altar já entregou sua relíquia.
 - **Cenário do mapa** (`map.scenario`; ADR 0022, D-18): escolhido na criação da partida (`POST /games`, campo opcional `scenario`, padrão `standard`). O cenário **Terras do Feudo** (`standard`, gratuito) mantém os pesos-base (Floresta 30, Campos 28, Colinas 22, Lago 8, Pântano 6, Ruínas 4, Veio de Ferro 2); **Serra do Ferro** (`ironRidge`, exige **200 pontos de Legado** acumulados na conta) altera os pesos dos hexágonos livres para Colinas 40, Floresta 20, Campos 16, Veio de Ferro 12, Lago 4, Pântano 4, Ruínas 4, mantendo determinismo pela semente e todas as posições fixas. Partidas migradas de v44 para v45 recebem `standard`.
-- `[v0.6]` **Postos Avançados:** reivindicar um tile produz o recurso dele (Veio de Ferro: 3 ferro/h; Floresta: +15% madeira; Campos: +15% comida; Colinas: +15% pedra). Até 3 postos. Postos podem ser atacados por incursões (perdem produção até reparo).
+- `[v0.5]` **Postos Avançados.** A partir do Salão Nv5, o feudo pode erguer até três postos em hexágonos explorados fora da sede (`0,0`), um por hexágono. Cada obra custa 250 madeira, 150 pedra e 100 ouro, ocupa uma das três vagas e dura 45 minutos de jogo em prazo próprio. Ao terminar, o hexágono passa a Reivindicado. Cada Veio de Ferro ativo entrega 3 ferro por hora de jogo ao Armazém. Cada posto ativo em Floresta, Campos ou Colinas multiplica por 23/20 a produção de madeira, comida ou pedra, respectivamente. Dois postos do mesmo terreno aplicam o fator duas vezes. Os demais terrenos não comportam postos. Um posto danificado perde a produção até o reparo (Fase F, T2).
 
 A visão traz a grade (`ViewState.map`, incluindo `scenario` e `scenarioLabel`) com a névoa aplicada pelo servidor, exibida na aba Mapa (`#/mapa`). Os tiles de ameaça e os destinos de expedição continuam disponíveis também nas listas dos painéis.
 
@@ -1237,7 +1237,7 @@ type GameState = {
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
   rng: Record<string, number[]>;                             // estado por fluxo: 4 inteiros de 32 bits; vazio até o primeiro sorteio. Fluxos fixos e de entidade (`expedition:<id>`, `caravan:<id>`), apagados quando a entidade termina `[v0.3]`
-  ids: Record<string, number>;                               // contadores de identidade por tipo de entidade (`hero-1`, `expedition-2`…); só sobem, nunca reutilizados; vazio até a primeira entidade `[v0.3]`
+  ids: Record<string, number>;                               // contadores de identidade por tipo de entidade (`hero-1`, `expedition-2`…); só sobem, nunca reutilizados; `ids.outpost` começa em zero na `[v0.5]`
   settlement: {
     name: string;
     morale: number;                                            // 0 – 100; só muda na virada do dia (§5.7) `[v0.2]`
@@ -1265,8 +1265,11 @@ type GameState = {
              scheduled: Array<{ cardId: string; atMs: number; previousCardId: string; previousOptionId: string; previousInstanceId: string }>;  // continuações
              delayed: Array<{ atMs: number; instanceId: string; cardId: string; optionId: string }>;  // efeitos ocultos à espera
              expired: string[] };                                      // ocorrências que expiraram neste ano `[v0.2]`
-  map: { radius: number; tiles: Record<string, { type: TileType; fog: 'unknown' | 'sighted' | 'explored' | 'claimed'; threatActive?: boolean; outpostLevel?: number }>; threat: number };
-       // `[v0.2]`: sem grade. `{ tiles: Record<string, { type: 'wolfDen'; threatActive: boolean }>; threat: number }`; `radius`, `fog` e `outpostLevel` entram com o mapa `[v0.5]`
+  map: { radius: number; scenario: ScenarioId; threat: number;
+         tiles: Record<string, { type: TileType; threatActive: boolean }>;
+         hexes: Record<`${number},${number}`, { terrain: TerrainId; fog: 'unknown' | 'sighted' | 'explored' | 'claimed'; site?: MapSiteId }>;
+         discovered: string[]; expeditionUnlocks: Record<string, number>;
+         outposts: Array<{ id: string; hex: `${number},${number}`; status: 'building' | 'active' | 'damaged'; readyAtMs: number | null }> };
   guild: { heroes: Hero[]; expeditions: Expedition[]; tavernOffers: Array<{ hero: Hero; price: number; untilMs: number }> };
        // `[v0.3]`, até V3C-T2: `{ heroes: Hero[]; arriving: Array<{ namedHeroId: string; atMs: number }>; wageArrears; lastWageArrears }`. `arriving` são os heróis
        // que uma carta prometeu e que ainda não chegaram; o herói guarda `gender: 'f' | 'm'`. Com a Taverna (V3C-T2): `tavernOffers: Array<{ offerId; templateId; name; gender; price }>`

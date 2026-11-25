@@ -2,11 +2,11 @@ import type { GameState } from './types';
 
 /**
  * Identidades do motor: o identificador estável de uma entidade que nasce durante a partida
- * (herói, expedição, item, caravana, Mestre).
+ * (herói, expedição, item, caravana, Mestre, posto avançado).
  *
  * - **Contador no estado:** `state.ids[kind]` guarda quantos identificadores daquele tipo já
  *   foram dados. O contador só sobe: um identificador nunca é reutilizado, nem depois de a
- *   entidade terminar. Como `rng`, `ids` é `{}` até o primeiro uso e é JSON puro: salvar e
+ *   entidade terminar. O contador de postos começa em zero. Os outros nascem no primeiro uso. Salvar e
  *   recarregar continua a mesma contagem.
  * - **Nunca relógio, UUID ou sorteio:** a mesma semente com as mesmas ordens nos mesmos
  *   instantes dá os mesmos identificadores, e criar uma entidade não gasta fluxo nenhum.

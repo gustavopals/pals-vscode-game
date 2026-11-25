@@ -1,0 +1,1573 @@
+{
+ "schemaVersion": 46,
+ "vows": {
+  "year": 1,
+  "taken": [],
+  "nextTaken": null,
+  "closesAtMs": 86400000
+ },
+ "seed": "campanha-acampamento",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1,
+  "realOriginMs": 0,
+  "vigil": {
+   "hourLocal": 20,
+   "utcOffsetMinutes": 0,
+   "timezoneResolved": false
+  }
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 5400000,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 5400000,
+ "rng": {},
+ "ids": {
+  "outpost": 0,
+  "hero": 1,
+  "formation": 1,
+  "battle": 1
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 835000,
+   "wood": 2800000,
+   "stone": 1000000,
+   "gold": 1997000,
+   "iron": 0
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "population": {
+   "villagers": 20
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 6,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 1,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0,
+   "market": 0,
+   "smithy": 0,
+   "barracks": 8,
+   "chapel": 0
+  },
+  "relics": [],
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "wall": {
+   "hp": {
+    "left": 0,
+    "center": 0,
+    "right": 0
+   }
+  },
+  "wallRepair": null,
+  "militia": null,
+  "reconstructionUntilMs": null,
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0,
+   "iron": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 50,
+  "moraleEffects": [],
+  "injured": [],
+  "masters": [],
+  "mastersWaiting": [],
+  "weapons": 6,
+  "forge": null
+ },
+ "council": {
+  "bonuses": {
+   "smithySpeed": null,
+   "smithyBatch": null,
+   "repairDiscount": null,
+   "revealedRaidId": null
+  },
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "outposts": [],
+  "radius": 5,
+  "scenario": "standard",
+  "hexes": {
+   "0,0": {
+    "terrain": "fields",
+    "fog": "explored"
+   },
+   "-1,1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "0,1": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "1,0": {
+    "terrain": "fields",
+    "site": "patrol",
+    "fog": "sighted"
+   },
+   "1,-1": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "0,-1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-1,0": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "-2,2": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-1,2": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "0,2": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "1,1": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "2,0": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "2,-1": {
+    "terrain": "ironVein",
+    "fog": "sighted"
+   },
+   "2,-2": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "1,-2": {
+    "terrain": "swamp",
+    "fog": "sighted"
+   },
+   "0,-2": {
+    "terrain": "ruins",
+    "fog": "sighted"
+   },
+   "-1,-1": {
+    "terrain": "forest",
+    "site": "wolfDen",
+    "fog": "sighted"
+   },
+   "-2,0": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-2,1": {
+    "terrain": "forest",
+    "site": "oldForest",
+    "fog": "sighted"
+   },
+   "-3,3": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "-2,3": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "-1,3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "0,3": {
+    "terrain": "lake",
+    "fog": "sighted"
+   },
+   "1,2": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "2,1": {
+    "terrain": "hills",
+    "site": "rescue",
+    "fog": "sighted"
+   },
+   "3,0": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "3,-1": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "3,-2": {
+    "terrain": "ruins",
+    "site": "ruins",
+    "fog": "sighted"
+   },
+   "3,-3": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "2,-3": {
+    "terrain": "hills",
+    "fog": "sighted"
+   },
+   "1,-3": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "0,-3": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-1,-2": {
+    "terrain": "forest",
+    "fog": "sighted"
+   },
+   "-2,-1": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-3,0": {
+    "terrain": "ironVein",
+    "site": "abandonedMine",
+    "fog": "sighted"
+   },
+   "-3,1": {
+    "terrain": "forest",
+    "site": "whiteWolfHunt",
+    "fog": "sighted"
+   },
+   "-3,2": {
+    "terrain": "fields",
+    "fog": "sighted"
+   },
+   "-4,4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-3,4": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-2,4": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-1,4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "0,4": {
+    "terrain": "sanctuary",
+    "fog": "unknown"
+   },
+   "1,3": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "2,2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "3,1": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "4,0": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,-1": {
+    "terrain": "ruins",
+    "site": "ancestralVault",
+    "fog": "unknown"
+   },
+   "4,-2": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "4,-3": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,-4": {
+    "terrain": "ironVein",
+    "fog": "unknown"
+   },
+   "3,-4": {
+    "terrain": "hills",
+    "site": "raiderCamp",
+    "fog": "unknown"
+   },
+   "2,-4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "1,-4": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "0,-4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-1,-3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-2,-2": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-3,-1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-4,0": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "-4,1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-4,2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-4,3": {
+    "terrain": "swamp",
+    "site": "swamp",
+    "fog": "unknown"
+   },
+   "-5,5": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-4,5": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "-3,5": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "-2,5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-1,5": {
+    "terrain": "forest",
+    "site": "hermitsRefuge",
+    "fog": "unknown"
+   },
+   "0,5": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "1,4": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "2,3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "3,2": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,1": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "5,0": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "5,-1": {
+    "terrain": "ruins",
+    "fog": "unknown"
+   },
+   "5,-2": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "5,-3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "5,-4": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "5,-5": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "4,-5": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "3,-5": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "2,-5": {
+    "terrain": "hills",
+    "site": "hordeFortress",
+    "fog": "unknown"
+   },
+   "1,-5": {
+    "terrain": "forest",
+    "fog": "unknown"
+   },
+   "0,-5": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-1,-4": {
+    "terrain": "lake",
+    "fog": "unknown"
+   },
+   "-2,-3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-3,-2": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-4,-1": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-5,0": {
+    "terrain": "swamp",
+    "fog": "unknown"
+   },
+   "-5,1": {
+    "terrain": "fields",
+    "fog": "unknown"
+   },
+   "-5,2": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-5,3": {
+    "terrain": "hills",
+    "fog": "unknown"
+   },
+   "-5,4": {
+    "terrain": "fields",
+    "fog": "unknown"
+   }
+  },
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   },
+   "raiderCamp": {
+    "type": "raiderCamp",
+    "threatActive": false
+   }
+  },
+  "threat": 40,
+  "discovered": [],
+  "expeditionUnlocks": {}
+ },
+ "siege": null,
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null,
+    "composition": null
+   }
+  ],
+  "lastFormationSeen": null,
+  "previousYearFormation": null,
+  "wavePlan": null,
+  "omens": [],
+  "sabotages": {
+   "attempts": 0,
+   "successes": 0,
+   "alerted": false
+  }
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Edda",
+    "gender": "f",
+    "classId": "warrior",
+    "level": 1,
+    "xp": 40,
+    "traits": [
+     "loyal"
+    ],
+    "status": "campaign",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 0,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "extraOffer": false,
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "market": {
+  "effects": [],
+  "prices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "previousPrices": {
+   "food": 1000,
+   "wood": 1200,
+   "stone": 2000,
+   "iron": 8000
+  },
+  "quoteDay": 0,
+  "tradedToday": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "iron": 0
+  },
+  "caravans": []
+ },
+ "army": {
+  "campaign": {
+   "formationId": "formation-1",
+   "formation": {
+    "id": "formation-1",
+    "name": "Marcha do vale",
+    "posts": {
+     "left": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": null
+     },
+     "center": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": {
+       "unit": "archer",
+       "count": 15
+      }
+     },
+     "right": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": null
+     }
+    },
+    "commanders": {
+     "left": null,
+     "center": "hero-1",
+     "right": null
+    }
+   },
+   "tile": "raiderCamp",
+   "departsAtMs": 0,
+   "battleAtMs": 5400000,
+   "returnsAtMs": 10800000,
+   "report": {
+    "id": "battle-1",
+    "foughtAtMs": 5400000,
+    "formationId": "formation-1",
+    "mode": "attack",
+    "outcome": "victory",
+    "ending": "annihilation",
+    "rounds": 2,
+    "decisive": [
+     {
+      "factor": "wallAbsorbed",
+      "owner": "horde",
+      "amount": 180,
+      "wing": null,
+      "round": 1,
+      "percent": 18
+     },
+     {
+      "factor": "counter",
+      "owner": "player",
+      "amount": 84,
+      "wing": "center",
+      "round": 1,
+      "percent": null
+     }
+    ],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 4,
+      "lost": 4
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 6
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 2
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 4,
+      "lost": 4
+     },
+     {
+      "owner": "player",
+      "wing": "left",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "center",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "center",
+      "line": "back",
+      "unit": "archer",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "right",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     }
+    ],
+    "wall": [
+     {
+      "wing": "left",
+      "start": 60,
+      "end": 0
+     },
+     {
+      "wing": "center",
+      "start": 60,
+      "end": 0
+     },
+     {
+      "wing": "right",
+      "start": 60,
+      "end": 0
+     }
+    ],
+    "commanders": [
+     {
+      "heroId": "hero-1",
+      "wing": "center",
+      "heroClass": "warrior",
+      "fate": null,
+      "xp": 40
+     }
+    ],
+    "log": [
+     {
+      "round": 1,
+      "attacks": [
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "banditArcher",
+        "count": 2,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 2,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "archer",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 103,
+        "casualties": 5
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 5,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 1,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 1,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 4,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       }
+      ],
+      "casualties": {
+       "player": 0,
+       "horde": 5
+      },
+      "morale": {
+       "player": 100,
+       "horde": 100
+      },
+      "wall": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     },
+     {
+      "round": 2,
+      "attacks": [
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "banditArcher",
+        "count": 2,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 2,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "archer",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 141,
+        "casualties": 1
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 4,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 5,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 121,
+        "casualties": 4
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 107,
+        "casualties": 2
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 126,
+        "casualties": 4
+       }
+      ],
+      "casualties": {
+       "player": 0,
+       "horde": 11
+      },
+      "morale": {
+       "player": 100,
+       "horde": 0
+      },
+      "wall": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     }
+    ]
+   }
+  },
+  "units": {
+   "spearman": 0,
+   "swordsman": 45,
+   "archer": 15,
+   "knight": 0,
+   "shieldbearer": 0
+  },
+  "training": null,
+  "formations": [
+   {
+    "id": "formation-1",
+    "name": "Marcha do vale",
+    "posts": {
+     "left": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": null
+     },
+     "center": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": {
+       "unit": "archer",
+       "count": 15
+      }
+     },
+     "right": {
+      "front": {
+       "unit": "swordsman",
+       "count": 15
+      },
+      "back": null
+     }
+    },
+    "commanders": {
+     "left": null,
+     "center": "hero-1",
+     "right": null
+    }
+   }
+  ],
+  "activeFormationId": "formation-1",
+  "reports": [
+   {
+    "id": "battle-1",
+    "foughtAtMs": 5400000,
+    "formationId": "formation-1",
+    "mode": "attack",
+    "outcome": "victory",
+    "ending": "annihilation",
+    "rounds": 2,
+    "decisive": [
+     {
+      "factor": "wallAbsorbed",
+      "owner": "horde",
+      "amount": 180,
+      "wing": null,
+      "round": 1,
+      "percent": 18
+     },
+     {
+      "factor": "counter",
+      "owner": "player",
+      "amount": 84,
+      "wing": "center",
+      "round": 1,
+      "percent": null
+     }
+    ],
+    "casualties": [
+     {
+      "owner": "horde",
+      "wing": "left",
+      "line": "front",
+      "unit": "raider",
+      "start": 4,
+      "lost": 4
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "front",
+      "unit": "raider",
+      "start": 6,
+      "lost": 6
+     },
+     {
+      "owner": "horde",
+      "wing": "center",
+      "line": "back",
+      "unit": "banditArcher",
+      "start": 2,
+      "lost": 2
+     },
+     {
+      "owner": "horde",
+      "wing": "right",
+      "line": "front",
+      "unit": "raider",
+      "start": 4,
+      "lost": 4
+     },
+     {
+      "owner": "player",
+      "wing": "left",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "center",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "center",
+      "line": "back",
+      "unit": "archer",
+      "start": 15,
+      "lost": 0
+     },
+     {
+      "owner": "player",
+      "wing": "right",
+      "line": "front",
+      "unit": "swordsman",
+      "start": 15,
+      "lost": 0
+     }
+    ],
+    "wall": [
+     {
+      "wing": "left",
+      "start": 60,
+      "end": 0
+     },
+     {
+      "wing": "center",
+      "start": 60,
+      "end": 0
+     },
+     {
+      "wing": "right",
+      "start": 60,
+      "end": 0
+     }
+    ],
+    "commanders": [
+     {
+      "heroId": "hero-1",
+      "wing": "center",
+      "heroClass": "warrior",
+      "fate": null,
+      "xp": 40
+     }
+    ],
+    "log": [
+     {
+      "round": 1,
+      "attacks": [
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "banditArcher",
+        "count": 2,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 2,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "archer",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 103,
+        "casualties": 5
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 5,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 1,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 1,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 4,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 60,
+        "damage": 0,
+        "casualties": 0
+       }
+      ],
+      "casualties": {
+       "player": 0,
+       "horde": 5
+      },
+      "morale": {
+       "player": 100,
+       "horde": 100
+      },
+      "wall": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     },
+     {
+      "round": 2,
+      "attacks": [
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "banditArcher",
+        "count": 2,
+        "target": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 2,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "back"
+        },
+        "unit": "archer",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 141,
+        "casualties": 1
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 4,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "raider",
+        "count": 4,
+        "target": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 5,
+        "casualties": 0
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "left",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "left",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 121,
+        "casualties": 4
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "center",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "center",
+         "line": "back"
+        },
+        "wall": 0,
+        "damage": 107,
+        "casualties": 2
+       },
+       {
+        "actor": {
+         "owner": "player",
+         "wing": "right",
+         "line": "front"
+        },
+        "unit": "swordsman",
+        "count": 15,
+        "target": {
+         "owner": "horde",
+         "wing": "right",
+         "line": "front"
+        },
+        "wall": 0,
+        "damage": 126,
+        "casualties": 4
+       }
+      ],
+      "casualties": {
+       "player": 0,
+       "horde": 11
+      },
+      "morale": {
+       "player": 100,
+       "horde": 0
+      },
+      "wall": {
+       "left": 0,
+       "center": 0,
+       "right": 0
+      }
+     }
+    ]
+   }
+  ],
+  "preview": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold",
+   "welcomeFirstHero",
+   "buildGuild",
+   "sendPatrol",
+   "sellSurplus",
+   "chooseAtCrossroads",
+   "exploreRuins",
+   "townHallLevel4",
+   "trainTenSoldiers",
+   "saveDefenseFormation",
+   "simulateFirstBattle",
+   "repelFirstRaid"
+  ]
+ },
+ "stats": {
+  "chronicle:populationMax": 80,
+  "chronicle:battles": 1,
+  "chronicle:battlesWon": 1,
+  "tilesCleared": 1
+ }
+}

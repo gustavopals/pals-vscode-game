@@ -126,6 +126,7 @@ describe('equivalência de tipos com o motor', () => {
 
 describe('CommandSchema', () => {
   const valid: Command[] = [
+    { commandId: uuid, type: 'claimOutpost', payload: { hex: '-3,0' } },
     { commandId: uuid, type: 'setWorkers', payload: { building: 'farm', count: 2 } },
     { commandId: uuid, type: 'startConstruction', payload: { building: 'townHall' } },
     { commandId: uuid, type: 'cancelConstruction', payload: { building: 'housing' } },
@@ -202,6 +203,10 @@ describe('CommandSchema', () => {
     [
       'commandId que não é UUID',
       { commandId: 'abc', type: 'recruitVillagers', payload: { quantity: 1 } },
+    ],
+    [
+      'coordenada fora da forma',
+      { commandId: uuid, type: 'claimOutpost', payload: { hex: 'leste' } },
     ],
     ['tipo desconhecido', { commandId: uuid, type: 'declareWar', payload: {} }],
     [
@@ -1537,7 +1542,7 @@ describe('ViewStateSchema', () => {
         discontent: false,
       },
     ];
-    start.ids = { hero: 3 };
+    start.ids.hero = 3;
     const fed = applyCommand(start, order('setWorkers', { building: 'farm', count: 3 }), 0);
     if (!fed.ok) {
       throw new Error(fed.message);

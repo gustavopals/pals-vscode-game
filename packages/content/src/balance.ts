@@ -1,5 +1,6 @@
 import { hordeWaveYearFactors } from './horde';
 import type {
+  TerrainId,
   BuildingId,
   DifficultyId,
   EnemyId,
@@ -776,6 +777,15 @@ export type Balance = {
   readonly threat: ThreatDef;
   readonly raids: RaidsDef;
   readonly heroes: HeroesDef;
+  readonly outposts: {
+    readonly cost: ResourceAmounts;
+    readonly durationMs: number;
+    readonly limit: number;
+    readonly townHallLevel: number;
+    readonly ironPerHour: number;
+    readonly productionFactor: Ratio;
+    readonly resources: Readonly<Partial<Record<TerrainId, ResourceId>>>;
+  };
   readonly chapel: {
     readonly morale: number;
     readonly healingDuration: Ratio;
@@ -869,7 +879,7 @@ export const balance: Balance = {
     wood: { label: 'Madeira' },
     stone: { label: 'Pedra' },
     gold: { label: 'Ouro' },
-    // V4B-T1 (ADR 0019, decisão 3): o ferro não é produzido; vem da Mina Abandonada e do Mercado.
+    // O ferro vem da Mina Abandonada, do Mercado e dos Veios com posto ativo (D-23).
     iron: { label: 'Ferro' },
   },
   initial: {
@@ -1213,14 +1223,24 @@ export const balance: Balance = {
     xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700],
     power: { attack: SAME, defense: SAME, health: { num: 1, den: 10 } },
   },
-  // GDD §5.7, §6.1 e §9.1 (ADR 0017, decisões 4, 5 e 10). 24 h de jogo são 12 dias de jogo: a
-  // rotação e o festival duram o mesmo, um dia real no Normal e 8 h no Rápido. O teste de
-  // conteúdo confere as contas contra `calendar.dayMs` e a lista contra `buildings.tavern`.
+  // GDD §8.1, ADR 0022 D-23. Prazo e taxa de ferro em tempo de jogo.
+  outposts: {
+    cost: { wood: 250, stone: 150, gold: 100 },
+    durationMs: 45 * MINUTE_MS,
+    limit: 3,
+    townHallLevel: 5,
+    ironPerHour: 3,
+    productionFactor: { num: 23, den: 20 },
+    resources: { forest: 'wood', fields: 'food', hills: 'stone', ironVein: 'iron' },
+  },
   chapel: {
     morale: 5,
     healingDuration: { num: 3, den: 4 },
     effectText: 'Moral +5; heróis com ferimentos novos têm prazo de cura 25% menor.',
   },
+  // GDD §5.7, §6.1 e §9.1 (ADR 0017, decisões 4, 5 e 10). 24 h de jogo são 12 dias de jogo: a
+  // rotação e o festival duram o mesmo, um dia real no Normal e 8 h no Rápido. O teste de
+  // conteúdo confere as contas contra `calendar.dayMs` e a lista contra `buildings.tavern`.
   tavern: {
     offersByLevel: [2, 2, 3, 3, 3],
     rotationMs: 24 * HOUR_MS,

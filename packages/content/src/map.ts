@@ -85,6 +85,12 @@ export const sanctuaryReward = {
 
 /** Frases do mapa e dos cenários usadas pela visão, pelo catálogo e pelas recusas do servidor. */
 export const mapTexts = {
+  hexNotExplored: 'Explore este hexágono antes de reivindicá-lo.',
+  notClaimable: 'Não é possível erguer um posto avançado neste hexágono.',
+  outpostLimit: 'O feudo já tem {limite} postos avançados, contando os que estão em obra.',
+  outpostFactor: 'Posto avançado em {hex}',
+  beforeOutpostReady: 'da conclusão do posto avançado em {hex}',
+  veinRate: 'Veio de Ferro ({hex}): {taxa}/h',
   sanctuaryClaimedDetail: 'O altar antigo já entregou sua relíquia ao feudo.',
   scenarioCostLabel: '{custo} de Legado',
   scenarioLocked: 'Requer {custo} pontos de Legado na conta.',

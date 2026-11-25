@@ -266,14 +266,14 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
         'expedition:expedition-2',
       ].sort(),
     );
-    expect(middle.state.ids).toEqual({ expedition: 2, caravan: 1 });
+    expect(middle.state.ids).toEqual({ outpost: 0, expedition: 2, caravan: 1 });
 
     // No dia 30 todas terminaram: os fluxos delas saíram do estado, e os contadores ficaram.
     const { state, events } = advanceWithEntities(start, 30 * DAY_MS, plan);
     expect(syntheticEntitiesOf(state)).toEqual([]);
     expect(Object.keys(state.rng).sort()).toEqual([...RNG_STREAMS].sort());
     // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte: fora desta conta.
-    expect({ ...state.ids, battle: undefined }).toEqual({ expedition: 2, caravan: 1 });
+    expect({ ...state.ids, battle: undefined }).toEqual({ outpost: 0, expedition: 2, caravan: 1 });
     expect(steps(events, 'born').map((event) => [event.atMs / DAY_MS, event.data.entity])).toEqual([
       [2, 'expedition-1'],
       [5, 'expedition-2'],
@@ -497,6 +497,7 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
     // dela tem o identificador dele, igual nos dois caminhos.
     // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte: fora desta conta.
     expect({ ...direct.state.ids, battle: undefined }).toEqual({
+      outpost: 0,
       expedition: 2,
       caravan: 1,
       hero: 1,

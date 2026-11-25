@@ -36,7 +36,7 @@ describe('campanha: migração 38 → 39 e guarda persistida', () => {
       expect(result.army.campaign).toBeNull();
       expect(result.army).toEqual({ ...(before.army as object), campaign: null });
       expect(result.rng).toEqual(before.rng);
-      expect(result.ids).toEqual(before.ids);
+      expect(result.ids).toEqual({ ...(before.ids as object), outpost: 0 });
       expect(result.guild).toEqual(before.guild);
       expect(result.lastProcessedAt).toBe(before.lastProcessedAt);
       expect(JSON.stringify(before)).toBe(copy);

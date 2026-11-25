@@ -25,6 +25,9 @@ const buildingId = z.enum(BUILDING_IDS);
 
 /** Códigos de recusa do motor. Um teste de tipo garante que a lista é a mesma de `@lotg/engine`. */
 export const REJECTION_CODES = [
+  'HEX_NOT_EXPLORED',
+  'NOT_CLAIMABLE',
+  'OUTPOST_LIMIT',
   'VOWS_CLOSED',
   'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
@@ -1460,8 +1463,16 @@ const mapHexSchema = z.union([
     site: z.string().min(1).nullable(),
     label: z.string(),
     detail: z.string(),
+    outpost: z
+      .strictObject({
+        id: z.string(),
+        status: z.enum(['building', 'active', 'damaged']),
+        readyInSeconds: z.int().nonnegative().nullable(),
+      })
+      .optional(),
     actions: z.array(
       z.discriminatedUnion('type', [
+        z.strictObject({ type: z.literal('claimOutpost'), hex: z.string() }),
         z.strictObject({ type: z.literal('attackCamp') }),
         z.strictObject({ type: z.literal('sendExpedition'), modelId: z.string().min(1) }),
       ]),

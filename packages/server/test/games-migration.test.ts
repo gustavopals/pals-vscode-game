@@ -46,6 +46,49 @@ import { resetTestDb, truncateAll } from './helpers/db';
 const REPLAYED = 'x-lords-replayed';
 const CURRENT = CURRENT_SCHEMA_VERSION;
 
+it('45 → 46 reivindica após migrar e conserva o mesmo posto ao repetir o comando', async () => {
+  const before = JSON.parse(
+    readFileSync(
+      new URL('../../engine/src/__fixtures__/state-v45-fresh.json', import.meta.url),
+      'utf8',
+    ),
+  ) as StoredState & Pick<GameState, 'map'>;
+  const hex = '-3,0';
+  before.map.hexes[hex]!.fog = 'explored';
+  before.settlement.buildings.townHall = 5;
+  Object.assign(before.settlement.resources, { wood: 250_000, stone: 150_000, gold: 100_000 });
+  const game = await insertGame(server, before);
+  const claim = order('claimOutpost', { hex });
+  const started = await send<CommandAccepted>(server, game.token, game.id, claim);
+  expect(started.status).toBe(200);
+  expect(started.body.view.map.hexes.find((cell) => cell.q === -3 && cell.r === 0)).toMatchObject({
+    fog: 'explored',
+    outpost: { id: 'outpost-1', status: 'building', readyInSeconds: 2700 },
+  });
+  const replay = await send<CommandAccepted>(server, game.token, game.id, claim);
+  expect(replay.headers[REPLAYED]).toBe('true');
+  expect(replay.body).toEqual(started.body);
+  // A sessão de acesso dura 15 minutos. Renova antes de consultar a conclusão.
+  server.clock.advance(45 * 60_000);
+  await renew(server, game);
+  const finished = await getView(server, game);
+  expect(finished.status).toBe(200);
+  expect(
+    ViewResponseSchema.parse(finished.body).view.map.hexes.find(
+      (cell) => cell.q === -3 && cell.r === 0,
+    ),
+  ).toMatchObject({
+    fog: 'claimed',
+    outpost: { id: 'outpost-1', status: 'active', readyInSeconds: null },
+  });
+  const row = await rowOf(server, game.id);
+  expect(row.state).toMatchObject({
+    schemaVersion: CURRENT,
+    ids: { outpost: 1 },
+    map: { outposts: [{ id: 'outpost-1', hex, status: 'active', readyAtMs: null }] },
+  });
+});
+
 it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o terreno desconhecido', async () => {
   const before = JSON.parse(
     readFileSync(
@@ -67,7 +110,7 @@ it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o ter
     r: -5,
   });
   const row = await rowOf(server, game.id);
-  expect(row).toMatchObject({ schemaVersion: 45, stateVersion: 8 });
+  expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
   const saved = row.state as StoredState & Pick<GameState, 'map'>;
   expect(saved.map.scenario).toBe('standard');
   expect(Object.keys(saved.map.hexes)).toHaveLength(91);
@@ -246,6 +289,8 @@ function beforeSecondJoin<T>(state: T): T {
   delete copy.horde?.previousYearFormation;
   delete copy.vows;
   delete copy.map?.expeditionUnlocks;
+  expect(copy.map?.outposts).toEqual([]);
+  delete copy.map?.outposts;
   delete copy.map?.hexes;
   delete copy.map?.radius;
   delete copy.map?.scenario;
@@ -1261,7 +1306,7 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
-        ids: {},
+        ids: { outpost: 0 },
         // A guilda é dos passos seguintes (13 → 14 e 15 → 16), conferidos nos blocos deles,
         // abaixo; a Taverna por construir é do 15 → 16.
         guild: EMPTY_GUILD,
@@ -1293,7 +1338,7 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
     expect(reply.body.stateVersion).toBe('8');
     const row = (await rowOf(server, game.id)) as Row & { state: V12State };
     expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
-    expect(row.state.ids).toEqual({});
+    expect(row.state.ids).toEqual({ outpost: 0 });
     expect(row.state.settlement.name).toBe('Vau do Corvo');
     // O estoque herdado acima do limite continua como estava.
     expect(row.state.settlement.resources.food).toBe(before.settlement.resources.food);
@@ -1316,7 +1361,7 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
       // Um dia real no ritmo Tranquilo: doze horas de jogo depois do retrato.
       expect(row.state.lastProcessedAt).toBe(before.lastProcessedAt + DAY / 2);
       // Nenhuma regra de hoje cria entidade: contadores vazios e só os fluxos fixos no gerador.
-      expect(row.state.ids).toEqual({});
+      expect(row.state.ids).toEqual({ outpost: 0 });
       for (const stream of Object.keys(row.state.rng)) {
         expect(['council', 'morale', 'horde']).toContain(stream);
       }
@@ -1432,6 +1477,7 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       // nenhum estoque, prazo, carta, incursão, contador ou sorteio muda.
       expect(beforeOutcomes(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         guild: EMPTY_GUILD,
@@ -1462,7 +1508,7 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
       expect(beforeOutcomes(row.state).guild).toEqual(EMPTY_GUILD);
       // Nenhum herói nem item. Com o Acampamento e a Fortaleza a janela tem duas incursões.
-      expect(row.state.ids).toEqual({ battle: 2 });
+      expect(row.state.ids).toEqual({ outpost: 0, battle: 2 });
       expect(
         await countRows(
           app.pool,
@@ -1541,6 +1587,7 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       // muda, e o fluxo da Taverna só nasce com a primeira rotação.
       expect(beforeOutcomes(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         settlement: withTavernSite(before.settlement),
@@ -1590,7 +1637,7 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       // seguinte à migração, e a recompensa sai uma vez. R1: a Paliçada Nv2 deste retrato
       // repele a incursão sem batalha, relatório ou identificador de batalha novo.
       expect(before.settlement.buildings.palisade).toBe(2);
-      expect(row.state.ids).toEqual({ ...before.ids, item: 1 });
+      expect(row.state.ids).toEqual({ ...before.ids, outpost: 0, item: 1 });
       expect(
         await countRows(
           app.pool,
@@ -1677,6 +1724,7 @@ describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13
       // sorteio muda, e todos continuam no feudo.
       expect(beforeOutcomes(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         settlement: withChapel({
@@ -1808,6 +1856,7 @@ describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', ()
       // zero e o Mercado com os preços na base: nenhum estoque, contador ou sorteio muda.
       expect(beforeMasters(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         settlement: withChapel({
@@ -1928,7 +1977,7 @@ describe('uma partida gravada na versão 17 (V3D-T2; ADR 0017, decisão 8; ADR 0
       expect(row.state.map.discovered).toEqual([]);
       // Ninguém ganha identificador, e o gerador fica palavra por palavra como estava.
       expect(row.state.rng).toEqual(before.rng);
-      expect(row.state.ids).toEqual(before.ids);
+      expect(row.state.ids).toEqual({ ...before.ids, outpost: 0 });
       // Os heróis são os mesmos, no mesmo estado, sem ferimento nem equipamento.
       expect(row.state.guild.heroes.map((hero) => [hero.id, hero.status])).toEqual(
         before.guild.heroes.map((hero) => [hero.id, hero.status]),
@@ -2046,7 +2095,7 @@ describe('uma partida gravada na versão 19 (revisão da Fase D, M-D1; ADR 0017,
         before.guild.heroes.map((hero) => [hero.id, hero.status, null]),
       );
       // O passo não dá identificador a ninguém e não toca o gerador.
-      expect(row.state.ids).toEqual(before.ids);
+      expect(row.state.ids).toEqual({ ...before.ids, outpost: 0 });
       expect(row.state.rng).toEqual(before.rng);
       // A segunda leitura não grava de novo.
       const again = await getView(server, game);
@@ -2513,6 +2562,7 @@ describe('uma partida gravada na versão 21 (V3E-T2; ADR 0018, decisão 17)', ()
       // nenhum estoque, herói, contador ou sorteio muda.
       expect(beforeMasters(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         market: { ...before.market, caravans: [] },
@@ -2621,6 +2671,7 @@ describe('uma partida gravada na versão 22 (V3E-T3; ADR 0018, decisão 18)', ()
       }
       expect(beforeMasters(row.state)).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         settlement: withChapel(before.settlement),

@@ -129,6 +129,38 @@ afterEach(() => {
 });
 
 describe('cadência', () => {
+  it('consulta o mapa ao vencer o prazo real de um posto', async () => {
+    const { session, state } = setup();
+    state.view = {
+      ...view,
+      map: {
+        ...view.map,
+        hexes: [
+          {
+            q: -3,
+            r: 0,
+            fog: 'explored',
+            terrain: 'ironVein',
+            terrainLabel: 'Veio de Ferro',
+            site: null,
+            label: 'Veio de Ferro',
+            detail: '',
+            actions: [],
+            outpost: { id: 'outpost-1', status: 'building', readyInSeconds: 5 },
+          },
+        ],
+      },
+    };
+    session.setVisible(true);
+    await session.start(target);
+    const before = state.calls.view;
+    await vi.advanceTimersByTimeAsync(5_999);
+    expect(state.calls.view).toBe(before);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(state.calls.view).toBe(before + 1);
+    session.stop();
+  });
+
   it('antecipa a leitura ao fechar Votos e conserva a cadência normal depois do zero', async () => {
     const { session, state } = setup();
     state.view = { ...view, vows: { ...view.vows, closesInSeconds: 5 } };

@@ -16,6 +16,7 @@ import {
   seasonWithArticle,
   yearOf,
 } from './clock';
+import { finishOutposts } from './outposts';
 import { finishConstructions } from './construction';
 import { finishWallRepair } from './wallRepair';
 import { finishForge } from './smithy';
@@ -120,7 +121,7 @@ function processCalendar(
 export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[]) => void;
 
 /**
- * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
+ * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: reparo da muralha, obras do feudo, postos avançados, forja, aldeões
  * que chegam (os recrutas e os feridos que saram), os Mestres que esperavam à porta e agora têm
  * vaga (`settleMasterArrivals`, que roda de novo logo depois da virada do dia, para a vaga que
  * um aldeão deixou ao partir nela), heróis feridos que saram (`recoverHeroes`),
@@ -157,6 +158,8 @@ export function processEventsAt(
   // O reparo da muralha entra na frente das obras e termina junto delas, logo antes.
   finishWallRepair(draft, atMs, events);
   finishConstructions(draft, atMs, events);
+  // O posto passa a produzir no trecho seguinte e já existe para a incursão deste instante.
+  finishOutposts(draft, atMs, events);
   // O lote da forja termina junto das obras: as armas já existem para tudo o que vem depois.
   finishForge(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
@@ -299,6 +302,7 @@ export function stateAtNextMoraleTurn(state: GameState): GameState {
   const unused: GameEvent[] = [];
   finishWallRepair(draft, turn, unused);
   finishConstructions(draft, turn, unused);
+  finishOutposts(draft, turn, unused);
   finishForge(draft, turn, unused);
   finishRecruitments(draft, turn, unused);
   finishTraining(draft, turn, unused);

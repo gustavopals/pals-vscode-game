@@ -57,6 +57,7 @@ function HexActionButton(props: {
       </div>
     );
   }
+  if (action.type !== 'attackCamp') return null;
   return (
     <div class="map-action-item">
       {view.army.campAssault.text === '' ? null : (

@@ -38,7 +38,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 45,
+    schemaVersion: 46,
     vows: {
       year: 1,
       taken: [],
@@ -63,7 +63,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     clock: { gameTimeMs: 0, yearStartMs: 0, year: 1 },
     lastProcessedAt: 0,
     rng: {},
-    ids: {},
+    ids: { outpost: 0 },
     settlement: {
       name: settings.settlementName,
       resources: amountsToMilli(balance.initial.resources),
@@ -108,6 +108,7 @@ export function createInitialState(seed: string, settings: GameCreationSettings)
     },
     // O Covil de Lobos está ativo desde o primeiro dia, e a Ameaça começa em zero (GDD §8.2).
     map: {
+      outposts: [],
       ...generateHexMap(seed, [], scenario),
       tiles: Object.fromEntries(
         startingTiles.map((tile) => [

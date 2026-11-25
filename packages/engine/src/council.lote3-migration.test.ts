@@ -25,7 +25,7 @@ describe('passo 40 → 41 do lote 3', () => {
     });
     expect(state.settlement.forge).toEqual(before.settlement.forge);
     expect(state.rng).toEqual(before.rng);
-    expect(state.ids).toEqual(before.ids);
+    expect(state.ids).toEqual({ ...before.ids, outpost: 0 });
     expect(state.migratedAtMs).toBe(before.lastProcessedAt);
     expect(JSON.stringify(before)).toBe(frozen);
     expect(migrateState(state, { timeScale: 1 })).toBe(state);

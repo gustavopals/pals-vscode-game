@@ -88,7 +88,7 @@ describe('Cerco na linha do tempo e Plano de Batalha', () => {
       }).toEqual(expected);
     }
     expect(state.army.units).toEqual(golden.units);
-    expect(state.ids).toEqual(golden.ids);
+    expect(state.ids).toEqual({ ...golden.ids, outpost: 0 });
   });
   it('vale o Plano sem resposta e a troca só altera a onda seguinte, sem sorteio', () => {
     const before = readySiege();

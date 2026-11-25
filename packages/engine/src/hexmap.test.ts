@@ -56,7 +56,7 @@ describe('grade axial da Fase E', () => {
     );
     expect(new Set(sites).size).toBe(sites.length);
     expect(rng).toEqual({});
-    expect(ids).toEqual({});
+    expect(ids).toEqual({ outpost: 0 });
     expect(newGame().map).toEqual(map);
     expect(newGame('outra semente').map.hexes).not.toEqual(map.hexes);
   });
@@ -69,12 +69,12 @@ describe('grade axial da Fase E', () => {
         const migrated = migrateState({ ...before, seed }, { timeScale: 1 });
         expect(migrated.map).toEqual(fresh.map);
         expect(migrated.rng).toEqual(before.rng);
-        expect(migrated.ids).toEqual(before.ids);
+        expect(migrated.ids).toEqual({ ...before.ids, outpost: 0 });
       }
       const discovered = ['swamp', 'ruins', 'sabotage', 'whiteWolfHunt'];
       const oldMap = { ...v44.map, discovered, expeditionUnlocks: { whiteWolfHunt: 1000 } };
       const state = migrateState({ ...v44, seed, map: oldMap }, { timeScale: 1 });
-      expect(state.map).toEqual({ ...oldMap, ...generateHexMap(seed, discovered) });
+      expect(state.map).toEqual({ ...oldMap, outposts: [], ...generateHexMap(seed, discovered) });
       for (const id of discovered) {
         expect(
           Object.values(state.map.hexes).find((hex) => hex.site && siteDestination(hex.site) === id)
@@ -308,7 +308,7 @@ describe('Santuário e Serra do Ferro (V5E-T4)', () => {
     expect(ridgeA.map.hexes).not.toEqual(ridgeOther.map.hexes);
     expect(currentShape(ridgeA, '')).toBeNull();
     expect(ridgeA.rng).toEqual({});
-    expect(ridgeA.ids).toEqual({});
+    expect(ridgeA.ids).toEqual({ outpost: 0 });
 
     // Hexágonos fixos permanecem intactos (1 Santuário, feudo e todos os destinos).
     expect(

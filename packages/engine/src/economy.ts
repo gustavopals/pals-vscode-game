@@ -5,6 +5,7 @@ import { relics } from '@lotg/content';
 import {
   balance,
   buildings,
+  mapTexts,
   masterTexts,
   PRODUCTION_BUILDING_IDS,
   type Ratio,
@@ -12,6 +13,7 @@ import {
   type SeasonDef,
 } from '@lotg/content';
 
+import { activeOutpostsFor } from './outposts';
 import { seasonAt } from './clock';
 import { type Hands, handsOf, masteryRatio } from './craft';
 import { wageRate } from './heroes';
@@ -49,7 +51,17 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'mastery' | 'master' | 'season' | 'morale' | 'famine' | 'cold' | 'relic' | 'vow';
+  id:
+    | 'level'
+    | 'mastery'
+    | 'master'
+    | 'season'
+    | 'morale'
+    | 'famine'
+    | 'cold'
+    | 'relic'
+    | 'vow'
+    | 'outpost';
   ratio: Ratio;
   label: string;
 };
@@ -125,6 +137,15 @@ export function productionFactors(
   if (building === 'lumberMill' && relicIsActive(state, 'oakHeart')) {
     factors.push({ id: 'relic', ratio: relics.oakHeart.production, label: relics.oakHeart.label });
   }
+  if (state.map.outposts.length > 0) {
+    for (const post of activeOutpostsFor(state, producedBy(building))) {
+      factors.push({
+        id: 'outpost',
+        ratio: balance.outposts.productionFactor,
+        label: mapTexts.outpostFactor.replace('{hex}', post.hex),
+      });
+    }
+  }
   return factors;
 }
 
@@ -164,7 +185,19 @@ export function productionRate(
   const workers = effectiveWorkers(hands);
   let num = workers.num * balance.production.perWorkerPerHour[building] * MILLI;
   let den = workers.den;
-  for (const factor of productionFactors(state, building, season, hands.master)) {
+  const factors = productionFactors(state, building, season, hands.master);
+  if (state.map.outposts.length > 0) {
+    // Três Florestas, Coração de Carvalho, Mestre e verão podem levar o numerador
+    // além do inteiro seguro mesmo depois de simplificar as frações.
+    let numerator = BigInt(num);
+    let denominator = BigInt(den);
+    for (const { ratio } of factors) {
+      numerator *= BigInt(ratio.num);
+      denominator *= BigInt(ratio.den);
+    }
+    return Number(numerator / denominator);
+  }
+  for (const factor of factors) {
     num *= factor.ratio.num;
     den *= factor.ratio.den;
     const common = gcd(num, den);
@@ -208,6 +241,8 @@ export function netRates(state: GameState): Record<ResourceId, number> {
   for (const building of PRODUCTION_BUILDING_IDS) {
     rates[producedBy(building)] += productionRate(state, building, undefined, season);
   }
+  if (state.map.outposts.length > 0)
+    rates.iron = activeOutpostsFor(state, 'iron').length * balance.outposts.ironPerHour * MILLI;
   rates.food -= consumptionRate(state);
   rates.wood -= firewoodRate(state, season);
   // O soldo dos heróis sai do ouro como o consumo sai da comida (GDD §9.1).

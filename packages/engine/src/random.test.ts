@@ -415,7 +415,7 @@ describe('fluxos nomeados', () => {
 /** Uma partida em que as entidades destes testes já receberam os identificadores. */
 const issued = (seed?: string, ids: Record<string, number> = { expedition: 2, caravan: 7 }) => {
   const state = newGame(seed);
-  state.ids = { ...ids };
+  state.ids = { ...state.ids, ...ids };
   return state;
 };
 
@@ -613,7 +613,7 @@ describe('fluxos de entidade', () => {
 
   it('recusa um fluxo de entidade gravado fora da forma em vez de recomeçar da semente', () => {
     const state = gameWith((draft) => {
-      draft.ids = { expedition: 1 };
+      draft.ids = { ...draft.ids, expedition: 1 };
       draft.rng['expedition:expedition-1'] = [0, 0, 0, 0];
     });
     expect(() => nextInt(state, 'expedition:expedition-1', 6)).toThrow(

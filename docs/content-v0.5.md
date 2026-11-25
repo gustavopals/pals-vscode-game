@@ -64,3 +64,9 @@ Os pesos somam 100 e aplicam-se somente aos hexágonos livres; todos os hexágon
 (sede, destinos, tiles de ameaça e o Santuário único em `0,4`) mantêm terreno e posição.
 O custo em Legado é verificado pelo servidor contra a soma de `legacy_ledger.points` da
 conta em `POST /games` (desbloqueio permanente; não desconta pontos).
+
+## Postos avançados (V5F-T1, ADR 0022, D-23)
+
+`balance.outposts` fixa o Salão Nv5, o limite de três postos e o custo de cada obra em 250 madeira, 150 pedra e 100 ouro. A obra dura 45 minutos de jogo. Um Veio de Ferro ativo entrega 3 ferro/h de jogo. Cada posto em Floresta, Campos ou Colinas aplica um fator de 23/20 à produção de madeira, comida ou pedra, respectivamente.
+
+As frases de `outpostStarted` e `outpostClaimed` ficam em `chronicleTemplates`. Os motivos de recusa e os termos por posto na explicação da taxa ficam em `mapTexts`.

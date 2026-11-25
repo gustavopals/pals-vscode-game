@@ -384,7 +384,7 @@ describe('as consequências do atraso contam tempo real e são cobradas na virad
       );
       // Quem partiu não volta, e o contador de identidades não anda para trás.
       expect(end.state.guild.heroes.map((hero) => hero.id)).toEqual(['hero-2']);
-      expect(end.state.ids).toEqual({ hero: 4 });
+      expect(end.state.ids).toEqual({ outpost: 0, hero: 4 });
       // Só resta o Leal: continua sem soldo, sem ficar Descontente e sem partir. O que o prazo
       // deve dali em diante fica perdoado a cada virada, e a conta não cresce escondida.
       expect(end.state.guild.heroes[0]).toMatchObject({ name: 'Rolf', discontent: false });
@@ -643,7 +643,7 @@ describe('dispensar um herói (dismissHero)', () => {
     expect(state.settlement.resources.gold).toBe(gold);
     expect(netRates(state).gold).toBe(-4_000);
     // O identificador não volta: o próximo herói é o quarto.
-    expect(state.ids).toEqual({ hero: 3 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 3 });
     // A Leal pode ser dispensada como qualquer outro.
     const alone = accept(state, command('dismissHero', { heroId: 'hero-1' }));
     expect(alone.state.guild.heroes.map((hero) => hero.name)).toEqual(['Brann']);

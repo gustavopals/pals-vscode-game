@@ -1,4 +1,3 @@
-import { DAY } from './test-helpers';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -19,6 +18,8 @@ import {
   giveItem,
   HOUR,
   newGame,
+  outpostYard,
+  DAY,
   play,
   refuse,
   starve,
@@ -260,6 +261,15 @@ describe('catálogo de recusas', () => {
   militiaActive.settlement.militia = { count: 1, untilMs: militiaActive.siege!.atMs };
 
   const scenarios: Record<(typeof REJECTION_CODES)[number], [typeof rich, Command]> = {
+    HEX_NOT_EXPLORED: [newGame(), command('claimOutpost', { hex: '0,1' })],
+    NOT_CLAIMABLE: [outpostYard(), command('claimOutpost', { hex: '3,-2' })],
+    OUTPOST_LIMIT: [
+      ['1,0', '-2,1', '-3,0'].reduce(
+        (state, hex) => accept(state, command('claimOutpost', { hex })).state,
+        outpostYard(),
+      ),
+      command('claimOutpost', { hex: '2,1' }),
+    ],
     VOWS_CLOSED: [
       gameWith((state) => {
         state.vows.closesAtMs = 0;

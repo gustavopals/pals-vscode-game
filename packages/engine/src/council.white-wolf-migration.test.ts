@@ -39,6 +39,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
       expect(after.map.expeditionUnlocks).toEqual({});
       expect(after).toEqual({
         ...before,
+        ids: { ...before.ids, outpost: 0 },
         schemaVersion: CURRENT_SCHEMA_VERSION,
         horde: { ...before.horde, previousYearFormation: null },
         vows: expect.objectContaining({ year: before.clock.year, taken: [], nextTaken: null }),
@@ -51,6 +52,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
         map: {
           ...before.map,
           expeditionUnlocks: {},
+          outposts: [],
           radius: 5,
           scenario: 'standard',
           hexes: expect.any(Object),
@@ -83,6 +85,7 @@ describe('versão 41 → 42: prazos das expedições liberadas por carta', () =>
     delete old.map.expeditionUnlocks;
     delete old.map.hexes;
     delete old.map.radius;
+    delete old.map.outposts;
     delete old.map.scenario;
     old.schemaVersion = 41;
     delete old.settlement.relics;

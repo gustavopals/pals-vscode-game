@@ -567,6 +567,13 @@ export type MarketState = {
   caravans: Caravan[];
 };
 
+export type Outpost = {
+  id: string;
+  hex: `${number},${number}`;
+  status: 'building' | 'active' | 'damaged';
+  readyAtMs: number | null;
+};
+
 /**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
@@ -576,7 +583,7 @@ export type MarketState = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 45;
+  schemaVersion: 46;
   /** Ano corrente e escolha seguinte, preservada sem perder os efeitos do rescaldo. */
   vows: { year: number; taken: VowId[]; closesAtMs: number; nextTaken: VowId[] | null };
   seed: string;
@@ -600,10 +607,10 @@ export type GameState = {
   rng: Record<string, number[]>;
   /**
    * Contadores de identidade, por tipo de entidade: quantos identificadores `<tipo>-<n>` já
-   * foram dados (`ids.ts`). Um tipo só aparece aqui depois da primeira entidade dele, e o
-   * contador só sobe: um identificador nunca é reutilizado.
+   * foram dados (`ids.ts`). Desde a v46, o contador de postos começa em zero. Os demais
+   * aparecem na primeira emissão. Nenhum identificador é reutilizado.
    */
-  ids: Record<string, number>;
+  ids: Record<string, number> & { outpost: number };
   settlement: {
     name: string;
     resources: Record<ResourceId, number>;
@@ -764,6 +771,7 @@ export type GameState = {
    * Grade axial e névoa (GDD §8.1). A Ameaça e seus tiles continuam regidos pelo §8.2.
    */
   map: {
+    outposts: Outpost[];
     radius: number;
     scenario: ScenarioId;
     hexes: Record<
@@ -1109,6 +1117,7 @@ export type VowView = { id: VowId; label: string; description: string; legacyBon
 export type VowsView = { offer: VowView[]; taken: VowView[]; closesInSeconds: number };
 
 export type Command =
+  | { commandId: string; type: 'claimOutpost'; payload: { hex: string } }
   | { commandId: string; type: 'takeVows'; payload: { vows: string[] } }
   | { commandId: string; type: 'placeRelic'; payload: { relicId: string } }
   | { commandId: string; type: 'removeRelic'; payload: { relicId: string } }
@@ -1277,6 +1286,9 @@ export type Command =
 export type CommandType = Command['type'];
 
 export const REJECTION_CODES = [
+  'HEX_NOT_EXPLORED',
+  'NOT_CLAIMABLE',
+  'OUTPOST_LIMIT',
   'VOWS_CLOSED',
   'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
@@ -2837,7 +2849,10 @@ export type MarketView = {
   caravanOffer: CaravanOfferView;
 };
 
-export type MapActionView = { type: 'sendExpedition'; modelId: string } | { type: 'attackCamp' };
+export type MapActionView =
+  | { type: 'claimOutpost'; hex: string }
+  | { type: 'sendExpedition'; modelId: string }
+  | { type: 'attackCamp' };
 
 export type MapHexView =
   | { q: number; r: number }
@@ -2851,6 +2866,8 @@ export type MapHexView =
       site: string | null;
       label: string;
       detail: string;
+      outpost?:
+        { id: string; status: Outpost['status']; readyInSeconds: number | null } | undefined;
       actions: MapActionView[];
     };
 

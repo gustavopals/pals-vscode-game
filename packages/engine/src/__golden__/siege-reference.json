@@ -341,6 +341,7 @@
     749
   ],
   "ids": {
+    "outpost": 0,
     "formation": 1,
     "battle": 3
   },

@@ -402,6 +402,7 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
       threat: 0,
       discovered: [],
       expeditionUnlocks: {},
+      outposts: [],
     });
     expect(row.state.horde).toEqual({
       scheduledRaids: [],

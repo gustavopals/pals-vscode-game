@@ -136,7 +136,7 @@ describe('a rotação dos candidatos (ADR 0017, decisão 4)', () => {
       ['m', 100],
       ['f', 130],
     ]);
-    expect(opened.state.ids).toEqual({ offer: 2 });
+    expect(opened.state.ids).toEqual({ outpost: 0, offer: 2 });
     expect(opened.state.rng.tavern).toHaveLength(4);
     // A cadência fica ancorada na inauguração: 12 dias de jogo depois, que não é virada de dia.
     expect(opened.state.guild.tavern.nextRotationAtMs).toBe(OPENS + ROTATION);
@@ -361,7 +361,7 @@ describe('contratar (hireHero)', () => {
     expect(JSON.stringify(hired.events)).not.toContain('templateId');
     // A ordem não sorteia e não gasta identificador de oferta: só o do herói.
     expect(hired.state.rng).toStrictEqual(state.rng);
-    expect(hired.state.ids).toEqual({ offer: 2, hero: 1 });
+    expect(hired.state.ids).toEqual({ outpost: 0, offer: 2, hero: 1 });
     expect(hired.state.guild.tavern).toEqual(state.guild.tavern);
     // O soldo conta desde a contratação.
     expect(view(hired.state).guild.wage.perHour).toBe(2);
@@ -964,7 +964,7 @@ describe('a Taverna na visão e na névoa', () => {
     const ahead = stateAtNextMoraleTurn(building.state);
     expect(ahead.settlement.buildings.tavern).toBe(1);
     expect(ahead.rng).toStrictEqual({});
-    expect(ahead.ids).toStrictEqual({});
+    expect(ahead.ids).toStrictEqual({ outpost: 0 });
     expect(ahead.guild.tavernOffers).toEqual([]);
     expect(JSON.stringify(view(building.state))).not.toContain('offer-');
     // E a moral prevista é a que a virada entrega.

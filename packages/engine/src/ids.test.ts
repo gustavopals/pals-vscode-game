@@ -14,8 +14,8 @@ import { deriveViewState } from './view';
 const throughBank = (state: GameState) => JSON.parse(JSON.stringify(state)) as GameState;
 
 describe('nextId', () => {
-  it('uma partida nova não tem contador nenhum', () => {
-    expect(newGame().ids).toEqual({});
+  it('uma partida nova começa com o contador de postos em zero', () => {
+    expect(newGame().ids).toEqual({ outpost: 0 });
   });
 
   it('devolve `<tipo>-<n>`, a partir de 1, com um contador por tipo', () => {
@@ -25,7 +25,7 @@ describe('nextId', () => {
     expect(nextId(state, 'expedition')).toBe('expedition-1');
     expect(nextId(state, 'hero')).toBe('hero-3');
     expect(nextId(state, 'masterBuilder')).toBe('masterBuilder-1');
-    expect(state.ids).toEqual({ hero: 3, expedition: 1, masterBuilder: 1 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 3, expedition: 1, masterBuilder: 1 });
   });
 
   it('só mexe no contador do próprio tipo, e não gasta sorteio nenhum', () => {
@@ -35,7 +35,7 @@ describe('nextId', () => {
     const before = cloneState(state);
     nextId(state, 'hero');
     expect({ ...state, ids: {} }).toStrictEqual({ ...before, ids: {} });
-    expect(state.ids).toEqual({ caravan: 1, hero: 1 });
+    expect(state.ids).toEqual({ outpost: 0, caravan: 1, hero: 1 });
     expect(state.rng).toStrictEqual(before.rng);
   });
 
@@ -53,7 +53,7 @@ describe('nextId', () => {
 
   it('o estado com contadores continua na forma da versão gravada', () => {
     const state = newGame();
-    for (const kind of ['hero', 'expedition', 'item', 'caravan', 'master']) {
+    for (const kind of ['hero', 'expedition', 'item', 'caravan', 'master', 'outpost']) {
       nextId(state, kind);
       nextId(state, kind);
     }
@@ -77,7 +77,7 @@ describe('nextId', () => {
     dropStream(state, entityStream('expedition', first));
     expect(state.rng).toEqual({});
     expect(nextId(state, 'expedition')).toBe('expedition-2');
-    expect(state.ids).toEqual({ expedition: 2 });
+    expect(state.ids).toEqual({ outpost: 0, expedition: 2 });
   });
 
   it.each(['', 'Hero', 'hero-1', 'hero 1', 'hero:1', 'hero_1', '1hero', 'herói', '__proto__'])(
@@ -85,7 +85,7 @@ describe('nextId', () => {
     (kind) => {
       const state = newGame();
       expect(() => nextId(state, kind)).toThrow(`Tipo de entidade inválido: ${kind}.`);
-      expect(Object.keys(state.ids)).toEqual([]);
+      expect(Object.keys(state.ids)).toEqual(['outpost']);
     },
   );
 
@@ -114,7 +114,7 @@ describe('nextId', () => {
 describe('o contador no limite dos inteiros seguros', () => {
   it('dá o último identificador seguro e depois lança, sem gravar nem repetir', () => {
     const state = gameWith((draft) => {
-      draft.ids = { hero: Number.MAX_SAFE_INTEGER - 1, caravan: 2 };
+      draft.ids = { ...draft.ids, hero: Number.MAX_SAFE_INTEGER - 1, caravan: 2 };
     });
     expect(nextId(state, 'hero')).toBe(`hero-${Number.MAX_SAFE_INTEGER}`);
     expect(currentShape(throughBank(state), '')).toBeNull();
@@ -284,7 +284,7 @@ describe('quem não cria identidades', () => {
     },
   );
 
-  it('nenhuma ordem de hoje cria entidade: aceita ou recusada, os contadores ficam como estão', () => {
+  it('as ordens de alocação e de recrutamento não criam identidade: aceita ou recusada, os contadores ficam como estão', () => {
     const state = used();
     const accepted = applyCommand(state, command('setWorkers', { building: 'farm', count: 2 }), 0);
     expect(accepted.ok).toBe(true);
@@ -293,6 +293,6 @@ describe('quem não cria identidades', () => {
     }
     const refused = applyCommand(state, command('recruitVillagers', { quantity: 99 }), 0);
     expect(refused.ok).toBe(false);
-    expect(state.ids).toEqual({ hero: 1 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 1 });
   });
 });

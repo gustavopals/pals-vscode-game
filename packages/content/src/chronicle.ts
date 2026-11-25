@@ -81,6 +81,8 @@ export const EVENT_TYPES = [
   'itemEquipped',
   'itemUnequipped',
   'destinationRevealed',
+  'outpostStarted',
+  'outpostClaimed',
   'mapRevealed',
   'sanctuaryExplored',
   'threatTileCleared',
@@ -222,6 +224,9 @@ export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
 // GDD Apêndice E: tom de crônica medieval, frases curtas.
 export const chronicleTemplates: Record<GameEventType, string> = {
+  outpostStarted: 'No {dia}º dia {daEstacao}, os pedreiros começaram um posto avançado em {lugar}.',
+  outpostClaimed:
+    'No {dia}º dia {daEstacao}, a bandeira de {feudo} foi hasteada no posto avançado de {lugar}.',
   mapRevealed: 'No {dia}º dia {daEstacao}, a Torre de Vigia avistou novas terras.',
   sanctuaryExplored:
     'No {dia}º dia {daEstacao}, os batedores de {feudo} alcançaram o Santuário e encontraram {reliquia}.',

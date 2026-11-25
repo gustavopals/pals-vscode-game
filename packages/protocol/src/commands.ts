@@ -360,7 +360,18 @@ export const TakeVowsCommandSchema = command(
   z.strictObject({ vows: z.array(z.string().min(1).max(80)) }),
 );
 
+export const ClaimOutpostCommandSchema = command(
+  'claimOutpost',
+  z.strictObject({
+    hex: z
+      .string()
+      .max(64)
+      .regex(/^-?\d+,-?\d+$/),
+  }),
+);
+
 export const CommandSchema = z.discriminatedUnion('type', [
+  ClaimOutpostCommandSchema,
   TakeVowsCommandSchema,
   PlaceRelicCommandSchema,
   RemoveRelicCommandSchema,

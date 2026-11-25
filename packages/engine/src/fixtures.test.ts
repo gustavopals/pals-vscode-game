@@ -10,6 +10,7 @@ import { housingCapacity } from './population';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
+  outpostYard,
   AUTUMN,
   campaignYard,
   accept,
@@ -94,6 +95,11 @@ function omensScenario(tower: number): GameState {
 }
 
 const scenarios: Record<string, () => GameState> = {
+  outposts: () => {
+    const started = accept(outpostYard(), command('claimOutpost', { hex: '-3,0' })).state;
+    const producing = advanceTo(started, 45 * MINUTE + 1234).state;
+    return accept(producing, command('claimOutpost', { hex: '1,0' })).state;
+  },
   'iron-ridge': () =>
     createInitialState('fixture-iron-ridge', { ...settings, scenario: 'ironRidge' }),
   'vows-active': () => {
@@ -902,6 +908,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       threat: 18,
       discovered: [],
       expeditionUnlocks: {},
+      outposts: [],
     });
     expect(threat.settlement.buildings.watchtower).toBe(1);
     expect(threat.settlement.constructionQueues[0]).toMatchObject({
@@ -992,7 +999,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       ['veteran', 'greedy'],
     ]);
     expect(guild.guild).toMatchObject({ wageArrears: null, lastWageArrears: null });
-    expect(guild.ids).toEqual({ hero: 3 });
+    expect(guild.ids).toEqual({ outpost: 0, hero: 3 });
     expect(guild.settlement.resources.gold).toBeGreaterThan(0);
     expect(guild.settlement.accumulators.gold).not.toBe(0);
     const arrears = of('wage-arrears').guild;
@@ -1004,7 +1011,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       ['Rolf', true],
     ]);
     // A incursão dos lobos virou batalha (V4E-T2.3): a batalha conta em `ids`.
-    expect(of('wage-arrears').ids).toEqual({ hero: 3, battle: 1 });
+    expect(of('wage-arrears').ids).toEqual({ outpost: 0, hero: 3, battle: 1 });
     expect(of('wage-arrears').settlement.resources.gold).toBe(0);
     const paidAt = of('wage-arrears').lastProcessedAt;
     const settled = of('wage-arrears-ended').guild;
@@ -1046,7 +1053,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(promised.guild.heroes).toEqual([]);
     expect(promised.guild.arriving).toEqual([{ namedHeroId: 'rolf', atMs: 13 * DAY + 7 * MINUTE }]);
     expect(promised.guild.arriving[0]?.atMs).toBeGreaterThan(promised.lastProcessedAt);
-    expect(promised.ids).toEqual({});
+    expect(promised.ids).toEqual({ outpost: 0 });
     expect(promised.settlement.moraleEffects.map((effect) => effect.id)).toContain(
       'card:woundedStranger-3',
     );
@@ -1060,7 +1067,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(open.settings.timeScale).toBe(3);
     expect(open.settlement.buildings.tavern).toBe(1);
     expect(open.guild.tavernOffers.map((offer) => offer.offerId)).toEqual(['offer-1', 'offer-2']);
-    expect(open.ids).toEqual({ hero: 1, offer: 2 });
+    expect(open.ids).toEqual({ outpost: 0, hero: 1, offer: 2 });
     expect(open.rng.tavern).toHaveLength(4);
     expect(open.guild.tavern).toEqual({
       nextRotationAtMs: 13 * DAY + 3 * HOUR + 15 * MINUTE + 12 * DAY,
@@ -1071,7 +1078,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     const busy = of('tavern-busy');
     expect(busy.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1', 'hero-2']);
     expect(busy.guild.tavernOffers.map((offer) => offer.offerId)).toEqual(['offer-3', 'offer-4']);
-    expect(busy.ids).toEqual({ hero: 2, offer: 4 });
+    expect(busy.ids).toEqual({ outpost: 0, hero: 2, offer: 4 });
     const opened = 30 * DAY + HOUR + 15 * MINUTE;
     expect(busy.guild.tavern).toEqual({
       nextRotationAtMs: opened + 24 * DAY,
@@ -1110,7 +1117,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       log: [],
     });
     expect(traveling.guild.expeditions[0]?.nodeEndsAtMs).toBeGreaterThan(traveling.lastProcessedAt);
-    expect(traveling.ids).toEqual({ hero: 2, expedition: 1 });
+    expect(traveling.ids).toEqual({ outpost: 0, hero: 2, expedition: 1 });
     expect(Object.keys(traveling.rng).filter((key) => key.startsWith('expedition:'))).toEqual([]);
     // Na encruzilhada: o prazo de 12 h reais marcado, o fluxo da expedição em uso, o relatório
     // de uma Patrulha que já voltou e o fluxo dela apagado.
@@ -1135,7 +1142,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ]);
     expect(waiting.guild.reports.map((report) => report.expeditionId)).toEqual(['expedition-1']);
     expect(waiting.guild.reports[0]?.heroNames).toEqual(['Rolf']);
-    expect(waiting.ids).toEqual({ hero: 2, expedition: 2 });
+    expect(waiting.ids).toEqual({ outpost: 0, hero: 2, expedition: 2 });
     // Voltando: duas de uma vez em Rei de Ferro no ritmo 0,5, com a Guilda no nível 2. A da
     // Floresta passou pela encruzilhada sem resposta (a Postura decidiu) e por um nó com
     // dificuldade; a Patrulha está no primeiro nó. Os dois fluxos... só o de quem já sorteou.

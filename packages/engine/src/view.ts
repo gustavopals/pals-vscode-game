@@ -8,6 +8,7 @@ import {
   BUILDING_IDS,
   buildings,
   marketTexts,
+  mapTexts,
   vigilTexts,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
@@ -71,6 +72,7 @@ import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
 import { marketEffect, marketView } from './marketView';
 import { smithyEffect, smithyView } from './smithyView';
+import { activeOutpostsFor } from './outposts';
 import { mapView } from './mapView';
 import { armyEffect, armyView } from './armyView';
 import { soldierCount } from './army';
@@ -132,7 +134,13 @@ function productionBreakdown(
 function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: number): string {
   const producer = producerOrNull(resource);
   if (producer === null) {
-    // O ferro (V4B-T1): ninguém o produz, ninguém o consome; ele só chega e só sai por ordem.
+    const veins = activeOutpostsFor(state, resource);
+    if (veins.length) {
+      const rate = decimal(balance.outposts.ironPerHour * timeScale);
+      return veins
+        .map(({ hex }) => mapTexts.veinRate.replace('{hex}', hex).replace('{taxa}', rate))
+        .join(' + ');
+    }
     return marketTexts.unproduced.replace(
       '{recurso}',
       balance.resources[resource].label.toLowerCase(),
@@ -394,7 +402,7 @@ export function deriveViewState(
 
   return {
     seed: state.seed,
-    map: mapView(state, guild.guild, army),
+    map: mapView(state, guild.guild, army, timeScale),
     settlement: {
       name: settlement.name,
       townHallLevel: settlement.buildings.townHall,

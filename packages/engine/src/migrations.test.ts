@@ -257,6 +257,12 @@ function stripComposition(copy: Draft): void {
   delete copy.guild?.tavern?.extraOffer;
   delete copy.horde?.sabotages;
   delete copy.map?.expeditionUnlocks;
+  if (copy.schemaVersion === 46 && copy.map && Object.hasOwn(copy.map, 'outposts')) {
+    expect(copy.map.outposts).toEqual([]);
+    expect(copy.ids.outpost).toBe(0);
+  }
+  delete copy.map?.outposts;
+  delete copy.ids?.outpost;
   delete copy.map?.hexes;
   delete copy.map?.radius;
   delete copy.map?.scenario;
@@ -728,6 +734,76 @@ function fingerprint(text: string): string {
 // Segunda junção: v35 conserva os bytes do main; v36/v37 foram regravados após integrar
 // cartas, objetivos e Vigília (docs/balance-v0.4.md, seção "Segunda junção").
 const FROZEN: Record<string, string> = {
+  'state-v45-campaign-defeated.json': '80675120',
+  'state-v45-campaign-marching.json': '8a0f34ad',
+  'state-v45-campaign-returning.json': 'f291e274',
+  'state-v45-caravan-escort.json': '5344aee4',
+  'state-v45-caravan.json': 'd2c2d6db',
+  'state-v45-chapel.json': 'ec692596',
+  'state-v45-cold.json': 'b9e29542',
+  'state-v45-construction.json': 'd036c009',
+  'state-v45-council-encounters.json': '0c7007b5',
+  'state-v45-council-hidden.json': '2869ec1f',
+  'state-v45-council-risk.json': 'c5e808b6',
+  'state-v45-council.json': 'd51a7f8b',
+  'state-v45-crafts.json': 'c353542a',
+  'state-v45-den-cleared.json': 'cc037268',
+  'state-v45-expedition-crossroads.json': '6150b04a',
+  'state-v45-expedition-returning.json': '27228d80',
+  'state-v45-expedition.json': 'c4328e6b',
+  'state-v45-famine-3x.json': 'e5dcbf2c',
+  'state-v45-famine-ended.json': '06c6e98d',
+  'state-v45-famine-half.json': 'a9d93dff',
+  'state-v45-famine-resumed.json': '66f55aaa',
+  'state-v45-famine-smithy.json': '3c708e2f',
+  'state-v45-famine.json': 'a7845f09',
+  'state-v45-fresh.json': '80d2fa65',
+  'state-v45-guild.json': '30ad0190',
+  'state-v45-hero-captured.json': '298cc4ac',
+  'state-v45-hero-injured.json': 'c548737d',
+  'state-v45-hero-promised.json': '4a337506',
+  'state-v45-horde-omens-exact.json': '67198029',
+  'state-v45-horde-omens-partial.json': '40021881',
+  'state-v45-horde-omens-vague.json': '9913842b',
+  'state-v45-horde-previous-year.json': '3d8cb458',
+  'state-v45-housing-full.json': '7f269146',
+  'state-v45-iron-king-half.json': '856d81a7',
+  'state-v45-iron-ridge.json': '4370cf9d',
+  'state-v45-market-council-effects.json': 'eeaab1ff',
+  'state-v45-market-opening.json': 'cf7feb37',
+  'state-v45-market.json': 'a80da808',
+  'state-v45-master-waiting.json': 'aed0d25d',
+  'state-v45-masters.json': '065dea25',
+  'state-v45-migrated-3x.json': 'e599e3ad',
+  'state-v45-migrated-iron-king-caravan.json': '0e0b354d',
+  'state-v45-migrated-iron-king-half.json': 'b600fa72',
+  'state-v45-migrated-peasant-3x.json': 'f80b3075',
+  'state-v45-morale.json': 'be0019fe',
+  'state-v45-objectives.json': '4ffcad61',
+  'state-v45-palisade.json': '64b7ab9e',
+  'state-v45-peasant-3x.json': 'd0f3e93a',
+  'state-v45-queues.json': '7e4515c9',
+  'state-v45-raid-announced.json': '4d0c9b22',
+  'state-v45-raid.json': '1c26c9ed',
+  'state-v45-relics.json': '76b9e0e2',
+  'state-v45-siege-between-waves.json': '8af5dd04',
+  'state-v45-siege-ended.json': '8b6436f1',
+  'state-v45-siege-scheduled.json': '39bd0672',
+  'state-v45-smithy-forging.json': '6622b3cf',
+  'state-v45-storage.json': 'e0438e4c',
+  'state-v45-tavern-busy.json': 'cbc161f3',
+  'state-v45-tavern.json': '8343b066',
+  'state-v45-threat.json': '0f5566dc',
+  'state-v45-trolls.json': '542dbc9c',
+  'state-v45-vigil-fixed-offset.json': '843559ea',
+  'state-v45-vows-active.json': 'e38dbdf3',
+  'state-v45-vows-next-year.json': '71a6d97a',
+  'state-v45-wage-arrears-ended.json': '09a992c9',
+  'state-v45-wage-arrears-resumed.json': '520d7f1b',
+  'state-v45-wage-arrears.json': 'ccdbdbaa',
+  'state-v45-warehouse-full.json': '3f3f9feb',
+  'state-v45-week-scripted.json': 'b6fff12b',
+  'state-v45-white-wolf-window.json': '866e9014',
   'state-v44-campaign-defeated.json': '9db3dfd4',
   'state-v44-campaign-marching.json': '6365dbad',
   'state-v44-campaign-returning.json': 'a9bff414',
@@ -2469,7 +2545,7 @@ function withOffer(state: Draft, damage: (offer: Draft) => unknown): void {
 function withHero(state: Draft, damage: (hero: Draft) => unknown): void {
   const hero: Draft = { ...HERO, traits: [...HERO.traits] };
   damage(hero);
-  state.ids = { hero: 1 };
+  state.ids = { ...state.ids, hero: 1 };
   state.guild.heroes = [hero];
 }
 
@@ -2913,7 +2989,7 @@ describe('a forma da versão atual', () => {
     [
       'um herói que não é objeto',
       (state) => {
-        state.ids = { hero: 1 };
+        state.ids = { ...state.ids, hero: 1 };
         state.guild.heroes = ['hero-1'];
       },
     ],
@@ -3278,7 +3354,7 @@ describe('a forma da versão atual', () => {
       'caravan:caravan-1',
       'caravan:caravan-2',
     ]);
-    expect(draft.ids).toEqual({ expedition: 2, hero: 2, caravan: 2 });
+    expect(draft.ids).toEqual({ outpost: 0, expedition: 2, hero: 2, caravan: 2 });
     // Gravado, o fluxo de uma expedição só cabe com ela em curso (versão 17; os testes das
     // expedições conferem o caso de verdade): sem expedição nenhuma, a guarda o recusa, e o
     // resto cabe.
@@ -3303,7 +3379,7 @@ describe('a forma da versão atual', () => {
     // O maior valor de cada palavra e um contador em zero também cabem.
     const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
     edge.rng = { council: [0xffff_ffff, 0, 0, 0] };
-    edge.ids = { caravan: 120, masterBuilder: 0 };
+    edge.ids = { outpost: 0, caravan: 120, masterBuilder: 0 };
     expect(currentShape(edge, '')).toBeNull();
   });
 
@@ -5198,15 +5274,15 @@ describe('versão 12 → 13', () => {
 
   it('o que o passo escreve é o que uma partida nova tem', () => {
     const fresh = migrated(named('state-v12-fresh.json'));
-    expect(fresh.ids).toEqual({});
-    expect(newGame().ids).toEqual({});
+    expect(fresh.ids).toEqual({ outpost: 0 });
+    expect(newGame().ids).toEqual({ outpost: 0 });
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
 
   it.each(version12)('$name: só acrescenta os contadores de identidade, vazios', (fixture) => {
     const before = read(fixture) as Draft;
     const after = migrated(fixture);
-    expect(after.ids).toStrictEqual({});
+    expect(after.ids).toStrictEqual({ outpost: 0 });
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, e o gerador fica palavra por palavra como estava.
     expect(after.rng).toStrictEqual(before.rng);
@@ -5233,7 +5309,7 @@ describe('versão 12 → 13', () => {
       // quem chegou até ele), e o gerador só tem os fluxos fixos.
       const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
       const later = advanceTo(state, state.lastProcessedAt + month).state;
-      expect(besidesPrizes(later.ids, {})).toEqual({ hero: 1 });
+      expect(besidesPrizes(later.ids, {})).toEqual({ outpost: 0, hero: 1 });
       for (const stream of Object.keys(later.rng)) {
         expect(RNG_STREAMS).toContain(stream);
       }
@@ -5308,7 +5384,7 @@ describe('versão 13 → 14', () => {
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, ninguém ganha identificador e o gerador fica palavra por palavra como estava.
     expect(after.rng).toStrictEqual(before.rng);
-    expect(after.ids).toStrictEqual(before.ids);
+    expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
     const rest: Partial<GameState> = { ...withoutTavern(after) };
     delete rest.guild;
     expect({ ...rest, schemaVersion: 13 }).toStrictEqual({
@@ -5347,7 +5423,7 @@ describe('versão 13 → 14', () => {
       const before = advanceTo(state, (resolved as GameEvent).atMs - 1);
       expect(withoutTavern(before.state).guild).toEqual(EMPTY_GUILD);
       // As batalhas das incursões (V4E-T2.3) contam em `ids` à parte.
-      expect(besidesPrizes(before.state.ids, {})).toEqual({});
+      expect(besidesPrizes(before.state.ids, {})).toEqual({ outpost: 0 });
       expect(
         before.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
       ).toEqual([]);
@@ -5420,7 +5496,7 @@ describe('versão 14 → 15', () => {
         (before.guild.heroes as Draft[]).map((hero) => ({ ...hero, gender: 'm' })),
       );
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       // O resto é o estado antigo, campo por campo: o Conselho inclusive. O passo não põe a
       // carta da estrangeira na mesa, não a agenda e não mexe na cadência.
       const rest = withoutTavern(after) as Draft;
@@ -5508,7 +5584,7 @@ describe('versão 15 → 16', () => {
       // incursão muda, ninguém ganha identificador e o gerador fica palavra por palavra como
       // estava (o fluxo `tavern` só nasce no primeiro sorteio, na inauguração).
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect({ ...withoutTavern(after), schemaVersion: 15 }).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -5653,7 +5729,7 @@ describe('versão 16 → 17', () => {
       // ou incursão muda, ninguém ganha identificador e o gerador fica palavra por palavra como
       // estava (o fluxo de uma expedição só nasce no primeiro sorteio dela).
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect({ ...withoutGuildHall(after), schemaVersion: 16 }).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6155,7 +6231,7 @@ describe('versão 17 → 18', () => {
       // relatório muda, ninguém ganha identificador e o gerador fica palavra por palavra.
       expect(after.map.tiles).toStrictEqual(before.map.tiles);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect({ ...withoutOutcomes(after), schemaVersion: 17 }).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6296,7 +6372,7 @@ describe('versão 18 → 19', () => {
       // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, herói, expedição ou
       // relatório muda, ninguém ganha identificador e o gerador fica palavra por palavra.
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect({ ...withoutReport(after), schemaVersion: 18 }).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6311,7 +6387,10 @@ describe('versão 18 → 19', () => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('expedition'))).toEqual([]);
-      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual({
+        ...before.ids,
+        outpost: 0,
+      });
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -6426,7 +6505,7 @@ describe('versão 19 → 20', () => {
       expect(hero.freedAtMs).toBeNull();
     }
     expect(after.rng).toStrictEqual(before.rng);
-    expect(after.ids).toStrictEqual(before.ids);
+    expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
     expect({ ...withoutFreed(after), schemaVersion: 19 }).toStrictEqual({
       ...before,
       migratedAtMs: before.lastProcessedAt,
@@ -6440,7 +6519,10 @@ describe('versão 19 → 20', () => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('hero'))).toEqual([]);
-      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual({
+        ...before.ids,
+        outpost: 0,
+      });
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -6552,7 +6634,7 @@ describe('versão 20 → 21', () => {
       expect(after.market).toStrictEqual(NO_MARKET);
       expect(after.rng).toStrictEqual(before.rng);
       expect(after.rng.market).toBeUndefined();
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect({ ...withoutMarket(after), schemaVersion: 20 }).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -6571,7 +6653,10 @@ describe('versão 20 → 21', () => {
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('market'))).toEqual([]);
       expect(atBoundary.state.market).toStrictEqual(NO_MARKET);
-      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual({
+        ...before.ids,
+        outpost: 0,
+      });
       expect(atBoundary.state.rng).toStrictEqual(before.rng);
     },
   );
@@ -6746,7 +6831,7 @@ describe('versão 21 → 22', () => {
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.market.caravans).toEqual([]);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(after.ids.caravan).toBeUndefined();
       expect(after.guild.heroes.map((hero) => hero.status)).toEqual(
         before.guild.heroes.map((hero: { status: string }) => hero.status),
@@ -6766,7 +6851,10 @@ describe('versão 21 → 22', () => {
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('caravan'))).toEqual([]);
       expect(atBoundary.state.market.caravans).toEqual([]);
-      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual({
+        ...before.ids,
+        outpost: 0,
+      });
       expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('caravan:'))).toEqual(
         [],
       );
@@ -6952,7 +7040,7 @@ describe('versão 22 → 23', () => {
       expect(after.settlement.population).toStrictEqual(before.settlement.population);
       expect(after.settlement.workers).toStrictEqual(before.settlement.workers);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(after.ids.master).toBeUndefined();
       for (const journey of journeysOf(after as unknown as Draft)) {
         for (const entry of journey.log as Draft[]) {
@@ -6976,7 +7064,10 @@ describe('versão 22 → 23', () => {
       expect(atBoundary.state.settlement.masters).toEqual([]);
       expect(atBoundary.state.settlement.mastersWaiting).toEqual([]);
       expect(atBoundary.state.ids.master).toBeUndefined();
-      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual(before.ids);
+      expect(besidesPrizes(atBoundary.state.ids, before.ids)).toStrictEqual({
+        ...before.ids,
+        outpost: 0,
+      });
       // Trinta dias sem ordem nenhuma e sem expedição ao lugar certo: nenhum Mestre nasce sozinho
       // do passo (o que uma expedição em curso encontrar é regra do motor, não do passo).
       expect(Object.keys(atBoundary.state.rng).filter((key) => key.startsWith('master'))).toEqual(
@@ -7202,7 +7293,7 @@ describe('versão 23 → 24', () => {
       );
       expect(after.settlement.mastersWaiting).toStrictEqual(before.settlement.mastersWaiting);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(asVersion23(after)).toStrictEqual({
         ...before,
         migratedAtMs: before.lastProcessedAt,
@@ -7419,7 +7510,7 @@ describe('versão 24 → 25 (V4B-T1: o ferro)', () => {
       expect(after.market.previousPrices.iron).toBe(8000);
       expect(after.market.tradedToday.iron).toBe(0);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion24(after)).toStrictEqual({
         ...before,
@@ -7520,7 +7611,7 @@ describe('versão 25 → 26 (V4B-T2: o Ferreiro e as armas)', () => {
       expect(after.settlement.weapons).toBe(0);
       expect(after.settlement.forge).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion25(after)).toStrictEqual({
         ...before,
@@ -7657,7 +7748,7 @@ describe('versão 26 → 27 (V4B-T3: desgaste e reparo do equipamento)', () => {
       const after = migrated(fixture);
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion26(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       if (before.settlement.forge !== null) {
@@ -7831,7 +7922,7 @@ describe('versão 27 → 28 (V4C-T1: o Quartel e os soldados)', () => {
       expect(after.army.training).toBeNull();
       expect(Object.values(after.army.units).every((count) => count === 0)).toBe(true);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion27(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       // Nada acontece na fronteira: o passo não cria prazo nem evento.
@@ -7976,7 +8067,7 @@ describe('versão 28 → 29 (V4C-T2: as formações salvas e a Defesa ativa)', (
       expect(after.army.formations).toStrictEqual([]);
       expect(after.army.activeFormationId).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(asVersion28(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       // Nada acontece na fronteira: o passo não cria prazo nem evento.
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
@@ -8141,7 +8232,7 @@ describe('versão 29 → 30 (V4D-T1.6: os relatórios de batalha)', () => {
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.army.reports).toStrictEqual([]);
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(asVersion29(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => /battle/i.test(event.type))).toEqual([]);
@@ -8233,7 +8324,7 @@ describe('versão 30 → 31 (V4D-T2.2: a prévia do Conselho de Guerra)', () => 
       expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.army.preview).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(statsBeforeVigil(after)).toStrictEqual(before.stats);
       expect(asVersion30(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
@@ -8321,7 +8412,7 @@ describe('versão 31 → 32 (V4E-T1.2: a muralha)', () => {
       expect(after.settlement.wall.hp).toEqual({ left: full, center: full, right: full });
       expect(after.settlement.wallRepair).toBeNull();
       expect(after.rng).toStrictEqual(before.rng);
-      expect(after.ids).toStrictEqual(before.ids);
+      expect(after.ids).toStrictEqual({ ...before.ids, outpost: 0 });
       expect(asVersion31(after)).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
       const atBoundary = advanceTo(after, after.lastProcessedAt + 1);
       expect(atBoundary.events.filter((event) => event.type.startsWith('wall'))).toEqual([]);

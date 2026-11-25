@@ -7,6 +7,7 @@ import {
   buildings,
   craftGuilds,
   marketTexts,
+  mapTexts,
   type Ratio,
 } from '@lotg/content';
 
@@ -121,6 +122,18 @@ function nextRateChange(
     }
   }
 
+  for (const post of state.map.outposts) {
+    if (
+      post.status === 'building' &&
+      post.readyAtMs !== null &&
+      balance.outposts.resources[state.map.hexes[post.hex]!.terrain] === resource
+    ) {
+      changes.push({
+        atMs: post.readyAtMs,
+        before: mapTexts.beforeOutpostReady.replace('{hex}', post.hex),
+      });
+    }
+  }
   const seasonMoves =
     !sameRatio(season.effects.production[resource], next.effects.production[resource]) ||
     (resource === 'wood' && !sameRatio(burns, next.effects.firewoodPerVillagerPerHour)) ||

@@ -606,6 +606,7 @@ export class GameSession {
     const deadlines = [
       // Cada fila de obras tem o seu prazo, e cada planejada, o instante em que a espera acaba
       // (é quando uma automática começa sozinha).
+      ...view.map.hexes.map((hex) => ('outpost' in hex ? hex.outpost?.readyInSeconds : null)),
       ...view.constructions.queues.map((queue) => queue?.secondsRemaining),
       ...view.constructions.planned.map((plan) => plan.waiting?.etaSeconds),
       // O fim da primeira leva em adaptação de cada edifício: a taxa sobe nesse instante, sem

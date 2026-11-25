@@ -60,8 +60,9 @@ describe('cenário golden de 7 dias', () => {
           eventsSoFar: day.eventsSoFar + seen.length,
           state: {
             ...day.state,
-            schemaVersion: 45,
-            map: { ...day.state.map, radius, scenario, hexes: dayHexes },
+            schemaVersion: 46,
+            ids: { ...day.state.ids, outpost: 0 },
+            map: { ...day.state.map, outposts: [], radius, scenario, hexes: dayHexes },
           },
         };
       }),
@@ -427,7 +428,7 @@ describe('cenário golden de 7 dias', () => {
       inventory: [{ id: 'item-1', defId: 'huntingSpear', condition: 8 }],
     });
     // Seis incursões são resolvidas só pela Paliçada (R1); restam quatro batalhas.
-    expect(state.ids).toEqual({ hero: 1, item: 1, battle: 4 });
+    expect(state.ids).toEqual({ outpost: 0, hero: 1, item: 1, battle: 4 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);
     expect(events.filter((event) => event.type === 'wageArrearsStarted')).toEqual([]);
     // A Paliçada: erguida às 76 h, antes de os aldeões perguntarem por ela, e é ela que abre a

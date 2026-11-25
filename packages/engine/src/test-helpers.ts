@@ -83,6 +83,16 @@ export function newGame(seed = 'pedra-alta'): GameState {
   return createInitialState(seed, settings);
 }
 
+/** Salão Nv5 com recursos para três postos e os terrenos de teste já explorados. */
+export function outpostYard() {
+  const state = gameAt(0);
+  state.settlement.buildings.townHall = 5;
+  Object.assign(state.settlement.resources, { wood: 800_000, stone: 600_000, gold: 400_000 });
+  for (const key of ['-3,0', '1,0', '-2,1', '-1,-1', '2,1', '3,-2'] as const)
+    state.map.hexes[key]!.fog = 'explored';
+  return state;
+}
+
 /** Campos gravados nas versões 42–44, para construir entradas históricas. */
 export function mapBeforeGrid({ tiles, threat, discovered, expeditionUnlocks }: GameState['map']) {
   return { tiles, threat, discovered, expeditionUnlocks };

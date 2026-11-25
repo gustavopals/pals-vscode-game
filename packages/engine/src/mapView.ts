@@ -1,4 +1,6 @@
 import { mapScenarios, mapTexts, terrains, tileTypes } from '@lotg/content';
+import { claimOutpostBlock } from './outpostOrders';
+import { realSecondsCeil } from './units';
 import { expeditionLabel } from './expeditions';
 import { mapCoordinates, siteDestination } from './hexmap';
 import type { GameState, ViewState, MapHexView, MapActionView } from './types';
@@ -7,9 +9,11 @@ export function mapView(
   state: GameState,
   guild: ViewState['guild'],
   army: ViewState['army'],
+  timeScale: number,
 ): ViewState['map'] {
   const hexes = mapCoordinates.map(({ q, r }): MapHexView => {
-    const hex = state.map.hexes[`${q},${r}`]!;
+    const key = `${q},${r}` as const;
+    const hex = state.map.hexes[key]!;
     if (hex.fog === 'unknown') return { q, r };
     const terrain = terrains[hex.terrain];
     const visible = { q, r, terrain: hex.terrain, terrainLabel: terrain.label };
@@ -30,6 +34,9 @@ export function mapView(
       army.campAssault.formations.some((formation) => formation.canAttack)
     )
       actions.push({ type: 'attackCamp' });
+    const post = state.map.outposts.find((entry) => entry.hex === key);
+    if (!post && claimOutpostBlock(state, key) === null)
+      actions.push({ type: 'claimOutpost', hex: key });
     let label: string = terrain.label;
     if (q === 0 && r === 0) label = state.settlement.name;
     else if (tile) label = tileTypes[tile.type].label;
@@ -38,7 +45,24 @@ export function mapView(
       hex.terrain === 'sanctuary' && (state.stats.sanctuaryClaimed ?? 0) > 0
         ? mapTexts.sanctuaryClaimedDetail
         : terrain.detail;
-    return { ...visible, fog: hex.fog, site, label, detail, actions };
+    return {
+      ...visible,
+      fog: hex.fog,
+      site,
+      label,
+      detail,
+      actions,
+      ...(post && {
+        outpost: {
+          id: post.id,
+          status: post.status,
+          readyInSeconds:
+            post.readyAtMs === null
+              ? null
+              : realSecondsCeil(post.readyAtMs - state.lastProcessedAt, timeScale),
+        },
+      }),
+    };
   });
   return {
     radius: state.map.radius,
