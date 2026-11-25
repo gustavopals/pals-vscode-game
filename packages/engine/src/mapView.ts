@@ -1,5 +1,8 @@
-import { mapScenarios, mapTexts, terrains, tileTypes } from '@lotg/content';
-import { claimOutpostBlock } from './outpostOrders';
+import { balance, mapScenarios, mapTexts, terrains, tileTypes } from '@lotg/content';
+import { costView } from './costView';
+import { fillText } from './format';
+import { claimOutpostBlock, repairOutpostBlock } from './outpostOrders';
+import { describeAmounts } from './rejections';
 import { realSecondsCeil } from './units';
 import { expeditionLabel } from './expeditions';
 import { mapCoordinates, siteDestination } from './hexmap';
@@ -37,14 +40,24 @@ export function mapView(
     const post = state.map.outposts.find((entry) => entry.hex === key);
     if (!post && claimOutpostBlock(state, key) === null)
       actions.push({ type: 'claimOutpost', hex: key });
+    const repairBlocked = post?.status === 'damaged' ? repairOutpostBlock(state, post.id) : null;
+    if (post?.status === 'damaged' && repairBlocked === null)
+      actions.push({ type: 'repairOutpost', outpostId: post.id });
     let label: string = terrain.label;
     if (q === 0 && r === 0) label = state.settlement.name;
     else if (tile) label = tileTypes[tile.type].label;
     else if (destination) label = expeditionLabel(destination);
+    const damagedDetail =
+      post?.status === 'damaged'
+        ? fillText(mapTexts.outpostDamagedDetail, {
+            custo: describeAmounts(balance.outposts.repairCost),
+          })
+        : null;
     const detail =
-      hex.terrain === 'sanctuary' && (state.stats.sanctuaryClaimed ?? 0) > 0
+      damagedDetail ??
+      (hex.terrain === 'sanctuary' && (state.stats.sanctuaryClaimed ?? 0) > 0
         ? mapTexts.sanctuaryClaimedDetail
-        : terrain.detail;
+        : terrain.detail);
     return {
       ...visible,
       fog: hex.fog,
@@ -60,6 +73,11 @@ export function mapView(
             post.readyAtMs === null
               ? null
               : realSecondsCeil(post.readyAtMs - state.lastProcessedAt, timeScale),
+          ...(damagedDetail !== null && {
+            detail: damagedDetail,
+            repairCost: costView(state, balance.outposts.repairCost),
+            repairBlockedReason: repairBlocked?.message ?? null,
+          }),
         },
       }),
     };

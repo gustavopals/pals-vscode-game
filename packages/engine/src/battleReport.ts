@@ -114,6 +114,8 @@ export type BattleReport = {
     readonly xp: number;
   }>;
   readonly log: readonly BattleReportRound[];
+  /** Posto avançado danificado quando esta batalha rompeu a defesa (V5F-T2; D-24). */
+  readonly damagedOutpost?: { readonly id: string; readonly hex: `${number},${number}` };
 };
 
 const floorOf = (value: Ratio): number => Math.floor(value.num / value.den);

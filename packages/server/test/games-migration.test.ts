@@ -89,6 +89,76 @@ it('45 → 46 reivindica após migrar e conserva o mesmo posto ao repetir o coma
   });
 });
 
+it('v46 danifica o posto ativo mais distante na incursão e permite repairOutpost via HTTP', async () => {
+  const before = JSON.parse(
+    readFileSync(
+      new URL('../../engine/src/__fixtures__/state-v46-fresh.json', import.meta.url),
+      'utf8',
+    ),
+  ) as StoredState & Pick<GameState, 'ids' | 'map' | 'horde' | 'settlement'>;
+  const near = '1,0';
+  const far = '-3,0';
+  before.map.hexes[near]!.fog = 'claimed';
+  before.map.hexes[far]!.fog = 'claimed';
+  before.ids = { ...before.ids, outpost: 2 };
+  before.map.outposts = [
+    { id: 'outpost-1', hex: near, status: 'active', readyAtMs: null },
+    { id: 'outpost-2', hex: far, status: 'active', readyAtMs: null },
+  ];
+  before.settlement.buildings.palisade = 0;
+  Object.assign(before.settlement.resources, { wood: 300_000, stone: 200_000 });
+  before.horde.scheduledRaids = [
+    {
+      id: 'raid-http-outpost',
+      atMs: 10 * 60_000,
+      kind: 'threat',
+      enemy: 'wolves',
+      size: 'light',
+      announcedAtMs: null,
+      composition: null,
+    },
+  ];
+  const game = await insertGame(server, before);
+  server.clock.advance(10 * 60_000);
+  const afterRaid = await getView(server, game);
+  expect(afterRaid.status).toBe(200);
+  const damagedView = ViewResponseSchema.parse(afterRaid.body).view;
+  expect(damagedView.map.hexes.find((cell) => cell.q === -3 && cell.r === 0)).toMatchObject({
+    fog: 'claimed',
+    outpost: { id: 'outpost-2', status: 'damaged', readyInSeconds: null },
+    actions: [{ type: 'repairOutpost', outpostId: 'outpost-2' }],
+  });
+  expect(damagedView.army.reports[0]?.damagedOutpost).toMatchObject({
+    outpostId: 'outpost-2',
+    hex: far,
+  });
+
+  const repair = order('repairOutpost', { outpostId: 'outpost-2' });
+  const repaired = await send<CommandAccepted>(server, game.token, game.id, repair);
+  expect(repaired.status).toBe(200);
+  expect(repaired.body.events.some((event) => event.type === 'outpostRepaired')).toBe(true);
+  expect(repaired.body.view.map.hexes.find((cell) => cell.q === -3 && cell.r === 0)).toMatchObject({
+    fog: 'claimed',
+    outpost: { id: 'outpost-2', status: 'active', readyInSeconds: null },
+    actions: [],
+  });
+  const replay = await send<CommandAccepted>(server, game.token, game.id, repair);
+  expect(replay.headers[REPLAYED]).toBe('true');
+  expect(replay.body).toEqual(repaired.body);
+
+  const again = await send<{ code: string; details?: { code?: string } }>(
+    server,
+    game.token,
+    game.id,
+    order('repairOutpost', { outpostId: 'outpost-2' }),
+  );
+  expect(again.status).toBe(422);
+  expect(again.body).toMatchObject({
+    code: 'GAME_RULE',
+    details: { code: 'OUTPOST_NOT_DAMAGED' },
+  });
+});
+
 it('44 → 45 persiste a descoberta e entrega a mesma visão HTTP ao mudar o terreno desconhecido', async () => {
   const before = JSON.parse(
     readFileSync(

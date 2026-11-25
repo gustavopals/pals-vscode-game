@@ -1,4 +1,4 @@
-import { claimOutpost } from './outpostOrders';
+import { claimOutpost, repairOutpost } from './outpostOrders';
 import { takeVows } from './vowOrders';
 import { placeRelic, removeRelic } from './relicOrders';
 import { balance } from '@lotg/content';
@@ -70,6 +70,8 @@ function dispatch(
   switch (command.type) {
     case 'claimOutpost':
       return claimOutpost(draft, payload.hex, nowMs, events);
+    case 'repairOutpost':
+      return repairOutpost(draft, payload.outpostId, nowMs, events);
     case 'takeVows':
       return takeVows(draft, payload.vows, nowMs, events);
     case 'placeRelic':

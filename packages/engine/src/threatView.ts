@@ -5,6 +5,7 @@ import {
   balance,
   buildings,
   enemies,
+  mapTexts,
   RAID_SIZE_IDS,
   type RaidSizeId,
   raidSizes,
@@ -32,6 +33,7 @@ import {
   shareText,
 } from './format';
 import { clearedTiles, tileWithArticle } from './outcomes';
+import { farthestActiveOutpost, outpostPlace } from './outposts';
 import { baseRaidComposition } from './raidArmy';
 import { bandText, legacySize, raidInjures } from './raids';
 import {
@@ -618,6 +620,7 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   const sizes: readonly RaidSizeId[] = perks.revealsRaidSize
     ? [legacySize(raid.size)]
     : RAID_SIZE_IDS;
+  const exposedOutpost = farthestActiveOutpost(state);
   return {
     enemy: raid.enemy,
     size: perks.revealsRaidSize ? raid.size : null,
@@ -635,6 +638,13 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
       raid,
       state.council.bonuses.revealedRaidId === raid.id ? { ...perks, composition: 'exact' } : perks,
     ),
+    ...(exposedOutpost === null
+      ? {}
+      : {
+          outpostRiskText: fillText(mapTexts.incomingOutpostRisk, {
+            lugar: outpostPlace(state, exposedOutpost.hex),
+          }),
+        }),
   };
 }
 

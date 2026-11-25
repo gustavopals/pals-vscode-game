@@ -9,6 +9,7 @@ import { emit } from './chronicle';
 import { seasonAt, yearOf, YEAR_MS } from './clock';
 import { nominationReason } from './formations';
 import { observeFormation } from './hordePlan';
+import { damageFarthestOutpost } from './outposts';
 import { releaseExcessWorkers } from './population';
 import { buildDefender, toHordePosts } from './raidArmy';
 import { finishSiege } from './siegeOutcome';
@@ -189,6 +190,9 @@ export function settleSiege(draft: GameState, atMs: number, events: GameEvent[])
     siege.endedAtMs = atMs;
     siege.aftermathUntilMs = siege.year * YEAR_MS;
     finishSiege(draft, atMs, events);
+    if (report.outcome === 'defeat') {
+      damageFarthestOutpost(draft, atMs, events, report.id);
+    }
   } else
     siege.nextWaveAtMs =
       atMs + realToGameMs(balance.siege.waveIntervalRealMs, draft.settings.timeScale);

@@ -681,9 +681,10 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     ).toBe(false);
   });
 
-  it('fixa custo, prazos, produção e eventos dos postos avançados (D-23)', () => {
+  it('fixa custo, reparo, prazos, produção e eventos dos postos avançados (D-23 e D-24)', () => {
     expect(balance.outposts).toEqual({
       cost: { wood: 250, stone: 150, gold: 100 },
+      repairCost: { wood: 125, stone: 75 },
       durationMs: 45 * 60_000,
       limit: 3,
       townHallLevel: 5,
@@ -691,10 +692,28 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
       productionFactor: { num: 23, den: 20 },
       resources: { forest: 'wood', fields: 'food', hills: 'stone', ironVein: 'iron' },
     });
-    for (const type of ['outpostStarted', 'outpostClaimed'] as const) {
+    for (const type of [
+      'outpostStarted',
+      'outpostClaimed',
+      'outpostDamaged',
+      'outpostRepaired',
+    ] as const) {
       expect(EVENT_TYPES).toContain(type);
       expect(chronicleTemplates[type]).toContain('{lugar}');
+      expect(chronicleTemplates[type]).toMatch(/^No \{dia\}º dia \{daEstacao\}, .*\.$/);
     }
+    expect(
+      BalanceSchema.safeParse({
+        ...balance,
+        outposts: { ...balance.outposts, repairCost: { wood: 125, stone: 75, gold: 10 } },
+      }).success,
+    ).toBe(false);
+    expect(
+      BalanceSchema.safeParse({
+        ...balance,
+        outposts: { ...balance.outposts, repairCost: { wood: 0, stone: 75 } },
+      }).success,
+    ).toBe(false);
   });
 
   it('valida os cenários de mapa, a Serra do Ferro e a recompensa do Santuário (V5E-T4)', () => {

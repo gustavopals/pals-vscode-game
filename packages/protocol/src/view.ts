@@ -28,6 +28,7 @@ export const REJECTION_CODES = [
   'HEX_NOT_EXPLORED',
   'NOT_CLAIMABLE',
   'OUTPOST_LIMIT',
+  'OUTPOST_NOT_DAMAGED',
   'VOWS_CLOSED',
   'VOW_UNAVAILABLE',
   'CHAPEL_REQUIRED',
@@ -1155,6 +1156,14 @@ const ArmySchema = z.strictObject({
         }),
       ),
       adjustFormationId: z.string().nullable(),
+      /** Posto avançado danificado quando esta batalha rompeu a defesa; ausente quando nenhum sofreu. */
+      damagedOutpost: z
+        .strictObject({
+          outpostId: z.string(),
+          hex: z.string(),
+          text: z.string(),
+        })
+        .optional(),
     }),
   ),
 });
@@ -1354,6 +1363,8 @@ const ThreatIncomingSchema = z.strictObject({
   defenseText: z.string(),
   /** O que os vigias dizem do exército da incursão, conforme o nível da Torre (V4E-T2.5). */
   compositionText: z.string().nullable(),
+  /** Qual posto avançado ativo será danificado se a defesa ceder; ausente sem posto ativo. */
+  outpostRiskText: z.string().optional(),
 });
 
 /**
@@ -1468,11 +1479,15 @@ const mapHexSchema = z.union([
         id: z.string(),
         status: z.enum(['building', 'active', 'damaged']),
         readyInSeconds: z.int().nonnegative().nullable(),
+        detail: z.string().optional(),
+        repairCost: z.array(ResourceCostSchema).optional(),
+        repairBlockedReason: z.string().nullable().optional(),
       })
       .optional(),
     actions: z.array(
       z.discriminatedUnion('type', [
         z.strictObject({ type: z.literal('claimOutpost'), hex: z.string() }),
+        z.strictObject({ type: z.literal('repairOutpost'), outpostId: z.string() }),
         z.strictObject({ type: z.literal('attackCamp') }),
         z.strictObject({ type: z.literal('sendExpedition'), modelId: z.string().min(1) }),
       ]),

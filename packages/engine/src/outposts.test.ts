@@ -1,18 +1,38 @@
+import { balance } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { seasonAt } from './clock';
 import { netRates, productionRate } from './economy';
 import { currentShape, migrateState } from './migrations';
+import { readySiege } from './siege.test-helpers';
 import { storageCapacity } from './storage';
-import { accept, apply, command, HOUR, MINUTE, SUMMER, outpostYard } from './test-helpers';
+import { accept, apply, command, DAY, HOUR, MINUTE, SUMMER, outpostYard } from './test-helpers';
 import { nextEventAt } from './timeline';
+import type { GameState } from './types';
 import { deriveViewState } from './view';
 import v45 from './__fixtures__/state-v45-iron-ridge.json';
 
 const ready = 45 * MINUTE;
 const mine = '-3,0';
 const order = (hex: string) => command('claimOutpost', { hex });
+const repairOrder = (outpostId: string) => command('repairOutpost', { outpostId });
+
+function scheduleBreachingRaid(state: GameState, atMs: number, id = 'raid-test'): void {
+  state.settlement.buildings.palisade = 0;
+  state.settlement.wall.hp = { left: 0, center: 0, right: 0 };
+  state.horde.scheduledRaids = [
+    {
+      id,
+      atMs,
+      kind: 'threat',
+      enemy: 'wolves',
+      size: 'light',
+      announcedAtMs: null,
+      composition: null,
+    },
+  ];
+}
 
 describe('postos avançados', () => {
   it('recusa pela névoa antes de revelar terreno, exige terreno produtivo, Salão, custo e vaga', () => {
@@ -92,8 +112,15 @@ describe('postos avançados', () => {
     expect(netRates(active.state).iron).toBe(0);
     expect(cell(active.state)).toMatchObject({
       fog: 'claimed',
-      outpost: { status: 'damaged', readyInSeconds: null },
-      actions: [],
+      detail: expect.stringContaining('125 madeira e 75 pedra'),
+      outpost: {
+        id: 'outpost-1',
+        status: 'damaged',
+        readyInSeconds: null,
+        detail: expect.stringContaining('danificado'),
+        repairBlockedReason: null,
+      },
+      actions: [{ type: 'repairOutpost', outpostId: 'outpost-1' }],
     });
     expect(currentShape(active.state, '')).toBeNull();
   });
@@ -252,5 +279,323 @@ describe('postos avançados', () => {
     expect(
       currentShape({ ...two, map: { ...two.map, outposts: [...two.map.outposts].reverse() } }, ''),
     ).toMatch(/map\.outposts\.1\.id/);
+  });
+
+  it('incursão que rompe a defesa danifica o posto ativo mais distante, com aviso, Crônica e relatório', () => {
+    let state = outpostYard();
+    state.settlement.resources.wood = 1_000_000;
+    state.settlement.buildings.watchtower = 2;
+    state.settlement.workers.lumberMill = 2;
+    state.settlement.workers.farm = 2;
+    // Distâncias: 1,0 = 1; -2,1 = 2; -3,0 = 3 (mais distante).
+    for (const hex of ['1,0', '-2,1', mine]) state = accept(state, order(hex)).state;
+    state = advanceTo(state, ready).state;
+    const raidAt = ready + HOUR;
+    scheduleBreachingRaid(state, raidAt, 'raid-breach-1');
+    const sighted = advanceTo(state, raidAt - 30 * MINUTE).state;
+    const incomingView = deriveViewState(sighted, sighted.lastProcessedAt).threat;
+    expect(incomingView.known && incomingView.incoming?.outpostRiskText).toContain(
+      'Veio de Ferro (-3,0)',
+    );
+
+    const struck = advanceTo(sighted, raidAt);
+    expect(struck.state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '1,0', status: 'active', readyAtMs: null },
+      { id: 'outpost-2', hex: '-2,1', status: 'active', readyAtMs: null },
+      { id: 'outpost-3', hex: mine, status: 'damaged', readyAtMs: null },
+    ]);
+    expect(struck.state.map.hexes[mine]!.fog).toBe('claimed');
+    expect(netRates(struck.state).iron).toBe(0);
+
+    const damaged = struck.events.find((event) => event.type === 'outpostDamaged');
+    expect(damaged).toMatchObject({
+      atMs: raidAt,
+      data: { outpostId: 'outpost-3', hex: mine, battleId: 'battle-1' },
+    });
+    expect(damaged?.text).toContain('Veio de Ferro (-3,0)');
+
+    const suffered = struck.events.find((event) => event.type === 'raidSuffered');
+    expect(suffered?.data).toMatchObject({
+      damagedOutpostId: 'outpost-3',
+      damagedOutpostHex: mine,
+    });
+    expect(suffered?.text).toContain('Veio de Ferro (-3,0)');
+
+    const view = deriveViewState(struck.state, raidAt);
+    expect(view.army.reports[0]?.damagedOutpost).toEqual({
+      outpostId: 'outpost-3',
+      hex: mine,
+      text: expect.stringContaining('Veio de Ferro (-3,0)'),
+    });
+    expect(view.map.hexes.find((hex) => hex.q === -3 && hex.r === 0)).toMatchObject({
+      fog: 'claimed',
+      detail: expect.stringContaining('125 madeira e 75 pedra'),
+      outpost: {
+        id: 'outpost-3',
+        status: 'damaged',
+        readyInSeconds: null,
+        repairBlockedReason: null,
+      },
+      actions: [{ type: 'repairOutpost', outpostId: 'outpost-3' }],
+    });
+
+    // Estado com relatório referenciando posto danificado passa na guarda v46 após roundtrip JSON.
+    const serialized = JSON.parse(JSON.stringify(struck.state)) as GameState;
+    expect(currentShape(serialized, '')).toBeNull();
+    // Guarda v46 rejeita referência a posto desconhecido ou em batalha vencida.
+    const badId = JSON.parse(JSON.stringify(struck.state)) as GameState;
+    badId.army.reports[0] = {
+      ...badId.army.reports[0]!,
+      damagedOutpost: { id: 'outpost-9', hex: mine },
+    };
+    expect(currentShape(badId, '')).toMatch(/damagedOutpost/);
+    const badOutcome = JSON.parse(JSON.stringify(struck.state)) as GameState;
+    badOutcome.army.reports[0] = { ...badOutcome.army.reports[0]!, outcome: 'victory' };
+    expect(currentShape(badOutcome, '')).toMatch(/damagedOutpost/);
+
+    // Segunda incursão que rompe ignora o já danificado (-3,0) e atinge o próximo ativo mais distante (-2,1).
+    const raid2At = raidAt + 2 * HOUR;
+    scheduleBreachingRaid(struck.state, raid2At, 'raid-breach-2');
+    const struck2 = advanceTo(struck.state, raid2At);
+    expect(struck2.state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '1,0', status: 'active', readyAtMs: null },
+      { id: 'outpost-2', hex: '-2,1', status: 'damaged', readyAtMs: null },
+      { id: 'outpost-3', hex: mine, status: 'damaged', readyAtMs: null },
+    ]);
+    expect(struck2.events.find((event) => event.type === 'outpostDamaged')).toMatchObject({
+      data: { outpostId: 'outpost-2', hex: '-2,1' },
+    });
+  });
+
+  it('desempata postos ativos à mesma distância pelo menor id numérico e ignora postos em obra', () => {
+    // Distância 2: -2,1 e -1,-1. Quem foi criado primeiro (menor id) é atingido primeiro.
+    const buildPair = (firstHex: string, secondHex: string) => {
+      let state = outpostYard();
+      state = accept(state, order(firstHex)).state;
+      state = accept(state, order(secondHex)).state;
+      state = advanceTo(state, ready).state;
+      // Posto mais distante (distância 3) ainda em obra NÃO deve ser escolhido.
+      state = accept(state, order(mine)).state;
+      const raidAt = ready + 10 * MINUTE;
+      scheduleBreachingRaid(state, raidAt, 'raid-tie');
+      return advanceTo(state, raidAt);
+    };
+
+    const orderA = buildPair('-2,1', '-1,-1');
+    expect(orderA.state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '-2,1', status: 'damaged', readyAtMs: null },
+      { id: 'outpost-2', hex: '-1,-1', status: 'active', readyAtMs: null },
+      { id: 'outpost-3', hex: mine, status: 'building', readyAtMs: 2 * ready },
+    ]);
+    expect(orderA.events.find((event) => event.type === 'outpostDamaged')?.data).toMatchObject({
+      outpostId: 'outpost-1',
+      hex: '-2,1',
+    });
+
+    const orderB = buildPair('-1,-1', '-2,1');
+    expect(orderB.state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '-1,-1', status: 'damaged', readyAtMs: null },
+      { id: 'outpost-2', hex: '-2,1', status: 'active', readyAtMs: null },
+      { id: 'outpost-3', hex: mine, status: 'building', readyAtMs: 2 * ready },
+    ]);
+    expect(orderB.events.find((event) => event.type === 'outpostDamaged')?.data).toMatchObject({
+      outpostId: 'outpost-1',
+      hex: '-1,-1',
+    });
+  });
+
+  it('sem posto ativo ou com incursão repelida, nada muda nas incursões nem nos relatórios', () => {
+    const withoutPost = outpostYard();
+    withoutPost.settlement.buildings.watchtower = 2;
+    const raidAt = HOUR;
+    scheduleBreachingRaid(withoutPost, raidAt, 'raid-none');
+    const incoming = deriveViewState(withoutPost, 0).threat;
+    expect(incoming.known && incoming.incoming).not.toHaveProperty('outpostRiskText');
+
+    const hit = advanceTo(withoutPost, raidAt);
+    expect(hit.events.some((event) => event.type === 'outpostDamaged')).toBe(false);
+    const suffered = hit.events.find((event) => event.type === 'raidSuffered');
+    expect(suffered?.data).not.toHaveProperty('damagedOutpostId');
+    expect(suffered?.data).not.toHaveProperty('damagedOutpostHex');
+    expect(hit.state.army.reports[0]).not.toHaveProperty('damagedOutpost');
+    expect(deriveViewState(hit.state, raidAt).army.reports[0]).not.toHaveProperty('damagedOutpost');
+
+    // Paliçada que segura a incursão mantém o posto ativo intacto.
+    let defended = accept(outpostYard(), order(mine)).state;
+    defended = advanceTo(defended, ready).state;
+    scheduleBreachingRaid(defended, ready + HOUR, 'raid-held');
+    defended.settlement.buildings.palisade = 1;
+    defended.settlement.wall.hp = { left: 60, center: 60, right: 60 };
+    const held = advanceTo(defended, ready + HOUR);
+    expect(held.events.some((event) => event.type === 'raidRepelled')).toBe(true);
+    expect(held.events.some((event) => event.type === 'outpostDamaged')).toBe(false);
+    expect(held.state.map.outposts[0]?.status).toBe('active');
+  });
+
+  it('repara posto danificado imediatamente em madeira e pedra, retoma produção e recusa usos inválidos', () => {
+    const building = accept(outpostYard(), order(mine)).state;
+    expect(apply(building, repairOrder('outpost-1'))).toMatchObject({
+      ok: false,
+      code: 'OUTPOST_NOT_DAMAGED',
+    });
+    expect(apply(building, repairOrder('outpost-99'))).toMatchObject({
+      ok: false,
+      code: 'OUTPOST_NOT_DAMAGED',
+    });
+
+    const active = advanceTo(building, ready).state;
+    expect(apply(active, repairOrder('outpost-1'))).toMatchObject({
+      ok: false,
+      code: 'OUTPOST_NOT_DAMAGED',
+    });
+
+    const raidAt = ready + HOUR;
+    scheduleBreachingRaid(active, raidAt, 'raid-for-repair');
+    const damaged = advanceTo(active, raidAt).state;
+    expect(damaged.map.outposts[0]?.status).toBe('damaged');
+    expect(netRates(damaged).iron).toBe(0);
+
+    // Sem madeira suficiente: recusa INSUFFICIENT_RESOURCES e ficha oculta ação mas mostra motivo.
+    const poor = JSON.parse(JSON.stringify(damaged)) as GameState;
+    poor.settlement.resources.wood = (balance.outposts.repairCost.wood! - 1) * 1000;
+    expect(apply(poor, repairOrder('outpost-1'))).toMatchObject({
+      ok: false,
+      code: 'INSUFFICIENT_RESOURCES',
+    });
+    const poorCell = deriveViewState(poor, raidAt).map.hexes.find(
+      (hex) => hex.q === -3 && hex.r === 0,
+    );
+    expect(poorCell).toMatchObject({
+      fog: 'claimed',
+      actions: [],
+      outpost: {
+        id: 'outpost-1',
+        status: 'damaged',
+        repairBlockedReason: expect.stringContaining('madeira'),
+        repairCost: [
+          expect.objectContaining({ resource: 'wood', amount: 125, missing: 1 }),
+          expect.objectContaining({ resource: 'stone', amount: 75, missing: 0 }),
+        ],
+      },
+    });
+
+    // Com recursos: cobra madeira e pedra (não cobra ouro), volta a active e emite outpostRepaired.
+    const woodBefore = damaged.settlement.resources.wood;
+    const stoneBefore = damaged.settlement.resources.stone;
+    const goldBefore = damaged.settlement.resources.gold;
+    const rngBefore = JSON.stringify(damaged.rng);
+    const idsBefore = JSON.stringify(damaged.ids);
+    const repaired = accept(damaged, repairOrder('outpost-1'));
+
+    expect(repaired.state.map.outposts[0]).toEqual({
+      id: 'outpost-1',
+      hex: mine,
+      status: 'active',
+      readyAtMs: null,
+    });
+    expect(repaired.state.map.hexes[mine]!.fog).toBe('claimed');
+    expect(repaired.state.settlement.resources.wood).toBe(woodBefore - 125_000);
+    expect(repaired.state.settlement.resources.stone).toBe(stoneBefore - 75_000);
+    expect(repaired.state.settlement.resources.gold).toBe(goldBefore);
+    expect(JSON.stringify(repaired.state.rng)).toBe(rngBefore);
+    expect(JSON.stringify(repaired.state.ids)).toBe(idsBefore);
+    expect(repaired.events).toMatchObject([
+      {
+        type: 'outpostRepaired',
+        atMs: raidAt,
+        data: { outpostId: 'outpost-1', hex: mine, spent_wood: 125, spent_stone: 75 },
+      },
+    ]);
+    expect(repaired.events[0]?.text).toContain('Veio de Ferro (-3,0)');
+    expect(netRates(repaired.state).iron).toBe(3000);
+    expect(advanceTo(repaired.state, raidAt + HOUR).state.settlement.resources.iron).toBe(
+      repaired.state.settlement.resources.iron + 3000,
+    );
+    expect(apply(repaired.state, repairOrder('outpost-1'))).toMatchObject({
+      ok: false,
+      code: 'OUTPOST_NOT_DAMAGED',
+    });
+    expect(
+      deriveViewState(repaired.state, raidAt).map.hexes.find((hex) => hex.q === -3 && hex.r === 0),
+    ).toMatchObject({
+      fog: 'claimed',
+      actions: [],
+      outpost: { id: 'outpost-1', status: 'active', readyInSeconds: null },
+    });
+    expect(currentShape(repaired.state, '')).toBeNull();
+  });
+
+  it('Queda do Cerco danifica o posto ativo mais distante; Vitória com brecha não danifica', () => {
+    const setupSiegeWithOutposts = () => {
+      const state = readySiege();
+      state.settlement.buildings.townHall = 5;
+      Object.assign(state.settlement.resources, { wood: 800_000, stone: 600_000, gold: 400_000 });
+      state.map.hexes['1,0']!.fog = 'explored';
+      state.map.hexes[mine]!.fog = 'explored';
+      let withPosts = accept(state, order('1,0')).state;
+      withPosts = accept(withPosts, order(mine)).state;
+      return advanceTo(withPosts, withPosts.lastProcessedAt + ready).state;
+    };
+
+    // Vitória com brecha: a Horda foi repelida, nenhum posto é danificado.
+    const wonState = setupSiegeWithOutposts();
+    wonState.siege!.breached = true;
+    const won = advanceTo(wonState, wonState.siege!.atMs + 2 * HOUR);
+    expect(won.state.siege!.result).toBe('victory');
+    expect(won.events.some((event) => event.type === 'outpostDamaged')).toBe(false);
+    expect(won.state.map.outposts.every((post) => post.status === 'active')).toBe(true);
+
+    // Queda do Cerco: danifica o posto ativo mais distante (-3,0), anota no relatório e permite reparo mesmo se o Salão cair.
+    const fallState = setupSiegeWithOutposts();
+    fallState.army.units = { spearman: 0, swordsman: 0, archer: 0, knight: 0, shieldbearer: 0 };
+    const fell = advanceTo(fallState, fallState.siege!.atMs + 2 * HOUR);
+    expect(fell.state.siege!.result).toBe('fall');
+    expect(fell.state.map.outposts).toEqual([
+      { id: 'outpost-1', hex: '1,0', status: 'active', readyAtMs: null },
+      { id: 'outpost-2', hex: mine, status: 'damaged', readyAtMs: null },
+    ]);
+    expect(fell.events.find((event) => event.type === 'outpostDamaged')).toMatchObject({
+      data: { outpostId: 'outpost-2', hex: mine },
+    });
+    expect(
+      deriveViewState(fell.state, fell.state.lastProcessedAt).army.reports[0]?.damagedOutpost,
+    ).toMatchObject({ outpostId: 'outpost-2', hex: mine });
+    expect(currentShape(fell.state, '')).toBeNull();
+    // Reparo não exige Salão Nv5 (a Queda pode derrubar o Salão abaixo de 5).
+    fell.state.settlement.buildings.townHall = 3;
+    fell.state.settlement.resources.wood = 200_000;
+    fell.state.settlement.resources.stone = 200_000;
+    expect(accept(fell.state, repairOrder('outpost-2')).state.map.outposts[1]?.status).toBe(
+      'active',
+    );
+  });
+
+  it('divide qualquer intervalo atravessando uma incursão que danifica posto sem diferença em estado ou eventos', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 2 * HOUR }),
+        fc.integer({ min: 0, max: DAY }),
+        (afterRaid, split) => {
+          let state = outpostYard();
+          state.settlement.workers.lumberMill = 2;
+          state = accept(state, order('-2,1')).state;
+          state = accept(state, order(mine)).state;
+          state = advanceTo(state, ready).state;
+          const raidAt = ready + 30 * MINUTE;
+          scheduleBreachingRaid(state, raidAt, 'raid-prop');
+          const end = raidAt + afterRaid;
+          const cut = Math.min(end, ready + (split % (end - ready + 1)));
+          const full = advanceTo(state, end);
+          const first = advanceTo(state, cut);
+          const rest = advanceTo(first.state, end);
+          expect(rest.state).toStrictEqual(full.state);
+          expect([...first.events, ...rest.events]).toStrictEqual(full.events);
+          // O Veio (-3,0, distância 3) foi danificado na incursão e produziu só até raidAt (30 min = 1,5 ferro).
+          expect(full.state.map.outposts[1]?.status).toBe('damaged');
+          expect(full.state.map.outposts[0]?.status).toBe('active');
+          expect(full.state.settlement.resources.iron).toBe(1500);
+        },
+      ),
+    );
   });
 });

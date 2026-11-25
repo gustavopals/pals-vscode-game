@@ -270,6 +270,7 @@ describe('catálogo de recusas', () => {
       ),
       command('claimOutpost', { hex: '2,1' }),
     ],
+    OUTPOST_NOT_DAMAGED: [outpostYard(), command('repairOutpost', { outpostId: 'outpost-1' })],
     VOWS_CLOSED: [
       gameWith((state) => {
         state.vows.closesAtMs = 0;

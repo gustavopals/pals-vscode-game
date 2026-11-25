@@ -4,6 +4,7 @@ import {
   heroClasses,
   hordeUnits,
   lineLabels,
+  mapTexts,
   militiaUnit,
   units,
   wingLabels,
@@ -13,6 +14,7 @@ import {
 
 import type { BattleReport, BattleReportPost } from './battleReport';
 import { fillText, sentenceCase } from './format';
+import { outpostPlace } from './outposts';
 import type { ArmyReportView, GameState } from './types';
 
 /**
@@ -141,6 +143,17 @@ function reportView(state: GameState, report: BattleReport): ArmyReportView {
       state.army.formations.some((formation) => formation.id === report.formationId)
         ? report.formationId
         : null,
+    ...(report.damagedOutpost === undefined
+      ? {}
+      : {
+          damagedOutpost: {
+            outpostId: report.damagedOutpost.id,
+            hex: report.damagedOutpost.hex,
+            text: fillText(mapTexts.battleOutpostDamaged, {
+              lugar: outpostPlace(state, report.damagedOutpost.hex),
+            }),
+          },
+        }),
   };
 }
 

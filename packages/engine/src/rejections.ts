@@ -64,6 +64,7 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   HEX_NOT_EXPLORED: () => mapTexts.hexNotExplored,
   NOT_CLAIMABLE: () => mapTexts.notClaimable,
   OUTPOST_LIMIT: () => mapTexts.outpostLimit.replace('{limite}', String(balance.outposts.limit)),
+  OUTPOST_NOT_DAMAGED: () => mapTexts.outpostNotDamaged,
   VOWS_CLOSED: () => vowTexts.closed,
   VOW_UNAVAILABLE: () => vowTexts.unavailable,
   CHAPEL_REQUIRED: () => relicTexts.chapelRequired,

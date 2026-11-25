@@ -65,8 +65,8 @@ Os pesos somam 100 e aplicam-se somente aos hexágonos livres; todos os hexágon
 O custo em Legado é verificado pelo servidor contra a soma de `legacy_ledger.points` da
 conta em `POST /games` (desbloqueio permanente; não desconta pontos).
 
-## Postos avançados (V5F-T1, ADR 0022, D-23)
+## Postos avançados (V5F-T1 e V5F-T2, ADR 0022, D-23 e D-24)
 
-`balance.outposts` fixa o Salão Nv5, o limite de três postos e o custo de cada obra em 250 madeira, 150 pedra e 100 ouro. A obra dura 45 minutos de jogo. Um Veio de Ferro ativo entrega 3 ferro/h de jogo. Cada posto em Floresta, Campos ou Colinas aplica um fator de 23/20 à produção de madeira, comida ou pedra, respectivamente.
+`balance.outposts` fixa o Salão Nv5, o limite de três postos, o custo de fundação em 250 madeira, 150 pedra e 100 ouro, e o custo de reparo (`repairCost`) em **125 madeira e 75 pedra** (metade da madeira e da pedra da fundação, sem ouro; reparo imediato, sem obra). A fundação dura 45 minutos de jogo. Um Veio de Ferro ativo entrega 3 ferro/h de jogo. Cada posto em Floresta, Campos ou Colinas aplica um fator de 23/20 à produção de madeira, comida ou pedra, respectivamente.
 
-As frases de `outpostStarted` e `outpostClaimed` ficam em `chronicleTemplates`. Os motivos de recusa e os termos por posto na explicação da taxa ficam em `mapTexts`.
+As frases de `outpostStarted`, `outpostClaimed`, `outpostDamaged` e `outpostRepaired` ficam em `chronicleTemplates`. Os motivos de recusa (`hexNotExplored`, `notClaimable`, `outpostLimit`, `outpostNotDamaged`), o detalhe do posto danificado (`outpostDamagedDetail`), os avisos da incursão e do relatório da batalha (`raidOutpostDamaged`, `incomingOutpostRisk`, `battleOutpostDamaged`) e os termos por posto na explicação da taxa ficam em `mapTexts` (todos sem números fixos e cobertos por `MapTextsSchema` e `contentHash`).
