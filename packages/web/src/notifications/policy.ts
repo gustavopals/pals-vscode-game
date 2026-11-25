@@ -22,6 +22,10 @@ import { waveDecision, waveDeadline } from '../ui/siege';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
 
+// V5F-T2: eventos de ataque e reparo de posto avançado declarados localmente até a junção.
+export type OutpostEventType = 'outpostDamaged' | 'outpostRepaired';
+export type PolicyEventType = GameEvent['type'] | OutpostEventType;
+
 export const MAX_NOTIFICATIONS_PER_HOUR = 3;
 export const MUTE_DURATION_MS = 2 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
@@ -34,13 +38,14 @@ const HOUR_MS = 60 * 60 * 1000;
  * descontente e o que parte por falta de soldo. A moral que desce de faixa também é alarme, mas
  * isso depende do sentido da mudança: ver `moraleBandDirection`.
  */
-const ALARMS: ReadonlyArray<GameEvent['type']> = [
+const ALARMS: ReadonlyArray<PolicyEventType> = [
   'famineStarted',
   'coldStarted',
   'villagerLeft',
   'villagerDeserted',
   'raidAnnounced',
   'raidSuffered',
+  'outpostDamaged',
   'wageArrearsStarted',
   'heroDiscontent',
   'heroLeft',
@@ -104,6 +109,14 @@ const WALL: ReadonlyArray<GameEvent['type']> = [
   'wallRepaired',
   'campAppeared',
   'fortressAppeared',
+];
+/** O que é do mapa e dos postos avançados (Fase E e Fase F): o aviso leva à aba Mapa. */
+const MAP: ReadonlyArray<PolicyEventType> = [
+  'outpostClaimed',
+  'outpostDamaged',
+  'outpostRepaired',
+  'mapRevealed',
+  'sanctuaryExplored',
 ];
 /** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
 const GUILD: ReadonlyArray<GameEvent['type']> = [
@@ -203,7 +216,7 @@ export function siegeNotice(
  */
 const WATCH: ReadonlyArray<GameEvent['type']> = ['threatRose', 'wolvesHowl'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
-const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
+const INFORMATIVE: ReadonlyArray<PolicyEventType> = [
   'constructionFinished',
   // Uma planejada automática começou sem o jogador mandar: gastou recursos e ocupou uma fila.
   // É notícia como o fim de uma obra; a obra que o próprio jogador ordena não avisa.
@@ -267,14 +280,20 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'hordeAlerted',
   'campAssaulted',
   'armyReturned',
+  // Postos avançados concluídos e reparados (V5F-T3): boa notícia sem ação imediata; o dano é alarme.
+  'outpostClaimed',
+  'outpostRepaired',
   // O fechamento anual é registro, sem decisão imediata: informa só em Todas.
   'yearEnded',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
 /** O ícone próprio de um aviso; sem entrada aqui, vale o do tom (aviso ou informação). */
-const ICONS: Partial<Record<GameEvent['type'], string>> = {
+const ICONS: Partial<Record<PolicyEventType, string>> = {
   yearEnded: 'book',
+  outpostClaimed: 'flag',
+  outpostDamaged: 'warning',
+  outpostRepaired: 'tools',
   coldStarted: 'flame',
   coldEnded: 'flame',
   // Uma conquista do feudo: a estrela a distingue de um aviso comum.
@@ -408,23 +427,29 @@ export function moraleBandDirection(event: GameEvent): 'rose' | 'fell' | null {
 }
 
 /** O evento é um alarme: vira aviso com tom de aviso e passa na frente dos outros. */
-export function isEssential(event: GameEvent): boolean {
-  return ALARMS.includes(event.type) || moraleBandDirection(event) === 'fell';
+export function isEssential(event: Pick<GameEvent, 'type' | 'data'>): boolean {
+  return (
+    ALARMS.includes(event.type as PolicyEventType) ||
+    moraleBandDirection(event as GameEvent) === 'fell'
+  );
 }
 
 /**
  * O evento encerra um alarme. A moral que sobe de faixa é o alívio da que desceu: quem soube dos
  * resmungos junto ao poço também fica sabendo que eles cessaram.
  */
-export function isRelief(event: GameEvent): boolean {
-  return RELIEFS.includes(event.type) || moraleBandDirection(event) === 'rose';
+export function isRelief(event: Pick<GameEvent, 'type' | 'data'>): boolean {
+  return (
+    RELIEFS.includes(event.type as GameEvent['type']) ||
+    moraleBandDirection(event as GameEvent) === 'rose'
+  );
 }
 
 /**
  * O codicon do aviso de um evento, quando ele tem um só dele (o frio não se confunde com a
  * fome). A mudança de faixa da moral leva o ícone da faixa nova, o mesmo do cabeçalho.
  */
-export function eventIcon(event: GameEvent): string | undefined {
+export function eventIcon(event: Pick<GameEvent, 'type' | 'data'>): string | undefined {
   if (event.type === 'moraleBandChanged') {
     return bandIcon(event.data.band);
   }
@@ -432,7 +457,7 @@ export function eventIcon(event: GameEvent): string | undefined {
     // Os uivos: o olho aberto de quem tem vigias, o fechado de quem não tem. O evento diz qual.
     return event.data.watched === 1 ? THREAT_ICON : THREAT_UNKNOWN_ICON;
   }
-  return ICONS[event.type];
+  return ICONS[event.type as PolicyEventType];
 }
 
 /** O evento é a virada de estação. */
@@ -509,8 +534,13 @@ export function isArmyEvent(event: GameEvent): boolean {
 }
 
 /** O evento é da muralha ou de um tile de guerra: o aviso leva ao painel da Ameaça. */
-export function isWallEvent(event: GameEvent): boolean {
+export function isWallEvent(event: Pick<GameEvent, 'type'>): boolean {
   return WALL.includes(event.type);
+}
+
+/** O evento é do mapa ou de um posto avançado: o aviso leva à aba Mapa. */
+export function isMapEvent(event: Pick<GameEvent, 'type'>): boolean {
+  return MAP.includes(event.type as PolicyEventType);
 }
 
 /** O evento é do Ferreiro: o aviso dele leva ao painel do Ferreiro. */
@@ -627,7 +657,7 @@ function wanted(
     isWatchReport(event) ||
     isHeroArrival(event) ||
     isMasterArrival(event) ||
-    (level === 'all' && INFORMATIVE.includes(event.type))
+    (level === 'all' && INFORMATIVE.includes(event.type as PolicyEventType))
   );
 }
 

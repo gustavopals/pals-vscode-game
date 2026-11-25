@@ -285,4 +285,201 @@ describe('aba Mapa (V5E-T3)', () => {
     expect(markup).toContain('class="hex-selection-layer"');
     expect(markup).toContain('class="hex-selected-ring"');
   });
+
+  it('exibe estado do posto avançado, crista no SVG e botões Reivindicar posto / Reparar posto (V5F-T3)', () => {
+    const calls: Array<[string, unknown]> = [];
+    const recording: Actions = {
+      ...actions,
+      run: (id, arg) => calls.push([id, arg]),
+    };
+
+    const claimableHex: MapHex = {
+      q: -3,
+      r: 0,
+      fog: 'explored',
+      terrain: 'ironVein',
+      terrainLabel: 'Veio de Ferro',
+      site: 'abandonedMine',
+      label: 'Mina Abandonada',
+      detail: 'Veios de ferro afloram na rocha.',
+      actions: [{ type: 'claimOutpost', hex: '-3,0' }],
+    };
+    const buildingHex: MapHex = {
+      ...claimableHex,
+      outpost: { id: 'outpost-1', status: 'building', readyInSeconds: 1800 },
+      actions: [],
+    };
+    const activeHex: MapHex = {
+      ...claimableHex,
+      q: 1,
+      r: 0,
+      fog: 'claimed',
+      terrain: 'fields',
+      terrainLabel: 'Campos',
+      site: 'patrol',
+      label: 'Patrulha nos Arredores',
+      outpost: { id: 'outpost-2', status: 'active', readyInSeconds: 0 },
+      actions: [],
+    };
+    const damagedHex = {
+      ...claimableHex,
+      q: -2,
+      r: 1,
+      fog: 'claimed',
+      terrain: 'forest',
+      terrainLabel: 'Floresta',
+      site: 'oldForest',
+      label: 'Floresta Antiga',
+      outpost: { id: 'outpost-3', status: 'damaged', readyInSeconds: 0 },
+      actions: [{ type: 'repairOutpost', outpostId: 'outpost-3' }],
+    } as unknown as MapHex;
+
+    // 1. Hexágono elegível para reivindicar posto avançado.
+    const claimMarkup = html(
+      <MapTab
+        view={withHexes(goldenView, [claimableHex])}
+        elapsed={0}
+        online={true}
+        retryInSeconds={null}
+        busy={new Set()}
+        actions={recording}
+      />,
+    );
+    expect(claimMarkup).not.toMatch(/\sstyle=/i);
+    expect(claimMarkup).toContain('data-map-action="claimOutpost"');
+    expect(claimMarkup).toContain('Reivindicar posto');
+    expect(claimMarkup).not.toContain('data-testid="hex-outpost-status"');
+
+    // 2. Grade com postos em obra, ativo e danificado: cristas no SVG e selos na legenda.
+    const outpostsMarkup = html(
+      <MapTab
+        view={withHexes(goldenView, [buildingHex, activeHex, damagedHex])}
+        elapsed={300}
+        online={true}
+        retryInSeconds={null}
+        busy={new Set()}
+        actions={recording}
+      />,
+    );
+    expect(outpostsMarkup).not.toMatch(/\sstyle=/i);
+    expect(outpostsMarkup).toContain('data-outpost="building"');
+    expect(outpostsMarkup).toContain('data-outpost="active"');
+    expect(outpostsMarkup).toContain('data-outpost="damaged"');
+    expect(outpostsMarkup).toContain('hex-outpost-crest-building');
+    expect(outpostsMarkup).toContain('hex-outpost-crest-active');
+    expect(outpostsMarkup).toContain('hex-outpost-crest-damaged');
+    expect(outpostsMarkup).toContain('Posto avançado: em obra · conclui em 00:25');
+    expect(outpostsMarkup).toContain('Postos avançados');
+
+    // 3. Ficha do posto ativo e do posto danificado com ação de reparo.
+    const activeSheetMarkup = html(
+      <HexSheet
+        hex={activeHex}
+        view={goldenView}
+        elapsed={0}
+        activeThreats={new Set()}
+        disabled={false}
+        busy={new Set()}
+        actions={recording}
+        titleRef={{ current: null }}
+      />,
+    );
+    expect(activeSheetMarkup).toContain('Posto avançado: ativo');
+    expect(activeSheetMarkup).not.toContain('data-map-action=');
+
+    const damagedSheetMarkup = html(
+      <HexSheet
+        hex={damagedHex}
+        view={goldenView}
+        elapsed={0}
+        activeThreats={new Set()}
+        disabled={false}
+        busy={new Set()}
+        actions={recording}
+        titleRef={{ current: null }}
+      />,
+    );
+    expect(damagedSheetMarkup).toContain('Posto avançado: danificado');
+    expect(damagedSheetMarkup).toContain('data-map-action="repairOutpost"');
+    expect(damagedSheetMarkup).toContain('Reparar posto');
+
+    // 4. Clique nos botões de Reivindicar e Reparar dispara os comandos da paleta.
+    type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+    const clickButtons = (node: unknown): void => {
+      if (Array.isArray(node)) {
+        node.forEach(clickButtons);
+        return;
+      }
+      if (typeof node !== 'object' || node === null) {
+        return;
+      }
+      const { type, props } = node as VNodeLike;
+      if (typeof type === 'function') {
+        clickButtons((type as (props: unknown) => unknown)(props));
+        return;
+      }
+      if (type === 'button' && typeof props?.onClick === 'function') {
+        (props.onClick as () => void)();
+      }
+      clickButtons(props?.children);
+    };
+
+    clickButtons(
+      HexSheet({
+        hex: claimableHex,
+        view: goldenView,
+        elapsed: 0,
+        activeThreats: new Set(),
+        disabled: false,
+        busy: new Set(),
+        actions: recording,
+        titleRef: { current: null },
+      }),
+    );
+    clickButtons(
+      HexSheet({
+        hex: damagedHex,
+        view: goldenView,
+        elapsed: 0,
+        activeThreats: new Set(),
+        disabled: false,
+        busy: new Set(),
+        actions: recording,
+        titleRef: { current: null },
+      }),
+    );
+    expect(calls).toEqual([
+      ['lords.claimOutpost', '-3,0'],
+      ['lords.repairOutpost', 'outpost-3'],
+    ]);
+
+    // 5. Trava de ordem em voo desabilita o botão correspondente.
+    const busyClaimMarkup = html(
+      <HexSheet
+        hex={claimableHex}
+        view={goldenView}
+        elapsed={0}
+        activeThreats={new Set()}
+        disabled={false}
+        busy={new Set(['claimOutpost:-3,0'])}
+        actions={recording}
+        titleRef={{ current: null }}
+      />,
+    );
+    expect(busyClaimMarkup).toMatch(/<button[^>]*data-map-action="claimOutpost"[^>]*disabled/);
+
+    const busyRepairMarkup = html(
+      <HexSheet
+        hex={damagedHex}
+        view={goldenView}
+        elapsed={0}
+        activeThreats={new Set()}
+        disabled={false}
+        busy={new Set(['repairOutpost:outpost-3'])}
+        actions={recording}
+        titleRef={{ current: null }}
+      />,
+    );
+    expect(busyRepairMarkup).toMatch(/<button[^>]*data-map-action="repairOutpost"[^>]*disabled/);
+  });
 });

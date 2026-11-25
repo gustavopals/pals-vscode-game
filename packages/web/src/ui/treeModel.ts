@@ -90,7 +90,16 @@ import {
   objectiveTreeLine,
 } from './objectives';
 import { ARMY_ICON, ARMY_NODE, ARMY_SECTION, armyTreeLine } from './army';
-import { MAP_ICON, mapTreeLine, mapTreeTooltip } from './hexmap';
+import {
+  MAP_ICON,
+  mapTreeLine,
+  mapTreeTooltip,
+  OUTPOST_NODE,
+  OUTPOST_STATUS_ICONS,
+  outpostSheetLine,
+  outpostsOf,
+  outpostTreeDescription,
+} from './hexmap';
 import {
   CHAPEL_NODE,
   chapelLines,
@@ -777,17 +786,47 @@ function armyNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
- * O mapa hexagonal (V5E-T3, GDD §8.1): resumo do que já foi explorado e avistado.
- * O clique abre a aba Mapa; as ações saem da ficha de cada hexágono.
+ * O mapa hexagonal (V5E-T3, V5F-T3, GDD §8.1): resumo do que já foi explorado e avistado e uma
+ * linha por posto avançado do feudo, com o estado (em obra com prazo, ativo ou danificado).
+ * O clique abre a aba Mapa; o posto danificado com reparo liberado traz o botão "Reparar".
  */
-function mapNode(view: ViewState): TreeNode {
+function mapNode(view: ViewState, elapsedSeconds = 0): TreeNode {
+  const outposts = outpostsOf(view.map);
+  const open = { id: 'lords.openPanel', args: ['map'] };
   return {
     id: 'map',
     label: 'Mapa',
     description: mapTreeLine(view.map),
     tooltip: mapTreeTooltip(view.map),
     icon: MAP_ICON,
-    command: { id: 'lords.openPanel', args: ['map'] },
+    command: open,
+    ...(outposts.length === 0
+      ? {}
+      : {
+          expanded: true,
+          children: outposts.map(({ hex, outpost, canRepair }): TreeNode => ({
+            id: `${OUTPOST_NODE}${outpost.id}`,
+            label: `${hex.label} (${hex.q}, ${hex.r})`,
+            description: outpostTreeDescription(outpost, elapsedSeconds),
+            tooltip: [
+              outpostSheetLine(outpost, elapsedSeconds),
+              `${hex.terrainLabel} (${hex.q}, ${hex.r})`,
+              hex.detail,
+            ].join('\n'),
+            icon: OUTPOST_STATUS_ICONS[outpost.status],
+            command: open,
+            ...(canRepair
+              ? {
+                  action: {
+                    command: 'lords.repairOutpost',
+                    arg: outpost.id,
+                    label: `Reparar posto: ${hex.label} (${hex.q}, ${hex.r})`,
+                    text: 'Reparar',
+                  },
+                }
+              : {}),
+          })),
+        }),
   };
 }
 
@@ -1069,7 +1108,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         marketNode(view, input.elapsedSeconds),
         smithyNode(view, input.elapsedSeconds),
         armyNode(view, input.elapsedSeconds),
-        mapNode(view),
+        mapNode(view, input.elapsedSeconds),
         ...mastersNode(view),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),

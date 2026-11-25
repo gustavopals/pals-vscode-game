@@ -12,6 +12,7 @@ import {
   defaultHexKey,
   FOG_LABELS,
   FOG_STATES,
+  hexActions,
   hexFog,
   hexIcon,
   hexKey,
@@ -20,12 +21,28 @@ import {
   isHomeHex,
   isSightedHex,
   MAP_ICON,
+  OUTPOST_STATUS_ICONS,
+  OUTPOST_STATUS_LABELS,
+  OUTPOST_STATUSES,
+  outpostSheetLine,
+  outpostsOf,
   TERRAIN_ICONS,
   visibleLegendTerrains,
   type ExploredMapHex,
   type MapAction,
   type MapHex,
 } from '../ui/hexmap';
+
+function actionMetaText(action: MapAction): string | null {
+  const record = action as Record<string, unknown>;
+  if (typeof record.text === 'string' && record.text !== '') {
+    return record.text;
+  }
+  if (typeof record.costText === 'string' && record.costText !== '') {
+    return record.costText;
+  }
+  return null;
+}
 
 function HexActionButton(props: {
   action: MapAction;
@@ -57,7 +74,40 @@ function HexActionButton(props: {
       </div>
     );
   }
-  if (action.type !== 'attackCamp') return null;
+  if (action.type === 'claimOutpost') {
+    const meta = actionMetaText(action);
+    return (
+      <div class="map-action-item">
+        {meta === null ? null : <p class="muted map-action-meta">{meta}</p>}
+        <button
+          type="button"
+          data-map-action="claimOutpost"
+          data-outpost-hex={action.hex}
+          disabled={props.disabled || props.busy.has(`claimOutpost:${action.hex}`)}
+          onClick={() => props.actions.run('lords.claimOutpost', action.hex)}
+        >
+          <Icon name="flag" /> Reivindicar posto
+        </button>
+      </div>
+    );
+  }
+  if (action.type === 'repairOutpost') {
+    const meta = actionMetaText(action);
+    return (
+      <div class="map-action-item">
+        {meta === null ? null : <p class="muted map-action-meta">{meta}</p>}
+        <button
+          type="button"
+          data-map-action="repairOutpost"
+          data-outpost-id={action.outpostId}
+          disabled={props.disabled || props.busy.has(`repairOutpost:${action.outpostId}`)}
+          onClick={() => props.actions.run('lords.repairOutpost', action.outpostId)}
+        >
+          <Icon name="tools" /> Reparar posto
+        </button>
+      </div>
+    );
+  }
   return (
     <div class="map-action-item">
       {view.army.campAssault.text === '' ? null : (
@@ -83,6 +133,7 @@ function HexActionButton(props: {
 export function HexSheet(props: {
   hex: MapHex;
   view: ViewState;
+  elapsed?: number;
   activeThreats: ReadonlySet<string>;
   disabled: boolean;
   busy: ReadonlySet<string>;
@@ -90,11 +141,12 @@ export function HexSheet(props: {
   titleRef: { current: HTMLHeadingElement | null };
 }) {
   const { hex, view } = props;
+  const elapsed = props.elapsed ?? 0;
   const fog = hexFog(hex);
   const icon = hexIcon(hex, props.activeThreats);
 
   let siteHint: string | null = null;
-  if (isExploredHex(hex) && hex.actions.length === 0 && hex.site !== null && !isHomeHex(hex)) {
+  if (isExploredHex(hex) && hexActions(hex).length === 0 && hex.site !== null && !isHomeHex(hex)) {
     const offer = view.guild.available.find(
       (entry) => entry.modelId === hex.site || entry.label === hex.label,
     );
@@ -159,11 +211,32 @@ export function HexSheet(props: {
               Sede do feudo · Salão Nv{view.settlement.townHallLevel}.
             </p>
           ) : null}
-          {hex.actions.length > 0 ? (
+          {hex.outpost === undefined ? null : (
+            <div
+              class={`map-outpost-status map-outpost-${hex.outpost.status}`}
+              data-testid="hex-outpost-status"
+              data-outpost-status={hex.outpost.status}
+            >
+              <span class={`map-outpost-badge map-outpost-badge-${hex.outpost.status}`}>
+                <Icon name={OUTPOST_STATUS_ICONS[hex.outpost.status]} />{' '}
+                {OUTPOST_STATUS_LABELS[hex.outpost.status]}
+              </span>
+              <span class="num">{outpostSheetLine(hex.outpost, elapsed)}</span>
+            </div>
+          )}
+          {hexActions(hex).length > 0 ? (
             <div class="map-sheet-actions" role="group" aria-label="Ações neste hexágono">
-              {hex.actions.map((action) => (
+              {hexActions(hex).map((action) => (
                 <HexActionButton
-                  key={action.type === 'sendExpedition' ? `send:${action.modelId}` : action.type}
+                  key={
+                    action.type === 'sendExpedition'
+                      ? `send:${action.modelId}`
+                      : action.type === 'claimOutpost'
+                        ? `claim:${action.hex}`
+                        : action.type === 'repairOutpost'
+                          ? `repair:${action.outpostId}`
+                          : action.type
+                  }
                   action={action}
                   hex={hex}
                   view={view}
@@ -186,9 +259,10 @@ export function HexSheet(props: {
   );
 }
 
-/** Legenda compacta da névoa e dos terrenos visíveis na grade atual. */
+/** Legenda compacta da névoa, dos postos avançados e dos terrenos visíveis na grade atual. */
 function MapLegend(props: { hexes: readonly MapHex[] }) {
   const terrains = visibleLegendTerrains(props.hexes);
+  const hasOutposts = outpostsOf({ hexes: [...props.hexes] }).length > 0;
   return (
     <section class="map-legend" aria-label="Legenda do mapa">
       <div class="map-legend-group">
@@ -201,6 +275,20 @@ function MapLegend(props: { hexes: readonly MapHex[] }) {
           ))}
         </ul>
       </div>
+      {!hasOutposts ? null : (
+        <div class="map-legend-group">
+          <span class="map-legend-heading">Postos avançados</span>
+          <ul class="map-legend-list">
+            {OUTPOST_STATUSES.map((status) => (
+              <li key={status} class="map-legend-item">
+                <span class={`map-outpost-badge map-outpost-badge-${status}`}>
+                  <Icon name={OUTPOST_STATUS_ICONS[status]} /> {OUTPOST_STATUS_LABELS[status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {terrains.length === 0 ? null : (
         <div class="map-legend-group">
           <span class="map-legend-heading">Terrenos visíveis</span>
@@ -288,6 +376,7 @@ export function MapTab(props: {
                 <HexSheet
                   hex={selectedHex}
                   view={view}
+                  elapsed={elapsed}
                   activeThreats={threats}
                   disabled={disabled}
                   busy={props.busy}

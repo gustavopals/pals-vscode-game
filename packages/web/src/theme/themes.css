@@ -112,6 +112,9 @@
   --vscode-map-terrain-ruins: #3d334c;
   --vscode-map-terrain-ironVein: #373f4a;
   --vscode-map-terrain-sanctuary: #52421d;
+  --vscode-map-outpost-building: #26466d;
+  --vscode-map-outpost-active: #5c4518;
+  --vscode-map-outpost-damaged: #6b2424;
 }
 
 :root[data-theme='light'] {
@@ -214,6 +217,9 @@
   --vscode-map-terrain-ruins: #dfd6ea;
   --vscode-map-terrain-ironVein: #d6dce3;
   --vscode-map-terrain-sanctuary: #f2e3b8;
+  --vscode-map-outpost-building: #cfe2f7;
+  --vscode-map-outpost-active: #f2e2b8;
+  --vscode-map-outpost-damaged: #f7d4d0;
 }
 
 :root[data-theme='high-contrast'] {
@@ -316,4 +322,7 @@
   --vscode-map-terrain-ruins: #221433;
   --vscode-map-terrain-ironVein: #1a222b;
   --vscode-map-terrain-sanctuary: #2e2200;
+  --vscode-map-outpost-building: #0a2a4a;
+  --vscode-map-outpost-active: #2e1f00;
+  --vscode-map-outpost-damaged: #4a0e0e;
 }

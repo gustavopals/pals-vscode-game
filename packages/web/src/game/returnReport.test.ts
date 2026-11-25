@@ -1369,4 +1369,82 @@ describe('o Relatório de Retorno com a Guilda e o Mercado (roadmap da v0.3, V3F
       expect(blocks.prospered).toEqual([]);
     });
   });
+
+  describe('os postos avançados no Relatório de Retorno (V5F-T3)', () => {
+    const outpostEvent = (
+      type: 'outpostClaimed' | 'outpostDamaged' | 'outpostRepaired',
+      text: string,
+      data: GameEvent['data'] = {},
+    ) => event(type as GameEvent['type'], text, data);
+
+    const viewWithDamagedOutpost: ViewState = {
+      ...guildView,
+      map: {
+        radius: guildView.map.radius,
+        hexes: guildView.map.hexes.map((hex) =>
+          hex.q === -3 && hex.r === 0
+            ? {
+                q: -3,
+                r: 0,
+                fog: 'claimed' as const,
+                terrain: 'ironVein' as const,
+                terrainLabel: 'Veio de Ferro',
+                site: 'abandonedMine' as const,
+                label: 'Mina Abandonada',
+                detail: 'Veios de ferro afloram na rocha.',
+                outpost: { id: 'outpost-1', status: 'damaged' as const, readyInSeconds: 0 },
+                actions: [
+                  { type: 'repairOutpost', outpostId: 'outpost-1' },
+                ] as unknown as ViewState['map']['hexes'][number] extends { actions: infer A }
+                  ? A
+                  : never,
+              }
+            : hex,
+        ),
+      },
+    };
+
+    it('outpostClaimed e outpostRepaired entram em "O feudo prosperou"; outpostDamaged entra em "O que exigiu um preço"', () => {
+      const claimed = outpostEvent(
+        'outpostClaimed',
+        'Ergueu-se o posto avançado na Mina Abandonada: +3 de ferro/h.',
+        { outpostId: 'outpost-1', hex: '-3,0' },
+      );
+      const damaged = outpostEvent(
+        'outpostDamaged',
+        'A incursão danificou o posto avançado na Mina Abandonada.',
+        { outpostId: 'outpost-1', hex: '-3,0' },
+      );
+      const repaired = outpostEvent(
+        'outpostRepaired',
+        'Os carpinteiros repararam o posto avançado na Mina Abandonada.',
+        { outpostId: 'outpost-1', hex: '-3,0' },
+      );
+
+      const blocks = blocksOf(guildView, viewWithDamagedOutpost, [claimed, damaged, repaired]);
+      expect(blocks.prospered).toEqual([
+        { text: claimed.text, topic: 'outpost' },
+        { text: repaired.text, topic: 'outpost' },
+      ]);
+      expect(blocks.cost).toEqual([
+        {
+          text: damaged.text,
+          topic: 'outpost',
+          severity: 'warning',
+          action: {
+            command: 'lords.repairOutpost',
+            arg: 'outpost-1',
+            label: 'Reparar posto',
+          },
+        },
+      ]);
+
+      // Quando não há reparo liberado na visão, a ação leva à aba Mapa.
+      expect(costAction(guildView, 'outpost')).toEqual({
+        command: 'lords.openPanel',
+        arg: 'map',
+        label: 'Ver o mapa',
+      });
+    });
+  });
 });

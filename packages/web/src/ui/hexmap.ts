@@ -1,10 +1,16 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { formatRemaining, remainingNow } from './format';
+
 export type MapView = ViewState['map'];
 export type MapHex = MapView['hexes'][number];
 export type SightedMapHex = Extract<MapHex, { fog: 'sighted' }>;
 export type ExploredMapHex = Extract<MapHex, { fog: 'explored' | 'claimed' }>;
-export type MapAction = ExploredMapHex['actions'][number];
+// V5F-T2: ação de reparo de posto avançado declarada localmente até a junção no protocolo.
+export type RepairOutpostAction = { readonly type: 'repairOutpost'; readonly outpostId: string };
+export type MapAction = ExploredMapHex['actions'][number] | RepairOutpostAction;
+export type MapOutpost = NonNullable<ExploredMapHex['outpost']>;
+export type OutpostStatus = MapOutpost['status'];
 export type MapTerrain = SightedMapHex['terrain'];
 export type FogState = 'unknown' | 'sighted' | 'explored' | 'claimed';
 
@@ -21,12 +27,15 @@ export type HexBounds = {
 export const HEX_SIZE = 32;
 /** Raio do polígono desenhado: pequena folga para manter as bordas nítidas entre vizinhos. */
 export const HEX_DRAW_RADIUS = 30.5;
+/** Raio da insígnia interna que marca um hexágono com posto avançado no SVG. */
+export const HEX_OUTPOST_CREST_RADIUS = 19.5;
 /** Margem do `viewBox` ao redor dos vértices externos para o foco não cortar. */
 export const HEX_PADDING = 14;
 /** Caixa do ícone Codicon no centro do hexágono. */
 export const HEX_ICON_SIZE = 22;
 
 export const MAP_ICON = 'map';
+export const OUTPOST_NODE = 'outpost:';
 
 export const FOG_STATES: readonly FogState[] = ['unknown', 'sighted', 'explored', 'claimed'];
 
@@ -35,6 +44,20 @@ export const FOG_LABELS: Readonly<Record<FogState, string>> = {
   sighted: 'Avistado',
   explored: 'Explorado',
   claimed: 'Reivindicado',
+};
+
+export const OUTPOST_STATUSES: readonly OutpostStatus[] = ['building', 'active', 'damaged'];
+
+export const OUTPOST_STATUS_LABELS: Readonly<Record<OutpostStatus, string>> = {
+  building: 'Em obra',
+  active: 'Ativo',
+  damaged: 'Danificado',
+};
+
+export const OUTPOST_STATUS_ICONS: Readonly<Record<OutpostStatus, string>> = {
+  building: 'tools',
+  active: 'flag',
+  damaged: 'warning',
 };
 
 /** Ícone Codicon por terreno, usado na ficha, na legenda e nos hexágonos sem marcador próprio. */
@@ -84,6 +107,93 @@ export function isSightedHex(hex: MapHex): hex is SightedMapHex {
 
 export function isExploredHex(hex: MapHex): hex is ExploredMapHex {
   return 'fog' in hex && (hex.fog === 'explored' || hex.fog === 'claimed');
+}
+
+export function hexOutpost(hex: MapHex): MapOutpost | null {
+  return isExploredHex(hex) && hex.outpost !== undefined ? hex.outpost : null;
+}
+
+export function hexActions(hex: ExploredMapHex): readonly MapAction[] {
+  return hex.actions as readonly MapAction[];
+}
+
+/** Frase de estado de um posto avançado na ficha do hexágono e nas dicas da árvore. */
+export function outpostSheetLine(outpost: MapOutpost, elapsedSeconds = 0): string {
+  if (outpost.status === 'building') {
+    if (outpost.readyInSeconds === null) {
+      return 'Posto avançado: em obra';
+    }
+    const left = formatRemaining(remainingNow(outpost.readyInSeconds, elapsedSeconds));
+    return `Posto avançado: em obra · conclui em ${left}`;
+  }
+  if (outpost.status === 'damaged') {
+    return 'Posto avançado: danificado';
+  }
+  return 'Posto avançado: ativo';
+}
+
+/** Descrição curta de uma linha de posto avançado na árvore lateral. */
+export function outpostTreeDescription(outpost: MapOutpost, elapsedSeconds = 0): string {
+  if (outpost.status === 'building') {
+    if (outpost.readyInSeconds === null) {
+      return 'em obra';
+    }
+    return `em obra · ${formatRemaining(remainingNow(outpost.readyInSeconds, elapsedSeconds))}`;
+  }
+  if (outpost.status === 'damaged') {
+    return '⚠ danificado';
+  }
+  return 'ativo';
+}
+
+export type OutpostEntry = {
+  readonly hex: ExploredMapHex;
+  readonly outpost: MapOutpost;
+  readonly canRepair: boolean;
+};
+
+/** Todos os postos avançados presentes na visão do mapa, na ordem dos hexágonos. */
+export function outpostsOf(map: Pick<MapView, 'hexes'>): OutpostEntry[] {
+  const entries: OutpostEntry[] = [];
+  for (const hex of map.hexes) {
+    if (isExploredHex(hex) && hex.outpost !== undefined) {
+      const { outpost } = hex;
+      const canRepair = hexActions(hex).some(
+        (action) => action.type === 'repairOutpost' && action.outpostId === outpost.id,
+      );
+      entries.push({ hex, outpost, canRepair });
+    }
+  }
+  return entries;
+}
+
+/** Hexágonos explorados que oferecem a ação `claimOutpost` na visão atual. */
+export function claimableHexes(map: Pick<MapView, 'hexes'>): ExploredMapHex[] {
+  return map.hexes.filter(
+    (hex): hex is ExploredMapHex =>
+      isExploredHex(hex) && hexActions(hex).some((action) => action.type === 'claimOutpost'),
+  );
+}
+
+export type RepairableOutpost = {
+  readonly hex: ExploredMapHex;
+  readonly outpostId: string;
+};
+
+/** Postos avançados danificados cujo hexágono oferece a ação `repairOutpost` na visão atual. */
+export function repairableOutposts(map: Pick<MapView, 'hexes'>): RepairableOutpost[] {
+  const result: RepairableOutpost[] = [];
+  for (const hex of map.hexes) {
+    if (!isExploredHex(hex)) {
+      continue;
+    }
+    for (const action of hexActions(hex)) {
+      if (action.type === 'repairOutpost') {
+        result.push({ hex, outpostId: action.outpostId });
+      }
+    }
+  }
+  return result;
 }
 
 /**
@@ -178,16 +288,20 @@ export function hexIcon(hex: MapHex, activeThreats?: ReadonlySet<string>): strin
   if (isSightedHex(hex)) {
     return TERRAIN_ICONS[hex.terrain];
   }
+  if (hex.outpost !== undefined) {
+    return OUTPOST_STATUS_ICONS[hex.outpost.status];
+  }
   if (hex.fog === 'claimed') {
     return 'flag';
   }
   if (isHomeHex(hex)) {
     return 'home';
   }
-  if (hex.actions.some((action) => action.type === 'attackCamp')) {
+  const actions = hexActions(hex);
+  if (actions.some((action) => action.type === 'attackCamp')) {
     return 'target';
   }
-  if (hex.actions.some((action) => action.type === 'sendExpedition')) {
+  if (actions.some((action) => action.type === 'sendExpedition')) {
     return 'compass';
   }
   if (hex.site !== null && activeThreats?.has(hex.site) === true) {
@@ -220,10 +334,14 @@ export function hexAccessibleLabel(hex: MapHex): string {
     return `Hexágono ${coords}: ${hex.terrainLabel}, ${FOG_LABELS.sighted}`;
   }
   const fogLabel = FOG_LABELS[hex.fog];
+  const outpostSuffix =
+    hex.outpost === undefined
+      ? ''
+      : `, Posto avançado (${OUTPOST_STATUS_LABELS[hex.outpost.status].toLowerCase()})`;
   if (hex.label !== hex.terrainLabel) {
-    return `${hex.label} (${hex.terrainLabel}), ${fogLabel} ${coords}`;
+    return `${hex.label} (${hex.terrainLabel}), ${fogLabel} ${coords}${outpostSuffix}`;
   }
-  return `${hex.label}, ${fogLabel} ${coords}`;
+  return `${hex.label}, ${fogLabel} ${coords}${outpostSuffix}`;
 }
 
 /** Hexágono focado inicialmente ao abrir a aba: o feudo `(0, 0)` quando presente. */
@@ -276,9 +394,15 @@ export function mapTreeLine(map: MapView): string {
   }
   const counts = mapSummary(map);
   const revealed = counts.explored + counts.claimed;
+  const outposts = outpostsOf(map);
+  const damaged = outposts.filter((entry) => entry.outpost.status === 'damaged').length;
   const parts = [
     `${revealed} ${revealed === 1 ? 'explorado' : 'explorados'}`,
     `${counts.sighted} ${counts.sighted === 1 ? 'avistado' : 'avistados'}`,
+    ...(outposts.length > 0
+      ? [`${outposts.length} ${outposts.length === 1 ? 'posto' : 'postos'}`]
+      : []),
+    ...(damaged > 0 ? [damaged === 1 ? '⚠ 1 danificado' : `⚠ ${damaged} danificados`] : []),
   ];
   return parts.join(' · ');
 }
@@ -297,7 +421,18 @@ export function mapTreeTooltip(map: MapView): string {
       `${FOG_LABELS.unknown}: ${counts.unknown}`,
     ].join(' · '),
   ];
-  const actionable = map.hexes.filter((hex) => isExploredHex(hex) && hex.actions.length > 0);
+  const outposts = outpostsOf(map);
+  if (outposts.length > 0) {
+    lines.push(
+      `Postos avançados: ${outposts
+        .map(
+          ({ hex, outpost }) =>
+            `${hex.label} (${hex.q}, ${hex.r}): ${OUTPOST_STATUS_LABELS[outpost.status].toLowerCase()}`,
+        )
+        .join('; ')}.`,
+    );
+  }
+  const actionable = map.hexes.filter((hex) => isExploredHex(hex) && hexActions(hex).length > 0);
   if (actionable.length > 0) {
     lines.push(
       `Ações no mapa: ${actionable.map((hex) => (isExploredHex(hex) ? hex.label : '')).join(', ')}.`,

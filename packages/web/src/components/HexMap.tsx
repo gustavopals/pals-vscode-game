@@ -5,10 +5,13 @@ import {
   defaultHexKey,
   HEX_DRAW_RADIUS,
   HEX_ICON_SIZE,
+  HEX_OUTPOST_CREST_RADIUS,
   hexAccessibleLabel,
+  hexActions,
   hexFog,
   hexIcon,
   hexKey,
+  hexOutpost,
   hexPointsAttr,
   hexTerrain,
   isExploredHex,
@@ -27,6 +30,7 @@ const ACTION_DOT_RADIUS = 3.5;
 function hexClasses(hex: MapHex, selected: boolean): string {
   const fog = hexFog(hex);
   const terrain = hexTerrain(hex);
+  const outpost = hexOutpost(hex);
   const classes = ['hex-cell', `hex-fog-${fog}`];
   if (terrain !== null) {
     classes.push(`hex-terrain-${terrain}`);
@@ -34,7 +38,10 @@ function hexClasses(hex: MapHex, selected: boolean): string {
   if (isHomeHex(hex)) {
     classes.push('hex-home');
   }
-  if (isExploredHex(hex) && hex.actions.length > 0) {
+  if (outpost !== null) {
+    classes.push('hex-outpost', `hex-outpost-${outpost.status}`);
+  }
+  if (isExploredHex(hex) && hexActions(hex).length > 0) {
     classes.push('hex-actionable');
   }
   if (selected) {
@@ -113,9 +120,10 @@ export function HexMap(props: {
           const selected = key === activeKey;
           const fog = hexFog(hex);
           const terrain = hexTerrain(hex);
+          const outpost = hexOutpost(hex);
           const center = axialToPixel(hex.q, hex.r);
           const icon = hexIcon(hex, activeThreats);
-          const hasActions = isExploredHex(hex) && hex.actions.length > 0;
+          const hasActions = isExploredHex(hex) && hexActions(hex).length > 0;
           return (
             <g
               key={key}
@@ -127,6 +135,7 @@ export function HexMap(props: {
               data-hex={key}
               data-fog={fog}
               data-terrain={terrain ?? undefined}
+              data-outpost={outpost?.status}
               onClick={(event) => {
                 props.onSelect(key);
                 (event.currentTarget as SVGGElement).focus();
@@ -139,6 +148,14 @@ export function HexMap(props: {
               onKeyDown={onKeyDown(hex)}
             >
               <polygon class="hex-poly" points={hexPointsAttr(center, HEX_DRAW_RADIUS)} />
+              {outpost === null ? null : (
+                <polygon
+                  class={`hex-outpost-crest hex-outpost-crest-${outpost.status}`}
+                  points={hexPointsAttr(center, HEX_OUTPOST_CREST_RADIUS)}
+                  data-outpost-mark={outpost.status}
+                  aria-hidden="true"
+                />
+              )}
               {icon === null ? null : (
                 <foreignObject
                   class="hex-icon-box"
